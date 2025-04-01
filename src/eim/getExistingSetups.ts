@@ -31,19 +31,33 @@ export async function getIdfSetups() {
   const workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
     ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
   );
-  const customVars = readParameter("idf.customExtraVars", workspaceFolderUri) as {
+  const customVars = readParameter(
+    "idf.customExtraVars",
+    workspaceFolderUri
+  ) as {
     [key: string]: string;
   };
   const eimIDFSetups = await loadIdfSetupsFromEimIdfJson();
   let resultingIdfSetups = eimIDFSetups;
   if (customVars["IDF_TOOLS_PATH"]) {
-    const espIdfCustomVarsJsonSetups = await loadIdfSetupsFromEspIdfJson(customVars["IDF_TOOLS_PATH"]);
+    const espIdfCustomVarsJsonSetups = await loadIdfSetupsFromEspIdfJson(
+      customVars["IDF_TOOLS_PATH"]
+    );
     resultingIdfSetups = resultingIdfSetups.concat(espIdfCustomVarsJsonSetups);
   }
   if (process.env.IDF_TOOLS_PATH) {
-    const espIdfSysJsonSetups = await loadIdfSetupsFromEspIdfJson(process.env["IDF_TOOLS_PATH"]);
+    const espIdfSysJsonSetups = await loadIdfSetupsFromEspIdfJson(
+      process.env["IDF_TOOLS_PATH"]
+    );
     resultingIdfSetups = resultingIdfSetups.concat(espIdfSysJsonSetups);
   }
+  const containerPath =
+    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+  const defaultIdfToolsPath = join(containerPath, ".espressif");
+  const espIdfSysJsonSetups = await loadIdfSetupsFromEspIdfJson(
+    defaultIdfToolsPath
+  );
+  resultingIdfSetups = resultingIdfSetups.concat(espIdfSysJsonSetups);
   return resultingIdfSetups;
 }
 
