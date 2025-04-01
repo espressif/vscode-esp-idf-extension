@@ -480,12 +480,6 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  projectConfigManager = new ProjectConfigurationManager(
-    workspaceRoot,
-    context,
-    statusBarItems
-  );
-
   context.subscriptions.push(projectConfigManager);
 
   vscode.debug.onDidTerminateDebugSession((e) => {
@@ -1177,24 +1171,6 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     });
   });
-
-  const projectConfCommandDisposable = vscode.commands.registerCommand(
-    "espIdf.projectConf",
-    async () => {
-      PreCheck.perform([openFolderCheck], async () => {
-        if (projectConfigManager) {
-          await projectConfigManager.selectProjectConfiguration();
-        } else {
-          vscode.window.showErrorMessage(
-            "Project Configuration Manager not initialized."
-          );
-        }
-      });
-    }
-  );
-
-  // Add the disposable to context subscriptions
-  context.subscriptions.push(projectConfCommandDisposable);
 
   vscode.workspace.onDidChangeConfiguration(async (e) => {
     const winFlag = process.platform === "win32" ? "Win" : "";
@@ -3727,6 +3703,30 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Remove ESP-IDF settings
   registerIDFCommand("espIdf.removeEspIdfSettings", asyncRemoveEspIdfSettings);
+
+  projectConfigManager = new ProjectConfigurationManager(
+    workspaceRoot,
+    context,
+    statusBarItems
+  );
+
+  const projectConfCommandDisposable = vscode.commands.registerCommand(
+    "espIdf.projectConf",
+    async () => {
+      PreCheck.perform([openFolderCheck], async () => {
+        if (projectConfigManager) {
+          await projectConfigManager.selectProjectConfiguration();
+        } else {
+          vscode.window.showErrorMessage(
+            "Project Configuration Manager not initialized."
+          );
+        }
+      });
+    }
+  );
+
+  // Add the disposable to context subscriptions
+  context.subscriptions.push(projectConfCommandDisposable);
 }
 
 function checkAndNotifyMissingCompileCommands() {
