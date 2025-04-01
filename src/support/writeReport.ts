@@ -210,6 +210,24 @@ export async function writeTextReport(
     output += JSON.stringify(reportedResult.latestError, undefined, 2) + EOL;
   }
   output += lineBreak;
+  if (reportedResult.espIdfSetups) {
+    output += `---------------------------------------------------- ESP-IDF Setups ----------------------------------------------${EOL}`;
+    for (const idfSetup of reportedResult.espIdfSetups) {
+      output += `ESP-IDF setup IDF PATH: ${idfSetup.idfPath}${EOL}`;
+      output += `------- git path: ${idfSetup.gitPath}${EOL}`;
+      output += `------- IDF_TOOLS_PATH: ${idfSetup.toolsPath}${EOL}`;
+      output += `------- version: ${idfSetup.version}${EOL}`;
+      output += `------- python path: ${idfSetup.python}${EOL}`;
+      if (idfSetup.sysPythonPath) {
+        output += `------- system python path: ${idfSetup.sysPythonPath}${EOL}`;
+      }
+      if (idfSetup.activationScript) {
+        output += `------- activation script path: ${idfSetup.sysPythonPath}${EOL}`;
+      }
+      output += `------- is valid? ${idfSetup.isValid}${EOL}`;
+      output += `--------------------------------------------------------${EOL}`;
+    }
+  }
   const logFile = join(context.extensionPath, "esp_idf_vsc_ext.log");
   const logFileExists = await pathExists(logFile);
   if (logFileExists) {
