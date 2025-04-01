@@ -94,6 +94,9 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
 }
 
 function getIdfMd5sum(idfPath: string) {
+  if (!idfPath) {
+    return "";
+  }
   const md5Value = createHash("md5")
     .update(idfPath.replace(/\\/g, "/"))
     .digest("hex");

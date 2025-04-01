@@ -58,9 +58,11 @@ export async function getIdfPythonEnvPath(
 ) {
   const pythonCode = `import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))`;
   const args = ["-c", pythonCode];
-  const pythonVersion = (
-    await execChildProcess(pythonBin, args, espIdfDir)
-  ).replace(/(\n|\r|\r\n)/gm, "");
+  const rawPythonVersion = await execChildProcess(pythonBin, args, espIdfDir);
+  if (!rawPythonVersion) {
+    throw new Error("Failed to retrieve Python version. The result is empty.");
+  }
+  const pythonVersion = rawPythonVersion.replace(/(\n|\r|\r\n)/gm, "");
   const fullEspIdfVersion = await getEspIdfFromCMake(espIdfDir);
   const majorMinorMatches = fullEspIdfVersion.match(/([0-9]+\.[0-9]+).*/);
   const espIdfVersion =

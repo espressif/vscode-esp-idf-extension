@@ -35,6 +35,7 @@ import {
   getProjectConfigurations,
   getSelectedProjectConfiguration,
 } from "./projectConfiguration";
+import { checkIDFSetups } from "./checkIdfSetups";
 
 export async function generateConfigurationReport(
   context: vscode.ExtensionContext,
@@ -56,6 +57,7 @@ export async function generateConfigurationReport(
   await checkCCppPropertiesJson(reportedResult, currentWorkspace);
   getProjectConfigurations(reportedResult);
   getSelectedProjectConfiguration(reportedResult);
+  await checkIDFSetups(reportedResult);
   const reportOutput = await writeTextReport(reportedResult, context);
   await vscode.env.clipboard.writeText(reportOutput);
   reportedResult.formatedOutput = reportOutput;
