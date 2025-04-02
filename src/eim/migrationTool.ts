@@ -144,12 +144,12 @@ export async function getEnvVariablesFromIdfSetup(idfSetup: IdfSetup) {
 
 export async function loadIdfSetupsFromEspIdfJson(toolsPath: string) {
   const espIdfJson = await loadEspIdfJson(toolsPath);
+  let idfSetups: IdfSetup[] = [];
   if (
     espIdfJson &&
     espIdfJson.idfInstalled &&
     Object.keys(espIdfJson.idfInstalled).length
   ) {
-    let idfSetups: IdfSetup[] = [];
     for (let idfInstalledKey of Object.keys(espIdfJson.idfInstalled)) {
       let setupConf: IdfSetup = {
         id: idfInstalledKey,
@@ -171,8 +171,8 @@ export async function loadIdfSetupsFromEspIdfJson(toolsPath: string) {
       }
       idfSetups.push(setupConf);
     }
-    return idfSetups;
   }
+  return idfSetups;
 }
 
 export interface EspIdfJson {

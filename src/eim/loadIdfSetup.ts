@@ -113,7 +113,9 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
   const defaultIdfToolsPath = join(containerPath, ".espressif");
   const idfToolsPath =
-    process.env.IDF_TOOLS_PATH || customVars["IDF_TOOLS_PATH"] || defaultIdfToolsPath;
+    process.env.IDF_TOOLS_PATH ||
+    customVars["IDF_TOOLS_PATH"] ||
+    defaultIdfToolsPath;
   const gitPath = "/usr/bin/git";
   const idfSetupId = getIdfMd5sum(idfPath);
   const idfVersion = await getEspIdfFromCMake(idfPath);
@@ -121,10 +123,13 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
       : ["bin", "python3"];
-  const venvPythonPath = join(
-    process.env.IDF_PYTHON_ENV_PATH || customVars["IDF_PYTHON_ENV_PATH"],
-    ...pyDir
-  );
+  let venvPythonPath = "";
+  if (process.env.IDF_PYTHON_ENV_PATH || customVars["IDF_PYTHON_ENV_PATH"]) {
+    venvPythonPath = join(
+      process.env.IDF_PYTHON_ENV_PATH || customVars["IDF_PYTHON_ENV_PATH"],
+      ...pyDir
+    );
+  }
   const envDefinedIdfSetup: IdfSetup = {
     id: idfSetupId,
     activationScript: "",
