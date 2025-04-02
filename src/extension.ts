@@ -3893,9 +3893,13 @@ async function getFrameworksPickItems() {
       );
       existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
     }
-    const onlyValidIdfSetups = [...idfSetups, ...existingIdfSetups].filter(
-      (i) => i.isValid
-    );
+    const onlyValidIdfSetups = [
+      ...new Map(
+        [...idfSetups, ...existingIdfSetups]
+          .filter((i) => i.isValid)
+          .map((item) => [item.idfPath, item])
+      ).values(),
+    ];
     const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
     for (const idfSetup of onlyValidIdfSetups) {
       pickItems.push({
