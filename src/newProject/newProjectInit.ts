@@ -78,7 +78,13 @@ export async function getNewProjectArgs(
     );
     existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
   }
-  const onlyValidIdfSetups = [...idfSetups, ...existingIdfSetups].filter((i) => i.isValid);
+  const onlyValidIdfSetups = [
+    ...new Map(
+    [...idfSetups, ...existingIdfSetups]
+      .filter((i) => i.isValid)
+      .map((item) => [item.idfPath, item])
+    ).values(),
+  ];
   const pickItems: {
     description: string;
     label: string;
