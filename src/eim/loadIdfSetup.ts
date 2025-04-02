@@ -45,25 +45,28 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
   );
 
   let idfSetupToUse: IdfSetup;
-  if (currentIdfConfigurationName) {
-    idfSetupToUse = idfSetups.find((idfSetup) => {
-      return (idfSetup.id = currentIdfConfigurationName);
-    });
-  } else {
-    idfSetupToUse = idfSetups[0];
-    await writeParameter(
-      "idf.currentSetup",
-      idfSetupToUse.idfPath,
-      ConfigurationTarget.WorkspaceFolder,
-      workspaceFolder
-    );
+  if (idfSetups.length > 0) {
+    if (currentIdfConfigurationName) {
+      idfSetupToUse = idfSetups.find((idfSetup) => {
+        return (idfSetup.id = currentIdfConfigurationName);
+      });
+    } else {
+      idfSetupToUse = idfSetups[0];
+      await writeParameter(
+        "idf.currentSetup",
+        idfSetupToUse.idfPath,
+        ConfigurationTarget.WorkspaceFolder,
+        workspaceFolder
+      );
+    }
   }
-  const openESPIDFManager = l10n.t(
-    "Open ESP-IDF Installation Manager"
-  ) as string;
 
   if (!idfSetupToUse) {
     Logger.infoNotify("Current ESP-IDF setup is not found.");
+
+    const openESPIDFManager = l10n.t(
+      "Open ESP-IDF Installation Manager"
+    ) as string;
     const action = await window.showInformationMessage(
       l10n.t("The extension configuration is not valid. Choose an action:"),
       openESPIDFManager
