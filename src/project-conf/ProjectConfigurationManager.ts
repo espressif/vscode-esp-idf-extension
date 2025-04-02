@@ -1,13 +1,12 @@
-// ProjectConfigurationManager.ts
 import * as vscode from "vscode";
-import * as utils from "../utils"; // Adjust import path as needed
-import { ESP } from "../config"; // Adjust import path as needed
-import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess"; // Adjust import path as needed
-import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore"; // Adjust import path as needed
-import { createStatusBarItem } from "../statusBar"; // Adjust import path as needed
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig"; // Adjust import path as needed
-import { Logger } from "../logger/logger"; // Adjust import path as needed
-import { getProjectConfigurationElements } from "./index"; // Adjust import path as needed
+import * as utils from "../utils";
+import { ESP } from "../config";
+import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
+import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
+import { createStatusBarItem } from "../statusBar";
+import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { Logger } from "../logger/logger";
+import { getProjectConfigurationElements } from "./index";
 
 export class ProjectConfigurationManager {
   private readonly configFilePath: string;
@@ -159,18 +158,21 @@ export class ProjectConfigurationManager {
           configData[currentSelectedConfig]
         );
       } else {
-        this.setInvalidConfigurationStatus();
+        // "Not Selected" state, not necessarily "Invalid"
+        this.setConfigurationStatus(false, false);
       }
     } catch (error) {
       vscode.window.showErrorMessage(
         `Error parsing config file: ${error.message}`
       );
+      this.setConfigurationStatus(false, true);
     }
   }
 
   private async handleConfigFileDelete(): Promise<void> {
-    // When the config file is deleted, we should show an invalid configuration
-    this.setInvalidConfigurationStatus();
+    // When the config file is deleted, we clear configurations and show a "No Configuration" status
+    this.configVersions = [];
+    this.setConfigurationStatus(false, false);
   }
 
   private async handleConfigFileCreate(): Promise<void> {
@@ -201,20 +203,35 @@ export class ProjectConfigurationManager {
           );
         }
       } else {
-        this.setInvalidConfigurationStatus();
+        this.setConfigurationStatus(false, false);
       }
     } catch (error) {
       vscode.window.showErrorMessage(
         `Error parsing newly created config file: ${error.message}`
       );
-      this.setInvalidConfigurationStatus();
+      this.setConfigurationStatus(false, true);
     }
   }
 
-  private setInvalidConfigurationStatus(): void {
-    const statusBarItemName = "Invalid Configuration";
-    const statusBarItemTooltip =
-      "Invalid configuration path. Click to modify project configuration";
+  /**
+   * Sets the configuration status in the status bar
+   * @param isSelected Whether a configuration is selected
+   * @param isInvalid Whether the configuration is invalid
+   */
+  private setConfigurationStatus(isSelected: boolean, isInvalid: boolean): void {
+    let statusBarItemName: string;
+    let statusBarItemTooltip: string;
+    let commandToUse: string;
+
+    if (isInvalid) {
+      statusBarItemName = "Invalid Configuration";
+      statusBarItemTooltip = "Invalid configuration. Click to modify project configuration";
+      commandToUse = "espIdf.projectConfigurationEditor";
+    } else if (!isSelected) {
+      statusBarItemName = "No Configuration Selected";
+      statusBarItemTooltip = "No project configuration selected. Click to select one";
+      commandToUse = "espIdf.projectConf";
+    }
 
     if (this.statusBarItems["projectConf"]) {
       this.statusBarItems["projectConf"].dispose();
@@ -225,7 +242,7 @@ export class ProjectConfigurationManager {
         this.commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
       }) ${statusBarItemName}`,
       statusBarItemTooltip,
-      "espIdf.projectConf",
+      commandToUse,
       99,
       this.commandDictionary[CommandKeys.SelectProjectConfiguration]
         .checkboxState
