@@ -823,6 +823,11 @@ export function getSubProjects(dir: string): string[] {
 }
 
 export async function getEspIdfFromCMake(espIdfPath: string) {
+  const doesIdfPathExists = await pathExists(espIdfPath);
+  if (!doesIdfPathExists) {
+    Logger.info(`${espIdfPath} does not exist to get ESP-IDF version.`);
+    return "x.x";
+  }
   const versionFilePath = path.join(
     espIdfPath,
     "tools",
