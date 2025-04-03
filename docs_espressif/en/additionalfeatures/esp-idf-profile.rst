@@ -13,7 +13,7 @@ What is an ESP-IDF Profile?
 An ESP-IDF profile is a collection of VS Code extensions, settings, and configurations specifically tailored for ESP-IDF development. Using this profile ensures that you have all the necessary tools for efficient ESP-IDF development without having to manually install and configure each extension.
 
 Included Extensions
-------------------
+-------------------
 
 The ESP-IDF profile includes:
 
@@ -24,7 +24,7 @@ The ESP-IDF profile includes:
   * CMake Tools: For CMake project support
 
 How to Import the ESP-IDF Profile
---------------------------------
+---------------------------------
 
 1. Download the ESP-IDF profile from one of these sources:
 
@@ -44,13 +44,13 @@ How to Import the ESP-IDF Profile
    - Alternatively, go to **File** > **Preferences** > **Profiles** and select the "ESP-IDF" profile
 
 Benefits of Using the ESP-IDF Profile
-------------------------------------
+-------------------------------------
 
 - **Simplified Setup**: No need to manually install and configure multiple extensions
 - **Consistent Environment**: Ensures all team members have the same clean development environment
 - **Improved Performance**: Only the necessary extensions are loaded, reducing VS Code startup time and resource usage
 
 Updating the Profile
-------------------
+--------------------
 
 The ESP-IDF profile will be periodically updated with new extensions and improved settings. To update your profile download the latest version from the links above and import it manually
