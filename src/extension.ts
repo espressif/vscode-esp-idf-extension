@@ -2204,10 +2204,9 @@ export async function activate(context: vscode.ExtensionContext) {
             progress,
             workspaceRoot
           );
-          if (!newProjectArgs || !newProjectArgs.boards) {
-            throw new Error("Could not get ESP-IDF: New project arguments");
+          if (newProjectArgs) {
+            NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
           }
-          NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
         } catch (error) {
           Logger.errorNotify(error.message, error, "extension newProject");
         }
