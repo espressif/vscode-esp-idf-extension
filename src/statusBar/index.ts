@@ -127,21 +127,23 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     }
   }
 
-  if (projectConfExists) {
+   // Only create the project configuration status bar item if the configuration file exists
+   if (projectConfExists) {
     if (!projectConf) {
-      let statusBarItemName = "Invalid Path";
-      let statusBarItemTooltip =
-        "Invalid configuration path. Click to modify project configuration";
+      // No configuration selected but file exists with configurations
+      let statusBarItemName = "No Configuration Selected";
+      let statusBarItemTooltip = "No project configuration selected. Click to select one";
       statusBarItems["projectConf"] = createStatusBarItem(
         `$(${
           commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
         }) ${statusBarItemName}`,
         statusBarItemTooltip,
-        "espIdf.projectConfigurationEditor",
+        CommandKeys.SelectProjectConfiguration,
         99,
         commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
       );
     } else {
+      // Valid configuration is selected
       statusBarItems["projectConf"] = createStatusBarItem(
         `$(${
           commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
@@ -152,6 +154,10 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
         commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
       );
     }
+  } else if (statusBarItems["projectConf"]) {
+    // If the configuration file doesn't exist but the status bar item does, remove it
+    statusBarItems["projectConf"].dispose();
+    statusBarItems["projectConf"] = undefined;
   }
 
   statusBarItems["target"] = createStatusBarItem(

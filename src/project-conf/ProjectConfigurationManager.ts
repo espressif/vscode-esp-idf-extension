@@ -45,11 +45,29 @@ export class ProjectConfigurationManager {
 
   private initialize(): void {
     if (!utils.fileExists(this.configFilePath)) {
-      // File doesn't exist - this is expected, so initialize cleanly.
+      // File doesn't exist - this is normal for projects without multiple configurations
       this.configVersions = [];
+      
+      // If configuration status bar item exists, remove it
+      if (this.statusBarItems["projectConf"]) {
+        this.statusBarItems["projectConf"].dispose();
+        this.statusBarItems["projectConf"] = undefined;
+      }
+      
+      // Clear any potentially stale configuration
+      const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
+        ESP.ProjectConfiguration.SELECTED_CONFIG
+      );
+      if (currentSelectedConfig) {
+        ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
+        ESP.ProjectConfiguration.store.clear(
+          ESP.ProjectConfiguration.SELECTED_CONFIG
+        );
+      }
+      
       return;
     }
-    // File EXISTS, now try to read and parse it.
+    
     try {
       const configContent = utils.readFileSync(this.configFilePath);
 
@@ -64,18 +82,39 @@ export class ProjectConfigurationManager {
 
       const configData = JSON.parse(configContent);
       this.configVersions = Object.keys(configData);
+      
+      // Check if the currently selected configuration is valid
+      const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
+        ESP.ProjectConfiguration.SELECTED_CONFIG
+      );
 
-      // Show message only if configurations were successfully loaded
-      if (this.configVersions.length > 0) {
+      if (currentSelectedConfig && this.configVersions.includes(currentSelectedConfig)) {
+        // Current selection is valid, keep it
+        this.updateConfiguration(
+          currentSelectedConfig,
+          configData[currentSelectedConfig]
+        );
+      } else if (currentSelectedConfig) {
+        // Current selection is invalid, clear it
+        ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
+        ESP.ProjectConfiguration.store.clear(
+          ESP.ProjectConfiguration.SELECTED_CONFIG
+        );
+        this.setNoConfigurationSelectedStatus();
+      } else if (this.configVersions.length > 0) {
+        // No current selection but configurations exist
         vscode.window.showInformationMessage(
           `Loaded ${
             this.configVersions.length
           } project configuration(s): ${this.configVersions.join(", ")}`
         );
+        this.setNoConfigurationSelectedStatus();
       } else {
+        // Empty configuration file
         Logger.info(
           `Project configuration file loaded but contains no configurations: ${this.configFilePath}`
         );
+        this.setNoConfigurationSelectedStatus();
       }
     } catch (error) {
       vscode.window.showErrorMessage(
@@ -84,9 +123,10 @@ export class ProjectConfigurationManager {
       Logger.errorNotify(
         `Failed to parse project configuration file: ${this.configFilePath}`,
         error,
-        "ProjectConfigurationmanager initialize"
+        "ProjectConfigurationManager initialize"
       );
       this.configVersions = []; // Ensure clean state on error
+      this.setNoConfigurationSelectedStatus();
     }
   }
 
@@ -148,90 +188,111 @@ export class ProjectConfigurationManager {
         ESP.ProjectConfiguration.SELECTED_CONFIG
       );
 
-      // Update the configuration in store if it still exists
-      if (
-        currentSelectedConfig &&
-        currentVersions.includes(currentSelectedConfig)
-      ) {
+      // Handle the status based on whether current selection is valid
+      if (currentSelectedConfig && currentVersions.includes(currentSelectedConfig)) {
+        // Current selection is still valid
         await this.updateConfiguration(
-          currentSelectedConfig,
+          currentSelectedConfig, 
           configData[currentSelectedConfig]
         );
+      } else if (currentSelectedConfig) {
+        // Current selection no longer exists, clear it
+        ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
+        ESP.ProjectConfiguration.store.clear(
+          ESP.ProjectConfiguration.SELECTED_CONFIG
+        );
+        this.setNoConfigurationSelectedStatus();
       } else {
-        // "Not Selected" state, not necessarily "Invalid"
-        this.setConfigurationStatus(false, false);
+        // No configuration is selected
+        this.setNoConfigurationSelectedStatus();
       }
     } catch (error) {
       vscode.window.showErrorMessage(
         `Error parsing config file: ${error.message}`
       );
-      this.setConfigurationStatus(false, true);
+      this.setNoConfigurationSelectedStatus();
     }
   }
 
   private async handleConfigFileDelete(): Promise<void> {
-    // When the config file is deleted, we clear configurations and show a "No Configuration" status
+    // When the config file is deleted, clear all configurations
     this.configVersions = [];
-    this.setConfigurationStatus(false, false);
+    
+    // Clear any selected configuration
+    const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+    
+    if (currentSelectedConfig) {
+      ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
+      ESP.ProjectConfiguration.store.clear(
+        ESP.ProjectConfiguration.SELECTED_CONFIG
+      );
+    }
+    
+    // Remove the status bar item completely when the config file is deleted
+    if (this.statusBarItems["projectConf"]) {
+      this.statusBarItems["projectConf"].dispose();
+      this.statusBarItems["projectConf"] = undefined;
+    }
+    
+    // Optionally notify the user
+    vscode.window.showInformationMessage(
+      "Project configuration file has been deleted."
+    );
   }
 
   private async handleConfigFileCreate(): Promise<void> {
-    // When the config file is created, we should reload it
     try {
       const configData = JSON.parse(utils.readFileSync(this.configFilePath));
       this.configVersions = Object.keys(configData);
 
-      // If we have versions, select the first one or keep the previous selection if valid
+      // If we have versions, check if current selection is valid
       if (this.configVersions.length > 0) {
-        const currentSelectedConfig = ESP.ProjectConfiguration.store.get<
-          string
-        >(ESP.ProjectConfiguration.SELECTED_CONFIG);
+        const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
+          ESP.ProjectConfiguration.SELECTED_CONFIG
+        );
 
-        if (
-          currentSelectedConfig &&
-          this.configVersions.includes(currentSelectedConfig)
-        ) {
+        if (currentSelectedConfig && this.configVersions.includes(currentSelectedConfig)) {
+          // Current selection is valid
           await this.updateConfiguration(
             currentSelectedConfig,
             configData[currentSelectedConfig]
           );
         } else {
-          // Select first configuration if current selection is invalid
-          await this.updateConfiguration(
-            this.configVersions[0],
-            configData[this.configVersions[0]]
+          // No valid selection, show "No Configuration Selected"
+          if (currentSelectedConfig) {
+            ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
+            ESP.ProjectConfiguration.store.clear(
+              ESP.ProjectConfiguration.SELECTED_CONFIG
+            );
+          }
+          this.setNoConfigurationSelectedStatus();
+          
+          // Notify the user about available configurations
+          vscode.window.showInformationMessage(
+            `Project configuration file created with ${this.configVersions.length} configuration(s). Select one to use.`
           );
         }
       } else {
-        this.setConfigurationStatus(false, false);
+        // Empty configuration file
+        this.setNoConfigurationSelectedStatus();
       }
     } catch (error) {
       vscode.window.showErrorMessage(
         `Error parsing newly created config file: ${error.message}`
       );
-      this.setConfigurationStatus(false, true);
+      this.setNoConfigurationSelectedStatus();
     }
   }
 
   /**
-   * Sets the configuration status in the status bar
-   * @param isSelected Whether a configuration is selected
-   * @param isInvalid Whether the configuration is invalid
+   * Sets the status bar to indicate no configuration is selected
    */
-  private setConfigurationStatus(isSelected: boolean, isInvalid: boolean): void {
-    let statusBarItemName: string;
-    let statusBarItemTooltip: string;
-    let commandToUse: string;
-
-    if (isInvalid) {
-      statusBarItemName = "Invalid Configuration";
-      statusBarItemTooltip = "Invalid configuration. Click to modify project configuration";
-      commandToUse = "espIdf.projectConfigurationEditor";
-    } else if (!isSelected) {
-      statusBarItemName = "No Configuration Selected";
-      statusBarItemTooltip = "No project configuration selected. Click to select one";
-      commandToUse = "espIdf.projectConf";
-    }
+  private setNoConfigurationSelectedStatus(): void {
+    const statusBarItemName = "No Configuration Selected";
+    const statusBarItemTooltip = "No project configuration selected. Click to select one";
+    const commandToUse = "espIdf.projectConf";
 
     if (this.statusBarItems["projectConf"]) {
       this.statusBarItems["projectConf"].dispose();
