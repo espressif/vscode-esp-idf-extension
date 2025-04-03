@@ -3893,11 +3893,14 @@ async function getFrameworksPickItems() {
       );
       existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
     }
+    const setupsToUse = [...idfSetups, ...existingIdfSetups];
+    if (!setupsToUse || setupsToUse.length === 0) {
+      await vscode.window.showInformationMessage("No ESP-IDF Setups found");
+      return;
+    }
     const onlyValidIdfSetups = [
       ...new Map(
-        [...idfSetups, ...existingIdfSetups]
-          .filter((i) => i.isValid)
-          .map((item) => [item.idfPath, item])
+        setupsToUse.filter((i) => i.isValid).map((item) => [item.idfPath, item])
       ).values(),
     ];
     const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);

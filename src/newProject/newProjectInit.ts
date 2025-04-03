@@ -78,11 +78,14 @@ export async function getNewProjectArgs(
     );
     existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
   }
+  const setupsToUse = [...idfSetups, ...existingIdfSetups];
+  if (setupsToUse.length === 0) {
+    await window.showInformationMessage("No ESP-IDF Setups found");
+    return;
+  }
   const onlyValidIdfSetups = [
     ...new Map(
-    [...idfSetups, ...existingIdfSetups]
-      .filter((i) => i.isValid)
-      .map((item) => [item.idfPath, item])
+      setupsToUse.filter((i) => i.isValid).map((item) => [item.idfPath, item])
     ).values(),
   ];
   const pickItems: {
