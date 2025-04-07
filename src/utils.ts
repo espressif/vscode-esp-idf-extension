@@ -90,7 +90,7 @@ export class PreCheck {
     );
   }
   public static notUsingWebIde(): boolean {
-    if (vscode.env.uiKind === vscode.UIKind.Web) {
+    if (vscode.env.remoteName === "codespaces") {
       return false;
     }
     return process.env.WEB_IDE ? false : true;

@@ -224,7 +224,7 @@ let wsServer: WSServer;
 
 const openFolderFirstMsg = vscode.l10n.t("Open a folder first.");
 const cmdNotForWebIdeMsg = vscode.l10n.t(
-  "Selected command is not available in Web"
+  "Selected command is not available in Codespaces"
 );
 const openFolderCheck = [
   PreCheck.isWorkspaceFolderOpen,
@@ -2174,10 +2174,9 @@ export async function activate(context: vscode.ExtensionContext) {
             progress,
             workspaceRoot
           );
-          if (!newProjectArgs || !newProjectArgs.boards) {
-            throw new Error("Could not get ESP-IDF: New project arguments");
+          if (newProjectArgs) {
+            NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
           }
-          NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
         } catch (error) {
           Logger.errorNotify(error.message, error, "extension newProject");
         }
@@ -3843,9 +3842,16 @@ async function getFrameworksPickItems() {
       );
       existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
     }
-    const onlyValidIdfSetups = [...idfSetups, ...existingIdfSetups].filter(
-      (i) => i.isValid
-    );
+    const setupsToUse = [...idfSetups, ...existingIdfSetups];
+    if (!setupsToUse || setupsToUse.length === 0) {
+      await vscode.window.showInformationMessage("No ESP-IDF Setups found");
+      return;
+    }
+    const onlyValidIdfSetups = [
+      ...new Map(
+        setupsToUse.filter((i) => i.isValid).map((item) => [item.idfPath, item])
+      ).values(),
+    ];
     const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
     for (const idfSetup of onlyValidIdfSetups) {
       pickItems.push({

@@ -49,7 +49,11 @@ export async function selectIdfSetup(
     await window.showInformationMessage("No ESP-IDF Setups found");
     return;
   }
-  const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
+  const onlyValidIdfSetups = [
+    ...new Map(
+      idfSetups.filter((i) => i.isValid).map((item) => [item.idfPath, item])
+    ).values(),
+  ];
   const idfSetupOptions = onlyValidIdfSetups.map((idfSetup) => {
     return {
       label: `Version: v${idfSetup.version}`,

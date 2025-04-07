@@ -31,9 +31,7 @@ import { getConfigurationSettings } from "../support/configurationSettings";
 import { readFile, readJSON } from "fs-extra";
 import { getPipVersion } from "../support/pipVersion";
 import { checkEspIdfRequirements } from "../support/checkEspIdfRequirements";
-import {
-  checkDebugAdapterRequirements
-} from "../support/checkExtensionRequirements";
+import { checkDebugAdapterRequirements } from "../support/checkExtensionRequirements";
 import {
   checkCCppPropertiesJson,
   checkLaunchJson,
@@ -268,6 +266,7 @@ suite("Doctor Command tests", () => {
     expectedOutput += `System environment variable IDF_PYTHON_ENV_PATH ${os.EOL} ${process.env.IDF_PYTHON_ENV_PATH} ${os.EOL}`;
     expectedOutput += `System environment variable PATH ${os.EOL} ${processPathEnvVar} ${os.EOL}`;
     expectedOutput += `System environment variable PYTHON ${os.EOL} ${process.env.PYTHON} ${os.EOL}`;
+    expectedOutput += `Visual Studio Code Remote name ${vscode.env.remoteName} ${os.EOL}`;
     expectedOutput += `Visual Studio Code version ${vscode.version} ${os.EOL}`;
     expectedOutput += `Visual Studio Code language ${vscode.env.language} ${os.EOL}`;
     expectedOutput += `Visual Studio Code shell ${vscode.env.shell} ${os.EOL}`;
@@ -298,9 +297,7 @@ suite("Doctor Command tests", () => {
         expectedOutput += `    ${key}: ${reportObj.configurationSettings.userExtraVars[key]}${os.EOL}`;
       }
     }
-    expectedOutput += `System python Path (idf.pythonInstallPath) ${
-      reportObj.configurationSettings.sysPythonBinPath
-    }${os.EOL}`;
+    expectedOutput += `System python Path (idf.pythonInstallPath) ${reportObj.configurationSettings.sysPythonBinPath}${os.EOL}`;
     expectedOutput += `Virtual environment Python path (computed) ${
       process.env.IDF_PYTHON_ENV_PATH + "/bin/python"
     }${os.EOL}`;
