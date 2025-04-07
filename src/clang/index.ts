@@ -22,7 +22,7 @@ import {
   getToolchainPath,
   isBinInPath,
 } from "../utils";
-import { readJSON, writeJSON } from "fs-extra";
+import { pathExists, readJSON, writeJSON } from "fs-extra";
 import { readParameter, writeParameter } from "../idfConfiguration";
 import { join } from "path";
 import { Logger } from "../logger/logger";
@@ -38,7 +38,7 @@ export async function validateEspClangExists(workspaceFolder: Uri) {
   return espClangPath;
 }
 
-export async function configureClangSettings(workspaceFolder: Uri) {
+export async function setClangSettings(settingsJson: any, workspaceFolder: Uri) {
   const espClangPath = await validateEspClangExists(workspaceFolder);
   if (!espClangPath) {
     const error = new Error(
@@ -51,12 +51,6 @@ export async function configureClangSettings(workspaceFolder: Uri) {
     );
     return;
   }
-  const settingsJsonPath = join(
-    workspaceFolder.fsPath,
-    ".vscode",
-    "settings.json"
-  );
-  const settingsJson = await readJSON(settingsJsonPath);
   const buildPath = readParameter("idf.buildPath", workspaceFolder);
   const gccPath = await getToolchainPath(workspaceFolder, "gcc");
   settingsJson["clang.path"] = espClangPath;
@@ -65,17 +59,24 @@ export async function configureClangSettings(workspaceFolder: Uri) {
     `--query-driver=${gccPath}`,
     `--compile-commands-dir=${buildPath}`,
   ];
-  const customExtraVars = readParameter(
-    "idf.customExtraVars",
-    workspaceFolder
-  ) as { [key: string]: string };
-  customExtraVars["IDF_TOOLCHAIN"] = "clang";
-  await writeParameter(
-    "idf.customExtraVars",
-    customExtraVars,
-    ConfigurationTarget.WorkspaceFolder,
-    workspaceFolder
+}
+
+export async function configureClangSettings(workspaceFolder: Uri) {
+  const settingsJsonPath = join(
+    workspaceFolder.fsPath,
+    ".vscode",
+    "settings.json"
   );
+  const settingsPathExists = await pathExists(settingsJsonPath);
+  if (!settingsPathExists) {
+    const err = new Error("settings.json not found in .vscode folder");
+    Logger.errorNotify(err.message, err, "clang index configureClangSettings");
+    return;
+  }
+  const settingsJson = await readJSON(settingsJsonPath);
+
+  await setClangSettings(settingsJson, workspaceFolder);
+ 
   await writeJSON(settingsJsonPath, settingsJson, {
     spaces: workspace.getConfiguration().get("editor.tabSize") || 2,
   });
