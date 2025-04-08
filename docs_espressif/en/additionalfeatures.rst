@@ -15,6 +15,7 @@ Additional IDE Features
     Device Firmware Upgrade (DFU) via USB<additionalfeatures/dfu>
     Docker Container<additionalfeatures/docker-container>
     ESP-IDF Terminal<additionalfeatures/esp-terminal>
+    ESP-IDF Profile<additionalfeatures/esp-idf-profile>
     eFuse Explorer<additionalfeatures/efuse>
     Flash Encryption<additionalfeatures/flash-encryption>
     Heap Tracing<additionalfeatures/heap-tracing>
