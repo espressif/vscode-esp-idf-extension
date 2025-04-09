@@ -19,7 +19,7 @@
 import * as path from "path";
 import { ExtensionContext, Uri, window } from "vscode";
 import { ESP } from "../config";
-import { pathExists, readJson, writeJson, ensureDir } from "fs-extra";
+import { pathExists, readJson, writeJson } from "fs-extra";
 import { ProjectConfElement } from "./projectConfiguration";
 import * as process from "process";
 import { Logger } from "../logger/logger";
@@ -216,19 +216,6 @@ export async function getProjectConfigurationElements(
           substituteVariablesInString(arg, workspaceFolder)
         )
         .filter(isDefined);
-
-      // Ensure build directory exists AFTER resolving the path
-      if (buildDirectoryPath) {
-        try {
-          await ensureDir(buildDirectoryPath);
-        } catch (error) {
-          Logger.errorNotify(
-            `Failed to ensure build directory exists: ${buildDirectoryPath}`,
-            error,
-            "getProjectConfigurationElements"
-          );
-        }
-      }
 
       // --- Process Environment Variables ---
       let processedEnv: { [key: string]: string } | undefined;

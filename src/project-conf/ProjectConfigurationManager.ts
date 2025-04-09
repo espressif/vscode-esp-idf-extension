@@ -7,6 +7,7 @@ import { createStatusBarItem } from "../statusBar";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { Logger } from "../logger/logger";
 import { getProjectConfigurationElements } from "./index";
+import { ensureDir } from "fs-extra";
 
 export class ProjectConfigurationManager {
   private readonly configFilePath: string;
@@ -322,6 +323,19 @@ export class ProjectConfigurationManager {
 
     // Update the configuration data
     ESP.ProjectConfiguration.store.set(configName, configData);
+
+    // Ensure the build directory exists for the selected configuration
+    if (configData.build && configData.build.buildDirectoryPath) {
+      try {
+        await ensureDir(configData.build.buildDirectoryPath);
+      } catch (error) {
+        Logger.errorNotify(
+          `Failed to ensure build directory exists: ${configData.build.buildDirectoryPath}`,
+          error,
+          "ProjectConfigurationManager.updateConfiguration"
+        );
+      }
+    }
 
     // Update UI
     if (this.statusBarItems["projectConf"]) {
