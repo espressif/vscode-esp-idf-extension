@@ -173,6 +173,7 @@ import {
 } from "./cmdTreeView/cmdStore";
 import { IdfSetup } from "./views/setup/types";
 import { asyncRemoveEspIdfSettings } from "./uninstall";
+import { ProjectConfigurationManager } from "./project-conf/ProjectConfigurationManager";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -250,6 +251,8 @@ const minIdfVersionCheck = async function (
     `Selected command needs ESP-IDF v${minVersion} or higher`,
   ] as utils.PreCheckInput;
 };
+
+let projectConfigManager: ProjectConfigurationManager | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
@@ -476,6 +479,8 @@ export async function activate(context: vscode.ExtensionContext) {
       ConfserverProcess.dispose();
     })
   );
+
+  context.subscriptions.push(projectConfigManager);
 
   vscode.debug.onDidTerminateDebugSession((e) => {
     if (isOpenOCDLaunchedByDebug && !isDebugRestarted) {
@@ -1164,63 +1169,6 @@ export async function activate(context: vscode.ExtensionContext) {
           "extension projectConfigurationEditor"
         );
       }
-    });
-  });
-
-  registerIDFCommand("espIdf.projectConf", async () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const projectConfigurations = await getProjectConfigurationElements(
-        workspaceRoot
-      );
-      if (!projectConfigurations) {
-        const emptyOption = await vscode.window.showInformationMessage(
-          vscode.l10n.t("No project configuration found"),
-          "Open editor"
-        );
-        if (emptyOption === "Open editor") {
-          vscode.commands.executeCommand("espIdf.projectConfigurationEditor");
-        }
-        return;
-      }
-      const selectConfigMsg = vscode.l10n.t("Select configuration to use:");
-      let quickPickItems = Object.keys(projectConfigurations).map((k) => {
-        return {
-          description: k,
-          label: `Configuration ${k}`,
-          target: k,
-        };
-      });
-      const option = await vscode.window.showQuickPick(quickPickItems, {
-        placeHolder: selectConfigMsg,
-      });
-      if (!option) {
-        const noOptionMsg = vscode.l10n.t("No option selected.");
-        Logger.infoNotify(noOptionMsg);
-        return;
-      }
-      ESP.ProjectConfiguration.store.set(
-        ESP.ProjectConfiguration.SELECTED_CONFIG,
-        option.target
-      );
-      ESP.ProjectConfiguration.store.set(
-        option.target,
-        projectConfigurations[option.target]
-      );
-      if (statusBarItems["projectConf"]) {
-        statusBarItems["projectConf"].dispose();
-      }
-      statusBarItems["projectConf"] = createStatusBarItem(
-        `$(${
-          commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
-        }) ${option.target}`,
-        commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
-        CommandKeys.SelectProjectConfiguration,
-        99,
-        commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
-      );
-      await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
-      await utils.setCCppPropertiesJsonCompileCommands(workspaceRoot);
-      ConfserverProcess.dispose();
     });
   });
 
@@ -3754,6 +3702,30 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Remove ESP-IDF settings
   registerIDFCommand("espIdf.removeEspIdfSettings", asyncRemoveEspIdfSettings);
+
+  projectConfigManager = new ProjectConfigurationManager(
+    workspaceRoot,
+    context,
+    statusBarItems
+  );
+
+  const projectConfCommandDisposable = vscode.commands.registerCommand(
+    "espIdf.projectConf",
+    async () => {
+      PreCheck.perform([openFolderCheck], async () => {
+        if (projectConfigManager) {
+          await projectConfigManager.selectProjectConfiguration();
+        } else {
+          vscode.window.showErrorMessage(
+            "Project Configuration Manager not initialized."
+          );
+        }
+      });
+    }
+  );
+
+  // Add the disposable to context subscriptions
+  context.subscriptions.push(projectConfCommandDisposable);
 }
 
 function checkAndNotifyMissingCompileCommands() {

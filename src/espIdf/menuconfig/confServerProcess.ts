@@ -226,7 +226,7 @@ export class ConfserverProcess {
       (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
 
     if (reconfigureArgs.indexOf("SDKCONFIG") === -1) {
-      reconfigureArgs.push(`-DSDKCONFIG=${ConfserverProcess.instance.configFile}`)
+      reconfigureArgs.push(`-DSDKCONFIG='${ConfserverProcess.instance.configFile}'`)
     }
 
     if (
@@ -346,7 +346,7 @@ export class ConfserverProcess {
       (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
 
     if (confServerArgs.indexOf("SDKCONFIG") === -1) {
-      confServerArgs.push(`-DSDKCONFIG=${this.configFile}`)
+      confServerArgs.push(`-DSDKCONFIG='${this.configFile}'`)
     }
 
     if (
