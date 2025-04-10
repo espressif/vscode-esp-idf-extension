@@ -173,6 +173,7 @@ import {
 } from "./cmdTreeView/cmdStore";
 import { IdfSetup } from "./views/setup/types";
 import { asyncRemoveEspIdfSettings } from "./uninstall";
+import { configureClangSettings } from "./clang";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1220,6 +1221,7 @@ export async function activate(context: vscode.ExtensionContext) {
       );
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
       await utils.setCCppPropertiesJsonCompileCommands(workspaceRoot);
+      await configureClangSettings(workspaceRoot);
       ConfserverProcess.dispose();
     });
   });
@@ -1273,10 +1275,12 @@ export async function activate(context: vscode.ExtensionContext) {
           commandDictionary[CommandKeys.SelectFlashType].iconId
         }) ${flashType}`;
       }
-    } else if (e.affectsConfiguration("idf.buildPath")) {
+    } else if (e.affectsConfiguration("idf.buildPath" + winFlag)) {
       updateIdfComponentsTree(workspaceRoot);
+      await configureClangSettings(workspaceRoot);
     } else if (e.affectsConfiguration("idf.customExtraVars")) {
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
+      await configureClangSettings(workspaceRoot);
     }
   });
 
@@ -2437,6 +2441,12 @@ export async function activate(context: vscode.ExtensionContext) {
       } catch (error) {
         Logger.errorNotify(error.message, error, "extension setGcovConfig");
       }
+    });
+  });
+
+  registerIDFCommand("espIdf.setClangSettings", async () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      await configureClangSettings(workspaceRoot);
     });
   });
 

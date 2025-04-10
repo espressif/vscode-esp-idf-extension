@@ -21,6 +21,7 @@ import { readJSON } from "fs-extra";
 import { Uri } from "vscode";
 import { IdfSetup } from "../views/setup/types";
 import { getSystemPythonFromSettings } from "../pythonManager";
+import { setClangSettings } from "../clang/index";
 
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
@@ -63,5 +64,6 @@ export async function setCurrentSettingsInTemplate(
   if (idfSetup.toolsPath) {
     settingsJson["idf.toolsPath" + isWin] = idfSetup.toolsPath;
   }
+  await setClangSettings(settingsJson, workspace);
   return settingsJson;
 }
