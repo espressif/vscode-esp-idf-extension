@@ -21,6 +21,6 @@
 
     .. image:: ../../media/tutorials/basic_use/size_terminal.png
 
-ESP-IDF 构建输出中会提示如何解决构建错误，这些提示可以通过 :ref:`提示查看器 <hints viewer>` 显示。
+ESP-IDF 构建输出中会提示如何解决构建错误，这些提示可以通过 :ref:`提示查看器 <hints_viewer>` 显示。
 
 接下来请 :ref:`烧录项目 <flash the device>`。

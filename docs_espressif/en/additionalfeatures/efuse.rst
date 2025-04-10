@@ -1,24 +1,25 @@
-EFuse Explorer
-========================
+eFuse Explorer
+==============
+
+:link_to_translation:`zh_CN:[中文]`
 
 This feature requires ESP-IDF ``>=v4.3``.
 
-Espressif chips has a number of eFuses which can store system and user parameters. Each eFuse is a one-bit field which can be programmed to 1 after which it cannot be reverted back to 0. This feature is based on ESP-IDF `espfuse.py <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/efuse.html#espefuse-py>`_ script to read and write efuses.
+Espressif chips have several eFuses that store system and user parameters. Each eFuse is a one-bit field that can be programmed to 1 and cannot be reverted to 0. This feature uses the ESP-IDF `espfuse.py <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/efuse.html#espefuse-py>`_ script to read and write eFuses.
 
-1. Select the Serial Port:
+1.  Select the Serial Port:
 
-- Navigate to **View** > **Command Palette**.
+    - Navigate to ``View`` > ``Command Palette``.
+    - Type ``ESP-IDF: Select Port to Use`` and select the command to specify your device's serial port.
 
-- Type **ESP-IDF: Select Port to Use** and select the command to specify the serial port of your device.
+2.  Click ``ESP-IDF: Explorer`` in the Visual Studio Code activity bar. In the ``eFuse Explorer`` section, click ``Connect your Board First``.
 
-2. Click the ``ESP-IDF Explorer`` in the `Visual Studio Code Activity bar <https://code.visualstudio.com/docs/getstarted/userinterface>`_. On the ``EFUSE EXPLORER`` section, click the ``Connect your Board First``.
+    .. image:: ../../../media/tutorials/efuse/efuse_connect.png
 
-.. image:: ../../../media/tutorials/efuse/efuse_connect.png
+3.  A list of eFuse categories appears in a tree structure.
 
-3. A list of EFuses categories will now be shown in a tree structure.
+    .. image:: ../../../media/tutorials/efuse/efuse_list.png
 
-.. image:: ../../../media/tutorials/efuse/efuse_list.png
+4.  Click any category to view the eFuses and their values.
 
-4. If you click on any category, you will see the category Efuses and Values.
-
-.. image:: ../../../media/tutorials/efuse/efuse_expanded.png
+    .. image:: ../../../media/tutorials/efuse/efuse_expanded.png
