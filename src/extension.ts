@@ -4217,6 +4217,10 @@ async function startFlashing(
     flashType = await selectFlashMethod();
   }
 
+  if (IDFMonitor.terminal) {
+    IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
+  }
+
   if (encryptPartitions) {
     const encryptionValidationResult = await checkFlashEncryption(
       flashType,
@@ -4239,9 +4243,6 @@ async function startFlashing(
     "idf.flashBaudRate",
     workspaceRoot
   );
-  if (IDFMonitor.terminal) {
-    IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-  }
   const canFlash = await verifyCanFlash(
     flashBaudRate,
     port,
