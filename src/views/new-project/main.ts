@@ -73,6 +73,12 @@ window.addEventListener("message", (event) => {
       if (msg.openOcdConfigFiles) {
         store.openOcdConfigFiles = msg.openOcdConfigFiles;
       }
+      if (msg.idfTargets) {
+        store.idfTargets = msg.idfTargets;
+        console.log("first idf target");
+        console.log(msg.idfTargets[0]);
+        store.selectedIdfTarget = msg.idfTargets[0];
+      }
       break;
     case "setContainerDirectory":
       if (msg.projectDirectory) {
