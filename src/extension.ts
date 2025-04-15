@@ -3862,17 +3862,22 @@ export async function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    // Process the first error if available
-    const errorMsg = espIdfDiagnostics[0].diagnostic.message;
-    const foundHint = await treeDataProvider.searchError(
-      errorMsg,
-      workspaceRoot
-    );
+    // Process all errors and collect hints
+    let foundAnyHint = false;
+    for (const { diagnostic } of espIdfDiagnostics) {
+      const foundHint = await treeDataProvider.searchError(
+        diagnostic.message,
+        workspaceRoot
+      );
+      if (foundHint) {
+        foundAnyHint = true;
+      }
+    }
 
     const showHintsNotification = context.workspaceState.get(
       "idf.showHintsNotification"
     );
-    if (foundHint && showHintsNotification) {
+    if (foundAnyHint && showHintsNotification) {
       const actions = [
         {
           label: vscode.l10n.t("💡 Show Hints"),
@@ -3892,7 +3897,9 @@ export async function activate(context: vscode.ExtensionContext) {
       ];
 
       await showInfoNotificationWithMultipleActions(
-        vscode.l10n.t(`Possible hint found for the error: {0}`, errorMsg),
+        vscode.l10n.t(
+          `Possible hints found for build errors. Click to view details.`
+        ),
         actions
       );
     }
