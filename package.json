@@ -1077,7 +1077,7 @@
           },
           "idf.monitorStartDelayBeforeDebug": {
             "type": "number",
-            "default": 5000,
+            "default": 1000,
             "scope": "resource",
             "description": "%param.monitorStartDelayBeforeDebug%"
           },
