@@ -158,6 +158,7 @@ suite("Project tests", () => {
       settingsJsonPath,
       idfSetup,
       "no port",
+      "esp32",
       openOcdConfigs,
       Uri.file(projectPath)
     );

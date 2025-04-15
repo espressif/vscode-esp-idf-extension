@@ -124,7 +124,8 @@ export class NewProjectPanel {
             message.port &&
             message.projectName &&
             message.openOcdConfigFiles &&
-            message.template
+            message.template &&
+            message.selectedIdfTarget
           ) {
             this.createProject(
               newProjectArgs.espIdfSetup,
@@ -134,7 +135,8 @@ export class NewProjectPanel {
               message.projectName,
               JSON.parse(message.template),
               message.openOcdConfigFiles,
-              newProjectArgs.workspaceFolder
+              newProjectArgs.workspaceFolder,
+              message.selectedIdfTarget
             );
           }
           break;
@@ -183,6 +185,7 @@ export class NewProjectPanel {
               command: "initialLoad",
               containerDirectory: containerPath,
               projectName: "project-name",
+              idfTargets: newProjectArgs.idfTargets,
               serialPortList: newProjectArgs.serialPortList,
               openOcdConfigFiles: defConfigFiles,
               templates: newProjectArgs.templates,
@@ -211,7 +214,8 @@ export class NewProjectPanel {
     projectName: string,
     template: IExample,
     openOcdConfigs?: string,
-    workspaceFolder?: vscode.Uri
+    workspaceFolder?: vscode.Uri,
+    selectedIdfTarget?: string
   ) {
     const newProjectPath = path.join(projectDirectory, projectName);
     let isSkipped = false;
@@ -293,6 +297,7 @@ export class NewProjectPanel {
             settingsJsonPath,
             idfSetup,
             port,
+            selectedIdfTarget,
             openOcdConfigs,
             workspaceFolder
           );

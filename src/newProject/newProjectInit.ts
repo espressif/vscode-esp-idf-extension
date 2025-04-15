@@ -28,6 +28,7 @@ import {
   loadIdfSetupsFromEspIdfJson,
 } from "../setup/existingIdfSetups";
 import { IdfSetup } from "../views/setup/types";
+import { getTargetsFromEspIdf, IdfTarget } from "../espIdf/setTarget/getTargets";
 
 export interface INewProjectArgs {
   espIdfSetup: IdfSetup;
@@ -36,6 +37,7 @@ export interface INewProjectArgs {
   espMatterPath: string;
   espHomeKitSdkPath: string;
   espRainmakerPath: string;
+  idfTargets: IdfTarget[];
   boards: IdfBoard[];
   components: IComponent[];
   serialPortList: string[];
@@ -163,6 +165,9 @@ export async function getNewProjectArgs(
     const homeKitSdkTemplates = getExamplesList(espHomeKitSdkPath);
     templates["ESP-HOMEKIT-SDK"] = homeKitSdkTemplates;
   }
+
+  const targetsFromIdf = await getTargetsFromEspIdf(workspace, idfSetup.idfPath);
+  
   progress.report({ increment: 50, message: "Initializing wizard..." });
   return {
     boards: espBoards,
@@ -170,6 +175,7 @@ export async function getNewProjectArgs(
     espIdfSetup: idfSetup,
     espAdfPath: adfExists ? espAdfPath : undefined,
     espMdfPath: mdfExists ? espMdfPath : undefined,
+    idfTargets: targetsFromIdf,
     espMatterPath: matterExists ? espMatterPath : undefined,
     espHomeKitSdkPath: homekitSdkExists ? espHomeKitSdkPath : undefined,
     espRainmakerPath: rainmakerExists ? espRainmakerPath : undefined,

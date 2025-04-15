@@ -26,6 +26,7 @@ export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
   idfSetup: IdfSetup,
   port: string,
+  selectedIdfTarget: string,
   openOcdConfigs?: string,
   workspace?: Uri
 ) {
@@ -62,6 +63,10 @@ export async function setCurrentSettingsInTemplate(
   }
   if (idfSetup.toolsPath) {
     settingsJson["idf.toolsPath" + isWin] = idfSetup.toolsPath;
+  }
+  if (selectedIdfTarget) {
+    settingsJson["idf.customExtraVars"] = settingsJson["idf.customExtraVars"] || {};
+    settingsJson["idf.customExtraVars"]["IDF_TARGET"] = selectedIdfTarget;
   }
   return settingsJson;
 }
