@@ -22,7 +22,7 @@ import {
   getToolchainPath,
   isBinInPath,
 } from "../utils";
-import { pathExists, writeJSON } from "fs-extra";
+import { pathExists, writeJSON, writeFile } from "fs-extra";
 import { readParameter } from "../idfConfiguration";
 import { join } from "path";
 import { Logger } from "../logger/logger";
@@ -39,7 +39,10 @@ export async function validateEspClangExists(workspaceFolder: Uri) {
   return espClangdPath;
 }
 
-export async function setClangSettings(settingsJson: any, workspaceFolder: Uri) {
+export async function setClangSettings(
+  settingsJson: any,
+  workspaceFolder: Uri
+) {
   const espClangPath = await validateEspClangExists(workspaceFolder);
   if (!espClangPath) {
     const error = new Error(
@@ -76,7 +79,9 @@ export async function configureClangSettings(workspaceFolder: Uri) {
   }
   let settingsJson: any;
   try {
-    const settingsContent = await workspace.fs.readFile(Uri.file(settingsJsonPath));
+    const settingsContent = await workspace.fs.readFile(
+      Uri.file(settingsJsonPath)
+    );
     settingsJson = parse(settingsContent.toString());
   } catch (error) {
     Logger.errorNotify(
@@ -92,4 +97,24 @@ export async function configureClangSettings(workspaceFolder: Uri) {
   await writeJSON(settingsJsonPath, settingsJson, {
     spaces: workspace.getConfiguration().get("editor.tabSize") || 2,
   });
+
+  await createClangdFile(workspaceFolder);
+}
+
+export async function createClangdFile(workspaceFolder: Uri) {
+  const clangdFilePath = join(workspaceFolder.fsPath, ".clangd");
+  const clangdContent = `CompileFlags:
+    Remove: [-f*, -m*]
+`;
+
+  try {
+    await writeFile(clangdFilePath, clangdContent, { encoding: "utf8" });
+    Logger.infoNotify(".clangd file created successfully.");
+  } catch (error) {
+    Logger.errorNotify(
+      "Failed to create .clangd file.",
+      error,
+      "clang index createClangdFile"
+    );
+  }
 }

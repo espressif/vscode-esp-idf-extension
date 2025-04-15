@@ -23,6 +23,7 @@ import { IExample } from "../examples/Example";
 import { setCurrentSettingsInTemplate } from "./utils";
 import { NotificationMode, readParameter } from "../idfConfiguration";
 import { IdfSetup } from "../views/setup/types";
+import { createClangdFile } from "../clang";
 
 export class NewProjectPanel {
   public static currentPanel: NewProjectPanel | undefined;
@@ -291,6 +292,7 @@ export class NewProjectPanel {
             openOcdConfigs,
             workspaceFolder
           );
+          await createClangdFile(vscode.Uri.file(newProjectPath));
           await writeJSON(settingsJsonPath, settingsJson, {
             spaces:
               vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
