@@ -93,11 +93,11 @@ function substituteVariablesInString(
  * Resolves configuration paths after substituting variables. Designed for fields
  * that MUST represent filesystem paths.
  * Handles both single path string or array of paths.
- * Ensures the final path is absolute and normalized for the OS.
+ * Only performs variable substitution, keeping paths relative.
  * Recommends using '/' as separator in the JSON config for portability.
  * @param workspaceFolder The workspace folder Uri.
  * @param paths The path string or array of path strings from the config.
- * @returns The resolved absolute path(s) or undefined.
+ * @returns The path(s) with variables substituted or undefined.
  */
 function resolveConfigPaths(
   workspaceFolder: Uri,
@@ -108,16 +108,7 @@ function resolveConfigPaths(
   }
 
   const resolveSinglePath = (configPath: string): string | undefined => {
-    const substitutedPath = substituteVariablesInString(
-      configPath,
-      workspaceFolder
-    );
-
-    if (!substitutedPath) {
-      return undefined;
-    }
-
-    return path.resolve(workspaceFolder.fsPath, substitutedPath);
+    return substituteVariablesInString(configPath, workspaceFolder);
   };
 
   if (Array.isArray(paths)) {
