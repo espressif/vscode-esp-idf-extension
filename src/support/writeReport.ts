@@ -207,12 +207,7 @@ export async function writeTextReport(
   }
   if (reportedResult.latestError) {
     output += `----------------------------------------------------------- Latest error -----------------------------------------------------------------${EOL}`;
-    output +=
-      JSON.stringify(
-        reportedResult.latestError,
-        undefined,
-        vscode.workspace.getConfiguration().get("editor.tabSize") || 2
-      ) + EOL;
+    output += JSON.stringify(reportedResult.latestError, undefined, 2) + EOL;
   }
   output += lineBreak;
   const logFile = join(context.extensionPath, "esp_idf_vsc_ext.log");
@@ -226,7 +221,7 @@ export async function writeTextReport(
   await writeFile(resultFile, output);
   const resultJson = join(context.extensionPath, "report.json");
   await writeJson(resultJson, reportedResult, {
-    spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
+    spaces: 2,
   });
   return output;
 }

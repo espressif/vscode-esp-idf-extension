@@ -72,7 +72,9 @@ export class NewProjectPanel {
       localResourceRoots.push(vscode.Uri.file(newProjectArgs.espAdfPath));
     }
     if (newProjectArgs.espIdfSetup.idfPath) {
-      localResourceRoots.push(vscode.Uri.file(newProjectArgs.espIdfSetup.idfPath));
+      localResourceRoots.push(
+        vscode.Uri.file(newProjectArgs.espIdfSetup.idfPath)
+      );
     }
     if (newProjectArgs.espMdfPath) {
       localResourceRoots.push(vscode.Uri.file(newProjectArgs.espMdfPath));
@@ -172,7 +174,10 @@ export class NewProjectPanel {
             const defConfigFiles =
               newProjectArgs.boards && newProjectArgs.boards.length > 0
                 ? newProjectArgs.boards[0].configFiles.join(",")
-                : ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"].join(",");
+                : [
+                    "interface/ftdi/esp32_devkitj_v1.cfg",
+                    "target/esp32.cfg",
+                  ].join(",");
             this.panel.webview.postMessage({
               boards: newProjectArgs.boards,
               command: "initialLoad",
@@ -292,8 +297,7 @@ export class NewProjectPanel {
             workspaceFolder
           );
           await writeJSON(settingsJsonPath, settingsJson, {
-            spaces:
-              vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
+            spaces: 2,
           });
 
           if (components && components.length > 0) {
@@ -316,7 +320,11 @@ export class NewProjectPanel {
           }
         } catch (error) {
           OutputChannel.appendLine(error.message);
-          Logger.errorNotify(error.message, error, "NewProjectPanel createProject");
+          Logger.errorNotify(
+            error.message,
+            error,
+            "NewProjectPanel createProject"
+          );
         }
       }
     );
