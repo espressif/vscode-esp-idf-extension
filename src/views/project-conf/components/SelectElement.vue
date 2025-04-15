@@ -45,11 +45,11 @@ let customValue = computed({
 <template>
   <div class="block">
     <div class="field">
-      <label class="label">{{ title }}</label>
+      <label class="label">{{ props.title }}</label>
       <div class="control">
         <div class="select">
           <select v-model="selectedValue">
-            <option v-for="opt of options" :value="opt.value" :key="opt.name">{{
+            <option v-for="opt of props.options" :value="opt.value" :key="opt.name">{{
               opt.name
             }}</option>
           </select>

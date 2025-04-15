@@ -54,6 +54,9 @@ window.addEventListener("message", (event: MessageEvent) => {
       if (msg.confList) {
         store.elements = msg.confList;
       }
+      if (msg.idfTargets && msg.idfTargets.length > 0) {
+        store.idfTargets = msg.idfTargets; 
+      }
     default:
       break;
   }

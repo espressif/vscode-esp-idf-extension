@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { ProjectConfElement } from "../../../project-conf/projectConfiguration";
 import { useProjectConfStore } from "../store";
 import ArrayElement from "./ArrayElement.vue";
@@ -20,6 +21,16 @@ const openOcdDebugLevelOptions: { name: string; value: number }[] = [
   { name: "Debug", value: 3 },
   { name: "Verbose", value: 4 },
 ];
+
+const idfTargets = computed(() => {
+  const results = store.idfTargets.map((idfTarget) => {
+    return {
+      name: idfTarget.label,
+      value: idfTarget.target,
+    };
+  });
+  return results;
+});
 
 function updateElement(sections: string[], newValue: any) {
   store.updateConfigElement({ confKey: props.title, sections, newValue });
@@ -48,34 +59,42 @@ function removeValueFromArray(sections: string[], index: number) {
 
 <template>
   <div class="notification">
-    <h2 class="title centerize">{{ title }}</h2>
+    <h2 class="title centerize">{{ props.title }}</h2>
     <a class="delete" @click="$emit('delete')"></a>
     <label class="is-size-4 has-text-weight-bold">Build</label>
     <div class="small-margin">
       <ArrayElement
         title="Compile arguments"
-        :values="el.build.compileArgs ? el.build.compileArgs : []"
+        :values="props.el.build.compileArgs ? props.el.build.compileArgs : []"
         :sections="['build', 'compileArgs']"
         :addValue="addValueToArray"
         :removeValue="removeValueFromArray"
       />
       <ArrayElement
         title="Ninja arguments"
-        :values="el.build.ninjaArgs ? el.build.ninjaArgs : []"
+        :values="props.el.build.ninjaArgs ? props.el.build.ninjaArgs : []"
         :sections="['build', 'ninjaArgs']"
         :addValue="addValueToArray"
         :removeValue="removeValueFromArray"
       />
       <StringElement
         title="Build Directory path"
-        :value="el.build.buildDirectoryPath ? el.build.buildDirectoryPath : ''"
+        :value="
+          props.el.build.buildDirectoryPath
+            ? props.el.build.buildDirectoryPath
+            : ''
+        "
         :sections="['build', 'buildDirectoryPath']"
         :updateMethod="updateElement"
         :openMethod="openBuildDir"
       />
       <ArrayElement
         title="sdkconfig defaults"
-        :values="el.build.sdkconfigDefaults ? el.build.sdkconfigDefaults : []"
+        :values="
+          props.el.build.sdkconfigDefaults
+            ? props.el.build.sdkconfigDefaults
+            : []
+        "
         :sections="['build', 'sdkconfigDefaults']"
         :addValue="addValueToArray"
         :removeValue="removeValueFromArray"
@@ -83,28 +102,37 @@ function removeValueFromArray(sections: string[], index: number) {
       <StringElement
         title="sdkconfig file path"
         :value.sync="
-          el.build.sdkconfigFilePath ? el.build.sdkconfigFilePath : ''
+          props.el.build.sdkconfigFilePath
+            ? props.el.build.sdkconfigFilePath
+            : ''
         "
         :sections="['build', 'sdkconfigFilePath']"
         :updateMethod="updateElement"
         :openMethod="openFilePath"
       />
     </div>
+    <SelectElement
+      :selectValue="props.el.idfTarget ? props.el.idfTarget : ''"
+      title="IDF Target"
+      :options="idfTargets"
+      :sections="['idfTarget']"
+      :updateMethod="updateElement"
+    />
     <DictionaryElement
       title="Environment variables"
-      :elements="el.env"
+      :elements="props.el.env"
       :sections="['env']"
       :updateMethod="updateElement"
     />
     <StringElement
       title="Flash baud rate"
-      :value="el.flashBaudRate ? el.flashBaudRate : ''"
+      :value="props.el.flashBaudRate ? props.el.flashBaudRate : ''"
       :sections="['flashBaudRate']"
       :updateMethod="updateElement"
     />
     <StringElement
       title="Monitor baud rate"
-      :value="el.monitorBaudRate ? el.monitorBaudRate : ''"
+      :value="props.el.monitorBaudRate ? props.el.monitorBaudRate : ''"
       :sections="['monitorBaudRate']"
       :updateMethod="updateElement"
     />
@@ -112,7 +140,9 @@ function removeValueFromArray(sections: string[], index: number) {
     <label class="is-size-4 has-text-weight-bold">OpenOCD</label>
     <div class="small-margin">
       <SelectElement
-        :selectValue="el.openOCD.debugLevel ? el.openOCD.debugLevel : ''"
+        :selectValue="
+          props.el.openOCD.debugLevel ? props.el.openOCD.debugLevel : ''
+        "
         title="Debug Level"
         :options="openOcdDebugLevelOptions"
         :sections="['openOCD', 'debugLevel']"
@@ -120,14 +150,14 @@ function removeValueFromArray(sections: string[], index: number) {
       />
       <ArrayElement
         title="Config files"
-        :values="el.openOCD.configs ? el.openOCD.configs : []"
+        :values="props.el.openOCD.configs ? props.el.openOCD.configs : []"
         :sections="['openOCD', 'configs']"
         :addValue="addValueToArray"
         :removeValue="removeValueFromArray"
       />
       <ArrayElement
         title="Arguments"
-        :values="el.openOCD.args ? el.openOCD.args : []"
+        :values="props.el.openOCD.args ? props.el.openOCD.args : []"
         :sections="['openOCD', 'args']"
         :addValue="addValueToArray"
         :removeValue="removeValueFromArray"
@@ -138,25 +168,25 @@ function removeValueFromArray(sections: string[], index: number) {
     <div class="small-margin">
       <StringElement
         title="Pre Build"
-        :value="el.tasks.preBuild ? el.tasks.preBuild : ''"
+        :value="props.el.tasks.preBuild ? props.el.tasks.preBuild : ''"
         :sections="['tasks', 'preBuild']"
         :updateMethod="updateElement"
       />
       <StringElement
         title="Pre Flash"
-        :value="el.tasks.preFlash ? el.tasks.preFlash : ''"
+        :value="props.el.tasks.preFlash ? props.el.tasks.preFlash : ''"
         :sections="['tasks', 'preFlash']"
         :updateMethod="updateElement"
       />
       <StringElement
         title="Post Build"
-        :value="el.tasks.postBuild ? el.tasks.postBuild : ''"
+        :value="props.el.tasks.postBuild ? props.el.tasks.postBuild : ''"
         :sections="['tasks', 'postBuild']"
         :updateMethod="updateElement"
       />
       <StringElement
         title="Post Flash"
-        :value="el.tasks.postFlash ? el.tasks.postFlash : ''"
+        :value="props.el.tasks.postFlash ? props.el.tasks.postFlash : ''"
         :sections="['tasks', 'postFlash']"
         :updateMethod="updateElement"
       />

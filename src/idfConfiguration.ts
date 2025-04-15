@@ -81,6 +81,9 @@ export function parameterToProjectConfigMap(
         resultVars[projectConfEnvKey] =
           currentProjectConf.env[projectConfEnvKey];
       }
+      if (currentProjectConf.idfTarget) {
+        resultVars["IDF_TARGET"] = currentProjectConf.idfTarget;
+      }
       return resultVars;
     case "idf.flashBaudRate":
       return currentProjectConf.flashBaudRate;
