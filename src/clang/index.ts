@@ -16,26 +16,27 @@
  * limitations under the License.
  */
 
-import { ConfigurationTarget, l10n, Uri, workspace } from "vscode";
+import { l10n, Uri, workspace } from "vscode";
 import {
   appendIdfAndToolsToPath,
   getToolchainPath,
   isBinInPath,
 } from "../utils";
-import { pathExists, readJSON, writeJSON } from "fs-extra";
-import { readParameter, writeParameter } from "../idfConfiguration";
+import { pathExists, writeJSON } from "fs-extra";
+import { readParameter } from "../idfConfiguration";
 import { join } from "path";
 import { Logger } from "../logger/logger";
+import { parse } from "jsonc-parser";
 
 export async function validateEspClangExists(workspaceFolder: Uri) {
   const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
 
-  const espClangPath = await isBinInPath(
-    "clang",
+  const espClangdPath = await isBinInPath(
+    "clangd",
     workspaceFolder.fsPath,
     modifiedEnv
   );
-  return espClangPath;
+  return espClangdPath;
 }
 
 export async function setClangSettings(settingsJson: any, workspaceFolder: Uri) {
@@ -53,7 +54,7 @@ export async function setClangSettings(settingsJson: any, workspaceFolder: Uri) 
   }
   const buildPath = readParameter("idf.buildPath", workspaceFolder);
   const gccPath = await getToolchainPath(workspaceFolder, "gcc");
-  settingsJson["clang.path"] = espClangPath;
+  settingsJson["clangd.path"] = espClangPath;
   settingsJson["clangd.arguments"] = [
     "--background-index",
     `--query-driver=${gccPath}`,
@@ -73,10 +74,21 @@ export async function configureClangSettings(workspaceFolder: Uri) {
     Logger.errorNotify(err.message, err, "clang index configureClangSettings");
     return;
   }
-  const settingsJson = await readJSON(settingsJsonPath);
+  let settingsJson: any;
+  try {
+    const settingsContent = await workspace.fs.readFile(Uri.file(settingsJsonPath));
+    settingsJson = parse(settingsContent.toString());
+  } catch (error) {
+    Logger.errorNotify(
+      "Failed to parse settings.json. Ensure it has valid JSON syntax.",
+      error,
+      "clang index configureClangSettings"
+    );
+    return;
+  }
 
   await setClangSettings(settingsJson, workspaceFolder);
- 
+
   await writeJSON(settingsJsonPath, settingsJson, {
     spaces: workspace.getConfiguration().get("editor.tabSize") || 2,
   });

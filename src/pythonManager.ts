@@ -76,28 +76,36 @@ export async function getEnvVarsFromIdfTools(
   );
   modifiedEnv.IDF_TOOLS_PATH = idfToolsPath;
   modifiedEnv.IDF_PATH = espIdfPath;
-  const processResult = await utils.execChildProcess(
-    pythonBinPath,
-    args,
-    idfToolsPath,
-    OutputChannel.init(),
-    { cwd: idfToolsPath, env: modifiedEnv },
-    cancelToken
-  );
-
   let idfToolsDict: { [key: string]: string } = {};
-  const lines = processResult.trim().split(EOL);
-  for (const l of lines) {
-    let keyIndex = l.indexOf("=");
-    if (keyIndex === -1) {
-      continue;
+  try {
+    const processResult = await utils.execChildProcess(
+      pythonBinPath,
+      args,
+      idfToolsPath,
+      OutputChannel.init(),
+      { cwd: idfToolsPath, env: modifiedEnv },
+      cancelToken
+    );
+    const lines = processResult.trim().split(EOL);
+    for (const l of lines) {
+      let keyIndex = l.indexOf("=");
+      if (keyIndex === -1) {
+        continue;
+      }
+      let key = l.slice(0, keyIndex);
+      let val = l.slice(keyIndex + 1);
+      idfToolsDict[key] = val;
     }
-    let key = l.slice(0, keyIndex);
-    let val = l.slice(keyIndex + 1);
-    idfToolsDict[key] = val;
-  }
 
-  return idfToolsDict;
+    return idfToolsDict;
+  } catch (error) {
+    const msg =
+      error && error.message
+        ? error.message
+        : "Error at idf_tools.py export --format key-value";
+    Logger.errorNotify(msg, error, "getEnvVarsFromIdfTools");
+    return idfToolsDict;
+  }
 }
 
 export async function installPythonEnvFromIdfTools(

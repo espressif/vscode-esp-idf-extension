@@ -2448,6 +2448,11 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.setClangSettings", async () => {
     PreCheck.perform([openFolderCheck], async () => {
       await configureClangSettings(workspaceRoot);
+      vscode.window.showInformationMessage(
+        vscode.l10n.t(
+          "ESP-IDF: Clang settings have been configured for the project."
+        )
+      );
     });
   });
 
