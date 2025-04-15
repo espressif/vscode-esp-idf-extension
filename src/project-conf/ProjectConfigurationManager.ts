@@ -324,19 +324,6 @@ export class ProjectConfigurationManager {
     // Update the configuration data
     ESP.ProjectConfiguration.store.set(configName, configData);
 
-    // Ensure the build directory exists for the selected configuration
-    if (configData.build && configData.build.buildDirectoryPath) {
-      try {
-        await ensureDir(configData.build.buildDirectoryPath);
-      } catch (error) {
-        Logger.errorNotify(
-          `Failed to ensure build directory exists: ${configData.build.buildDirectoryPath}`,
-          error,
-          "ProjectConfigurationManager.updateConfiguration"
-        );
-      }
-    }
-
     // Update UI
     if (this.statusBarItems["projectConf"]) {
       this.statusBarItems["projectConf"].dispose();
