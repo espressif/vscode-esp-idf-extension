@@ -208,5 +208,11 @@
   "Warning: Could not fully remove setting {0}: {1}": "Aviso: Não foi possível remover completamente a configuração {0}: {1}",
   "ESP-IDF settings removed successfully.": "Configurações ESP-IDF removidas com sucesso.",
   "Failed to remove settings: {0}": "Falha ao remover configurações: {0}",
-  "Error: {0}": "Erro: {0}"
+  "Error: {0}": "Erro: {0}",
+  "🔗 Reference Documentation": "🔗Documentação de Referência",
+  "Open {0}": "Abrir {0}",
+  "💡 Show Hints": "💡 Mostrar Dicas",
+  "Mute for this session": "Silenciar para esta sessão",
+  "Hint notifications muted for this session. You can still access hints manually in ESP-IDF bottom panel": "Notificações de dicas silenciadas para esta sessão. Você ainda pode acessar dicas manualmente no painel inferior do ESP-IDF",
+  "Possible hint found for the error: {0}": "Possível dica encontrada para o erro: {0}"
 }
