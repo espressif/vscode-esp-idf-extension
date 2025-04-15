@@ -17,6 +17,7 @@ import { readFile, pathExists } from "fs-extra";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import * as utils from "../../utils";
+import { getOpenOcdHintsYmlPath } from "./utils";
 import * as vscode from "vscode";
 import * as path from "path";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
@@ -188,7 +189,19 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHintTreeI
 
     // Get paths for both hint files
     const idfHintsPath = getIdfHintsYmlPath(espIdfPath);
-    const openOcdHintsPath = await getOpenOcdHintsYmlPath(workspace);
+    const toolsPath = idfConf.readParameter("idf.toolsPath", workspace) as string;
+    let openOcdHintsPath: string | null = null;
+    try {
+        const openOCDManager = OpenOCDManager.init();
+        const openOCDVersion = await openOCDManager.version();
+        if (toolsPath && openOCDVersion) {
+            openOcdHintsPath = await getOpenOcdHintsYmlPath(toolsPath, openOCDVersion);
+        } else {
+            Logger.info("Could not get toolsPath or OpenOCD version, skipping OpenOCD hints lookup.", "ErrorHintProvider searchError");
+        }
+    } catch(error) {
+        Logger.error(`Failed to initialize OpenOCDManager or get version: ${error.message}`, error, "ErrorHintProvider searchError");
+    }
 
     try {
       let meaningfulHintFound = false;
@@ -630,50 +643,6 @@ export class HintHoverProvider implements vscode.HoverProvider {
     return null;
   }
 }
-
 function getIdfHintsYmlPath(espIdfPath: string): string {
   return path.join(espIdfPath, "tools", "idf_py_actions", "hints.yml");
-}
-
-async function getOpenOcdHintsYmlPath(
-  workspace: vscode.Uri
-): Promise<string | null> {
-  try {
-    const idfToolsPath = idfConf.readParameter(
-      "idf.toolsPath",
-      workspace
-    ) as string;
-
-    const openOCDManager = OpenOCDManager.init();
-    const version = await openOCDManager.version();
-
-    if (!version) {
-      Logger.infoNotify(
-        "Could not determine OpenOCD version. Hints file won't be loaded."
-      );
-      return null;
-    }
-
-    const hintsPath = path.join(
-      idfToolsPath,
-      "tools",
-      "openocd-esp32",
-      version,
-      "openocd-esp32",
-      "share",
-      "openocd",
-      "espressif",
-      "tools",
-      "esp_problems_hints.yml"
-    );
-
-    return hintsPath;
-  } catch (error) {
-    Logger.errorNotify(
-      `Error getting OpenOCD hints path: ${error.message}`,
-      error,
-      "getOpenOcdHintsYmlPath"
-    );
-    return null;
-  }
 }

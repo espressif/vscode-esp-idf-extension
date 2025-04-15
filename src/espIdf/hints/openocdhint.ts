@@ -19,6 +19,7 @@ import * as path from "path";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { PreCheck } from "../../utils";
+import { getOpenOcdHintsYmlPath } from "./utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { ErrorHintProvider } from "./index";
 
@@ -91,9 +92,9 @@ export class OpenOCDErrorMonitor {
         this.workspaceRoot
       ) as string;
       
-      const openOcdHintsPath = await this.getOpenOcdHintsYmlPath(toolsPath, version);
+      const openOcdHintsPath = await getOpenOcdHintsYmlPath(toolsPath, version);
       
-      if (openOcdHintsPath && (await pathExists(openOcdHintsPath))) {
+      if (openOcdHintsPath) {
         try {
           const fileContents = await readFile(openOcdHintsPath, "utf-8");
           this.hintsData = yaml.load(fileContents) as OpenOCDHint[];
@@ -104,9 +105,11 @@ export class OpenOCDErrorMonitor {
             error,
             "OpenOCDErrorMonitor initialize"
           );
+          this.hintsData = [];
         }
       } else {
         Logger.info(`OpenOCD hints file not found at ${openOcdHintsPath}`);
+        this.hintsData = [];
       }
 
       // Start monitoring OpenOCD output
@@ -129,33 +132,6 @@ export class OpenOCDErrorMonitor {
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = null;
-    }
-  }
-
-  private async getOpenOcdHintsYmlPath(toolsPath: string, version: string): Promise<string | null> {
-    try {
-
-      const hintsPath = path.join(
-        toolsPath,
-        "tools",
-        "openocd-esp32",
-        version,
-        "openocd-esp32",
-        "share",
-        "openocd",
-        "espressif",
-        "tools",
-        "esp_problems_hints.yml"
-      );
-
-      return hintsPath;
-    } catch (error) {
-      Logger.errorNotify(
-        `Error getting OpenOCD hints path: ${error.message}`,
-        error,
-        "getOpenOcdHintsYmlPath"
-      );
-      return null;
     }
   }
 
