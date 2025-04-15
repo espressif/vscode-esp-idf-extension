@@ -36,7 +36,4 @@
   "typescript.updateImportsOnFileMove.enabled": "always",
   "workbench.editor.enablePreview": true,
   "iis.configDir": "",
-  "idf.pythonInstallPath": "/opt/homebrew/bin/python3",
-  "idf.espIdfPath": "/Users/radurentea/esp/v5.4/esp-idf",
-  "idf.toolsPath": "/Users/radurentea/esp/esptools"
 }
