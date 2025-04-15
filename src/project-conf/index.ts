@@ -284,6 +284,7 @@ export async function getProjectConfigurationElements(
           sdkconfigFilePath: sdkconfigFilePath,
         },
         env: processedEnv ?? {},
+        idfTarget: rawConfig.idfTarget,
         flashBaudRate: rawConfig.flashBaudRate,
         monitorBaudRate: rawConfig.monitorBaudRate,
         openOCD: {

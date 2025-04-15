@@ -171,6 +171,7 @@ import { IdfSetup } from "./views/setup/types";
 import { asyncRemoveEspIdfSettings } from "./uninstall";
 import { ProjectConfigurationManager } from "./project-conf/ProjectConfigurationManager";
 import { readPartition } from "./espIdf/partition-table/partitionReader";
+import { getTargetsFromEspIdf } from "./espIdf/setTarget/getTargets";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1151,9 +1152,11 @@ export async function activate(context: vscode.ExtensionContext) {
             progress: vscode.Progress<{ message: string; increment: number }>
           ) => {
             try {
+              const targetsFromIdf = await getTargetsFromEspIdf(workspaceRoot);
               projectConfigurationPanel.createOrShow(
                 context.extensionPath,
-                workspaceRoot
+                workspaceRoot,
+                targetsFromIdf
               );
             } catch (error) {
               Logger.errorNotify(
