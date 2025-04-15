@@ -108,7 +108,19 @@ function resolveConfigPaths(
   }
 
   const resolveSinglePath = (configPath: string): string | undefined => {
-    return substituteVariablesInString(configPath, workspaceFolder);
+    // First substitute any variables
+    const substitutedPath = substituteVariablesInString(configPath, workspaceFolder);
+    if (!substitutedPath) {
+      return undefined;
+    }
+
+    // If the path is already absolute, return it as is
+    if (path.isAbsolute(substitutedPath)) {
+      return substitutedPath;
+    }
+
+    // If the path is relative, join it with the workspace folder
+    return path.join(workspaceFolder.fsPath, substitutedPath);
   };
 
   if (Array.isArray(paths)) {
