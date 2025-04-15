@@ -270,7 +270,7 @@ export async function getProjectConfigurationElements(
           compileArgs: compileArgs ?? [],
           ninjaArgs: ninjaArgs ?? [],
           buildDirectoryPath: buildDirectoryPath,
-          sdkconfigDefaults: sdkconfigDefaults,
+          sdkconfigDefaults: sdkconfigDefaults ?? [],
           sdkconfigFilePath: sdkconfigFilePath,
         },
         env: processedEnv ?? {},
