@@ -29,6 +29,7 @@ import {
 } from "../setup/existingIdfSetups";
 import { IdfSetup } from "../views/setup/types";
 import { getTargetsFromEspIdf, IdfTarget } from "../espIdf/setTarget/getTargets";
+import { getCurrentIdfSetup } from "../versionSwitcher";
 
 export interface INewProjectArgs {
   espIdfSetup: IdfSetup;
@@ -80,7 +81,8 @@ export async function getNewProjectArgs(
     );
     existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
   }
-  let setupsToUse = [...idfSetups, ...existingIdfSetups];
+  const currentIdfSetup = await getCurrentIdfSetup(workspace);
+  let setupsToUse = [...idfSetups, ...existingIdfSetups, currentIdfSetup];
   setupsToUse = setupsToUse.filter(
     (setup, index, self) =>
       index ===
