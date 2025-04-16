@@ -235,7 +235,7 @@ export class ExamplesPlanel {
       settingsJson["idf.pythonInstallPath"] = idfSetup.sysPythonPath;
     }
     await writeJSON(settingsJsonPath, settingsJson, {
-      spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
+      spaces: 2,
     });
   }
 }

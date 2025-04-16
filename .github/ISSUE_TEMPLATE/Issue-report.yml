@@ -55,7 +55,7 @@ body:
     attributes:
       label: Doctor command output
       description: What is the output of the 'ESP-IDF Doctor command' command?
-      placeholder: ex. DevKitC, plain module on breadboard, etc. If your hardware is custom or unusual, please attach a photo.
+      placeholder: A doctor command output is a list of all the tools and their versions that are installed in your system.
     validations:
       required: true
   - type: textarea
@@ -64,7 +64,7 @@ body:
       label: Extension
       description: |
         Please share related content of extension log file located in:
-        * Windows (%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log)
+        * Windows (%USERPROFILE%\\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log)
         * Linux-MacOS ($HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log)
   - type: textarea
     id: Description

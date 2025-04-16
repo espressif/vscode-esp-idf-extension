@@ -323,7 +323,7 @@ export async function updateCCppPropertiesJson(
   ) {
     cCppPropertiesJson.configurations[0][fieldToUpdate] = newFieldValue;
     await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
-      spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
+      spaces: 2,
     });
   }
 }
@@ -519,7 +519,7 @@ export function readJson(jsonPath: string) {
 
 export function writeJson(jsonPath: string, object: any) {
   return writeJSON(jsonPath, object, {
-    spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
+    spaces: 2,
   });
 }
 
