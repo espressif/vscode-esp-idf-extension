@@ -3904,7 +3904,8 @@ async function getFrameworksPickItems() {
       );
       existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
     }
-    let setupsToUse = [...idfSetups, ...existingIdfSetups];
+    const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
+    let setupsToUse = [...idfSetups, ...existingIdfSetups, currentIdfSetup];
     setupsToUse = setupsToUse.filter(
       (setup, index, self) =>
         index ===
@@ -3921,7 +3922,6 @@ async function getFrameworksPickItems() {
         setupsToUse.filter((i) => i.isValid).map((item) => [item.idfPath, item])
       ).values(),
     ];
-    const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
     for (const idfSetup of onlyValidIdfSetups) {
       pickItems.push({
         description: `ESP-IDF v${idfSetup.version}`,
