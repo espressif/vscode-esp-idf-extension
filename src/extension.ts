@@ -4062,6 +4062,19 @@ const flash = (
             workspaceRoot
           ) as ESP.FlashType;
         }
+        if (!partitionToUse) {
+          partitionToUse = idfConf.readParameter(
+            "idf.flashPartitionToUse",
+            workspaceRoot
+          ) as ESP.BuildType;
+
+          if (
+            partitionToUse &&
+            !["app", "bootloader", "partition-table"].includes(partitionToUse)
+          ) {
+            partitionToUse = undefined;
+          }
+        }
         if (
           await startFlashing(
             cancelToken,
@@ -4160,10 +4173,24 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
         });
 
         let encryptPartitions = await isFlashEncryptionEnabled(workspaceRoot);
+
+        let partitionToUse = idfConf.readParameter(
+          "idf.flashPartitionToUse",
+          workspaceRoot
+        ) as ESP.BuildType;
+
+        if (
+          partitionToUse &&
+          !["app", "bootloader", "partition-table"].includes(partitionToUse)
+        ) {
+          partitionToUse = undefined;
+        }
+
         canContinue = await startFlashing(
           cancelToken,
           flashType,
-          encryptPartitions
+          encryptPartitions,
+          partitionToUse
         );
         if (!canContinue) {
           return;

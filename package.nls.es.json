@@ -131,6 +131,7 @@
 	"param.espRainmakerPath": "Ruta para localizar el framework ESP-Rainmaker (RMAKER_PATH)",
 	"param.exportVars": "Variables que se agregarán a las variables de entorno del sistema",
 	"param.flashBaudRate": "Tasa de baudios de flasheo ESP-IDF",
+	"param.flashPartitionToUse": "Especifica la partición a grabar durante el proceso de flasheo.",
 	"param.gitPath.title": "Ruta del ejecutable de Git",
   "param.jtagFlashCommandExtraArgs.title": "Openocd JTAG Flash Argumentos adicionales",
 	"param.launchMonitorOnDebugSession.title": "Iniciar Monitor IDF junto con la sesión de Adaptador de Depuración ESP-IDF",

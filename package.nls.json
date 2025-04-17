@@ -131,6 +131,7 @@
   "param.espRainmakerPath": "Path to locate ESP-Rainmaker framework (RMAKER_PATH)",
   "param.exportVars": "Variables to be added to system environment variables",
   "param.flashBaudRate": "ESP-IDF flash baud rate",
+  "param.flashPartitionToUse": "Specifies the partition to flash during the build and flash process.",
   "param.gitPath.title": "Git executable path",
   "param.jtagFlashCommandExtraArgs.title": "OpenOCD JTAG flash extra arguments",
   "param.launchMonitorOnDebugSession.title": "Start IDF monitor along with ESP-IDF Debug Adapter session",

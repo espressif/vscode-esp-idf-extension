@@ -938,6 +938,17 @@
             "description": "%idf.flashType.description%",
             "scope": "resource"
           },
+          "idf.flashPartitionToUse": {
+            "type": "string",
+            "enum": [
+              "all",
+              "app",
+              "bootloader",
+              "partition-table"
+            ],
+            "default": "all",
+            "description": "%param.flashPartitionToUse%"
+          },
           "openocd.tcl.host": {
             "type": "string",
             "description": "%openocd.tcl.host.description%",
