@@ -93,15 +93,17 @@ function substituteVariablesInString(
  * Resolves configuration paths after substituting variables. Designed for fields
  * that MUST represent filesystem paths.
  * Handles both single path string or array of paths.
- * Only performs variable substitution, keeping paths relative.
- * Recommends using '/' as separator in the JSON config for portability.
+ * When resolvePaths is true, relative paths are resolved relative to workspaceFolder.
+ * When resolvePaths is false, paths are returned as-is.
  * @param workspaceFolder The workspace folder Uri.
  * @param paths The path string or array of path strings from the config.
+ * @param resolvePaths Whether to resolve paths to absolute paths
  * @returns The path(s) with variables substituted or undefined.
  */
 function resolveConfigPaths(
   workspaceFolder: Uri,
-  paths?: string | string[]
+  paths?: string | string[],
+  resolvePaths: boolean = false
 ): string | string[] | undefined {
   if (paths === undefined || paths === null) {
     return undefined;
@@ -114,12 +116,17 @@ function resolveConfigPaths(
       return undefined;
     }
 
-    // If the path is already absolute, return it as is
+    if (!resolvePaths) {
+      // Return the path as is for display
+      return substitutedPath;
+    }
+
+    // For building, ensure relative paths are resolved relative to workspaceFolder
     if (path.isAbsolute(substitutedPath)) {
       return substitutedPath;
     }
 
-    // If the path is relative, join it with the workspace folder
+    // Join with workspace folder to get absolute path
     return path.join(workspaceFolder.fsPath, substitutedPath);
   };
 
@@ -143,10 +150,12 @@ function resolveConfigPaths(
  * Reads the project configuration JSON file, performs variable substitution
  * on relevant fields, resolves paths, and returns the structured configuration.
  * @param workspaceFolder The Uri of the current workspace folder.
+ * @param resolvePaths Whether to resolve paths to absolute paths (true for building, false for display)
  * @returns An object mapping configuration names to their processed ProjectConfElement.
  */
 export async function getProjectConfigurationElements(
-  workspaceFolder: Uri
+  workspaceFolder: Uri,
+  resolvePaths: boolean = false
 ): Promise<{ [key: string]: ProjectConfElement }> {
   const projectConfFilePath = Uri.joinPath(
     workspaceFolder,
@@ -197,26 +206,27 @@ export async function getProjectConfigurationElements(
       const envConfig = rawConfig.env;
 
       // --- Process Build Configuration ---
-      const buildDirectoryPath = resolveConfigPaths(
-        workspaceFolder,
-        buildConfig?.buildDirectoryPath
-      ) as string | undefined;
-      const sdkconfigDefaults = resolveConfigPaths(
-        workspaceFolder,
-        buildConfig?.sdkconfigDefaults
-      ) as string[] | undefined;
-      const sdkconfigFilePath = resolveConfigPaths(
-        workspaceFolder,
-        buildConfig?.sdkconfigFilePath
-      ) as string | undefined;
+      const buildDirectoryPath = resolvePaths
+        ? resolveConfigPaths(workspaceFolder, buildConfig?.buildDirectoryPath, resolvePaths)
+        : buildConfig?.buildDirectoryPath;
+      const sdkconfigDefaults = resolvePaths
+        ? resolveConfigPaths(workspaceFolder, buildConfig?.sdkconfigDefaults, resolvePaths)
+        : buildConfig?.sdkconfigDefaults;
+      const sdkconfigFilePath = resolvePaths
+        ? resolveConfigPaths(workspaceFolder, buildConfig?.sdkconfigFilePath, resolvePaths)
+        : buildConfig?.sdkconfigFilePath;
       const compileArgs = buildConfig?.compileArgs
         ?.map((arg: string) =>
-          substituteVariablesInString(arg, workspaceFolder)
+          resolvePaths
+            ? substituteVariablesInString(arg, workspaceFolder)
+            : arg
         )
         .filter(isDefined);
       const ninjaArgs = buildConfig?.ninjaArgs
         ?.map((arg: string) =>
-          substituteVariablesInString(arg, workspaceFolder)
+          resolvePaths
+            ? substituteVariablesInString(arg, workspaceFolder)
+            : arg
         )
         .filter(isDefined);
 
@@ -228,9 +238,9 @@ export async function getProjectConfigurationElements(
           if (Object.prototype.hasOwnProperty.call(envConfig, key)) {
             const rawValue = envConfig[key];
             if (typeof rawValue === "string") {
-              // Substitute variables in the environment variable *value*
-              processedEnv[key] =
-                substituteVariablesInString(rawValue, workspaceFolder) ?? "";
+              processedEnv[key] = resolvePaths
+                ? substituteVariablesInString(rawValue, workspaceFolder) ?? ""
+                : rawValue;
             } else {
               processedEnv[key] = String(rawValue);
             }
@@ -239,33 +249,30 @@ export async function getProjectConfigurationElements(
       }
 
       // --- Process OpenOCD Configuration ---
-      const openOCDConfigs = resolveConfigPaths(
-        workspaceFolder,
-        openOCDConfig?.configs
-      ) as string[] | undefined;
+      const openOCDConfigs = resolvePaths
+        ? resolveConfigPaths(workspaceFolder, openOCDConfig?.configs, resolvePaths)
+        : openOCDConfig?.configs;
       const openOCDArgs = openOCDConfig?.args
         ?.map((arg: string) =>
-          substituteVariablesInString(arg, workspaceFolder)
+          resolvePaths
+            ? substituteVariablesInString(arg, workspaceFolder)
+            : arg
         )
         .filter(isDefined);
 
       // --- Process Tasks ---
-      const preBuild = substituteVariablesInString(
-        tasksConfig?.preBuild,
-        workspaceFolder
-      );
-      const preFlash = substituteVariablesInString(
-        tasksConfig?.preFlash,
-        workspaceFolder
-      );
-      const postBuild = substituteVariablesInString(
-        tasksConfig?.postBuild,
-        workspaceFolder
-      );
-      const postFlash = substituteVariablesInString(
-        tasksConfig?.postFlash,
-        workspaceFolder
-      );
+      const preBuild = resolvePaths
+        ? substituteVariablesInString(tasksConfig?.preBuild, workspaceFolder)
+        : tasksConfig?.preBuild;
+      const preFlash = resolvePaths
+        ? substituteVariablesInString(tasksConfig?.preFlash, workspaceFolder)
+        : tasksConfig?.preFlash;
+      const postBuild = resolvePaths
+        ? substituteVariablesInString(tasksConfig?.postBuild, workspaceFolder)
+        : tasksConfig?.postBuild;
+      const postFlash = resolvePaths
+        ? substituteVariablesInString(tasksConfig?.postFlash, workspaceFolder)
+        : tasksConfig?.postFlash;
 
       // --- Assemble the Processed Configuration ---
       projectConfElements[confName] = {

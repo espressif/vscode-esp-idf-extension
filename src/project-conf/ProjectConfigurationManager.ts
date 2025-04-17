@@ -321,8 +321,12 @@ export class ProjectConfigurationManager {
       configName
     );
 
-    // Update the configuration data
-    ESP.ProjectConfiguration.store.set(configName, configData);
+    // Update the configuration data with resolved paths for building
+    const resolvedConfig = await getProjectConfigurationElements(
+      this.workspaceRoot,
+      true // Resolve paths for building
+    );
+    ESP.ProjectConfiguration.store.set(configName, resolvedConfig[configName]);
 
     // Update UI
     if (this.statusBarItems["projectConf"]) {
@@ -355,7 +359,8 @@ export class ProjectConfigurationManager {
   public async selectProjectConfiguration(): Promise<void> {
     try {
       const projectConfigurations = await getProjectConfigurationElements(
-        this.workspaceRoot
+        this.workspaceRoot,
+        false // Don't resolve paths for display
       );
 
       if (
