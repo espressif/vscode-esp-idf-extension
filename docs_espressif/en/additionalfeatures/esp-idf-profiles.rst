@@ -41,14 +41,12 @@ How to Import an ESP-IDF Profile
 1.  Choose the profile that best suits your C/C++ tooling preference and download its `.code-profile` file from one of the following sources:
 
     * **Default Profile (`ESP-IDF`)**: (Uses Microsoft C/C++ Tools)
-        * `GitHub Repository <https://github.com/espressif/vscode-esp-idf-extension/blob/master/profiles/esp-idf.code-profile>`_
-        * `Direct Download Link <https://raw.githubusercontent.com/espressif/vscode-esp-idf-extension/master/profiles/esp-idf.code-profile>`_
-          (Downloads as `esp-idf.code-profile`)
+        * `Default Profile GitHub Repository <https://github.com/espressif/vscode-esp-idf-extension/blob/master/profiles/esp-idf.code-profile>`_
+        * `Defualt Profile Direct Download Link <https://raw.githubusercontent.com/espressif/vscode-esp-idf-extension/master/profiles/esp-idf.code-profile>`_
 
     * **Clangd Profile (`ESP-IDF (clangd)`)**: (Uses clangd)
-        * `GitHub Repository <https://github.com/espressif/vscode-esp-idf-extension/blob/master/profiles/esp-idf-clangd.code-profile>`_
-        * `Direct Download Link <https://raw.githubusercontent.com/espressif/vscode-esp-idf-extension/master/profiles/esp-idf-clangd.code-profile>`_
-          (Downloads as `esp-idf-clangd.code-profile`)
+        * `Clangd Profile GitHub Repository <https://github.com/espressif/vscode-esp-idf-extension/blob/master/profiles/esp-idf-clangd.code-profile>`_
+        * `Clangd Profile Download Link <https://raw.githubusercontent.com/espressif/vscode-esp-idf-extension/master/profiles/esp-idf-clangd.code-profile>`_
 
 2.  In VS Code:
     * Navigate to **File** > **Preferences** > **Profiles** > **Import Profile...**
