@@ -21,8 +21,8 @@ import { ExtensionContext, Uri, window } from "vscode";
 import { ESP } from "../config";
 import { pathExists, readJson, writeJson } from "fs-extra";
 import { ProjectConfElement } from "./projectConfiguration";
-import * as process from "process";
 import { Logger } from "../logger/logger";
+
 export class ProjectConfigStore {
   private static self: ProjectConfigStore;
   private ctx: ExtensionContext;
@@ -45,6 +45,43 @@ export class ProjectConfigStore {
   public clear(key: string) {
     return this.set(key, undefined);
   }
+}
+
+export async function updateCurrentProfileIdfTarget(
+  idfTarget: string,
+  workspaceFolder: Uri
+) {
+  const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
+    ESP.ProjectConfiguration.SELECTED_CONFIG
+  );
+
+  if (!selectedConfig) {
+    return;
+  }
+
+  const projectConfJson = await getProjectConfigurationElements(
+    workspaceFolder,
+    true
+  );
+
+  if (!projectConfJson[selectedConfig]) {
+    const err = new Error(
+      `Configuration "${selectedConfig}" not found in ${ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME}.`
+    );
+    Logger.errorNotify(
+      err.message,
+      err,
+      "updateCurrentProfileIdfTarget project-conf"
+    );
+    return;
+  }
+  projectConfJson[selectedConfig].idfTarget = idfTarget;
+
+  ESP.ProjectConfiguration.store.set(
+    selectedConfig,
+    projectConfJson[selectedConfig]
+  );
+  await this.saveProjectConfFile(workspaceFolder, projectConfJson);
 }
 
 export async function saveProjectConfFile(
