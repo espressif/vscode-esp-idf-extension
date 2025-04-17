@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import * as path from "path";
 import {
   env,
   StatusBarAlignment,
@@ -31,6 +32,7 @@ import { ESP } from "../config";
 import { CommandItem } from "../cmdTreeView/cmdTreeDataProvider";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { pathExists } from "fs-extra";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
 
@@ -65,6 +67,12 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   let projectConf = ESP.ProjectConfiguration.store.get<string>(
     ESP.ProjectConfiguration.SELECTED_CONFIG
   );
+  let projectConfPath = path.join(
+    workspaceFolder.fsPath,
+    ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+  );
+  let projectConfExists = await pathExists(projectConfPath);
+
   let currentIdfVersion = await getCurrentIdfSetup(workspaceFolder, false);
 
   statusBarItems["workspace"] = createStatusBarItem(
@@ -119,16 +127,37 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     }
   }
 
-  if (projectConf) {
-    statusBarItems["projectConf"] = createStatusBarItem(
-      `$(${
-        commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
-      }) ${projectConf}`,
-      commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
-      CommandKeys.SelectProjectConfiguration,
-      99,
-      commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
-    );
+   // Only create the project configuration status bar item if the configuration file exists
+   if (projectConfExists) {
+    if (!projectConf) {
+      // No configuration selected but file exists with configurations
+      let statusBarItemName = "No Configuration Selected";
+      let statusBarItemTooltip = "No project configuration selected. Click to select one";
+      statusBarItems["projectConf"] = createStatusBarItem(
+        `$(${
+          commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
+        }) ${statusBarItemName}`,
+        statusBarItemTooltip,
+        CommandKeys.SelectProjectConfiguration,
+        99,
+        commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
+      );
+    } else {
+      // Valid configuration is selected
+      statusBarItems["projectConf"] = createStatusBarItem(
+        `$(${
+          commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
+        }) ${projectConf}`,
+        commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
+        CommandKeys.SelectProjectConfiguration,
+        99,
+        commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
+      );
+    }
+  } else if (statusBarItems["projectConf"]) {
+    // If the configuration file doesn't exist but the status bar item does, remove it
+    statusBarItems["projectConf"].dispose();
+    statusBarItems["projectConf"] = undefined;
   }
 
   statusBarItems["target"] = createStatusBarItem(

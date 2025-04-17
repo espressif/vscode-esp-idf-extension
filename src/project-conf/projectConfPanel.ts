@@ -86,13 +86,14 @@ export class projectConfigurationPanel {
     );
 
     const scriptPath = this.panel.webview.asWebviewUri(
-      Uri.file(join(extensionPath, "dist", "views", "project_conf-bundle.js"))
+      Uri.file(join(this.extensionPath, "dist", "views", "project_conf-bundle.js"))
     );
     this.panel.webview.html = this.createSetupHtml(scriptPath);
 
     this.panel.webview.onDidReceiveMessage(async (message) => {
       let projectConfObj = await getProjectConfigurationElements(
-        this.workspaceFolder
+        this.workspaceFolder,
+        false // Don't resolve paths for display
       );
       switch (message.command) {
         case "command":
