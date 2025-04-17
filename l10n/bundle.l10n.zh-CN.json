@@ -209,5 +209,7 @@
   "Warning: Could not fully remove setting {0}: {1}": "警告：无法完全删除设置 {0}：{1}",
   "ESP-IDF settings removed successfully.": "ESP-IDF设置已成功删除。",
   "Failed to remove settings: {0}": "删除设置失败：{0}",
-  "Error: {0}": "错误：{0}"
+  "Error: {0}": "错误：{0}",
+  "IDF_TARGET mismatch: SDKConfig value is \"{0}\" but settings value is \"{1}\".": "IDF_TARGET 不匹配：SDKConfig 值为 \"{0}\"，但设置值为 \"{1}\"。",
+  "Set IDF_TARGET": "设置 IDF_TARGET"
 }

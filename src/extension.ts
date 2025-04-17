@@ -478,8 +478,6 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  context.subscriptions.push(projectConfigManager);
-
   vscode.debug.onDidTerminateDebugSession((e) => {
     if (isOpenOCDLaunchedByDebug && !isDebugRestarted) {
       isOpenOCDLaunchedByDebug = false;
@@ -3740,24 +3738,19 @@ export async function activate(context: vscode.ExtensionContext) {
     context,
     statusBarItems
   );
+  context.subscriptions.push(projectConfigManager);
 
-  const projectConfCommandDisposable = vscode.commands.registerCommand(
-    "espIdf.projectConf",
-    async () => {
-      PreCheck.perform([openFolderCheck], async () => {
-        if (projectConfigManager) {
-          await projectConfigManager.selectProjectConfiguration();
-        } else {
-          vscode.window.showErrorMessage(
-            "Project Configuration Manager not initialized."
-          );
-        }
-      });
-    }
-  );
-
-  // Add the disposable to context subscriptions
-  context.subscriptions.push(projectConfCommandDisposable);
+  registerIDFCommand("espIdf.projectConf", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      if (projectConfigManager) {
+        await projectConfigManager.selectProjectConfiguration();
+      } else {
+        vscode.window.showErrorMessage(
+          "Project Configuration Manager not initialized."
+        );
+      }
+    });
+  });
 }
 
 function checkAndNotifyMissingCompileCommands() {
