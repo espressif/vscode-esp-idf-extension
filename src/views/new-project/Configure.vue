@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useNewProjectStore } from "./store";
-import { computed, onMounted } from "vue";
+import { computed, onMounted, watch } from "vue";
 import IdfComponents from "./components/IdfComponents.vue";
 import folderOpen from "./components/folderOpen.vue";
 const store = useNewProjectStore();
 
 const {
   boards,
+  idfTargets,
   openOcdConfigFiles,
   projectName,
   containerDirectory,
   selectedBoard,
+  selectedIdfTarget,
   selectedPort,
   serialPortList,
 } = storeToRefs(store);
@@ -27,8 +29,22 @@ const showCustomBoardInput = computed(() => {
   return showTarget;
 });
 
+const filteredBoards = computed(() => {
+  return boards.value.filter(
+    (board) =>
+      board.name === "Custom board" ||
+      board.target === selectedIdfTarget.value.target
+  );
+});
+
 onMounted(() => {
   store.requestInitialValues();
+});
+
+watch(selectedIdfTarget, () => {
+  if (filteredBoards.value.length > 0) {
+    selectedBoard.value = filteredBoards.value[0];
+  }
 });
 </script>
 
@@ -56,12 +72,31 @@ onMounted(() => {
     />
 
     <div class="field">
-      <div class="field" v-if="boards && boards.length > 0">
+      <div class="field" v-if="idfTargets && idfTargets.length > 0">
+        <label for="idf-target" class="label"
+          >Choose ESP-IDF Target (IDF_TARGET)</label
+        >
+        <div class="control">
+          <div class="select">
+            <select
+              name="idf-target"
+              id="idf-target"
+              v-model="selectedIdfTarget"
+            >
+              <option v-for="b of idfTargets" :key="b.label" :value="b">{{
+                b.label
+              }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="field" v-if="filteredBoards && filteredBoards.length > 0">
         <label for="idf-board" class="label">Choose ESP-IDF Board</label>
         <div class="control">
           <div class="select">
             <select name="idf-board" id="idf-board" v-model="selectedBoard">
-              <option v-for="b of boards" :key="b.name" :value="b">{{
+              <option v-for="b of filteredBoards" :key="b.name" :value="b">{{
                 b.name
               }}</option>
             </select>

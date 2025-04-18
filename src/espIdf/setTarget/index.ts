@@ -34,6 +34,7 @@ import { OutputChannel } from "../../logger/outputChannel";
 import { getBoards, getOpenOcdScripts } from "../openOcd/boardConfiguration";
 import { getTargetsFromEspIdf } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
+import { updateCurrentProfileIdfTarget } from "../../project-conf";
 
 export async function setIdfTarget(
   placeHolderMsg: string,
@@ -77,6 +78,7 @@ export async function setIdfTarget(
           configurationTarget,
           workspaceFolder.uri
         );
+        await updateCurrentProfileIdfTarget(selectedTarget.target, workspaceFolder.uri);
         const openOcdScriptsPath = await getOpenOcdScripts(workspaceFolder.uri);
         const boards = await getBoards(
           openOcdScriptsPath,

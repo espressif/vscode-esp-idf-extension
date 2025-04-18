@@ -34,7 +34,10 @@ export function addWinIfRequired(param: string) {
   return param;
 }
 
-export function parameterToProjectConfigMap(param: string) {
+export function parameterToProjectConfigMap(
+  param: string,
+  scope?: vscode.ConfigurationScope
+) {
   if (!ESP.ProjectConfiguration.store) {
     return "";
   }
@@ -66,7 +69,22 @@ export function parameterToProjectConfigMap(param: string) {
         ? currentProjectConf.build.sdkconfigDefaults
         : "";
     case "idf.customExtraVars":
-      return currentProjectConf.env;
+      const paramUpdated = addWinIfRequired(param);
+      let settingsVars = vscode.workspace
+        .getConfiguration("", scope)
+        .get(paramUpdated) as { [key: string]: any };
+      let resultVars = {};
+      for (const envKey of Object.keys(settingsVars)) {
+        resultVars[envKey] = settingsVars[envKey];
+      }
+      for (const projectConfEnvKey of Object.keys(currentProjectConf.env)) {
+        resultVars[projectConfEnvKey] =
+          currentProjectConf.env[projectConfEnvKey];
+      }
+      if (currentProjectConf.idfTarget) {
+        resultVars["IDF_TARGET"] = currentProjectConf.idfTarget;
+      }
+      return resultVars;
     case "idf.flashBaudRate":
       return currentProjectConf.flashBaudRate;
     case "idf.monitorBaudRate":

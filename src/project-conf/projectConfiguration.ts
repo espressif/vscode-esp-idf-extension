@@ -25,6 +25,7 @@ export interface ProjectConfElement {
     sdkconfigFilePath: string;
   };
   env: { [key: string]: string };
+  idfTarget: string;
   flashBaudRate: string;
   monitorBaudRate: string;
   openOCD: {

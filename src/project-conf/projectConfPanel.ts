@@ -29,11 +29,16 @@ import {
 import { join } from "path";
 import { ESP } from "../config";
 import { getProjectConfigurationElements, saveProjectConfFile } from ".";
+import { IdfTarget } from "../espIdf/setTarget/getTargets";
 
 export class projectConfigurationPanel {
   public static currentPanel: projectConfigurationPanel | undefined;
 
-  public static createOrShow(extensionPath: string, workspaceFolder: Uri) {
+  public static createOrShow(
+    extensionPath: string,
+    workspaceFolder: Uri,
+    idfTargets?: IdfTarget[]
+  ) {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
       : ViewColumn.One;
@@ -44,7 +49,8 @@ export class projectConfigurationPanel {
       projectConfigurationPanel.currentPanel = new projectConfigurationPanel(
         extensionPath,
         column,
-        workspaceFolder
+        workspaceFolder,
+        idfTargets
       );
     }
   }
@@ -63,11 +69,10 @@ export class projectConfigurationPanel {
   constructor(
     private extensionPath: string,
     column: ViewColumn,
-    private workspaceFolder: Uri
+    private workspaceFolder: Uri,
+    idfTargets: IdfTarget[]
   ) {
-    const projectConfPanelTitle = l10n.t(
-      "ESP-IDF Project Configuration"
-    );
+    const projectConfPanelTitle = l10n.t("ESP-IDF Project Configuration");
 
     this.panel = window.createWebviewPanel(
       projectConfigurationPanel.viewType,
@@ -102,6 +107,7 @@ export class projectConfigurationPanel {
           this.panel.webview.postMessage({
             command: "initialLoad",
             confList: projectConfObj,
+            idfTargets,
           });
           break;
         case "saveProjectConfFile":
