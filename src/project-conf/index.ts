@@ -81,7 +81,7 @@ export async function updateCurrentProfileIdfTarget(
     selectedConfig,
     projectConfJson[selectedConfig]
   );
-  await this.saveProjectConfFile(workspaceFolder, projectConfJson);
+  await saveProjectConfFile(workspaceFolder, projectConfJson);
 }
 
 export async function saveProjectConfFile(
