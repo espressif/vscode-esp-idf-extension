@@ -132,7 +132,7 @@
 	"param.monitorCustomTimestampFormat": "Formato de marca de tiempo personalizado en Monitor IDF",
 	"param.monitorEnableTimestamps": "Habilitar marcas de tiempo en Monitor IDF",
 	"param.monitorNoReset": "Habilitar bandera de no reinicio en Monitor IDF",
-	"param.monitorStartDelayBeforeDebug": "Retraso para iniciar la sesión de depuración después de la ejecución del monitor IDF (ms)",
+	"param.monitorDelay": "Retraso para iniciar la sesión de depuración después de la ejecución del monitor IDF o al interrumpir la sesión del monitor (ms)",
 	"param.ninjaArgs": "Argumentos para tarea de construcción Ninja",
 	"param.notificationMode": "Modo de notificaciones de la extensión ESP-IDF y modo de enfoque de salida.",
 	"param.notificationMode.all": "Mostrar notificaciones y enfocar la salida de tareas.",

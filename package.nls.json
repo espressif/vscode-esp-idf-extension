@@ -132,7 +132,7 @@
   "param.monitorCustomTimestampFormat": "Custom timestamp format in IDF monitor",
   "param.monitorEnableTimestamps": "Enable timestamps in IDF monitor",
   "param.monitorNoReset": "Enable no-reset flag to IDF monitor",
-  "param.monitorStartDelayBeforeDebug": "Delay to start debug session after IDF monitor execution (ms)",
+  "param.monitorDelay": "Delay to start debug session after IDF monitor execution or breaking monitor session (ms)",
   "param.ninjaArgs": "Arguments for Ninja build task",
   "param.notificationMode": "ESP-IDF extension notifications and output focus mode",
   "param.notificationMode.all": "Show notifications and focus on tasks output",

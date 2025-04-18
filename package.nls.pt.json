@@ -132,7 +132,7 @@
 	"param.monitorCustomTimestampFormat": "Formato de carimbo de data/hora personalizado no IDF Monitor",
 	"param.monitorEnableTimestamps": "Habilitar carimbos de data/hora no IDF Monitor",
 	"param.monitorNoReset": "Habilite o sinalizador de não reinicialização para o IDF Monitor",
-	"param.monitorStartDelayBeforeDebug": "Atraso para iniciar a sessão de depuração após a execução do monitor IDF (ms)",
+	"param.monitorDelay": "Atraso para iniciar a sessão de depuração após a execução do monitor IDF ou ao interromper a sessão do monitor (ms)",
 	"param.ninjaArgs": "Argumentos para tarefa de construção Ninja",
 	"param.notificationMode": "Notificações de extensão ESP-IDF e modo de foco de saída.",
 	"param.notificationMode.all": "Mostre notificações e concentre a saída das tarefas.",

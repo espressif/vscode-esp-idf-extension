@@ -132,7 +132,7 @@
 	"param.monitorCustomTimestampFormat": "Пользовательский формат временной метки в мониторе IDF",
 	"param.monitorEnableTimestamps": "Включить временные метки в мониторе IDF",
 	"param.monitorNoReset": "Включить флаг no-reset для монитора IDF",
-	"param.monitorStartDelayBeforeDebug": "Задержка начала сеанса отладки после запуска монитора IDF (мс)",
+	"param.monitorDelay": "Задержка перед запуском сеанса отладки после выполнения IDF-монитора или при прерывании сеанса монитора (мс)",
 	"param.ninjaArgs": "Аргументы Ninja в задаче сборки",
 	"param.notificationMode": "Уведомления расширениия ESP-IDF и режим фокусировки вывода",
 	"param.notificationMode.all": "Показывать уведомления и фокусировать вывод задач",

@@ -129,7 +129,7 @@ export async function createNewIdfMonitor(
     const idfVersion = await utils.getEspIdfFromCMake(idfPath);
     if (idfVersion <= "5.0") {
       const monitorDelay = readParameter(
-        "idf.monitorStartDelayBeforeDebug",
+        "idf.monitorDelay",
         workspaceFolder
       ) as number;
       await utils.sleep(monitorDelay);

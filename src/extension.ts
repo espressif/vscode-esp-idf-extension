@@ -696,7 +696,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (IDFMonitor.terminal) {
         IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
         const monitorDelay = idfConf.readParameter(
-          "idf.monitorStartDelayBeforeDebug",
+          "idf.monitorDelay",
           workspaceRoot
         ) as number;
         await utils.sleep(monitorDelay);
@@ -4225,7 +4225,7 @@ async function startFlashing(
   if (IDFMonitor.terminal) {
     IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
     const monitorDelay = idfConf.readParameter(
-      "idf.monitorStartDelayBeforeDebug",
+      "idf.monitorDelay",
       workspaceRoot
     ) as number;
     await utils.sleep(monitorDelay);

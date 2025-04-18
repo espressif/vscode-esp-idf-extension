@@ -1075,11 +1075,11 @@
             "scope": "resource",
             "description": "%param.deleteComponentsOnFullClean%"
           },
-          "idf.monitorStartDelayBeforeDebug": {
+          "idf.monitorDelay": {
             "type": "number",
             "default": 1000,
             "scope": "resource",
-            "description": "%param.monitorStartDelayBeforeDebug%"
+            "description": "%param.monitorDelay%"
           },
           "idf.monitorNoReset": {
             "type": "boolean",
