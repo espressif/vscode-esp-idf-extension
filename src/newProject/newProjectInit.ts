@@ -23,11 +23,7 @@ import {
   getOpenOcdScripts,
   IdfBoard,
 } from "../espIdf/openOcd/boardConfiguration";
-import {
-  getPreviousIdfSetups,
-  loadIdfSetupsFromEspIdfJson,
-} from "../setup/existingIdfSetups";
-import { IdfSetup } from "../views/setup/types";
+import { IdfSetup } from "../eim/types";
 
 export interface INewProjectArgs {
   espIdfSetup: IdfSetup;
@@ -46,7 +42,8 @@ export interface INewProjectArgs {
 export async function getNewProjectArgs(
   extensionPath: string,
   progress: Progress<{ message: string; increment: number }>,
-  workspace: Uri
+  workspace: Uri,
+  idfSetups: IdfSetup[]
 ) {
   progress.report({ increment: 10, message: "Loading ESP-IDF components..." });
   const components = [];
@@ -69,31 +66,13 @@ export async function getNewProjectArgs(
   const openOcdScriptsPath = await getOpenOcdScripts(workspace);
   let espBoards = await getBoards(openOcdScriptsPath);
   progress.report({ increment: 10, message: "Loading ESP-IDF setups list..." });
-  const idfSetups = await getPreviousIdfSetups(true);
-  const toolsPath = idfConf.readParameter("idf.toolsPath", workspace) as string;
-  let existingIdfSetups = await loadIdfSetupsFromEspIdfJson(toolsPath);
-  if (process.env.IDF_TOOLS_PATH && toolsPath !== process.env.IDF_TOOLS_PATH) {
-    const systemIdfSetups = await loadIdfSetupsFromEspIdfJson(
-      process.env.IDF_TOOLS_PATH
-    );
-    existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
-  }
-  const setupsToUse = [...idfSetups, ...existingIdfSetups];
-  if (setupsToUse.length === 0) {
-    await window.showInformationMessage("No ESP-IDF Setups found");
-    return;
-  }
-  const onlyValidIdfSetups = [
-    ...new Map(
-      setupsToUse.filter((i) => i.isValid).map((item) => [item.idfPath, item])
-    ).values(),
-  ];
+
   const pickItems: {
     description: string;
     label: string;
     target: IdfSetup;
   }[] = [];
-  for (const idfSetup of onlyValidIdfSetups) {
+  for (const idfSetup of idfSetups) {
     pickItems.push({
       description: `ESP-IDF v${idfSetup.version}`,
       label: l10n.t(`Use ESP-IDF {espIdfPath}`, {
@@ -111,26 +90,15 @@ export async function getNewProjectArgs(
     return;
   }
   const idfSetup = espIdfPathToUse.target;
-  const espAdfPath = idfConf.readParameter(
-    "idf.espAdfPath",
+  const customExtraVars = idfConf.readParameter(
+    "idf.customExtraVars",
     workspace
-  ) as string;
-  const espMdfPath = idfConf.readParameter(
-    "idf.espMdfPath",
-    workspace
-  ) as string;
-  const espMatterPath = idfConf.readParameter(
-    "idf.espMatterPath",
-    workspace
-  ) as string;
-  const espHomeKitSdkPath = idfConf.readParameter(
-    "idf.espHomeKitSdkPath",
-    workspace
-  ) as string;
-  const espRainmakerPath = idfConf.readParameter(
-    "idf.espRainmakerPath",
-    workspace
-  ) as string;
+  ) as { [key: string]: string };
+  const espAdfPath = customExtraVars["ADF_PATH"];
+  const espMdfPath = customExtraVars["MDF_PATH"];
+  const espMatterPath = customExtraVars["ESP_MATTER_PATH"];
+  const espRainmakerPath = customExtraVars["RMAKER_PATH"];
+  const espHomeKitSdkPath = customExtraVars["HOMEKIT_PATH"];
   let templates: { [key: string]: IExampleCategory } = {};
   templates["Extension"] = getExamplesList(extensionPath, "templates");
   const idfExists = await dirExistPromise(idfSetup.idfPath);
