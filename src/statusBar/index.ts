@@ -127,12 +127,13 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     }
   }
 
-   // Only create the project configuration status bar item if the configuration file exists
-   if (projectConfExists) {
+  // Only create the project configuration status bar item if the configuration file exists
+  if (projectConfExists) {
     if (!projectConf) {
       // No configuration selected but file exists with configurations
       let statusBarItemName = "No Configuration Selected";
-      let statusBarItemTooltip = "No project configuration selected. Click to select one";
+      let statusBarItemTooltip =
+        "No project configuration selected. Click to select one";
       statusBarItems["projectConf"] = createStatusBarItem(
         `$(${
           commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
@@ -246,6 +247,7 @@ export function createStatusBarItem(
 ) {
   const alignment: StatusBarAlignment = StatusBarAlignment.Left;
   const statusBarItem = window.createStatusBarItem(cmd, alignment, priority);
+  statusBarItem.name = tooltip;
   statusBarItem.text = icon;
   statusBarItem.tooltip = tooltip;
   statusBarItem.command = cmd;

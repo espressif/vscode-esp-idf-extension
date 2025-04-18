@@ -113,7 +113,10 @@ export class QemuManager extends EventEmitter {
       "idf.qemuExtraArgs",
       workspaceFolder
     ) as string[];
-    const idfPathDir = readParameter("idf.espIdfPath", workspaceFolder) as string;
+    const idfPathDir = readParameter(
+      "idf.espIdfPath",
+      workspaceFolder
+    ) as string;
     const idfPy = join(idfPathDir, "tools", "idf.py");
     let launchArgs = [idfPy, "-B", buildPath, "qemu"];
 
@@ -123,7 +126,10 @@ export class QemuManager extends EventEmitter {
     if (extraArgs && Array.isArray(extraArgs) && extraArgs.length > 0) {
       launchArgs.push(...extraArgs);
     }
-    if (mode === QemuLaunchMode.Monitor || mode === QemuLaunchMode.DebugMonitor) {
+    if (
+      mode === QemuLaunchMode.Monitor ||
+      mode === QemuLaunchMode.DebugMonitor
+    ) {
       launchArgs.push("monitor");
     }
     return launchArgs;
@@ -235,7 +241,7 @@ export class QemuManager extends EventEmitter {
         StatusBarAlignment.Right,
         1005
       );
-      this._statusBarItem.text = "[ESP-IDF: QEMU]";
+      this._statusBarItem.name = this._statusBarItem.text = "[ESP-IDF: QEMU]";
       const commandDictionary = createCommandDictionary();
       this._statusBarItem.tooltip =
         commandDictionary[CommandKeys.QemuServer].tooltip;
