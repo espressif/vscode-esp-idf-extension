@@ -290,7 +290,7 @@ export class OpenOCDManager extends EventEmitter {
       vscode.StatusBarAlignment.Right,
       1000
     );
-    this.statusBar.text = "[ESP-IDF: OpenOCD Server]";
+    this.statusBar.name = this.statusBar.text = "[ESP-IDF: OpenOCD Server]";
     const commandDictionary = createCommandDictionary();
     this.statusBar.tooltip = commandDictionary[CommandKeys.OpenOCD].tooltip;
     this.statusBar.command = CommandKeys.OpenOCD;
