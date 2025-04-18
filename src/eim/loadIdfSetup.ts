@@ -42,13 +42,13 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
   const currentIdfConfigurationName = readParameter(
     "idf.currentSetup",
     workspaceFolder
-  );
+  ) as string;
 
   let idfSetupToUse: IdfSetup;
   if (idfSetups.length > 0) {
     if (currentIdfConfigurationName) {
       idfSetupToUse = idfSetups.find((idfSetup) => {
-        return (idfSetup.id = currentIdfConfigurationName);
+        return (idfSetup.idfPath === currentIdfConfigurationName);
       });
     } else {
       idfSetupToUse = idfSetups[0];
