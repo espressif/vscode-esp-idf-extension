@@ -3814,7 +3814,8 @@ async function getFrameworksPickItems() {
       );
       existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
     }
-    const setupsToUse = [...idfSetups, ...existingIdfSetups];
+    const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
+    const setupsToUse = [...idfSetups, ...existingIdfSetups, currentIdfSetup];
     if (!setupsToUse || setupsToUse.length === 0) {
       await vscode.window.showInformationMessage("No ESP-IDF Setups found");
       return;
@@ -3824,7 +3825,6 @@ async function getFrameworksPickItems() {
         setupsToUse.filter((i) => i.isValid).map((item) => [item.idfPath, item])
       ).values(),
     ];
-    const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
     for (const idfSetup of onlyValidIdfSetups) {
       pickItems.push({
         description: `ESP-IDF v${idfSetup.version}`,

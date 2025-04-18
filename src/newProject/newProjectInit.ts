@@ -28,6 +28,7 @@ import {
   loadIdfSetupsFromEspIdfJson,
 } from "../setup/existingIdfSetups";
 import { IdfSetup } from "../views/setup/types";
+import { getCurrentIdfSetup } from "../versionSwitcher";
 
 export interface INewProjectArgs {
   espIdfSetup: IdfSetup;
@@ -78,7 +79,8 @@ export async function getNewProjectArgs(
     );
     existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
   }
-  const setupsToUse = [...idfSetups, ...existingIdfSetups];
+  const currentIdfSetup = await getCurrentIdfSetup(workspace);
+  const setupsToUse = [...idfSetups, ...existingIdfSetups, currentIdfSetup];
   if (setupsToUse.length === 0) {
     await window.showInformationMessage("No ESP-IDF Setups found");
     return;
