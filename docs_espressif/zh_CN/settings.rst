@@ -168,6 +168,8 @@ ESP-IDF 相关设置
       - 启用在 ``CMakeLists.txt`` 文件中更新源文件的功能（该选项默认启用）
     * - **idf.flashType**
       - 首选烧录方法：DFU、UART 或 JTAG
+    * - **idf.flashPartitionToUse**
+      - 在构建和烧录过程中指定要烧录的分区。默认值为 ``all``
     * - **idf.launchMonitorOnDebugSession**
       - 在 ESP-IDF 调试会话中启动 ESP-IDF 监视器
     * - **idf.notificationMode**

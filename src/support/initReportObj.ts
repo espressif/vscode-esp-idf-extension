@@ -26,6 +26,8 @@ export function initializeReportObject() {
     espMdfPath: undefined,
     espMatterPath: undefined,
     espHomeKitPath: undefined,
+    flashType: undefined,
+    flashPartitionToUse: undefined,
     customExtraPaths: undefined,
     idfExtraVars: undefined,
     userExtraVars: undefined,

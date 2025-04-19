@@ -170,6 +170,8 @@ Extension Behaviour Settings
       - Enable updating source files in ``CMakeLists.txt`` (default ``true``)
     * - **idf.flashType**
       - Preferred flash method. DFU, UART or JTAG
+    * - **idf.flashPartitionToUse**
+      - Specifies the partition to flash during the build and flash process. (default ``all``)
     * - **idf.launchMonitorOnDebugSession**
       - Launch ESP-IDF Monitor along with ESP-IDF debug session
     * - **idf.notificationMode**

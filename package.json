@@ -409,6 +409,11 @@
           "when": "view == idfPartitionExplorer"
         },
         {
+          "command": "esp.webview.open.partition-table",
+          "group": "navigation@2",
+          "when": "view == idfPartitionExplorer"
+        },
+        {
           "command": "espIdf.apptrace.customize",
           "when": "view == idfAppTracer"
         },
@@ -933,6 +938,17 @@
             "description": "%idf.flashType.description%",
             "scope": "resource"
           },
+          "idf.flashPartitionToUse": {
+            "type": "string",
+            "enum": [
+              "all",
+              "app",
+              "bootloader",
+              "partition-table"
+            ],
+            "default": "all",
+            "description": "%param.flashPartitionToUse%"
+          },
           "openocd.tcl.host": {
             "type": "string",
             "description": "%openocd.tcl.host.description%",
@@ -1304,6 +1320,36 @@
         "category": "ESP-IDF"
       },
       {
+        "command": "espIdf.buildApp",
+        "title": "%espIdf.buildApp.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.flashAppUart",
+        "title": "%espIdf.flashAppUart.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.buildBootloader",
+        "title": "%espIdf.buildBootloader.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.flashBootloaderUart",
+        "title": "%espIdf.flashBootloaderUart.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.buildPartitionTable",
+        "title": "%espIdf.buildPartitionTable.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.flashPartitionTableUart",
+        "title": "%espIdf.flashPartitionTableUart.title%",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.flashDevice",
         "title": "%espIdf.flashDevice.title%",
         "category": "ESP-IDF"
@@ -1511,7 +1557,8 @@
       },
       {
         "command": "esp.webview.open.partition-table",
-        "title": "%esp.webview.open.partition-table.title%"
+        "title": "%esp.webview.open.partition-table.title%",
+        "icon": "$(output)"
       },
       {
         "command": "espIdf.jtag_flash",

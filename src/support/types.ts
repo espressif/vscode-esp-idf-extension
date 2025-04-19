@@ -39,6 +39,8 @@ export class Configuration {
   espMatterPath: string;
   espHomeKitPath: string;
   customExtraPaths: string;
+  flashType: string;
+  flashPartitionToUse: string;
   idfExtraVars: { [key: string]: string };
   userExtraVars: { [key: string]: string };
   notificationMode: string;

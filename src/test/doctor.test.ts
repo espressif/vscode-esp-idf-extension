@@ -306,6 +306,8 @@ suite("Doctor Command tests", () => {
     expectedOutput += `ESP-IDF Tools Path (idf.toolsPath) ${reportObj.configurationSettings.toolsPath}${os.EOL}`;
     expectedOutput += `Git Path (idf.gitPath) ${reportObj.configurationSettings.gitPath}${os.EOL}`;
     expectedOutput += `Notification Mode (idf.notificationMode) ${reportObj.configurationSettings.notificationMode}${os.EOL}`;
+    expectedOutput += `Flash type (idf.flashType) ${reportObj.configurationSettings.flashType}${os.EOL}`;
+    expectedOutput += `Flash partition to use (idf.flashPartitionToUse) ${reportObj.configurationSettings.flashPartitionToUse}${os.EOL}`;
     const actualReport = await writeTextReport(reportObj, mockUpContext);
     const subReport = actualReport.slice(
       0,

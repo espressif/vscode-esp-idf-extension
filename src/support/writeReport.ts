@@ -72,6 +72,8 @@ export async function writeTextReport(
   output += `ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSettings.toolsPath}${EOL}`;
   output += `Git Path (idf.gitPath) ${reportedResult.configurationSettings.gitPath}${EOL}`;
   output += `Notification Mode (idf.notificationMode) ${reportedResult.configurationSettings.notificationMode}${EOL}`;
+  output += `Flash type (idf.flashType) ${reportedResult.configurationSettings.flashType}${EOL}`;
+  output += `Flash partition to use (idf.flashPartitionToUse) ${reportedResult.configurationSettings.flashPartitionToUse}${EOL}`;
   if (reportedResult.configurationSettings.customTerminalExecutable) {
     output += `Custom terminal executable (idf.customTerminalExecutable) ${reportedResult.configurationSettings.customTerminalExecutable}${EOL}`;
   }
