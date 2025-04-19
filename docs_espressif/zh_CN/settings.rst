@@ -190,8 +190,8 @@ ESP-IDF 相关设置
       - 启用 IDF 监视器中的时间戳（该选项默认禁用）
     * - **idf.monitorCustomTimestampFormat**
       - 在 IDF 监视器中自定义时间戳格式
-    * - **idf.monitorStartDelayBeforeDebug**
-      - 启动 IDF 监视器后延迟开始调试会话
+    * - **idf.monitorDelay**
+      - 在执行 IDF 监视器或中断监视器会话后启动调试会话的延迟（毫秒）。
     * - **idf.enableStatusBar**
       - 显示或隐藏扩展状态栏项目
     * - **idf.enableSizeTaskAfterBuildTask**
