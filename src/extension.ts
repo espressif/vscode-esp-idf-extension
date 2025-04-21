@@ -700,6 +700,11 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
       if (IDFMonitor.terminal) {
         IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
+        const monitorDelay = idfConf.readParameter(
+          "idf.monitorDelay",
+          workspaceRoot
+        ) as number;
+        await utils.sleep(monitorDelay);
       }
       const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
       const idfPathDir = idfConf.readParameter(
@@ -4189,6 +4194,15 @@ async function startFlashing(
     flashType = await selectFlashMethod();
   }
 
+  if (IDFMonitor.terminal) {
+    IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
+    const monitorDelay = idfConf.readParameter(
+      "idf.monitorDelay",
+      workspaceRoot
+    ) as number;
+    await utils.sleep(monitorDelay);
+  }
+
   if (encryptPartitions) {
     const encryptionValidationResult = await checkFlashEncryption(
       flashType,
@@ -4211,9 +4225,6 @@ async function startFlashing(
     "idf.flashBaudRate",
     workspaceRoot
   );
-  if (IDFMonitor.terminal) {
-    IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-  }
   const canFlash = await verifyCanFlash(
     flashBaudRate,
     port,

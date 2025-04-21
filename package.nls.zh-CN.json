@@ -132,7 +132,7 @@
 	"param.monitorCustomTimestampFormat": "在 IDF 监视器中自定义时间戳格式",
 	"param.monitorEnableTimestamps": "启用 IDF 监视器中的时间戳",
 	"param.monitorNoReset": "启用 IDF 监视器的不重置标志",
-	"param.monitorStartDelayBeforeDebug": "运行 IDF 监视器后延迟启动调试会话 (ms)",
+	"param.monitorDelay": "在执行 IDF 监视器或中断监视器会话后启动调试会话的延迟（毫秒）",
 	"param.ninjaArgs": "Ninja 构建任务的参数",
 	"param.notificationMode": "选择 ESP-IDF 扩展的通知和输出窗口显示",
 	"param.notificationMode.all": "显示通知，并切换到任务输出窗口",

@@ -192,8 +192,8 @@ Extension Behaviour Settings
       - Enable timestamps in IDF Monitor (default ``false``)
     * - **idf.monitorCustomTimestampFormat**
       - Custom timestamp format in IDF Monitor
-    * - **idf.monitorStartDelayBeforeDebug**
-      - Delay to start debug session after IDF monitor execution
+    * - **idf.monitorDelay**
+      - Delay to start debug session after IDF monitor execution or breaking monitor session (milliseconds).
     * - **idf.enableStatusBar**
       - Show or hide the extension status bar items
     * - **idf.enableSizeTaskAfterBuildTask**
