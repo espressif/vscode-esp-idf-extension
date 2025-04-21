@@ -8,6 +8,33 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.10.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.10.0)
+
+### Features and enhancements
+
+- [Add command to delete esp-idf specific settings](https://github.com/espressif/vscode-esp-idf-extension/pull/1353)
+- [Add idf.monitorPort setting](https://github.com/espressif/vscode-esp-idf-extension/pull/1429)
+- [Add idf.jtagFlashCommandExtraArgs](https://github.com/espressif/vscode-esp-idf-extension/pull/1450)
+- [Use idf qemu and idf.qemuExtraArgs for debug and monitor ](https://github.com/espressif/vscode-esp-idf-extension/pull/1462)
+- [App bootloader partition table build flash cmds, read Partition from device, partition specific flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/1436)
+- []()
+
+### Bug Fixes
+ 
+- [Russian translation typos fix](https://github.com/espressif/vscode-esp-idf-extension/pull/1409) Thanks @SinglWolf !
+- [Fix esp_idf.json setup not recognized](https://github.com/espressif/vscode-esp-idf-extension/pull/1451)
+- [Quotes for export script in IDF Terminal](https://github.com/espressif/vscode-esp-idf-extension/pull/1428)
+- [Fix preFlashTask in multiples profiles projects](https://github.com/espressif/vscode-esp-idf-extension/pull/1441)
+- [Add web extension debug and other documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/1453)
+- [Fix openOCD arguments order](https://github.com/espressif/vscode-esp-idf-extension/pull/1482)
+- [Fix project configuration documents](https://github.com/espressif/vscode-esp-idf-extension/pull/1480)
+- [Fix create example project from Components registry](https://github.com/espressif/vscode-esp-idf-extension/pull/1485)
+- [Use remoteName to detect Codespaces environment](https://github.com/espressif/vscode-esp-idf-extension/pull/1483)
+- [Use 2 spaces for tab size on created json files](https://github.com/espressif/vscode-esp-idf-extension/pull/1510)
+- [Ensure build directory exists resolve workspaceFolder paths in Project Configuration editor](https://github.com/espressif/vscode-esp-idf-extension/pull/1417)
+- [Fix build flash monitor release serial port](https://github.com/espressif/vscode-esp-idf-extension/pull/1502)
+- [Merge env vars and add IDF_TARGET in Project Configuration Editor and New Project Wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/1498)
+
 ## [1.9.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.9.1)
 
 ### Bug Fixes
