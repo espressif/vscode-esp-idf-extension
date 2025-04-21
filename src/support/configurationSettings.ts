@@ -77,6 +77,8 @@ export async function getConfigurationSettings(
     espHomeKitPath: conf.get("idf.espHomeKitSdkPath" + winFlag),
     customTerminalExecutable: conf.get("idf.customTerminalExecutable"),
     customTerminalExecutableArgs: conf.get("idf.customTerminalExecutableArgs"),
+    flashType: conf.get("idf.flashType"),
+    flashPartitionToUse: conf.get("idf.flashPartitionToUse"),
     customExtraPaths: extraPaths,
     idfExtraVars: customVars,
     userExtraVars: conf.get("idf.customExtraVars"),
