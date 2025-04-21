@@ -171,6 +171,7 @@ import { IdfSetup } from "./views/setup/types";
 import { asyncRemoveEspIdfSettings } from "./uninstall";
 import { ProjectConfigurationManager } from "./project-conf/ProjectConfigurationManager";
 import { readPartition } from "./espIdf/partition-table/partitionReader";
+import { getTargetsFromEspIdf } from "./espIdf/setTarget/getTargets";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -476,8 +477,6 @@ export async function activate(context: vscode.ExtensionContext) {
       ConfserverProcess.dispose();
     })
   );
-
-  context.subscriptions.push(projectConfigManager);
 
   vscode.debug.onDidTerminateDebugSession((e) => {
     if (isOpenOCDLaunchedByDebug && !isDebugRestarted) {
@@ -1151,9 +1150,11 @@ export async function activate(context: vscode.ExtensionContext) {
             progress: vscode.Progress<{ message: string; increment: number }>
           ) => {
             try {
+              const targetsFromIdf = await getTargetsFromEspIdf(workspaceRoot);
               projectConfigurationPanel.createOrShow(
                 context.extensionPath,
-                workspaceRoot
+                workspaceRoot,
+                targetsFromIdf
               );
             } catch (error) {
               Logger.errorNotify(
@@ -3737,24 +3738,19 @@ export async function activate(context: vscode.ExtensionContext) {
     context,
     statusBarItems
   );
+  context.subscriptions.push(projectConfigManager);
 
-  const projectConfCommandDisposable = vscode.commands.registerCommand(
-    "espIdf.projectConf",
-    async () => {
-      PreCheck.perform([openFolderCheck], async () => {
-        if (projectConfigManager) {
-          await projectConfigManager.selectProjectConfiguration();
-        } else {
-          vscode.window.showErrorMessage(
-            "Project Configuration Manager not initialized."
-          );
-        }
-      });
-    }
-  );
-
-  // Add the disposable to context subscriptions
-  context.subscriptions.push(projectConfCommandDisposable);
+  registerIDFCommand("espIdf.projectConf", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      if (projectConfigManager) {
+        await projectConfigManager.selectProjectConfiguration();
+      } else {
+        vscode.window.showErrorMessage(
+          "Project Configuration Manager not initialized."
+        );
+      }
+    });
+  });
 }
 
 function checkAndNotifyMissingCompileCommands() {

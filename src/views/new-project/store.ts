@@ -20,6 +20,7 @@ import { IComponent } from "../../espIdf/idfComponent/IdfComponent";
 import { IExample, IExampleCategory } from "../../examples/Example";
 import { IdfBoard } from "../../espIdf/openOcd/boardConfiguration";
 import { Ref, ref } from "vue";
+import { IdfTarget } from "../../espIdf/setTarget/getTargets";
 
 declare var acquireVsCodeApi: any;
 let vscode: any;
@@ -37,6 +38,12 @@ export const useNewProjectStore = defineStore("newProject", () => {
   const hasTemplateDetail: Ref<boolean> = ref(false);
   const openOcdConfigFiles: Ref<string> = ref("");
   const projectName: Ref<string> = ref("");
+  const idfTargets: Ref<IdfTarget[]> = ref([]);
+  const selectedIdfTarget: Ref<IdfTarget> = ref({
+    label: "esp32",
+    isPreview: false,
+    target: "esp32",
+  });
   const selectedBoard: Ref<IdfBoard> = ref({
     name: "",
     description: "",
@@ -64,6 +71,7 @@ export const useNewProjectStore = defineStore("newProject", () => {
       port: selectedPort.value,
       projectName: projectName.value,
       template: JSON.stringify(selectedTemplate.value),
+      selectedIdfTarget: selectedIdfTarget.value.target,
     });
   }
 
@@ -98,11 +106,13 @@ export const useNewProjectStore = defineStore("newProject", () => {
     containerDirectory,
     currentComponentPath,
     hasTemplateDetail,
+    idfTargets,
     openOcdConfigFiles,
     projectName,
     searchString,
     selectedBoard,
     selectedFramework,
+    selectedIdfTarget,
     selectedPort,
     selectedTemplate,
     serialPortList,

@@ -209,5 +209,7 @@
   "Warning: Could not fully remove setting {0}: {1}": "Advertencia: No se pudo eliminar completamente la configuración {0}: {1}",
   "ESP-IDF settings removed successfully.": "Configuraciones de ESP-IDF eliminadas exitosamente.",
   "Failed to remove settings: {0}": "Error al eliminar las configuraciones: {0}",
-  "Error: {0}": "Error: {0}"
+  "Error: {0}": "Error: {0}",
+  "IDF_TARGET mismatch: SDKConfig value is \"{0}\" but settings value is \"{1}\".": "Desajuste de IDF_TARGET: el valor de SDKConfig es \"{0}\" pero el valor de configuración es \"{1}\".",
+  "Set IDF_TARGET": "Establecer IDF_TARGET"
 }

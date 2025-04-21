@@ -19,6 +19,7 @@ import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 import { readParameter } from "./idfConfiguration";
+import { showInfoNotificationWithAction } from "./logger/utils";
 
 export function initSelectedWorkspace(status?: vscode.StatusBarItem) {
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
@@ -91,12 +92,26 @@ export async function getIdfTargetFromSdkconfig(
       workspacePath
     );
     let idfTarget = configIdfTarget.replace(/\"/g, "");
+    const customExtraVars = readParameter(
+      "idf.customExtraVars",
+      workspacePath
+    ) as { [key: string]: string };
+    const customIdfTarget = customExtraVars["IDF_TARGET"];
+
+    if (idfTarget && customIdfTarget && idfTarget !== customIdfTarget) {
+      showInfoNotificationWithAction(
+        vscode.l10n.t(
+          'IDF_TARGET mismatch: SDKConfig value is "{0}" but settings value is "{1}".',
+          idfTarget,
+          customIdfTarget
+        ),
+        vscode.l10n.t("Set IDF_TARGET"),
+        () => vscode.commands.executeCommand("espIdf.setTarget")
+      );
+    }
+
     if (!idfTarget) {
-      const customExtraVars = readParameter(
-        "idf.customExtraVars",
-        workspacePath
-      ) as { [key: string]: string };
-      idfTarget = customExtraVars["IDF_TARGET"];
+      idfTarget = customIdfTarget;
     }
     if (!idfTarget) {
       idfTarget = "esp32";
