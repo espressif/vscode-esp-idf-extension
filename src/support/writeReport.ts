@@ -217,7 +217,7 @@ export async function writeTextReport(
   if (logFileExists) {
     const logFileContent = await readFile(logFile, "utf8");
     output += `----------------------------------------------------------- Logfile -----------------------------------------------------------------${EOL}`;
-    output += logFileContent + EOL + lineBreak;
+    output += replaceUserPathInStr(logFileContent) + EOL + lineBreak;
   }
   const resultFile = join(context.extensionPath, "report.txt");
   await writeFile(resultFile, output);
@@ -232,6 +232,12 @@ export function replaceUserPath(report: reportObj): reportObj {
   const strReport = JSON.stringify(report);
 
   // Replacing all home paths (based on OS) with '...' using es6 syntax. Can be replaced with one line using .replaceAll() when we will update the version of ECMAScript to 2021 or higher
+  const parsedReport = replaceUserPathInStr(strReport);
+
+  return JSON.parse(parsedReport);
+}
+
+function replaceUserPathInStr(strReport: string) {
   let re = new RegExp(process.env.HOME, "g");
   if (process.env.windir) {
     const reWin = new RegExp("\\\\", "g");
@@ -239,6 +245,5 @@ export function replaceUserPath(report: reportObj): reportObj {
     re = new RegExp(result, "g");
   }
   const parsedReport = strReport.replace(re, "<HOMEPATH>");
-
-  return JSON.parse(parsedReport);
+  return parsedReport;
 }
