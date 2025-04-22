@@ -175,7 +175,7 @@ export class NVSPartitionTable {
         Logger.errorNotify(
           "nvs_partition_gen.py is not defined",
           new Error(
-            "nvs_partition_gen.py is not defined, Make sure idf.espIdfPath is correct."
+            "nvs_partition_gen.py is not defined, Make sure IDF_PATH in your setup is correct."
           ),
           "NVSPartitionTable generateNvsPartition, toolsPath"
         );

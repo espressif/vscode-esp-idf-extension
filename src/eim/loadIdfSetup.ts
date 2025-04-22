@@ -48,10 +48,21 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
   if (idfSetups.length > 0) {
     if (currentIdfConfigurationName) {
       idfSetupToUse = idfSetups.find((idfSetup) => {
-        return (idfSetup.idfPath === currentIdfConfigurationName);
+        return idfSetup.idfPath === currentIdfConfigurationName;
       });
     } else {
-      idfSetupToUse = idfSetups[0];
+      const oldIdfPath = readParameter(
+        "idf.espIdfPath",
+        workspaceFolder
+      ) as string;
+      if (oldIdfPath) {
+        idfSetupToUse = idfSetups.find((idfSetup) => {
+          return idfSetup.idfPath === oldIdfPath;
+        });
+      }
+      if (!idfSetupToUse) {
+        idfSetupToUse = idfSetups[0];
+      }
       await writeParameter(
         "idf.currentSetup",
         idfSetupToUse.idfPath,

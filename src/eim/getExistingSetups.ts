@@ -58,6 +58,15 @@ export async function getIdfSetups() {
     defaultIdfToolsPath
   );
   resultingIdfSetups = resultingIdfSetups.concat(espIdfSysJsonSetups);
+
+  resultingIdfSetups = resultingIdfSetups.filter(
+    (setup, index, self) =>
+      index ===
+      self.findIndex(
+        (s) => s.idfPath === setup.idfPath && s.toolsPath === setup.toolsPath
+      )
+  );
+
   return resultingIdfSetups;
 }
 

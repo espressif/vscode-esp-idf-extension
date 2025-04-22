@@ -41,7 +41,7 @@ export async function writeTextReport(
   output += `Workspace folder ${reportedResult.workspaceFolder} ${EOL}`;
   output += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${EOL}`;
   output += `ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportedResult.configurationSettings.espAdfPath}${EOL}`;
-  output += `ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSettings.espIdfPath}${EOL}`;
+  output += `ESP-IDF Path (Project setup IDF_PATH) ${reportedResult.configurationSettings.espIdfPath}${EOL}`;
   output += `ESP-MDF Path (idf.customExtraVars["MDF_PATH"]) ${reportedResult.configurationSettings.espMdfPath}${EOL}`;
   output += `ESP-Matter Path (idf.customExtraVars["ESP_MATTER_PATH"]) ${reportedResult.configurationSettings.espMatterPath}${EOL}`;
   output += `ESP-HomeKit-SDK Path (idf.customExtraVars["HOMEKIT_PATH"]) ${reportedResult.configurationSettings.espHomeKitPath}${EOL}`;
@@ -85,7 +85,7 @@ export async function writeTextReport(
   }
   output += `-------------------------------------------------------- Configurations access -------------------------------------------------------------${EOL}`;
   output += `Access to ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportedResult.configurationAccess.espAdfPath}${EOL}`;
-  output += `Access to ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espIdfPath}${EOL}`;
+  output += `Access to ESP-IDF Path (Project setup IDF_PATH) ${reportedResult.configurationAccess.espIdfPath}${EOL}`;
   output += `Access to ESP-MDF Path (idf.customExtraVars["MDF_PATH"]) ${reportedResult.configurationAccess.espMdfPath}${EOL}`;
   output += `Access to ESP-Matter Path (idf.customExtraVars["ESP_MATTER_PATH"]) ${reportedResult.configurationAccess.espMatterPath}${EOL}`;
   output += `Access to ESP-HomeKit Path (idf.customExtraVars["HOMEKIT_PATH"]) ${reportedResult.configurationAccess.espHomeKitPath}${EOL}`;
@@ -100,7 +100,7 @@ export async function writeTextReport(
   output += `-------------------------------------------------------- Configurations has spaces -------------------------------------------------------------${EOL}`;
   output += `Spaces in system environment Path ${reportedResult.configurationSpacesValidation.systemEnvPath}${EOL}`;
   output += `Spaces in ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportedResult.configurationSpacesValidation.espAdfPath}${EOL}`;
-  output += `Spaces in ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSpacesValidation.espIdfPath}${EOL}`;
+  output += `Spaces in ESP-IDF Path (Project setup IDF_PATH) ${reportedResult.configurationSpacesValidation.espIdfPath}${EOL}`;
   output += `Spaces in ESP-MDF Path (idf.customExtraVars["MDF_PATH"]) ${reportedResult.configurationSpacesValidation.espMdfPath}${EOL}`;
   output += `Spaces in ESP-Matter Path (idf.customExtraVars["ESP_MATTER_PATH"]) ${reportedResult.configurationSpacesValidation.espMatterPath}${EOL}`;
   output += `Spaces in ESP-HomeKit-SDK Path (idf.customExtraVars["HOMEKIT_PATH"]) ${reportedResult.configurationSpacesValidation.espHomeKitPath}${EOL}`;

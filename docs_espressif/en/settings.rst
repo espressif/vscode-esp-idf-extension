@@ -25,7 +25,7 @@ This extension contributes the following settings that can be later updated in `
 
 .. note::
 
-    Please note that ``~``, ``%VARNAME%`` and ``$VARNAME`` are not recognized when set on ANY of this extension configuration settings. Instead, you can set any environment variable in the path using ``${env:VARNAME}``, such as ``${env:HOME}``, or refer to other configuration parameter path with ``${config:SETTINGID}``, such as ``${config:idf.espIdfPath}``.
+    Please note that ``~``, ``%VARNAME%`` and ``$VARNAME`` are not recognized when set on ANY of this extension configuration settings. Instead, you can set any environment variable in the path using ``${env:VARNAME}``, such as ``${env:HOME}``, or refer to other configuration parameter path with ``${config:SETTINGID}``, such as ``${config:idf.buildPath}``.
 
 .. note::
 
