@@ -207,8 +207,6 @@ Docker 中的 ``usbipd-win``
         */
         "settings": {
             "terminal.integrated.defaultProfile.linux": "bash",
-            "idf.espIdfPath": "/opt/esp/idf",
-            "idf.toolsPath": "/opt/esp",
             "idf.gitPath": "/usr/bin/git"
         },
         /* 应安装到容器中的一组扩展 */
