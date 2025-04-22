@@ -17,7 +17,6 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Add idf.jtagFlashCommandExtraArgs](https://github.com/espressif/vscode-esp-idf-extension/pull/1450)
 - [Use idf qemu and idf.qemuExtraArgs for debug and monitor ](https://github.com/espressif/vscode-esp-idf-extension/pull/1462)
 - [App bootloader partition table build flash cmds, read Partition from device, partition specific flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/1436)
-- []()
 
 ### Bug Fixes
  
