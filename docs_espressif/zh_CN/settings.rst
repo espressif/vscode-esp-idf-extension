@@ -13,7 +13,7 @@ ESP-IDF 设置
 
 .. note::
 
-    请注意，配置此扩展时，``~``、``%VARNAME%`` 和 ``$VARNAME`` 都无法被识别。请使用 ``${env:VARNAME}`` 来设置路径中的环境变量，例如 ``${env:HOME}``。也可以通过 ``${config:SETTINGID}`` 来引用其他配置参数，例如 ``${config:idf.espIdfPath}``。
+    请注意，配置此扩展时，``~``、``%VARNAME%`` 和 ``$VARNAME`` 都无法被识别。请使用 ``${env:VARNAME}`` 来设置路径中的环境变量，例如 ``${env:HOME}``。也可以通过 ``${config:SETTINGID}`` 来引用其他配置参数，例如 ``${config:idf.buildPath}``。
 
 在运行 **设置乐鑫设备目标** 等命令时，**idf.saveScope** 可指定保存设置的位置。可选择将设置保存在全局（用户设置）、工作区或工作区文件夹。请使用 **选选择配置存储位置** 命令来选择保存设置的位置。
 
@@ -268,4 +268,4 @@ QEMU 相关设置
 
 环境变量 (env) 和其他 ESP-IDF 设置 (config) 可以在 ESP-IDF 设置中通过 ``${env:VARNAME}`` （用于环境变量）和 ``${config:ESPIDFSETTING}`` （用于设置）进行引用。
 
-例如，如果想要使用 ``"~/esp/esp-idf"``，可以将 **idf.espIdfPath** 设为 ``"${env:HOME}/esp/esp-idf"``。
+例如，如果想要使用 ``"~/esp/esp-idf"`` 设为 ``"${env:HOME}/esp/esp-idf"``。
