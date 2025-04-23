@@ -211,5 +211,6 @@
   "Failed to remove settings: {0}": "Falha ao remover configurações: {0}",
   "Error: {0}": "Erro: {0}",
   "IDF_TARGET mismatch: SDKConfig value is \"{0}\" but settings value is \"{1}\".": "Incompatibilidade de IDF_TARGET: o valor de SDKConfig é \"{0}\" mas o valor das configurações é \"{1}\".",
-  "Set IDF_TARGET": "Definir IDF_TARGET"
+  "Set IDF_TARGET": "Definir IDF_TARGET",
+  "The value {value} is not a number.": "O valor {value} não é um número."
 }

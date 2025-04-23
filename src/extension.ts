@@ -157,11 +157,7 @@ import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
 import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
 import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
 import { TroubleshootingPanel } from "./support/troubleshootPanel";
-import {
-  createCmdsStatusBarItems,
-  createStatusBarItem,
-  statusBarItems,
-} from "./statusBar";
+import { createCmdsStatusBarItems, statusBarItems } from "./statusBar";
 import {
   CommandKeys,
   createCommandDictionary,
@@ -172,6 +168,10 @@ import { asyncRemoveEspIdfSettings } from "./uninstall";
 import { ProjectConfigurationManager } from "./project-conf/ProjectConfigurationManager";
 import { readPartition } from "./espIdf/partition-table/partitionReader";
 import { getTargetsFromEspIdf } from "./espIdf/setTarget/getTargets";
+import {
+  HexTreeItem,
+  HexViewProvider,
+} from "./cdtDebugAdapter/hexViewProvider";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1373,6 +1373,81 @@ export async function activate(context: vscode.ExtensionContext) {
       };
     },
   });
+
+  const hexViewProvider = new HexViewProvider();
+  vscode.window.registerTreeDataProvider("espIdf.hexView", hexViewProvider);
+
+  registerIDFCommand("espIdf.hexView.deleteElement", (item: HexTreeItem) => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      hexViewProvider.removeElement(item.element);
+    });
+  });
+
+  registerIDFCommand("espIdf.hexView.copyValue", (item: HexTreeItem) => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      vscode.env.clipboard.writeText(
+        `${item.element.name} ${item.description.toString()}`
+      );
+      vscode.window.showInformationMessage(
+        `Copied ${item.element.name} to clipboard`
+      );
+    });
+  });
+
+  registerIDFCommand(
+    "espIdf.viewAsHex",
+    (debugContext: {
+      container: {
+        expensive: boolean;
+        name: string;
+        variablesReference: number;
+      };
+      sessionId: string;
+      variable: {
+        evaluateName: string;
+        memoryReference: string;
+        name: string;
+        value: string;
+        variablesReference: number;
+      };
+    }) => {
+      return PreCheck.perform([openFolderCheck], async () => {
+        if (
+          !debugContext ||
+          !debugContext.variable ||
+          !debugContext.variable.evaluateName
+        ) {
+          return;
+        }
+        if (!vscode.debug.activeDebugSession) {
+          return;
+        }
+
+        try {
+          if (
+            debugContext &&
+            debugContext.variable &&
+            debugContext.variable.value
+          ) {
+            const numericValue = parseInt(debugContext.variable.value, 10);
+            if (isNaN(numericValue)) {
+              vscode.l10n.t("The value {value} is not a number.", {
+                value: debugContext.variable.value,
+              });
+              return;
+            }
+            hexViewProvider.addElement(
+              debugContext.variable.name,
+              numericValue
+            );
+          }
+        } catch (e) {
+          const msg = e && e.message ? e.message : e;
+          Logger.errorNotify(msg, e, "extension espIdf.viewAsHex");
+        }
+      });
+    }
+  );
 
   registerIDFCommand("espIdf.genCoverage", () => {
     return PreCheck.perform([openFolderCheck], async () => {

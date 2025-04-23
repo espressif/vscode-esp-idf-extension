@@ -323,6 +323,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       os.platform() === "linux" && this.supportsRunInTerminalRequest;
     response.body = response.body || {};
     response.body.supportsConfigurationDoneRequest = true;
+    response.body.supportsEvaluateForHovers = true;
     response.body.supportsSetVariable = true;
     response.body.supportsConditionalBreakpoints = true;
     response.body.supportsHitConditionalBreakpoints = true;
@@ -1334,6 +1335,14 @@ export class GDBDebugSession extends LoggingDebugSession {
 
       this.sendResponse(response);
     } catch (err) {
+      if (args.context && args.context === "hover") {
+        response.body = {
+          result: "Hovered expression could not be evaluated",
+          variablesReference: 0,
+        };
+        this.sendResponse(response);
+        return;
+      } 
       this.sendErrorResponse(
         response,
         1,
