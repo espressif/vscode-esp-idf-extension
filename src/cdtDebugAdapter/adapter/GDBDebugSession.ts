@@ -188,6 +188,7 @@ export class GDBDebugSession extends LoggingDebugSession {
 
   protected frameHandles = new Handles<FrameReference>();
   protected variableHandles = new Handles<VariableReference>();
+  protected dataBreakpoints: string[] = [];
   protected functionBreakpoints: string[] = [];
   protected logPointMessages: { [key: string]: string } = {};
 
@@ -324,6 +325,7 @@ export class GDBDebugSession extends LoggingDebugSession {
     response.body = response.body || {};
     response.body.supportsConfigurationDoneRequest = true;
     response.body.supportsEvaluateForHovers = true;
+    response.body.supportsDataBreakpoints = true;
     response.body.supportsSetVariable = true;
     response.body.supportsConditionalBreakpoints = true;
     response.body.supportsHitConditionalBreakpoints = true;
@@ -456,6 +458,126 @@ export class GDBDebugSession extends LoggingDebugSession {
       }
     }
     return this.gdb.spawn(args);
+  }
+
+  protected dataBreakpointInfoRequest(
+    response: DebugProtocol.DataBreakpointInfoResponse,
+    args: DebugProtocol.DataBreakpointInfoArguments
+  ): void {
+    response.body = {
+      dataId: null,
+      description: "cannot break on data access",
+      accessTypes: undefined,
+      canPersist: false,
+    };
+    const ref = this.variableHandles.get(args.variablesReference);
+    const parentVarname = ref.type === "object" ? ref.varobjName : "";
+    const varname =
+      parentVarname +
+      (parentVarname === "" ? "" : ".") +
+      args.name.replace(/^\[(\d+)\]/, "$1");
+    response.body.dataId = varname;
+    response.body.description = varname;
+    response.body.accessTypes = ["read", "write", "readWrite"];
+
+    this.sendResponse(response);
+  }
+
+  protected async setDataBreakpointsRequest(
+    response: DebugProtocol.SetDataBreakpointsResponse,
+    args: DebugProtocol.SetDataBreakpointsArguments
+  ): Promise<void> {
+    this.waitPausedNeeded = this.isRunning;
+    if (this.waitPausedNeeded) {
+      // Need to pause first
+      const waitPromise = new Promise<void>((resolve) => {
+        this.waitPaused = resolve;
+      });
+      if (this.gdb.isNonStopMode()) {
+        const threadInfo = await mi.sendThreadInfoRequest(this.gdb, {});
+        this.waitPausedThreadId = parseInt(threadInfo["current-thread-id"], 10);
+        this.gdb.pause(this.waitPausedThreadId);
+      } else {
+        this.gdb.pause();
+      }
+      await waitPromise;
+    }
+
+    try {
+      const result = await mi.sendBreakList(this.gdb);
+      const gdbbps = result.BreakpointTable.body.filter((gdbbp) => {
+        // Only data breakpoints
+        return this.dataBreakpoints.indexOf(gdbbp.number) > -1;
+      });
+
+      const { resolved, deletes } = this.resolveBreakpoints(
+        args.breakpoints,
+        gdbbps,
+        (vsbp, gdbbp) => {
+          // Ensure we can compare undefined and empty strings
+          const vsbpCond = vsbp.condition || undefined;
+          const gdbbpCond = gdbbp.cond || undefined;
+
+          return (
+            gdbbp["original-location"] === vsbp.dataId && vsbpCond === gdbbpCond
+          );
+        }
+      );
+
+      // Delete before insert to avoid breakpoint clashes in gdb
+      if (deletes.length > 0) {
+        await mi.sendBreakDelete(this.gdb, { breakpoints: deletes });
+        this.dataBreakpoints = this.dataBreakpoints.filter(
+          (dbp) => deletes.indexOf(dbp) === -1
+        );
+      }
+
+      const actual: DebugProtocol.Breakpoint[] = [];
+
+      for (const bp of resolved) {
+        if (bp.gdbbp) {
+          actual.push({
+            id: parseInt(bp.gdbbp.number, 10),
+            verified: true,
+          });
+          continue;
+        }
+
+        try {
+          const bpNum = await mi.sendBreakWatch(this.gdb, bp.vsbp);
+          this.dataBreakpoints.push(bpNum.toString());
+          actual.push({
+            id: parseInt(bpNum, 10),
+            verified: true,
+          });
+        } catch (err) {
+          actual.push({
+            verified: false,
+            message: err instanceof Error ? err.message : String(err),
+          } as DebugProtocol.Breakpoint);
+        }
+      }
+
+      response.body = {
+        breakpoints: actual,
+      };
+
+      this.sendResponse(response);
+    } catch (err) {
+      this.sendErrorResponse(
+        response,
+        1,
+        err instanceof Error ? err.message : String(err)
+      );
+    }
+
+    if (this.waitPausedNeeded) {
+      if (this.gdb.isNonStopMode()) {
+        mi.sendExecContinue(this.gdb, this.waitPausedThreadId);
+      } else {
+        mi.sendExecContinue(this.gdb);
+      }
+    }
   }
 
   protected async setBreakPointsRequest(
@@ -714,6 +836,11 @@ export class GDBDebugSession extends LoggingDebugSession {
       ): DebugProtocol.Breakpoint => ({
         id: parseInt(breakpoint.number, 10),
         verified: true,
+        line: parseInt(breakpoint.line, 10),
+        source: {
+          name: breakpoint.file,
+          path: breakpoint.fullname,
+        } as DebugProtocol.Source,
       });
 
       const actual: DebugProtocol.Breakpoint[] = [];
@@ -1342,7 +1469,7 @@ export class GDBDebugSession extends LoggingDebugSession {
         };
         this.sendResponse(response);
         return;
-      } 
+      }
       this.sendErrorResponse(
         response,
         1,
