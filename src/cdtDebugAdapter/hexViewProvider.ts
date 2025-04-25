@@ -75,4 +75,16 @@ export class HexViewProvider implements TreeDataProvider<HexTreeItem> {
     this.elements = this.elements.filter((e) => e !== element);
     this._onDidChangeTreeData.fire();
   }
+
+  findElement(name: string): HexElement | undefined {
+    return this.elements.find((e) => e.name === name);
+  }
+
+  updateElement(name: string, value: number): void {
+    const element = this.findElement(name);
+    if (element) {
+      element.value = value;
+      this._onDidChangeTreeData.fire();
+    }
+  }
 }

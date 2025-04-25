@@ -1366,12 +1366,34 @@ export async function activate(context: vscode.ExtensionContext) {
     peripheralTreeProvider.debugSessionTerminated(session);
   });
 
-  vscode.debug.registerDebugAdapterTrackerFactory("espidf", {
-    createDebugAdapterTracker(session: vscode.DebugSession) {
-      return {
-        onWillReceiveMessage: (m) => {},
-      };
-    },
+  vscode.debug.registerDebugAdapterTrackerFactory("gdbtarget", {
+    createDebugAdapterTracker(
+    session: vscode.DebugSession
+  ): vscode.ProviderResult<vscode.DebugAdapterTracker> {
+    return {
+      onDidSendMessage(message) {
+        if (
+          message.type === "response" &&
+          message.command === "variables" &&
+          message.body &&
+          Array.isArray(message.body.variables)
+        ) {
+          const variables = message.body.variables;
+          for (const variable of variables) {
+            if (variable.name && variable.value) {
+              const existingItem = hexViewProvider.findElement(variable.name);
+              if (existingItem) {
+                const numericValue = parseInt(variable.value, 10);
+                if (!isNaN(numericValue)) {
+                  hexViewProvider.updateElement(variable.name, numericValue);
+                }
+              }
+            }
+          }
+        }
+      },
+    };
+  }
   });
 
   const hexViewProvider = new HexViewProvider();
