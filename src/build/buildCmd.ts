@@ -23,7 +23,10 @@ import * as vscode from "vscode";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { join } from "path";
-import { getIdfTargetFromSdkconfig, updateIdfComponentsTree } from "../workspaceConfig";
+import {
+  getIdfTargetFromSdkconfig,
+  updateIdfComponentsTree,
+} from "../workspaceConfig";
 import { IdfSizeTask } from "../espIdf/size/idfSizeTask";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { readParameter } from "../idfConfiguration";
@@ -64,7 +67,7 @@ export async function buildCommand(
       "idf.enableSizeTaskAfterBuildTask",
       workspace
     )) as boolean;
-    if (enableSizeTask && typeof buildType === undefined) {
+    if (enableSizeTask && typeof buildType === "undefined") {
       const sizeTask = new IdfSizeTask(workspace);
       await sizeTask.getSizeInfo();
     }
@@ -78,7 +81,11 @@ export async function buildCommand(
         );
       }
       const adapterTargetName = await getIdfTargetFromSdkconfig(workspace);
-      if (adapterTargetName && adapterTargetName !== "esp32s2" && adapterTargetName !== "esp32s3") {
+      if (
+        adapterTargetName &&
+        adapterTargetName !== "esp32s2" &&
+        adapterTargetName !== "esp32s3"
+      ) {
         return Logger.warnNotify(
           `The selected device target "${adapterTargetName}" is not compatible for DFU, as a result the DFU.bin was not created.`
         );
@@ -96,7 +103,11 @@ export async function buildCommand(
     }
   } catch (error) {
     if (error.message === "ALREADY_BUILDING") {
-      return Logger.errorNotify("Already a build is running!", error, "buildCommand");
+      return Logger.errorNotify(
+        "Already a build is running!",
+        error,
+        "buildCommand"
+      );
     }
     if (error.message === "BUILD_TERMINATED") {
       return Logger.warnNotify(`Build is Terminated`);
@@ -114,13 +125,8 @@ export async function buildCommand(
   return continueFlag;
 }
 
-
-
 export async function buildFinishFlashCmd(workspace: vscode.Uri) {
-  const buildPath = readParameter(
-    "idf.buildPath",
-    workspace
-  ) as string;
+  const buildPath = readParameter("idf.buildPath", workspace) as string;
   const flasherArgsPath = join(buildPath, "flasher_args.json");
   const flasherArgsExists = await pathExists(flasherArgsPath);
   if (!flasherArgsExists) {
