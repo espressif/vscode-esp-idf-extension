@@ -95,6 +95,7 @@ import { NVSPartitionTable } from "./espIdf/nvs/partitionTable/panel";
 import {
   getBoards,
   getOpenOcdScripts,
+  IdfBoard,
 } from "./espIdf/openOcd/boardConfiguration";
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
@@ -2302,53 +2303,67 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.commands.executeCommand("espIdf.setTarget");
         return;
       }
+      const currentOpenOcdConfigs = idfConf.readParameter(
+        "idf.openOcdConfigs",
+        workspaceRoot
+      ) as string[];
       const boards = await getBoards(openOcdScriptsPath, idfTarget);
       const choices = boards.map((b) => {
         return {
           description: `${b.description} (${b.configFiles})`,
           label: b.name,
           target: b,
+          picked: currentOpenOcdConfigs
+            .join(",")
+            .includes(b.configFiles.join(",")),
         };
       });
       const selectOpenOCdConfigsMsg = vscode.l10n.t(
         "Enter OpenOCD Configuration File Paths list"
       );
-      const selectedBoard = await vscode.window.showQuickPick(choices, {
-        placeHolder: selectOpenOCdConfigsMsg,
+      const boardQuickPick = vscode.window.createQuickPick<{
+        description: string;
+        label: string;
+        target: IdfBoard;
+        picked: boolean;
+      }>();
+      boardQuickPick.items = choices;
+      boardQuickPick.placeholder = selectOpenOCdConfigsMsg;
+      boardQuickPick.onDidHide(() => {
+        boardQuickPick.dispose();
       });
-      if (!selectedBoard) {
-        return;
-      }
+      boardQuickPick.activeItems = boardQuickPick.items.filter(
+        (item) => item.picked
+      );
 
-      if (selectedBoard.target.name.indexOf("Custom board") !== -1) {
-        const inputBoard = await vscode.window.showInputBox({
-          placeHolder: vscode.l10n.t(
-            "Enter comma-separated configuration files"
-          ),
-          value: selectedBoard.target.configFiles.join(","),
-        });
-        if (inputBoard) {
-          selectedBoard.target.configFiles = inputBoard.split(",");
+      boardQuickPick.onDidAccept(async () => {
+        const selectedBoard = boardQuickPick.selectedItems[0];
+        if (!selectedBoard) {
+          Logger.infoNotify(
+            `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`
+          );
+        } else if (selectedBoard && selectedBoard.target) {
+          if (selectedBoard.label.indexOf("Custom board") !== -1) {
+            const inputBoard = await vscode.window.showInputBox({
+              placeHolder: "Enter comma-separated configuration files",
+              value: selectedBoard.target.configFiles.join(","),
+            });
+            if (inputBoard) {
+              selectedBoard.target.configFiles = inputBoard.split(",");
+            }
+          }
+          await idfConf.writeParameter(
+            "idf.openOcdConfigs",
+            selectedBoard.target.configFiles,
+            vscode.ConfigurationTarget.WorkspaceFolder
+          );
+          Logger.infoNotify(
+            vscode.l10n.t("OpenOCD Board configuration files are updated.")
+          );
         }
-      }
-
-      const target = idfConf.readParameter("idf.saveScope");
-      if (
-        !PreCheck.isWorkspaceFolderOpen() &&
-        target !== vscode.ConfigurationTarget.Global
-      ) {
-        const noWsOpenMSg = vscode.l10n.t(`Open a workspace or folder first.`);
-        Logger.warnNotify(noWsOpenMSg);
-        throw new Error(noWsOpenMSg);
-      }
-      await idfConf.writeParameter(
-        "idf.openOcdConfigs",
-        selectedBoard.target.configFiles,
-        target
-      );
-      Logger.infoNotify(
-        vscode.l10n.t("OpenOCD Board configuration files are updated.")
-      );
+        boardQuickPick.hide();
+      });
+      boardQuickPick.show();
     } catch (error) {
       const errMsg =
         error.message || "Failed to select openOCD configuration files";
