@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 import { join } from "path";
-import * as idfConf from "../../idfConfiguration";
+import { readParameter, writeParameter } from "../../idfConfiguration";
 import { readJSON } from "fs-extra";
 import { Logger } from "../../logger/logger";
-import { Uri } from "vscode";
+import { commands, ConfigurationTarget, l10n, Uri, window } from "vscode";
 import { defaultBoards } from "./defaultBoards";
 import { IdfToolsManager } from "../../idfToolsManager";
+import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 
 export interface IdfBoard {
   name: string;
@@ -31,15 +32,11 @@ export interface IdfBoard {
 }
 
 export async function getOpenOcdScripts(workspace: Uri): Promise<string> {
-  const idfPathDir = idfConf.readParameter(
-    "idf.espIdfPath",
-    workspace
-  ) as string;
-  const toolsPath = idfConf.readParameter("idf.toolsPath", workspace) as string;
-  const userExtraVars = idfConf.readParameter(
-    "idf.customExtraVars",
-    workspace
-  ) as { [key: string]: string };
+  const idfPathDir = readParameter("idf.espIdfPath", workspace) as string;
+  const toolsPath = readParameter("idf.toolsPath", workspace) as string;
+  const userExtraVars = readParameter("idf.customExtraVars", workspace) as {
+    [key: string]: string;
+  };
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
     idfPathDir
   );
@@ -111,5 +108,91 @@ export async function getBoards(
       return b.target === idfTarget;
     });
     return idfTarget ? filteredDefaultBoards : defaultBoards;
+  }
+}
+
+export async function selectOpenOcdConfigFiles(
+  workspaceFolder: Uri,
+  idfTarget?: string
+) {
+  try {
+    const openOcdScriptsPath = await getOpenOcdScripts(workspaceFolder);
+    if (!idfTarget) {
+      idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder);
+      if (!idfTarget) {
+        commands.executeCommand("espIdf.setTarget");
+        return;
+      }
+    }
+    const currentOpenOcdConfigs = readParameter(
+      "idf.openOcdConfigs",
+      workspaceFolder
+    ) as string[];
+    const boards = await getBoards(openOcdScriptsPath, idfTarget);
+    const choices = boards.map((b) => {
+      return {
+        description: `${b.description} (${b.configFiles})`,
+        label: b.name,
+        target: b,
+        picked: currentOpenOcdConfigs
+          .join(",")
+          .includes(b.configFiles.join(",")),
+      };
+    });
+    const selectOpenOCdConfigsMsg = l10n.t(
+      "Enter OpenOCD Configuration File Paths list"
+    );
+    const boardQuickPick = window.createQuickPick<{
+      description: string;
+      label: string;
+      target: IdfBoard;
+      picked: boolean;
+    }>();
+    boardQuickPick.items = choices;
+    boardQuickPick.placeholder = selectOpenOCdConfigsMsg;
+    boardQuickPick.onDidHide(() => {
+      boardQuickPick.dispose();
+    });
+    boardQuickPick.activeItems = boardQuickPick.items.filter(
+      (item) => item.picked
+    );
+
+    boardQuickPick.onDidAccept(async () => {
+      const selectedBoard = boardQuickPick.selectedItems[0];
+      if (!selectedBoard) {
+        Logger.infoNotify(
+          `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`
+        );
+      } else if (selectedBoard && selectedBoard.target) {
+        if (selectedBoard.label.indexOf("Custom board") !== -1) {
+          const inputBoard = await window.showInputBox({
+            placeHolder: "Enter comma-separated configuration files",
+            value: selectedBoard.target.configFiles.join(","),
+          });
+          if (inputBoard) {
+            selectedBoard.target.configFiles = inputBoard.split(",");
+          }
+        }
+        await writeParameter(
+          "idf.openOcdConfigs",
+          selectedBoard.target.configFiles,
+          ConfigurationTarget.WorkspaceFolder
+        );
+        Logger.infoNotify(
+          l10n.t("OpenOCD Board configuration files are updated.")
+        );
+      }
+      boardQuickPick.hide();
+    });
+    boardQuickPick.show();
+  } catch (error) {
+    const errMsg =
+      error.message || "Failed to select openOCD configuration files";
+    Logger.errorNotify(
+      errMsg,
+      error,
+      "boardConfiguration selectOpenOcdConfigFiles"
+    );
+    return;
   }
 }

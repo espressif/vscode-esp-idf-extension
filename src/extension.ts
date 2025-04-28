@@ -93,9 +93,8 @@ import {
 import del from "del";
 import { NVSPartitionTable } from "./espIdf/nvs/partitionTable/panel";
 import {
-  getBoards,
   getOpenOcdScripts,
-  IdfBoard,
+  selectOpenOcdConfigFiles,
 } from "./espIdf/openOcd/boardConfiguration";
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
@@ -2295,82 +2294,9 @@ export async function activate(context: vscode.ExtensionContext) {
     return result.trim();
   });
 
-  registerIDFCommand("espIdf.selectOpenOcdConfigFiles", async () => {
-    try {
-      const openOcdScriptsPath = await getOpenOcdScripts(workspaceRoot);
-      let idfTarget = await getIdfTargetFromSdkconfig(workspaceRoot);
-      if (!idfTarget) {
-        vscode.commands.executeCommand("espIdf.setTarget");
-        return;
-      }
-      const currentOpenOcdConfigs = idfConf.readParameter(
-        "idf.openOcdConfigs",
-        workspaceRoot
-      ) as string[];
-      const boards = await getBoards(openOcdScriptsPath, idfTarget);
-      const choices = boards.map((b) => {
-        return {
-          description: `${b.description} (${b.configFiles})`,
-          label: b.name,
-          target: b,
-          picked: currentOpenOcdConfigs
-            .join(",")
-            .includes(b.configFiles.join(",")),
-        };
-      });
-      const selectOpenOCdConfigsMsg = vscode.l10n.t(
-        "Enter OpenOCD Configuration File Paths list"
-      );
-      const boardQuickPick = vscode.window.createQuickPick<{
-        description: string;
-        label: string;
-        target: IdfBoard;
-        picked: boolean;
-      }>();
-      boardQuickPick.items = choices;
-      boardQuickPick.placeholder = selectOpenOCdConfigsMsg;
-      boardQuickPick.onDidHide(() => {
-        boardQuickPick.dispose();
-      });
-      boardQuickPick.activeItems = boardQuickPick.items.filter(
-        (item) => item.picked
-      );
-
-      boardQuickPick.onDidAccept(async () => {
-        const selectedBoard = boardQuickPick.selectedItems[0];
-        if (!selectedBoard) {
-          Logger.infoNotify(
-            `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`
-          );
-        } else if (selectedBoard && selectedBoard.target) {
-          if (selectedBoard.label.indexOf("Custom board") !== -1) {
-            const inputBoard = await vscode.window.showInputBox({
-              placeHolder: "Enter comma-separated configuration files",
-              value: selectedBoard.target.configFiles.join(","),
-            });
-            if (inputBoard) {
-              selectedBoard.target.configFiles = inputBoard.split(",");
-            }
-          }
-          await idfConf.writeParameter(
-            "idf.openOcdConfigs",
-            selectedBoard.target.configFiles,
-            vscode.ConfigurationTarget.WorkspaceFolder
-          );
-          Logger.infoNotify(
-            vscode.l10n.t("OpenOCD Board configuration files are updated.")
-          );
-        }
-        boardQuickPick.hide();
-      });
-      boardQuickPick.show();
-    } catch (error) {
-      const errMsg =
-        error.message || "Failed to select openOCD configuration files";
-      Logger.errorNotify(errMsg, error, "extension selectOpenOcdConfigFiles");
-      return;
-    }
-  });
+  registerIDFCommand("espIdf.selectOpenOcdConfigFiles", async () =>
+    selectOpenOcdConfigFiles(workspaceRoot)
+  );
 
   registerIDFCommand("espIdf.getOpenOcdScriptValue", async () => {
     return await getOpenOcdScripts(workspaceRoot);
