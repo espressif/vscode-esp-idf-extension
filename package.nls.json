@@ -57,7 +57,7 @@
   "espIdf.idfReconfigureTask.title": "ESP-IDF: Run idf.py reconfigure Task",
   "espIdf.importProject.title": "Import ESP-IDF Project",
   "espIdf.installEspMatterPyReqs.title": "Install ESP-Matter Python Packages",
-  "espIdf.installManager.title": "Open ESP-IDF Install manager",
+  "espIdf.installManager.title": "Open ESP-IDF Install Manager",
   "espIdf.jtag_flash.title": "Flash (with JTag)",
   "espIdf.launchQemu.title": "Launch QEMU Server",
   "espIdf.launchWSServerAndMonitor.title": "Launch IDF Monitor for Core Dump Mode/GDB Stub Mode",
