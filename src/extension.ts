@@ -163,6 +163,7 @@ import { getIdfSetups } from "./eim/getExistingSetups";
 import { IdfSetup } from "./eim/types";
 import { loadIdfSetup } from "./eim/loadIdfSetup";
 import { configureEnvVariables } from "./common/prepareEnv";
+import { downloadExtractAndRunEIM } from "./eim/downloadInstall";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1849,7 +1850,29 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.installManager", async () => {
-    vscode.env.openExternal(vscode.Uri.parse(ESP.URL.InstallManager.Releases));
+    // vscode.env.openExternal(vscode.Uri.parse(ESP.URL.InstallManager.Releases));
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
+    vscode.window.withProgress(
+      {
+        cancellable: true,
+        location: ProgressLocation,
+        title: vscode.l10n.t("ESP-IDF Install Manager"),
+      },
+      async (
+        progress: vscode.Progress<{ message: string; increment: number }>,
+        cancelToken: vscode.CancellationToken
+      ) => {
+        await downloadExtractAndRunEIM(progress, cancelToken);
+      }
+    );
   });
 
   registerIDFCommand(

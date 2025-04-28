@@ -39,31 +39,19 @@ Make sure to review our [Espressif documentation](https://docs.espressif.com/pro
   <img src="./media/readme/commandsList.png" alt="Commands list">
 </p>
 
-6. From the command list, select **Configure ESP-IDF Extension** or press <kbd>F1</kbd> and type `Configure ESP-IDF Extension`. After, choose the **ESP-IDF: Configure ESP-IDF Extension** option.
+6. From the command list, select **ESP-IDF: Open ESP-IDF Install Manager** or press <kbd>F1</kbd> and type `Open ESP-IDF Install Manager`. After, choose the **ESP-IDF: ESP-IDF: Open ESP-IDF Install Manager** option.
    > **NOTE:** For versions of ESP-IDF < 5.0, spaces are not supported inside configured paths.
 
-<p>
-  <img src="./media/readme/setup.png" alt="Select ESP-IDF" width="950">
-</p>
-
-7. Choose **Express** and select the download server:
+7. Alternatively, you can download the ESP-IDF Install Manager from the following link [ESP-IDF Install Manager](https://dl.espressif.com/dl/eim/index.html) among the following options::
 
 - Espressif: Faster speed in China using Espressif download servers links.
 - Github: Using github releases links.
 
-8. Pick an ESP-IDF version to download or the `Find ESP-IDF in your system` option to search for existing ESP-IDF directory.
+8. Use the ESP-IDF Install Manager to install the ESP-IDF and tools. If necessary, here is the [ESP-IDF Install Manager Documentation](https://docs.espressif.com/projects/idf-im-ui/en/latest/general_info.html).
 
-9. Choose the location for ESP-IDF Tools (also known as `IDF_TOOLS_PATH`) which is `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows by default.
+9. In Visual Studio Code, navigate to `View` > `Command Palette` and type `select current esp-idf version` and select **ESP-IDF: Select Current ESP-IDF Version** from the list. The list of available ESP-IDF setups will be shown, select which one you want to use for the current ESP-IDF project. The selected setup will save a **idf.currentSetup** with selected ESP-IDF path and the extension will configure environment variables for the current project saved as workspace folder state. You can review the setup by running the **ESP-IDF: Doctor Command** by navigate to `View` > `Command Palette` and type `doctor command` and select **ESP-IDF: ESP-IDF: Doctor Command** from the list.
 
-10. If your operating system is MacOS/Linux, choose the system Python executable to create ESP-IDF virtual environment inside ESP-IDF Tools and install ESP-IDF Python package there.
-
-    > **NOTE:** Windows users don't need to select a Python executable since it is going to be installed by this setup.
-
-11. Make sure that `IDF_TOOLS_PATH` doesn't have any spaces to avoid any build issues. Also make sure that `IDF_TOOLS_PATH` is not the same directory as `IDF_PATH`.
-
-12. You will see a page showing the setup progress status, including ESP-IDF download progress, ESP-IDF Tools download and install progress as well as the creation of a Python virtual environment.
-
-13. If everything is installed correctly, you will see a message that all settings have been configured. You can start using the extension.
+10. If everything is installed correctly, you will see a message that all settings have been configured. You can start using the extension.
 
 Check the [Troubleshooting](#Troubleshooting) section if you have any issues.
 
@@ -516,12 +504,6 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
             <td></td>
             <td></td>
         </tr>
-        <tr>
-            <td>Clear Saved ESP-IDF Setups</td>
-            <td>Clear existing ESP-IDF setups saved by the extension.</td>
-            <td></td>
-            <td></td>
-        </tr>
     </tbody>
 </table>
 
@@ -592,7 +574,7 @@ This extension uses the ``idf.saveScope`` configuration setting (which can only 
 
 7. In some cases, the default shell (Powershell, zsh, sh, .etc) configured in VS Code could affect the behavior of the extension. Make sure that MSYS/MinGW is not set in the environment and the variables don't conflict with terminal behavior. The `ESP-IDF: Doctor Command` shows which shell is detected by the extension when running tasks like building, flashing and monitoring. More information in [here](https://code.visualstudio.com/docs/terminal/profiles).
 
-If there is any Python package error, please try to reinstall the required Python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command or running the setup again with the **ESP-IDF: Configure ESP-IDF Extension** command.
+If there is any Python package error, please try to reinstall the required Python packages with the [ESP-IDF Installation Manager](https://docs.espressif.com/projects/idf-im-ui/en/latest/general_info.html).
 
 > **NOTE:** When downloading ESP-IDF using git cloning in Windows, if you receive errors like "unable to create symlink", enabling `Developer Mode` while cloning ESP-IDF could help resolve the issue.
 
