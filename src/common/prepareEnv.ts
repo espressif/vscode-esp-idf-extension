@@ -23,6 +23,25 @@ import { delimiter, dirname, join } from "path";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { ESP } from "../config";
 
+/**
+ * Configures and prepares environment variables necessary for executing ESP-IDF tasks.
+ *
+ * Merges environment variables from the current process (`process.env`),
+ * stored project configuration, and relevant VS Code settings (e.g., `idf.customExtraVars`,
+ * `idf.gitPath`, `idf.sdkconfigFilePath`, `idf.enableIdfComponentManager`).
+ *
+ * Key actions include:
+ * - Setting default `IDF_PATH` and `IDF_TOOLS_PATH` if not already defined.
+ * - Prepending required toolchain, Python virtual environment, IDF Tools, Git
+ * and component directories to the system `PATH`.
+ * - Determining and setting `IDF_TARGET` based on the workspace's sdkconfig.
+ * - Setting the `IDF_COMPONENT_MANAGER` flag and `SDKCONFIG` path based on settings.
+ *
+ * @async
+ * @param {Uri} curWorkspace - The Uri of the current workspace, used to access settings and sdkconfig.
+ * @returns {Promise<{[key: string]: string}>} A promise resolving to the configured
+ * environment variables object, ready for use in ESP-IDF tasks.
+ */
 export async function configureEnvVariables(
   curWorkspace: Uri
 ): Promise<{ [key: string]: string }> {
