@@ -187,7 +187,7 @@ Extension Behaviour Settings
     * - **idf.telemetry**
       - Enable telemetry
     * - **idf.deleteComponentsOnFullClean**
-      - Delete ``managed_components`` on **Full Clean Project** command (default ``false``)
+      - Delete ``managed_components`` on **Full Clean Project** command (default ``true``)
     * - **idf.monitorNoReset**
       - Enable no-reset flag to IDF Monitor (default ``false``)
     * - **idf.monitorEnableTimestamps**
