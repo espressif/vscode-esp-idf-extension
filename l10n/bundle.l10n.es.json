@@ -49,6 +49,7 @@
   "Enter target name (IDF_TARGET)": "Introduzca el nombre del objetivo (IDF_TARGET)",
   "No ESP-IDF frameworks found": "No se encontraron marcos ESP-IDF",
   "Select framework to use": "Seleccione el marco a utilizar",
+  "Select mirror to use": "Seleccione el enlace a utilizar",
   "No framework selected to load examples.": "No se seleccionó ningún marco para cargar ejemplos.",
   "ESP-IDF: Loading examples": "ESP-IDF: Cargando ejemplos",
   "Cannot call this command directly, right click on any CMakeLists.txt file!": "No se puede llamar a este comando directamente, haga clic derecho en cualquier archivo CMakeLists.txt.",
