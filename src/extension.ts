@@ -507,7 +507,17 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(sdkWatchDisposable);
   const sdkDeleteWatchDisposable = sdkconfigWatcher.onDidDelete(async () => {
     ConfserverProcess.dispose();
-    await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
+    const customExtraVars = idfConf.readParameter(
+      "idf.customExtraVars",
+      workspaceRoot
+    ) as { [key: string]: string };
+    let idfTarget = customExtraVars["IDF_TARGET"];
+    if (!idfTarget) {
+      idfTarget = "esp32";
+    }
+    if (statusBarItems["target"]) {
+      statusBarItems["target"].text = "$(chip) " + idfTarget;
+    }
   });
   context.subscriptions.push(sdkDeleteWatchDisposable);
 
