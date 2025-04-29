@@ -1860,6 +1860,17 @@ export async function activate(context: vscode.ExtensionContext) {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
+
+    const mirrorToUse = await vscode.window.showQuickPick(
+      ["Github", "Espressif (faster in China)"],
+      {
+        placeHolder: vscode.l10n.t("Select mirror to use"),
+      }
+    );
+    let useMirror = false;
+    if (mirrorToUse && mirrorToUse === "Espressif (faster in China)") {
+      useMirror = true;
+    }
     vscode.window.withProgress(
       {
         cancellable: true,
@@ -1870,7 +1881,7 @@ export async function activate(context: vscode.ExtensionContext) {
         progress: vscode.Progress<{ message: string; increment: number }>,
         cancelToken: vscode.CancellationToken
       ) => {
-        await downloadExtractAndRunEIM(progress, cancelToken);
+        await downloadExtractAndRunEIM(progress, cancelToken, useMirror);
       }
     );
   });
