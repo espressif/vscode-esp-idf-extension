@@ -32,7 +32,7 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
   const idfSetups = await getIdfSetups();
 
   if (!idfSetups || idfSetups.length < 1) {
-    window.showInformationMessage("No ESP-IDF setups found");
+    window.showInformationMessage(l10n.t("No ESP-IDF Setups found"));
     Logger.info("Using loadEnvVarsAsIdfSetup to configure extension");
     const idfEnvSetup = await loadEnvVarsAsIdfSetup(workspaceFolder);
     if (idfEnvSetup) {
