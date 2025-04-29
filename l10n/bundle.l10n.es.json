@@ -212,5 +212,22 @@
   "Error: {0}": "Error: {0}",
   "IDF_TARGET mismatch: SDKConfig value is \"{0}\" but settings value is \"{1}\".": "Desajuste de IDF_TARGET: el valor de SDKConfig es \"{0}\" pero el valor de configuración es \"{1}\".",
   "Set IDF_TARGET": "Establecer IDF_TARGET",
-  "The value {value} is not a number.": "El valor {value} no es un número."
+  "The value {value} is not a number.": "El valor {value} no es un número.",
+  "WARNING: Flash Encryption in {0}": "ADVERTENCIA: Cifrado de Flash en {0}",
+  "This will burn eFuses on your device which is an IRREVERSIBLE operation.": "Esto grabará eFuses en su dispositivo, lo cual es una operación IRREVERSIBLE.",
+  "Development Mode: Allows re-flashing with plaintext data": "Modo Desarrollo: Permite re-flash con datos en texto plano",
+  "Release Mode: Permanently disables plaintext flashing": "Modo Release: Deshabilita permanentemente el flash en texto plano",
+  "You will need to complete a two-step flashing process:\n1. First flash without encryption\n2. Reset your device\n3. Second flash with encryption": "Necesitará completar un proceso de flash en dos pasos:\n1. Primer flash sin cifrado\n2. Reinicie su dispositivo\n3. Segundo flash con cifrado",
+  "Do you want to continue?": "¿Desea continuar?",
+  "Yes, Continue": "Sí, Continuar",
+  "No, Cancel": "No, Cancelar",
+  "Proceeding with flash encryption. Remember to reset your device after the first flash.": "Procediendo con cifrado de flash. Recuerde reiniciar su dispositivo después del primer flash.",
+  "Flash encryption mode detected: {0}": "Modo de cifrado de flash detectado: {0}",
+  "User confirmed flash encryption. Proceeding with two-step flashing process.": "Usuario confirmó cifrado de flash. Procediendo con proceso de flash en dos pasos.",
+  "Flash encryption cancelled by user": "Cifrado de flash cancelado por el usuario",
+  "Could not find Encryption Key for {0}": "No se pudo encontrar la clave de cifrado para {0}",
+  "eFuse check cancelled by user": "Verificación de eFuse cancelada por el usuario",
+  "Error during flash encryption check: {0}": "Error durante la verificación del cifrado de flash: {0}",
+  "Type \"BURN\" to confirm flash encryption (this is irreversible)": "Escriba \"BURN\" para confirmar el cifrado de flash (esto es irreversible)",
+  "Please type \"BURN\" exactly to confirm": "Por favor escriba \"BURN\" exactamente para confirmar"
 }

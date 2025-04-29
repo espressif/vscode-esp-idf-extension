@@ -212,5 +212,22 @@
   "Error: {0}": "错误：{0}",
   "IDF_TARGET mismatch: SDKConfig value is \"{0}\" but settings value is \"{1}\".": "IDF_TARGET 不匹配：SDKConfig 值为 \"{0}\"，但设置值为 \"{1}\"。",
   "Set IDF_TARGET": "设置 IDF_TARGET",
-  "The value {value} is not a number.": "值 {value} 不是一个数字。"
+  "The value {value} is not a number.": "值 {value} 不是一个数字。",
+  "WARNING: Flash Encryption in {0}": "警告：{0} 模式下的闪存加密",
+  "This will burn eFuses on your device which is an IRREVERSIBLE operation.": "这将在您的设备上烧录 eFuse，这是一个不可逆的操作。",
+  "Development Mode: Allows re-flashing with plaintext data": "开发模式：允许使用明文数据重新刷写",
+  "Release Mode: Permanently disables plaintext flashing": "发布模式：永久禁用明文刷写",
+  "You will need to complete a two-step flashing process:\n1. First flash without encryption\n2. Reset your device\n3. Second flash with encryption": "您需要完成两步刷写过程：\n1. 首次刷写不使用加密\n2. 重置您的设备\n3. 第二次刷写使用加密",
+  "Do you want to continue?": "您要继续吗？",
+  "Yes, Continue": "是，继续",
+  "No, Cancel": "否，取消",
+  "Proceeding with flash encryption. Remember to reset your device after the first flash.": "正在进行闪存加密。请记住在第一次刷写后重置您的设备。",
+  "Flash encryption mode detected: {0}": "检测到闪存加密模式：{0}",
+  "User confirmed flash encryption. Proceeding with two-step flashing process.": "用户确认闪存加密。正在进行两步刷写过程。",
+  "Flash encryption cancelled by user": "用户取消了闪存加密",
+  "Could not find Encryption Key for {0}": "找不到 {0} 的加密密钥",
+  "eFuse check cancelled by user": "用户取消了 eFuse 检查",
+  "Error during flash encryption check: {0}": "闪存加密检查过程中出错：{0}",
+  "Type \"BURN\" to confirm flash encryption (this is irreversible)": "请输入 \"BURN\" 以确认闪存加密（此操作不可逆）",
+  "Please type \"BURN\" exactly to confirm": "请准确输入 \"BURN\" 以确认"
 }
