@@ -86,7 +86,6 @@ suite("Doctor Command tests", () => {
   test("Wrong version of ESP-IDF", async () => {
     reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
     await getEspIdfVersion(reportObj);
-    console.log(reportObj.latestError);
     assert.equal(reportObj.espIdfVersion.result, "x.x");
   });
 
