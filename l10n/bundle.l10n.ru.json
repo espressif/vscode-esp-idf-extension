@@ -49,6 +49,7 @@
   "Enter target name (IDF_TARGET)": "Введите имя цели (IDF_TARGET)",
   "No ESP-IDF frameworks found": "Фреймворки ESP-IDF не найдены",
   "Select framework to use": "Выберите платформу для использования",
+  "Select mirror to use": "Выберите зеркало для использования",
   "No framework selected to load examples.": "Для загрузки примеров не выбрана платформа.",
   "ESP-IDF: Loading examples": "ESP-IDF: Загрузка примеров",
   "Cannot call this command directly, right click on any CMakeLists.txt file!": "Невозможно вызвать эту команду напрямую. Кликните правой кнопкой мыши любой файл CMakeLists.txt!",
