@@ -49,6 +49,7 @@
   "Enter target name (IDF_TARGET)": "Insira o nome do destino (IDF_TARGET)",
   "No ESP-IDF frameworks found": "Nenhuma estrutura ESP-IDF encontrada",
   "Select framework to use": "Selecione a estrutura a ser usada",
+  "Select mirror to use": "Selecione o espelho a usar",
   "No framework selected to load examples.": "Nenhuma estrutura selecionada para carregar exemplos.",
   "ESP-IDF: Loading examples": "ESP-IDF: Carregando exemplos",
   "Cannot call this command directly, right click on any CMakeLists.txt file!": "Não é possível chamar este comando diretamente, clique com o botão direito em qualquer arquivo CMakeLists.txt!",
