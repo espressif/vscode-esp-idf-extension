@@ -160,7 +160,7 @@ export async function downloadExtractAndRunEIM(
         "eim-gui-windows-x64.exe"
       )}"`;
     } else if (process.platform === "linux") {
-      binaryPath = join(tempDir, "eim", "eim");
+      binaryPath = `./eim`;
     } else if (process.platform === "darwin") {
       binaryPath = `open ${join(tempDir, "eim", "eim.app")}`;
     }
@@ -171,6 +171,7 @@ export async function downloadExtractAndRunEIM(
     const espIdfTerminal = window.createTerminal({
       name: "ESP-IDF EIM",
       shellPath: shellPath,
+      cwd: process.platform === "win32" ? tempDir : join(tempDir, "eim"),
     });
     espIdfTerminal.sendText(binaryPath, true);
     espIdfTerminal.show();
