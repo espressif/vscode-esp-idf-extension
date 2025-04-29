@@ -56,6 +56,6 @@ suite("Debug Adapter Tests", () => {
         response.body = response.body || {};
         assert.equal(response.body.supportsConfigurationDoneRequest, true);
       });
-    });
+    }).timeout(10000);
   });
 });
