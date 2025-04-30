@@ -36,6 +36,8 @@ import { getTargetsFromEspIdf } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 import { updateCurrentProfileIdfTarget } from "../../project-conf";
 
+export let isSettingIDFTarget = false;
+
 export async function setIdfTarget(
   placeHolderMsg: string,
   workspaceFolder: WorkspaceFolder
@@ -44,6 +46,11 @@ export async function setIdfTarget(
   if (!workspaceFolder) {
     return;
   }
+  if (isSettingIDFTarget) {
+    Logger.info("setTargetInIDF is already running.");
+    return;
+  }
+  isSettingIDFTarget = true;
 
   const notificationMode = readParameter(
     "idf.notificationMode",
@@ -117,7 +124,10 @@ export async function setIdfTarget(
           configurationTarget,
           workspaceFolder.uri
         );
-        await updateCurrentProfileIdfTarget(selectedTarget.target, workspaceFolder.uri);
+        await updateCurrentProfileIdfTarget(
+          selectedTarget.target,
+          workspaceFolder.uri
+        );
       } catch (err) {
         const errMsg =
           err instanceof Error
@@ -131,6 +141,8 @@ export async function setIdfTarget(
           Logger.errorNotify(errMsg, err, "setIdfTarget");
           OutputChannel.appendLine(errMsg);
         }
+      } finally {
+        isSettingIDFTarget = false;
       }
     }
   );

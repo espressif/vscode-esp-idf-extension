@@ -31,17 +31,10 @@ import { IdfTarget } from "./getTargets";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import * as vscode from "vscode";
 
-export let isSettingIDFTarget = false;
-
 export async function setTargetInIDF(
   workspaceFolder: WorkspaceFolder,
   selectedTarget: IdfTarget
 ) {
-  if (isSettingIDFTarget) {
-    Logger.info("setTargetInIDF is already running.");
-    return;
-  }
-  isSettingIDFTarget = true;
   try {
     if (ConfserverProcess.exists()) {
       ConfserverProcess.dispose();
@@ -98,7 +91,5 @@ export async function setTargetInIDF(
     throw new Error(
       `Failed to set target ${selectedTarget.target}: ${error.message}.`
     );
-  } finally {
-    isSettingIDFTarget = false;
   }
 }

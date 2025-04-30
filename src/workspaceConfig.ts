@@ -20,7 +20,7 @@ import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 import { readParameter } from "./idfConfiguration";
 import { showInfoNotificationWithAction } from "./logger/utils";
-import { isSettingIDFTarget } from "./espIdf/setTarget/setTargetInIdf";
+import { isSettingIDFTarget } from "./espIdf/setTarget";
 
 export function initSelectedWorkspace(status?: vscode.StatusBarItem) {
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
