@@ -217,7 +217,7 @@
   "This will burn eFuses on your device which is an IRREVERSIBLE operation.": "Esto grabará eFuses en su dispositivo, lo cual es una operación IRREVERSIBLE.",
   "Development Mode: Allows re-flashing with plaintext data": "Modo Desarrollo: Permite re-flash con datos en texto plano",
   "Release Mode: Permanently disables plaintext flashing": "Modo Release: Deshabilita permanentemente el flash en texto plano",
-  "You will need to complete a two-step flashing process:\n1. First flash without encryption\n2. Reset your device\n3. Second flash with encryption": "Necesitará completar un proceso de flash en dos pasos:\n1. Primer flash sin cifrado\n2. Reinicie su dispositivo\n3. Segundo flash con cifrado",
+  "The flash encryption process requires two steps:\n1. First, you need to confirm by typing \"BURN\" in the input box at the top of the screen\n2. After flashing completes, you MUST reset your device\n3. Then flash again to enable encryption": "El proceso de cifrado de flash requiere dos pasos:\n1. Primero, necesita confirmar escribiendo \"BURN\" en el cuadro de entrada en la parte superior de la pantalla\n2. Después de completar el flash, DEBE reiniciar su dispositivo\n3. Luego flashee nuevamente para habilitar el cifrado",
   "Do you want to continue?": "¿Desea continuar?",
   "Yes, Continue": "Sí, Continuar",
   "No, Cancel": "No, Cancelar",

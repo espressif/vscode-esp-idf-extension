@@ -217,7 +217,7 @@
   "This will burn eFuses on your device which is an IRREVERSIBLE operation.": "Это приведет к записи eFuse на вашем устройстве, что является НЕОБРАТИМОЙ операцией.",
   "Development Mode: Allows re-flashing with plaintext data": "Режим разработки: Позволяет повторную прошивку с открытыми данными",
   "Release Mode: Permanently disables plaintext flashing": "Режим релиза: Навсегда отключает прошивку открытыми данными",
-  "You will need to complete a two-step flashing process:\n1. First flash without encryption\n2. Reset your device\n3. Second flash with encryption": "Вам нужно выполнить двухэтапный процесс прошивки:\n1. Первая прошивка без шифрования\n2. Сбросьте ваше устройство\n3. Вторая прошивка с шифрованием",
+  "The flash encryption process requires two steps:\n1. First, you need to confirm by typing \"BURN\" in the input box at the top of the screen\n2. After flashing completes, you MUST reset your device\n3. Then flash again to enable encryption": "Процесс шифрования flash требует два шага:\n1. Сначала вам нужно подтвердить, введя \"BURN\" в поле ввода в верхней части экрана\n2. После завершения прошивки вы ДОЛЖНЫ перезагрузить устройство\n3. Затем выполните прошивку снова для включения шифрования",
   "Do you want to continue?": "Вы хотите продолжить?",
   "Yes, Continue": "Да, Продолжить",
   "No, Cancel": "Нет, Отмена",

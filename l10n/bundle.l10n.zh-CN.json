@@ -217,7 +217,7 @@
   "This will burn eFuses on your device which is an IRREVERSIBLE operation.": "这将在您的设备上烧录 eFuse，这是一个不可逆的操作。",
   "Development Mode: Allows re-flashing with plaintext data": "开发模式：允许使用明文数据重新刷写",
   "Release Mode: Permanently disables plaintext flashing": "发布模式：永久禁用明文刷写",
-  "You will need to complete a two-step flashing process:\n1. First flash without encryption\n2. Reset your device\n3. Second flash with encryption": "您需要完成两步刷写过程：\n1. 首次刷写不使用加密\n2. 重置您的设备\n3. 第二次刷写使用加密",
+  "The flash encryption process requires two steps:\n1. First, you need to confirm by typing \"BURN\" in the input box at the top of the screen\n2. After flashing completes, you MUST reset your device\n3. Then flash again to enable encryption": "闪存加密过程需要两个步骤：\n1. 首先，您需要在屏幕顶部的输入框中输入 \"BURN\" 来确认\n2. 刷写完成后，您必须重置设备\n3. 然后再次刷写以启用加密",
   "Do you want to continue?": "您要继续吗？",
   "Yes, Continue": "是，继续",
   "No, Cancel": "否，取消",

@@ -212,7 +212,7 @@ export async function checkFlashEncryption(
           (encryptionMode === vscode.l10n.t("Development Mode") 
             ? vscode.l10n.t("Development Mode: Allows re-flashing with plaintext data")
             : vscode.l10n.t("Release Mode: Permanently disables plaintext flashing")) + "\n\n" +
-          vscode.l10n.t("You will need to complete a two-step flashing process:\n1. First flash without encryption\n2. Reset your device\n3. Second flash with encryption");
+          vscode.l10n.t("The flash encryption process requires two steps:\n1. First, you need to confirm by typing \"BURN\" in the input box at the top of the screen\n2. After flashing completes, you MUST reset your device\n3. Then flash again to enable encryption");
 
         // Log the warning to output channel
         OutputChannel.appendLineAndShow(warningMessage, "Flash Encryption");
