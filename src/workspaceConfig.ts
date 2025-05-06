@@ -20,6 +20,7 @@ import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 import { readParameter } from "./idfConfiguration";
 import { showInfoNotificationWithAction } from "./logger/utils";
+import { isSettingIDFTarget } from "./espIdf/setTarget";
 
 export function initSelectedWorkspace(status?: vscode.StatusBarItem) {
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
@@ -99,15 +100,17 @@ export async function getIdfTargetFromSdkconfig(
     const customIdfTarget = customExtraVars["IDF_TARGET"];
 
     if (idfTarget && customIdfTarget && idfTarget !== customIdfTarget) {
-      showInfoNotificationWithAction(
-        vscode.l10n.t(
-          'IDF_TARGET mismatch: SDKConfig value is "{0}" but settings value is "{1}".',
-          idfTarget,
-          customIdfTarget
-        ),
-        vscode.l10n.t("Set IDF_TARGET"),
-        () => vscode.commands.executeCommand("espIdf.setTarget")
-      );
+      if (!isSettingIDFTarget) {
+        showInfoNotificationWithAction(
+          vscode.l10n.t(
+            'IDF_TARGET mismatch: SDKConfig value is "{0}" but settings value is "{1}".',
+            idfTarget,
+            customIdfTarget
+          ),
+          vscode.l10n.t("Set IDF_TARGET"),
+          () => vscode.commands.executeCommand("espIdf.setTarget")
+        );
+      }
     }
 
     if (!idfTarget) {

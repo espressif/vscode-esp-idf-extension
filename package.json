@@ -1087,7 +1087,7 @@
           },
           "idf.deleteComponentsOnFullClean": {
             "type": "boolean",
-            "default": false,
+            "default": true,
             "scope": "resource",
             "description": "%param.deleteComponentsOnFullClean%"
           },

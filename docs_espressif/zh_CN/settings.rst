@@ -185,7 +185,7 @@ ESP-IDF 相关设置
     * - **idf.telemetry**
       - 启用遥测
     * - **idf.deleteComponentsOnFullClean**
-      - 在执行 **Full Clean Project** 命令时删除 ``managed_components`` （该选项默认禁用）
+      - 在执行 **Full Clean Project** 命令时删除 ``managed_components`` （该选项默认启用）
     * - **idf.monitorNoReset**
       - 启用 IDF 监视器的不重置标志（该选项默认禁用）
     * - **idf.monitorEnableTimestamps**

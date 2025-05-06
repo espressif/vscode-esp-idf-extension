@@ -445,7 +445,7 @@ export async function activate(context: vscode.ExtensionContext) {
             break;
           }
         }
-        if (typeof workspaceRoot === undefined) {
+        if (typeof workspaceRoot === "undefined") {
           workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
           ESP.GlobalConfiguration.store.set(
             ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER,
@@ -3839,7 +3839,14 @@ async function getFrameworksPickItems() {
       );
       existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
     }
-    const setupsToUse = [...idfSetups, ...existingIdfSetups];
+    let setupsToUse = [...idfSetups, ...existingIdfSetups];
+    setupsToUse = setupsToUse.filter(
+      (setup, index, self) =>
+        index ===
+        self.findIndex(
+          (s) => s.idfPath === setup.idfPath && s.toolsPath === setup.toolsPath
+        )
+    );
     if (!setupsToUse || setupsToUse.length === 0) {
       await vscode.window.showInformationMessage("No ESP-IDF Setups found");
       return;

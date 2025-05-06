@@ -80,7 +80,14 @@ export async function getNewProjectArgs(
     );
     existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
   }
-  const setupsToUse = [...idfSetups, ...existingIdfSetups];
+  let setupsToUse = [...idfSetups, ...existingIdfSetups];
+  setupsToUse = setupsToUse.filter(
+    (setup, index, self) =>
+      index ===
+      self.findIndex(
+        (s) => s.idfPath === setup.idfPath && s.toolsPath === setup.toolsPath
+      )
+  );
   if (setupsToUse.length === 0) {
     await window.showInformationMessage("No ESP-IDF Setups found");
     return;
