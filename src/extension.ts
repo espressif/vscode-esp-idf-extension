@@ -429,6 +429,7 @@ export async function activate(context: vscode.ExtensionContext) {
               workspaceRoot,
               false
             );
+            context.subscriptions.push(projectConfigManager);
             if (statusBarItems["currentIdfVersion"]) {
               statusBarItems["currentIdfVersion"].text = currentIdfSetup.isValid
                 ? `$(${
@@ -473,6 +474,16 @@ export async function activate(context: vscode.ExtensionContext) {
           workspace: workspaceRoot,
         } as IOpenOCDConfig;
         openOCDManager.configureServer(openOCDConfig);
+        if (projectConfigManager) {
+          projectConfigManager.dispose();
+          projectConfigManager = undefined;
+        }
+        projectConfigManager = new ProjectConfigurationManager(
+          workspaceRoot,
+          context,
+          statusBarItems
+        );
+        context.subscriptions.push(projectConfigManager);
       }
       ConfserverProcess.dispose();
     })
@@ -3733,12 +3744,14 @@ export async function activate(context: vscode.ExtensionContext) {
   // Remove ESP-IDF settings
   registerIDFCommand("espIdf.removeEspIdfSettings", asyncRemoveEspIdfSettings);
 
-  projectConfigManager = new ProjectConfigurationManager(
-    workspaceRoot,
-    context,
-    statusBarItems
-  );
-  context.subscriptions.push(projectConfigManager);
+  if (workspaceRoot && workspaceRoot.fsPath) {
+    projectConfigManager = new ProjectConfigurationManager(
+      workspaceRoot,
+      context,
+      statusBarItems
+    );
+    context.subscriptions.push(projectConfigManager);
+  }
 
   registerIDFCommand("espIdf.projectConf", () => {
     PreCheck.perform([openFolderCheck], async () => {
