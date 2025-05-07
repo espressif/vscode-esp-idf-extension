@@ -3907,7 +3907,9 @@ export async function activate(context: vscode.ExtensionContext) {
       ];
 
       await showInfoNotificationWithMultipleActions(
-        vscode.l10n.t(`Possible hints found for build errors. Click to view details.`),
+        vscode.l10n.t(
+          `Possible hints found for build errors. Click to view details.`
+        ),
         actions
       );
     }
