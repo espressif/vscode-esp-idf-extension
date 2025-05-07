@@ -40,11 +40,16 @@ export async function getTargetsFromEspIdf(
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   const resultTargetArray: IdfTarget[] = [];
 
+  const dirToUse =
+    workspaceFolder && workspaceFolder.fsPath
+      ? workspaceFolder.fsPath
+      : process.cwd();
+
   const listTargetsResult = await spawn(
     pythonBinPath,
     [idfPyPath, "--list-targets"],
     {
-      cwd: workspaceFolder.fsPath,
+      cwd: dirToUse,
       env: modifiedEnv,
     },
     undefined,
@@ -64,7 +69,7 @@ export async function getTargetsFromEspIdf(
     pythonBinPath,
     [idfPyPath, "--preview", "--list-targets"],
     {
-      cwd: workspaceFolder.fsPath,
+      cwd: dirToUse,
       env: modifiedEnv,
     },
     undefined,
