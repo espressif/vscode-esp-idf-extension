@@ -228,6 +228,11 @@
   "Could not find Encryption Key for {0}": "Не удалось найти ключ шифрования для {0}",
   "eFuse check cancelled by user": "Проверка eFuse отменена пользователем",
   "Error during flash encryption check: {0}": "Ошибка при проверке шифрования flash: {0}",
-  "Type \"BURN\" to confirm flash encryption (this is irreversible)": "Введите \"BURN\" для подтверждения шифрования flash (это необратимо)",
-  "Please type \"BURN\" exactly to confirm": "Пожалуйста, введите точно \"BURN\" для подтверждения"
+  "Type \"BURN\" to confirm flash encryption (this is irreversible)": "Введите \"{0}\" для подтверждения шифрования флеш-памяти (это необратимо)",
+  "Please type \"BURN\" exactly to confirm": "Пожалуйста, введите \"{0}\" точно для подтверждения",
+  "WARNING: You are attempting to switch from Development Mode to Release Mode.\n\nThis is an irreversible operation that will permanently disable plaintext flashing.\nMake sure you have a backup of your encryption key and understand the implications.\n\nType 'SWITCH' to confirm this operation.": "ПРЕДУПРЕЖДЕНИЕ: Вы пытаетесь переключиться из Режима Разработки в Режим Релиза.\n\nЭто необратимая операция, которая навсегда отключит запись в открытом виде.\nУбедитесь, что у вас есть резервная копия ключа шифрования и вы понимаете последствия.\n\nВведите 'SWITCH' для подтверждения этой операции.",
+  "Type 'SWITCH' to confirm switching to Release Mode": "Введите 'SWITCH' для подтверждения переключения в Режим Релиза",
+  "Please type 'SWITCH' exactly to confirm": "Пожалуйста, введите точно 'SWITCH' для подтверждения",
+  "Switching to Release Mode cancelled by user": "Переключение в Режим Релиза отменено пользователем",
+  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Пользователь подтвердил переключение в Режим Релиза. Продолжаем шифрование флеш-памяти."
 }

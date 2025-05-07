@@ -228,6 +228,11 @@
   "Could not find Encryption Key for {0}": "找不到 {0} 的加密密钥",
   "eFuse check cancelled by user": "用户取消了 eFuse 检查",
   "Error during flash encryption check: {0}": "闪存加密检查过程中出错：{0}",
-  "Type \"BURN\" to confirm flash encryption (this is irreversible)": "请输入 \"BURN\" 以确认闪存加密（此操作不可逆）",
-  "Please type \"BURN\" exactly to confirm": "请准确输入 \"BURN\" 以确认"
+  "Type \"BURN\" to confirm flash encryption (this is irreversible)": "输入 \"{0}\" 确认闪存加密（此操作不可逆）",
+  "Please type \"BURN\" exactly to confirm": "请准确输入 \"{0}\" 以确认",
+  "WARNING: You are attempting to switch from Development Mode to Release Mode.\n\nThis is an irreversible operation that will permanently disable plaintext flashing.\nMake sure you have a backup of your encryption key and understand the implications.\n\nType 'SWITCH' to confirm this operation.": "警告：您正在尝试从开发模式切换到发布模式。\n\n这是一个不可逆的操作，将永久禁用明文烧录。\n请确保您已备份加密密钥并了解其影响。\n\n输入 'SWITCH' 确认此操作。",
+  "Type 'SWITCH' to confirm switching to Release Mode": "输入 'SWITCH' 确认切换到发布模式",
+  "Please type 'SWITCH' exactly to confirm": "请准确输入 'SWITCH' 以确认",
+  "Switching to Release Mode cancelled by user": "用户取消了切换到发布模式",
+  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "用户确认切换到发布模式。继续进行闪存加密。"
 }

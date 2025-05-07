@@ -39,7 +39,9 @@ async function getEncryptionMode(workspaceRoot: vscode.Uri): Promise<string> {
     "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE",
     workspaceRoot
   );
-  return releaseMode === "y" ? vscode.l10n.t("Release Mode") : vscode.l10n.t("Development Mode");
+  return releaseMode === "y"
+    ? vscode.l10n.t("Release Mode")
+    : vscode.l10n.t("Development Mode");
 }
 
 export async function checkFlashEncryption(
@@ -161,7 +163,9 @@ export async function checkFlashEncryption(
 
           try {
             // Start the eFuse reading operation
-            progress.report({ message: vscode.l10n.t("Reading eFuse data...") });
+            progress.report({
+              message: vscode.l10n.t("Reading eFuse data..."),
+            });
             const summary = await eFuse.readSummary();
 
             if (cancelToken.isCancellationRequested) {
@@ -190,6 +194,8 @@ export async function checkFlashEncryption(
     const fieldEncription =
       idfTarget === "esp32" ? "FLASH_CRYPT_CNT" : "SPI_BOOT_CRYPT_CNT";
 
+    const encryptionMode = await getEncryptionMode(workspaceRoot);
+
     if (data && data[fieldEncription]) {
       if (
         // eFuse is not set
@@ -197,42 +203,78 @@ export async function checkFlashEncryption(
         (data[fieldEncription].value === 0 ||
           data[fieldEncription].value == "Disable")
       ) {
-        const encryptionMode = await getEncryptionMode(workspaceRoot);
         const documentationUrl = await getDocsUrl(
           ESP.URL.Docs.FLASH_ENCRYPTION,
           workspaceRoot
         );
-        
-        // Log the encryption mode being used
-        Logger.info(vscode.l10n.t("Flash encryption mode detected: {0}", encryptionMode), { tag: "Flash Encryption" });
-        
-        const warningMessage = vscode.l10n.t("WARNING: Flash Encryption in {0}", encryptionMode) + "\n\n" +
-          vscode.l10n.t("This will burn eFuses on your device which is an IRREVERSIBLE operation.") + "\n\n" +
-          vscode.l10n.t("In {0}:", encryptionMode) + "\n" +
-          (encryptionMode === vscode.l10n.t("Development Mode") 
-            ? vscode.l10n.t("Development Mode: Allows re-flashing with plaintext data")
-            : vscode.l10n.t("Release Mode: Permanently disables plaintext flashing")) + "\n\n" +
-          vscode.l10n.t("The flash encryption process requires two steps:\n1. First, you need to confirm by typing \"BURN\" in the input box at the top of the screen\n2. After flashing completes, you MUST reset your device\n3. Then flash again to enable encryption");
 
-        // Log the warning to output channel
+        Logger.info(
+          vscode.l10n.t("Flash encryption mode detected: {0}", encryptionMode),
+          { tag: "Flash Encryption" }
+        );
+
+        const warningMessage =
+          vscode.l10n.t("WARNING: Flash Encryption in {0}", encryptionMode) +
+          "\n\n" +
+          vscode.l10n.t(
+            "This will burn eFuses on your device which is an IRREVERSIBLE operation."
+          ) +
+          "\n\n" +
+          vscode.l10n.t("In {0}:", encryptionMode) +
+          "\n" +
+          (encryptionMode === vscode.l10n.t("Development Mode")
+            ? vscode.l10n.t(
+                "Development Mode: Allows re-flashing with plaintext data"
+              )
+            : vscode.l10n.t(
+                "Release Mode: Permanently disables plaintext flashing"
+              )) +
+          "\n\n" +
+          vscode.l10n.t(
+            'The flash encryption process requires two steps:\n1. First, you need to confirm by typing "{0}" in the input box at the top of the screen\n2. After flashing completes, you MUST reset your device\n3. Then flash again to enable encryption',
+            encryptionMode === vscode.l10n.t("Development Mode")
+              ? "BURN DEV"
+              : "BURN RELEASE"
+          );
+
         OutputChannel.appendLineAndShow(warningMessage, "Flash Encryption");
-        
-        // Show warning message with input box
-        const confirmMessage = vscode.l10n.t('Type "BURN" to confirm flash encryption (this is irreversible)');
+
+        const confirmMessage = vscode.l10n.t(
+          'Type "{0}" to confirm flash encryption (this is irreversible)',
+          encryptionMode === vscode.l10n.t("Development Mode")
+            ? "BURN DEV"
+            : "BURN RELEASE"
+        );
         const userInput = await vscode.window.showInputBox({
           prompt: confirmMessage,
-          placeHolder: "BURN",
+          placeHolder:
+            encryptionMode === vscode.l10n.t("Development Mode")
+              ? "BURN DEV"
+              : "BURN RELEASE",
           ignoreFocusOut: true,
           validateInput: (value: string) => {
-            if (value === "BURN") {
+            const expectedValue =
+              encryptionMode === vscode.l10n.t("Development Mode")
+                ? "BURN DEV"
+                : "BURN RELEASE";
+            if (value === expectedValue) {
               return null; // Input is valid
             }
-            return vscode.l10n.t('Please type "BURN" exactly to confirm');
-          }
+            return vscode.l10n.t(
+              'Please type "{0}" exactly to confirm',
+              expectedValue
+            );
+          },
         });
 
-        if (userInput !== "BURN") {
-          const cancelMessage = vscode.l10n.t("Flash encryption cancelled by user");
+        const expectedValue =
+          encryptionMode === vscode.l10n.t("Development Mode")
+            ? "BURN DEV"
+            : "BURN RELEASE";
+        if (userInput !== expectedValue) {
+          const cancelMessage = vscode.l10n.t(
+            "Flash encryption cancelled by user"
+          );
           Logger.info(cancelMessage, { tag: "Flash Encryption" });
           OutputChannel.appendLineAndShow(cancelMessage, "Flash Encryption");
           return {
@@ -241,12 +283,15 @@ export async function checkFlashEncryption(
           };
         }
 
-        // Log the continuation
-        const continueMessage = vscode.l10n.t("User confirmed flash encryption. Proceeding with two-step flashing process.");
+        const continueMessage = vscode.l10n.t(
+          "User confirmed flash encryption. Proceeding with two-step flashing process."
+        );
         Logger.info(continueMessage, { tag: "Flash Encryption" });
         OutputChannel.appendLineAndShow(continueMessage, "Flash Encryption");
 
-        const infoMessage = vscode.l10n.t("Proceeding with flash encryption. Remember to reset your device after the first flash.");
+        const infoMessage = vscode.l10n.t(
+          "Proceeding with flash encryption. Remember to reset your device after the first flash."
+        );
         showInfoNotificationWithLink(infoMessage, documentationUrl);
         OutputChannel.appendLineAndShow(infoMessage, "Flash Encryption");
         Logger.info(infoMessage, { tag: "Flash Encryption" });
@@ -255,12 +300,65 @@ export async function checkFlashEncryption(
           resultType: FlashCheckResultType.ErrorEfuseNotSet,
         };
       }
-      // eFuse is set
+      // eFuse is set - check if trying to switch from development to release mode
+      else if (encryptionMode === vscode.l10n.t("Release Mode")) {
+        const disDownloadManualEncrypt = data["DIS_DOWNLOAD_MANUAL_ENCRYPT"];
+        if (disDownloadManualEncrypt && !disDownloadManualEncrypt.value) {
+          const warningMessage = vscode.l10n.t(
+            "WARNING: You are attempting to switch from Development Mode to Release Mode.\n\n" +
+              "This is an irreversible operation that will permanently disable plaintext flashing.\n" +
+              "Make sure you have a backup of your encryption key and understand the implications.\n\n" +
+              "Type 'SWITCH' to confirm this operation."
+          );
+          OutputChannel.appendLineAndShow(warningMessage, "Flash Encryption");
+
+          const userInput = await vscode.window.showInputBox({
+            prompt: vscode.l10n.t(
+              "Type 'SWITCH' to confirm switching to Release Mode"
+            ),
+            placeHolder: "SWITCH",
+            ignoreFocusOut: true,
+            validateInput: (value: string) => {
+              if (value === "SWITCH") {
+                return null; // Input is valid
+              }
+              return vscode.l10n.t("Please type 'SWITCH' exactly to confirm");
+            },
+          });
+
+          if (userInput !== "SWITCH") {
+            const cancelMessage = vscode.l10n.t(
+              "Switching to Release Mode cancelled by user"
+            );
+            Logger.info(cancelMessage, { tag: "Flash Encryption" });
+            OutputChannel.appendLineAndShow(cancelMessage, "Flash Encryption");
+            return {
+              success: false,
+              resultType: FlashCheckResultType.GenericError,
+            };
+          }
+
+          const continueMessage = vscode.l10n.t(
+            "User confirmed switching to Release Mode. Proceeding with flash encryption."
+          );
+          Logger.info(continueMessage, { tag: "Flash Encryption" });
+          OutputChannel.appendLineAndShow(continueMessage, "Flash Encryption");
+        }
+      }
+      // eFuse is set and no mode switch needed
       return { success: true };
     } else {
-      const errorMessage = vscode.l10n.t("Could not find Encryption Key for {0}", idfTarget);
+      const errorMessage = vscode.l10n.t(
+        "Could not find Encryption Key for {0}",
+        idfTarget
+      );
       OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
-      Logger.error(errorMessage, new Error(errorMessage), "verifyFlashEncryption missing encryption key", { tag: "Flash Encryption" });
+      Logger.error(
+        errorMessage,
+        new Error(errorMessage),
+        "verifyFlashEncryption missing encryption key",
+        { tag: "Flash Encryption" }
+      );
       return {
         success: false,
         resultType: FlashCheckResultType.ErrorEfuseNotSet,
@@ -277,7 +375,10 @@ export async function checkFlashEncryption(
       };
     }
 
-    const errorMessage = vscode.l10n.t("Error during flash encryption check: {0}", error.message);
+    const errorMessage = vscode.l10n.t(
+      "Error during flash encryption check: {0}",
+      error.message
+    );
     OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
     Logger.errorNotify(
       errorMessage,

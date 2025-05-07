@@ -228,6 +228,11 @@
   "Could not find Encryption Key for {0}": "Não foi possível encontrar a chave de criptografia para {0}",
   "eFuse check cancelled by user": "Verificação de eFuse cancelada pelo usuário",
   "Error during flash encryption check: {0}": "Erro durante verificação de criptografia de flash: {0}",
-  "Type \"BURN\" to confirm flash encryption (this is irreversible)": "Digite \"BURN\" para confirmar a criptografia de flash (isto é irreversível)",
-  "Please type \"BURN\" exactly to confirm": "Por favor, digite exatamente \"BURN\" para confirmar"
+  "Type \"BURN\" to confirm flash encryption (this is irreversible)": "Digite \"{0}\" para confirmar a criptografia da flash (isso é irreversível)",
+  "Please type \"BURN\" exactly to confirm": "Por favor, digite \"{0}\" exatamente para confirmar",
+  "WARNING: You are attempting to switch from Development Mode to Release Mode.\n\nThis is an irreversible operation that will permanently disable plaintext flashing.\nMake sure you have a backup of your encryption key and understand the implications.\n\nType 'SWITCH' to confirm this operation.": "AVISO: Você está tentando mudar do Modo de Desenvolvimento para o Modo de Release.\n\nEsta é uma operação irreversível que desabilitará permanentemente o flash em texto plano.\nCertifique-se de ter um backup da sua chave de criptografia e entender as implicações.\n\nDigite 'SWITCH' para confirmar esta operação.",
+  "Type 'SWITCH' to confirm switching to Release Mode": "Digite 'SWITCH' para confirmar a mudança para o Modo de Release",
+  "Please type 'SWITCH' exactly to confirm": "Por favor, digite 'SWITCH' exatamente para confirmar",
+  "Switching to Release Mode cancelled by user": "Mudança para o Modo de Release cancelada pelo usuário",
+  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Usuário confirmou a mudança para o Modo de Release. Prosseguindo com a criptografia flash."
 }
