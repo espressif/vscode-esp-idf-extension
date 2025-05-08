@@ -12,6 +12,8 @@ import { platform } from 'os';
 import { promisify } from 'util';
 import { dirname } from 'path';
 import { existsSync } from 'fs';
+import { DebugProtocol } from '@vscode/debugprotocol';
+import { MIDataDisassembleAsmInsn } from '../adapter/mi/data';
 
 /**
  * This method actually launches 'gdb --version' to determine the version of
@@ -42,6 +44,33 @@ export async function getGdbVersion(
     }
     return gdbVersion;
 }
+
+/**
+ * Converts the MIDataDisassembleAsmInsn object to DebugProtocol.DisassembledInstruction
+ *
+ * @param asmInstruction
+ * 		MI instruction object
+ * @return
+ * 		Returns the DebugProtocol.DisassembledInstruction object
+ */
+export const getDisassembledInstruction = (
+    asmInstruction: MIDataDisassembleAsmInsn
+): DebugProtocol.DisassembledInstruction => {
+    let symbol: string | undefined;
+    if (asmInstruction['func-name'] && asmInstruction.offset) {
+        symbol = `${asmInstruction['func-name']}+${asmInstruction.offset}`;
+    } else if (asmInstruction['func-name']) {
+        symbol = asmInstruction['func-name'];
+    } else {
+        symbol = undefined;
+    }
+    return {
+        address: asmInstruction.address,
+        instructionBytes: asmInstruction.opcodes,
+        instruction: asmInstruction.inst,
+        ...(symbol ? { symbol } : {}),
+    } as DebugProtocol.DisassembledInstruction;
+};
 
 /**
  * Find gdb version info from a string object which is supposed to
