@@ -19,7 +19,6 @@ import { pathExists, readFile, writeFile, writeJson } from "fs-extra";
 import { EOL } from "os";
 import { join } from "path";
 import * as vscode from "vscode";
-import { Logger } from "../logger/logger";
 import { reportObj } from "./types";
 
 export async function writeTextReport(
@@ -241,8 +240,14 @@ function replaceUserPathInStr(strReport: string) {
   let re = new RegExp(process.env.HOME, "g");
   if (process.env.windir) {
     const reWin = new RegExp("\\\\", "g");
-    const result = process.env.HOMEPATH.replace(reWin, "\\\\\\\\");
-    const PosixResult = process.env.HOMEPATH.replace(reWin, "/");
+    const result = process.env.HOMEPATH.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&"
+    ).replace(reWin, "\\\\\\\\");
+    const PosixResult = process.env.HOMEPATH.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&"
+    ).replace(reWin, "/");
     re = new RegExp(`(${result}|${PosixResult})`, "g");
   }
   const parsedReport = strReport.replace(re, "<HOMEPATH>");
