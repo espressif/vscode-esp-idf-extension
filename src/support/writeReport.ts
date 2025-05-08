@@ -242,7 +242,8 @@ function replaceUserPathInStr(strReport: string) {
   if (process.env.windir) {
     const reWin = new RegExp("\\\\", "g");
     const result = process.env.HOMEPATH.replace(reWin, "\\\\\\\\");
-    re = new RegExp(result, "g");
+    const PosixResult = process.env.HOMEPATH.replace(reWin, "/");
+    re = new RegExp(`(${result}|${PosixResult})`, "g");
   }
   const parsedReport = strReport.replace(re, "<HOMEPATH>");
   return parsedReport;
