@@ -385,13 +385,13 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         <tr>
             <td rowspan=2 align="center">eFuse</td>
             <td>Get eFuse Summary</td>
-            <td>Retrieve a list of eFuses and their corresponding values from the chip currently connected to the serial port.</td>
+            <td>Retrieve a list of eFuses and their corresponding values from the chip currently connected to the serial port and display in the <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/efuse.html">ESP Explorer EFUSEEXPLORER</a>.</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>Clear eFuse Summary</td>
-            <td>Clear the eFuse Summary tree from ESP Explorer EFUSEEXPLORER.</td>
+            <td>Clear the eFuse Summary tree from <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/efuse.html">ESP Explorer EFUSEEXPLORER</a>.</td>
             <td></td>
             <td></td>
         </tr>
