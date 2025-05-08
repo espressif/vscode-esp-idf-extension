@@ -27,22 +27,22 @@ export class ProjectConfigurationManager {
   private configVersions: string[] = [];
   private configWatcher: FileSystemWatcher;
   private statusBarItems: { [key: string]: StatusBarItem };
-  private workspaceRoot: Uri;
+  private workspaceUri: Uri;
   private context: ExtensionContext;
   private commandDictionary: any;
 
   constructor(
-    workspaceRoot: Uri,
+    workspaceUri: Uri,
     context: ExtensionContext,
     statusBarItems: { [key: string]: StatusBarItem }
   ) {
-    this.workspaceRoot = workspaceRoot;
+    this.workspaceUri = workspaceUri;
     this.context = context;
     this.statusBarItems = statusBarItems;
     this.commandDictionary = createCommandDictionary();
 
     this.configFilePath = Uri.joinPath(
-      workspaceRoot,
+      workspaceUri,
       ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
     ).fsPath;
 
@@ -332,7 +332,7 @@ export class ProjectConfigurationManager {
 
     // Update the configuration data with resolved paths for building
     const resolvedConfig = await getProjectConfigurationElements(
-      this.workspaceRoot,
+      this.workspaceUri,
       true // Resolve paths for building
     );
     ESP.ProjectConfiguration.store.set(configName, resolvedConfig[configName]);
@@ -355,10 +355,10 @@ export class ProjectConfigurationManager {
 
     // Update related configurations
     await getIdfTargetFromSdkconfig(
-      this.workspaceRoot,
+      this.workspaceUri,
       this.statusBarItems["target"]
     );
-    await setCCppPropertiesJsonCompileCommands(this.workspaceRoot);
+    await setCCppPropertiesJsonCompileCommands(this.workspaceUri);
     ConfserverProcess.dispose();
   }
 
@@ -368,7 +368,7 @@ export class ProjectConfigurationManager {
   public async selectProjectConfiguration(): Promise<void> {
     try {
       const projectConfigurations = await getProjectConfigurationElements(
-        this.workspaceRoot,
+        this.workspaceUri,
         false // Don't resolve paths for display
       );
 

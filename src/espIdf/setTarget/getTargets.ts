@@ -40,17 +40,30 @@ export async function getTargetsFromEspIdf(
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   const resultTargetArray: IdfTarget[] = [];
 
+  const dirToUse =
+    workspaceFolder && workspaceFolder.fsPath
+      ? workspaceFolder.fsPath
+      : process.cwd();
+
   const listTargetsResult = await spawn(
     pythonBinPath,
     [idfPyPath, "--list-targets"],
     {
-      cwd: workspaceFolder.fsPath,
+      cwd: dirToUse,
       env: modifiedEnv,
     },
     undefined,
     true
   );
-  const listTargetsArray = listTargetsResult.toString().trim().split(EOL);
+  const listTargetsArray = listTargetsResult
+    .toString()
+    .trim()
+    .split(EOL)
+    .filter(
+      (line) =>
+        !line.toUpperCase().startsWith("WARNING") &&
+        !line.toUpperCase().startsWith("ERROR")
+    );
 
   for (const supportedTarget of listTargetsArray) {
     resultTargetArray.push({
@@ -64,7 +77,7 @@ export async function getTargetsFromEspIdf(
     pythonBinPath,
     [idfPyPath, "--preview", "--list-targets"],
     {
-      cwd: workspaceFolder.fsPath,
+      cwd: dirToUse,
       env: modifiedEnv,
     },
     undefined,
@@ -73,7 +86,12 @@ export async function getTargetsFromEspIdf(
   const listTargetsWithPreviewArray = listTargetsWithPreviewResult
     .toString()
     .trim()
-    .split(EOL);
+    .split(EOL)
+    .filter(
+      (line) =>
+        !line.toUpperCase().startsWith("WARNING") &&
+        !line.toUpperCase().startsWith("ERROR")
+    );
 
   const previewTargets = listTargetsWithPreviewArray.filter(
     (t) => listTargetsArray.indexOf(t) === -1

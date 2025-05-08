@@ -466,7 +466,10 @@ export async function getConfigValueFromSDKConfig(
   workspacePath: vscode.Uri
 ): Promise<string> {
   const sdkconfigFilePath = await getSDKConfigFilePath(workspacePath);
-  if (!canAccessFile(sdkconfigFilePath, fs.constants.R_OK)) {
+  if (
+    !sdkconfigFilePath ||
+    !canAccessFile(sdkconfigFilePath, fs.constants.R_OK)
+  ) {
     throw new Error("sdkconfig file doesn't exists or can't be read");
   }
   const configs = readFileSync(sdkconfigFilePath);
