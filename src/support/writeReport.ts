@@ -240,14 +240,12 @@ function replaceUserPathInStr(strReport: string) {
   let re = new RegExp(process.env.HOME, "g");
   if (process.env.windir) {
     const reWin = new RegExp("\\\\", "g");
-    const result = process.env.HOMEPATH.replace(
+    const escapedHomePath = process.env.HOMEPATH.replace(
       /[.*+?^${}()|[\]\\]/g,
       "\\$&"
-    ).replace(reWin, "\\\\\\\\");
-    const PosixResult = process.env.HOMEPATH.replace(
-      /[.*+?^${}()|[\]\\]/g,
-      "\\$&"
-    ).replace(reWin, "/");
+    );
+    const result = escapedHomePath.replace(reWin, "\\\\\\\\");
+    const PosixResult = escapedHomePath.replace(reWin, "/");
     re = new RegExp(`(${result}|${PosixResult})`, "g");
   }
   const parsedReport = strReport.replace(re, "<HOMEPATH>");
