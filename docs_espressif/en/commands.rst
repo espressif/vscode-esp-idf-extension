@@ -32,6 +32,8 @@ All commands start with ``ESP-IDF:``.
      - Open a window with a setup wizard to install ESP-IDF, IDF Tools and Python virtual environment.
    * - Configure Project SDKConfig for Coverage
      - Set required values in your project SDKConfig to enable code coverage analysis.
+   * - Configure project for ESP-Clang
+     - Configure the current ESP-IDF project to use esp-clang as toolchain to use and configure LLVM Clang extension in settings.json.
    * - Create Project from Extension Template
      - Create an ESP-IDF project using one of the extension template projects.
    * - Create New ESP-IDF Component
