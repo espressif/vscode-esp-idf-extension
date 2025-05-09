@@ -212,5 +212,11 @@
   "Error: {0}": "错误：{0}",
   "IDF_TARGET mismatch: SDKConfig value is \"{0}\" but settings value is \"{1}\".": "IDF_TARGET 不匹配：SDKConfig 值为 \"{0}\"，但设置值为 \"{1}\"。",
   "Set IDF_TARGET": "设置 IDF_TARGET",
-  "The value {value} is not a number.": "值 {value} 不是一个数字。"
+  "The value {value} is not a number.": "值 {value} 不是一个数字。",
+  "🔗 Reference Documentation": "🔗 参考文档",
+  "Open {0}": "打开 {0}",
+  "💡 Show Hints": "💡 显示提示",
+  "Mute for this session": "为本次会话静音",
+  "Hint notifications muted for this session. You can still access hints manually in ESP-IDF bottom panel": "本次会话的提示通知已静音。您仍然可以在 ESP-IDF 底部面板中手动访问提示",
+  "Possible hint found for the error: {0}": "已找到可能的错误提示：{0}"
 }

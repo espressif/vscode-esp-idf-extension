@@ -212,5 +212,11 @@
   "Error: {0}": "Ошибка: {0}",
   "IDF_TARGET mismatch: SDKConfig value is \"{0}\" but settings value is \"{1}\".": "Несоответствие IDF_TARGET: значение SDKConfig \"{0}\", но значение настроек \"{1}\".",
   "Set IDF_TARGET": "Установить IDF_TARGET",
-  "The value {value} is not a number.": "Значение {value} не является числом."
+  "The value {value} is not a number.": "Значение {value} не является числом.",
+  "🔗 Reference Documentation": "🔗 Справочная Документация",
+  "Open {0}": "Открыть {0}",
+  "💡 Show Hints": "💡 Показать Подсказки",
+  "Mute for this session": "Отключить звук для этой сессии",
+  "Hint notifications muted for this session. You can still access hints manually in ESP-IDF bottom panel": "Уведомления с подсказками отключены для этой сессии. Вы все еще можете получить доступ к подсказкам вручную в нижней панели ESP-IDF",
+  "Possible hint found for the error: {0}": "Возможная подсказка найдена для ошибки: {0}"
 }
