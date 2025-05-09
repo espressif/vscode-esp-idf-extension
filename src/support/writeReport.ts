@@ -239,10 +239,17 @@ export function replaceUserPath(report: reportObj): reportObj {
 function replaceUserPathInStr(strReport: string) {
   if (process.env.windir) {
     const homePath = process.env.HOMEPATH;
-    const pattern = `(${homePath.replace(/\\/g, "\\\\\\\\")}|${homePath.replace(
-      /\\/g,
-      "/"
-    )})`;
+    // Escape the path for regex, but keep backslashes as is
+    const escapedPath = homePath.replace(/[.*+?^${}()|[\]\\]/g, (match) => {
+      return match === "\\" ? "\\\\" : "\\" + match;
+    });
+    // Create pattern that matches both Windows and Posix style
+    const posixPath = homePath
+      .replace(/\\/g, "/")
+      .replace(/[.*+?^${}()|[\]\\]/g, (match) => {
+        return match === "/" ? "/" : "\\" + match;
+      });
+    const pattern = `(${escapedPath}|${posixPath})`;
     const re = new RegExp(pattern, "g");
     return strReport.replace(re, "<HOMEPATH>");
   } else {
