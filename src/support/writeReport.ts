@@ -241,7 +241,7 @@ function replaceUserPathInStr(strReport: string) {
     const homePath = process.env.HOMEPATH;
     // Escape the path for regex, but keep backslashes as is
     const escapedPath = homePath.replace(/[.*+?^${}()|[\]\\]/g, (match) => {
-      return match === "\\" ? "\\\\" : "\\" + match;
+      return match === "\\" ? "\\\\\\\\" : "\\" + match;
     });
     // Create pattern that matches both Windows and Posix style
     const posixPath = homePath
