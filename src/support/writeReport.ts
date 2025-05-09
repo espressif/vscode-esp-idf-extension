@@ -237,19 +237,17 @@ export function replaceUserPath(report: reportObj): reportObj {
 }
 
 function replaceUserPathInStr(strReport: string) {
-  let re = new RegExp(process.env.HOME, "g");
   if (process.env.windir) {
-    const reWin = new RegExp("\\\\", "g");
-    const escapedHomePath = process.env.HOMEPATH.replace(
-      /[.*+?^${}()|[\]\\]/g,
-      "\\$&"
-    );
-    const result = escapedHomePath.replace(reWin, "\\\\");
-    const PosixResult = escapedHomePath
-      .replace(reWin, "/")
-      .replace(/\/+/g, "/");
-    re = new RegExp(`(${result}|${PosixResult})`, "g");
+    const homePath = process.env.HOMEPATH;
+    const pattern = `(${homePath.replace(/\\/g, "\\\\\\\\")}|${homePath.replace(
+      /\\/g,
+      "/"
+    )})`;
+    const re = new RegExp(pattern, "g");
+    return strReport.replace(re, "<HOMEPATH>");
+  } else {
+    // For non-Windows systems, just replace the home directory
+    const re = new RegExp(process.env.HOME, "g");
+    return strReport.replace(re, "<HOMEPATH>");
   }
-  const parsedReport = strReport.replace(re, "<HOMEPATH>");
-  return parsedReport;
 }
