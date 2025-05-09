@@ -244,8 +244,11 @@ function replaceUserPathInStr(strReport: string) {
       /[.*+?^${}()|[\]\\]/g,
       "\\$&"
     );
-    const PosixResult = escapedHomePath.replace(reWin, "/");
-    re = new RegExp(`(${escapedHomePath}|${PosixResult})`, "g");
+    const result = escapedHomePath.replace(reWin, "\\\\");
+    const PosixResult = escapedHomePath
+      .replace(reWin, "/")
+      .replace(/\/+/g, "/");
+    re = new RegExp(`(${result}|${PosixResult})`, "g");
   }
   const parsedReport = strReport.replace(re, "<HOMEPATH>");
   return parsedReport;
