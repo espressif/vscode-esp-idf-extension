@@ -19,11 +19,10 @@ We offer two primary profiles tailored to different C/C++ language server prefer
 
 **1. Default Profile (`ESP-IDF`)**
 
-* **C/C++ Tooling**: Uses the **Microsoft C/C++ Extension Pack** (`ms-vscode.cpptools-extension-pack`). This includes the `ms-vscode.cpptools` extension, which provides IntelliSense, debugging, and code Browse features widely used in VS Code for C/C++ development.
+* **C/C++ Tooling**: Uses the **Microsoft C/C++ Extension** (`ms-vscode.cpptools`). This includes the `ms-vscode.cpptools` extension, which provides IntelliSense, debugging, and code Browse features widely used in VS Code for C/C++ development.
 * **Included Key Extensions**:
     * `espressif.esp-idf-extension` (ESP-IDF)
-    * `ms-vscode.cpptools-extension-pack` (C/C++ Extension Pack)
-    * `ms-vscode.cmake-tools` (CMake Tools)
+    * `ms-vscode.cpptools` (Microsoft's C/C++ Extension)
 * **Recommendation**: This profile is recommended for most users and provides a comprehensive C/C++ development experience based on Microsoft's standard tooling. The internal profile name in VS Code is **`ESP-IDF`**.
 
 **2. Clangd Profile (`ESP-IDF (clangd)`)**
@@ -32,7 +31,6 @@ We offer two primary profiles tailored to different C/C++ language server prefer
 * **Included Key Extensions**:
     * `espressif.esp-idf-extension` (ESP-IDF)
     * `llvm-vs-code-extensions.vscode-clangd` (clangd)
-    * `ms-vscode.cmake-tools` (CMake Tools)
 * **Recommendation**: This profile is suitable for users who specifically prefer or require `clangd` for their C/C++ language support, potentially due to project requirements, specific `clangd` features, or personal preference for LLVM-based tooling. The internal profile name in VS Code is **`ESP-IDF (clangd)`**.
 
 How to Import an ESP-IDF Profile
