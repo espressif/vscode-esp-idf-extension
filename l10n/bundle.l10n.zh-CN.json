@@ -211,5 +211,6 @@
   "Failed to remove settings: {0}": "删除设置失败：{0}",
   "Error: {0}": "错误：{0}",
   "IDF_TARGET mismatch: SDKConfig value is \"{0}\" but settings value is \"{1}\".": "IDF_TARGET 不匹配：SDKConfig 值为 \"{0}\"，但设置值为 \"{1}\"。",
-  "Set IDF_TARGET": "设置 IDF_TARGET"
+  "Set IDF_TARGET": "设置 IDF_TARGET",
+  "The value {value} is not a number.": "值 {value} 不是一个数字。"
 }
