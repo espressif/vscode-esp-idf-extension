@@ -253,8 +253,9 @@ function replaceUserPathInStr(strReport: string) {
     const re = new RegExp(pattern, "g");
     return strReport.replace(re, "<HOMEPATH>");
   } else {
-    // For non-Windows systems, just replace the home directory
-    const re = new RegExp(process.env.HOME, "g");
+    // For non-Windows systems, escape HOME path for regex
+    const escapedHome = process.env.HOME.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(escapedHome, "g");
     return strReport.replace(re, "<HOMEPATH>");
   }
 }
