@@ -176,7 +176,8 @@ export async function selectOpenOcdConfigFiles(
         await writeParameter(
           "idf.openOcdConfigs",
           selectedBoard.target.configFiles,
-          ConfigurationTarget.WorkspaceFolder
+          ConfigurationTarget.WorkspaceFolder,
+          workspaceFolder
         );
         Logger.infoNotify(
           l10n.t("OpenOCD Board configuration files are updated.")
