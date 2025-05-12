@@ -157,35 +157,43 @@ export async function selectOpenOcdConfigFiles(
       (item) => item.picked
     );
 
-    boardQuickPick.onDidAccept(async () => {
-      const selectedBoard = boardQuickPick.selectedItems[0];
-      if (!selectedBoard) {
-        Logger.infoNotify(
-          `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`
-        );
-      } else if (selectedBoard && selectedBoard.target) {
-        if (selectedBoard.label.indexOf("Custom board") !== -1) {
-          const inputBoard = await window.showInputBox({
-            placeHolder: "Enter comma-separated configuration files",
-            value: selectedBoard.target.configFiles.join(","),
-          });
-          if (inputBoard) {
-            selectedBoard.target.configFiles = inputBoard.split(",");
+    return new Promise<void>((resolve) => {
+      boardQuickPick.onDidHide(() => {
+        boardQuickPick.dispose();
+        resolve();
+      });
+      boardQuickPick.onDidAccept(async () => {
+        const selectedBoard = boardQuickPick.selectedItems[0];
+        if (!selectedBoard) {
+          Logger.infoNotify(
+            `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`
+          );
+        } else if (selectedBoard && selectedBoard.target) {
+          if (selectedBoard.label.indexOf("Custom board") !== -1) {
+            const inputBoard = await window.showInputBox({
+              placeHolder: "Enter comma-separated configuration files",
+              value: selectedBoard.target.configFiles.join(","),
+            });
+            if (inputBoard) {
+              selectedBoard.target.configFiles = inputBoard.split(",");
+            }
           }
+          await writeParameter(
+            "idf.openOcdConfigs",
+            selectedBoard.target.configFiles,
+            ConfigurationTarget.WorkspaceFolder,
+            workspaceFolder
+          );
+          Logger.infoNotify(
+            l10n.t("OpenOCD Board configuration files are updated.")
+          );
+          boardQuickPick.dispose();
+          resolve();
         }
-        await writeParameter(
-          "idf.openOcdConfigs",
-          selectedBoard.target.configFiles,
-          ConfigurationTarget.WorkspaceFolder,
-          workspaceFolder
-        );
-        Logger.infoNotify(
-          l10n.t("OpenOCD Board configuration files are updated.")
-        );
-      }
-      boardQuickPick.hide();
+        boardQuickPick.hide();
+      });
+      boardQuickPick.show();
     });
-    boardQuickPick.show();
   } catch (error) {
     const errMsg =
       error.message || "Failed to select openOCD configuration files";
