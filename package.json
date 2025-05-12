@@ -1756,6 +1756,11 @@
         "title": "%espIdf.hexView.deleteElement.title%",
         "category": "ESP-IDF",
         "icon": "$(trash)"
+      },
+      {
+        "command": "espIdf.setClangSettings",
+        "title": "%espIdf.setClangSettings.title%",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [

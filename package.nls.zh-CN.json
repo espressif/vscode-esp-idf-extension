@@ -85,6 +85,7 @@
 	"espIdf.selectNotificationMode.title": "选择输出和通知模式",
 	"espIdf.selectOpenOcdConfigFiles.title": "选择 OpenOCD 开发板配置",
 	"espIdf.selectPort.title": "选择要使用的端口 (COM、tty、usbserial)",
+  "espIdf.setClangSettings.title": "为 ESP-Clang 配置项目",
 	"espIdf.setGcovConfig.title": "配置 SDKConfig 文件以启用代码覆盖率",
 	"espIdf.setMatterDevicePath.title": "设置 ESP-MATTER 设备路径 (ESP_MATTER_DEVICE_PATH)",
 	"espIdf.setTarget.title": "设置乐鑫设备目标",

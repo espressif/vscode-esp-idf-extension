@@ -78,7 +78,7 @@ export async function asyncRemoveEspIdfSettings() {
       if (inspectionValue !== undefined) {
         await config.update(setting, undefined, target);
         OutputChannel.appendLine(
-          vscode.l10n.t(`Removed ${scopeDescription} setting: {0}`, setting)
+          vscode.l10n.t("Removed ${0} setting: {1}", scopeDescription, setting)
         );
       }
     } catch (e) {
