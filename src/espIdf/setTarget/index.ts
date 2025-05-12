@@ -31,7 +31,7 @@ import {
 } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
-import { getBoards, getOpenOcdScripts } from "../openOcd/boardConfiguration";
+import { selectOpenOcdConfigFiles } from "../openOcd/boardConfiguration";
 import { getTargetsFromEspIdf } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 import { updateCurrentProfileIdfTarget } from "../../project-conf";
@@ -74,45 +74,12 @@ export async function setIdfTarget(
         if (!selectedTarget) {
           return;
         }
-        const openOcdScriptsPath = await getOpenOcdScripts(workspaceFolder.uri);
-        const boards = await getBoards(
-          openOcdScriptsPath,
+        await selectOpenOcdConfigFiles(
+          workspaceFolder.uri,
           selectedTarget.target
         );
-        const choices = boards.map((b) => {
-          return {
-            description: `${b.description} (${b.configFiles})`,
-            label: b.name,
-            target: b.configFiles,
-          };
-        });
-        const selectedBoard = await window.showQuickPick(choices, {
-          placeHolder: "Enter OpenOCD Configuration File Paths list",
-        });
-        if (!selectedBoard) {
-          Logger.infoNotify(
-            `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`
-          );
-        }
-        await setTargetInIDF(workspaceFolder, selectedTarget);
-        if (selectedBoard && selectedBoard.target) {
-          if (selectedBoard.label.indexOf("Custom board") !== -1) {
-            const inputBoard = await window.showInputBox({
-              placeHolder: "Enter comma-separated configuration files",
-              value: selectedBoard.target.join(","),
-            });
-            if (inputBoard) {
-              selectedBoard.target = inputBoard.split(",");
-            }
-          }
-          await writeParameter(
-            "idf.openOcdConfigs",
-            selectedBoard.target,
-            configurationTarget,
-            workspaceFolder.uri
-          );
-        }
 
+        await setTargetInIDF(workspaceFolder, selectedTarget);
         const customExtraVars = readParameter(
           "idf.customExtraVars",
           workspaceFolder
