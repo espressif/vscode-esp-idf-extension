@@ -168,47 +168,45 @@ export class OpenOCDManager extends EventEmitter {
       );
     }
 
-    const openOcdConfigFilesList = idfConf.readParameter(
-      "idf.openOcdConfigs",
-      this.workspace
-    ) as string[];
-
-    if (
-      typeof openOcdConfigFilesList === "undefined" ||
-      openOcdConfigFilesList.length < 1
-    ) {
-      throw new Error(
-        "Invalid OpenOCD Config files. Check idf.openOcdConfigs configuration value."
-      );
-    }
-
     const openOcdArgs: string[] = [];
-    const openOcdDebugLevel = idfConf.readParameter(
-      "idf.openOcdDebugLevel",
-      this.workspace
-    ) as string;
-    openOcdArgs.push(`-d${openOcdDebugLevel}`);
-
-    const addLaunchArgs = idfConf.readParameter(
+    const openOcdLaunchArgs = idfConf.readParameter(
       "idf.openOcdLaunchArgs",
       this.workspace
     ) as string[];
 
-    if (addLaunchArgs && addLaunchArgs.length) {
-      addLaunchArgs.forEach((arg) => {
-        openOcdArgs.push(arg);
+    if (openOcdLaunchArgs && openOcdLaunchArgs.length > 0) {
+      openOcdArgs.push(...openOcdLaunchArgs);
+    } else {
+      const openOcdConfigFilesList = idfConf.readParameter(
+        "idf.openOcdConfigs",
+        this.workspace
+      ) as string[];
+
+      if (
+        typeof openOcdConfigFilesList === "undefined" ||
+        openOcdConfigFilesList.length < 1
+      ) {
+        throw new Error(
+          "Invalid OpenOCD Config files. Check idf.openOcdConfigs configuration value."
+        );
+      }
+
+      const openOcdDebugLevel = idfConf.readParameter(
+        "idf.openOcdDebugLevel",
+        this.workspace
+      ) as string;
+      openOcdArgs.push(`-d${openOcdDebugLevel}`);
+
+      openOcdConfigFilesList.forEach((configFile) => {
+        const isFileAlreadyInArgs = openOcdArgs.some((arg) =>
+          arg.includes(configFile)
+        );
+        if (!isFileAlreadyInArgs) {
+          openOcdArgs.push("-f");
+          openOcdArgs.push(configFile);
+        }
       });
     }
-
-    openOcdConfigFilesList.forEach((configFile) => {
-      const isFileAlreadyInArgs = openOcdArgs.some((arg) =>
-        arg.includes(configFile)
-      );
-      if (!isFileAlreadyInArgs) {
-        openOcdArgs.push("-f");
-        openOcdArgs.push(configFile);
-      }
-    });
 
     this.server = spawn("openocd", openOcdArgs, {
       cwd: this.workspace.fsPath,
