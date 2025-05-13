@@ -5,17 +5,27 @@ ESP-IDF Settings
 
 :link_to_translation:`zh_CN:[中文]`
 
+Visual Studio Code allows you to configure settings at different levels: **Global (User Settings)**, **Workspace** and **Workspace Folder**. Ensure your project uses the correct settings.
+
+1.  Workspace folder configuration settings are defined in ``${workspaceFolder}/.vscode/settings.json``
+2.  Workspace configuration settings are defined in the workspace's ``<name>.code-workspace`` file
+3.  User settings defined in ``settings.json``
+
+    - **Windows**: ``%APPDATA%\Code\User\settings.json``
+    - **MacOS**: ``$HOME/Library/Application Support/Code/User/settings.json``
+    - **Linux**: ``$HOME/.config/Code/User/settings.json``
+
+This extension uses the **idf.saveScope** configuration setting (which can only be defined in User Settings) to specify where to save settings for features such as the Setup Wizard. You can modify this using the ``ESP-IDF: Select where to Save Configuration Settings`` command.
+
 This extension contributes the following settings that can be later updated in ``settings.json`` or from VS Code Settings Preference Menu by:
 
 - Navigate to **View** > **Command Palette**.
 
-- Type **Preferences: Open Settings (UI)** and select the command to open the setting management window.
+- Search for **Preferences: Open User Settings (JSON)**, **Preferences: Open Workspace Settings (JSON)** or **Preferences: Open Settings (UI)** and select the command to open the setting management window.
 
 .. note::
 
     Please note that ``~``, ``%VARNAME%`` and ``$VARNAME`` are not recognized when set on ANY of this extension configuration settings. Instead, you can set any environment variable in the path using ``${env:VARNAME}``, such as ``${env:HOME}``, or refer to other configuration parameter path with ``${config:SETTINGID}``, such as ``${config:idf.espIdfPath}``.
-
-The **idf.saveScope** allows you to specify where to save settings when using commands such as **Set Espressif Device Target** and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. Use the **Select where to Save Configuration Settings** command to choose where to save settings when using this extension commands.
 
 .. note::
 
@@ -93,11 +103,11 @@ These settings are specific to the ESP32 Chip/Board.
     * - **idf.monitorBaudRate**
       - Monitor Baud Rate (Empty by default to use SDKConfig ``CONFIG_ESP_CONSOLE_UART_BAUDRATE``)
     * - **idf.openOcdConfigs**
-      - Configuration files for OpenOCD, relative to ``OPENOCD_SCRIPTS`` folder
+      - Configuration files for OpenOCD, relative to ``OPENOCD_SCRIPTS`` folder. If ``idf.openOcdLaunchArgs`` is defined this setting is ignored.
     * - **idf.openOcdLaunchArgs**
-      - Launch arguments for OpenOCD before ``idf.openOcdDebugLevel`` and ``idf.openOcdConfigs``
+      - Custom arguments for OpenOCD. If not defined, the resulting OpenOCD launch command will be: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``.
     * - **idf.openOcdDebugLevel**
-      - Set OpenOCD Debug Level (0-4) Default: 2
+      - Set OpenOCD Debug Level (0-4) Default: 2. From 0 (error messages only) to 4 (Verbose low-level debug message). If ``idf.openOcdLaunchArgs`` is defined this setting is ignored.
     * - **idf.port**
       - Path of selected device port
     * - **idf.monitorPort**
@@ -105,17 +115,17 @@ These settings are specific to the ESP32 Chip/Board.
     * - **idf.portWin**
       - Path of selected device port in Windows
     * - **idf.enableSerialPortChipIdRequest**
-      - Enable detecting the chip ID and show on serial port selection list
+      - Enable detecting the chip ID and show on serial port selection list. Scope can only be **Global (User Settings)**.
     * - **idf.useSerialPortVendorProductFilter**
-      - Enable use of ``idf.usbSerialPortFilters`` list to filter serial port devices list
+      - Enable use of ``idf.usbSerialPortFilters`` list to filter serial port devices list. Scope can only be **Global (User Settings)**.
     * - **idf.usbSerialPortFilters**
-      - USB productID and vendorID list to filter known Espressif devices
+      - USB productID and vendorID list to filter known Espressif devices. Scope can only be **Global (User Settings)**.
     * - **openocd.jtag.command.force_unix_path_separator**
       - Forced to use ``/`` instead of ``\\`` as path separator for Win32 based OS
     * - **idf.svdFilePath**
       - SVD file absolute path to resolve chip debug peripheral tree view
     * - **idf.jtagFlashCommandExtraArgs**
-      - OpenOCD JTAG flash extra arguments. Default is ["verify", "reset"].
+      - OpenOCD JTAG flash extra arguments. Default is ``["verify", "reset"]``.
 
 This is how the extension uses them:
 
@@ -123,8 +133,8 @@ This is how the extension uses them:
 2. **idf.monitorBaudRate** is the ESP-IDF Monitor baud rate value and fallback from your project's sdkconfig ``CONFIG_ESPTOOLPY_MONITOR_BAUD`` (idf.py monitor' baud rate). You can override this value by setting the ``IDF_MONITOR_BAUD`` or ``MONITORBAUD`` environment variables, or by configuring it through **idf.customExtraVars** setting of the extension.
 3. **idf.openOcdConfigs** stores an string array of relative paths to OpenOCD script configuration files, which are used with OpenOCD server. (e.g.，``["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]``). More information can be found in `OpenOCD JTAG Target Configuration <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_.
 4. **idf.port** (or **idf.portWin** in Windows) is used as the serial port value for the extension commands.
-5. **idf.openOcdDebugLevel** is the log level for OpenOCD server output from 0 to 4.
-6. **idf.openOcdLaunchArgs** is the launch arguments string array for OpenOCD. The resulting OpenOCD launch command looks like this: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}``.
+5. **idf.openOcdDebugLevel** is the log level for OpenOCD server output from 0 (error messages only) to 4 (Verbose low-level debug message).
+6. **idf.openOcdLaunchArgs** is the launch arguments string array for OpenOCD. If not defined, the resulting OpenOCD launch command looks like this: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``.
 7. **idf.jtagFlashCommandExtraArgs** is used for OpenOCD JTAG flash task. Please review `Upload application for debugging <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/index.html#upload-application-for-debugging>`.
 
 .. note::
@@ -169,7 +179,7 @@ Extension Behaviour Settings
     * - **idf.enableUpdateSrcsToCMakeListsFile**
       - Enable updating source files in ``CMakeLists.txt`` (default ``true``)
     * - **idf.flashType**
-      - Preferred flash method. DFU, UART or JTAG
+      - Preferred flash method. ``DFU``, ``UART`` or ``JTAG``
     * - **idf.flashPartitionToUse**
       - Specifies the partition to flash during the build and flash process. (default ``all``)
     * - **idf.launchMonitorOnDebugSession**
@@ -179,7 +189,7 @@ Extension Behaviour Settings
     * - **idf.showOnboardingOnInit**
       - Show ESP-IDF configuration window on extension activation
     * - **idf.saveScope**
-      - Where to save extension settings
+      - Where to save extension settings. Scope can only be **Global (User Settings)**.
     * - **idf.saveBeforeBuild**
       - Save all the edited files before building (default ``true``)
     * - **idf.useIDFKconfigStyle**
@@ -292,9 +302,12 @@ These settings support additional frameworks together with ESP-IDF:
       - Path to create ESP-IDF SBOM report
 
 
-Use of Environment Variables in ESP-IDF ``settings.json`` and ``tasks.json``
-----------------------------------------------------------------------------
+Use of Environment Variables in ESP-IDF ``settings.json`` and using other ESP-IDF settings within ESP-IDF settings
+----------------------------------------------------------------------------------------------------------------------
 
 Environment (env) variables and other ESP-IDF settings (config) can be referenced in ESP-IDF settings using the syntax ``${env:VARNAME}`` and ``${config:ESPIDFSETTING}``, respectively.
+
+You can also prepend a string to the result of the other ESP-IDF settings (config) by using the syntax ``${config:ESPIDFSETTING:prefix}``. The prefix will be added to the beginning of the variable value. For example ``${config:idf.openOcdConfigs,-f}`` will add ``-f`` to the beginning of the each string value of **idf.openOcdConfigs**.
+If ``"idf.openOcdConfigs": ["interface/some.cfg", "target/some.cfg"]`` returns ``-f interface/some.cfg -f target/some.cfg``.
 
 For example, to use ``"~/esp/esp-idf"``, set the value of **idf.espIdfPath** to ``"${env:HOME}/esp/esp-idf"``.
