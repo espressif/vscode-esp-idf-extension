@@ -23,6 +23,20 @@ import { Logger } from "../logger/logger";
 import { getProjectConfigurationElements } from "./index";
 import { configureClangSettings } from "../clang";
 
+export function clearSelectedProjectConfiguration(): void {
+  if (ESP.ProjectConfiguration.store) {
+    const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+    if (currentSelectedConfig) {
+      ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
+      ESP.ProjectConfiguration.store.clear(
+        ESP.ProjectConfiguration.SELECTED_CONFIG
+      );
+    }
+  }
+}
+
 export class ProjectConfigurationManager {
   private readonly configFilePath: string;
   private configVersions: string[] = [];

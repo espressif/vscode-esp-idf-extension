@@ -165,7 +165,10 @@ import {
 } from "./cmdTreeView/cmdStore";
 import { IdfSetup } from "./views/setup/types";
 import { asyncRemoveEspIdfSettings } from "./uninstall";
-import { ProjectConfigurationManager } from "./project-conf/ProjectConfigurationManager";
+import {
+  clearSelectedProjectConfiguration,
+  ProjectConfigurationManager,
+} from "./project-conf/ProjectConfigurationManager";
 import { readPartition } from "./espIdf/partition-table/partitionReader";
 import { getTargetsFromEspIdf } from "./espIdf/setTarget/getTargets";
 import {
@@ -265,6 +268,9 @@ let projectConfigManager: ProjectConfigurationManager | undefined;
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
   Logger.init(context);
+  ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
+  clearSelectedProjectConfiguration();
   Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
   utils.setExtensionContext(context);
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
@@ -288,9 +294,6 @@ export async function activate(context: vscode.ExtensionContext) {
   };
   // init rainmaker cache store
   ESP.Rainmaker.store = RainmakerStore.init(context);
-
-  ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
-  ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
 
   // Create Kconfig Language Server Client
   KconfigLangClient.startKconfigLangServer(context);

@@ -37,7 +37,7 @@ export function addWinIfRequired(param: string) {
 export function parameterToProjectConfigMap(
   param: string,
   scope?: vscode.ConfigurationScope
-) {
+): any {
   if (!ESP.ProjectConfiguration.store) {
     return "";
   }
@@ -55,17 +55,26 @@ export function parameterToProjectConfigMap(
   }
   switch (param) {
     case "idf.cmakeCompilerArgs":
-      return currentProjectConf.build.compileArgs.length
+      return currentProjectConf.build &&
+        currentProjectConf.build.compileArgs &&
+        currentProjectConf.build.compileArgs.length
         ? currentProjectConf.build.compileArgs
         : "";
     case "idf.ninjaArgs":
-      return currentProjectConf.build.ninjaArgs.length
+      return currentProjectConf.build &&
+        currentProjectConf.build.ninjaArgs &&
+        currentProjectConf.build.ninjaArgs.length
         ? currentProjectConf.build.ninjaArgs
         : "";
     case "idf.buildPath":
-      return currentProjectConf.build.buildDirectoryPath;
+      return currentProjectConf.build &&
+        currentProjectConf.build.buildDirectoryPath
+        ? currentProjectConf.build.buildDirectoryPath
+        : "";
     case "idf.sdkconfigDefaults":
-      return currentProjectConf.build.sdkconfigDefaults.length
+      return currentProjectConf.build &&
+        currentProjectConf.build.sdkconfigDefaults &&
+        currentProjectConf.build.sdkconfigDefaults.length
         ? currentProjectConf.build.sdkconfigDefaults
         : "";
     case "idf.customExtraVars":
@@ -77,9 +86,15 @@ export function parameterToProjectConfigMap(
       for (const envKey of Object.keys(settingsVars)) {
         resultVars[envKey] = settingsVars[envKey];
       }
-      for (const projectConfEnvKey of Object.keys(currentProjectConf.env)) {
-        resultVars[projectConfEnvKey] =
-          currentProjectConf.env[projectConfEnvKey];
+      if (
+        currentProjectConf.env &&
+        typeof currentProjectConf.env === "object" &&
+        !Array.isArray(currentProjectConf.env)
+      ) {
+        for (const projectConfEnvKey of Object.keys(currentProjectConf.env)) {
+          resultVars[projectConfEnvKey] =
+            currentProjectConf.env[projectConfEnvKey];
+        }
       }
       if (currentProjectConf.idfTarget) {
         resultVars["IDF_TARGET"] = currentProjectConf.idfTarget;
@@ -90,25 +105,42 @@ export function parameterToProjectConfigMap(
     case "idf.monitorBaudRate":
       return currentProjectConf.monitorBaudRate;
     case "idf.openOcdDebugLevel":
-      return currentProjectConf.openOCD.debugLevel;
+      return currentProjectConf.openOCD && currentProjectConf.openOCD.debugLevel
+        ? currentProjectConf.openOCD.debugLevel
+        : "";
     case "idf.openOcdConfigs":
-      return currentProjectConf.openOCD.configs.length
+      return currentProjectConf.openOCD &&
+        currentProjectConf.openOCD.configs &&
+        currentProjectConf.openOCD.configs.length
         ? currentProjectConf.openOCD.configs
         : "";
     case "idf.openOcdLaunchArgs":
-      return currentProjectConf.openOCD.args.length
+      return currentProjectConf.openOCD &&
+        currentProjectConf.openOCD.args &&
+        currentProjectConf.openOCD.args.length
         ? currentProjectConf.openOCD.args
         : "";
     case "idf.preBuildTask":
-      return currentProjectConf.tasks.preBuild;
+      return currentProjectConf.tasks && currentProjectConf.tasks.preBuild
+        ? currentProjectConf.tasks.preBuild
+        : "";
     case "idf.postBuildTask":
-      return currentProjectConf.tasks.postBuild;
+      return currentProjectConf.tasks && currentProjectConf.tasks.postBuild
+        ? currentProjectConf.tasks.postBuild
+        : "";
     case "idf.preFlashTask":
-      return currentProjectConf.tasks.preFlash;
+      return currentProjectConf.tasks && currentProjectConf.tasks.preFlash
+        ? currentProjectConf.tasks.preFlash
+        : "";
     case "idf.postFlashTask":
-      return currentProjectConf.tasks.postFlash;
+      return currentProjectConf.tasks && currentProjectConf.tasks.postFlash
+        ? currentProjectConf.tasks.postFlash
+        : "";
     case "idf.sdkconfigFilePath":
-      return currentProjectConf.build.sdkconfigFilePath;
+      return currentProjectConf.build &&
+        currentProjectConf.build.sdkconfigFilePath
+        ? currentProjectConf.build.sdkconfigFilePath
+        : "";
     default:
       return "";
   }
@@ -128,6 +160,17 @@ export function readParameter(
   }
   if (typeof paramValue === "string") {
     return resolveVariables(paramValue, scope);
+  }
+  if (typeof paramValue === "object" && Array.isArray(paramValue)) {
+    const resultArr = [];
+    for (const el of paramValue) {
+      if (typeof el === "string") {
+        resultArr.push(resolveVariables(el, scope));
+      } else {
+        resultArr.push(el);
+      }
+    }
+    return resultArr;
   }
   return paramValue;
 }
@@ -272,8 +315,27 @@ export function resolveVariables(
       const configVar = name.substring(
         name.indexOf("config:") + "config:".length
       );
-      const configVarValue = readParameter(configVar, scope);
-      return resolveVariables(configVarValue, scope);
+
+      const delimiterIndex = configVar.indexOf(",");
+      let configVarName = configVar;
+      let prefix = "";
+
+      // Check if a delimiter (e.g., ",") is present
+      if (delimiterIndex > -1) {
+        configVarName = configVar.substring(0, delimiterIndex);
+        prefix = configVar.substring(delimiterIndex + 1).trim();
+      }
+      const configVarValue = readParameter(configVarName, scope);
+
+      if (prefix && Array.isArray(configVarValue)) {
+        return configVarValue.map((value) => `${prefix} ${value}`).join(" ");
+      }
+
+      if (prefix && typeof configVarValue === "string") {
+        return `${prefix} ${configVarValue}`;
+      }
+
+      return configVarValue;
     }
     if (match.indexOf("env:") > 0) {
       const envVariable = name.substring(name.indexOf("env:") + "env:".length);

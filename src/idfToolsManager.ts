@@ -241,7 +241,7 @@ export class IdfToolsManager {
       const regexResult = binVersionResponse
         .toString()
         .match(pkg.version_regex);
-      if (regexResult.length > 0) {
+      if (regexResult && regexResult.length > 0) {
         if (pkg.version_regex_replace) {
           let replaceRegexResult = pkg.version_regex_replace;
           for (let i = 0; i < regexResult.length; i++) {

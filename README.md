@@ -580,9 +580,9 @@ Note that for OpenOCD tasks, you need to define `OpenOCD_SCRIPTS` in your system
 
 If something is not working, please check for any error on one of these:
 
-> **NOTE:** Use `idf.OpenOCDDebugLevel` configuration setting to 3 or more to show debug logging in OpenOCD server output.
+> **NOTE:** Set `idf.OpenOCDDebugLevel` configuration setting to 3 or more in your <project-directory>/.vscode/settings.json to show debug level logs of OpenOCD server  in `ESP-IDF` output.
 
-> **NOTE:** Use `logLevel` in your <project-directory>/.vscode/launch.json to 3 or more to show more debug adapter output.
+> **NOTE:** Set `verbose: true` in your <project-directory>/.vscode/launch.json for more detailed debug adapter output.
 
 1. In Visual Studio Code select menu **View** > **Output** > **ESP-IDF**. This output information is useful to know what is happening in the extension.
 2. In Visual Studio Code select menu **View** > **Command Palette...** and type `ESP-IDF: Doctor Command` to generate a report of your environment configuration and it will be copied in your clipboard to paste anywhere.
@@ -593,7 +593,18 @@ If something is not working, please check for any error on one of these:
 
 4. In Visual Studio Code, select menu **Help** > **Toggle Developer Tools** and copy any error in the Console tab related to this extension.
 
+5. In Visual Studio Code select menu **View** > **Output** > **Extension Host**. This output information is useful to know what is happening during the extensions activation. If no extension command work, you could share the output here to see the error stack.
+
 5. Visual Studio Code allows you to configure settings at different levels: **Global (User Settings)**, **Workspace** and **Workspace Folder**, so make sure your project has the right settings. The `ESP-IDF: Doctor command` result might give the values from user settings instead of the workspace folder settings.
+
+    - Workspace folder configuration settings are defined in ``${workspaceFolder}/.vscode/settings.json``
+    - Workspace configuration settings are defined in the workspace's ``<name>.code-workspace`` file
+    - User settings defined in ``settings.json``
+        - **Windows**: ``%APPDATA%\Code\User\settings.json``
+        - **MacOS**: ``$HOME/Library/Application Support/Code/User/settings.json``
+        - **Linux**: ``$HOME/.config/Code/User/settings.json``
+
+This extension uses the ``idf.saveScope`` configuration setting (which can only be defined in User Settings) to specify where to save settings for features such as the Setup Wizard. You can modify this using the ``ESP-IDF: Select where to Save Configuration Settings`` command.
 
 6. Refer to the [OpenOCD troubleshooting FAQ](https://github.com/espressif/OpenOCD-esp32/wiki/Troubleshooting-FAQ) for help with application tracing, debugging, or other OpenOCD-related issues that may appear in the OpenOCD output.
 
