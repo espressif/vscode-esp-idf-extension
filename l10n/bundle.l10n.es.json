@@ -56,7 +56,7 @@
   "Enter OpenOCD Configuration File Paths list": "Ingrese a la lista de rutas de archivos de configuración de OpenOCD",
   "Enter comma-separated configuration files": "Ingrese archivos de configuración separados por comas",
   "Open a workspace or folder first.": "Primero abra un espacio de trabajo o una carpeta.",
-  "OpenOCD Board configuration files are updated.": "Los archivos de configuración de la placa OpenOCD se actualizan.",
+  "OpenOCD Board configuration files set to {boards}.": "Archivos de configuración de la placa OpenOCD establecidos en {boards}.",
   "{srcFolder} is not an ESP-IDF project.": "{srcFolder} no es un proyecto ESP-IDF.",
   "Enter project name": "Introduzca el nombre del proyecto",
   "{destFolder} already exists.": "{destFolder} ya existe.",

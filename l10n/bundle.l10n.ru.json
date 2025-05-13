@@ -56,7 +56,7 @@
   "Enter OpenOCD Configuration File Paths list": "Войдите в список путей к файлам конфигурации OpenOCD",
   "Enter comma-separated configuration files": "Введите файлы конфигурации, разделенные запятыми.",
   "Open a workspace or folder first.": "Сначала откройте рабочую область или папку.",
-  "OpenOCD Board configuration files are updated.": "Файлы конфигурации платы OpenOCD обновлены.",
+  "OpenOCD Board configuration files set to {boards}.": "Файлы конфигурации платы OpenOCD установлены в {boards}.",
   "{srcFolder} is not an ESP-IDF project.": "{srcFolder} не является проектом ESP-IDF.",
   "Enter project name": "Введите название проекта",
   "{destFolder} already exists.": "{destFolder} уже существует.",
