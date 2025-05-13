@@ -55,7 +55,7 @@ Debugging Process Overview
 
 1.  First, the OpenOCD server is launched in the background and the output appears under menu ``View`` > ``Output`` by selecting ``ESP-IDF`` from the dropdown menu.
 
-    By default, the OpenOCD server is launched on localhost, port ``4444`` for Telnet communication, port ``6666`` for TCL communication and port ``3333`` for GDB. You can change these settings by modifying ``openocd.tcl.host`` and ``openocd.tcl.port`` in your ``<project-directory>/.vscode/settings.json``. You can also adjust the verbosity of OpenOCD messages displayed in the ESP-IDF output by setting ``idf.openOcdDebugLevel``. The value can range from 0 to 4.
+    By default, the OpenOCD server is launched on localhost, port ``4444`` for Telnet communication, port ``6666`` for TCL communication and port ``3333`` for GDB. You can change these settings by modifying ``openocd.tcl.host`` and ``openocd.tcl.port`` in your ``<project-directory>/.vscode/settings.json``. You can also adjust the verbosity of OpenOCD messages displayed in the ESP-IDF output by setting ``idf.openOcdDebugLevel``. Values from 0 (error messages only) to 4 (Verbose low-level debug message).
 
 2.  Next, the `Eclipse CDT GDB Adapter <https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter>`_ is launched in the background, with its output shown in the ``Debug Console``. This adapter initiates the GDB debug session to connect to the device.
 
@@ -64,6 +64,23 @@ Debugging Process Overview
 .. note::
   * Use **idf.openOcdDebugLevel** configuration setting to 4 or more to show debug logging in OpenOCD server output.
   * Use **verbose** in your ``<project-directory>/.vscode/launch.json`` to true to show more debug adapter output.
+
+By default OpenOCD arguments are ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``. If you want to modify them, set ``idf.openOcdLaunchArgs``, an empty array by default, to override the default arguments. 
+
+For example, to add ``-c "init"`` to the OpenOCD command, set ``idf.openOcdLaunchArgs`` in your ``<project-directory>/.vscode/settings.json`` as follows:
+
+    .. code-block:: JSON
+
+        {
+            "idf.openOcdLaunchArgs": [
+                "-d${config:idf.openOcdDebugLevel}",
+                "${config:idf.openOcdConfigs,-f}"
+                "-c",
+                "init",
+                "-c",
+                "reset halt",
+            ]
+        }
 
 In Visual Studio Code select menu **View** > **Output** > **ESP-IDF**. This output information is useful to know what is happening in the extension. For example, ``OpenOCD`` communication is displayed in this output.
 
@@ -84,6 +101,8 @@ To update OpenOCD launch arguments, open the project's ``.vscode/settings.json``
 
     {
         "idf.openOcdLaunchArgs": [
+            "-d${config:idf.openOcdDebugLevel}",
+            "${config:idf.openOcdConfigs,-f}"
             "-c",
             "init",
             "-c",
