@@ -142,34 +142,37 @@ The profile name is the key of the JSON object and the value is a JSON object wi
 The profile name is used to identify the profile when using the **ESP-IDF: Select Project Configuration** command. The profile name is also used to display the current profile in the status bar.
 The profile name is not case sensitive, so ``prod1`` and ``Prod1`` are considered the same profile.
 
-The profile settings are stored in a JSON object with the following properties:
+The profile settings are stored in a JSON object with the following properties, notice that arrays are expected to have ``string`` elements:
 
 .. code-block:: JSON
 
     {
-      build: {
-         compileArgs: string[];
-         ninjaArgs: string[];
-         buildDirectoryPath: string;
-         sdkconfigDefaults: string[];
-         sdkconfigFilePath: string;
-      };
-      env: { [key: string]: string };
-      idfTarget: string;
-      flashBaudRate: string;
-      monitorBaudRate: string;
-      openOCD: {
-         debugLevel: number;
-         configs: string[];
-         args: string[];
-      };
-      tasks: {
-         preBuild: string;
-         preFlash: string;
-         postBuild: string;
-         postFlash: string;
-      };
+      "profileName": {
+         "build": {
+            "compileArgs": [],
+            "ninjaArgs": [],
+            "buildDirectoryPath": "",
+            "sdkconfigDefaults": [],
+            "sdkconfigFilePath": ""
+         },
+         "env": {},
+         "idfTarget": "",
+         "flashBaudRate": "",
+         "monitorBaudRate": "",
+         "openOCD": {
+            "debugLevel": 0,
+            "configs": [],
+            "args": []
+         },
+         "tasks": {
+            "preBuild": "",
+            "preFlash": "",
+            "postBuild": "",
+            "postFlash": ""
+         }
+      }
     }
+
 
 While each field is self-explanatory, here is the mapping of the profile settings to the extension settings:
 
