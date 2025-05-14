@@ -27,6 +27,7 @@ import { readParameter } from "../idfConfiguration";
 import { join } from "path";
 import { Logger } from "../logger/logger";
 import { parse } from "jsonc-parser";
+import { EOL } from "os";
 
 export async function validateEspClangExists(workspaceFolder: Uri) {
   const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
@@ -36,23 +37,29 @@ export async function validateEspClangExists(workspaceFolder: Uri) {
     workspaceFolder.fsPath,
     modifiedEnv
   );
-  return espClangdPath;
+  if (espClangdPath && espClangdPath.includes("esp-clang")) {
+    return espClangdPath;
+  }
+  return "";
 }
 
 export async function setClangSettings(
   settingsJson: any,
-  workspaceFolder: Uri
+  workspaceFolder: Uri,
+  showError = false
 ) {
   const espClangPath = await validateEspClangExists(workspaceFolder);
   if (!espClangPath) {
-    const error = new Error(
-      l10n.t("esp-clang not found in PATH. Make sure esp-clang is installed.")
-    );
-    Logger.errorNotify(
-      error.message,
-      error,
-      "clang index configureClangSettings"
-    );
+    if (showError) {
+      const error = new Error(
+        l10n.t("esp-clang not found in PATH. Make sure esp-clang is installed.")
+      );
+      Logger.errorNotify(
+        error.message,
+        error,
+        "clang index configureClangSettings"
+      );
+    }
     return;
   }
   const buildPath = readParameter("idf.buildPath", workspaceFolder);
@@ -65,37 +72,37 @@ export async function setClangSettings(
   ];
 }
 
-export async function configureClangSettings(workspaceFolder: Uri) {
+export async function configureClangSettings(
+  workspaceFolder: Uri,
+  showError = false
+) {
   const settingsJsonPath = join(
     workspaceFolder.fsPath,
     ".vscode",
     "settings.json"
   );
+  let settingsJson: any = {};
   const settingsPathExists = await pathExists(settingsJsonPath);
-  if (!settingsPathExists) {
-    const err = new Error("settings.json not found in .vscode folder");
-    Logger.errorNotify(err.message, err, "clang index configureClangSettings");
-    return;
-  }
-  let settingsJson: any;
-  try {
-    const settingsContent = await workspace.fs.readFile(
-      Uri.file(settingsJsonPath)
-    );
-    settingsJson = parse(settingsContent.toString());
-  } catch (error) {
-    Logger.errorNotify(
-      "Failed to parse settings.json. Ensure it has valid JSON syntax.",
-      error,
-      "clang index configureClangSettings"
-    );
-    return;
+  if (settingsPathExists) {
+    try {
+      const settingsContent = await workspace.fs.readFile(
+        Uri.file(settingsJsonPath)
+      );
+      settingsJson = parse(settingsContent.toString());
+    } catch (error) {
+      Logger.errorNotify(
+        "Failed to parse settings.json. Ensure it has valid JSON syntax.",
+        error,
+        "clang index configureClangSettings"
+      );
+      return;
+    }
   }
 
-  await setClangSettings(settingsJson, workspaceFolder);
+  await setClangSettings(settingsJson, workspaceFolder, showError);
 
   await writeJSON(settingsJsonPath, settingsJson, {
-    spaces: workspace.getConfiguration().get("editor.tabSize") || 2,
+    spaces: 2,
   });
 
   await createClangdFile(workspaceFolder);
@@ -103,9 +110,16 @@ export async function configureClangSettings(workspaceFolder: Uri) {
 
 export async function createClangdFile(workspaceFolder: Uri) {
   const clangdFilePath = join(workspaceFolder.fsPath, ".clangd");
-  const clangdContent = `CompileFlags:
-    Remove: [-f*, -m*]
-`;
+  const fileExists = await pathExists(clangdFilePath);
+  if (fileExists) {
+    Logger.info(".clangd file already exists. Skipping creation.");
+    return;
+  }
+  const espClangPath = await validateEspClangExists(workspaceFolder);
+  if (!espClangPath) {
+    return;
+  }
+  const clangdContent = `CompileFlags:${EOL}    Remove: [-f*, -m*]${EOL}`;
 
   try {
     await writeFile(clangdFilePath, clangdContent, { encoding: "utf8" });
