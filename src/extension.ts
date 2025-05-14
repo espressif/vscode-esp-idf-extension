@@ -224,7 +224,12 @@ let wsServer: WSServer;
 
 const openFolderFirstMsg = vscode.l10n.t("Open a folder first.");
 const cmdNotForWebIdeMsg = vscode.l10n.t(
-  "Selected command is not available in Codespaces"
+  "Selected command is not available in {envName}",
+  { envName: "Codespaces" }
+);
+const cmdNotDockerContainerMsg = vscode.l10n.t(
+  "Selected command is not available in {envName}",
+  { envName: "Docker container" }
 );
 const openFolderCheck = [
   PreCheck.isWorkspaceFolderOpen,
@@ -233,6 +238,10 @@ const openFolderCheck = [
 const webIdeCheck = [
   PreCheck.notUsingWebIde,
   cmdNotForWebIdeMsg,
+] as utils.PreCheckInput;
+const isNotDockerContainerCheck = [
+  PreCheck.isNotDockerContainer,
+  cmdNotDockerContainerMsg,
 ] as utils.PreCheckInput;
 
 const minIdfVersionCheck = async function (
@@ -2054,7 +2063,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.setup.start", (setupArgs?: ISetupInitArgs) => {
-    PreCheck.perform([webIdeCheck], async () => {
+    PreCheck.perform([webIdeCheck, isNotDockerContainerCheck], async () => {
       try {
         if (SetupPanel.isCreatedAndHidden()) {
           SetupPanel.createOrShow(context);
