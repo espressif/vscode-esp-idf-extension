@@ -86,7 +86,9 @@ export async function getConfigurationSettings(
     pythonBinPath: pythonVenvPath,
     pythonPackages: [],
     serialPort: conf.get("idf.port" + winFlag),
+    openOCDDebugLevel: conf.get("idf.openOcdDebugLevel") || "2",
     openOcdConfigs: conf.get("idf.openOcdConfigs") || [],
+    openOcdLaunchArgs: conf.get("idf.openOcdLaunchArgs") || [],
     toolsPath: conf.get("idf.toolsPath" + winFlag),
     systemEnvPath:
       process.platform === "win32" ? process.env.Path : process.env.PATH,

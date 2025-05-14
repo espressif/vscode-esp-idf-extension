@@ -303,6 +303,8 @@ suite("Doctor Command tests", () => {
     }${os.EOL}`;
     expectedOutput += `Serial port (idf.port) ${reportObj.configurationSettings.serialPort}${os.EOL}`;
     expectedOutput += `OpenOCD Configs (idf.openOcdConfigs) ${reportObj.configurationSettings.openOcdConfigs}${os.EOL}`;
+    expectedOutput += `OpenOCD log level (idf.openOcdDebugLevel) ${reportObj.configurationSettings.openOCDDebugLevel}${os.EOL}`;
+    expectedOutput += `OpenOCD launch arguments (idf.openOcdLaunchArgs) ${reportObj.configurationSettings.openOcdLaunchArgs}${os.EOL}`;
     expectedOutput += `ESP-IDF Tools Path (idf.toolsPath) ${reportObj.configurationSettings.toolsPath}${os.EOL}`;
     expectedOutput += `Git Path (idf.gitPath) ${reportObj.configurationSettings.gitPath}${os.EOL}`;
     expectedOutput += `Notification Mode (idf.notificationMode) ${reportObj.configurationSettings.notificationMode}${os.EOL}`;
