@@ -65,7 +65,7 @@ Debugging Process Overview
   * Use **idf.openOcdDebugLevel** configuration setting to 4 or more to show debug logging in OpenOCD server output.
   * Use **verbose** in your ``<project-directory>/.vscode/launch.json`` to true to show more debug adapter output.
 
-By default OpenOCD arguments are ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``. If you want to modify them, set ``idf.openOcdLaunchArgs``, an empty array by default, to override the default arguments. 
+By default OpenOCD arguments are ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``. If you want to modify them, set ``idf.openOcdLaunchArgs``, an empty array by default, to override the default arguments.
 
 For example, to add ``-c "init"`` to the OpenOCD command, set ``idf.openOcdLaunchArgs`` in your ``<project-directory>/.vscode/settings.json`` as follows:
 

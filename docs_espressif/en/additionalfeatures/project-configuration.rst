@@ -79,39 +79,39 @@ Configuring the extension for multiple build configurations
 2. Type ``ESP-IDF: Open Project Configuration`` and select the command. 
 3. This will launch a Project configuration wizard to manage the project configuration profiles to record the following settings for each configuration:
 
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| Setting ID                        | Description                                                                               |
-+===================================+===========================================================================================+
-| **idf.cmakeCompilerArgs**         | Arguments for CMake compilation task                                                      |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.ninjaArgs**                 | Arguments for Ninja build task                                                            |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.buildPath**                 | Custom build directory name for extension commands. (Default: \${workspaceFolder}/build)  |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.sdkconfigFilePath**         | Absolute path for sdkconfig file                                                          |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.sdkconfigDefaults**         | List of sdkconfig default values for initial build configuration                          |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.customExtraVars**           | Variables to be added to system environment variables                                     |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.flashBaudRate**             | Flash Baud rate                                                                           |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.monitorBaudRate**           | Monitor Baud Rate (Empty by default to use SDKConfig CONFIG_ESP_CONSOLE_UART_BAUDRATE)    |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.openOcdDebugLevel**         | Set openOCD Debug Level (0-4) Default: 2                                                  |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.openOcdConfigs**            | Configuration Files for OpenOCD. Relative to OPENOCD_SCRIPTS folder                       |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.openOcdLaunchArgs**         | Launch Arguments for OpenOCD before idf.openOcdDebugLevel and idf.openOcdConfigs          |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.preBuildTask**              | Command string to execute before build task                                               |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.postBuildTask**             | Command string to execute after build task                                                |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.preFlashTask**              | Command string to execute before flash task                                               |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.postFlashTask**             | Command string to execute after flash task                                                |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| Setting ID                        | Description                                                                                                      |
++===================================+==================================================================================================================+
+| **idf.cmakeCompilerArgs**         | Arguments for CMake compilation task                                                                             |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.ninjaArgs**                 | Arguments for Ninja build task                                                                                   |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.buildPath**                 | Custom build directory name for extension commands. (Default: \${workspaceFolder}/build)                         |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.sdkconfigFilePath**         | Absolute path for sdkconfig file                                                                                 |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.sdkconfigDefaults**         | List of sdkconfig default values for initial build configuration                                                 |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.customExtraVars**           | Variables to be added to system environment variables. IDF_TARGET is set here                                    |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.flashBaudRate**             | Flash Baud rate                                                                                                  |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.monitorBaudRate**           | Monitor Baud Rate (Empty by default to use SDKConfig CONFIG_ESP_CONSOLE_UART_BAUDRATE)                           |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.openOcdDebugLevel**         | Set openOCD Debug Level (0-4) Default: 2                                                                         |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.openOcdConfigs**            | Configuration Files for OpenOCD. Relative to OPENOCD_SCRIPTS folder                                              |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.openOcdLaunchArgs**         | Launch Arguments for OpenOCD. Default is [], if defined idf.openOcdConfigs and idf.openOcdDebugLevel ae ignored  |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.preBuildTask**              | Command string to execute before build task                                                                      |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.postBuildTask**             | Command string to execute after build task                                                                       |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.preFlashTask**              | Command string to execute before flash task                                                                      |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.postFlashTask**             | Command string to execute after flash task                                                                       |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
 
 4. After defining a profile and the settings for each profile use:
 
@@ -119,6 +119,95 @@ Configuring the extension for multiple build configurations
 - Type ``ESP-IDF: Select Project Configuration`` command to choose the configuration to override extension configuration settings.
 
 There are many use cases for having multiple configurations profiles. It allows you to store settings together and easily switch between one and the other.
+
+Project configuration profiles are saved in the ``<your-project>/esp_idf_project_configuration.json`` file.
+------------------------------------------------------------------------------------------------------------
+
+The project configuration file is a JSON file that contains the configuration settings for the extension. The file is created when you use the **ESP-IDF: Open Project Configuration** command and it will be saved in the root directory of your ESP-IDF project.
+
+The file is a JSON object with a list of profiles. Each profile is a JSON object with the following properties:
+
+.. code-block:: JSON
+
+    {
+      "profile1": {
+         // profile1 settings
+      },
+      "profile2": {
+         // profile2 settings
+      }
+    }
+
+The profile name is the key of the JSON object and the value is a JSON object with the configuration settings for that profile. The profile name can be any string, but it is recommended to use a descriptive name that reflects the purpose of the profile.
+The profile name is used to identify the profile when using the **ESP-IDF: Select Project Configuration** command. The profile name is also used to display the current profile in the status bar.
+The profile name is not case sensitive, so ``prod1`` and ``Prod1`` are considered the same profile.
+
+The profile settings are stored in a JSON object with the following properties:
+
+.. code-block:: JSON
+
+    {
+      build: {
+         compileArgs: string[];
+         ninjaArgs: string[];
+         buildDirectoryPath: string;
+         sdkconfigDefaults: string[];
+         sdkconfigFilePath: string;
+      };
+      env: { [key: string]: string };
+      idfTarget: string;
+      flashBaudRate: string;
+      monitorBaudRate: string;
+      openOCD: {
+         debugLevel: number;
+         configs: string[];
+         args: string[];
+      };
+      tasks: {
+         preBuild: string;
+         preFlash: string;
+         postBuild: string;
+         postFlash: string;
+      };
+    }
+
+While each field is self-explanatory, here is the mapping of the profile settings to the extension settings:
+
+
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| Setting ID replaced               | Field in Profile that override this setting                                                                      |
++===================================+==================================================================================================================+
+| **idf.cmakeCompilerArgs**         | ["profileName"].build.compileArgs                                                                                |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.ninjaArgs**                 | ["profileName"].build.ninjaArgs                                                                                  |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.buildPath**                 | ["profileName"].build.buildDirectoryPath                                                                         |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.sdkconfigFilePath**         | ["profileName"].build.sdkconfigFilePath                                                                          |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.sdkconfigDefaults**         | ["profileName"].build.sdkconfigDefaults                                                                          |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.customExtraVars**           | ["profileName"].env and ["profileName"].idfTarget will replace idf.customExtraVars["IDF_TARGET"]                 |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.flashBaudRate**             | ["profileName"].flashBaudRate                                                                                    |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.monitorBaudRate**           | ["profileName"].monitorBaudRate                                                                                  |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.openOcdDebugLevel**         | ["profileName"].openOCD.debugLevel                                                                               |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.openOcdConfigs**            | ["profileName"].openOCD.configs                                                                                  |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.openOcdLaunchArgs**         | ["profileName"].openOCD.args                                                                                     |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.preBuildTask**              | ["profileName"].tasks.preBuild                                                                                   |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.postBuildTask**             | ["profileName"].tasks.postBuild                                                                                  |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.preFlashTask**              | ["profileName"].tasks.preFlash                                                                                   |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.postFlashTask**             | ["profileName"].tasks.postFlash                                                                                  |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+
 
 Multiple configuration tutorial
 --------------------------------

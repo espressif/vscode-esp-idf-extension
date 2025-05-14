@@ -68,6 +68,8 @@ export async function writeTextReport(
   output += `Virtual environment Python path (computed) ${reportedResult.configurationSettings.pythonBinPath}${EOL}`;
   output += `Serial port (idf.port) ${reportedResult.configurationSettings.serialPort}${EOL}`;
   output += `OpenOCD Configs (idf.openOcdConfigs) ${reportedResult.configurationSettings.openOcdConfigs}${EOL}`;
+  output += `OpenOCD log level (idf.openOcdDebugLevel) ${reportedResult.configurationSettings.openOCDDebugLevel}${EOL}`;
+  output += `OpenOCD launch arguments (idf.openOcdLaunchArgs) ${reportedResult.configurationSettings.openOcdLaunchArgs}${EOL}`;
   output += `ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSettings.toolsPath}${EOL}`;
   output += `Git Path (idf.gitPath) ${reportedResult.configurationSettings.gitPath}${EOL}`;
   output += `Notification Mode (idf.notificationMode) ${reportedResult.configurationSettings.notificationMode}${EOL}`;
