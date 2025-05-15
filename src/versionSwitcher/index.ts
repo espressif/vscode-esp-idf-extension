@@ -44,7 +44,8 @@ export async function selectIdfSetup(
     );
     existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
   }
-  let idfSetups = [...globalStateSetups, ...existingIdfSetups];
+  const currentIdfSetup = await getCurrentIdfSetup(workspaceFolder);
+  let idfSetups = [...globalStateSetups, ...existingIdfSetups, currentIdfSetup];
   idfSetups = idfSetups.filter(
     (setup, index, self) =>
       index ===

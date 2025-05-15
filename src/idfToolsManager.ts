@@ -113,7 +113,6 @@ export class IdfToolsManager {
       const packagesToInstall = this.allPackages.filter((pkg) => {
         return (
           pkg.install === "always" ||
-          pkg.name === "esp-clang" ||
           (onReqPkgs &&
             pkg.install === "on_request" &&
             onReqPkgs.indexOf(pkg.name) > -1)

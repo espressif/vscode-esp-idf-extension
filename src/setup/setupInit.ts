@@ -152,6 +152,7 @@ export async function getSetupInitialValues(
     pythonVersions,
     saveScope,
     workspaceFolder,
+    onReqPkgs: ["esp-clang"],
   } as ISetupInitArgs;
 
   try {
