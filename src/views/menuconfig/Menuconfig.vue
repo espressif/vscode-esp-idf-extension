@@ -62,14 +62,111 @@ const items = computed(() => {
   return store.items;
 });
 
+// const menuItems = computed(() => {
+//   return store.items.filter((i) => i.type === "menu");
+// });
+
 const menuItems = computed(() => {
-  return store.items.filter((i) => i.type === "menu");
+  const items = store.items.filter((i) => i.type === "menu");
+  const arrItems = items.map((item) => {
+    const newItem: {
+      id: string;
+      label: string;
+      value: string;
+      open: boolean;
+      subItems: {
+        id: string;
+        label: string;
+        subItems: {
+          id: string;
+          label: string;
+          subItems: Menu[];
+          value: string;
+        }[];
+        value: string;
+      }[];
+    } = {
+      id: item.id,
+      label: item.title,
+      value: item.id,
+      open: true,
+      subItems: [],
+    };
+    const modifiedChildren: {
+      id: string;
+      label: string;
+      value: string;
+      open: boolean;
+      subItems: {
+        id: string;
+        label: string;
+        subItems: Menu[];
+        value: string;
+      }[];
+    }[] = [];
+    for (const child of item.children.filter((i) => i.type === "menu")) {
+      const newChild: {
+        id: string;
+        label: string;
+        value: string;
+        open: boolean;
+        subItems: {
+          id: string;
+          label: string;
+          subItems: Menu[];
+          value: string;
+        }[];
+      } = {
+        id: child.id,
+        label: child.title,
+        value: child.id,
+        open: child.children && child.children.length > 0,
+        subItems: [],
+      };
+      const nestedChildren: {
+        id: string;
+        label: string;
+        value: string;
+        open: boolean;
+        subItems: Menu[];
+      }[] = [];
+      for (const nestedChild of child.children.filter(
+        (i) => i.type === "menu"
+      )) {
+        const newNestedChild = {
+          id: nestedChild.id,
+          label: nestedChild.title,
+          value: nestedChild.id,
+          open: nestedChild.children && nestedChild.children.length > 0,
+          subItems: nestedChild.children.filter((i) => i.type === "menu"),
+        };
+        nestedChildren.push(newNestedChild);
+      }
+      newChild.subItems = nestedChildren;
+      modifiedChildren.push(newChild);
+    }
+    newItem.subItems = modifiedChildren;
+    return newItem;
+  });
+  return arrItems;
 });
 
 function onScroll() {
-  Array.from(document.querySelectorAll(".sidenav li")).forEach((el) => {
-    const sectionId: string = el.getAttribute("href") || "";
-    const refElement = document.querySelector(sectionId);
+  const tree = document.getElementById("sideNavMenus");
+  if (!tree || !tree.shadowRoot) {
+    console.warn("vscode-tree or its shadowRoot not found.");
+    return;
+  }
+
+  // Access the shadow root of the vscode-tree
+  const shadowRoot = tree.shadowRoot;
+  Array.from(
+    shadowRoot.querySelectorAll<HTMLElement>("div ul li div span")
+  ).forEach((el) => {
+    const sectionName: string = el.textContent || "";
+    const refElement = Array.from(
+      document.querySelectorAll(".submenu.form-group h4.subtitle")
+    ).find((elem) => elem.textContent === sectionName) as HTMLElement;
     const topbar = document.querySelector("#topbar") as HTMLElement;
     if (
       refElement &&
@@ -78,12 +175,14 @@ function onScroll() {
         topbar.getBoundingClientRect().bottom <
         topbar.offsetHeight
     ) {
-      Array.from(document.querySelectorAll(".sidenav li")).forEach((menu) =>
-        menu.classList.remove("selectedSection")
-      );
-      el.classList.add("selectedSection");
+      Array.from(
+        shadowRoot.querySelectorAll<HTMLElement>("div ul li div span")
+      ).forEach((menu) => {
+        menu.style.fontWeight = "400";
+      });
+      el.style.fontWeight = "900";
     } else {
-      el.classList.remove("selectedSection");
+      el.style.fontWeight = "400";
     }
   });
 }
@@ -102,6 +201,22 @@ onMounted(() => {
   if (scrollableDiv) {
     scrollableDiv.addEventListener("scroll", handleScroll);
   }
+  const tree = document.getElementById("sideNavMenus");
+  if (tree) {
+    tree.addEventListener("vsc-tree-select", (event) => {
+      store.selectedMenu = event.detail.value; // Set the selected menu id
+      const secNew = document.querySelector(
+        "#" + event.detail.value
+      ) as HTMLElement;
+      const configList = document.querySelector(".config-list") as HTMLElement;
+      const topbar = document.querySelector("#topbar") as HTMLElement;
+      const endPosition =
+        secNew.offsetTop +
+        configList.clientTop -
+        topbar.getBoundingClientRect().bottom;
+      configList.scrollTo({ left: 0, top: endPosition - 10, behavior: "auto" });
+    });
+  }
 });
 
 onUnmounted(() => {
@@ -117,9 +232,11 @@ onUnmounted(() => {
     <SearchBar />
     <div id="main" class="columns">
       <div class="sidenav column is-narrow">
-        <ul>
+        <!-- <ul>
           <SideNavItem v-for="menu in menuItems" :key="menu.id" :menu="menu" />
-        </ul>
+        </ul> -->
+        <vscode-tree id="sideNavMenus" :data="menuItems" indent-guides arrows>
+        </vscode-tree>
       </div>
 
       <div id="scrollable" class="config-list column" @scroll="handleScroll">

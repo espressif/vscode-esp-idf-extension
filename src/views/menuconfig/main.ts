@@ -19,6 +19,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import { useMenuconfigStore } from "./store";
 import Menuconfig from "./Menuconfig.vue";
+import "@vscode-elements/elements/dist/vscode-tree";
 
 const app = createApp(Menuconfig);
 const pinia = createPinia();
