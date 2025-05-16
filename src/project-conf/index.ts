@@ -22,6 +22,7 @@ import { ESP } from "../config";
 import { pathExists, readJson, writeJson } from "fs-extra";
 import { ProjectConfElement } from "./projectConfiguration";
 import { Logger } from "../logger/logger";
+import { resolveVariables } from "../idfConfiguration";
 
 export class ProjectConfigStore {
   private static self: ProjectConfigStore;
@@ -97,6 +98,82 @@ export async function saveProjectConfFile(
   });
 }
 
+function parameterToSameProjectConfigMap(
+  param: string,
+  currentProjectConf: ProjectConfElement
+): any {
+  switch (param) {
+    case "idf.cmakeCompilerArgs":
+      return currentProjectConf.build &&
+        currentProjectConf.build.compileArgs &&
+        currentProjectConf.build.compileArgs.length
+        ? currentProjectConf.build.compileArgs
+        : "";
+    case "idf.ninjaArgs":
+      return currentProjectConf.build &&
+        currentProjectConf.build.ninjaArgs &&
+        currentProjectConf.build.ninjaArgs.length
+        ? currentProjectConf.build.ninjaArgs
+        : "";
+    case "idf.buildPath":
+      return currentProjectConf.build &&
+        currentProjectConf.build.buildDirectoryPath
+        ? currentProjectConf.build.buildDirectoryPath
+        : "";
+    case "idf.sdkconfigDefaults":
+      return currentProjectConf.build &&
+        currentProjectConf.build.sdkconfigDefaults &&
+        currentProjectConf.build.sdkconfigDefaults.length
+        ? currentProjectConf.build.sdkconfigDefaults
+        : "";
+    case "idf.flashBaudRate":
+      return currentProjectConf.flashBaudRate;
+    case "idf.monitorBaudRate":
+      return currentProjectConf.monitorBaudRate;
+    case "idf.openOcdDebugLevel":
+      return currentProjectConf.openOCD &&
+        currentProjectConf.openOCD.debugLevel &&
+        currentProjectConf.openOCD.debugLevel > -1
+        ? currentProjectConf.openOCD.debugLevel.toString()
+        : "";
+    case "idf.openOcdConfigs":
+      return currentProjectConf.openOCD &&
+        currentProjectConf.openOCD.configs &&
+        currentProjectConf.openOCD.configs.length
+        ? currentProjectConf.openOCD.configs
+        : "";
+    case "idf.openOcdLaunchArgs":
+      return currentProjectConf.openOCD &&
+        currentProjectConf.openOCD.args &&
+        currentProjectConf.openOCD.args.length
+        ? currentProjectConf.openOCD.args
+        : "";
+    case "idf.preBuildTask":
+      return currentProjectConf.tasks && currentProjectConf.tasks.preBuild
+        ? currentProjectConf.tasks.preBuild
+        : "";
+    case "idf.postBuildTask":
+      return currentProjectConf.tasks && currentProjectConf.tasks.postBuild
+        ? currentProjectConf.tasks.postBuild
+        : "";
+    case "idf.preFlashTask":
+      return currentProjectConf.tasks && currentProjectConf.tasks.preFlash
+        ? currentProjectConf.tasks.preFlash
+        : "";
+    case "idf.postFlashTask":
+      return currentProjectConf.tasks && currentProjectConf.tasks.postFlash
+        ? currentProjectConf.tasks.postFlash
+        : "";
+    case "idf.sdkconfigFilePath":
+      return currentProjectConf.build &&
+        currentProjectConf.build.sdkconfigFilePath
+        ? currentProjectConf.build.sdkconfigFilePath
+        : "";
+    default:
+      return "";
+  }
+}
+
 /**
  * Substitutes variables like ${workspaceFolder} and ${env:VARNAME} in a string.
  * @param text The input string potentially containing variables.
@@ -105,23 +182,68 @@ export async function saveProjectConfFile(
  */
 function substituteVariablesInString(
   text: string | undefined,
-  workspaceFolder: Uri
+  workspaceFolder: Uri,
+  config: any
 ): string | undefined {
   if (text === undefined || text === null) {
     return undefined;
   }
 
   let result = text;
-  const workspacePath = workspaceFolder.fsPath;
 
-  // Substitute ${workspaceFolder} and ${workspaceRoot} (common alias)
-  result = result.replace(/\$\{workspaceFolder\}/g, workspacePath);
-  result = result.replace(/\$\{workspaceRoot\}/g, workspacePath);
+  const regexp = /\$\{(.*?)\}/g; // Find ${anything}
+  result = result.replace(regexp, (match: string, name: string) => {
+    if (match.indexOf("config:") > 0) {
+      const configVar = name.substring(
+        name.indexOf("config:") + "config:".length
+      );
 
-  // Substitute ${env:VARNAME}
-  result = result.replace(/\$\{env:(\w+)\}/g, (match, envVarName) => {
-    return process.env[envVarName] || ""; // Fallback to empty string if env var not set
+      const delimiterIndex = configVar.indexOf(",");
+      let configVarName = configVar;
+      let prefix = "";
+
+      // Check if a delimiter (e.g., ",") is present
+      if (delimiterIndex > -1) {
+        configVarName = configVar.substring(0, delimiterIndex);
+        prefix = configVar.substring(delimiterIndex + 1).trim();
+      }
+      const configVarValue = parameterToSameProjectConfigMap(configVarName, config);
+
+      if (!configVarValue) {
+        return match;
+      }
+
+      if (prefix && Array.isArray(configVarValue)) {
+        return configVarValue.map((value) => `${prefix}${value}`).join(" ");
+      }
+
+      if (prefix && typeof configVarValue === "string") {
+        return `${prefix} ${configVarValue}`;
+      }
+
+      return configVarValue;
+    }
+    if (match.indexOf("env:") > 0) {
+      const envVarName = name.substring(name.indexOf("env:") + "env:".length);
+      if (config.env && config.env[envVarName]) {
+        return config.env[envVarName];
+      }
+      if (process.env[envVarName]) {
+        return process.env[envVarName];
+      }
+      return match;
+    }
+    if (match.indexOf("workspaceRoot") > 0) {
+      return workspaceFolder.fsPath;
+    }
+    if (match.indexOf("workspaceFolder") > 0) {
+      return workspaceFolder.fsPath;
+    }
+    return match;
   });
+
+  // Substitute ${config:VARNAME}
+  result = resolveVariables(result, workspaceFolder);
 
   return result;
 }
@@ -139,6 +261,7 @@ function substituteVariablesInString(
  */
 function resolveConfigPaths(
   workspaceFolder: Uri,
+  config: any,
   paths?: string | string[],
   resolvePaths: boolean = false
 ): string | string[] | undefined {
@@ -148,7 +271,11 @@ function resolveConfigPaths(
 
   const resolveSinglePath = (configPath: string): string | undefined => {
     // First substitute any variables
-    const substitutedPath = substituteVariablesInString(configPath, workspaceFolder);
+    const substitutedPath = substituteVariablesInString(
+      configPath,
+      workspaceFolder,
+      config
+    );
     if (!substitutedPath) {
       return undefined;
     }
@@ -244,25 +371,40 @@ export async function getProjectConfigurationElements(
 
       // --- Process Build Configuration ---
       const buildDirectoryPath = resolvePaths
-        ? resolveConfigPaths(workspaceFolder, buildConfig?.buildDirectoryPath, resolvePaths)
+        ? resolveConfigPaths(
+            workspaceFolder,
+            rawConfig,
+            buildConfig?.buildDirectoryPath,
+            resolvePaths
+          )
         : buildConfig?.buildDirectoryPath;
       const sdkconfigDefaults = resolvePaths
-        ? resolveConfigPaths(workspaceFolder, buildConfig?.sdkconfigDefaults, resolvePaths)
+        ? resolveConfigPaths(
+            workspaceFolder,
+            rawConfig,
+            buildConfig?.sdkconfigDefaults,
+            resolvePaths
+          )
         : buildConfig?.sdkconfigDefaults;
       const sdkconfigFilePath = resolvePaths
-        ? resolveConfigPaths(workspaceFolder, buildConfig?.sdkconfigFilePath, resolvePaths)
+        ? resolveConfigPaths(
+            workspaceFolder,
+            rawConfig,
+            buildConfig?.sdkconfigFilePath,
+            resolvePaths
+          )
         : buildConfig?.sdkconfigFilePath;
       const compileArgs = buildConfig?.compileArgs
         ?.map((arg: string) =>
           resolvePaths
-            ? substituteVariablesInString(arg, workspaceFolder)
+            ? substituteVariablesInString(arg, workspaceFolder, rawConfig)
             : arg
         )
         .filter(isDefined);
       const ninjaArgs = buildConfig?.ninjaArgs
         ?.map((arg: string) =>
           resolvePaths
-            ? substituteVariablesInString(arg, workspaceFolder)
+            ? substituteVariablesInString(arg, workspaceFolder, rawConfig)
             : arg
         )
         .filter(isDefined);
@@ -276,7 +418,11 @@ export async function getProjectConfigurationElements(
             const rawValue = envConfig[key];
             if (typeof rawValue === "string") {
               processedEnv[key] = resolvePaths
-                ? substituteVariablesInString(rawValue, workspaceFolder) ?? ""
+                ? substituteVariablesInString(
+                    rawValue,
+                    workspaceFolder,
+                    rawConfig
+                  ) ?? ""
                 : rawValue;
             } else {
               processedEnv[key] = String(rawValue);
@@ -286,29 +432,43 @@ export async function getProjectConfigurationElements(
       }
 
       // --- Process OpenOCD Configuration ---
-      const openOCDConfigs = resolvePaths
-        ? resolveConfigPaths(workspaceFolder, openOCDConfig?.configs, resolvePaths)
-        : openOCDConfig?.configs;
+      const openOCDConfigs = openOCDConfig?.configs;
       const openOCDArgs = openOCDConfig?.args
         ?.map((arg: string) =>
           resolvePaths
-            ? substituteVariablesInString(arg, workspaceFolder)
+            ? substituteVariablesInString(arg, workspaceFolder, rawConfig)
             : arg
         )
         .filter(isDefined);
 
       // --- Process Tasks ---
       const preBuild = resolvePaths
-        ? substituteVariablesInString(tasksConfig?.preBuild, workspaceFolder)
+        ? substituteVariablesInString(
+            tasksConfig?.preBuild,
+            workspaceFolder,
+            rawConfig
+          )
         : tasksConfig?.preBuild;
       const preFlash = resolvePaths
-        ? substituteVariablesInString(tasksConfig?.preFlash, workspaceFolder)
+        ? substituteVariablesInString(
+            tasksConfig?.preFlash,
+            workspaceFolder,
+            rawConfig
+          )
         : tasksConfig?.preFlash;
       const postBuild = resolvePaths
-        ? substituteVariablesInString(tasksConfig?.postBuild, workspaceFolder)
+        ? substituteVariablesInString(
+            tasksConfig?.postBuild,
+            workspaceFolder,
+            rawConfig
+          )
         : tasksConfig?.postBuild;
       const postFlash = resolvePaths
-        ? substituteVariablesInString(tasksConfig?.postFlash, workspaceFolder)
+        ? substituteVariablesInString(
+            tasksConfig?.postFlash,
+            workspaceFolder,
+            rawConfig
+          )
         : tasksConfig?.postFlash;
 
       // --- Assemble the Processed Configuration ---
@@ -326,7 +486,7 @@ export async function getProjectConfigurationElements(
         monitorBaudRate: rawConfig.monitorBaudRate,
         openOCD: {
           debugLevel: openOCDConfig?.debugLevel,
-          configs: openOCDConfigs,
+          configs: openOCDConfigs ?? [],
           args: openOCDArgs ?? [],
         },
         tasks: {

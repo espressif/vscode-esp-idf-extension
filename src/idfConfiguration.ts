@@ -328,7 +328,7 @@ export function resolveVariables(
       const configVarValue = readParameter(configVarName, scope);
 
       if (prefix && Array.isArray(configVarValue)) {
-        return configVarValue.map((value) => `${prefix} ${value}`).join(" ");
+        return configVarValue.map((value) => `${prefix}${value}`).join(" ");
       }
 
       if (prefix && typeof configVarValue === "string") {
