@@ -185,7 +185,9 @@ export async function selectOpenOcdConfigFiles(
             workspaceFolder
           );
           Logger.infoNotify(
-            l10n.t("OpenOCD Board configuration files are updated.")
+            l10n.t(`OpenOCD Board configuration files set to {boards}.`, {
+              boards: selectedBoard.target.configFiles.join(","),
+            })
           );
           boardQuickPick.dispose();
           resolve();

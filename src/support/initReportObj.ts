@@ -39,6 +39,8 @@ export function initializeReportObject() {
     serialPort: undefined,
     sysPythonBinPath: undefined,
     openOcdConfigs: undefined,
+    openOCDDebugLevel: undefined,
+    openOcdLaunchArgs: undefined,
     toolsPath: undefined,
     gitPath: undefined,
   };
