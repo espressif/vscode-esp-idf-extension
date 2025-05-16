@@ -46,7 +46,7 @@ export const useProjectConfStore = defineStore("project-config", () => {
     idfTarget: "",
     monitorBaudRate: "",
     openOCD: {
-      debugLevel: 0,
+      debugLevel: -1,
       configs: [],
       args: [],
     },
@@ -110,7 +110,7 @@ export const useProjectConfStore = defineStore("project-config", () => {
       idfTarget: "",
       monitorBaudRate: "",
       openOCD: {
-        debugLevel: 0,
+        debugLevel: -1,
         configs: [],
         args: [],
       },
