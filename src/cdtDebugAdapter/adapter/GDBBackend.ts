@@ -295,7 +295,7 @@ export class GDBBackend extends events.EventEmitter {
 
     public sendLoad(imageFileName: string, imageOffset: string | undefined) {
         return this.sendCommand(
-            `load ${this.standardEscape(imageFileName)} ${imageOffset || ''}`
+            `mon program_esp ${this.standardEscape(imageFileName)} ${imageOffset || ''}`
         );
     }
 
