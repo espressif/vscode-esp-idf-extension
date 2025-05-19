@@ -233,5 +233,7 @@
   "Type 'SWITCH' to confirm switching to Release Mode": "输入 'SWITCH' 确认切换到发布模式",
   "Please type 'SWITCH' exactly to confirm": "请准确输入 'SWITCH' 以确认",
   "Switching to Release Mode cancelled by user": "用户取消了切换到发布模式",
-  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "用户确认切换到发布模式。继续进行闪存加密。"
+  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "用户确认切换到发布模式。继续进行闪存加密。",
+  "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.": "调试时跳过已连接的 ESP-IDF 开发板检测。您仍可以手动选择目标。",
+  "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "您的 OpenOCD 版本 {openOCDVersion} 不支持已连接的 ESP-IDF 开发板检测功能。需要 {minRequiredVersion} 或更高版本。您仍可以手动选择目标。"
 }
