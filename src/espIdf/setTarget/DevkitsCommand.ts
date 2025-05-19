@@ -35,12 +35,17 @@ export class DevkitsCommand {
 
   public async runDevkitsScript(): Promise<string> {
     try {
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(this.workspaceRoot);
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(
+        this.workspaceRoot
+      );
       if (!workspaceFolder) {
         throw new Error("No workspace folder found");
       }
 
-      const toolsPath = idfConf.readParameter("idf.toolsPath", this.workspaceRoot) as string;
+      const toolsPath = idfConf.readParameter(
+        "idf.toolsPath",
+        this.workspaceRoot
+      ) as string;
       const openOCDManager = OpenOCDManager.init();
       const openOCDVersion = await openOCDManager.version();
 
@@ -81,9 +86,12 @@ export class DevkitsCommand {
 
       const pythonBinPath = await getVirtualEnvPythonPath(this.workspaceRoot);
       const modifiedEnv = await appendIdfAndToolsToPath(this.workspaceRoot);
-      
+
       OutputChannel.init();
-      OutputChannel.appendLine("Running ESP Detect Config...", "ESP Detect Config");
+      OutputChannel.appendLine(
+        "Running ESP Detect Config...",
+        "ESP Detect Config"
+      );
       OutputChannel.show();
 
       return await vscode.window.withProgress(
@@ -130,4 +138,4 @@ export class DevkitsCommand {
       OutputChannel.show();
     }
   }
-} 
+}
