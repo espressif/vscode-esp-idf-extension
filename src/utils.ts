@@ -89,6 +89,9 @@ export class PreCheck {
       vscode.workspace.workspaceFolders.length > 0
     );
   }
+  public static isNotDockerContainer(): boolean {
+    return vscode.env.remoteName !== "dev-container";
+  }
   public static notUsingWebIde(): boolean {
     if (vscode.env.remoteName === "codespaces") {
       return false;
