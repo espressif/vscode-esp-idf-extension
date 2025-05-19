@@ -24,6 +24,7 @@ import {
   window,
   l10n,
   QuickPickItemKind,
+  debug,
 } from "vscode";
 import {
   NotificationMode,
@@ -76,12 +77,15 @@ export async function setIdfTarget(
         const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
         let connectedBoards: any[] = [];
         
+        // Check if there's an active debugging session
+        const isDebugging = debug.activeDebugSession !== undefined;
+        
         // Check OpenOCD version before using connected devkit detection
         const openOCDManager = OpenOCDManager.init();
         const openOCDVersion = await openOCDManager.version();
         const minRequiredVersion = "v0.12.0-esp32-20240821";
         
-        if (openOCDVersion && PreCheck.openOCDVersionValidator(minRequiredVersion, openOCDVersion)) {
+        if (!isDebugging && openOCDVersion && PreCheck.openOCDVersionValidator(minRequiredVersion, openOCDVersion)) {
           try {
             const devkitsCmd = new DevkitsCommand(workspaceFolder.uri);
             const devkitsOutput = await devkitsCmd.runDevkitsScript();
@@ -102,7 +106,11 @@ export async function setIdfTarget(
             Logger.info("No connected boards detected or error running DevkitsCommand: " + (e && e.message ? e.message : e));
           }
         } else {
-          Logger.info("Connected ESP-IDF devkit detection is not available for your ${openOCDVersion} OpenOCD version. Required version is ${minRequiredVersion} or higher. You can still select a target manually.");
+          if (isDebugging) {
+            Logger.info("Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.");
+          } else {
+            Logger.info(`Connected ESP-IDF devkit detection is not available for your ${openOCDVersion} OpenOCD version. Required version is ${minRequiredVersion} or higher. You can still select a target manually.`);
+          }
         }
         let quickPickItems: any[] = [];
         if (connectedBoards.length > 0) {
