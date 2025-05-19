@@ -76,16 +76,20 @@ export async function setIdfTarget(
       try {
         const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
         let connectedBoards: any[] = [];
-        
+
         // Check if there's an active debugging session
         const isDebugging = debug.activeDebugSession !== undefined;
-        
+
         // Check OpenOCD version before using connected devkit detection
         const openOCDManager = OpenOCDManager.init();
         const openOCDVersion = await openOCDManager.version();
         const minRequiredVersion = "v0.12.0-esp32-20240821";
-        
-        if (!isDebugging && openOCDVersion && PreCheck.openOCDVersionValidator(minRequiredVersion, openOCDVersion)) {
+
+        if (
+          !isDebugging &&
+          openOCDVersion &&
+          PreCheck.openOCDVersionValidator(minRequiredVersion, openOCDVersion)
+        ) {
           try {
             const devkitsCmd = new DevkitsCommand(workspaceFolder.uri);
             const devkitsOutput = await devkitsCmd.runDevkitsScript();
@@ -96,20 +100,29 @@ export async function setIdfTarget(
                   label: b.name,
                   target: b.target,
                   description: b.description,
-                  detail: `Status: CONNECTED${b.location ? `   Location: ${b.location}` : ""}`,
+                  detail: `Status: CONNECTED${
+                    b.location ? `   Location: ${b.location}` : ""
+                  }`,
                   isConnected: true,
                   boardInfo: b,
                 }));
               }
             }
           } catch (e) {
-            Logger.info("No connected boards detected or error running DevkitsCommand: " + (e && e.message ? e.message : e));
+            Logger.info(
+              "No connected boards detected or error running DevkitsCommand: " +
+                (e && e.message ? e.message : e)
+            );
           }
         } else {
           if (isDebugging) {
-            Logger.info("Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.");
+            Logger.info(
+              "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually."
+            );
           } else {
-            Logger.info(`Connected ESP-IDF devkit detection is not available for your ${openOCDVersion} OpenOCD version. Required version is ${minRequiredVersion} or higher. You can still select a target manually.`);
+            Logger.info(
+              `Connected ESP-IDF devkit detection is not available for your ${openOCDVersion} OpenOCD version. Required version is ${minRequiredVersion} or higher. You can still select a target manually.`
+            );
           }
         }
         let quickPickItems: any[] = [];
@@ -153,8 +166,10 @@ export async function setIdfTarget(
               "idf.customExtraVars",
               workspaceFolder
             ) as { [key: string]: string };
-            // Strip usb:// prefix from location string
-            const location = selectedTarget.boardInfo.location.replace("usb://", "");
+            const location = selectedTarget.boardInfo.location.replace(
+              "usb://",
+              ""
+            );
             customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"] = location;
             await writeParameter(
               "idf.customExtraVars",
