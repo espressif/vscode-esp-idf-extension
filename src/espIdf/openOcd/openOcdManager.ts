@@ -168,6 +168,15 @@ export class OpenOCDManager extends EventEmitter {
       );
     }
 
+    // Get USB location from customExtraVars if available
+    const customExtraVars = idfConf.readParameter(
+      "idf.customExtraVars",
+      this.workspace
+    ) as { [key: string]: string };
+    if (customExtraVars && customExtraVars.OPENOCD_USB_ADAPTER_LOCATION) {
+      modifiedEnv.OPENOCD_USB_ADAPTER_LOCATION = customExtraVars.OPENOCD_USB_ADAPTER_LOCATION;
+    }
+
     const openOcdConfigFilesList = idfConf.readParameter(
       "idf.openOcdConfigs",
       this.workspace

@@ -233,5 +233,7 @@
   "Type 'SWITCH' to confirm switching to Release Mode": "Введите 'SWITCH' для подтверждения переключения в Режим Релиза",
   "Please type 'SWITCH' exactly to confirm": "Пожалуйста, введите точно 'SWITCH' для подтверждения",
   "Switching to Release Mode cancelled by user": "Переключение в Режим Релиза отменено пользователем",
-  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Пользователь подтвердил переключение в Режим Релиза. Продолжаем шифрование флеш-памяти."
+  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Пользователь подтвердил переключение в Режим Релиза. Продолжаем шифрование флеш-памяти.",
+  "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.": "Обнаружение подключенных ESP-IDF devkit пропускается во время отладки. Вы все еще можете выбрать цель вручную.",
+  "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "Обнаружение подключенных ESP-IDF devkit недоступно для вашей версии OpenOCD {openOCDVersion}. Требуется версия {minRequiredVersion} или выше. Вы все еще можете выбрать цель вручную."
 }
