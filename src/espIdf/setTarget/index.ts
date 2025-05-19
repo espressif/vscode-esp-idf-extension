@@ -37,6 +37,8 @@ import { getTargetsFromEspIdf } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 import { updateCurrentProfileIdfTarget } from "../../project-conf";
 import { DevkitsCommand } from "./DevkitsCommand";
+import { OpenOCDManager } from "../openOcd/openOcdManager";
+import { PreCheck } from "../../utils";
 
 export let isSettingIDFTarget = false;
 
@@ -73,24 +75,34 @@ export async function setIdfTarget(
       try {
         const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
         let connectedBoards: any[] = [];
-        try {
-          const devkitsCmd = new DevkitsCommand(workspaceFolder.uri);
-          const devkitsOutput = await devkitsCmd.runDevkitsScript();
-          if (devkitsOutput) {
-            const parsed = JSON.parse(devkitsOutput);
-            if (parsed && Array.isArray(parsed.boards)) {
-              connectedBoards = parsed.boards.map((b: any) => ({
-                label: b.name,
-                target: b.target,
-                description: b.description,
-                detail: `Status: CONNECTED${b.location ? `   Location: ${b.location}` : ""}`,
-                isConnected: true,
-                boardInfo: b,
-              }));
+        
+        // Check OpenOCD version before using connected devkit detection
+        const openOCDManager = OpenOCDManager.init();
+        const openOCDVersion = await openOCDManager.version();
+        const minRequiredVersion = "v0.12.0-esp32-20240821";
+        
+        if (openOCDVersion && PreCheck.openOCDVersionValidator(minRequiredVersion, openOCDVersion)) {
+          try {
+            const devkitsCmd = new DevkitsCommand(workspaceFolder.uri);
+            const devkitsOutput = await devkitsCmd.runDevkitsScript();
+            if (devkitsOutput) {
+              const parsed = JSON.parse(devkitsOutput);
+              if (parsed && Array.isArray(parsed.boards)) {
+                connectedBoards = parsed.boards.map((b: any) => ({
+                  label: b.name,
+                  target: b.target,
+                  description: b.description,
+                  detail: `Status: CONNECTED${b.location ? `   Location: ${b.location}` : ""}`,
+                  isConnected: true,
+                  boardInfo: b,
+                }));
+              }
             }
+          } catch (e) {
+            Logger.info("No connected boards detected or error running DevkitsCommand: " + (e && e.message ? e.message : e));
           }
-        } catch (e) {
-          Logger.info("No connected boards detected or error running DevkitsCommand: " + (e && e.message ? e.message : e));
+        } else {
+          Logger.info("Connected ESP-IDF devkit detection is not available for your ${openOCDVersion} OpenOCD version. Required version is ${minRequiredVersion} or higher. You can still select a target manually.");
         }
         let quickPickItems: any[] = [];
         if (connectedBoards.length > 0) {
