@@ -4420,11 +4420,11 @@ function createIdfTerminal(extensionPath: string) {
     }
     let shellExecutablePath = idfConf.readParameter(
       "idf.customTerminalExecutable",
-      this.currentWorkspace
+      workspaceRoot
     ) as string;
     const shellExecutableArgs = idfConf.readParameter(
       "idf.customTerminalExecutableArgs",
-      this.currentWorkspace
+      workspaceRoot
     ) as string[];
     if (!shellExecutablePath) {
       shellExecutablePath = vscode.env.shell;
