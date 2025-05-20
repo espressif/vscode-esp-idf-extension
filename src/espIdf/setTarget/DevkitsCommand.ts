@@ -17,6 +17,7 @@
  */
 
 import * as vscode from "vscode";
+import * as fs from "fs"
 import { join } from "path";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
@@ -65,6 +66,11 @@ export class DevkitsCommand {
         "tools",
         "esp_detect_config.py"
       );
+
+      // Check if esp_detect_config.py exists
+      if (!fs.existsSync(scriptPath)) {
+        throw new Error(`esp_detect_config.py not found at path: ${scriptPath}`);
+      }
 
       const openOcdScriptsPath = await getOpenOcdScripts(this.workspaceRoot);
       if (!openOcdScriptsPath) {
