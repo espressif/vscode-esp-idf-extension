@@ -15,17 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { EOL } from "os";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { Uri } from "vscode";
 import { readParameter } from "../../idfConfiguration";
-import { appendIdfAndToolsToPath, spawn } from "../../utils";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { Logger } from "../../logger/logger";
 
 export interface IdfTarget {
   label: string;
   isPreview: boolean;
   target: string;
+  description?: string;
 }
 
 export async function getTargetsFromEspIdf(
@@ -35,69 +35,55 @@ export async function getTargetsFromEspIdf(
   const idfPathDir = givenIdfPathDir
     ? givenIdfPathDir
     : readParameter("idf.espIdfPath", workspaceFolder);
-  const idfPyPath = join(idfPathDir, "tools", "idf.py");
-  const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
-  if (givenIdfPathDir) {
-    modifiedEnv.IDF_PATH = givenIdfPathDir || idfPathDir;
-  }
-  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   const resultTargetArray: IdfTarget[] = [];
 
-  const dirToUse =
-    workspaceFolder && workspaceFolder.fsPath
-      ? workspaceFolder.fsPath
-      : process.cwd();
+  try {
+    const idfConstantsFile = join(
+      idfPathDir,
+      "tools",
+      "idf_py_actions",
+      "constants.py"
+    );
+    if (!existsSync(idfConstantsFile)) {
+      throw new Error(`File not found: ${idfConstantsFile}`);
+    }
 
-  const listTargetsResult = await spawn(
-    pythonBinPath,
-    [idfPyPath, "--list-targets"],
-    {
-      cwd: dirToUse,
-      env: modifiedEnv,
-    },
-    undefined,
-    true
-  );
-  const listTargetsArray = listTargetsResult
-    .toString()
-    .trim()
-    .split(EOL)
-    .filter((line) => line.startsWith("esp") || line.startsWith("linux"));
+    const idfConstantsFileContent = readFileSync(idfConstantsFile, "utf-8");
+    function extractArray(varName: string): string[] {
+      const regex = new RegExp(`${varName}\\s*=\\s*\\[([^\\]]*)\\]`, "m");
+      const match = idfConstantsFileContent.match(regex);
+      if (!match) return [];
+      // Split by comma, remove quotes and whitespace
+      return match[1]
+        .split(",")
+        .map((s) => s.replace(/['"\s]/g, ""))
+        .filter(Boolean);
+    }
+    const supportedTargets = extractArray("SUPPORTED_TARGETS");
+    const previewTargets = extractArray("PREVIEW_TARGETS");
+    for (const supportedTarget of supportedTargets) {
+      resultTargetArray.push({
+        label: supportedTarget,
+        target: supportedTarget,
+        isPreview: false,
+      } as IdfTarget);
+    }
 
-  for (const supportedTarget of listTargetsArray) {
-    resultTargetArray.push({
-      label: supportedTarget,
-      target: supportedTarget,
-      isPreview: false,
-    } as IdfTarget);
-  }
-
-  const listTargetsWithPreviewResult = await spawn(
-    pythonBinPath,
-    [idfPyPath, "--preview", "--list-targets"],
-    {
-      cwd: dirToUse,
-      env: modifiedEnv,
-    },
-    undefined,
-    true
-  );
-  const listTargetsWithPreviewArray = listTargetsWithPreviewResult
-    .toString()
-    .trim()
-    .split(EOL)
-    .filter((line) => line.startsWith("esp") || line.startsWith("linux"));
-
-  const previewTargets = listTargetsWithPreviewArray.filter(
-    (t) => listTargetsArray.indexOf(t) === -1
-  );
-
-  for (const supportedTarget of previewTargets) {
-    resultTargetArray.push({
-      label: supportedTarget,
-      target: supportedTarget,
-      isPreview: true,
-    } as IdfTarget);
+    for (const supportedTarget of previewTargets) {
+      resultTargetArray.push({
+        label: supportedTarget,
+        target: supportedTarget,
+        description: "Preview",
+        isPreview: true,
+      } as IdfTarget);
+    }
+  } catch (error) {
+    Logger.errorNotify(
+      `Error while getting targets from ESP-IDF: ${error}`,
+      error,
+      "getTargetsFromEspIdf"
+    );
+    return resultTargetArray;
   }
   return resultTargetArray;
 }
