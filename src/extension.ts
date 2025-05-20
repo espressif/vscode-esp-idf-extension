@@ -4418,7 +4418,7 @@ function createIdfTerminal(extensionPath: string) {
         shellArgs = ["-ExecutionPolicy", "Bypass"];
       }
     }
-    const shellExecutablePath = idfConf.readParameter(
+    let shellExecutablePath = idfConf.readParameter(
       "idf.customTerminalExecutable",
       this.currentWorkspace
     ) as string;
@@ -4426,6 +4426,9 @@ function createIdfTerminal(extensionPath: string) {
       "idf.customTerminalExecutableArgs",
       this.currentWorkspace
     ) as string[];
+    if (!shellExecutablePath) {
+      shellExecutablePath = vscode.env.shell;
+    }
     if (shellExecutableArgs && shellExecutableArgs.length) {
       shellArgs = shellExecutableArgs;
     }
@@ -4435,16 +4438,16 @@ function createIdfTerminal(extensionPath: string) {
       cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
       strictEnv: true,
       shellArgs,
-      shellPath: shellExecutablePath || vscode.env.shell,
+      shellPath: shellExecutablePath,
     });
     if (process.platform === "win32") {
-      if (vscode.env.shell.indexOf("cmd.exe") !== -1) {
+      if (shellExecutablePath.indexOf("cmd.exe") !== -1) {
         espIdfTerminal.sendText(
           `call "${path.join(extensionPath, "export.bat")}"`
         );
       } else if (
-        vscode.env.shell.indexOf("powershell") !== -1 ||
-        vscode.env.shell.indexOf("pwsh") !== -1
+        shellExecutablePath.indexOf("powershell") !== -1 ||
+        shellExecutablePath.indexOf("pwsh") !== -1
       ) {
         espIdfTerminal.sendText(
           `& '${path.join(extensionPath, "export.ps1").replace(/'/g, "''")}'`
