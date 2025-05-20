@@ -48,7 +48,9 @@ export class Configuration {
   pythonPackages: pyPkgVersion[];
   serialPort: string;
   sysPythonBinPath: string;
+  openOcdLaunchArgs: string[];
   openOcdConfigs: string[];
+  openOCDDebugLevel: string;
   toolsPath: string;
   gitPath: string;
   customTerminalExecutable: string;

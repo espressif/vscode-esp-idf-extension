@@ -59,11 +59,7 @@ export async function getTargetsFromEspIdf(
     .toString()
     .trim()
     .split(EOL)
-    .filter(
-      (line) =>
-        !line.toUpperCase().startsWith("WARNING") &&
-        !line.toUpperCase().startsWith("ERROR")
-    );
+    .filter((line) => line.startsWith("esp") || line.startsWith("linux"));
 
   for (const supportedTarget of listTargetsArray) {
     resultTargetArray.push({
@@ -87,11 +83,7 @@ export async function getTargetsFromEspIdf(
     .toString()
     .trim()
     .split(EOL)
-    .filter(
-      (line) =>
-        !line.toUpperCase().startsWith("WARNING") &&
-        !line.toUpperCase().startsWith("ERROR")
-    );
+    .filter((line) => line.startsWith("esp") || line.startsWith("linux"));
 
   const previewTargets = listTargetsWithPreviewArray.filter(
     (t) => listTargetsArray.indexOf(t) === -1
