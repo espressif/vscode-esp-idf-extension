@@ -34,7 +34,6 @@ export async function validateEspClangExists(workspaceFolder: Uri) {
 
   const espClangdPath = await isBinInPath(
     "clangd",
-    workspaceFolder.fsPath,
     modifiedEnv
   );
   if (espClangdPath && espClangdPath.includes("esp-clang")) {
