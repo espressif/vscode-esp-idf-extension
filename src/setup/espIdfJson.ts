@@ -93,7 +93,7 @@ export async function addIdfPath(
   espIdfObj["idfSelectedId"] = idfId;
   if (!espIdfObj.gitPath) {
     if (gitPath === "git") {
-      gitPath = await isBinInPath(gitPath, idfPath, process.env);
+      gitPath = await isBinInPath(gitPath, process.env);
     }
     espIdfObj.gitPath = gitPath;
   }

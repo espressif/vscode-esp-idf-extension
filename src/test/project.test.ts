@@ -76,7 +76,6 @@ suite("Project tests", () => {
     );
     const compilerAbsolutePath = await isBinInPath(
       "xtensa-esp32-elf-gcc",
-      targetFolder,
       process.env
     );
     let compilerRelativePath = compilerAbsolutePath.split(

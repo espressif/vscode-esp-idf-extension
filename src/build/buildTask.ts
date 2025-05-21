@@ -86,12 +86,10 @@ export class BuildTask {
     };
     const canAccessCMake = await isBinInPath(
       "cmake",
-      this.currentWorkspace.fsPath,
       modifiedEnv
     );
     const canAccessNinja = await isBinInPath(
       "ninja",
-      this.currentWorkspace.fsPath,
       modifiedEnv
     );
 

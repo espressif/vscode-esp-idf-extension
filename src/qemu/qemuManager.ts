@@ -184,7 +184,6 @@ export class QemuManager extends EventEmitter {
     }
     const isQemuBinInPath = await isBinInPath(
       qemuExecutable,
-      workspaceFolder.fsPath,
       modifiedEnv
     );
     if (!isQemuBinInPath) {

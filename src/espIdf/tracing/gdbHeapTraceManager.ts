@@ -68,7 +68,6 @@ export class GdbHeapTraceManager {
         const gdbTool = getToolchainToolName(idfTarget, "gdb");
         const isGdbToolInPath = await isBinInPath(
           gdbTool,
-          workspace.fsPath,
           modifiedEnv
         );
         if (!isGdbToolInPath) {
