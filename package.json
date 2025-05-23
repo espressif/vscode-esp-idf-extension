@@ -111,9 +111,7 @@
     "onView:idfPartitionExplorer",
     "onView:espRainmaker",
     "onView:idfComponents",
-    "workspaceContains:**/project_description.json",
-    "workspaceContains:**/sdkconfig",
-    "workspaceContains:**/CMakeLists.txt"
+    "workspaceContains:CMakeLists.txt"
   ],
   "main": "./dist/extension",
   "l10n": "./l10n",
