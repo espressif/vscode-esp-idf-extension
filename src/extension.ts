@@ -72,7 +72,7 @@ import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent"
 import { PartitionTableEditorPanel } from "./espIdf/partition-table";
 import { ESPEFuseTreeDataProvider } from "./efuse/view";
 import { ESPEFuseManager } from "./efuse";
-import { constants, createFileSync, pathExists } from "fs-extra";
+import { constants, createFileSync, pathExists, readFile } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { SetupPanel } from "./setup/SetupPanel";
@@ -274,6 +274,68 @@ export async function activate(context: vscode.ExtensionContext) {
   Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
   utils.setExtensionContext(context);
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
+
+  // Check for root CMakeLists.txt and its content before full activation
+  if (PreCheck.isWorkspaceFolderOpen() && vscode.workspace.workspaceFolders) {
+    let hasValidIdfProject = false;
+    let nonIdfFolders = [];
+
+    for (const workspaceFolder of vscode.workspace.workspaceFolders) {
+      const currentWorkspaceRootUri = workspaceFolder.uri;
+      const rootCMakeListsPath = path.join(
+        currentWorkspaceRootUri.fsPath,
+        "CMakeLists.txt"
+      );
+      const rootCMakeListsExists = await pathExists(rootCMakeListsPath);
+
+      if (rootCMakeListsExists) {
+        try {
+          const cmakeContent = await readFile(rootCMakeListsPath, "utf-8");
+          if (
+            cmakeContent.includes(
+              "include($ENV{IDF_PATH}/tools/cmake/project.cmake)"
+            )
+          ) {
+            hasValidIdfProject = true;
+            break; // Found a valid ESP-IDF project, no need to check other folders
+          } else {
+            nonIdfFolders.push(workspaceFolder.name);
+          }
+        } catch (error) {
+          Logger.error(
+            `Error reading root CMakeLists.txt for activation check in ${workspaceFolder.name}.`,
+            error,
+            "extension activate checkCMakeContent"
+          );
+        }
+      }
+    }
+
+    // If no valid ESP-IDF project was found, ask user if they want to activate anyway
+    if (!hasValidIdfProject && nonIdfFolders.length > 0) {
+      const activateAnyway = await vscode.window.showInformationMessage(
+        vscode.l10n.t(
+          "No standard ESP-IDF projects found in workspace folders: {0}. Do you want to activate the ESP-IDF extension anyway?",
+          nonIdfFolders.join(", ")
+        ),
+        { modal: false },
+        { title: vscode.l10n.t("Activate Anyway") }
+      );
+      if (
+        !activateAnyway ||
+        activateAnyway.title !== vscode.l10n.t("Activate Anyway")
+      ) {
+        Logger.info(
+          "User chose not to activate the ESP-IDF extension due to no valid ESP-IDF projects found."
+        );
+        return; // Exit activation early
+      }
+      Logger.info(
+        "User chose to activate the ESP-IDF extension despite no valid ESP-IDF projects found."
+      );
+    }
+  }
+
   debugAdapterManager = DebugAdapterManager.init(context);
   OutputChannel.init();
   const registerIDFCommand = (

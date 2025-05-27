@@ -233,5 +233,7 @@
   "Type 'SWITCH' to confirm switching to Release Mode": "Escriba 'SWITCH' para confirmar el cambio al Modo Release",
   "Please type 'SWITCH' exactly to confirm": "Por favor escriba 'SWITCH' exactamente para confirmar",
   "Switching to Release Mode cancelled by user": "Cambio al Modo Release cancelado por el usuario",
-  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Usuario confirmó el cambio al Modo Release. Procediendo con el cifrado de flash."
+  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "El usuario confirmó el cambio al Modo de Lanzamiento. Procediendo con el cifrado de flash.",
+  "Activate Anyway": "Activar de todos modos",
+  "No standard ESP-IDF projects found in workspace folders: {0}. Do you want to activate the ESP-IDF extension anyway?": "No se encontraron proyectos ESP-IDF estándar en las carpetas del espacio de trabajo: {0}. ¿Desea activar la extensión ESP-IDF de todos modos?"
 }
