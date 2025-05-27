@@ -90,7 +90,7 @@ export class DebugAdapterManager extends EventEmitter {
       if (this.isRunning()) {
         return;
       }
-      if (!isBinInPath("openocd", this.currentWorkspace.fsPath, this.env)) {
+      if (!isBinInPath("openocd", this.env)) {
         return reject(
           new Error("Invalid OpenOCD bin path or access is denied for the user")
         );
