@@ -236,6 +236,6 @@
   "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.": "La detección de devkit ESP-IDF conectados se omite durante la depuración. Aún puede seleccionar un objetivo manualmente.",
   "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "La detección de devkit ESP-IDF conectados no está disponible para su versión de OpenOCD {openOCDVersion}. Se requiere la versión {minRequiredVersion} o superior. Aún puede seleccionar un objetivo manualmente.",
   "User confirmed switching to Release Mode. Proceeding with flash encryption.": "El usuario confirmó el cambio al Modo de Lanzamiento. Procediendo con el cifrado de flash.",
-  "The root CMakeLists.txt does not seem to be a standard ESP-IDF project (missing 'include($ENV{{IDF_PATH}}/tools/cmake/project.cmake)'). Do you want to activate the ESP-IDF extension anyway?": "El archivo CMakeLists.txt raíz no parece ser un proyecto ESP-IDF estándar (falta 'include($ENV{{IDF_PATH}}/tools/cmake/project.cmake)'). ¿Desea activar la extensión ESP-IDF de todos modos?",
-  "Activate Anyway": "Activar de todos modos"
+  "Activate Anyway": "Activar de todos modos",
+  "No standard ESP-IDF projects found in workspace folders: {0}. Do you want to activate the ESP-IDF extension anyway?": "No se encontraron proyectos ESP-IDF estándar en las carpetas del espacio de trabajo: {0}. ¿Desea activar la extensión ESP-IDF de todos modos?"
 }

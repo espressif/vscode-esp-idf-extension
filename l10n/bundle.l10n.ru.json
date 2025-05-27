@@ -236,6 +236,6 @@
   "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Пользователь подтвердил переключение в Режим Релиза. Продолжаем шифрование флеш-памяти.",
   "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.": "Обнаружение подключенных ESP-IDF devkit пропускается во время отладки. Вы все еще можете выбрать цель вручную.",
   "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "Обнаружение подключенных ESP-IDF devkit недоступно для вашей версии OpenOCD {openOCDVersion}. Требуется версия {minRequiredVersion} или выше. Вы все еще можете выбрать цель вручную.",
-  "The root CMakeLists.txt does not seem to be a standard ESP-IDF project (missing 'include($ENV{{IDF_PATH}}/tools/cmake/project.cmake)'). Do you want to activate the ESP-IDF extension anyway?": "Корневой файл CMakeLists.txt не похож на стандартный проект ESP-IDF (отсутствует 'include($ENV{{IDF_PATH}}/tools/cmake/project.cmake)'). Хотите активировать расширение ESP-IDF в любом случае?",
-  "Activate Anyway": "Активировать в любом случае"
+  "Activate Anyway": "Активировать в любом случае",
+  "No standard ESP-IDF projects found in workspace folders: {0}. Do you want to activate the ESP-IDF extension anyway?": "В папках рабочей области не найдено стандартных проектов ESP-IDF: {0}. Хотите активировать расширение ESP-IDF в любом случае?"
 }

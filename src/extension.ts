@@ -278,53 +278,52 @@ export async function activate(context: vscode.ExtensionContext) {
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
 
   // Check for root CMakeLists.txt and its content before full activation
-  if (PreCheck.isWorkspaceFolderOpen()) {
-    const currentWorkspaceRootUri = vscode.workspace.workspaceFolders[0].uri;
-    const rootCMakeListsPath = path.join(
-      currentWorkspaceRootUri.fsPath,
-      "CMakeLists.txt"
-    );
-    const rootCMakeListsExists = await pathExists(rootCMakeListsPath);
+  if (PreCheck.isWorkspaceFolderOpen() && vscode.workspace.workspaceFolders) {
+    let hasValidIdfProject = false;
+    let nonIdfFolders = [];
 
-    if (rootCMakeListsExists) {
-      try {
-        const cmakeContent = await readFile(rootCMakeListsPath, "utf-8");
-        if (
-          !cmakeContent.includes(
-            "include($ENV{IDF_PATH}/tools/cmake/project.cmake)"
-          )
-        ) {
-          Logger.info(
-            "Root CMakeLists.txt does not contain 'include($ENV{IDF_PATH}/tools/cmake/project.cmake)'."
-          );
-          const activateAnyway = await vscode.window.showInformationMessage(
-            vscode.l10n.t(
-              "The root CMakeLists.txt does not seem to be a standard ESP-IDF project (missing 'include($ENV{{IDF_PATH}}/tools/cmake/project.cmake)'). Do you want to activate the ESP-IDF extension anyway?"
-            ),
-            { modal: false },
-            { title: vscode.l10n.t("Activate Anyway") }
-          );
-          if (
-            !activateAnyway ||
-            activateAnyway.title !== vscode.l10n.t("Activate Anyway")
-          ) {
-            Logger.info("User chose not to activate the ESP-IDF extension.");
-            return; // Exit activation early
+    for (const workspaceFolder of vscode.workspace.workspaceFolders) {
+      const currentWorkspaceRootUri = workspaceFolder.uri;
+      const rootCMakeListsPath = path.join(
+        currentWorkspaceRootUri.fsPath,
+        "CMakeLists.txt"
+      );
+      const rootCMakeListsExists = await pathExists(rootCMakeListsPath);
+
+      if (rootCMakeListsExists) {
+        try {
+          const cmakeContent = await readFile(rootCMakeListsPath, "utf-8");
+          if (cmakeContent.includes("include($ENV{IDF_PATH}/tools/cmake/project.cmake)")) {
+            hasValidIdfProject = true;
+            break; // Found a valid ESP-IDF project, no need to check other folders
+          } else {
+            nonIdfFolders.push(workspaceFolder.name);
           }
-          Logger.info(
-            "User chose to activate the ESP-IDF extension despite missing standard include."
+        } catch (error) {
+          Logger.error(
+            `Error reading root CMakeLists.txt for activation check in ${workspaceFolder.name}.`,
+            error,
+            "extension activate checkCMakeContent"
           );
         }
-      } catch (error) {
-        Logger.error(
-          "Error reading root CMakeLists.txt for activation check.",
-          error,
-          "extension activate checkCMakeContent"
-        );
-        // Optionally, decide if activation should be aborted on read error too.
-        // For now, we'll let it proceed if the file exists but can't be read,
-        // as it might be a temporary issue or permissions problem.
       }
+    }
+
+    // If no valid ESP-IDF project was found, ask user if they want to activate anyway
+    if (!hasValidIdfProject && nonIdfFolders.length > 0) {
+      const activateAnyway = await vscode.window.showInformationMessage(
+        vscode.l10n.t(
+          "No standard ESP-IDF projects found in workspace folders: {0}. Do you want to activate the ESP-IDF extension anyway?",
+          nonIdfFolders.join(", ")
+        ),
+        { modal: false },
+        { title: vscode.l10n.t("Activate Anyway") }
+      );
+      if (!activateAnyway || activateAnyway.title !== vscode.l10n.t("Activate Anyway")) {
+        Logger.info("User chose not to activate the ESP-IDF extension due to no valid ESP-IDF projects found.");
+        return; // Exit activation early
+      }
+      Logger.info("User chose to activate the ESP-IDF extension despite no valid ESP-IDF projects found.");
     }
   }
 

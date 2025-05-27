@@ -236,6 +236,6 @@
   "User confirmed switching to Release Mode. Proceeding with flash encryption.": "用户确认切换到发布模式。继续进行闪存加密。",
   "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.": "调试时跳过已连接的 ESP-IDF 开发板检测。您仍可以手动选择目标。",
   "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "您的 OpenOCD 版本 {openOCDVersion} 不支持已连接的 ESP-IDF 开发板检测功能。需要 {minRequiredVersion} 或更高版本。您仍可以手动选择目标。",
-  "The root CMakeLists.txt does not seem to be a standard ESP-IDF project (missing 'include($ENV{{IDF_PATH}}/tools/cmake/project.cmake)'). Do you want to activate the ESP-IDF extension anyway?": "根目录的 CMakeLists.txt 似乎不是标准的 ESP-IDF 项目（缺少 'include($ENV{{IDF_PATH}}/tools/cmake/project.cmake)'）。您是否仍要激活 ESP-IDF 扩展？",
-  "Activate Anyway": "仍然激活"
+  "Activate Anyway": "仍然激活",
+  "No standard ESP-IDF projects found in workspace folders: {0}. Do you want to activate the ESP-IDF extension anyway?": "在工作区文件夹中未找到标准 ESP-IDF 项目：{0}。您是否仍要激活 ESP-IDF 扩展？"
 }
