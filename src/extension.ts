@@ -293,7 +293,11 @@ export async function activate(context: vscode.ExtensionContext) {
       if (rootCMakeListsExists) {
         try {
           const cmakeContent = await readFile(rootCMakeListsPath, "utf-8");
-          if (cmakeContent.includes("include($ENV{IDF_PATH}/tools/cmake/project.cmake)")) {
+          if (
+            cmakeContent.includes(
+              "include($ENV{IDF_PATH}/tools/cmake/project.cmake)"
+            )
+          ) {
             hasValidIdfProject = true;
             break; // Found a valid ESP-IDF project, no need to check other folders
           } else {
@@ -319,11 +323,18 @@ export async function activate(context: vscode.ExtensionContext) {
         { modal: false },
         { title: vscode.l10n.t("Activate Anyway") }
       );
-      if (!activateAnyway || activateAnyway.title !== vscode.l10n.t("Activate Anyway")) {
-        Logger.info("User chose not to activate the ESP-IDF extension due to no valid ESP-IDF projects found.");
+      if (
+        !activateAnyway ||
+        activateAnyway.title !== vscode.l10n.t("Activate Anyway")
+      ) {
+        Logger.info(
+          "User chose not to activate the ESP-IDF extension due to no valid ESP-IDF projects found."
+        );
         return; // Exit activation early
       }
-      Logger.info("User chose to activate the ESP-IDF extension despite no valid ESP-IDF projects found.");
+      Logger.info(
+        "User chose to activate the ESP-IDF extension despite no valid ESP-IDF projects found."
+      );
     }
   }
 
