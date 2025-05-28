@@ -25,7 +25,10 @@ import { Logger } from "../../logger/logger";
 import { R_OK } from "constants";
 import { IDFMonitor, MonitorConfig } from ".";
 import { ESP } from "../../config";
-import { getIdfTargetFromSdkconfig, getProjectName } from "../../workspaceConfig";
+import {
+  getIdfTargetFromSdkconfig,
+  getProjectName,
+} from "../../workspaceConfig";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function createNewIdfMonitor(
@@ -52,7 +55,11 @@ export async function createNewIdfMonitor(
     try {
       await commands.executeCommand("espIdf.selectPort");
     } catch (error) {
-      Logger.error("Unable to execute the command: espIdf.selectPort", error, "command createNewIdfMonitor");
+      Logger.error(
+        "Unable to execute the command: espIdf.selectPort",
+        error,
+        "command createNewIdfMonitor"
+      );
     }
     Logger.errorNotify(
       "Select a serial port before flashing",
@@ -60,7 +67,7 @@ export async function createNewIdfMonitor(
       "createNewIdfMonitor select a serial port"
     );
   }
-  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+  const pythonBinPath = await getVirtualEnvPythonPath();
   if (!utils.canAccessFile(pythonBinPath, R_OK)) {
     Logger.errorNotify(
       "Python binary path is not defined",
@@ -68,9 +75,14 @@ export async function createNewIdfMonitor(
       "createNewIdfMonitor pythonBinPath not defined"
     );
   }
-  const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const idfPath = currentEnvVars["IDF_PATH"];
   const idfVersion = await utils.getEspIdfFromCMake(idfPath);
-  let sdkMonitorBaudRate: string = await utils.getMonitorBaudRate(workspaceFolder);
+  let sdkMonitorBaudRate: string = await utils.getMonitorBaudRate(
+    workspaceFolder
+  );
   const idfMonitorToolPath = join(idfPath, "tools", "idf_monitor.py");
   if (!utils.canAccessFile(idfMonitorToolPath, R_OK)) {
     Logger.errorNotify(
@@ -125,8 +137,6 @@ export async function createNewIdfMonitor(
   }
   IDFMonitor.start();
   if (noReset) {
-    const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
-    const idfVersion = await utils.getEspIdfFromCMake(idfPath);
     if (idfVersion <= "5.0") {
       const monitorDelay = readParameter(
         "idf.monitorDelay",

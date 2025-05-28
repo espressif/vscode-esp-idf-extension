@@ -17,7 +17,6 @@
  */
 
 import { ExtensionContext } from "vscode";
-import { ESP } from "../config";
 
 export class ExtensionConfigStore {
   private static self: ExtensionConfigStore;
@@ -40,27 +39,5 @@ export class ExtensionConfigStore {
   }
   public clear(key: string) {
     return this.set(key, undefined);
-  }
-
-  public clearIdfSetup(key: string) {
-    this.clear(key);
-    let currSetups = this.getIdfSetupKeys();
-    const idfSetupIndex = currSetups.findIndex((s) => s === key);
-    if (idfSetupIndex === -1) {
-      return;
-    }
-    currSetups.splice(idfSetupIndex, 1);
-    this.updateIdfSetupKeys(currSetups);
-  }
-
-  public getIdfSetupKeys() {
-    return this.ctx.globalState.get<string[]>(
-      ESP.GlobalConfiguration.IDF_SETUPS,
-      []
-    );
-  }
-
-  public updateIdfSetupKeys(setupKeys: string[]) {
-    this.ctx.globalState.update(ESP.GlobalConfiguration.IDF_SETUPS, setupKeys);
   }
 }

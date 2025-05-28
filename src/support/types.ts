@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { IdfSetup } from "../eim/types";
 import { ProjectConfElement } from "../project-conf/projectConfiguration";
 
 export class ConfigurationAccess {
@@ -29,7 +30,6 @@ export class ConfigurationAccess {
   cmakeInEnv: boolean;
   ninjaInEnv: boolean;
   toolsPath: boolean;
-  sysPythonBinPath: boolean;
 }
 export class Configuration {
   systemEnvPath: string;
@@ -47,7 +47,6 @@ export class Configuration {
   pythonBinPath: string;
   pythonPackages: pyPkgVersion[];
   serialPort: string;
-  sysPythonBinPath: string;
   openOcdLaunchArgs: string[];
   openOcdConfigs: string[];
   openOCDDebugLevel: string;
@@ -66,7 +65,6 @@ export class ConfigurationSpacesValidation {
   espHomeKitPath: boolean;
   customExtraPaths: { [key: string]: boolean };
   pythonBinPath: boolean;
-  sysPythonBinPath: boolean;
   toolsPath: boolean;
   gitPath: boolean;
 }
@@ -94,7 +92,7 @@ export class idfToolResult {
   actual: string;
   doesToolExist: boolean;
   expected: string;
-  id: string;
+  name: string;
 }
 
 export class execResult {
@@ -106,6 +104,7 @@ export class reportObj {
   configurationSettings: Configuration;
   configurationAccess: ConfigurationAccess;
   configurationSpacesValidation: ConfigurationSpacesValidation;
+  espIdfSetups: IdfSetup[];
   espIdfToolsVersions: idfToolResult[];
   espIdfVersion: execResult;
   gitVersion: execResult;
