@@ -41,10 +41,20 @@ jobs:
           path: test-result.xml
 
       - name: Package .vsix
-        run: yarn package
+        run: yarn package --pre-release
 
       - name: Upload .vsix File
         uses: actions/upload-artifact@v4
         with:
           name: esp-idf-extension.vsix
           path: esp-idf-extension.vsix
+
+      - name: Marketplace pre-release
+        run: yarn run release --pre-release
+        env:
+          VS_MARKETPLACE_TOKEN: ${{ secrets.VS_MARKETPLACE_TOKEN }}
+
+      - name: OpenVSX pre-release
+        run: yarn run open-vsx-release --pre-release
+        env:
+          OPENVSX_MARKETPLACE_TOKEN: ${{ secrets.OPENVSX_MARKETPLACE_TOKEN }}
