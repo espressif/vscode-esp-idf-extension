@@ -40,21 +40,32 @@ jobs:
           name: test-result.xml
           path: test-result.xml
 
-      - name: Package .vsix
+      - name: Update package.json version for pre-release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: yarn version --patch
+
+      - name: Package .vsix (pre-release for master)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: yarn package --pre-release
+
+      - name: Package .vsix (default)
+        if: github.event_name != 'push' || github.ref != 'refs/heads/master'
+        run: yarn package
 
       - name: Upload .vsix File
         uses: actions/upload-artifact@v4
         with:
-          name: esp-idf-extension.vsix
+          name: esp-idf-extension-${{ github.sha }}.vsix
           path: esp-idf-extension.vsix
 
       - name: Marketplace pre-release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: yarn run release --pre-release
         env:
           VS_MARKETPLACE_TOKEN: ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
       - name: OpenVSX pre-release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: yarn run open-vsx-release --pre-release
         env:
           OPENVSX_MARKETPLACE_TOKEN: ${{ secrets.OPENVSX_MARKETPLACE_TOKEN }}
