@@ -62,7 +62,15 @@ export class GdbHeapTraceManager {
           /\\/g,
           "/"
         )}/htrace_${new Date().getTime()}.svdat`;
-        await this.createGdbinitFile(fileName, workspace.fsPath);
+        const buildDirPath = readParameter(
+          "idf.buildPath",
+          workspace
+        ) as string;
+        const buildExists = await pathExists(buildDirPath);
+        if (!buildExists) {
+          throw new Error(`${buildDirPath} doesn't exist. Build first.`);
+        }
+        await this.createGdbinitFile(fileName, buildDirPath);
         const modifiedEnv = await appendIdfAndToolsToPath(workspace);
         const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
         const gdbTool = getToolchainToolName(idfTarget, "gdb");
@@ -73,14 +81,6 @@ export class GdbHeapTraceManager {
         );
         if (!isGdbToolInPath) {
           throw new Error(`${gdbTool} is not available in PATH.`);
-        }
-        const buildDirPath = readParameter(
-          "idf.buildPath",
-          workspace
-        ) as string;
-        const buildExists = await pathExists(buildDirPath);
-        if (!buildExists) {
-          throw new Error(`${buildDirPath} doesn't exist. Build first.`);
         }
         const projectName = await getProjectName(buildDirPath);
         const elfFilePath = join(buildDirPath, `${projectName}.elf`);
