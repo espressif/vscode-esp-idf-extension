@@ -172,8 +172,8 @@ export class GdbHeapTraceManager {
     workspaceFolder: string
   ) {
     let content = `set pagination off\ntarget remote :3333\n\nmon reset halt\nflushregs\n\n`;
-    content += `tb heap_trace_start\ncommands\nmon esp sysview start ${traceFilePath}\n`;
-    content += `c\nend\n\ntb heap_trace_stop\ncommands\nmon esp sysview stop\nend\n\nc`;
+    content += `tb heap_trace_start\ncommands\nmon esp sysview_mcore start ${traceFilePath}\n`;
+    content += `c\nend\n\ntb heap_trace_stop\ncommands\nmon esp sysview_mcore stop\nend\n\nc`;
     const filePath = join(workspaceFolder, this.gdbinitFileName);
     await writeFile(filePath, content);
   }
