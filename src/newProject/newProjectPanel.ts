@@ -17,7 +17,7 @@ import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
 import { INewProjectArgs } from "./newProjectInit";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
-import { copy, ensureDir, readFile, writeJSON } from "fs-extra";
+import { copy, ensureDir, readFile, writeFile, writeJSON } from "fs-extra";
 import * as utils from "../utils";
 import { IExample } from "../examples/Example";
 import { setCurrentSettingsInTemplate } from "./utils";
@@ -269,6 +269,9 @@ export class NewProjectPanel {
             }
           }
           await ensureDir(newProjectPath, { mode: 0o775 });
+          const gitignoreSrcPath = path.join(this.extensionPath, "templates", ".gitignore");
+          const gitignoreDestPath = path.join(newProjectPath, ".gitignore");
+          await copy(gitignoreSrcPath, gitignoreDestPath);
           if (template && template.path !== "") {
             await utils.copyFromSrcProject(
               template.path,
