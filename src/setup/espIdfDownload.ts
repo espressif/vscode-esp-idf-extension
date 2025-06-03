@@ -78,16 +78,17 @@ export async function downloadInstallIdfVersion(
   pkgProgress.Progress = `0.00%`;
 
   if (
-    idfVersion.filename === "master" ||
-    idfVersion.filename.startsWith("release")
+    idfVersion.version === "master" ||
+    idfVersion.version.startsWith("release")
+      || idfVersion.version.endsWith("-dev")
   ) {
-    const downloadByCloneMsg = `Downloading ESP-IDF ${idfVersion.filename} using git clone...\n`;
+    const downloadByCloneMsg = `Downloading ESP-IDF ${idfVersion.version} using git clone...\n`;
     OutputChannel.appendLine(downloadByCloneMsg);
     Logger.info(downloadByCloneMsg);
     if (progress) {
       progress.report({ message: downloadByCloneMsg });
     }
-    const espIdfCloning = new EspIdfCloning(idfVersion.filename, gitPath);
+    const espIdfCloning = new EspIdfCloning(idfVersion.version, gitPath);
     let cancelDisposable: Disposable;
     if (cancelToken) {
       cancelDisposable = cancelToken.onCancellationRequested(() => {
