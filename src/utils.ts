@@ -1269,7 +1269,7 @@ export async function isBinInPath(binaryName: string, env: NodeJS.ProcessEnv) {
   for (const pathDir of pathDirs) {
     let binaryPath = path.join(pathDir, binaryName);
     if (process.platform === "win32" && !binaryName.endsWith(".exe")) {
-      binaryPath = `${binaryName}.exe`;
+      binaryPath = `${binaryPath}.exe`;
     }
     const doesPathExists = await pathExists(binaryPath);
     if (doesPathExists) {
