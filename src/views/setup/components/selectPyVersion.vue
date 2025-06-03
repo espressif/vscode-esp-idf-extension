@@ -18,9 +18,11 @@ const winRoot = computed(() => {
 });
 
 const inputLabel = computed(() => {
-  return `Enter absolute python executable path to use. Example: ${winRoot}${pathSep}Users${pathSep}name${pathSep}myPythonFolder${pathSep}python${
-    winRoot ? ".exe" : ""
-  }`;
+  return `Enter absolute python executable path to use. Example: ${
+    winRoot.value
+  }${pathSep.value}Users${pathSep.value}name${pathSep.value}myPythonFolder${
+    pathSep.value
+  }python${winRoot.value ? ".exe" : ""}`;
 });
 
 function clearPyErrorStatus() {
