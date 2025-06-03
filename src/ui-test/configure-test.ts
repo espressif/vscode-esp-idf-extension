@@ -17,10 +17,10 @@
  */
 
 import { expect } from "chai";
+import { accessSync } from "fs";
 import { constants, pathExists, stat } from "fs-extra";
 import { delimiter, join, sep } from "path";
 import { By, EditorView, WebView, Workbench } from "vscode-extension-tester";
-import { canAccessFile } from "../utils";
 
 describe("Configure extension", () => {
   let view: WebView;
@@ -58,7 +58,7 @@ describe("Configure extension", () => {
       const doesPathExists = await pathExists(binaryPath);
       if (doesPathExists) {
         const pathStats = await stat(binaryPath);
-        if (pathStats.isFile() && canAccessFile(binaryPath, constants.X_OK)) {
+        if (pathStats.isFile() && pathStats.mode & 0o111) {
           return binaryPath;
         }
       }
