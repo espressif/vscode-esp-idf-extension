@@ -1261,6 +1261,31 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   return modifiedEnv;
 }
 
+export async function getAllBinPathInEnvPath(
+  binaryName: string,
+  env: NodeJS.ProcessEnv
+) {
+  let pathNameInEnv: string = Object.keys(process.env).find(
+    (k) => k.toUpperCase() == "PATH"
+  );
+  const pathDirs = env[pathNameInEnv].split(path.delimiter);
+  const foundBinaries: string[] = [];
+  for (const pathDir of pathDirs) {
+    let binaryPath = path.join(pathDir, binaryName);
+    if (process.platform === "win32" && !binaryName.endsWith(".exe")) {
+      binaryPath = `${binaryPath}.exe`;
+    }
+    const doesPathExists = await pathExists(binaryPath);
+    if (doesPathExists) {
+      const pathStats = await stat(binaryPath);
+      if (pathStats.isFile() && canAccessFile(binaryPath, fs.constants.X_OK)) {
+        foundBinaries.push(binaryPath);
+      }
+    }
+  }
+  return foundBinaries;
+}
+
 export async function isBinInPath(binaryName: string, env: NodeJS.ProcessEnv) {
   let pathNameInEnv: string = Object.keys(process.env).find(
     (k) => k.toUpperCase() == "PATH"

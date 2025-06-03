@@ -518,27 +518,19 @@ export async function getUnixPythonList(workingDir: string) {
     let python3Versions: string[] = [];
 
     try {
-      const pythonVersionsRaw = await utils.execChildProcess(
-        "which",
-        ["-a", "python"],
-        workingDir
+      pythonVersions = await utils.getAllBinPathInEnvPath(
+        "python",
+        process.env
       );
-      pythonVersions = pythonVersionsRaw.trim()
-        ? pythonVersionsRaw.trim().split("\n")
-        : [];
     } catch (pythonError) {
       Logger.warn("Error finding python versions", pythonError);
     }
 
     try {
-      const python3VersionsRaw = await utils.execChildProcess(
-        "which",
-        ["-a", "python3"],
-        workingDir
+      python3Versions = await utils.getAllBinPathInEnvPath(
+        "python3",
+        process.env
       );
-      python3Versions = python3VersionsRaw.trim()
-        ? python3VersionsRaw.trim().split("\n")
-        : [];
     } catch (python3Error) {
       Logger.warn("Error finding python3 versions", python3Error);
     }
