@@ -1274,7 +1274,7 @@ export async function isBinInPath(binaryName: string, env: NodeJS.ProcessEnv) {
     const doesPathExists = await pathExists(binaryPath);
     if (doesPathExists) {
       const pathStats = await stat(binaryPath);
-      if (pathStats.isFile() && pathStats.mode & fs.constants.X_OK) {
+      if (pathStats.isFile() && canAccessFile(binaryPath, fs.constants.X_OK)) {
         return binaryPath;
       }
     }
