@@ -36,15 +36,20 @@ import { Logger } from "../logger/logger";
 
 export async function installIdfGit(
   idfToolsDir: string,
+  mirror: ESP.IdfMirror,
   progress?: Progress<{ message: string; increment?: number }>,
   cancelToken?: CancellationToken
 ) {
   const downloadManager = new DownloadManager(idfToolsDir);
   const installManager = new InstallManager(idfToolsDir);
+  let gitURLToUse =
+    mirror === ESP.IdfMirror.Github
+      ? ESP.URL.IDF_EMBED_GIT.GITHUB_EMBED_GIT_URL
+      : ESP.URL.IDF_EMBED_GIT.IDF_EMBED_GIT_URL;
   const idfGitZipPath = join(
     idfToolsDir,
     "dist",
-    basename(ESP.URL.IDF_EMBED_GIT.IDF_EMBED_GIT_URL)
+    basename(gitURLToUse)
   );
   const idfGitDestPath = join(
     idfToolsDir,
@@ -54,7 +59,7 @@ export async function installIdfGit(
   );
   const resultGitPath = join(idfGitDestPath, "cmd", "git.exe");
   const pkgProgress = new PackageProgress(
-    basename(ESP.URL.IDF_EMBED_GIT.IDF_EMBED_GIT_URL),
+    basename(gitURLToUse),
     sendIdfGitDownloadProgress,
     null,
     sendIdfGitDownloadDetail,
@@ -84,7 +89,7 @@ export async function installIdfGit(
     OutputChannel.appendLine(msgDownload);
     Logger.info(msgDownload);
     await downloadManager.downloadWithRetries(
-      ESP.URL.IDF_EMBED_GIT.IDF_EMBED_GIT_URL,
+      gitURLToUse,
       join(idfToolsDir, "dist"),
       pkgProgress,
       cancelToken
@@ -113,15 +118,24 @@ export async function installIdfGit(
 export async function installIdfPython(
   idfToolsDir: string,
   idfVersion: string,
+  mirror: ESP.IdfMirror,
   progress?: Progress<{ message: string; increment?: number }>,
   cancelToken?: CancellationToken
 ) {
   const downloadManager = new DownloadManager(idfToolsDir);
   const installManager = new InstallManager(idfToolsDir);
-  const pythonURLToUse =
-    idfVersion >= "5.0"
-      ? ESP.URL.IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL
-      : ESP.URL.OLD_IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL;
+  let pythonURLToUse: string;
+  if (idfVersion >= "5.0") {
+    pythonURLToUse =
+      mirror === ESP.IdfMirror.Github
+        ? ESP.URL.IDF_EMBED_PYTHON.GITHUB_EMBED_PYTHON_URL
+        : ESP.URL.IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL;
+  } else {
+    pythonURLToUse =
+      mirror === ESP.IdfMirror.Github
+        ? ESP.URL.OLD_IDF_EMBED_PYTHON.GITHUB_EMBED_PYTHON_URL
+        : ESP.URL.OLD_IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL;
+  }
   const idfPyZipPath = join(idfToolsDir, "dist", basename(pythonURLToUse));
   const pkgProgress = new PackageProgress(
     basename(pythonURLToUse),

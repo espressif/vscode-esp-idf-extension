@@ -97,14 +97,17 @@ export namespace ESP {
     export namespace IDF_EMBED_GIT {
       export const VERSION = "2.39.2";
       export const IDF_EMBED_GIT_URL = `https://dl.espressif.com/dl/idf-git/idf-git-${VERSION}-win64.zip`;
+      export const GITHUB_EMBED_GIT_URL = `https://github.com/git-for-windows/git/releases/download/v${VERSION}.windows.1/MinGit-${VERSION}-64-bit.zip`;
     }
     export namespace OLD_IDF_EMBED_PYTHON {
       export const VERSION = "3.8.7";
       export const IDF_EMBED_PYTHON_URL = `https://dl.espressif.com/dl/idf-python/idf-python-${VERSION}-embed-win64.zip`;
+      export const GITHUB_EMBED_PYTHON_URL = `https://github.com/espressif/idf-python/releases/download/v${VERSION}/idf-python-${VERSION}-embed-win64.zip`;
     }
     export namespace IDF_EMBED_PYTHON {
       export const VERSION = "3.11.2";
       export const IDF_EMBED_PYTHON_URL = `https://dl.espressif.com/dl/idf-python/idf-python-${VERSION}-embed-win64.zip`;
+      export const GITHUB_EMBED_PYTHON_URL = `https://github.com/espressif/idf-python/releases/download/v${VERSION}/idf-python-${VERSION}-embed-win64.zip`;
     }
     export const GithubRepository =
       "https://github.com/espressif/vscode-esp-idf-extension";

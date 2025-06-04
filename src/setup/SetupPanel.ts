@@ -466,6 +466,7 @@ export class SetupPanel {
             const embedPaths = await this.installEmbedPyGit(
               toolsPath,
               idfVersion,
+              mirror,
               progress,
               cancelToken
             );
@@ -585,6 +586,7 @@ export class SetupPanel {
             const embedPaths = await this.installEmbedPyGit(
               toolsPath,
               idfVersion,
+              mirror,
               progress,
               cancelToken
             );
@@ -669,10 +671,16 @@ export class SetupPanel {
   private async installEmbedPyGit(
     toolsPath: string,
     idfVersion: string,
+    mirror: ESP.IdfMirror,
     progress: Progress<{ message: string; increment?: number }>,
     cancelToken: CancellationToken
   ) {
-    const idfGitPath = await installIdfGit(toolsPath, progress, cancelToken);
+    const idfGitPath = await installIdfGit(
+      toolsPath,
+      mirror,
+      progress,
+      cancelToken
+    );
     SetupPanel.postMessage({
       command: "updateIdfGitStatus",
       status: StatusType.installed,
@@ -680,6 +688,7 @@ export class SetupPanel {
     const idfPythonPath = await installIdfPython(
       toolsPath,
       idfVersion,
+      mirror,
       progress,
       cancelToken
     );
