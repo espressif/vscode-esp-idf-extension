@@ -269,13 +269,6 @@ export class NewProjectPanel {
             }
           }
           await ensureDir(newProjectPath, { mode: 0o775 });
-          const gitignoreSrcPath = path.join(
-            this.extensionPath,
-            "templates",
-            ".gitignore"
-          );
-          const gitignoreDestPath = path.join(newProjectPath, ".gitignore");
-          await copy(gitignoreSrcPath, gitignoreDestPath);
           if (template && template.path !== "") {
             await utils.copyFromSrcProject(
               template.path,

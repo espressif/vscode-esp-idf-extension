@@ -117,13 +117,6 @@ export class ExamplesPlanel {
                 message.project_path,
                 vscode.Uri.file(resultFolder)
               );
-              const gitignoreSrcPath = path.join(
-                this.extensionPath,
-                "templates",
-                ".gitignore"
-              );
-              const gitignoreDestPath = path.join(resultFolder, ".gitignore");
-              await copy(gitignoreSrcPath, gitignoreDestPath);
               const projectPath = vscode.Uri.file(resultFolder);
               const settingsJsonPath = path.join(
                 resultFolder,
