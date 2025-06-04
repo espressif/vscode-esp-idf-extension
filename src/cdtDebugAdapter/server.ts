@@ -37,7 +37,6 @@ export class CDTDebugAdapterDescriptorFactory
     executable: DebugAdapterExecutable | undefined
   ): ProviderResult<DebugAdapterDescriptor> {
     if (!this.server) {
-      // start listening on a random port
       const portToUse = session.configuration.debugPort || DEBUG_DEFAULT_PORT;
       this.server = createServer((socket) => {
         const gdbTargetDebugSession = new GDBTargetDebugSession();
@@ -46,8 +45,13 @@ export class CDTDebugAdapterDescriptorFactory
       }).listen(portToUse);
     }
 
-    // make VS Code connect to debug server
-    return new DebugAdapterServer((<AddressInfo>this.server.address()).port);
+    const address = this.server.address();
+    if (address && typeof address === "object" && address.port) {
+      return new DebugAdapterServer((<AddressInfo>address).port);
+    } else {
+      this.dispose();
+      throw new Error("Failed to get CDT Debug Adapter server address or port.");
+    }
   }
 
   dispose() {

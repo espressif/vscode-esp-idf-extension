@@ -1878,6 +1878,11 @@
                 "type": "string",
                 "description": "Working directory (cwd) to use when launching gdb. Defaults to the directory of the 'program'"
               },
+              "debugPort": {
+                "type": "number",
+                "description": "Port for Debug Adapter server. Default: 43476",
+                "default": 43476
+              },
               "runOpenOCD": {
                 "type": "boolean",
                 "description": "Run OpenOCD Server",
@@ -2146,6 +2151,11 @@
               "cwd": {
                 "type": "string",
                 "description": "Working directory (cwd) to use when launching gdb. Defaults to the directory of the 'program'"
+              },
+              "debugPort": {
+                "type": "number",
+                "description": "Port for Debug Adapter server. Default: 43476",
+                "default": 43476
               },
               "runOpenOCD": {
                 "type": "boolean",
