@@ -24,6 +24,7 @@ import {
   readdir,
   readFile,
   readJSON,
+  stat,
   writeFile,
   writeJSON,
 } from "fs-extra";
@@ -266,11 +267,7 @@ export async function setCCppPropertiesJsonCompilerPath(
   const modifiedEnv = await appendIdfAndToolsToPath(curWorkspaceFsPath);
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool = getToolchainToolName(idfTarget, "gcc");
-  const compilerAbsolutePath = await isBinInPath(
-    gccTool,
-    curWorkspaceFsPath.fsPath,
-    modifiedEnv
-  );
+  const compilerAbsolutePath = await isBinInPath(gccTool, modifiedEnv);
   if (!compilerAbsolutePath) {
     return;
   }
@@ -339,7 +336,7 @@ export async function getToolchainPath(
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool = getToolchainToolName(idfTarget, tool);
   try {
-    return await isBinInPath(gccTool, workspaceUri.fsPath, modifiedEnv);
+    return await isBinInPath(gccTool, modifiedEnv);
   } catch (error) {
     Logger.errorNotify(
       `${tool} is not found in idf.toolsPath`,
@@ -852,7 +849,7 @@ export async function checkGitExists(workingDir: string, gitPath: string) {
   try {
     const gitBinariesExists = await pathExists(gitPath);
     if (!gitBinariesExists) {
-      const gitInPath = await isBinInPath("git", workingDir, process.env);
+      const gitInPath = await isBinInPath("git", process.env);
       if (!gitInPath) {
         return "Not found";
       }
@@ -1264,35 +1261,48 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   return modifiedEnv;
 }
 
-export async function isBinInPath(
+export async function getAllBinPathInEnvPath(
   binaryName: string,
-  workDirectory: string,
   env: NodeJS.ProcessEnv
 ) {
-  const cmd = process.platform === "win32" ? "where" : "which";
-  try {
-    const result = await spawn(cmd, [binaryName], { cwd: workDirectory, env });
-    if (
-      result.toString() === "" ||
-      result.toString().indexOf("Could not find files") < 0
-    ) {
-      // Sometimes multiple paths can be returned. They are separated by new lines, get only the first one
-      const selectedResult = result.toString().split("\n")[0].trim();
-      return binaryName.localeCompare(selectedResult) === 0
-        ? ""
-        : selectedResult;
+  let pathNameInEnv: string = Object.keys(process.env).find(
+    (k) => k.toUpperCase() == "PATH"
+  );
+  const pathDirs = env[pathNameInEnv].split(path.delimiter);
+  const foundBinaries: string[] = [];
+  for (const pathDir of pathDirs) {
+    let binaryPath = path.join(pathDir, binaryName);
+    if (process.platform === "win32" && !binaryName.endsWith(".exe")) {
+      binaryPath = `${binaryPath}.exe`;
     }
-  } catch (error) {
-    let pathNameInEnv: string = Object.keys(process.env).find(
-      (k) => k.toUpperCase() == "PATH"
-    );
-    Logger.error(
-      `Cannot access binary filePath: ${binaryName}`,
-      error,
-      "src utils isBinInPath",
-      { envPath: pathNameInEnv ? env[pathNameInEnv] : undefined },
-      false
-    );
+    const doesPathExists = await pathExists(binaryPath);
+    if (doesPathExists) {
+      const pathStats = await stat(binaryPath);
+      if (pathStats.isFile() && canAccessFile(binaryPath, fs.constants.X_OK)) {
+        foundBinaries.push(binaryPath);
+      }
+    }
+  }
+  return foundBinaries;
+}
+
+export async function isBinInPath(binaryName: string, env: NodeJS.ProcessEnv) {
+  let pathNameInEnv: string = Object.keys(process.env).find(
+    (k) => k.toUpperCase() == "PATH"
+  );
+  const pathDirs = env[pathNameInEnv].split(path.delimiter);
+  for (const pathDir of pathDirs) {
+    let binaryPath = path.join(pathDir, binaryName);
+    if (process.platform === "win32" && !binaryName.endsWith(".exe")) {
+      binaryPath = `${binaryPath}.exe`;
+    }
+    const doesPathExists = await pathExists(binaryPath);
+    if (doesPathExists) {
+      const pathStats = await stat(binaryPath);
+      if (pathStats.isFile() && canAccessFile(binaryPath, fs.constants.X_OK)) {
+        return binaryPath;
+      }
+    }
   }
   return "";
 }

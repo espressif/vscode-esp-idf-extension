@@ -171,7 +171,6 @@ export async function getSetupInitialValues(
 
       const canAccessCMake = await utils.isBinInPath(
         "cmake",
-        extensionPath,
         process.env
       );
 
@@ -183,7 +182,6 @@ export async function getSetupInitialValues(
 
       const canAccessNinja = await utils.isBinInPath(
         "ninja",
-        extensionPath,
         process.env
       );
 
@@ -246,7 +244,6 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
   if (process.platform !== "win32") {
     const canAccessCMake = await utils.isBinInPath(
       "cmake",
-      containerPath,
       process.env
     );
     if (!canAccessCMake) {
@@ -254,7 +251,6 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
     }
     const canAccessNinja = await utils.isBinInPath(
       "ninja",
-      containerPath,
       process.env
     );
     if (!canAccessNinja) {
