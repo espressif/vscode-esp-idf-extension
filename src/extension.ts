@@ -163,7 +163,10 @@ import { getIdfSetups } from "./eim/getExistingSetups";
 import { IdfSetup } from "./eim/types";
 import { loadIdfSetup } from "./eim/loadIdfSetup";
 import { configureEnvVariables } from "./common/prepareEnv";
-import { downloadExtractAndRunEIM } from "./eim/downloadInstall";
+import {
+  downloadExtractAndRunEIM,
+  runExistingEIM,
+} from "./eim/downloadInstall";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1850,7 +1853,6 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.installManager", async () => {
-    // vscode.env.openExternal(vscode.Uri.parse(ESP.URL.InstallManager.Releases));
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode",
       workspaceRoot
@@ -1860,17 +1862,6 @@ export async function activate(context: vscode.ExtensionContext) {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
-
-    const mirrorToUse = await vscode.window.showQuickPick(
-      ["Github", "Espressif (faster in China)"],
-      {
-        placeHolder: vscode.l10n.t("Select mirror to use"),
-      }
-    );
-    let useMirror = false;
-    if (mirrorToUse && mirrorToUse === "Espressif (faster in China)") {
-      useMirror = true;
-    }
     vscode.window.withProgress(
       {
         cancellable: true,
@@ -1881,7 +1872,33 @@ export async function activate(context: vscode.ExtensionContext) {
         progress: vscode.Progress<{ message: string; increment: number }>,
         cancelToken: vscode.CancellationToken
       ) => {
-        await downloadExtractAndRunEIM(progress, cancelToken, useMirror);
+        const doesEIMExecutableExist = await runExistingEIM(
+          progress,
+          cancelToken
+        );
+        if (!doesEIMExecutableExist) {
+          progress.report({
+            message: `EIM executable not found. Please choose a download mirror.`,
+            increment: 0,
+          });
+          const mirrorToUse = await vscode.window.showQuickPick(
+            ["Github", "Espressif (faster in China)", "Open Releases URL"],
+            {
+              placeHolder: vscode.l10n.t("Select mirror to use"),
+            }
+          );
+          if (mirrorToUse === "Open Releases URL") {
+            vscode.env.openExternal(
+              vscode.Uri.parse(ESP.URL.InstallManager.Releases)
+            );
+            return;
+          }
+          let useMirror = false;
+          if (mirrorToUse && mirrorToUse === "Espressif (faster in China)") {
+            useMirror = true;
+          }
+          await downloadExtractAndRunEIM(progress, cancelToken, useMirror);
+        }
       }
     );
   });
