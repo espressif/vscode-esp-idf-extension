@@ -34,6 +34,68 @@ import del from "del";
 import { dirExistPromise } from "../utils";
 import * as yauzl from "yauzl";
 import { Logger } from "../logger/logger";
+import { getEimIdfJson } from "./getExistingSetups";
+
+export async function runExistingEIM(
+  progress: Progress<{ message: string; increment: number }>,
+  cancelToken: CancellationToken
+): Promise<boolean> {
+  let eimPath = "";
+  if (cancelToken.isCancellationRequested) {
+    return false;
+  }
+  progress.report({
+    message: `Checking EIM already exists...`,
+    increment: 0,
+  });
+  try {
+    const eimJSON = await getEimIdfJson();
+    if (!eimJSON) {
+      throw new Error("EIM JSON not found. Please download EIM first.");
+    }
+    if (!eimJSON.eimPath) {
+      return false;
+    }
+    eimPath = eimJSON.eimPath;
+    const doesEimPathExists = await pathExists(eimPath);
+    if (!doesEimPathExists) {
+      throw new Error(`EIM not found at ${eimPath}`);
+    }
+  } catch (error) {
+    Logger.error(
+      `Error while running existing EIM: ${error.message}`,
+      error,
+      "runExistingEIM"
+    );
+    return false;
+  }
+
+  progress.report({
+    message: `EIM found at ${eimPath}. Launching...`,
+    increment: 0,
+  });
+
+  let binaryPath = "";
+  if (process.platform === "win32") {
+    binaryPath = `Start-Process -FilePath "${eimPath}"`;
+  } else if (process.platform === "linux") {
+    binaryPath = `./${basename(eimPath)}`;
+  } else if (process.platform === "darwin") {
+    binaryPath = `open ${eimPath}`;
+  }
+  const shellPath =
+    process.platform === "win32"
+      ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      : env.shell;
+  const espIdfTerminal = window.createTerminal({
+    name: "ESP-IDF EIM",
+    shellPath: shellPath,
+    cwd: dirname(eimPath),
+  });
+  espIdfTerminal.sendText(binaryPath, true);
+  espIdfTerminal.show();
+  return true;
+}
 
 export async function downloadExtractAndRunEIM(
   progress: Progress<{ message: string; increment: number }>,
