@@ -37,6 +37,7 @@ export interface EspIdfJson {
   idfToolsPath: string;
   idfSelectedId: string;
   idfInstalled: IdfInstalled[];
+  eimPath: string;
 }
 
 export interface IdfInstalled {
