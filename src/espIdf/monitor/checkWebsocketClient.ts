@@ -18,12 +18,13 @@
 
 import { Uri } from "vscode";
 import { OutputChannel } from "../../logger/outputChannel";
-import { appendIdfAndToolsToPath, execChildProcess } from "../../utils";
+import { execChildProcess } from "../../utils";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export async function installWebsocketClient(workspace: Uri) {
-  const pythonBinPath = await getVirtualEnvPythonPath(workspace);
-  const modifiedEnv = await appendIdfAndToolsToPath(workspace);
+  const pythonBinPath = await getVirtualEnvPythonPath();
+  const modifiedEnv = await configureEnvVariables(workspace);
   try {
     const showResult = await execChildProcess(
       pythonBinPath,

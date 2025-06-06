@@ -24,7 +24,6 @@ import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import {
-  appendIdfAndToolsToPath,
   delConfigFile,
   getSDKConfigFilePath,
   isStringNotEmpty,
@@ -33,6 +32,8 @@ import { KconfigMenuLoader } from "./kconfigMenuLoader";
 import { Menu, menuType } from "./Menu";
 import { MenuConfigPanel } from "./MenuconfigPanel";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { configureEnvVariables } from "../../common/prepareEnv";
+import { ESP } from "../../config";
 
 export class ConfserverProcess {
   public static async initWithProgress(
@@ -71,8 +72,8 @@ export class ConfserverProcess {
 
   public static async init(workspaceFolder: vscode.Uri, extensionPath: string) {
     return new Promise(async (resolve) => {
-      const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-      const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
+      const pythonBinPath = await getVirtualEnvPythonPath();
+      const modifiedEnv = await configureEnvVariables(workspaceFolder);
       if (!ConfserverProcess.instance) {
         const configFile = await getSDKConfigFilePath(workspaceFolder);
         ConfserverProcess.instance = new ConfserverProcess(
@@ -207,12 +208,13 @@ export class ConfserverProcess {
     ConfserverProcess.instance.areValuesSaved = true;
     const currWorkspace = ConfserverProcess.instance.workspaceFolder;
     await delConfigFile(currWorkspace);
-    const guiconfigEspPath =
-      idfConf.readParameter("idf.espIdfPath", currWorkspace) ||
-      process.env.IDF_PATH;
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    const guiconfigEspPath = currentEnvVars["IDF_PATH"];
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
-    const modifiedEnv = await appendIdfAndToolsToPath(currWorkspace);
-    const pythonBinPath = await getVirtualEnvPythonPath(currWorkspace);
+    const modifiedEnv = await configureEnvVariables(currWorkspace);
+    const pythonBinPath = await getVirtualEnvPythonPath();
     const enableCCache = idfConf.readParameter(
       "idf.enableCCache",
       currWorkspace
@@ -261,7 +263,11 @@ export class ConfserverProcess {
         if (code !== 0) {
           const errorMsg = `When loading default values received exit signal: ${signal}, code : ${code}`;
           OutputChannel.appendLine(errorMsg, "SDK Configuration Editor");
-          Logger.error(errorMsg, new Error(errorMsg), "ConfserverProcess setDefaultValues");
+          Logger.error(
+            errorMsg,
+            new Error(errorMsg),
+            "ConfserverProcess setDefaultValues"
+          );
         }
         ConfserverProcess.init(currWorkspace, extensionPath);
         progress.report({ increment: 70, message: "The end" });
@@ -323,9 +329,10 @@ export class ConfserverProcess {
     this.workspaceFolder = workspaceFolder;
     this.extensionPath = extensionPath;
     this.emitter = new EventEmitter();
-    this.espIdfPath =
-      idfConf.readParameter("idf.espIdfPath", workspaceFolder).toString() ||
-      process.env.IDF_PATH;
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    this.espIdfPath = currentEnvVars["IDF_PATH"];
     modifiedEnv.PYTHONUNBUFFERED = "0";
     this.configFile = configFile;
     const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
@@ -466,6 +473,10 @@ export class ConfserverProcess {
     OutputChannel.appendLine(
       "-----------------------END OF ERROR-----------------------"
     );
-    Logger.error(data.toString(), new Error(data.toString()), "ConfserverProcess printError");
+    Logger.error(
+      data.toString(),
+      new Error(data.toString()),
+      "ConfserverProcess printError"
+    );
   }
 }
