@@ -69,7 +69,7 @@
   "Flash binary to this partition": "将二进制文件烧录到该分区",
   "Open partition table editor": "打开分区表编辑器",
   "Select an action to use": "选择要执行的操作",
-  "ESP-IDF: Preparing ESP-IDF extension report": "ESP-IDF：正在生成 ESP-IDF 扩展报告",
+  "ESP-IDF Doctor": "ESP-IDF 诊断工具",
   "Extension configuration report has been copied to clipboard with errors": "已复制扩展配置报告到剪贴板，但有错误",
   "No launch.json found.\nUse the 'ESP-IDF: Add vscode Configuration Folder' command.": "未找到 launch.json。\n运行命令 ESP-IDF：添加 VS Code 配置文件夹",
   "No gdbtarget configuration found in launch.json.\nDelete launch.json and use the 'ESP-IDF: Add vscode Configuration Folder' command.": "launch.json 中未找到 gdbtarget 配置。\n删除 launch.json 并运行命令 ESP-IDF：添加 VS Code 配置文件夹。",

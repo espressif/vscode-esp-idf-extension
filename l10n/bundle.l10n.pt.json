@@ -69,7 +69,7 @@
   "Flash binary to this partition": "Flash binário para esta partição",
   "Open partition table editor": "Abra o editor de tabela de partição",
   "Select an action to use": "Selecione uma ação para usar",
-  "ESP-IDF: Preparing ESP-IDF extension report": "ESP-IDF: Preparando relatório de extensão ESP-IDF",
+  "ESP-IDF Doctor": "ESP-IDF Doctor",
   "Extension configuration report has been copied to clipboard with errors": "O relatório de configuração da extensão foi copiado para a área de transferência com erros",
   "No launch.json found.\nUse the 'ESP-IDF: Add vscode Configuration Folder' command.": "Nenhum launch.json encontrado.\n",
   "No gdbtarget configuration found in launch.json.\nDelete launch.json and use the 'ESP-IDF: Add vscode Configuration Folder' command.": "Nenhuma configuração gdbtarget encontrada em launch.json.\n",
