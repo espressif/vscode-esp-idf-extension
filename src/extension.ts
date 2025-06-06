@@ -2081,17 +2081,16 @@ export async function activate(context: vscode.ExtensionContext) {
         : vscode.ProgressLocation.Window;
     let idfSetups = await getIdfSetups();
     const currentIdfSetup = await loadIdfSetup(workspaceRoot);
-    const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
-    const isCurrentSetupInList = onlyValidIdfSetups.findIndex((idfSetup) => {
+    const isCurrentSetupInList = idfSetups.findIndex((idfSetup) => {
       return (
         idfSetup.idfPath === currentIdfSetup.idfPath &&
         idfSetup.toolsPath === currentIdfSetup.toolsPath
       );
     });
-    if (currentIdfSetup.isValid && isCurrentSetupInList === -1) {
-      onlyValidIdfSetups.push(currentIdfSetup);
+    if (isCurrentSetupInList === -1) {
+      idfSetups.push(currentIdfSetup);
     }
-    if (onlyValidIdfSetups.length === 0) {
+    if (idfSetups.length === 0) {
       return;
     }
     vscode.window.withProgress(
@@ -2109,7 +2108,7 @@ export async function activate(context: vscode.ExtensionContext) {
             context.extensionPath,
             progress,
             workspaceRoot,
-            onlyValidIdfSetups
+            idfSetups
           );
           if (newProjectArgs) {
             NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
@@ -2607,7 +2606,7 @@ export async function activate(context: vscode.ExtensionContext) {
       {
         cancellable: false,
         location: ProgressLocation,
-        title: vscode.l10n.t("ESP-IDF: Preparing ESP-IDF extension report"),
+        title: vscode.l10n.t("ESP-IDF Doctor"),
       },
       async (
         progress: vscode.Progress<{ message: string; increment: number }>
@@ -2617,7 +2616,8 @@ export async function activate(context: vscode.ExtensionContext) {
           await generateConfigurationReport(
             context,
             workspaceRoot,
-            reportedResult
+            reportedResult,
+            progress
           );
           await vscode.window.showTextDocument(
             vscode.Uri.file(path.join(context.extensionPath, "report.txt"))
@@ -3734,8 +3734,7 @@ async function getFrameworksPickItems() {
   try {
     const idfSetups = await getIdfSetups();
     const currentIdfSetup = await loadIdfSetup(workspaceRoot);
-    const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
-    for (const idfSetup of onlyValidIdfSetups) {
+    for (const idfSetup of idfSetups) {
       pickItems.push({
         description: `ESP-IDF v${idfSetup.version}`,
         label: vscode.l10n.t(`Use ESP-IDF {espIdfPath}`, {
@@ -3745,18 +3744,15 @@ async function getFrameworksPickItems() {
         idfSetup,
       });
     }
-    const isCurrentSetupInList = onlyValidIdfSetups.findIndex((idfSetup) => {
+    const isCurrentSetupInList = idfSetups.findIndex((idfSetup) => {
       return (
         idfSetup.idfPath === currentIdfSetup.idfPath &&
         idfSetup.toolsPath === currentIdfSetup.toolsPath
       );
     });
-    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-      [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-    if (currentEnvVars["ESP_IDF_VERSION"] && isCurrentSetupInList === -1) {
+    if (isCurrentSetupInList === -1) {
       pickItems.push({
-        description: `ESP-IDF ${currentEnvVars["ESP_IDF_VERSION"]}`,
+        description: `ESP-IDF v${currentIdfSetup.version}`,
         label: vscode.l10n.t(`Use ESP-IDF {espIdfPath}`, {
           espIdfPath: currentIdfSetup.idfPath,
         }),
