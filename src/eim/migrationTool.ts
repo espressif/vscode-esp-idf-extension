@@ -21,8 +21,6 @@ import { execChildProcess, getEspIdfFromCMake } from "../utils";
 import { IdfSetup } from "./types";
 import { pathExists, readJson } from "fs-extra";
 import { ESP } from "../config";
-import { isIdfSetupValid } from "./verifySetup";
-import { Logger } from "../logger/logger";
 import { getEnvVarsFromIdfTools, getUnixPythonList } from "../pythonManager";
 import { IdfToolsManager } from "../idfToolsManager";
 
@@ -160,15 +158,6 @@ export async function loadIdfSetupsFromEspIdfJson(toolsPath: string) {
         toolsPath: toolsPath,
         isValid: false,
       } as IdfSetup;
-      try {
-        setupConf.isValid = await isIdfSetupValid(setupConf, false);
-      } catch (err) {
-        const msg = err.message
-          ? err.message
-          : "Error isIdfSetupValid in loadIdfSetupsFromEspIdfJson";
-        Logger.error(msg, err, "loadIdfSetupsFromEspIdfJson");
-        setupConf.isValid = false;
-      }
       idfSetups.push(setupConf);
     }
   }

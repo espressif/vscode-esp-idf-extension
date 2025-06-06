@@ -21,7 +21,6 @@ import { join } from "path";
 import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { EspIdfJson, IdfSetup } from "./types";
-import { isIdfSetupValid } from "./verifySetup";
 import { getEspIdfFromCMake } from "../utils";
 import { loadIdfSetupsFromEspIdfJson } from "./migrationTool";
 import { ESP } from "../config";
@@ -91,15 +90,6 @@ export async function loadIdfSetupsFromEimIdfJson() {
         python: idfInstalled.python,
         sysPythonPath: "",
       } as IdfSetup;
-      try {
-        setupConf.isValid = await isIdfSetupValid(setupConf, false);
-      } catch (err) {
-        const msg = err.message
-          ? err.message
-          : "Error isIdfSetupValid in loadIdfSetupsFromEimIdfJson";
-        Logger.error(msg, err, "loadIdfSetupsFromEimIdfJson");
-        setupConf.isValid = false;
-      }
       idfSetups.push(setupConf);
     }
   }

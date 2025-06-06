@@ -100,11 +100,15 @@ export class execResult {
   result: string;
 }
 
+export interface ExtendedIdfSetup extends IdfSetup {
+  reason: string;
+}
+
 export class reportObj {
   configurationSettings: Configuration;
   configurationAccess: ConfigurationAccess;
   configurationSpacesValidation: ConfigurationSpacesValidation;
-  espIdfSetups: IdfSetup[];
+  espIdfSetups: ExtendedIdfSetup[];
   espIdfToolsVersions: idfToolResult[];
   espIdfVersion: execResult;
   gitVersion: execResult;
@@ -116,7 +120,6 @@ export class reportObj {
   pythonVersion: execResult;
   pythonPackages: execResult;
   idfCheckRequirements: execResult;
-  debugAdapterRequirements: execResult;
   formatedOutput: string;
   selectedProjectConfiguration: string;
   systemInfo: SystemInfo;
