@@ -98,9 +98,16 @@ export async function isIdfSetupValid(
       const missingTools = failedToolsResult.map((t) => t.name).join(", ");
       return [false, `Missing required tools: ${missingTools}`];
     }
-    const pyEnvReqs = await checkPyVenv(venvPythonPath, envVars["IDF_PATH"]);
-    if (!pyEnvReqs) {
-      return [false, "Python virtual environment or requirements are not satisfied"];
+    const [pyEnvReqsValid, pyEnvReqsMsg] = await checkPyVenv(
+      venvPythonPath,
+      envVars["IDF_PATH"]
+    );
+    if (!pyEnvReqsValid) {
+      return [
+        pyEnvReqsValid,
+        pyEnvReqsMsg ||
+          "Python virtual environment or requirements are not satisfied",
+      ];
     }
     return [true, ""];
   } catch (error) {
@@ -113,7 +120,10 @@ export async function isIdfSetupValid(
   }
 }
 
-export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
+export async function checkPyVenv(
+  pyVenvPath: string,
+  espIdfPath: string
+): Promise<[boolean, string]> {
   const pyExists = await pathExists(pyVenvPath);
   if (!pyExists) {
     return [false, `${pyVenvPath} does not exist.`];
@@ -130,7 +140,7 @@ export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
     requirements = join(espIdfPath, "requirements.txt");
     const requirementsExists = await pathExists(requirements);
     if (!requirementsExists) {
-      return false;
+      return [false, `${requirements} doesn't exist.`];
     }
   }
   const reqsResults = await startPythonReqsProcess(
