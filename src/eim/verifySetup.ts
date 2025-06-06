@@ -32,12 +32,12 @@ import { ESP } from "../config";
  * Validate that given IDF Setup is valid.
  * @param {IdfSetup} idfSetup IDF Setup to validate.
  * @param logToChannel If output IDF Tools validation result in output channel
- * @returns {boolean} True if IDF Setup is valid, False otherwise
+ * @returns {[boolean, string]} Tuple: True if IDF Setup is valid, False otherwise, and fail reason
  */
 export async function isIdfSetupValid(
   idfSetup: IdfSetup,
   logToChannel = true
-): Promise<boolean> {
+): Promise<[boolean, string]> {
   try {
     let envVars: { [key: string]: string } = await getEnvVariables(idfSetup);
     let venvPythonPath: string = "";
@@ -52,11 +52,11 @@ export async function isIdfSetupValid(
     }
 
     if (!envVars["IDF_PATH"]) {
-      return false;
+      return [false, "IDF_PATH is not set in environment variables"];
     }
     const doesIdfPathExists = await pathExists(envVars["IDF_PATH"]);
     if (!doesIdfPathExists) {
-      return false;
+      return [false, `IDF_PATH does not exist: ${envVars["IDF_PATH"]}`];
     }
 
     const pathNameInEnv: string = Object.keys(envVars).find(
@@ -95,24 +95,28 @@ export async function isIdfSetupValid(
     );
 
     if (failedToolsResult.length) {
-      return false;
+      const missingTools = failedToolsResult.map((t) => t.name).join(", ");
+      return [false, `Missing required tools: ${missingTools}`];
     }
     const pyEnvReqs = await checkPyVenv(venvPythonPath, envVars["IDF_PATH"]);
-    return pyEnvReqs;
+    if (!pyEnvReqs) {
+      return [false, "Python virtual environment or requirements are not satisfied"];
+    }
+    return [true, ""];
   } catch (error) {
     const msg =
       error && error.message
         ? error.message
         : `Error checking EIM Idf Setup for script ${idfSetup.activationScript}`;
     Logger.error(msg, error, "verifySetup isIdfSetupValid");
-    return false;
+    return [false, msg];
   }
 }
 
 export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
   const pyExists = await pathExists(pyVenvPath);
   if (!pyExists) {
-    return false;
+    return [false, `${pyVenvPath} does not exist.`];
   }
   let requirements: string;
   requirements = join(
@@ -135,9 +139,9 @@ export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
     requirements
   );
   if (reqsResults.indexOf("are not satisfied") > -1) {
-    return false;
+    return [false, reqsResults];
   }
-  return true;
+  return [true, ""];
 }
 
 export async function saveSettings(

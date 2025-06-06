@@ -69,7 +69,7 @@
   "Flash binary to this partition": "Записать двоичный файл в этот раздел",
   "Open partition table editor": "Открыть редактор таблицы разделов",
   "Select an action to use": "Выбор действия для использования",
-  "ESP-IDF: Preparing ESP-IDF extension report": "ESP-IDF: подготовка отчета о расширении ESP-IDF",
+  "ESP-IDF Doctor": "ESP-IDF Доктор",
   "Extension configuration report has been copied to clipboard with errors": "Отчет о конфигурации расширения скопирован в буфер обмена с ошибками",
   "No launch.json found.\nUse the 'ESP-IDF: Add vscode Configuration Folder' command.": "Файл launch.json не найден.\nИспользуйте команду 'ESP-IDF: Add vscode Configuration Folder'.",
   "No gdbtarget configuration found in launch.json.\nDelete launch.json and use the 'ESP-IDF: Add vscode Configuration Folder' command.": "В файле launch.json не найдена конфигурация gdbtarget.\nУдалите файл launch.json и используйте команду 'ESP-IDF: Add vscode Configuration Folder'.",

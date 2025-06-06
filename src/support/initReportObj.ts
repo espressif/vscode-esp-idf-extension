@@ -68,10 +68,7 @@ export function initializeReportObject() {
     toolsPath: undefined,
     systemEnvPath: undefined,
   };
-  report.debugAdapterRequirements = {
-    output: undefined,
-    result: undefined,
-  };
+  report.espIdfSetups = [];
   report.espIdfToolsVersions = undefined;
   report.espIdfVersion = {
     output: undefined,

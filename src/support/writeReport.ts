@@ -191,27 +191,8 @@ export async function writeTextReport(
       ? reportedResult.idfCheckRequirements.result
       : reportedResult.idfCheckRequirements.output
   }${EOL}`;
-  output += `---------------------------------------------------- Check ESP-IDF debug adapter requirements.txt ------------------------------------------${EOL}`;
-  output += `Check Debug AdapterPython packages ${
-    reportedResult.debugAdapterRequirements.result
-      ? reportedResult.debugAdapterRequirements.result
-      : reportedResult.debugAdapterRequirements.output
-  }${EOL}`;
-  if (reportedResult.launchJson) {
-    output += `---------------------------------------------------- Visual Studio Code launch.json --------------------------------------------------------${EOL}`;
-    output += `${reportedResult.launchJson} ${EOL}`;
-  }
-  if (reportedResult.cCppPropertiesJson) {
-    output += `---------------------------------------------------- Visual Studio Code c_cpp_properties.json ----------------------------------------------${EOL}`;
-    output += `${reportedResult.cCppPropertiesJson} ${EOL}`;
-  }
-  if (reportedResult.latestError) {
-    output += `----------------------------------------------------------- Latest error -----------------------------------------------------------------${EOL}`;
-    output += JSON.stringify(reportedResult.latestError, undefined, 2) + EOL;
-  }
-  output += lineBreak;
   if (reportedResult.espIdfSetups) {
-    output += `---------------------------------------------------- ESP-IDF Setups ----------------------------------------------${EOL}`;
+    output += `---------------------------------------------------- ESP-IDF Setups ------------------------------------------------------------------------${EOL}`;
     for (const idfSetup of reportedResult.espIdfSetups) {
       output += `ESP-IDF setup IDF PATH: ${idfSetup.idfPath}${EOL}`;
       output += `------- git path: ${idfSetup.gitPath}${EOL}`;
@@ -225,9 +206,25 @@ export async function writeTextReport(
         output += `------- activation script path: ${idfSetup.sysPythonPath}${EOL}`;
       }
       output += `------- is valid? ${idfSetup.isValid}${EOL}`;
+      if (idfSetup.reason) {
+        output += `------- reason: ${idfSetup.reason}${EOL}`;
+      }
       output += `--------------------------------------------------------${EOL}`;
     }
   }
+  if (reportedResult.launchJson) {
+    output += `---------------------------------------------------- Visual Studio Code launch.json --------------------------------------------------------${EOL}`;
+    output += `${reportedResult.launchJson} ${EOL}`;
+  }
+  if (reportedResult.cCppPropertiesJson) {
+    output += `---------------------------------------------------- Visual Studio Code c_cpp_properties.json ----------------------------------------------${EOL}`;
+    output += `${reportedResult.cCppPropertiesJson} ${EOL}`;
+  }
+  if (reportedResult.latestError) {
+    output += `----------------------------------------------------------- Latest error -----------------------------------------------------------------${EOL}`;
+    output += JSON.stringify(reportedResult.latestError, undefined, 2) + EOL;
+  }
+  output += lineBreak;
   const logFile = join(context.extensionPath, "esp_idf_vsc_ext.log");
   const logFileExists = await pathExists(logFile);
   if (logFileExists) {

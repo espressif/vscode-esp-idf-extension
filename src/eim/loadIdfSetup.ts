@@ -155,7 +155,18 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
     python: venvPythonPath,
     isValid: false,
   };
-  envDefinedIdfSetup.isValid = await isIdfSetupValid(envDefinedIdfSetup);
+  let reason = "";
+  [envDefinedIdfSetup.isValid, reason] = await isIdfSetupValid(
+    envDefinedIdfSetup
+  );
+
+  if (!envDefinedIdfSetup.isValid) {
+    Logger.infoNotify(l10n.t("ESP-IDF Setup is not valid: {0}", reason), {
+      category: "espIdf.installManager",
+      reason,
+    });
+    return;
+  }
 
   if (envDefinedIdfSetup.isValid) {
     const envVars = await getEnvVariables(envDefinedIdfSetup);

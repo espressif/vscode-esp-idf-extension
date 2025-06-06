@@ -41,12 +41,7 @@ export async function selectIdfSetup(
         (s) => s.idfPath === setup.idfPath && s.toolsPath === setup.toolsPath
       )
   );
-  const onlyValidIdfSetups = [
-    ...new Map(
-      idfSetups.filter((i) => i.isValid).map((item) => [item.idfPath, item])
-    ).values(),
-  ];
-  const idfSetupOptions = onlyValidIdfSetups.map((idfSetup) => {
+  const idfSetupOptions = idfSetups.map((idfSetup) => {
     return {
       label: `Version: v${idfSetup.version}`,
       description: `IDF_PATH: ${idfSetup.idfPath}`,
