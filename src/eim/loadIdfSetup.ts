@@ -29,7 +29,7 @@ import { Logger } from "../logger/logger";
 import { createHash } from "crypto";
 
 export async function loadIdfSetup(workspaceFolder: Uri) {
-  const idfSetups = await getIdfSetups();
+  const idfSetups = await getIdfSetups(workspaceFolder);
 
   if (!idfSetups || idfSetups.length < 1) {
     window.showInformationMessage(l10n.t("No ESP-IDF Setups found"));

@@ -24,7 +24,7 @@ export async function selectIdfSetup(
   workspaceFolder: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
-  let idfSetups = await getIdfSetups();
+  let idfSetups = await getIdfSetups(workspaceFolder);
   if (!idfSetups || (idfSetups && idfSetups.length === 0)) {
     const action = await window.showInformationMessage(
       l10n.t("No ESP-IDF Setups found"),

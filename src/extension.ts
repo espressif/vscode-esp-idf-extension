@@ -1973,7 +1973,8 @@ export async function activate(context: vscode.ExtensionContext) {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
-    let idfSetups = await getIdfSetups();
+
+    let idfSetups = await getIdfSetups(workspaceRoot);
     const currentIdfSetup = await loadIdfSetup(workspaceRoot);
     const isCurrentSetupInList = idfSetups.findIndex((idfSetup) => {
       return (
