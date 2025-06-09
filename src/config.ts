@@ -58,6 +58,8 @@ export namespace ESP {
   }
 
   export const platformDepConfigurations: string[] = [
+    "idf.espIdfPath",
+    "idf.toolsPath",
     "idf.buildPath",
     "idf.gitPath",
     "idf.port",
