@@ -69,7 +69,7 @@ export async function writeTextReport(
   output += `OpenOCD Configs (idf.openOcdConfigs) ${reportedResult.configurationSettings.openOcdConfigs}${EOL}`;
   output += `OpenOCD log level (idf.openOcdDebugLevel) ${reportedResult.configurationSettings.openOCDDebugLevel}${EOL}`;
   output += `OpenOCD launch arguments (idf.openOcdLaunchArgs) ${reportedResult.configurationSettings.openOcdLaunchArgs}${EOL}`;
-  output += `ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSettings.toolsPath}${EOL}`;
+  output += `ESP-IDF Tools Path ${reportedResult.configurationSettings.toolsPath}${EOL}`;
   output += `Git Path (idf.gitPath) ${reportedResult.configurationSettings.gitPath}${EOL}`;
   output += `Notification Mode (idf.notificationMode) ${reportedResult.configurationSettings.notificationMode}${EOL}`;
   output += `Flash type (idf.flashType) ${reportedResult.configurationSettings.flashType}${EOL}`;
@@ -96,7 +96,7 @@ export async function writeTextReport(
   output += `Access to Virtual environment Python path (computed) ${reportedResult.configurationAccess.pythonBinPath}${EOL}`;
   output += `Access to CMake in environment PATH ${reportedResult.configurationAccess.cmakeInEnv}${EOL}`;
   output += `Access to Ninja in environment PATH ${reportedResult.configurationAccess.ninjaInEnv}${EOL}`;
-  output += `Access to ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationAccess.toolsPath}${EOL}`;
+  output += `Access to ESP-IDF Tools Path ${reportedResult.configurationAccess.toolsPath}${EOL}`;
   output += `-------------------------------------------------------- Configurations has spaces -------------------------------------------------------------${EOL}`;
   output += `Spaces in system environment Path ${reportedResult.configurationSpacesValidation.systemEnvPath}${EOL}`;
   output += `Spaces in ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportedResult.configurationSpacesValidation.espAdfPath}${EOL}`;
@@ -110,7 +110,7 @@ export async function writeTextReport(
     output += `Spaces in ${key}: ${reportedResult.configurationSpacesValidation.customExtraPaths[key]}${EOL}`;
   }
   output += `Spaces in Virtual environment Python path (computed) ${reportedResult.configurationSpacesValidation.pythonBinPath}${EOL}`;
-  output += `Spaces in ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSpacesValidation.toolsPath}${EOL}`;
+  output += `Spaces in ESP-IDF Tools Path ${reportedResult.configurationSpacesValidation.toolsPath}${EOL}`;
   output += `----------------------------------------------------------- Executables Versions -----------------------------------------------------------${EOL}`;
   output += `Git version ${
     reportedResult.gitVersion.result
