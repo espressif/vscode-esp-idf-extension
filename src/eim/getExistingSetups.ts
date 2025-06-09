@@ -26,7 +26,7 @@ import { loadIdfSetupsFromEspIdfJson } from "./migrationTool";
 import { ESP } from "../config";
 import { Uri } from "vscode";
 
-export async function getIdfSetups() {
+export async function getIdfSetups(workspaceFolder: Uri) {
   const workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
     ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
   );
@@ -57,6 +57,13 @@ export async function getIdfSetups() {
     defaultIdfToolsPath
   );
   resultingIdfSetups = resultingIdfSetups.concat(espIdfSysJsonSetups);
+
+
+  const oldIdfToolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
+  if (oldIdfToolsPath) {
+    const oldIdfSetups = await loadIdfSetupsFromEspIdfJson(oldIdfToolsPath);
+    resultingIdfSetups = resultingIdfSetups.concat(oldIdfSetups);
+  }
 
   resultingIdfSetups = resultingIdfSetups.filter(
     (setup, index, self) =>

@@ -122,7 +122,7 @@ export async function generateConfigurationReport(
     message: "Checking ESP-IDF setups...",
     increment: 97,
   });
-  await checkIDFSetups(reportedResult);
+  await checkIDFSetups(reportedResult, currentWorkspace);
   progress.report({
     message: "Generating report...",
     increment: 100,
