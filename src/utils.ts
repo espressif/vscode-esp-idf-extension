@@ -266,17 +266,10 @@ export async function setCCppPropertiesJsonCompilerPath(
   if (!compilerAbsolutePath) {
     return;
   }
-  let compilerRelativePath = compilerAbsolutePath.split(
-    modifiedEnv.IDF_TOOLS_PATH
-  )[1];
-  const settingToUse =
-    process.platform === "win32"
-      ? "${config:idf.toolsPathWin}"
-      : "${config:idf.toolsPath}";
   await updateCCppPropertiesJson(
     curWorkspaceFsPath,
     "compilerPath",
-    settingToUse + compilerRelativePath
+    compilerAbsolutePath
   );
 }
 
@@ -334,7 +327,7 @@ export async function getToolchainPath(
     return await isBinInPath(gccTool, modifiedEnv);
   } catch (error) {
     Logger.errorNotify(
-      `${tool} is not found in idf.toolsPath`,
+      `${tool} is not found in current IDF setup`,
       error,
       "utils getToolchainPath"
     );
