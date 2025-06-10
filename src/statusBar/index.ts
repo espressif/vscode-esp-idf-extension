@@ -32,6 +32,7 @@ import { CommandItem } from "../cmdTreeView/cmdTreeDataProvider";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { pathExists } from "fs-extra";
+import { getEspIdfFromCMake } from "../utils";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
 
@@ -83,10 +84,11 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     commandDictionary[CommandKeys.pickWorkspace].checkboxState
   );
 
+  const idfVersion = await getEspIdfFromCMake(currentEnvVars["IDF_PATH"]);
   statusBarItems["currentIdfVersion"] = createStatusBarItem(
     `$(${
       commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-    }) ESP-IDF ${currentEnvVars["ESP_IDF_VERSION"]}`,
+    }) ESP-IDF v${idfVersion}`,
     commandDictionary[CommandKeys.SelectCurrentIdfVersion].tooltip,
     CommandKeys.SelectCurrentIdfVersion,
     103,
