@@ -5,6 +5,7 @@ import ConfigElement from "./configElement.vue";
 import { IconInfo } from "@iconify-prerendered/vue-codicon";
 import { Ref, ref } from "vue";
 import { vMaska } from "maska";
+import Checkbox from "./checkbox.vue";
 
 const props = defineProps<{
   config: Menu;
@@ -15,9 +16,9 @@ let isHelpVisible: Ref<boolean> = ref(false);
 function toggleHelp() {
   isHelpVisible.value = !isHelpVisible.value;
 }
+const store = useMenuconfigStore();
 
 function onChange(e) {
-  const store = useMenuconfigStore();
   if (props.config.type === menuType.hex) {
     props.config.value = e.target.value;
   }
@@ -26,11 +27,11 @@ function onChange(e) {
 </script>
 
 <template>
-  <div v-if="config.isVisible" :class="{ 'config-el': config.type !== 'menu' }">
-    <div v-if="config.type === 'choice'" class="form-group">
+  <div v-if="props.config.isVisible" :class="{ 'config-el': props.config.type !== 'menu' }">
+    <div v-if="props.config.type === 'choice'" class="form-group">
       <div class="field">
         <div class="field has-addons">
-          <label v-text="config.title" />
+          <label v-text="props.config.title" />
           <div class="control">
             <div class="info-icon" @click="toggleHelp">
               <IconInfo />
@@ -41,12 +42,12 @@ function onChange(e) {
           <div class="control">
             <div class="select is-small">
               <select
-                v-model="config.value"
+                v-model="props.config.value"
                 @change="onChange"
-                :data-config-id="config.id"
+                :data-config-id="props.config.id"
               >
                 <option
-                  v-for="option in config.children"
+                  v-for="option in props.config.children"
                   :key="option.id"
                   :value="option.id"
                   v-show="option.isVisible"
@@ -59,29 +60,30 @@ function onChange(e) {
         </div>
       </div>
     </div>
-    <div v-if="config.type === 'bool'" class="form-group">
-      <div class="switch_box">
-        <input
-          id="config.id"
-          v-model="config.value"
-          type="checkbox"
-          class="switch_1"
-          :data-config-id="config.id"
+    <div v-if="props.config.type === 'bool'" class="form-group">
+      <div style="display: flex; align-items: center;">
+        <Checkbox
+          :model-value="props.config.value"
+          :id="props.config.id"
           @change="onChange"
-        />
-        <div class="field has-addons">
-          <label :for="config.id" v-text="config.title" />
-          <div class="control">
-            <div class="info-icon" @click="toggleHelp">
-              <IconInfo />
-            </div>
+          @update:modelValue="
+            (val) => {
+              props.config.value = val;
+            }
+          "
+        >
+          <label :for="props.config.id" v-text="props.config.title" />
+        </Checkbox>
+        <div class="control">
+          <div class="info-icon" @click="toggleHelp">
+            <IconInfo />
           </div>
         </div>
       </div>
     </div>
-    <div v-if="config.type === 'int'" class="form-group">
+    <div v-if="props.config.type === 'int'" class="form-group">
       <div class="field has-addons">
-        <label v-text="config.title" />
+        <label v-text="props.config.title" />
         <div class="control">
           <div class="info-icon" @click="toggleHelp">
             <IconInfo />
@@ -91,8 +93,8 @@ function onChange(e) {
       <div class="field is-grouped">
         <div class="control">
           <input
-            v-model="config.value"
-            :data-config-id="config.id"
+            v-model="props.config.value"
+            :data-config-id="props.config.id"
             type="number"
             class="input is-small"
             placeholder="0"
@@ -102,9 +104,9 @@ function onChange(e) {
         </div>
       </div>
     </div>
-    <div v-if="config.type === 'string'" class="form-group">
+    <div v-if="props.config.type === 'string'" class="form-group">
       <div class="field has-addons">
-        <label v-text="config.title" :data-config-id="config.id" />
+        <label v-text="props.config.title" :data-config-id="props.config.id" />
         <div class="info-icon" @click="toggleHelp">
           <IconInfo />
         </div>
@@ -112,7 +114,7 @@ function onChange(e) {
       <div class="field is-grouped">
         <div class="control">
           <input
-            v-model="config.value"
+            v-model="props.config.value"
             type="text"
             class="input is-small"
             @change="onChange"
@@ -120,9 +122,9 @@ function onChange(e) {
         </div>
       </div>
     </div>
-    <div v-if="config.type === 'hex'" class="form-group">
+    <div v-if="props.config.type === 'hex'" class="form-group">
       <div class="field has-addons">
-        <label v-text="config.title" />
+        <label v-text="props.config.title" />
         <div class="control">
           <div class="info-icon" @click="toggleHelp">
             <IconInfo />
@@ -133,34 +135,36 @@ function onChange(e) {
         <div class="control">
           <input
             v-maska
-            v-model="config.value"
+            v-model="props.config.value"
             data-maska="0xWWWWWWWWWW"
             data-maska-tokens="W:[0-9a-fA-F]"
             class="input is-small"
             @change.native="onChange"
-            :data-config-id="config.id"
+            :data-config-id="props.config.id"
           />
         </div>
       </div>
     </div>
     <div
-      v-if="config.type === 'menu'"
-      :id="config.id"
+      v-if="props.config.type === 'menu'"
+      :id="props.config.id"
       class="submenu form-group"
     >
-      <h4 class="subtitle" v-text="config.title" />
-      <div v-if="config.isMenuconfig" class="switch_box menuconfig">
-        <div class="control">
-          <input
-            :id="config.id"
-            v-model="config.value"
-            type="checkbox"
-            class="switch_1"
+      <h4 class="subtitle" v-text="props.config.title" />
+      <div v-if="props.config.isMenuconfig" class="menuconfig">
+        <div style="display: flex; align-items: center;">
+          <Checkbox
+            :model-value="props.config.value"
+            :id="props.config.id"
             @change="onChange"
-          />
-        </div>
-        <div class="field has-addons">
-          <label :for="config.id" v-text="config.title" />
+            @update:modelValue="
+              (val) => {
+                props.config.value = val;
+              }
+            "
+          >
+            <label :for="props.config.id" v-text="props.config.title" />
+          </Checkbox>
           <div class="control">
             <div class="info-icon" @click="toggleHelp">
               <IconInfo />
@@ -171,13 +175,13 @@ function onChange(e) {
     </div>
 
     <p v-show="isHelpVisible" class="help-kconfig-title">
-      KCONFIG Name: <label style="font-weight: 900;">{{ config.name }}</label>
+      KCONFIG Name: <label style="font-weight: 900;">{{ props.config.name }}</label>
     </p>
-    <div v-show="isHelpVisible" class="content" v-html="config.help" />
+    <div v-show="isHelpVisible" class="content" v-html="props.config.help" />
 
-    <div v-if="config.type !== 'choice'">
+    <div v-if="props.config.type !== 'choice'">
       <ConfigElement
-        v-for="child in config.children"
+        v-for="child in props.config.children"
         :key="child.id"
         :config="child"
       />
@@ -216,40 +220,6 @@ input[type="number"]::-webkit-inner-spin-button {
 .select {
   border-color: var(--vscode-input-background);
 }
-.switch_box {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -webkit-box-align: center;
-  align-items: center;
-  -webkit-box-flex: 1;
-  flex: 1;
-}
-.switch_1 {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  height: 18px;
-  width: 18px;
-  border-color: var(--vscode-input-border);
-  border-radius: 3px;
-  cursor: pointer;
-  margin-right: 1%;
-  outline: none;
-  position: relative;
-  color: var(--vscode-settings-checkboxForeground);
-  background-color: var(--vscode-settings-checkboxBackground);
-}
-.switch_1:checked::before {
-  position: absolute;
-  left: 15%;
-  content: "\2713";
-  font-size: 15px;
-}
-.switch_1:hover {
-  border-color: var(--vscode-inputOption-activeBorder);
-}
 .submenu {
   padding-left: 0px;
   overflow: hidden;
@@ -257,9 +227,6 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 .menuconfig {
   padding-left: 0px;
-}
-.menu-title {
-  display: inline-block;
 }
 .help-kconfig-title {
   padding: 0 18px;
