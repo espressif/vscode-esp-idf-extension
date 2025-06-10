@@ -204,9 +204,10 @@ onMounted(() => {
   const tree = document.getElementById("sideNavMenus");
   if (tree) {
     tree.addEventListener("vsc-tree-select", (event) => {
-      store.selectedMenu = event.detail.value; // Set the selected menu id
+      const customEvent = event as CustomEvent;
+      store.selectedMenu = customEvent.detail.value; // Set the selected menu id
       const secNew = document.querySelector(
-        "#" + event.detail.value
+        "#" + customEvent.detail.value
       ) as HTMLElement;
       const configList = document.querySelector(".config-list") as HTMLElement;
       const topbar = document.querySelector("#topbar") as HTMLElement;
