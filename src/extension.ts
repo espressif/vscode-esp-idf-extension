@@ -487,14 +487,15 @@ export async function activate(context: vscode.ExtensionContext) {
             const currentEnvVars = ESP.ProjectConfiguration.store.get<{
               [key: string]: string;
             }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+            const idfVersion = await utils.getEspIdfFromCMake(
+              currentEnvVars["IDF_PATH"]
+            );
             if (statusBarItems["currentIdfVersion"]) {
-              statusBarItems["currentIdfVersion"].text = currentEnvVars[
-                "ESP_IDF_VERSION"
-              ]
+              statusBarItems["currentIdfVersion"].text = idfVersion
                 ? `$(${
                     commandDictionary[CommandKeys.SelectCurrentIdfVersion]
                       .iconId
-                  }) ESP-IDF ${currentEnvVars["ESP_IDF_VERSION"]}`
+                  }) ESP-IDF v${idfVersion}`
                 : `$(${
                     commandDictionary[CommandKeys.SelectCurrentIdfVersion]
                       .iconId
@@ -977,13 +978,15 @@ export async function activate(context: vscode.ExtensionContext) {
         const currentEnvVars = ESP.ProjectConfiguration.store.get<{
           [key: string]: string;
         }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+
+        const idfVersion = await utils.getEspIdfFromCMake(
+          currentEnvVars["IDF_PATH"]
+        );
         if (statusBarItems["currentIdfVersion"]) {
-          statusBarItems["currentIdfVersion"].text = currentEnvVars[
-            "ESP_IDF_VERSION"
-          ]
+          statusBarItems["currentIdfVersion"].text = idfVersion
             ? `$(${
                 commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-              }) ESP-IDF ${currentEnvVars["ESP_IDF_VERSION"]}`
+              }) ESP-IDF v${idfVersion}`
             : `$(${
                 commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
               }) ESP-IDF InvalidSetup`;
