@@ -185,7 +185,7 @@ export async function saveSettings(
     const commandDictionary = createCommandDictionary();
     espIdfStatusBar.text = `$(${
       commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-    }) ESP-IDF ${setupConf.version}`;
+    }) ESP-IDF v${setupConf.version}`;
   }
   Logger.infoNotify("ESP-IDF has been configured");
 }
