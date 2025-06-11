@@ -1,47 +1,97 @@
-<template>
-  <label
-    :class="['vscode-checkbox', { checked }]"
-    role="checkbox"
-    :aria-checked="checked.toString()"
-  >
-    <input
-      type="checkbox"
-      :id="id"
-      :checked="checked"
-      :data-config-id="id"
-      @change="onChange"
-      ref="input"
-      style="display: none;"
-    />
-    <span class="icon">
-      <i class="codicon codicon-check icon-checked" v-if="checked"></i>
-    </span>
-    <div class="field has-addons"><slot></slot></div>
-  </label>
-</template>
+<script setup lang="ts">
+import { Menu } from "../../../espIdf/menuconfig/Menu";
+import { IconInfo } from "@iconify-prerendered/vue-codicon";
+import { Ref, ref, watch } from "vue";
 
-<script setup>
-import { ref, defineEmits, defineProps } from "vue";
+const props = defineProps<{
+  config: Menu;
+}>();
 
-const props = defineProps({
-  id: { type: String, required: true },
-  modelValue: { type: Boolean, default: false },
-  onChange: { type: Function, default: null },
-});
+const emit = defineEmits<{
+  (e: "change", value: boolean): void;
+}>();
 
-const checked = ref(props.modelValue);
-const emits = defineEmits(["update:modelValue"]);
+let isHelpVisible: Ref<boolean> = ref(false);
+const isChecked = ref(props.config.value);
 
-function onChange(event) {
-  checked.value = event.target.checked;
-  emits("update:modelValue", checked.value);
-  if (props.onChange) {
-    props.onChange(event);
+watch(
+  () => props.config.value,
+  (newValue) => {
+    isChecked.value = newValue;
   }
+);
+
+function toggleHelp() {
+  isHelpVisible.value = !isHelpVisible.value;
+}
+
+function onChange(e: Event) {
+  const target = e.target as HTMLInputElement;
+  isChecked.value = target.checked;
+  props.config.value = target.checked;
+  emit("change", target.checked);
 }
 </script>
 
+<template>
+  <div class="form-group">
+    <div class="field">
+      <div style="display: flex; align-items: center;">
+        <div class="checkbox-wrapper">
+          <label
+            :class="['vscode-checkbox', { checked: isChecked }]"
+            role="checkbox"
+            :aria-checked="isChecked.toString()"
+          >
+            <input
+              type="checkbox"
+              :id="props.config.id"
+              :checked="isChecked"
+              @change="onChange"
+              style="display: none;"
+            />
+            <span class="icon">
+              <i
+                class="codicon codicon-check icon-checked"
+                v-if="isChecked"
+              ></i>
+            </span>
+          </label>
+          <label :for="props.config.id" v-text="props.config.title" />
+        </div>
+        <div class="control">
+          <div class="info-icon" @click="toggleHelp">
+            <IconInfo />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p v-show="isHelpVisible" class="help-kconfig-title">
+      KCONFIG Name:
+      <label style="font-weight: 900;">{{ props.config.name }}</label>
+    </p>
+    <div v-show="isHelpVisible" class="content" v-html="props.config.help" />
+  </div>
+</template>
+
 <style scoped>
+.form-group {
+  padding-left: 30px;
+  overflow: hidden;
+  margin-bottom: 0.5em;
+}
+
+.field {
+  margin-bottom: 0.5rem;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .vscode-checkbox {
   display: inline-flex;
   align-items: center;
@@ -99,5 +149,28 @@ function onChange(event) {
 
 .vscode-checkbox:focus-within .icon {
   border-color: var(--vscode-focusBorder);
+}
+
+.info-icon {
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+.info-icon:hover {
+  color: var(--vscode-textLink-activeForeground);
+}
+
+.content {
+  padding: 0 18px;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+  margin: 10px;
+}
+
+.help-kconfig-title {
+  padding: 0 18px;
+  margin-left: 10px;
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
 }
 </style>
