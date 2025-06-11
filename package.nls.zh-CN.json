@@ -175,6 +175,7 @@
   "param.usbSerialPortFilters.productId": "USB 产品 ID 为十六进制格式的的字符串，例如 0x6010",
   "param.hasWalkthroughBeenShown": "是否已经展示教程",
 	"param.eimIdfJsonPath": "用于查找 ESP-IDF 安装的 eim_idf.json 的自定义路径",
+	"param.eimExecutableArgs": "传递给 eim 可执行文件的参数",
 	"trace.poll_period.description": "设置 apptrace 的 poll_period 参数",
 	"trace.skip_size.description": "设置 apptrace 的 skip_size 参数",
 	"trace.stop_tmo.description": "设置 apptrace 的 stop_tmo 参数",
