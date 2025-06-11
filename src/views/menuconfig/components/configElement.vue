@@ -7,6 +7,7 @@ import { Ref, ref } from "vue";
 import { vMaska } from "maska";
 import SelectDropdown from "./SelectDropdown.vue";
 import Checkbox from "./checkbox.vue";
+import NumberInput from "./NumberInput.vue";
 
 const props = defineProps<{
   config: Menu;
@@ -44,29 +45,11 @@ function onChange(e) {
       :config="props.config"
       @change="onChange"
     />
-    <div v-if="props.config.type === 'int'" class="form-group">
-      <div class="field has-addons">
-        <label v-text="props.config.title" />
-        <div class="control">
-          <div class="info-icon" @click="toggleHelp">
-            <IconInfo />
-          </div>
-        </div>
-      </div>
-      <div class="field is-grouped">
-        <div class="control">
-          <input
-            v-model="props.config.value"
-            :data-config-id="props.config.id"
-            type="number"
-            class="input is-small"
-            placeholder="0"
-            @change="onChange"
-            @wheel.prevent
-          />
-        </div>
-      </div>
-    </div>
+    <NumberInput
+      v-if="props.config.type === 'int'"
+      :config="props.config"
+      @change="onChange"
+    />
     <div v-if="props.config.type === 'string'" class="form-group">
       <div class="field has-addons">
         <label v-text="props.config.title" :data-config-id="props.config.id" />
