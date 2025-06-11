@@ -120,6 +120,7 @@
 	"param.customTerminalExecutableArgs.title": "Список аргументов для пользовательской оболочки терминала",
 	"param.deleteComponentsOnFullClean": "Удалять папку managed_components по команде 'Полная очистка проекта'",
 	"param.eimIdfJsonPath": "Пользовательский путь для eim_idf.json для поиска установок ESP-IDF.",
+	"param.eimExecutableArgs": "Аргументы, передаваемые исполняемому файлу eim",
 	"param.enableCCache.title": "Включить CCache в задаче сборки",
 	"param.enableIdfComponentManager.title": "Включить Диспетчер Компонентов IDF в задаче сборки.",
 	"param.enableSizeTaskAfterBuildTask.title": "Включить задачу 'Размер IDF' после задачи сборки",

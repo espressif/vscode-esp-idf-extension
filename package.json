@@ -611,6 +611,12 @@
             "description": "%param.eimIdfJsonPath%",
             "scope": "application"
           },
+          "idf.eimExecutableArgs": {
+            "type": "array",
+            "default": ["gui"],
+            "description": "%param.eimExecutableArgs%",
+            "scope": "application"
+          },
           "idf.currentSetup": {
             "type": "string",
             "default": "",
