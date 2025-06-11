@@ -5,8 +5,8 @@ import ConfigElement from "./configElement.vue";
 import { IconInfo } from "@iconify-prerendered/vue-codicon";
 import { Ref, ref } from "vue";
 import { vMaska } from "maska";
-import Checkbox from "./checkbox.vue";
 import SelectDropdown from "./SelectDropdown.vue";
+import Checkbox from "./checkbox.vue";
 
 const props = defineProps<{
   config: Menu;
@@ -22,39 +22,28 @@ const store = useMenuconfigStore();
 function onChange(e) {
   if (props.config.type === menuType.hex) {
     props.config.value = e.target.value;
+  } else if (props.config.type === "bool") {
+    props.config.value = e;
   }
   store.sendNewValue(props.config);
 }
 </script>
 
 <template>
-  <div v-if="props.config.isVisible" :class="{ 'config-el': props.config.type !== 'menu' }">
+  <div
+    v-if="props.config.isVisible"
+    :class="{ 'config-el': props.config.type !== 'menu' }"
+  >
     <SelectDropdown
       v-if="props.config.type === 'choice'"
       :config="props.config"
       @change="onChange"
     />
-    <div v-if="props.config.type === 'bool'" class="form-group">
-      <div style="display: flex; align-items: center;">
-        <Checkbox
-          :model-value="props.config.value"
-          :id="props.config.id"
-          @change="onChange"
-          @update:modelValue="
-            (val) => {
-              props.config.value = val;
-            }
-          "
-        >
-          <label :for="props.config.id" v-text="props.config.title" />
-        </Checkbox>
-        <div class="control">
-          <div class="info-icon" @click="toggleHelp">
-            <IconInfo />
-          </div>
-        </div>
-      </div>
-    </div>
+    <Checkbox
+      v-if="props.config.type === 'bool'"
+      :config="props.config"
+      @change="onChange"
+    />
     <div v-if="props.config.type === 'int'" class="form-group">
       <div class="field has-addons">
         <label v-text="props.config.title" />
@@ -125,31 +114,17 @@ function onChange(e) {
       class="submenu form-group"
     >
       <h4 class="subtitle" v-text="props.config.title" />
-      <div v-if="props.config.isMenuconfig" class="menuconfig">
-        <div style="display: flex; align-items: center;">
-          <Checkbox
-            :model-value="props.config.value"
-            :id="props.config.id"
-            @change="onChange"
-            @update:modelValue="
-              (val) => {
-                props.config.value = val;
-              }
-            "
-          >
-            <label :for="props.config.id" v-text="props.config.title" />
-          </Checkbox>
-          <div class="control">
-            <div class="info-icon" @click="toggleHelp">
-              <IconInfo />
-            </div>
-          </div>
-        </div>
-      </div>
+      <Checkbox
+        class="menuconfig"
+        v-if="props.config.isMenuconfig"
+        :config="props.config"
+        @change="onChange"
+      />
     </div>
 
     <p v-show="isHelpVisible" class="help-kconfig-title">
-      KCONFIG Name: <label style="font-weight: 900;">{{ props.config.name }}</label>
+      KCONFIG Name:
+      <label style="font-weight: 900;">{{ props.config.name }}</label>
     </p>
     <div v-show="isHelpVisible" class="content" v-html="props.config.help" />
 
