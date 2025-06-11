@@ -35,6 +35,7 @@ import { dirExistPromise } from "../utils";
 import * as yauzl from "yauzl";
 import { Logger } from "../logger/logger";
 import { getEimIdfJson } from "./getExistingSetups";
+import { readParameter } from "../idfConfiguration";
 
 export async function runExistingEIM(
   progress: Progress<{ message: string; increment: number }>,
@@ -75,13 +76,17 @@ export async function runExistingEIM(
     increment: 0,
   });
 
+  // Read idf.eimExecutableArgs with utils.readParameter and use it to run EIM
+  const idfEimExecutableArgs = readParameter("idf.eimExecutableArgs") as string[];
+  const argsString = idfEimExecutableArgs.join(" ");
+
   let binaryPath = "";
   if (process.platform === "win32") {
-    binaryPath = `Start-Process -FilePath "${eimPath}"`;
+    binaryPath = `Start-Process -FilePath "${eimPath}"${argsString ? " -ArgumentList '" + argsString + "'" : ""}`;
   } else if (process.platform === "linux") {
-    binaryPath = `./${basename(eimPath)}`;
+    binaryPath = `./${basename(eimPath)}${argsString ? " " + argsString : ""}`;
   } else if (process.platform === "darwin") {
-    binaryPath = `open ${eimPath}`;
+    binaryPath = `open ${eimPath}${argsString ? " --args " + argsString : ""}`;
   }
   const shellPath =
     process.platform === "win32"
