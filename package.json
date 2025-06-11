@@ -130,7 +130,7 @@
           {
             "id": "extension-configuration",
             "title": "Configuring the ESP-IDF Extension",
-            "description": "❗**Linux and MacOS users:** Please install prerequisites first. The process is quick and simple - follow the steps in our [ESP-IDF install documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html#step-1-install-prerequisites).\n\nOnce ready, let's configure the ESP-IDF extension:\n\n[Configure ESP-IDF Extension](command:espIdf.installManager)\n\n",
+            "description": "❗**Linux and MacOS users:** Please install prerequisites first. The process is quick and simple - follow the steps in our [ESP-IDF install documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html#step-1-install-prerequisites).\n\nOnce ready, let's install ESP-IDF:\n\n[ESP-IDF: Open ESP-IDF Install Manager](command:espIdf.installManager)\n\n\n\nAfter that, run:\n\n[ESP-IDF: Select current ESP-IDF version](command:espIdf.selectCurrentIdfVersion)\n\n",
             "media": {
               "markdown": "walkthroughs/basic/configuration.md"
             }
