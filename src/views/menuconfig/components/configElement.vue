@@ -2,9 +2,6 @@
 import { Menu, menuType } from "../../../espIdf/menuconfig/Menu";
 import { useMenuconfigStore } from "../store";
 import ConfigElement from "./configElement.vue";
-import { IconInfo } from "@iconify-prerendered/vue-codicon";
-import { Ref, ref } from "vue";
-import { vMaska } from "maska";
 import SelectDropdown from "./SelectDropdown.vue";
 import Checkbox from "./checkbox.vue";
 import NumberInput from "./NumberInput.vue";
@@ -14,12 +11,6 @@ import HexInput from "./HexInput.vue";
 const props = defineProps<{
   config: Menu;
 }>();
-
-let isHelpVisible: Ref<boolean> = ref(false);
-
-function toggleHelp() {
-  isHelpVisible.value = !isHelpVisible.value;
-}
 const store = useMenuconfigStore();
 
 function onChange(e) {
@@ -67,7 +58,7 @@ function onChange(e) {
       :id="props.config.id"
       class="submenu form-group"
     >
-      <h4 class="subtitle" v-text="props.config.title" />
+      <h4 class="menu-title" v-text="props.config.title" />
       <Checkbox
         class="menuconfig"
         v-if="props.config.isMenuconfig"
@@ -75,12 +66,6 @@ function onChange(e) {
         @change="onChange"
       />
     </div>
-
-    <p v-show="isHelpVisible" class="help-kconfig-title">
-      KCONFIG Name:
-      <label style="font-weight: 900;">{{ props.config.name }}</label>
-    </p>
-    <div v-show="isHelpVisible" class="content" v-html="props.config.help" />
 
     <div v-if="props.config.type !== 'choice'">
       <ConfigElement
@@ -93,9 +78,6 @@ function onChange(e) {
 </template>
 
 <style scoped>
-.info-icon {
-  margin-left: 5px;
-}
 .form-group {
   padding-left: 30px;
   overflow: hidden;
@@ -103,25 +85,6 @@ function onChange(e) {
 }
 .config-el:hover {
   background-color: var(--vscode-notifications-background);
-}
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  appearance: none;
-  margin: 0;
-}
-.content {
-  padding: 0 18px;
-  overflow: hidden;
-  transition: max-height 0.2s ease-out;
-  margin: 10px;
-}
-.input {
-  width: 30rem;
-}
-.input,
-.select {
-  border-color: var(--vscode-input-background);
 }
 .submenu {
   padding-left: 0px;
@@ -131,8 +94,11 @@ input[type="number"]::-webkit-inner-spin-button {
 .menuconfig {
   padding-left: 0px;
 }
-.help-kconfig-title {
-  padding: 0 18px;
-  margin-left: 10px;
+.menu-title {
+  font-family: var(--vscode-font-family, "Segoe WPC", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif);
+  font-weight: 750;
+  font-size: 26px;
+  color: var(--vscode-settings-headerForeground, #888888);
+  user-select: none;
 }
 </style>
