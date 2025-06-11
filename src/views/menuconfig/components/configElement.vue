@@ -6,6 +6,7 @@ import { IconInfo } from "@iconify-prerendered/vue-codicon";
 import { Ref, ref } from "vue";
 import { vMaska } from "maska";
 import Checkbox from "./checkbox.vue";
+import SelectDropdown from "./SelectDropdown.vue";
 
 const props = defineProps<{
   config: Menu;
@@ -28,38 +29,11 @@ function onChange(e) {
 
 <template>
   <div v-if="props.config.isVisible" :class="{ 'config-el': props.config.type !== 'menu' }">
-    <div v-if="props.config.type === 'choice'" class="form-group">
-      <div class="field">
-        <div class="field has-addons">
-          <label v-text="props.config.title" />
-          <div class="control">
-            <div class="info-icon" @click="toggleHelp">
-              <IconInfo />
-            </div>
-          </div>
-        </div>
-        <div class="field">
-          <div class="control">
-            <div class="select is-small">
-              <select
-                v-model="props.config.value"
-                @change="onChange"
-                :data-config-id="props.config.id"
-              >
-                <option
-                  v-for="option in props.config.children"
-                  :key="option.id"
-                  :value="option.id"
-                  v-show="option.isVisible"
-                >
-                  {{ option.title }}
-                </option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <SelectDropdown
+      v-if="props.config.type === 'choice'"
+      :config="props.config"
+      @change="onChange"
+    />
     <div v-if="props.config.type === 'bool'" class="form-group">
       <div style="display: flex; align-items: center;">
         <Checkbox
