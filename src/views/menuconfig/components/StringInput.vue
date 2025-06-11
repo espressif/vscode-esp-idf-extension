@@ -1,0 +1,109 @@
+<script setup lang="ts">
+import { Menu } from "../../../espIdf/menuconfig/Menu";
+import { IconInfo } from "@iconify-prerendered/vue-codicon";
+import { Ref, ref } from "vue";
+
+const props = defineProps<{
+  config: Menu;
+}>();
+
+const emit = defineEmits<{
+  (e: 'change', value: string): void;
+}>();
+
+let isHelpVisible: Ref<boolean> = ref(false);
+
+function toggleHelp() {
+  isHelpVisible.value = !isHelpVisible.value;
+}
+
+function onChange(e: Event) {
+  const target = e.target as HTMLInputElement;
+  emit('change', target.value);
+}
+</script>
+
+<template>
+  <div class="form-group">
+    <div class="field has-addons">
+      <label v-text="props.config.title" :data-config-id="props.config.id" />
+      <div class="info-icon" @click="toggleHelp">
+        <IconInfo />
+      </div>
+    </div>
+    <div class="field is-grouped">
+      <div class="control">
+        <input
+          v-model="props.config.value"
+          type="text"
+          class="vscode-input"
+          @change="onChange"
+        />
+      </div>
+    </div>
+
+    <p v-show="isHelpVisible" class="help-kconfig-title">
+      KCONFIG Name: <label style="font-weight: 900;">{{ props.config.name }}</label>
+    </p>
+    <div v-show="isHelpVisible" class="content" v-html="props.config.help" />
+  </div>
+</template>
+
+<style scoped>
+.form-group {
+  padding-left: 30px;
+  overflow: hidden;
+  margin-bottom: 0.5em;
+}
+
+.field {
+  margin-bottom: 0.5rem;
+}
+
+.vscode-input {
+  width: 30rem;
+  padding: 4px 8px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.vscode-input:hover {
+  border-color: var(--vscode-input-border);
+}
+
+.vscode-input:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.vscode-input::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+
+.info-icon {
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+.info-icon:hover {
+  color: var(--vscode-textLink-activeForeground);
+}
+
+.content {
+  padding: 0 18px;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+  margin: 10px;
+}
+
+.help-kconfig-title {
+  padding: 0 18px;
+  margin-left: 10px;
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+}
+</style> 
