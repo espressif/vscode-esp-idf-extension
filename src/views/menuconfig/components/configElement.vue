@@ -8,6 +8,8 @@ import { vMaska } from "maska";
 import SelectDropdown from "./SelectDropdown.vue";
 import Checkbox from "./checkbox.vue";
 import NumberInput from "./NumberInput.vue";
+import StringInput from "./StringInput.vue";
+import HexInput from "./HexInput.vue";
 
 const props = defineProps<{
   config: Menu;
@@ -22,7 +24,7 @@ const store = useMenuconfigStore();
 
 function onChange(e) {
   if (props.config.type === menuType.hex) {
-    props.config.value = e.target.value;
+    props.config.value = e;
   } else if (props.config.type === "bool") {
     props.config.value = e;
   }
@@ -50,47 +52,16 @@ function onChange(e) {
       :config="props.config"
       @change="onChange"
     />
-    <div v-if="props.config.type === 'string'" class="form-group">
-      <div class="field has-addons">
-        <label v-text="props.config.title" :data-config-id="props.config.id" />
-        <div class="info-icon" @click="toggleHelp">
-          <IconInfo />
-        </div>
-      </div>
-      <div class="field is-grouped">
-        <div class="control">
-          <input
-            v-model="props.config.value"
-            type="text"
-            class="input is-small"
-            @change="onChange"
-          />
-        </div>
-      </div>
-    </div>
-    <div v-if="props.config.type === 'hex'" class="form-group">
-      <div class="field has-addons">
-        <label v-text="props.config.title" />
-        <div class="control">
-          <div class="info-icon" @click="toggleHelp">
-            <IconInfo />
-          </div>
-        </div>
-      </div>
-      <div class="field is-grouped">
-        <div class="control">
-          <input
-            v-maska
-            v-model="props.config.value"
-            data-maska="0xWWWWWWWWWW"
-            data-maska-tokens="W:[0-9a-fA-F]"
-            class="input is-small"
-            @change.native="onChange"
-            :data-config-id="props.config.id"
-          />
-        </div>
-      </div>
-    </div>
+    <StringInput
+      v-if="props.config.type === 'string'"
+      :config="props.config"
+      @change="onChange"
+    />
+    <HexInput
+      v-if="props.config.type === 'hex'"
+      :config="props.config"
+      @change="onChange"
+    />
     <div
       v-if="props.config.type === 'menu'"
       :id="props.config.id"
