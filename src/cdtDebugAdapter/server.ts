@@ -54,9 +54,21 @@ export class CDTDebugAdapterDescriptorFactory
     }
   }
 
+  checkCurrentPort(port: number): boolean {
+    if (!this.server) {
+      return false;
+    }
+    const address = this.server.address();
+    if (address && typeof address === "object" && address.port) {
+      return (<AddressInfo>address).port === port;
+    }
+    return false;
+  }
+
   dispose() {
     if (this.server) {
       this.server.close();
+      this.server = undefined;
     }
   }
 }

@@ -265,6 +265,8 @@ const minIdfVersionCheck = async function (
 
 let projectConfigManager: ProjectConfigurationManager | undefined;
 
+let cdtDebugAdapterFactory: CDTDebugAdapterDescriptorFactory | undefined;
+
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
   Logger.init(context);
@@ -1201,6 +1203,21 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.workspace.onDidChangeConfiguration(async (e) => {
     const winFlag = process.platform === "win32" ? "Win" : "";
+    // Launch.json changes
+    if (e.affectsConfiguration("launch.configurations")) {
+      const config = vscode.workspace.getConfiguration("launch", workspaceRoot);
+      const configurations =
+        config.get<vscode.DebugConfiguration[]>("configurations") || [];
+      for (const conf of configurations) {
+        if (
+          conf.type === "gdbtarget" &&
+          conf.debugPort &&
+          !cdtDebugAdapterFactory.checkCurrentPort(conf.debugPort)
+        ) {
+          cdtDebugAdapterFactory.dispose();
+        }
+      }
+    }
     if (e.affectsConfiguration("idf.enableStatusBar")) {
       const enableStatusBar = idfConf.readParameter(
         "idf.enableStatusBar",
@@ -1270,10 +1287,11 @@ export async function activate(context: vscode.ExtensionContext) {
     )
   );
 
+  cdtDebugAdapterFactory = new CDTDebugAdapterDescriptorFactory();
   context.subscriptions.push(
     vscode.debug.registerDebugAdapterDescriptorFactory(
       "gdbtarget",
-      new CDTDebugAdapterDescriptorFactory()
+      cdtDebugAdapterFactory
     )
   );
 
