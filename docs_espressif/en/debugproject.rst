@@ -144,6 +144,7 @@ You can modify the configuration to suit your needs. Let's describe the configur
 
 Some additional arguments you might use are:
 
+- ``debugPort``: (Default: 43476) The port to launch the Eclipse CDT GDB Debug Adapter server. If not specified, it will use the default value of 43476.
 - ``runOpenOCD``: (Default: true). Run extension OpenOCD Server.
 - ``verifyAppBinBeforeDebug``: (Default: false) Verify that current ESP-IDF project binary is the same as binary in chip.
 - ``logFile``: Absolute path to the file to log interaction with gdb. Example: ${workspaceFolder}/gdb.log.
