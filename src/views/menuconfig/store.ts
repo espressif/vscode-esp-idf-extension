@@ -17,7 +17,7 @@
  */
 
 import { defineStore } from "pinia";
-import { ref, Ref } from "vue";
+import { ref, Ref, computed } from "vue";
 import { Menu } from "../../espIdf/menuconfig/Menu";
 
 declare var acquireVsCodeApi: any;
@@ -42,7 +42,7 @@ export interface State {
 
 export const useMenuconfigStore = defineStore("menuconfig", () => {
   const items: Ref<Menu[]> = ref([]);
-  const selectedMenu = ref("");
+  const _selectedMenu = ref("");
   const searchString = ref("");
   const textDictionary: Ref<{
     save: string;
@@ -52,6 +52,13 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
     save: "Save",
     discard: "Discard",
     reset: "Reset",
+  });
+
+  const selectedMenu = computed({
+    get: () => _selectedMenu.value,
+    set: (value: string) => {
+      _selectedMenu.value = value;
+    }
   });
 
   function sendNewValue(newValue) {

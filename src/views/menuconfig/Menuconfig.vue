@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useMenuconfigStore } from "./store";
 import { Menu } from "../../espIdf/menuconfig/Menu";
 import ConfigElement from "./components/configElement.vue";
 import SearchBar from "./components/SearchBar.vue";
-import SideNavItem from "./components/SideNavItem.vue";
+import SettingsTree from "./components/SettingsTree.vue";
 
 const store = useMenuconfigStore();
+const isDragging = ref(false);
+const treeWidth = ref(400); // Default width in pixels
+const minTreeWidth = 300; // Minimum width in pixels
+const maxTreeWidth = 600; // Maximum width in pixels
+const minContentWidth = 300; // Minimum width in pixels
 
 function throttle<T extends (...args: any[]) => void>(fn: T, wait: number) {
   let throttled = false;
@@ -62,138 +67,76 @@ const items = computed(() => {
   return store.items;
 });
 
-// const menuItems = computed(() => {
-//   return store.items.filter((i) => i.type === "menu");
-// });
-
-const menuItems = computed(() => {
-  const items = store.items.filter((i) => i.type === "menu");
-  const arrItems = items.map((item) => {
-    const newItem: {
-      id: string;
-      label: string;
-      value: string;
-      open: boolean;
-      subItems: {
-        id: string;
-        label: string;
-        subItems: {
-          id: string;
-          label: string;
-          subItems: Menu[];
-          value: string;
-        }[];
-        value: string;
-      }[];
-    } = {
-      id: item.id,
-      label: item.title,
-      value: item.id,
-      open: true,
-      subItems: [],
-    };
-    const modifiedChildren: {
-      id: string;
-      label: string;
-      value: string;
-      open: boolean;
-      subItems: {
-        id: string;
-        label: string;
-        subItems: Menu[];
-        value: string;
-      }[];
-    }[] = [];
-    for (const child of item.children.filter((i) => i.type === "menu")) {
-      const newChild: {
-        id: string;
-        label: string;
-        value: string;
-        open: boolean;
-        subItems: {
-          id: string;
-          label: string;
-          subItems: Menu[];
-          value: string;
-        }[];
-      } = {
-        id: child.id,
-        label: child.title,
-        value: child.id,
-        open: child.children && child.children.length > 0,
-        subItems: [],
-      };
-      const nestedChildren: {
-        id: string;
-        label: string;
-        value: string;
-        open: boolean;
-        subItems: Menu[];
-      }[] = [];
-      for (const nestedChild of child.children.filter(
-        (i) => i.type === "menu"
-      )) {
-        const newNestedChild = {
-          id: nestedChild.id,
-          label: nestedChild.title,
-          value: nestedChild.id,
-          open: nestedChild.children && nestedChild.children.length > 0,
-          subItems: nestedChild.children.filter((i) => i.type === "menu"),
-        };
-        nestedChildren.push(newNestedChild);
-      }
-      newChild.subItems = nestedChildren;
-      modifiedChildren.push(newChild);
-    }
-    newItem.subItems = modifiedChildren;
-    return newItem;
-  });
-  return arrItems;
-});
-
 function onScroll() {
-  const tree = document.getElementById("sideNavMenus");
-  if (!tree || !tree.shadowRoot) {
-    console.warn("vscode-tree or its shadowRoot not found.");
-    return;
-  }
+  const configList = document.querySelector(".config-list") as HTMLElement;
+  const topbar = document.querySelector("#topbar") as HTMLElement;
+  if (!configList || !topbar) return;
 
-  // Access the shadow root of the vscode-tree
-  const shadowRoot = tree.shadowRoot;
-  Array.from(
-    shadowRoot.querySelectorAll<HTMLElement>("div ul li div span")
-  ).forEach((el) => {
-    const sectionName: string = el.textContent || "";
-    const refElement = Array.from(
-      document.querySelectorAll(".submenu.form-group h4.subtitle")
-    ).find((elem) => elem.textContent === sectionName) as HTMLElement;
-    const topbar = document.querySelector("#topbar") as HTMLElement;
-    if (
-      refElement &&
-      topbar &&
-      refElement.getBoundingClientRect().top -
-        topbar.getBoundingClientRect().bottom <
-        topbar.offsetHeight
-    ) {
-      Array.from(
-        shadowRoot.querySelectorAll<HTMLElement>("div ul li div span")
-      ).forEach((menu) => {
-        menu.style.fontWeight = "400";
-      });
-      el.style.fontWeight = "900";
-    } else {
-      el.style.fontWeight = "400";
-    }
+  const sections = Array.from(document.querySelectorAll(".submenu.form-group")) as HTMLElement[];
+  const topbarBottom = topbar.getBoundingClientRect().bottom;
+  const configListTop = configList.getBoundingClientRect().top;
+  const scrollOffset = 100; // Add some offset to make selection more responsive
+
+  const visibleSection = sections.find((section) => {
+    const rect = section.getBoundingClientRect();
+    const sectionTop = rect.top - configListTop;
+    return sectionTop >= -scrollOffset && sectionTop <= scrollOffset;
   });
+
+  if (visibleSection) {
+    const sectionId = visibleSection.id;
+    if (sectionId && store.selectedMenu !== sectionId) {
+      store.selectedMenu = sectionId;
+    }
+  }
 }
 
 const throttledScrollHandler = throttle((event) => {
   onScroll();
-}, 100);
+}, 50);
 
 const handleScroll = (event) => {
   throttledScrollHandler(event);
 };
+
+function handleMenuSelect(value: string) {
+  store.selectedMenu = value;
+  const secNew = document.querySelector('#' + value) as HTMLElement;
+  const configList = document.querySelector('.config-list') as HTMLElement;
+  const topbar = document.querySelector('#topbar') as HTMLElement;
+  if (secNew && configList && topbar) {
+    const endPosition = secNew.offsetTop + configList.clientTop - topbar.getBoundingClientRect().bottom;
+    configList.scrollTo({ left: 0, top: endPosition - 10, behavior: 'auto' });
+  }
+}
+
+function handleMouseDown(e: MouseEvent) {
+  isDragging.value = true;
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+  e.preventDefault();
+}
+
+function handleMouseMove(e: MouseEvent) {
+  if (!isDragging.value) return;
+  
+  const mainElement = document.getElementById('main');
+  if (!mainElement) return;
+
+  const mainRect = mainElement.getBoundingClientRect();
+  const newWidth = e.clientX - mainRect.left;
+  
+  if (newWidth >= minTreeWidth && newWidth <= maxTreeWidth) {
+    treeWidth.value = newWidth;
+  }
+}
+
+function handleMouseUp() {
+  if (!isDragging.value) return;
+  isDragging.value = false;
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
+}
 
 onMounted(() => {
   store.requestInitValues();
@@ -201,23 +144,8 @@ onMounted(() => {
   if (scrollableDiv) {
     scrollableDiv.addEventListener("scroll", handleScroll);
   }
-  const tree = document.getElementById("sideNavMenus");
-  if (tree) {
-    tree.addEventListener("vsc-tree-select", (event) => {
-      const customEvent = event as CustomEvent;
-      store.selectedMenu = customEvent.detail.value; // Set the selected menu id
-      const secNew = document.querySelector(
-        "#" + customEvent.detail.value
-      ) as HTMLElement;
-      const configList = document.querySelector(".config-list") as HTMLElement;
-      const topbar = document.querySelector("#topbar") as HTMLElement;
-      const endPosition =
-        secNew.offsetTop +
-        configList.clientTop -
-        topbar.getBoundingClientRect().bottom;
-      configList.scrollTo({ left: 0, top: endPosition - 10, behavior: "auto" });
-    });
-  }
+  window.addEventListener('mousemove', handleMouseMove);
+  window.addEventListener('mouseup', handleMouseUp);
 });
 
 onUnmounted(() => {
@@ -225,22 +153,24 @@ onUnmounted(() => {
   if (scrollableDiv) {
     scrollableDiv.removeEventListener("scroll", handleScroll);
   }
+  window.removeEventListener('mousemove', handleMouseMove);
+  window.removeEventListener('mouseup', handleMouseUp);
 });
 </script>
 
 <template>
-  <div>
+  <div class="container">
     <SearchBar />
-    <div id="main" class="columns">
-      <div class="sidenav column is-narrow">
-        <!-- <ul>
-          <SideNavItem v-for="menu in menuItems" :key="menu.id" :menu="menu" />
-        </ul> -->
-        <vscode-tree id="sideNavMenus" :data="menuItems" indent-guides arrows>
-        </vscode-tree>
+    <div id="main" class="grid-container">
+      <div class="sidenav" :style="{ width: treeWidth + 'px', minWidth: treeWidth + 'px', maxWidth: treeWidth + 'px' }">
+        <SettingsTree :data="store.items" @select="handleMenuSelect" />
       </div>
-
-      <div id="scrollable" class="config-list column" @scroll="handleScroll">
+      <div 
+        class="resize-handle" 
+        @mousedown="handleMouseDown"
+        :class="{ 'dragging': isDragging }"
+      ></div>
+      <div id="scrollable" class="config-list" @scroll="handleScroll">
         <ConfigElement
           :config="config"
           v-for="config in items"
@@ -254,36 +184,95 @@ onUnmounted(() => {
 <style lang="scss">
 @import "../commons/espCommons.scss";
 
-#main {
-  display: flex;
-  height: 90vh;
-  margin: auto;
+.container {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
+
+.grid-container {
+  display: grid;
+  grid-template-columns: auto 4px 1fr;
+  height: 90vh;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.resize-handle {
+  width: 4px;
+  background-color: transparent;
+  cursor: col-resize;
+  transition: background-color 0.1s;
+  z-index: 1;
+  position: relative;
+  
+  &:hover {
+    background-color: var(--vscode-sash-hoverBorder);
+  }
+  
+  &.dragging {
+    background-color: var(--vscode-sash-activeBorder);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 0;
+    width: 12px;
+    height: 100%;
+    cursor: col-resize;
+  }
+}
+
 p {
   color: var(--vscode-editor-foreground);
 }
+
 .config-list {
   overflow: auto;
-  margin-left: 1%;
   color: var(--vscode-foreground);
+  min-width: 300px;
+  max-width: 800px;
+  padding: 0 0.5rem;
+  margin: 0 auto;
 }
+
 .sidenav {
   overflow: auto;
   height: 90vh;
+  border-right: 1px solid var(--vscode-panel-border);
+  padding: 0 0.5rem;
 }
+
+.help-kconfig-title {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  word-wrap: break-word;
+  box-sizing: border-box;
+}
+
 .sidenav ul li {
   cursor: pointer;
 }
+
 .sidenav ul p {
   text-decoration: none;
   display: block;
 }
+
 .sidenav ul p:hover {
   color: var(--vscode-textLink-activeForeground);
 }
+
 ul > li {
   list-style-type: none;
 }
+
 span {
   color: rgb(231, 76, 60);
   border-style: solid;
@@ -292,6 +281,7 @@ span {
   padding: 3px;
   display: inline-flex;
 }
+
 .content ul li {
   list-style-type: disc;
 }
