@@ -77,12 +77,14 @@ export async function runExistingEIM(
   });
 
   // Read idf.eimExecutableArgs with utils.readParameter and use it to run EIM
-  const idfEimExecutableArgs = readParameter("idf.eimExecutableArgs") as string[];
+  const idfEimExecutableArgs = readParameter(
+    "idf.eimExecutableArgs"
+  ) as string[];
   const argsString = idfEimExecutableArgs.join(" ");
 
   let binaryPath = "";
   if (process.platform === "win32") {
-    binaryPath = `Start-Process -FilePath "${eimPath}"${argsString ? " -ArgumentList '" + argsString + "'" : ""}`;
+    binaryPath = `& '${eimPath.replace(/'/g, "''")}'${argsString ? " " + argsString : ""}'`;
   } else if (process.platform === "linux") {
     binaryPath = `./${basename(eimPath)}${argsString ? " " + argsString : ""}`;
   } else if (process.platform === "darwin") {
