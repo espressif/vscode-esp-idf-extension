@@ -84,7 +84,9 @@ export async function runExistingEIM(
 
   let binaryPath = "";
   if (process.platform === "win32") {
-    binaryPath = `& '${eimPath.replace(/'/g, "''")}'${argsString ? " " + argsString : ""}'`;
+    binaryPath = `& '${eimPath.replace(/'/g, "''")}'${
+      argsString ? " " + argsString : ""
+    }`;
   } else if (process.platform === "linux") {
     binaryPath = `./${basename(eimPath)}${argsString ? " " + argsString : ""}`;
   } else if (process.platform === "darwin") {
@@ -117,7 +119,9 @@ export async function downloadExtractAndRunEIM(
       message: `Downloading EIM versions...`,
       increment: 0,
     });
-    const response = await axios.get(jsonUrl);
+    const response = await axios.get(jsonUrl, {
+      headers: { "Cache-Control": "no-cache" },
+    });
     const data = response.data;
 
     const arch = process.arch;
