@@ -261,6 +261,15 @@ export async function createVscodeFolder(curWorkspaceFsPath: vscode.Uri) {
   await setCCppPropertiesJsonCompilerPath(curWorkspaceFsPath);
 }
 
+export async function createGitignoreFile(destinationDir: vscode.Uri) {
+  const gitignoreSrcPath = path.join(templateDir, ".gitignore");
+  const gitignoreDestPath = path.join(destinationDir.fsPath, ".gitignore");
+  const gitignoreExists = await pathExists(gitignoreSrcPath);
+  if (gitignoreExists) {
+    await copy(gitignoreSrcPath, gitignoreDestPath);
+  }
+}
+
 export async function setCCppPropertiesJsonCompilerPath(
   curWorkspaceFsPath: vscode.Uri
 ) {
@@ -405,6 +414,7 @@ export async function copyFromSrcProject(
   await copy(srcDirPath, destinationDir.fsPath);
   await createVscodeFolder(destinationDir);
   await createDevContainer(destinationDir.fsPath);
+  await createGitignoreFile(destinationDir);
 }
 
 export function getVariableFromCMakeLists(workspacePath: string, key: string) {
