@@ -35,5 +35,5 @@ export class EspHomekitCloning extends AbstractCloning {
 export async function getEspHomeKitSdk(workspace: Uri) {
   const gitPath = (await readParameter("idf.gitPath", workspace)) || "git";
   const homeKitInstaller = new EspHomekitCloning(gitPath);
-  await homeKitInstaller.getRepository("idf.espHomeKitSdkPath", workspace);
+  await homeKitInstaller.getRepository("HOMEKIT_PATH", workspace);
 }
