@@ -62,7 +62,7 @@ export async function updateCurrentProfileIdfTarget(
 
   const projectConfJson = await getProjectConfigurationElements(
     workspaceFolder,
-    true
+    false
   );
 
   if (!projectConfJson[selectedConfig]) {
