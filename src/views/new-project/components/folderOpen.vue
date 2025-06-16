@@ -30,34 +30,108 @@ function onKeyEnter() {
 </script>
 
 <template>
-  <div class="field text-size">
-    <label class="label">{{ propLabel }}</label>
-    <div class="field expanded has-addons">
-      <div class="control expanded">
+  <div class="settings-item">
+    <label class="settings-label">{{ propLabel }}</label>
+    <div class="settings-control">
+      <div class="folder-input-group">
         <input
           type="text"
-          class="input"
+          class="vscode-input"
           v-model="dataModel"
           @keyup.enter="onKeyEnter"
         />
-      </div>
-      <div class="control" v-if="staticText">
-        <a class="button is-static">{{ pathSep + staticText }}</a>
-      </div>
-      <div
-        class="control"
-        @mouseover="folderIcon = 'folder-opened'"
-        @mouseout="folderIcon = 'folder'"
-      >
-        <div
-          class="icon is-large is-size-4"
-          style="text-decoration: none;"
-          v-on:click="openMethod"
+        <div class="folder-input-suffix" v-if="staticText">
+          <span class="static-text">{{ pathSep + staticText }}</span>
+        </div>
+        <button
+          class="folder-button"
+          @mouseover="folderIcon = 'folder-opened'"
+          @mouseout="folderIcon = 'folder'"
+          @click="openMethod"
         >
           <IconFolderOpened v-if="(folderIcon === 'folder-opened')" />
           <IconFolder v-if="(folderIcon === 'folder')" />
-        </div>
+        </button>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.folder-input-group {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+}
+
+.folder-input-suffix {
+  padding: 0 8px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  background-color: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border);
+  border-left: none;
+  color: var(--vscode-input-foreground);
+  font-size: 13px;
+  line-height: 32px;
+}
+
+.folder-input-suffix .static-text {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.folder-button {
+  height: 32px;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--vscode-button-background);
+  border: 1px solid var(--vscode-button-border);
+  border-left: none;
+  color: var(--vscode-button-foreground);
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+}
+
+.folder-button :deep(svg) {
+  width: 16px;
+  height: 16px;
+}
+
+.folder-button:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+.folder-button:active {
+  background-color: var(--vscode-button-activeBackground);
+}
+
+.folder-button:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.vscode-input {
+  flex: 1;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  height: 32px;
+  line-height: 32px;
+  font-size: 13px;
+}
+
+.folder-input-suffix {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.folder-button {
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+}
+</style>
