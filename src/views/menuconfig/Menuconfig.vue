@@ -69,11 +69,11 @@ const items = computed(() => {
 
 function onScroll() {
   const configList = document.querySelector(".config-list") as HTMLElement;
-  const topbar = document.querySelector("#topbar") as HTMLElement;
-  if (!configList || !topbar) return;
+  const searchContainer = document.querySelector(".search-container") as HTMLElement;
+  if (!configList || !searchContainer) return;
 
   const sections = Array.from(document.querySelectorAll(".submenu.form-group")) as HTMLElement[];
-  const topbarBottom = topbar.getBoundingClientRect().bottom;
+  const searchContainerBottom = searchContainer.getBoundingClientRect().bottom;
   const configListTop = configList.getBoundingClientRect().top;
   const scrollOffset = 100; // Add some offset to make selection more responsive
 
@@ -103,9 +103,9 @@ function handleMenuSelect(value: string) {
   store.selectedMenu = value;
   const secNew = document.querySelector('#' + value) as HTMLElement;
   const configList = document.querySelector('.config-list') as HTMLElement;
-  const topbar = document.querySelector('#topbar') as HTMLElement;
-  if (secNew && configList && topbar) {
-    const endPosition = secNew.offsetTop + configList.clientTop - topbar.getBoundingClientRect().bottom;
+  const searchContainer = document.querySelector('.search-container') as HTMLElement;
+  if (secNew && configList && searchContainer) {
+    const endPosition = secNew.offsetTop + configList.clientTop - searchContainer.getBoundingClientRect().bottom;
     configList.scrollTo({ left: 0, top: endPosition - 10, behavior: 'auto' });
   }
 }
@@ -189,6 +189,9 @@ onUnmounted(() => {
   max-width: 1600px;
   margin: 0 auto;
   padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .grid-container {

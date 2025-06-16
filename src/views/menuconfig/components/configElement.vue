@@ -83,6 +83,9 @@ function onChange(e) {
   overflow: hidden;
   margin-bottom: 0.5em;
 }
+.config-el {
+  width: 90%;
+}
 .config-el:hover {
   background-color: var(--vscode-notifications-background);
 }
