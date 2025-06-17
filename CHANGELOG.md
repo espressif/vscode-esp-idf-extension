@@ -8,6 +8,34 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.10.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.10.1)
+
+## Features and enhancements
+
+- [Evaluate variables on hover, view variables as Hex, set data breakpoints](https://github.com/espressif/vscode-esp-idf-extension/pull/1521)
+- [Clang project settings configuration](https://github.com/espressif/vscode-esp-idf-extension/pull/1489)
+- [Show currently active openOCD board in selection list](https://github.com/espressif/vscode-esp-idf-extension/pull/1527)
+- [Add ESP-IDF vscode profile templates](https://github.com/espressif/vscode-esp-idf-extension/pull/1499)
+
+### Bug Fixes
+
+- [No workspace fsPath launch error](https://github.com/espressif/vscode-esp-idf-extension/pull/1538)
+- [Disassembly view  DAP request updates](https://github.com/espressif/vscode-esp-idf-extension/pull/1518)
+- [Status bar items names on right click](https://github.com/espressif/vscode-esp-idf-extension/pull/1515)
+- [Replace user HOME or USERPROFILE for HOMEPATH in doctor command logs](https://github.com/espressif/vscode-esp-idf-extension/pull/1517)
+- [Add user validation before burning eFuses](https://github.com/espressif/vscode-esp-idf-extension/pull/1540)
+- [Add current setup to ESP-IDF setup list](https://github.com/espressif/vscode-esp-idf-extension/pull/1513)
+- [Fix OpenOCD Args in project configuration state](https://github.com/espressif/vscode-esp-idf-extension/pull/1551)
+- [Execute export script in IDF Terminal, allow custom terminal executable](https://github.com/espressif/vscode-esp-idf-extension/pull/1558)
+- [Add eFuse docs in readme](https://github.com/espressif/vscode-esp-idf-extension/pull/1545)
+- [Remove which and where dependency, browse binary in list of PATH](https://github.com/espressif/vscode-esp-idf-extension/pull/1565)
+- [Fix cloning dev branches](https://github.com/espressif/vscode-esp-idf-extension/pull/1584)
+- [Add Windows ARM serialport binaries](https://github.com/espressif/vscode-esp-idf-extension/pull/1585)
+- [Add idf-python and idf-git Github mirrors](https://github.com/espressif/vscode-esp-idf-extension/pull/1586)
+- [Fix sysview gdbinit commands](https://github.com/espressif/vscode-esp-idf-extension/pull/1580)
+- [Fix update debug adapter debugPort in launch.json](https://github.com/espressif/vscode-esp-idf-extension/pull/1587)
+
+
 ## [1.10.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.10.0)
 
 ### Features and enhancements
