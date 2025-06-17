@@ -2,7 +2,7 @@
 import { storeToRefs } from "pinia";
 import { useTracingStore } from "./store";
 import { computed, onMounted } from "vue";
-import { IconPulse } from "@iconify-prerendered/vue-codicon";
+import { IconPulse, IconClose } from "@iconify-prerendered/vue-codicon";
 
 const store = useTracingStore();
 
@@ -24,14 +24,14 @@ const {
 } = storeToRefs(store);
 
 const persistentBytes = computed(() => {
-  //amount of allocated memory that hasn’t been freed yet
+  //amount of allocated memory that hasn't been freed yet
   return Object.keys(allocLookupTable.value).reduce(
     (acc: any, currentKey: string) => acc + allocLookupTable.value[currentKey].size,
     0
   );
 });
 const persistentCount = computed(() => {
-  //number of allocations that haven’t been freed yet
+  //number of allocations that haven't been freed yet
   return Object.keys(allocLookupTable.value).length;
 });
 const transientCount = computed(() => {
@@ -65,64 +65,57 @@ onMounted(() => {
 
 <template>
   <div id="app">
-    <div class="notification is-danger" v-if="errorMsg">
-      <button class="delete" v-on:click="errorMsg = ''"></button>
-      {{ errorMsg }}
-    </div>
-    <header class="section">
-      <div class="container">
-        <nav class="level is-mobile">
-          <h1 class="title is-size-5 is-size-6-mobile">
-            <strong>ESP-IDF</strong>&nbsp;App Tracing Reporter
-          </h1>
-        </nav>
-        <p class="subtitle is-size-6 is-size-7-mobile">
-          App Tracing Reporter will help you with in-depth analysis of the
-          runtime. In a nutshell this feature allows you to transfer arbitrary
-          data between host and ESP32 via JTAG interface with small overhead on
-          program execution.
-        </p>
+    <div class="settings-error" v-if="errorMsg">
+      <div class="settings-error-content">
+        <span>{{ errorMsg }}</span>
+        <button class="settings-error-close" v-on:click="errorMsg = ''">
+          <IconClose />
+        </button>
       </div>
-    </header>
-    <div class="section no-padding-top">
-      <div class="container">
-        <div class="notification is-clipped">
-          <nav class="level is-mobile">
-            <div class="level-left">
-              <div class="level-item">
-                <span class="icon">
-                  <IconPulse class="is-size-3" />
-                </span>
-              </div>
-              <div class="level-item">
-                {{ fileName }}
-              </div>
-            </div>
-            <div class="level-right">
-              <div class="level-item">
-                <button
-                  class="button"
-                  v-on:click="store.showReport"
-                  v-bind:class="{
-                    'is-loading': isCalculating,
-                    'is-static': isCalculating,
-                  }"
-                >
-                  Show Report
-                </button>
-              </div>
-            </div>
-          </nav>
+    </div>
+
+    <div class="settings-header">
+      <h1 class="settings-title">
+        <strong>ESP-IDF</strong>&nbsp;App Tracing Reporter
+      </h1>
+      <p class="settings-description">
+        App Tracing Reporter will help you with in-depth analysis of the
+        runtime. In a nutshell this feature allows you to transfer arbitrary
+        data between host and ESP32 via JTAG interface with small overhead on
+        program execution.
+      </p>
+    </div>
+
+    <div class="settings-content">
+      <div class="settings-section">
+        <div class="settings-section-header">
+          <div class="settings-section-title">
+            <span class="settings-section-icon">
+              <IconPulse />
+            </span>
+            <span>{{ fileName }}</span>
+          </div>
+          <button
+            class="vscode-button"
+            v-on:click="store.showReport"
+            v-bind:class="{
+              'vscode-button-loading': isCalculating,
+              'vscode-button-disabled': isCalculating,
+            }"
+          >
+            Show Report
+          </button>
         </div>
       </div>
-      <br />
-      <div class="container" v-if="log">
-        <div class="notification">
+
+      <div class="settings-section" v-if="log">
+        <div class="settings-section-content">
           <pre v-html="log"></pre>
         </div>
       </div>
-      <div class="container" v-if="heap">
-        <div class="notification">
+
+      <div class="settings-section" v-if="heap">
+        <div class="settings-section-content">
           <quick-action-menu
             @change="store.heapViewChange"
           ></quick-action-menu>
@@ -169,33 +162,159 @@ onMounted(() => {
 <style lang="scss">
 @import "../commons/espCommons.scss";
 
-div.notification {
+#app {
+  padding: 1rem;
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+}
+
+.settings-error {
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--vscode-errorForeground);
+  color: var(--vscode-editor-background);
+  border-radius: 2px;
+}
+
+.settings-error-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-error-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  margin: 0;
+  cursor: pointer;
+  color: var(--vscode-editor-background);
+  opacity: 0.8;
+  border-radius: 2px;
+}
+
+.settings-error-close:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.settings-error-close :deep(svg) {
+  width: 14px;
+  height: 14px;
+}
+
+.settings-header {
+  margin-bottom: 2rem;
+}
+
+.settings-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--vscode-settings-headerForeground);
+}
+
+.settings-description {
+  font-size: 13px;
+  color: var(--vscode-descriptionForeground);
+  margin: 0;
+}
+
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.settings-section {
+  background-color: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-settings-dropdownBorder);
+  border-radius: 2px;
+}
+
+.settings-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--vscode-settings-dropdownBorder);
+}
+
+.settings-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vscode-settings-headerForeground);
+}
+
+.settings-section-icon {
+  display: flex;
+  align-items: center;
+  color: var(--vscode-settings-headerForeground);
+}
+
+.settings-section-icon :deep(svg) {
+  width: 16px;
+  height: 16px;
+}
+
+.settings-section-content {
+  padding: 1rem;
   max-height: calc(65vh);
   overflow: auto;
-  padding: 1.25rem 1.5rem 1.25rem 1.5rem;
-}
-.button.is-static {
-  background-color: transparent;
-  color: var(--vscode-foreground);
-  border-color: var(--vscode-foreground);
 }
 
-.notification pre {
+.settings-section-content pre {
   color: var(--vscode-foreground);
   background-color: transparent;
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+  line-height: 1.4;
+  margin: 0;
+  white-space: pre-wrap;
 }
 
-.button.no-bottom-border {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+.vscode-button {
+  height: 28px;
+  padding: 0 12px;
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  border-radius: 2px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.button:disabled {
-  background-color: transparent;
-  border-color: var(--vscode-foreground);
-  color: var(--vscode-foreground);
-  border-top-width: 0;
+
+.vscode-button:hover {
+  background-color: var(--vscode-button-hoverBackground);
 }
-.button:hover:disabled {
-  color: var(--vscode-foreground);
+
+.vscode-button:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.vscode-button-loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.vscode-button-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.vscode-button-disabled:hover {
+  background-color: var(--vscode-button-background);
 }
 </style>
