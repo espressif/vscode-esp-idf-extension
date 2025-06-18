@@ -200,10 +200,10 @@ export function csv2Json(csv: string) {
     }
     let cols = lines[i].split(",");
     rows.push({
-      key: cols.shift().trim(),
-      type: cols.shift().trim(),
-      encoding: cols.shift().trim(),
-      value: cols.shift().trim(),
+      key: (cols.shift() ?? "").trim(),
+      type: (cols.shift() ?? "").trim(),
+      encoding: (cols.shift() ?? "").trim(),
+      value: (cols.shift() ?? "").trim(),
       error: undefined,
     });
   }
