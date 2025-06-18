@@ -20,7 +20,9 @@ import { join } from "path";
 import * as vscode from "vscode";
 
 import * as idfConf from "../../../idfConfiguration";
-import { appendIdfAndToolsToPath, canAccessFile, spawn } from "../../../utils";
+import { canAccessFile, spawn } from "../../../utils";
+import { configureEnvVariables } from "../../../common/prepareEnv";
+import { ESP } from "../../../config";
 
 export abstract class AbstractTracingToolManager {
   protected readonly traceFilePath: string;
@@ -42,13 +44,16 @@ export abstract class AbstractTracingToolManager {
     args?: string[],
     option?: any
   ) {
-    const modifiedEnv = await appendIdfAndToolsToPath(this.workspaceRoot);
+    const modifiedEnv = await configureEnvVariables(this.workspaceRoot);
     option.env = option.env || modifiedEnv;
     return await spawn(command, args, option);
   }
 
   protected appTraceToolsPath(): string {
-    const idfPathDir = idfConf.readParameter("idf.espIdfPath", this.workspaceRoot);
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    const idfPathDir = currentEnvVars["IDF_PATH"];
     return join(idfPathDir, "tools", "esp_app_trace");
   }
 

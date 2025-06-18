@@ -88,7 +88,7 @@ export class Logger {
       ...metadata,
       message: error.message,
       stack: error.stack,
-      category: category
+      category,
     });
   }
 
