@@ -233,5 +233,7 @@
   "Type 'SWITCH' to confirm switching to Release Mode": "输入 'SWITCH' 确认切换到发布模式",
   "Please type 'SWITCH' exactly to confirm": "请准确输入 'SWITCH' 以确认",
   "Switching to Release Mode cancelled by user": "用户取消了切换到发布模式",
-  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "用户确认切换到发布模式。继续进行闪存加密。"
+  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "用户确认切换到发布模式。继续进行闪存加密。",
+  "Activate Anyway": "仍然激活",
+  "No standard ESP-IDF projects found in workspace folders: {0}. Do you want to activate the ESP-IDF extension anyway?": "在工作区文件夹中未找到标准 ESP-IDF 项目：{0}。您是否仍要激活 ESP-IDF 扩展？"
 }

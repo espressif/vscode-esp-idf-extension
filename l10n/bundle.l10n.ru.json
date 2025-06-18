@@ -233,5 +233,7 @@
   "Type 'SWITCH' to confirm switching to Release Mode": "Введите 'SWITCH' для подтверждения переключения в Режим Релиза",
   "Please type 'SWITCH' exactly to confirm": "Пожалуйста, введите точно 'SWITCH' для подтверждения",
   "Switching to Release Mode cancelled by user": "Переключение в Режим Релиза отменено пользователем",
-  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Пользователь подтвердил переключение в Режим Релиза. Продолжаем шифрование флеш-памяти."
+  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Пользователь подтвердил переключение в Режим Релиза. Продолжаем шифрование флеш-памяти.",
+  "Activate Anyway": "Активировать в любом случае",
+  "No standard ESP-IDF projects found in workspace folders: {0}. Do you want to activate the ESP-IDF extension anyway?": "В папках рабочей области не найдено стандартных проектов ESP-IDF: {0}. Хотите активировать расширение ESP-IDF в любом случае?"
 }
