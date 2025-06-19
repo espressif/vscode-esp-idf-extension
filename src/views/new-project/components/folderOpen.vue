@@ -10,6 +10,7 @@ const props = defineProps<{
   propModel: string;
   propMutate: (val: string) => void;
   staticText: string;
+  id: string;
 }>();
 
 const dataModel = computed({
@@ -31,7 +32,7 @@ function onKeyEnter() {
 
 <template>
   <div class="settings-item">
-    <label class="settings-label">{{ propLabel }}</label>
+    <label class="settings-label">{{ props.propLabel }}</label>
     <div class="settings-control">
       <div class="folder-input-group">
         <input
@@ -39,15 +40,16 @@ function onKeyEnter() {
           class="vscode-input"
           v-model="dataModel"
           @keyup.enter="onKeyEnter"
+          :id="props.id"
         />
-        <div class="folder-input-suffix" v-if="staticText">
-          <span class="static-text">{{ pathSep + staticText }}</span>
+        <div class="folder-input-suffix" v-if="props.staticText">
+          <span class="static-text">{{ pathSep + props.staticText }}</span>
         </div>
         <button
           class="folder-button"
           @mouseover="folderIcon = 'folder-opened'"
           @mouseout="folderIcon = 'folder'"
-          @click="openMethod"
+          @click="props.openMethod"
         >
           <IconFolderOpened v-if="(folderIcon === 'folder-opened')" />
           <IconFolder v-if="(folderIcon === 'folder')" />

@@ -78,11 +78,6 @@ export const useWelcomeStore = defineStore("welcome", () => {
       command: "configureExtension",
     });
   }
-  function openShowExamplesPanel() {
-    vscode.postMessage({
-      command: "showExamples",
-    });
-  }
   function requestInitValues() {
     vscode.postMessage({
       command: "requestInitialValues",
@@ -176,7 +171,6 @@ export const useWelcomeStore = defineStore("welcome", () => {
     openImportProject,
     openNewProjectPanel,
     openSetupPanel,
-    openShowExamplesPanel,
     requestInitValues,
     updateShowOnboardingOnInit,
     fetchBlogArticles,

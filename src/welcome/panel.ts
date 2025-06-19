@@ -112,9 +112,6 @@ export class WelcomePanel {
         case "importProject":
           await commands.executeCommand("espIdf.importProject");
           break;
-        case "showExamples":
-          await commands.executeCommand("espIdf.examples.start");
-          break;
         case "exploreComponents":
           await commands.executeCommand("esp.component-manager.ui.show");
           break;
@@ -135,9 +132,6 @@ export class WelcomePanel {
                 return;
               }
               
-              // Debug: Log the structure to understand the format
-              console.log('RSS Feed Structure:', JSON.stringify(result, null, 2));
-              
               const articles = [];
               const items = result.rss?.channel?.[0]?.item || [];
               
@@ -148,9 +142,6 @@ export class WelcomePanel {
                 const url = item.link?.[0] || '';
                 const pubDate = item.pubDate?.[0] || '';
                 
-                // Debug: Log the item structure
-                console.log(`Item ${i + 1}:`, JSON.stringify(item, null, 2));
-                
                 // Try to extract image
                 let image: string | undefined;
                 
@@ -158,7 +149,6 @@ export class WelcomePanel {
                 const imgMatch = description.match(/<img[^>]+src="([^"]+)"/);
                 if (imgMatch) {
                   image = imgMatch[1];
-                  console.log(`Found image in description: ${image}`);
                 }
                 
                 // Method 2: Look for media:content
@@ -168,13 +158,11 @@ export class WelcomePanel {
                     // Check if url property exists directly (not in $ attributes)
                     if (mediaContent.url && !image) {
                       image = mediaContent.url;
-                      console.log(`Found image in media:content.url: ${image}`);
                       break;
                     }
                     // Also check $ attributes for backward compatibility
                     if (mediaContent.$ && mediaContent.$.url && !image) {
                       image = mediaContent.$.url;
-                      console.log(`Found image in media:content.$.url: ${image}`);
                       break;
                     }
                   }
@@ -187,13 +175,11 @@ export class WelcomePanel {
                     // Check if url property exists directly (not in $ attributes)
                     if (thumbnail.url && !image) {
                       image = thumbnail.url;
-                      console.log(`Found image in media:thumbnail.url: ${image}`);
                       break;
                     }
                     // Also check $ attributes for backward compatibility
                     if (thumbnail.$ && thumbnail.$.url && !image) {
                       image = thumbnail.$.url;
-                      console.log(`Found image in media:thumbnail.$.url: ${image}`);
                       break;
                     }
                   }
@@ -206,13 +192,11 @@ export class WelcomePanel {
                     // Check if url property exists directly (not in $ attributes)
                     if (enclosure.url && !image) {
                       image = enclosure.url;
-                      console.log(`Found image in enclosure.url: ${image}`);
                       break;
                     }
                     // Also check $ attributes for backward compatibility
                     if (enclosure.$ && enclosure.$.url && !image) {
                       image = enclosure.$.url;
-                      console.log(`Found image in enclosure.$.url: ${image}`);
                       break;
                     }
                   }
@@ -224,7 +208,6 @@ export class WelcomePanel {
                   const imgMatch = contentEncoded.match(/<img[^>]+src="([^"]+)"/);
                   if (imgMatch) {
                     image = imgMatch[1];
-                    console.log(`Found image in content:encoded: ${image}`);
                   }
                 }
                 
@@ -235,7 +218,6 @@ export class WelcomePanel {
                   const urlMatch = allText.match(/https?:\/\/[^"'\s]+\.(jpg|jpeg|png|gif|webp)/i);
                   if (urlMatch) {
                     image = urlMatch[0];
-                    console.log(`Found image URL in item: ${image}`);
                   }
                 }
                 
