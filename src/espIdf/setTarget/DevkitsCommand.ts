@@ -67,9 +67,12 @@ export class DevkitsCommand {
         "esp_detect_config.py"
       );
 
-      // Check if esp_detect_config.py exists
       if (!fs.existsSync(scriptPath)) {
-        throw new Error(`esp_detect_config.py not found at path: ${scriptPath}`);
+        const infoMsg = `Devkit detection script not available at: ${scriptPath}. A default list of targets will be displayed instead.`;
+        Logger.info(infoMsg);
+        OutputChannel.appendLine(infoMsg, "ESP Detect Config");
+        OutputChannel.show();
+        return;
       }
 
       const openOcdScriptsPath = await getOpenOcdScripts(this.workspaceRoot);

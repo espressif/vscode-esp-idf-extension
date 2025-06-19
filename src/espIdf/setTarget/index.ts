@@ -77,7 +77,6 @@ export async function setIdfTarget(
         const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
         let connectedBoards: any[] = [];
 
-        // Check if there's an active debugging session
         const isDebugging = debug.activeDebugSession !== undefined;
 
         // Check OpenOCD version before using connected devkit detection
