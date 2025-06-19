@@ -143,7 +143,6 @@ export async function getNewProjectArgs(
     workspace
   ) as string;
   let templates: { [key: string]: IExampleCategory } = {};
-  templates["Extension"] = getExamplesList(extensionPath, "templates");
   const idfExists = await dirExistPromise(idfSetup.idfPath);
   if (idfExists) {
     const idfTemplates = getExamplesList(idfSetup.idfPath);
@@ -190,5 +189,6 @@ export async function getNewProjectArgs(
     espRainmakerPath: rainmakerExists ? espRainmakerPath : undefined,
     serialPortList,
     templates,
+    workspaceFolder: workspace,
   } as INewProjectArgs;
 }

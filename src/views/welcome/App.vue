@@ -95,10 +95,6 @@ onMounted(() => {
             <IconFolderOpened class="icon" />
             Import project
           </button>
-          <button @click="store.openShowExamplesPanel" class="action-button">
-            <IconBeaker class="icon" />
-            Show examples
-          </button>
           <button @click="store.exploreComponents" class="action-button">
             <IconTypeHierarchy class="icon" />
             Components manager

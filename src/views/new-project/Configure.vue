@@ -71,6 +71,7 @@ watch(selectedIdfTarget, () => {
         :openMethod="store.openProjectDirectory"
         :propMutate="setContainerDirectory"
         :staticText="projectName"
+        id="projectDirectory"
       />
 
       <div class="settings-item" v-if="idfTargets && idfTargets.length > 0">
@@ -149,7 +150,7 @@ watch(selectedIdfTarget, () => {
       <IdfComponents />
 
       <div class="settings-item settings-actions">
-        <router-link to="/templates" class="vscode-button">
+        <router-link to="/templates" class="vscode-button" id="choose-template">
           Choose Template
         </router-link>
       </div>

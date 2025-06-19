@@ -221,7 +221,10 @@ export class IdfToolsManager {
     ) {
       modifiedEnv[pathNameInEnv] = modifiedPath;
     }
-    if (pkg.version_cmd.length === 0 || !pkg.version_cmd[0]) {
+    if (
+      (pkg.version_cmd && pkg.version_cmd.length === 0) ||
+      !pkg.version_cmd[0]
+    ) {
       return "No command version";
     }
     const command = pkg.version_cmd[0];

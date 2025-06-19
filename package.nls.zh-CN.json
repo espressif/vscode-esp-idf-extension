@@ -38,7 +38,6 @@
 	"espIdf.troubleshootPanel.title": "ESP-IDF 故障排除表",
 	"espIdf.efuse.clearResults.title": "清除 eFuse 摘要",
 	"espIdf.eraseFlash.title": "擦除设备 flash 数据",
-	"espIdf.examples.title": "展示示例项目",
 	"espIdf.flashAndEncryptDevice.title": "加密并烧录项目",
 	"espIdf.flashAppUart.title": "仅Flash AppUART",
 	"espIdf.flashBinaryToPartition.title": "将二进制文件烧录到分区…",

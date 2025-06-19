@@ -54,7 +54,6 @@ export enum CommandKeys {
 
 export enum AdvancedCommandKeys {
   Setup = "espIdf.setup.start",
-  Examples = "espIdf.examples.start",
   NewProject = "espIdf.newProject.start",
   Size = "espIdf.size",
   EraseFlash = "espIdf.eraseFlash",
@@ -85,11 +84,6 @@ export function createAdvancedCommandDictionary(): Record<
       checkboxState: undefined,
       iconId: "extensions",
       tooltip: l10n.t("Configure ESP-IDF Extension"),
-    },
-    [AdvancedCommandKeys.Examples]: {
-      checkboxState: undefined,
-      iconId: "book",
-      tooltip: l10n.t("Show Examples"),
     },
     [AdvancedCommandKeys.NewProject]: {
       checkboxState: undefined,

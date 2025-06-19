@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useWelcomeStore } from "../store";
 import { IconLinkExternal } from "@iconify-prerendered/vue-codicon";
@@ -60,18 +60,6 @@ const getImageUrl = (originalUrl: string) => {
 onMounted(() => {
   store.fetchBlogArticles();
 });
-
-// Debug: Watch for changes in blogArticles
-watch(blogArticles, (newArticles) => {
-  console.log('BlogArticles component received articles:', newArticles);
-  newArticles.forEach((article, index) => {
-    console.log(`Article ${index + 1}:`, {
-      title: article.title,
-      image: article.image,
-      url: article.url
-    });
-  });
-}, { immediate: true });
 </script>
 
 <template>

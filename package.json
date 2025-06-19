@@ -87,7 +87,6 @@
     "onCommand:espIdf.searchInEspIdfDocs",
     "onCommand:espIdf.setup.start",
     "onCommand:espIdf.welcome.start",
-    "onCommand:espIdf.examples.start",
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
     "onCommand:espIdf.getEspAdf",
@@ -1311,11 +1310,6 @@
       {
         "command": "espIdf.setup.start",
         "title": "%espIdf.setup.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.examples.start",
-        "title": "%espIdf.examples.title%",
         "category": "ESP-IDF"
       },
       {

@@ -295,11 +295,6 @@ export const useSetupStore = defineStore("setup", () => {
       command: "newProject",
     });
   }
-  function openShowExamplesPanel() {
-    vscode.postMessage({
-      command: "showExamples",
-    });
-  }
   function requestInitValues() {
     vscode.postMessage({
       command: "requestInitialValues",
@@ -502,7 +497,6 @@ export const useSetupStore = defineStore("setup", () => {
     exploreComponents,
     openImportProject,
     openNewProjectPanel,
-    openShowExamplesPanel,
     requestInitValues,
     toggleContent,
     whiteSpaceErrorIDF,

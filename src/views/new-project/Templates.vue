@@ -55,6 +55,7 @@ onMounted(()=> {
           v-if="selectedTemplate.name !== ''"
           v-on:click="store.createProject"
           class="vscode-button"
+          id="createProjectButton"
         >
           Create project using template {{ selectedTemplate.name }}
         </button>

@@ -26,7 +26,7 @@ describe("Example Create testing", async () => {
 
   before(async function () {
     this.timeout(10000);
-    await new Workbench().executeCommand("espIdf.examples.start");
+    await new Workbench().executeCommand("espIdf.newProject.start");
     const inputBox = await InputBox.create();
     await inputBox.selectQuickPick(0);
     await new Promise((res) => setTimeout(res, 2000));
@@ -34,31 +34,39 @@ describe("Example Create testing", async () => {
     await view.switchToFrame();
   });
 
-  it("find the example", async () => {
+  it("Create the blink example", async () => {
+    const containerPath = resolve(__dirname, "..", "..", "testFiles");
+    const projectName = "testBlink";
+    const resultBlinkPath = resolve(containerPath, projectName);
+    const projectDirInput = await view.findWebElement(By.id("projectDirectory"));
+    await projectDirInput.clear();
+    await projectDirInput.sendKeys(containerPath);
+    const projectNameInput = await view.findWebElement(By.id("projectName"));
+    await projectNameInput.clear();
+    await projectNameInput.sendKeys(projectName);
+
+    const exampleSelect = await view.findWebElement(
+      By.id("choose-template")
+    );
+    await exampleSelect.click();
+    await new Promise((res) => setTimeout(res, 2000));
+
     const exampleElement = await view.findWebElement(
       By.xpath(`.//p[@data-example-id='blink']`)
     );
     await exampleElement.click();
-    await new Promise((res) => setTimeout(res, 2000));
+    await new Promise((res) => setTimeout(res, 1000));
     const createProjectButton = await view.findWebElement(
-      By.id("create-button")
+      By.id("createProjectButton")
     );
     expect(await createProjectButton.getText()).has.string(
-      "Select location for creating"
+      "Create project using template blink"
     );
 
-    const containerPath = resolve(__dirname, "..", "..", "testFiles");
     await createProjectButton.click();
-    if (view) {
-      await view.switchBack();
-    }
-    const inputBox = await InputBox.create();
-    await inputBox.setText(containerPath);
-    await inputBox.confirm();
-    await new Promise((res) => setTimeout(res, 1000));
-    const resultBlinkPath = resolve(containerPath, "blink");
-    const binExists = await pathExists(resultBlinkPath);
-    expect(binExists).to.be.true;
+    await new Promise((res) => setTimeout(res, 5000));
+    const resultBlinkPathExists = await pathExists(resultBlinkPath);
+    expect(resultBlinkPathExists).to.be.true;
   }).timeout(20000);
 
   it("Create a test component", async function () {

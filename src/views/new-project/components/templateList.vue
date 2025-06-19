@@ -49,6 +49,7 @@ function toggleTemplateDetail(template: IExample) {
           class="tree-item-content"
           :class="{ 'selected': store.selectedTemplate.path === item.path }"
           @click="toggleTemplateDetail(item)"
+          :data-example-id="item.name"
         >
           <div class="tree-item-toggle-placeholder"></div>
           <div class="tree-item-label" v-text="item.name" />

@@ -38,7 +38,6 @@
 	"espIdf.troubleshootPanel.title": "ESP-IDF: Troubleshoot Form",
   "espIdf.efuse.clearResults.title": "Clear eFuse Summary",
   "espIdf.eraseFlash.title": "Erase Flash Memory from Device",
-  "espIdf.examples.title": "Show Example Projects",
   "espIdf.flashAppUart.title": "Flash App Only (UART)",
   "espIdf.flashAndEncryptDevice.title": "Encrypt and Flash Your Project",
   "espIdf.flashBinaryToPartition.title": "Flash Binary to Partition...",
