@@ -3,6 +3,7 @@ import { storeToRefs } from "pinia";
 import { computed, onMounted } from "vue";
 import { useWelcomeStore } from "./store";
 import Logo from "./components/logo.vue";
+import BlogArticles from "./components/BlogArticles.vue";
 import {
   IconBeaker,
   IconComment,
@@ -28,301 +29,394 @@ onMounted(() => {
 
 <template>
   <div id="app">
-    <div class="centerize">
-      <Logo class="m-1" />
-      <h1 class="title is-spaced mbottom">
-        Welcome to Espressif IDF extension
-      </h1>
+    <!-- Header Section -->
+    <div class="header">
+      <div class="header-content">
+        <Logo class="logo" />
+        <h1 class="title">Welcome to Espressif IDF extension</h1>
+      </div>
     </div>
-    <div class="level">
-      <div class="level-left columns">
-        <div class="column mleft">
-          Version: {{ extensionVersion }}
-          <br />
-          <div class="link">
-            <a :href="whatsNewLink">See what's new</a>
-          </div>
-          <label class="checkbox is-small">
+
+    <!-- Version and Links Section -->
+    <div class="version-section">
+      <div class="version-row">
+        <div class="version-info">
+          <span class="version-text">Version: {{ extensionVersion }}</span>
+          <a :href="whatsNewLink" class="link">See what's new</a>
+        </div>
+        
+        <div class="checkbox-container">
+          <label class="checkbox">
             <input
               type="checkbox"
               v-model="store.showOnInit"
               @change="store.updateShowOnboardingOnInit"
             />
-            Show Welcome on extension startup
+            <span class="checkbox-label">Show Welcome on extension startup</span>
           </label>
         </div>
-      </div>
-      <div class="level-right mright">
-        <div class="level-item link">
-          <a href="https://github.com/espressif/vscode-esp-idf-extension">
-            <IconGithub class="icon-margin" />
+
+        <div class="external-links">
+          <a href="https://github.com/espressif/vscode-esp-idf-extension" class="link">
+            <IconGithub class="icon" />
             Repository
           </a>
-        </div>
-        <div class="level-item link">
-          <a href="https://esp32.com/viewforum.php?f=40">
-            <IconComment class="icon-margin" />
+          <a href="https://esp32.com/viewforum.php?f=40" class="link">
+            <IconComment class="icon" />
             ESP32 Forum
           </a>
-        </div>
-        <div class="level-item link">
-          <a href="https://github.com/espressif/esp-idf">
-            <IconGithub class="icon-margin" />
+          <a href="https://github.com/espressif/esp-idf" class="link">
+            <IconGithub class="icon" />
             ESP-IDF
           </a>
-        </div>
-        <div class="level-item link">
-          <a
-            href="https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose"
-          >
-            <IconGithub class="icon-margin" />
+          <a href="https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose" class="link">
+            <IconGithub class="icon" />
             Open a new issue
           </a>
         </div>
       </div>
     </div>
 
-    <div class="columns column-spacing">
-      <div class="column level is-one-third">
-        <div class="level level-left">
-          <h1 class="title">Quick actions</h1>
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Quick Actions Section -->
+      <div class="section">
+        <h2 class="section-title">Quick actions</h2>
+        <div class="button-group">
+          <button @click="store.openSetupPanel" class="action-button">
+            <IconGear class="icon" />
+            Configure extension
+          </button>
+          <button @click="store.openNewProjectPanel" class="action-button">
+            <IconNewFolder class="icon" />
+            New project
+          </button>
+          <button @click="store.openImportProject" class="action-button">
+            <IconFolderOpened class="icon" />
+            Import project
+          </button>
+          <button @click="store.openShowExamplesPanel" class="action-button">
+            <IconBeaker class="icon" />
+            Show examples
+          </button>
+          <button @click="store.exploreComponents" class="action-button">
+            <IconTypeHierarchy class="icon" />
+            Components manager
+          </button>
         </div>
-        <div class="level level-left">
-          <div class="field">
-            <div class="control">
-              <button @click="store.openSetupPanel" class="button">
-                <IconGear class="icon-margin" />
-                Configure extension
-              </button>
+      </div>
+
+      <!-- Getting Started Section -->
+      <div class="section">
+        <h2 class="section-title">Getting Started</h2>
+        
+        <div class="getting-started-grid">
+          <!-- Tutorials -->
+          <div class="subsection">
+            <h3 class="subsection-title">Tutorials</h3>
+            <div class="link-group">
+              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/installation.html" class="link">
+                Install
+              </a>
+              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/startproject.html" class="link">
+                Start a ESP-IDF project
+              </a>
+              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/configureproject.html" class="link">
+                Configure your project
+              </a>
+              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/debugproject.html" class="link">
+                Debugging
+              </a>
+              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/index.html" class="link">
+                Others...
+              </a>
             </div>
           </div>
-        </div>
-        <div class="level level-left">
-          <div class="field">
-            <div class="control">
-              <button @click="store.openNewProjectPanel" class="button">
-                <IconNewFolder class="icon-margin" />
-                New project
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="level level-left">
-          <div class="field">
-            <div class="control">
-              <button @click="store.openImportProject" class="button">
-                <IconFolderOpened class="icon-margin" />
-                Import project
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="level level-left">
-          <div class="field">
-            <div class="control">
-              <button @click="store.openShowExamplesPanel" class="button">
-                <IconBeaker class="icon-margin" />
-                Show examples
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="level level-left">
-          <div class="field">
-            <div class="control">
-              <button @click="store.exploreComponents" class="button">
-                <IconTypeHierarchy class="icon-margin" />
-                Components manager
-              </button>
+
+          <!-- Documentation -->
+          <div class="subsection">
+            <h3 class="subsection-title">Documentation</h3>
+            <div class="link-group">
+              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/settings.html" class="link">
+                Settings
+              </a>
+              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/troubleshooting.html" class="link">
+                Troubleshooting
+              </a>
+              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/index.html" class="link">
+                Features
+              </a>
+              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/commands.html" class="link">
+                Commands
+              </a>
+              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures.html" class="link">
+                Additional IDE features...
+              </a>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="column is-two-fifths">
-        <div class="level level-right">
-          <h1 class="title">Getting Started</h1>
-        </div>
-        <div class="m-1">
-          <h1 class="subtitle mbottom has-text-weight-bold">Tutorials</h1>
-        </div>
-        <div class="level m-4">
-          <div class="level-item mx-1 link">
-            <a
-              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/installation.html"
-              >Install and configure</a
-            >
-          </div>
-          <div class="level-item mx-1 link">
-            <a
-              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/startproject.html"
-            >
-              Start a ESP-IDF project
-            </a>
-          </div>
-          <div class="level-item mx-1 link">
-            <a
-              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/debugproject.html"
-            >
-              Debugging
-            </a>
-          </div>
-          <div class="level-item mx-1 link">
-            <a
-              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/index.html"
-            >
-              Others...
-            </a>
-          </div>
-        </div>
-
-        <div class="m-1">
-          <h1 class="subtitle mbottom has-text-weight-bold">Documentation</h1>
-        </div>
-        <div class="level m-4">
-          <div class="level-item mx-1 link">
-            <a
-              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/settings.html"
-            >
-              Settings
-            </a>
-          </div>
-          <div class="level-item mx-1 link">
-            <a
-              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/index.html"
-            >
-              Features
-            </a>
-          </div>
-
-          <div class="level-item mx-1 link">
-            <a
-              href="https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/CONTRIBUTING.md"
-            >
-              Contribute
-            </a>
-          </div>
-
-          <div class="level-item mx-1 link">
-            <a
-              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures.html"
-            >
-              Additional features...
-            </a>
-          </div>
-        </div>
-
-        <div class="m-1">
-          <h1 class="subtitle mbottom has-text-weight-bold">Browse</h1>
-        </div>
-        <div class="level m-4">
-          <div class="level-item mx-1 link">
-            <a href="https://github.com/espressif/esp-who">
-              ESP-WHO
-            </a>
-          </div>
-          <div class="level-item mx-1 link">
-            <a href="https://rainmaker.espressif.com">
-              ESP Rainmaker
-            </a>
-          </div>
-          <div class="level-item mx-1 link">
-            <a href="https://github.com/espressif/esp-adf">
-              ESP-ADF
-            </a>
-          </div>
-          <div class="level-item mx-1 link">
-            <a href="https://github.com/espressif/esp-mdf">
-              ESP-MDF
-            </a>
-          </div>
-        </div>
-        <div class="level m-4">
-          <div class="level-item mx-1 link">
-            <a href="https://github.com/espressif/arduino-esp32">
-              Arduino ESP32
-            </a>
-          </div>
-          <div class="level-item mx-1 link">
-            <a href="https://github.com/espressif/esp-iot-solution">
-              ESP-IOT Solution
-            </a>
-          </div>
-          <div class="level-item mx-1 link">
-            <a href="https://github.com/espressif/esp-now">
-              ESP-NOW
-            </a>
-          </div>
-          <div class="level-item mx-1 link">
-            <a href="https://github.com/espressif/esp-jumpstart">
-              ESP-Jumpstart
-            </a>
-          </div>
-        </div>
-      </div>
+    <!-- Latest Articles Section - Full Width -->
+    <div class="full-width-section">
+      <BlogArticles />
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-@import "../commons/espCommons.scss";
-
 #app {
-  padding: 1em;
+  padding: 20px;
   color: var(--vscode-foreground);
   background-color: var(--vscode-editor-background);
-  height: -webkit-fill-available;
+  height: 100vh;
+  overflow-y: auto;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  line-height: 1.4;
 }
 
-.centerize {
-  align-items: center;
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.header-content {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  align-items: center;
+  gap: 16px;
 }
 
-.column {
+.logo {
+  margin: 0;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  margin: 0;
+}
+
+.version-section {
+  margin-bottom: 32px;
+  padding: 16px;
   background-color: var(--vscode-notifications-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 6px;
 }
 
-.icon-margin {
-  margin-right: 0.25em;
-}
-
-.column-spacing {
+.version-row {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  margin: 1em;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 
-.mbottom {
-  margin-bottom: 0.5em;
+.version-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
 }
 
-.mleft {
-  margin-left: 1.5em;
+.version-text {
+  color: var(--vscode-descriptionForeground);
+  font-size: 14px;
+  white-space: nowrap;
 }
 
-.mright {
-  margin-right: 1.5em;
+.checkbox-container {
+  flex-shrink: 0;
 }
 
-.checkbox:hover {
-  color: var(--vscode-button-background);
-}
-
-.link {
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  
   &:hover {
     color: var(--vscode-button-background);
   }
-  cursor: pointer;
-  a {
-    color: var(--vscode-editorInfo-foreground);
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    &:hover {
-      color: var(--vscode-button-background);
-    }
+  
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: var(--vscode-button-background);
   }
+  
+  .checkbox-label {
+    font-size: 14px;
+    color: var(--vscode-foreground);
+  }
+}
+
+.external-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 32px;
+  align-items: start;
+  margin-bottom: 32px;
+}
+
+.section {
+  background-color: var(--vscode-notifications-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 6px;
+  padding: 20px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: 1px solid var(--vscode-button-border);
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: var(--vscode-button-hoverBackground);
+  }
+  
+  &:active {
+    background-color: var(--vscode-button-activeBackground);
+  }
+  
+  &:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 2px;
+  }
+}
+
+.getting-started-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+
+.subsection {
+  margin-bottom: 0;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.subsection-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  margin: 0 0 12px 0;
+}
+
+.link-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--vscode-textLink-foreground);
+  text-decoration: none;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  position: relative;
+  
+  &:hover {
+    color: var(--vscode-button-background);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    color: var(--vscode-button-activeBackground);
+  }
+  
+  &:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 2px;
+  }
+  
+  .icon {
+    transition: transform 0.2s ease;
+  }
+  
+  &:hover .icon {
+    transform: scale(1.1);
+    color: var(--vscode-button-background);
+  }
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .external-links {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .getting-started-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.full-width-section {
+  width: 100%;
+  margin-bottom: 32px;
 }
 </style>
