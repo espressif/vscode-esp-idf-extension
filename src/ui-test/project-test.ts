@@ -38,16 +38,16 @@ describe("Example Create testing", async () => {
     const containerPath = resolve(__dirname, "..", "..", "testFiles");
     const projectName = "testBlink";
     const resultBlinkPath = resolve(containerPath, projectName);
-    const projectDirInput = await view.findWebElement(By.id("projectDirectory"));
+    const projectDirInput = await view.findWebElement(
+      By.id("projectDirectory")
+    );
     await projectDirInput.clear();
     await projectDirInput.sendKeys(containerPath);
     const projectNameInput = await view.findWebElement(By.id("projectName"));
     await projectNameInput.clear();
     await projectNameInput.sendKeys(projectName);
 
-    const exampleSelect = await view.findWebElement(
-      By.id("choose-template")
-    );
+    const exampleSelect = await view.findWebElement(By.id("choose-template"));
     await exampleSelect.click();
     await new Promise((res) => setTimeout(res, 2000));
 
@@ -71,6 +71,8 @@ describe("Example Create testing", async () => {
 
   it("Create a test component", async function () {
     this.timeout(12000);
+    await new Promise((res) => setTimeout(res, 1000));
+    await openTestProject();
     await new Promise((res) => setTimeout(res, 5000));
     await new Workbench().executeCommand("espIdf.createNewComponent");
     await new Promise((res) => setTimeout(res, 1000));
@@ -97,3 +99,21 @@ describe("Example Create testing", async () => {
     expect(componentSrcPathExists).to.be.true;
   });
 });
+
+export async function openTestProject() {
+  await new Promise((res) => setTimeout(res, 5000));
+  await new Workbench().executeCommand("file: open folder");
+  const projectName = "testBlink";
+  const testWorkspaceDir = resolve(
+    __dirname,
+    "..",
+    "..",
+    "testFiles",
+    projectName
+  );
+  await new Promise((res) => setTimeout(res, 1000));
+  const input = await InputBox.create();
+  await input.setText(testWorkspaceDir);
+  await input.confirm();
+  await new Promise((res) => setTimeout(res, 4000));
+}
