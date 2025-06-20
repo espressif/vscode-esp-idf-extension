@@ -122,7 +122,6 @@ window.addEventListener("message", (event) => {
       }
       break;
     case "setIsInstalled":
-      console.log(msg.isInstalled);
       if (typeof msg.isInstalled !== "undefined") {
         store.isIdfInstalled = msg.isInstalled;
         if (msg.installed) {

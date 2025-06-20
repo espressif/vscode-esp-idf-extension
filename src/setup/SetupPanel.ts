@@ -320,9 +320,6 @@ export class SetupPanel {
         case "importProject":
           await commands.executeCommand("espIdf.importProject");
           break;
-        case "showExamples":
-          await commands.executeCommand("espIdf.examples.start");
-          break;
         case "exploreComponents":
           await commands.executeCommand("esp.component-manager.ui.show");
           break;

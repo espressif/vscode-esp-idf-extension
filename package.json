@@ -87,7 +87,6 @@
     "onCommand:espIdf.searchInEspIdfDocs",
     "onCommand:espIdf.setup.start",
     "onCommand:espIdf.welcome.start",
-    "onCommand:espIdf.examples.start",
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
     "onCommand:espIdf.getEspAdf",
@@ -1314,11 +1313,6 @@
         "category": "ESP-IDF"
       },
       {
-        "command": "espIdf.examples.start",
-        "title": "%espIdf.examples.title%",
-        "category": "ESP-IDF"
-      },
-      {
         "command": "espIdf.cmakeListsEditor.start",
         "title": "%espIdf.cmakeListsEditor.start.title%",
         "category": "ESP-IDF"
@@ -2518,6 +2512,7 @@
   },
   "dependencies": {
     "@types/js-yaml": "^4.0.5",
+    "@vscode/codicons": "^0.0.36",
     "@vscode/l10n": "^0.0.18",
     "ansi-to-html": "^0.6.11",
     "assert": "^2.1.0",
