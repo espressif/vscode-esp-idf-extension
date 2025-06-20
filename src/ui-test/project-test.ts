@@ -52,7 +52,7 @@ describe("Example Create testing", async () => {
     await new Promise((res) => setTimeout(res, 2000));
 
     const exampleElement = await view.findWebElement(
-      By.xpath(`.//p[@data-example-id='blink']`)
+      By.xpath(`.//div[@data-example-id='blink']`)
     );
     await exampleElement.click();
     await new Promise((res) => setTimeout(res, 1000));
@@ -78,12 +78,13 @@ describe("Example Create testing", async () => {
     const componentName = "testComponent";
     await inputBox.setText(componentName);
     await inputBox.confirm();
+    const projectName = "testBlink";
     const componentPath = resolve(
       __dirname,
       "..",
       "..",
       "testFiles",
-      "blink",
+      projectName,
       "components",
       componentName
     );
