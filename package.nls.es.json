@@ -182,6 +182,8 @@
   "param.usbSerialPortFilters.vendorId": "Número hexadecimal del USB vendorID como texto.",
   "param.usbSerialPortFilters.productId": "Número hexadecimal del USB productID como texto.",
 	"param.hasWalkthroughBeenShown": "Indica si se ha mostrado el recorrido de bienvenida",
+	"param.unitTestFilePattern.title": "Patrón glob para descubrir archivos de prueba unitaria",
+	"param.pyTestEmbeddedServices.title": "Lista de servicios integrados para la ejecución de pytest",
 	"trace.poll_period.description": "poll_period se establecerá para el rastreo de la aplicación",
 	"trace.skip_size.description": "skip_size se establecerá para el rastreo de la aplicación",
 	"trace.stop_tmo.description": "stop_tmo se establecerá para el rastreo de la aplicación",
