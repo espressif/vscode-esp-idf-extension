@@ -49,6 +49,7 @@ function onChange(e: Event) {
               :checked="isChecked"
               @change="onChange"
               style="display: none;"
+              :data-config-id="props.config.id"
             />
             <span class="icon">
               <i
