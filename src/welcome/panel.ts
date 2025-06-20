@@ -31,6 +31,15 @@ import { writeParameter } from "../idfConfiguration";
 import { IWelcomeArgs } from "./welcomeInit";
 import { parseString } from "xml2js";
 
+// Utility to robustly strip HTML tags (including script/style)
+function stripHtmlTags(html: string): string {
+  // Remove script/style tags and their content
+  html = html.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "");
+  html = html.replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "");
+  // Remove all remaining tags
+  return html.replace(/<\/?[^>]+(>|$)/g, "");
+}
+
 export class WelcomePanel {
   public static currentPanel: WelcomePanel | undefined;
 
@@ -118,42 +127,46 @@ export class WelcomePanel {
         case "fetchBlogArticles":
           try {
             // Fetch RSS feed from extension backend
-            const response = await fetch('https://developer.espressif.com/blog/index.xml');
+            const response = await fetch(
+              "https://developer.espressif.com/blog/index.xml"
+            );
             const xmlText = await response.text();
-            
+
             // Parse XML using xml2js
             parseString(xmlText, (err, result) => {
               if (err) {
-                console.error('Failed to parse XML:', err);
+                console.error("Failed to parse XML:", err);
                 this.panel.webview.postMessage({
                   command: "blogArticlesLoaded",
-                  articles: []
+                  articles: [],
                 });
                 return;
               }
-              
+
               const articles = [];
               const items = result.rss?.channel?.[0]?.item || [];
-              
+
               for (let i = 0; i < Math.min(6, items.length); i++) {
                 const item = items[i];
-                const title = item.title?.[0] || '';
-                const description = item.description?.[0] || '';
-                const url = item.link?.[0] || '';
-                const pubDate = item.pubDate?.[0] || '';
-                
+                const title = item.title?.[0] || "";
+                const description = item.description?.[0] || "";
+                const url = item.link?.[0] || "";
+                const pubDate = item.pubDate?.[0] || "";
+
                 // Try to extract image
                 let image: string | undefined;
-                
+
                 // Method 1: Look for img tag in description
                 const imgMatch = description.match(/<img[^>]+src="([^"]+)"/);
                 if (imgMatch) {
                   image = imgMatch[1];
                 }
-                
+
                 // Method 2: Look for media:content
-                if (item['media:content'] && !image) {
-                  const mediaContents = Array.isArray(item['media:content']) ? item['media:content'] : [item['media:content']];
+                if (item["media:content"] && !image) {
+                  const mediaContents = Array.isArray(item["media:content"])
+                    ? item["media:content"]
+                    : [item["media:content"]];
                   for (const mediaContent of mediaContents) {
                     // Check if url property exists directly (not in $ attributes)
                     if (mediaContent.url && !image) {
@@ -167,10 +180,12 @@ export class WelcomePanel {
                     }
                   }
                 }
-                
+
                 // Method 3: Look for media:thumbnail
-                if (item['media:thumbnail'] && !image) {
-                  const thumbnails = Array.isArray(item['media:thumbnail']) ? item['media:thumbnail'] : [item['media:thumbnail']];
+                if (item["media:thumbnail"] && !image) {
+                  const thumbnails = Array.isArray(item["media:thumbnail"])
+                    ? item["media:thumbnail"]
+                    : [item["media:thumbnail"]];
                   for (const thumbnail of thumbnails) {
                     // Check if url property exists directly (not in $ attributes)
                     if (thumbnail.url && !image) {
@@ -184,10 +199,12 @@ export class WelcomePanel {
                     }
                   }
                 }
-                
+
                 // Method 4: Look for enclosure (RSS standard)
                 if (item.enclosure && !image) {
-                  const enclosures = Array.isArray(item.enclosure) ? item.enclosure : [item.enclosure];
+                  const enclosures = Array.isArray(item.enclosure)
+                    ? item.enclosure
+                    : [item.enclosure];
                   for (const enclosure of enclosures) {
                     // Check if url property exists directly (not in $ attributes)
                     if (enclosure.url && !image) {
@@ -201,47 +218,52 @@ export class WelcomePanel {
                     }
                   }
                 }
-                
+
                 // Method 5: Look for content:encoded (WordPress style)
-                if (item['content:encoded'] && !image) {
-                  const contentEncoded = item['content:encoded'][0];
-                  const imgMatch = contentEncoded.match(/<img[^>]+src="([^"]+)"/);
+                if (item["content:encoded"] && !image) {
+                  const contentEncoded = item["content:encoded"][0];
+                  const imgMatch = contentEncoded.match(
+                    /<img[^>]+src="([^"]+)"/
+                  );
                   if (imgMatch) {
                     image = imgMatch[1];
                   }
                 }
-                
+
                 // Method 6: Look for any field that might contain an image URL
                 if (!image) {
                   // Search through all item properties for image URLs
                   const allText = JSON.stringify(item);
-                  const urlMatch = allText.match(/https?:\/\/[^"'\s]+\.(jpg|jpeg|png|gif|webp)/i);
+                  const urlMatch = allText.match(
+                    /https?:\/\/[^"'\s]+\.(jpg|jpeg|png|gif|webp)/i
+                  );
                   if (urlMatch) {
                     image = urlMatch[0];
                   }
                 }
-                
+
                 articles.push({
                   title,
-                  description: description.replace(/<[^>]*>/g, '').substring(0, 150) + '...',
+                  description:
+                    stripHtmlTags(description).substring(0, 150) + "...",
                   url,
                   pubDate: new Date(pubDate).toLocaleDateString(),
-                  image
+                  image,
                 });
               }
-              
+
               // Send articles back to webview
               this.panel.webview.postMessage({
                 command: "blogArticlesLoaded",
-                articles: articles
+                articles: articles,
               });
             });
           } catch (error) {
-            console.error('Failed to fetch blog articles from backend:', error);
+            console.error("Failed to fetch blog articles from backend:", error);
             // Send empty array to indicate failure
             this.panel.webview.postMessage({
               command: "blogArticlesLoaded",
-              articles: []
+              articles: [],
             });
           }
           break;
