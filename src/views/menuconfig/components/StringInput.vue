@@ -26,7 +26,7 @@ function onChange(e: Event) {
 <template>
   <div class="form-group">
     <div class="field has-addons">
-      <label v-text="props.config.title" :data-config-id="props.config.id" />
+      <label v-text="props.config.title" />
       <div class="info-icon" @click="toggleHelp">
         <IconInfo />
       </div>
@@ -38,6 +38,7 @@ function onChange(e: Event) {
           type="text"
           class="vscode-input"
           @change="onChange"
+          :data-config-id="props.config.id"
         />
       </div>
     </div>
