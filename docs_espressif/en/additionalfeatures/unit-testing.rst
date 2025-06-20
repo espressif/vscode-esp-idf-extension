@@ -5,7 +5,7 @@ ESP-IDF Unit testing with Unity
 
 When you are developing an application using ESP-IDF and you are considering adding unit testing for your components functions, this extension can help to discover and execute tests on your device based on Unity as described in `Unit Testing in ESP32 <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/unit-tests.html>`_ documentation.
 
-The extension explores tests in your current project workspace folders that follow the convension in the former documentation, this is, all tests files that follow ``**/test/test_*.c`` glob pattern in your current workspace folders. The tests cases are parsed with the ``TEST_CASE\\(\"(.*)\",\\s*\"(.*)\"\\)`` regular expression matching the following test file format:
+The extension explores tests in your current project workspace folders that follow the convension in the former documentation, this is, all tests files that follow the glob pattern specified in the **idf.unitTestFilePattern** configuration setting (default: ``**/test/test_*.c``) in your current workspace folders. The tests cases are parsed with the ``TEST_CASE\\(\"(.*)\",\\s*\"(.*)\"\\)`` regular expression matching the following test file format:
 
 .. code-block:: C
 
@@ -39,6 +39,31 @@ If you want to add tests for a ``testable`` component, just need to define a ``t
 
 This is the structure from the `ESP-IDF unit_test example <https://github.com/espressif/esp-idf/tree/master/examples/system/unit_test>`_ which can serve as reference.
 
+.. note::
+  You can customize the test file discovery pattern by modifying the **idf.unitTestFilePattern** setting in your VS Code settings. This allows you to use different naming conventions or directory structures for your test files.
+
+PyTest Embedded Services Configuration
+--------------------------------------
+
+The extension uses `pytest-embedded <https://docs.espressif.com/projects/pytest-embedded/en/latest/index.html>`_ to run tests on ESP-IDF devices. The **idf.pyTestEmbeddedServices** configuration setting allows you to specify which embedded services to use when running pytest commands.
+
+By default, the extension uses ``["esp", "idf"]`` as the embedded services. These services provide the following functionality:
+
+* **esp**: Enables Espressif-specific functionality including automatic target detection and port confirmation using `esptool`
+* **idf**: Provides ESP-IDF project support including automatic flashing of built binaries and parsing of binary information
+
+You can customize the embedded services by modifying the **idf.pyTestEmbeddedServices** setting in your VS Code settings. For example, you might want to add additional services like:
+
+* **serial**: For basic serial port communication
+* **jtag**: For OpenOCD/GDB utilities
+* **qemu**: For running tests on QEMU instead of real hardware
+* **wokwi**: For running tests on Wokwi simulation platform
+
+For a complete list of available services and their capabilities, refer to the `pytest-embedded Services Documentation <https://docs.espressif.com/projects/pytest-embedded/en/latest/concepts/services.html>`_.
+
+.. note::
+  The embedded services you choose will affect the pytest command that gets executed. Make sure the services you specify are compatible with your testing environment and requirements.
+
 Running the tests
 --------------------------------------------
 
@@ -61,7 +86,10 @@ When it press the run button on a test, it will configure the current project be
 .. note::
   You can also create, build and flash the unity test application using the **ESP-IDF Unit Test: Install ESP-IDF PyTest requirements** extension command, which will copy build and flash to your device the generated unit testing application.
 
-4. Runs `pytest-embedded <https://docs.espressif.com/projects/pytest-embedded/en/latest/index.html>`_ a plugin that extends PyTest to run on esp-idf devices and output the results as XML file in the unity-app directory. This is executed as an extension task and the output shown in the terminal (similar to Build and Flash tasks).
+4. Runs `pytest-embedded <https://docs.espressif.com/projects/pytest-embedded/en/latest/index.html>`_ a plugin that extends PyTest to run on esp-idf devices and output the results as XML file in the unity-app directory. This is executed as an extension task and the output shown in the terminal (similar to Build and Flash tasks). The pytest command uses the embedded services specified in the **idf.pyTestEmbeddedServices** configuration setting (default: ``["esp", "idf"]``).
+
+.. note::
+  You can customize the embedded services used by pytest by modifying the **idf.pyTestEmbeddedServices** setting in your VS Code settings. This allows you to specify different services or add additional ones as needed for your testing environment.
 
 5. The XML results file is parsed and test results are updated in the Testing tab with test duration.
 

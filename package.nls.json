@@ -182,6 +182,8 @@
   "param.usbSerialPortFilters.vendorId": "USB Vendor ID hex number as string, e.g., 0x0403",
   "param.usbSerialPortFilters.productId": "USB Product ID hex number as string, e.g., 0x6010",
   "param.hasWalkthroughBeenShown": "Has the walkthrough been shown",
+  "param.unitTestFilePattern.title": "Glob pattern for unit test files to discover",
+  "param.pyTestEmbeddedServices.title": "List of embedded services for pytest execution",
   "trace.poll_period.description": "poll_period will be set for the apptrace",
   "trace.skip_size.description": "skip_size will be set for the apptrace",
   "trace.stop_tmo.description": "stop_tmo will be set for the apptrace",

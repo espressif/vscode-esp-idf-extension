@@ -1251,6 +1251,24 @@
             "items": {
               "type": "string"
             }
+          },
+          "idf.unitTestFilePattern": {
+            "type": "string",
+            "description": "%param.unitTestFilePattern.title%",
+            "scope": "resource",
+            "default": "**/test/test_*.c"
+          },
+          "idf.pyTestEmbeddedServices": {
+            "type": "array",
+            "description": "%param.pyTestEmbeddedServices.title%",
+            "scope": "resource",
+            "default": [
+              "esp",
+              "idf"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       }

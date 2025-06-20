@@ -182,6 +182,8 @@
   "param.usbSerialPortFilters.vendorId": "Шестнадцатеричное число USB Vendor ID в виде строки, например, 0x0403",
   "param.usbSerialPortFilters.productId": "Шестнадцатеричное число USB Product ID в виде строки, например, 0x6010",
 	"param.hasWalkthroughBeenShown": "Показывать руководство по настройке ESP-IDF при первом запуске",
+	"param.unitTestFilePattern.title": "Шаблон glob для обнаружения файлов модульных тестов",
+	"param.pyTestEmbeddedServices.title": "Список встроенных сервисов для выполнения pytest",
 	"trace.poll_period.description": "для apptrace будет установлен параметр poll_ period",
 	"trace.skip_size.description": "для apptrace будет установлен параметр skip_size",
 	"trace.stop_tmo.description": "для apptrace будет установлен параметр stop_tmo",

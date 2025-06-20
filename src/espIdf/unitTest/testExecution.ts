@@ -41,9 +41,15 @@ export async function runPyTestWithTestCase(
   cancelToken?: CancellationToken
 ) {
   try {
+    const embeddedServices = readParameter(
+      "idf.pyTestEmbeddedServices",
+      workspaceFolder
+    ) as string[];
+    const servicesString = embeddedServices ? embeddedServices.join(",") : "esp,idf";
+    
     await runTaskForCommand(
       workspaceFolder,
-      `pytest --junitxml test.xml --skip-autoflash y --embedded-services esp,idf -s --test-name '${testName}'`,
+      `pytest --junitxml test.xml --skip-autoflash y --embedded-services ${servicesString} -s --test-name '${testName}'`,
       "PyTest Run",
       cancelToken
     );
