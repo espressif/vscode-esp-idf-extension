@@ -173,7 +173,7 @@ PyTest 相关设置
 
 扩展将按照以下方式使用上述设置：
 
-1. **idf.unitTestFilePattern** 用于扩展在项目中发现单元测试文件。默认模式 :code:`**/test/test_*.c` 会在任何 "test" 目录中查找以 "test_" 开头的 C 文件。
+1. **idf.unitTestFilePattern** 用于扩展在项目中发现单元测试文件。默认模式 :code:`**/test/test_*.c` 会在任何 "test" 目录中查找以 "test" 开头的 C 文件。
 2. **idf.pyTestEmbeddedServices** 指定运行 pytest 命令时使用的内嵌服务。这些服务会作为 :code:`--embedded-services` 参数传递给 pytest 命令。
 
 
