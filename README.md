@@ -97,7 +97,7 @@ These icons will be used in the steps below showing common ESP-IDF use cases:
 
 10. Make sure to configure your drivers as mentioned in ESP-IDF [Configure JTAG Interface](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html) documentation.
 
-11. Before debugging your device, select the device OpenOCD board configuration files by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select OpenOCD Board Configuration**. You can test the connection by clicking status bar icon ![openocd](./media/readme/openocd.png) or pressing <kbd>F1</kbd> and typing **ESP-IDF: OpenOCD Manager**. The output is shown in the menu `View` -> `Output` and choose `ESP-IDF` from the dropdown list.
+11. Before debugging your device, if you are using a connected ESP-IDF development board, the OpenOCD configuration will be automatically selected based on your connected board, including the USB location if available (requires OpenOCD version v0.12.0-esp32-20240821 or higher). Otherwise, you can manually select the device OpenOCD board configuration files by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select OpenOCD Board Configuration**. You can test the connection by clicking status bar icon ![openocd](./media/readme/openocd.png) or pressing <kbd>F1</kbd> and typing **ESP-IDF: OpenOCD Manager**. The output is shown in the menu `View` -> `Output` and choose `ESP-IDF` from the dropdown list.
 
     > **NOTE:** You can start or stop the OpenOCD in Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or by clicking the `OpenOCD Server (Running | Stopped)` button in the status bar.
 
@@ -159,7 +159,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         </tr>
         <tr>
             <td>Pick a Workspace Folder</td>
-            <td>When using a Visual Studio Code workspace with multiple folders, this command allows you to choose which workspace folder to apply this extension’s commands to.
+            <td>When using a Visual Studio Code workspace with multiple folders, this command allows you to choose which workspace folder to apply this extension's commands to.
             More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/multiple-projects.html">working with multiple projects</a>.</td>
             <td></td>
             <td></td>
@@ -203,7 +203,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         </tr>
         <tr>
             <td>Flash Your Project</td>
-            <td>Write binary data to the ESP’s flash chip from your current ESP-IDF project. This command will use either UART, DFU or JTAG based on <strong>idf.flashType</strong>.</td>
+            <td>Write binary data to the ESP's flash chip from your current ESP-IDF project. This command will use either UART, DFU or JTAG based on <strong>idf.flashType</strong>.</td>
             <td><kbd>⌘</kbd> <kbd>I</kbd> <kbd>F</kbd></td>
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd></td>
         </tr>
@@ -272,25 +272,25 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         </tr>
         <tr>
             <td>Flash Your Project</td>
-            <td>Write binary data to the ESP’s flash chip from your current ESP-IDF project. This command will use either UART, DFU or JTAG based on <strong>idf.flashType</strong></td>
+            <td>Write binary data to the ESP's flash chip from your current ESP-IDF project. This command will use either UART, DFU or JTAG based on <strong>idf.flashType</strong></td>
             <td><kbd>⌘</kbd> <kbd>I</kbd> <kbd>F</kbd></td>
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd></td>
         </tr>
         <tr>
             <td>Flash (DFU) Your Project</td>
-            <td>Write binary data to the ESP’s flash chip from your current ESP-IDF project using DFU. Only for ESP32-S2 and ESP32-S3. </td>
+            <td>Write binary data to the ESP's flash chip from your current ESP-IDF project using DFU. Only for ESP32-S2 and ESP32-S3. </td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>Flash (UART) Your Project</td>
-            <td>Write binary data to the ESP’s flash chip from your current ESP-IDF project using esptool.py.</td>
+            <td>Write binary data to the ESP's flash chip from your current ESP-IDF project using esptool.py.</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>Flash (with JTAG)</td>
-            <td>Write binary data to the ESP’s flash chip from your current ESP-IDF project using OpenOCD JTAG.</td>
+            <td>Write binary data to the ESP's flash chip from your current ESP-IDF project using OpenOCD JTAG.</td>
             <td></td>
             <td></td>
         </tr>
