@@ -31,44 +31,30 @@ import { writeParameter } from "../idfConfiguration";
 import { IWelcomeArgs } from "./welcomeInit";
 import { parseString } from "xml2js";
 
-// Utility to safely extract plain text from HTML content
-function extractPlainText(html: string): string {
-  if (!html || typeof html !== 'string') {
-    return '';
+/**
+ * Convert text string characters to plain text.
+ * @param originalText 
+ * @returns text with replaced strings
+ */
+function extractPlainText(originalText: string): string {
+  if (!originalText || typeof originalText !== "string") {
+    return "";
   }
-  
-  // First, normalize the input to handle various edge cases
-  let text = html
-    // Remove null bytes and other control characters
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
-    // Normalize whitespace
-    .replace(/\s+/g, ' ')
+
+  let text = originalText
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+    .replace(/\s+/g, " ")
     .trim();
-  
-  // Remove all HTML tags and their content in a more comprehensive way
-  // This handles malformed tags, nested tags, and various edge cases
+
   text = text
-    // Remove script tags and their content (including malformed ones)
-    .replace(/<script[^>]*>[\s\S]*?<\/script[^>]*>/gi, '')
-    .replace(/<script[^>]*\/>/gi, '')
-    // Remove style tags and their content (including malformed ones)
-    .replace(/<style[^>]*>[\s\S]*?<\/style[^>]*>/gi, '')
-    .replace(/<style[^>]*\/>/gi, '')
-    // Remove all other HTML tags (including self-closing and malformed)
-    .replace(/<[^>]*>/g, '')
-    // Remove any remaining angle brackets that might be left
-    .replace(/[<>]/g, '')
-    // Decode common HTML entities
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    // Clean up multiple spaces and trim
-    .replace(/\s+/g, ' ')
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
     .trim();
-  
+
   return text;
 }
 
