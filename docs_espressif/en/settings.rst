@@ -185,8 +185,8 @@ These settings are used to configure unit testing with PyTest.
 
 This is how the extension uses them:
 
-1. **idf.unitTestFilePattern** is used by the extension to discover unit test files in your project. The default pattern ``**/test/test_*.c`` looks for C files starting with "test_" in any "test" directory.
-2. **idf.pyTestEmbeddedServices** specifies the embedded services to use when running pytest commands. These services are passed to the pytest command as the ``--embedded-services`` parameter.
+1. **idf.unitTestFilePattern** is used by the extension to discover unit test files in your project. The default pattern :code:`**/test/test_*.c` looks for C files starting with "test_" in any "test" directory.
+2. **idf.pyTestEmbeddedServices** specifies the embedded services to use when running pytest commands. These services are passed to the pytest command as the :code:`--embedded-services` parameter.
 
 
 Extension Behaviour Settings
