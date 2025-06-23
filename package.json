@@ -1740,6 +1740,16 @@
         "category": "ESP-IDF"
       },
       {
+        "command": "espIdf.unitTest.buildUnitTestApp",
+        "title": "%espIdf.unitTest.buildUnitTestApp.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.unitTest.flashUnitTestApp",
+        "title": "%espIdf.unitTest.flashUnitTestApp.title%",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.saveDefSdkconfig",
         "title": "%espIdf.saveDefSdkconfig.title%",
         "category": "ESP-IDF"

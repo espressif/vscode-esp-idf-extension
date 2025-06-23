@@ -151,7 +151,7 @@ export async function installPyTestPackages(
   );
 }
 
-export async function buildFlashTestApp(
+export async function buildTestApp(
   unitTestAppDirPath: Uri,
   cancelToken: CancellationToken
 ) {
@@ -170,6 +170,16 @@ export async function buildFlashTestApp(
   if (!canContinue) {
     return;
   }
+}
+
+export async function flashTestApp(
+  unitTestAppDirPath: Uri,
+  cancelToken: CancellationToken
+) {
+  let flashType = readParameter(
+    "idf.flashType",
+    unitTestAppDirPath
+  ) as ESP.FlashType;
   const port = readParameter("idf.port", unitTestAppDirPath);
   if (!port) {
     Logger.infoNotify("Serial port is not defined for unit test");
@@ -189,6 +199,7 @@ export async function buildFlashTestApp(
   if (!canFlash) {
     return;
   }
+  let canContinue = true;
   if (flashType === ESP.FlashType.JTAG) {
     canContinue = await jtagFlashCommand(unitTestAppDirPath);
   } else {
@@ -205,4 +216,12 @@ export async function buildFlashTestApp(
   if (!canContinue) {
     return;
   }
+}
+
+export async function buildFlashTestApp(
+  unitTestAppDirPath: Uri,
+  cancelToken: CancellationToken
+) {
+  await buildTestApp(unitTestAppDirPath, cancelToken);
+  await flashTestApp(unitTestAppDirPath, cancelToken);
 }
