@@ -70,8 +70,12 @@ describe("Example Create testing", async () => {
   }).timeout(20000);
 
   it("Create a test component", async function () {
-    this.timeout(12000);
-    await new Promise((res) => setTimeout(res, 1000));
+    this.timeout(15000);
+    await new Promise((res) => setTimeout(res, 3000));
+    const notifications = await new Workbench().getNotifications();
+    for (let n of notifications) {
+      await n.dismiss();
+    }
     await openTestProject();
     await new Promise((res) => setTimeout(res, 5000));
     await new Workbench().executeCommand("espIdf.createNewComponent");
