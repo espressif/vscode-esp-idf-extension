@@ -30,6 +30,11 @@ describe("Build testing", async () => {
   });
 
   it("Log Doctor command configuration", async () => {
+    await new Promise((res) => setTimeout(res, 3000));
+    const notifications = await new Workbench().getNotifications();
+    for (let n of notifications) {
+      await n.dismiss();
+    }
     await new Workbench().executeCommand("ESP-IDF: Doctor Command");
     await new Promise((res) => setTimeout(res, 10000));
     const editorView = new EditorView();
