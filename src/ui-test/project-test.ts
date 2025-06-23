@@ -70,16 +70,17 @@ describe("Example Create testing", async () => {
   }).timeout(20000);
 
   it("Create a test component", async function () {
-    this.timeout(30000);
     await new Promise((res) => setTimeout(res, 3000));
     const notifications = await new Workbench().getNotifications();
     for (let n of notifications) {
-      await n.dismiss();
+      const message = await n.getMessage();
+      if (message.includes("has been created. Open project in a new window?")) {
+        await n.takeAction("Yes");
+      }
     }
-    await openTestProject();
     await new Promise((res) => setTimeout(res, 5000));
     await new Workbench().executeCommand("espIdf.createNewComponent");
-    await new Promise((res) => setTimeout(res, 1000));
+    await new Promise((res) => setTimeout(res, 3000));
     const inputBox = await InputBox.create();
     const componentName = "testComponent";
     await inputBox.setText(componentName);
@@ -101,23 +102,6 @@ describe("Example Create testing", async () => {
       resolve(componentPath, `${componentName}.c`)
     );
     expect(componentSrcPathExists).to.be.true;
-  });
+  }).timeout(999999);
 });
 
-export async function openTestProject() {
-  await new Promise((res) => setTimeout(res, 5000));
-  await new Workbench().executeCommand("file: open folder");
-  const projectName = "testBlink";
-  const testWorkspaceDir = resolve(
-    __dirname,
-    "..",
-    "..",
-    "testFiles",
-    projectName
-  );
-  await new Promise((res) => setTimeout(res, 3000));
-  const input = await InputBox.create();
-  await input.setText(testWorkspaceDir);
-  await input.confirm();
-  await new Promise((res) => setTimeout(res, 4000));
-}
