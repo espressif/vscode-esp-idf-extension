@@ -91,6 +91,8 @@
 	"espIdf.setup.title": "配置 ESP-IDF 扩展",
 	"espIdf.size.title": "二进制文件大小分析",
 	"espIdf.unitTest.buildFlashUnitTestApp.title": "单元测试：构建并烧录单元测试应用程序",
+	"espIdf.unitTest.buildUnitTestApp.title": "单元测试：构建单元测试应用程序",
+	"espIdf.unitTest.flashUnitTestApp.title": "单元测试：烧录单元测试应用程序",
 	"espIdf.unitTest.installPyTest.title": "单元测试：安装 ESP-IDF PyTest 依赖项",
 	"espIdf.viewAsHex.title": "以十六进制查看",
 	"espIdf.hexView.copyValue.title": "复制值到剪贴板",

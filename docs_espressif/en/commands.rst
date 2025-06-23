@@ -128,6 +128,10 @@ All commands start with ``ESP-IDF:``.
      - Execute the Chromium ninja-build-summary.py.
    * - Size Analysis of the Binaries
      - Launch UI with the ESP-IDF project binaries size information.
+   * - Unit Test: Build Unit Test App
+     - Build the unit test application for the current project. More information can be found in :ref:`Unit Testing Documentation <unit testing>`.
+   * - Unit Test: Flash Unit Test App
+     - Flash the unit test application for the current project to the connected device. More information can be found in :ref:`Unit Testing Documentation <unit testing>`.
    * - Unit Test: Build and Flash Unit Test App for Testing
      - Copy the unit test app in the current project, build the current project and flash the unit test application to the connected device. More information can be found in :ref:`Unit Testing Documentation <unit testing>`.
    * - Unit Test: Install ESP-IDF Pytest Requirements
