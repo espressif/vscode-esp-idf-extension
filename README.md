@@ -437,6 +437,20 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         </tr>
         <tr>
             <td rowspan=2 align="center">Unit Testing</td>
+            <td>"Unit Test: Build Unit Test App"</td>
+            <td>Copy the unit test app in the current project, build the current project. More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">Unit testing documentation</a>.</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td rowspan=2 align="center">Unit Testing</td>
+            <td>Unit Test: Flash Unit Test App</td>
+            <td>Flash the unit test application to the connected device. More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">Unit testing documentation</a>.</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td rowspan=2 align="center">Unit Testing</td>
             <td>Unit Test: Build and Flash Unit Test App for Testing</td>
             <td>Copy the unit test app in the current project, build the current project and flash the unit test application to the connected device. More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">Unit testing documentation</a>.</td>
             <td></td>

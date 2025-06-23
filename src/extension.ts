@@ -140,8 +140,10 @@ import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
 import { UnitTest } from "./espIdf/unitTest/adapter";
 import {
   buildFlashTestApp,
+  buildTestApp,
   checkPytestRequirements,
   copyTestAppProject,
+  flashTestApp,
   installPyTestPackages,
 } from "./espIdf/unitTest/configure";
 import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
@@ -1734,6 +1736,108 @@ export async function activate(context: vscode.ExtensionContext) {
                 : "Error installing PyTest python packages";
             OutputChannel.appendLine(msg, "idf-unit-test");
             Logger.error(msg, error, "extension installPyTestPackages");
+          }
+        }
+      );
+    });
+  });
+
+  registerIDFCommand("espIdf.unitTest.buildUnitTestApp", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspaceRoot
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: ProgressLocation,
+          title: vscode.l10n.t("ESP-IDF: Building unit test app"),
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment?: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            let unitTestAppUri = vscode.Uri.joinPath(
+              workspaceRoot,
+              "unity-app"
+            );
+            const doesUnitTestAppExists = await pathExists(
+              unitTestAppUri.fsPath
+            );
+            if (!doesUnitTestAppExists) {
+              const unitTestFiles = await getFileList();
+              const testComponents = await getTestComponents(unitTestFiles);
+              unitTestAppUri = await copyTestAppProject(
+                workspaceRoot,
+                testComponents
+              );
+            }
+            await buildTestApp(unitTestAppUri, cancelToken);
+          } catch (error) {
+            const msg =
+              error && error.message
+                ? error.message
+                : "Error building PyTest Unit App for project";
+            OutputChannel.appendLine(msg, "idf-unit-test");
+            Logger.error(msg, error, "extension buildTestApp");
+          }
+        }
+      );
+    });
+  });
+
+  registerIDFCommand("espIdf.unitTest.flashUnitTestApp", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspaceRoot
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: ProgressLocation,
+          title: vscode.l10n.t("ESP-IDF: Building unit test app and flashing"),
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment?: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            let unitTestAppUri = vscode.Uri.joinPath(
+              workspaceRoot,
+              "unity-app"
+            );
+            const doesUnitTestAppExists = await pathExists(
+              unitTestAppUri.fsPath
+            );
+            if (!doesUnitTestAppExists) {
+              const unitTestFiles = await getFileList();
+              const testComponents = await getTestComponents(unitTestFiles);
+              unitTestAppUri = await copyTestAppProject(
+                workspaceRoot,
+                testComponents
+              );
+            }
+            await flashTestApp(unitTestAppUri, cancelToken);
+          } catch (error) {
+            const msg =
+              error && error.message
+                ? error.message
+                : "Error flashing PyTest Unit App for project";
+            OutputChannel.appendLine(msg, "idf-unit-test");
+            Logger.error(msg, error, "extension flashTestApp");
           }
         }
       );

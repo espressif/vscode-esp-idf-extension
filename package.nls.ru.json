@@ -91,6 +91,8 @@
 	"espIdf.setup.title": "Конфигурация расширения ESP-IDF",
 	"espIdf.size.title": "Анализ размера двоичных файлов",
 	"espIdf.unitTest.buildFlashUnitTestApp.title": "Unit Test: Сборка и прошивка Unit Test App для тестирования",
+	"espIdf.unitTest.buildUnitTestApp.title": "Unit Test: Сборка Unit Test App",
+	"espIdf.unitTest.flashUnitTestApp.title": "Unit Test: Прошивка Unit Test App",
 	"espIdf.unitTest.installPyTest.title": "Unit Test: Установка требований ESP-IDF PyTest.",
 	"espIdf.viewAsHex.title": "Просмотреть как шестнадцатеричное",
 	"espIdf.hexView.copyValue.title": "Скопировать значение в буфер обмена",

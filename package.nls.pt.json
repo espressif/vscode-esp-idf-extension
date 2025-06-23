@@ -91,6 +91,8 @@
 	"espIdf.setup.title": "Configurar extensão ESP-IDF",
 	"espIdf.size.title": "Análise de tamanho dos binários",
 	"espIdf.unitTest.buildFlashUnitTestApp.title": "Teste de unidade: crie e atualize o aplicativo de teste de unidade para teste",
+	"espIdf.unitTest.buildUnitTestApp.title": "Teste de unidade: criar aplicativo de teste de unidade",
+	"espIdf.unitTest.flashUnitTestApp.title": "Teste de unidade: atualizar aplicativo de teste de unidade",
 	"espIdf.unitTest.installPyTest.title": "Teste de unidade: instale os requisitos do ESP-IDF PyTest",
 	"espIdf.webview.nvsPartitionEditor.title": "Abra o Editor de Partição NVS",
 	"espIdf.welcome.title": "Bem-vindo",
