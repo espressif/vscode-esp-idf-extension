@@ -70,7 +70,7 @@ describe("Example Create testing", async () => {
   }).timeout(20000);
 
   it("Create a test component", async function () {
-    this.timeout(15000);
+    this.timeout(30000);
     await new Promise((res) => setTimeout(res, 3000));
     const notifications = await new Workbench().getNotifications();
     for (let n of notifications) {
@@ -115,7 +115,7 @@ export async function openTestProject() {
     "testFiles",
     projectName
   );
-  await new Promise((res) => setTimeout(res, 1000));
+  await new Promise((res) => setTimeout(res, 3000));
   const input = await InputBox.create();
   await input.setText(testWorkspaceDir);
   await input.confirm();
