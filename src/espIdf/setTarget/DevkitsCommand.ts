@@ -67,14 +67,6 @@ export class DevkitsCommand {
         "esp_detect_config.py"
       );
 
-      if (!fs.existsSync(scriptPath)) {
-        const infoMsg = `Devkit detection script not available at: ${scriptPath}. A default list of targets will be displayed instead.`;
-        Logger.info(infoMsg);
-        OutputChannel.appendLine(infoMsg, "ESP Detect Config");
-        OutputChannel.show();
-        return;
-      }
-
       const openOcdScriptsPath = await getOpenOcdScripts(this.workspaceRoot);
       if (!openOcdScriptsPath) {
         throw new Error("Could not get OpenOCD scripts path");
@@ -145,6 +137,38 @@ export class DevkitsCommand {
       Logger.errorNotify(msg, error, "DevkitsCommand");
       OutputChannel.appendLine(msg, "ESP Detect Config");
       OutputChannel.show();
+    }
+  }
+
+  public async getScriptPath(): Promise<string | null> {
+    try {
+      const toolsPath = idfConf.readParameter(
+        "idf.toolsPath",
+        this.workspaceRoot
+      ) as string;
+      const openOCDManager = OpenOCDManager.init();
+      const openOCDVersion = await openOCDManager.version();
+
+      if (!toolsPath || !openOCDVersion) {
+        return null;
+      }
+
+      const scriptPath = join(
+        toolsPath,
+        "tools",
+        "openocd-esp32",
+        openOCDVersion,
+        "openocd-esp32",
+        "share",
+        "openocd",
+        "espressif",
+        "tools",
+        "esp_detect_config.py"
+      );
+
+      return fs.existsSync(scriptPath) ? scriptPath : null;
+    } catch (error) {
+      return null;
     }
   }
 }
