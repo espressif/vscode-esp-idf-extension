@@ -66,6 +66,32 @@ describe("Build testing", async () => {
     const binExists = await pathExists(testBinPath);
     expect(binExists).to.be.true;
   }).timeout(999999);
+
+  it("Create a test component", async function () {
+    await new Promise((res) => setTimeout(res, 3000));
+    await new Workbench().executeCommand("espIdf.createNewComponent");
+    await new Promise((res) => setTimeout(res, 8000));
+    const inputBox = await InputBox.create();
+    const componentName = "testComponent";
+    await inputBox.setText(componentName);
+    await inputBox.confirm();
+    const componentPath = resolve(
+      __dirname,
+      "..",
+      "..",
+      "testFiles",
+      "testWorkspace",
+      "components",
+      componentName
+    );
+    await new Promise((res) => setTimeout(res, 3000));
+    const componentPathExists = await pathExists(componentPath);
+    expect(componentPathExists).to.be.true;
+    const componentSrcPathExists = await pathExists(
+      resolve(componentPath, `${componentName}.c`)
+    );
+    expect(componentSrcPathExists).to.be.true;
+  }).timeout(999999);
 });
 
 export async function openTestProject() {
