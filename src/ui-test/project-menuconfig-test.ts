@@ -44,10 +44,10 @@ describe("SDKConfig Editor", () => {
 
   it("find compiler toolprefix", async () => {
     const element = await view.findWebElement(
-      By.xpath(`.//label[@data-config-id='SDK_TOOLPREFIX']`)
+      By.xpath(`.//label[@data-config-id='IDF_TOOLCHAIN']`)
     );
     expect(await element.getText()).has.string(
-      "Compiler toolchain path/prefix"
+      "gcc"
     );
   });
 
