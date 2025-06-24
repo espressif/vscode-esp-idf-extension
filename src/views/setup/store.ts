@@ -388,10 +388,6 @@ export const useSetupStore = defineStore("setup", () => {
     if (content) {
       content.style.display = "none";
     }
-    content = document.getElementById("espidf") as HTMLDivElement;
-    if (content) {
-      content.style.display = "none";
-    }
     const secNew = document.querySelector("#py-install-status") as HTMLElement;
     const configList = document.querySelector("#scrollable") as HTMLElement;
     if (secNew) {
