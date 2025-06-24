@@ -21,11 +21,12 @@ import { join } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { FlashModel } from "./flashModel";
-import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
+import { canAccessFile } from "../utils";
 import { TaskManager } from "../taskManager";
 import { getDfuList, selectDfuDevice, selectedDFUAdapterId } from "./dfu";
 import { ESP } from "../config";
 import { getVirtualEnvPythonPath } from "../pythonManager";
+import { configureEnvVariables } from "../common/prepareEnv";
 
 export class FlashTask {
   public static isFlashing: boolean;
@@ -58,10 +59,10 @@ export class FlashTask {
       workspaceUri
     ) as string;
     this.encryptPartitions = encryptPartitions;
-    this.idfPathDir = idfConf.readParameter(
-      "idf.espIdfPath",
-      this.currentWorkspace
-    ) as string;
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    this.idfPathDir = currentEnvVars["IDF_PATH"];
   }
 
   public flashing(flag: boolean) {
@@ -93,7 +94,7 @@ export class FlashTask {
       "idf.notificationMode",
       this.currentWorkspace
     ) as string;
-    const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
+    const pythonBinPath = await getVirtualEnvPythonPath();
     const currentWorkspaceFolder = vscode.workspace.workspaceFolders.find(
       (w) => w.uri === this.currentWorkspace
     );
@@ -103,7 +104,7 @@ export class FlashTask {
         ? vscode.TaskRevealKind.Always
         : vscode.TaskRevealKind.Silent;
     let flashExecution: vscode.ProcessExecution;
-    this.modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    this.modifiedEnv = await configureEnvVariables(this.currentWorkspace);
     this.processOptions = {
       cwd: this.buildDirPath,
       env: this.modifiedEnv,
