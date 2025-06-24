@@ -19,7 +19,7 @@
 import { expect } from "chai";
 import { pathExists } from "fs-extra";
 import { resolve } from "path";
-import { By, InputBox, WebView, Workbench } from "vscode-extension-tester";
+import { By, EditorView, InputBox, WebView, Workbench } from "vscode-extension-tester";
 
 describe("Example Create testing", async () => {
   let view: WebView;
@@ -67,6 +67,10 @@ describe("Example Create testing", async () => {
     await new Promise((res) => setTimeout(res, 5000));
     const resultBlinkPathExists = await pathExists(resultBlinkPath);
     expect(resultBlinkPathExists).to.be.true;
+    if (view) {
+      await view.switchBack();
+    }
+    await new EditorView().closeAllEditors();
   }).timeout(20000);
 
   it("Create a test component", async function () {
@@ -104,4 +108,3 @@ describe("Example Create testing", async () => {
     expect(componentSrcPathExists).to.be.true;
   }).timeout(999999);
 });
-
