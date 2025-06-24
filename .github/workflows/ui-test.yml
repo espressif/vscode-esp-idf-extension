@@ -40,7 +40,6 @@ jobs:
 
       - name: Run Yarn script with xvfb
         run: |
-          CODE_VERSION="min"
           source ~/esp-idf/export.sh && xvfb-run --auto-servernum yarn ci-test
 
       - name: Upload screenshots
