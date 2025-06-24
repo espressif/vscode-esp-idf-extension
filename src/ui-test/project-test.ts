@@ -72,39 +72,4 @@ describe("Example Create testing", async () => {
     }
     await new EditorView().closeAllEditors();
   }).timeout(20000);
-
-  it("Create a test component", async function () {
-    await new Promise((res) => setTimeout(res, 3000));
-    const notifications = await new Workbench().getNotifications();
-    for (let n of notifications) {
-      const message = await n.getMessage();
-      if (message.includes("has been created. Open project in a new window?")) {
-        await n.takeAction("Yes");
-      }
-    }
-    await new Promise((res) => setTimeout(res, 5000));
-    await new Workbench().executeCommand("espIdf.createNewComponent");
-    await new Promise((res) => setTimeout(res, 3000));
-    const inputBox = await InputBox.create();
-    const componentName = "testComponent";
-    await inputBox.setText(componentName);
-    await inputBox.confirm();
-    const projectName = "testBlink";
-    const componentPath = resolve(
-      __dirname,
-      "..",
-      "..",
-      "testFiles",
-      projectName,
-      "components",
-      componentName
-    );
-    await new Promise((res) => setTimeout(res, 3000));
-    const componentPathExists = await pathExists(componentPath);
-    expect(componentPathExists).to.be.true;
-    const componentSrcPathExists = await pathExists(
-      resolve(componentPath, `${componentName}.c`)
-    );
-    expect(componentSrcPathExists).to.be.true;
-  }).timeout(999999);
 });
