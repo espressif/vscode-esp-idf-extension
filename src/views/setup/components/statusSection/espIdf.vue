@@ -23,6 +23,47 @@ const {
   isIdfInstalling,
   statusEspIdf,
 } = storeToRefs(store);
+
+// Computed property to determine if we should show the status message
+const shouldShowStatusMessage = computed(() => {
+  // Show if there's an error status message
+  if (espIdfErrorStatus.value) {
+    return true;
+  }
+  
+  // Show if installation is complete (installed or failed)
+  if (statusEspIdf.value === StatusType.installed || statusEspIdf.value === StatusType.failed) {
+    return true;
+  }
+  
+  // Show if we're not currently installing but have a status
+  if (!isIdfInstalling.value && statusEspIdf.value !== StatusType.pending) {
+    return true;
+  }
+  
+  return false;
+});
+
+// Computed property to get the appropriate status message
+const statusMessage = computed(() => {
+  if (espIdfErrorStatus.value) {
+    return espIdfErrorStatus.value;
+  }
+  
+  if (statusEspIdf.value === StatusType.installed) {
+    return `ESP-IDF installation completed successfully`;
+  }
+  
+  if (statusEspIdf.value === StatusType.failed) {
+    return `ESP-IDF installation failed`;
+  }
+  
+  if (statusEspIdf.value === StatusType.started) {
+    return `ESP-IDF installation in progress...`;
+  }
+  
+  return "";
+});
 </script>
 
 <template>
@@ -50,9 +91,9 @@ const {
         v-if="isIdfInstalling"
         data-config-id="esp-idf-download-status"
       />
-      <div class="control barText" v-if="espIdfErrorStatus">
+      <div class="control barText" v-if="shouldShowStatusMessage">
         <p class="label" data-config-id="esp-idf-download-status">
-          {{ espIdfErrorStatus }}
+          {{ statusMessage }}
         </p>
         <div class="icon is-large is-size-4">
           <IconCheck v-if="statusEspIdf === statusType.installed" />
