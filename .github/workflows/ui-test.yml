@@ -17,19 +17,35 @@ jobs:
         with:
           submodules: "recursive"
 
-      - name: Run ui test
-        uses: ./.github/actions/idf
-        id: idfuitest
-        with:
-          run: /ui-entrypoint.sh
+      - name: Install ESP-IDF
+        run: |
+          ESP_IDF_VERSION="v5.3.2"
+          sudo apt update
+          sudo apt install -y python3-pip git wget flex bison gperf python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util
+          wget https://dl.espressif.com/github_assets/espressif/esp-idf/releases/download/${ESP_IDF_VERSION}/esp-idf-${ESP_IDF_VERSION}.zip -O esp-idf.zip
+          unzip esp-idf.zip -d ~/
+          rm esp-idf.zip
+          mv ~/esp-idf-${ESP_IDF_VERSION} ~/esp-idf
+          ~/esp-idf/install.sh
 
-      - name: See if screenshots are generated
-        if: failure()
-        run: ls /github/workspace/test-resources/screenshots
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Yarn dependencies
+        run: |
+          yarn
+          yarn install
+
+      - name: Run Yarn script with xvfb
+        run: |
+          CODE_VERSION="min"
+          source ~/esp-idf/export.sh && xvfb-run --auto-servernum yarn ci-test
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: failure()
         with: 
           name: screenshots
-          path: /github/workspace/test-resources/screenshots
+          path: /home/runner/work/vscode-esp-idf-extension/vscode-esp-idf-extension/test-resources/screenshots
