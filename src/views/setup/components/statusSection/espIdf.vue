@@ -21,8 +21,22 @@ const {
   espIdfErrorStatus,
   idfDownloadStatus,
   isIdfInstalling,
+  isIdfInstalled,
   statusEspIdf,
 } = storeToRefs(store);
+
+// Helper function to extract installation path from error status message
+const getInstallationPath = computed(() => {
+  if (espIdfErrorStatus.value && espIdfErrorStatus.value.includes("ESP-IDF is installed in")) {
+    // Extract path from the error status message
+    const match = espIdfErrorStatus.value.match(/ESP-IDF is installed in (.+)/);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  // Fallback to store's espIdf value
+  return espIdf.value;
+});
 
 // Computed property to determine if we should show the status message
 const shouldShowStatusMessage = computed(() => {
@@ -46,12 +60,23 @@ const shouldShowStatusMessage = computed(() => {
 
 // Computed property to get the appropriate status message
 const statusMessage = computed(() => {
+  // If there's an error status message, show it (this includes installation path info)
   if (espIdfErrorStatus.value) {
     return espIdfErrorStatus.value;
   }
   
   if (statusEspIdf.value === StatusType.installed) {
-    return `ESP-IDF installation completed successfully`;
+    if (isIdfInstalled.value) {
+      // If we have the ESP-IDF path, show it in the success message
+      const installationPath = getInstallationPath.value;
+      if (installationPath) {
+        return `ESP-IDF installation completed successfully in ${installationPath}`;
+      } else {
+        return `ESP-IDF installation completed successfully`;
+      }
+    } else {
+      return `ESP-IDF installation completed, finalizing setup...`;
+    }
   }
   
   if (statusEspIdf.value === StatusType.failed) {
