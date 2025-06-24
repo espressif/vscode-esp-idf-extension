@@ -21,74 +21,9 @@ const {
   espIdfErrorStatus,
   idfDownloadStatus,
   isIdfInstalling,
-  isIdfInstalled,
   statusEspIdf,
 } = storeToRefs(store);
 
-// Helper function to extract installation path from error status message
-const getInstallationPath = computed(() => {
-  if (espIdfErrorStatus.value && espIdfErrorStatus.value.includes("ESP-IDF is installed in")) {
-    // Extract path from the error status message
-    const match = espIdfErrorStatus.value.match(/ESP-IDF is installed in (.+)/);
-    if (match && match[1]) {
-      return match[1];
-    }
-  }
-  // Fallback to store's espIdf value
-  return espIdf.value;
-});
-
-// Computed property to determine if we should show the status message
-const shouldShowStatusMessage = computed(() => {
-  // Show if there's an error status message
-  if (espIdfErrorStatus.value) {
-    return true;
-  }
-  
-  // Show if installation is complete (installed or failed)
-  if (statusEspIdf.value === StatusType.installed || statusEspIdf.value === StatusType.failed) {
-    return true;
-  }
-  
-  // Show if we're not currently installing but have a status
-  if (!isIdfInstalling.value && statusEspIdf.value !== StatusType.pending) {
-    return true;
-  }
-  
-  return false;
-});
-
-// Computed property to get the appropriate status message
-const statusMessage = computed(() => {
-  // If there's an error status message, show it (this includes installation path info)
-  if (espIdfErrorStatus.value) {
-    return espIdfErrorStatus.value;
-  }
-  
-  if (statusEspIdf.value === StatusType.installed) {
-    if (isIdfInstalled.value) {
-      // If we have the ESP-IDF path, show it in the success message
-      const installationPath = getInstallationPath.value;
-      if (installationPath) {
-        return `ESP-IDF installation completed successfully in ${installationPath}`;
-      } else {
-        return `ESP-IDF installation completed successfully`;
-      }
-    } else {
-      return `ESP-IDF installation completed, finalizing setup...`;
-    }
-  }
-  
-  if (statusEspIdf.value === StatusType.failed) {
-    return `ESP-IDF installation failed`;
-  }
-  
-  if (statusEspIdf.value === StatusType.started) {
-    return `ESP-IDF installation in progress...`;
-  }
-  
-  return "";
-});
 </script>
 
 <template>
@@ -116,9 +51,9 @@ const statusMessage = computed(() => {
         v-if="isIdfInstalling"
         data-config-id="esp-idf-download-status"
       />
-      <div class="control barText" v-if="shouldShowStatusMessage">
+      <div class="control barText" v-if="espIdfErrorStatus">
         <p class="label" data-config-id="esp-idf-download-status">
-          {{ statusMessage }}
+          {{ espIdfErrorStatus }}
         </p>
         <div class="icon is-large is-size-4">
           <IconCheck v-if="statusEspIdf === statusType.installed" />
