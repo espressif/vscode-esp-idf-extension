@@ -212,11 +212,11 @@ describe("Configure extension", () => {
       modifiedEnv
     );
     const xtensaEsp32Tool = await view.findWebElement(
-      By.id("xtensa-esp32-elf")
+      By.id("xtensa-esp-elf")
     );
     const expectedXtensaEsp32Path = xtensaEsp32Path
       .trim()
-      .replace(sep + "bin" + sep + "xtensa-esp32-elf-gcc", sep + "bin");
+      .replace(sep + "bin" + sep + "xtensa-esp-elf", sep + "bin");
     const actualXtensaEsp32Path = await xtensaEsp32Tool.getAttribute("value");
     expect(expectedXtensaEsp32Path).to.be.equal(actualXtensaEsp32Path);
 
