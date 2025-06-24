@@ -2503,7 +2503,7 @@
     "ts-loader": "^9.4.4",
     "typescript": "^5.2.2",
     "vite": "^4.5.13",
-    "vscode-extension-tester": "7.3.2",
+    "vscode-extension-tester": "^8.15.0",
     "vue-hot-reload-api": "^2.3.2",
     "vue-loader": "^17.2.2",
     "vue-router": "^4.2.4",
