@@ -40,6 +40,8 @@ jobs:
 
       - name: Run Yarn script with xvfb
         run: |
+          export IDF_TOOLS_PATH=~/.espressif
+          export IDF_PATH=~/esp-idf
           source ~/esp-idf/export.sh && xvfb-run --auto-servernum yarn ci-test
 
       - name: Upload screenshots
