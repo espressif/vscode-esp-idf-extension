@@ -75,6 +75,7 @@ export async function setTargetInIDF(
 
     setTargetArgs.push("set-target", selectedTarget.target);
     const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder.uri);
+    OutputChannel.appendLine("Running IDF Set Target action", "Set Target");
     const setTargetResult = await spawn(pythonBinPath, setTargetArgs, {
       cwd: workspaceFolder.uri.fsPath,
       env: modifiedEnv,

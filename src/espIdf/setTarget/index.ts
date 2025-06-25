@@ -23,6 +23,8 @@ import {
   WorkspaceFolder,
   window,
   l10n,
+  QuickPickItemKind,
+  debug,
 } from "vscode";
 import {
   NotificationMode,
@@ -35,6 +37,7 @@ import { selectOpenOcdConfigFiles } from "../openOcd/boardConfiguration";
 import { getTargetsFromEspIdf } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 import { updateCurrentProfileIdfTarget } from "../../project-conf";
+import { DevkitsCommand } from "./DevkitsCommand";
 
 export let isSettingIDFTarget = false;
 
@@ -70,14 +73,107 @@ export async function setIdfTarget(
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
         const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
-        const selectedTarget = await window.showQuickPick(targetsFromIdf);
+        let connectedBoards: any[] = [];
+
+        const isDebugging = debug.activeDebugSession !== undefined;
+
+        if (!isDebugging) {
+          try {
+            const devkitsCmd = new DevkitsCommand(workspaceFolder.uri);
+            const scriptPath = await devkitsCmd.getScriptPath();
+            
+            if (scriptPath) {
+              const devkitsOutput = await devkitsCmd.runDevkitsScript();
+              if (devkitsOutput) {
+                const parsed = JSON.parse(devkitsOutput);
+                if (parsed && Array.isArray(parsed.boards)) {
+                  connectedBoards = parsed.boards.map((b: any) => ({
+                    label: b.name,
+                    target: b.target,
+                    description: b.description,
+                    detail: `Status: CONNECTED${
+                      b.location ? `   Location: ${b.location}` : ""
+                    }`,
+                    isConnected: true,
+                    boardInfo: b,
+                  }));
+                }
+              }
+            } else {
+              Logger.info(
+                "Devkit detection script not available. A default list of targets will be displayed instead."
+              );
+            }
+          } catch (e) {
+            Logger.info(
+              "No connected boards detected or error running DevkitsCommand: " +
+                (e && e.message ? e.message : e)
+            );
+          }
+        } else {
+          Logger.info(
+            "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually."
+          );
+        }
+        let quickPickItems: any[] = [];
+        if (connectedBoards.length > 0) {
+          quickPickItems = [
+            ...connectedBoards,
+            { kind: QuickPickItemKind.Separator, label: "Default Boards" },
+            ...targetsFromIdf.map((t) => ({
+              label: t.label,
+              target: t.target,
+              description: t.isPreview ? "Preview target" : undefined,
+              isConnected: false,
+            })),
+          ];
+        } else {
+          quickPickItems = targetsFromIdf.map((t) => ({
+            label: t.label,
+            target: t.target,
+            description: t.isPreview ? "Preview target" : undefined,
+            isConnected: false,
+          }));
+        }
+        const selectedTarget = await window.showQuickPick(quickPickItems, {
+          placeHolder: placeHolderMsg,
+        });
         if (!selectedTarget) {
           return;
         }
-        await selectOpenOcdConfigFiles(
-          workspaceFolder.uri,
-          selectedTarget.target
-        );
+        if (selectedTarget.isConnected && selectedTarget.boardInfo) {
+          // Directly set OpenOCD configs for connected board
+          const configFiles = selectedTarget.boardInfo.config_files || [];
+          await writeParameter(
+            "idf.openOcdConfigs",
+            configFiles,
+            configurationTarget,
+            workspaceFolder.uri
+          );
+          // Store USB location if available
+          if (selectedTarget.boardInfo.location) {
+            const customExtraVars = readParameter(
+              "idf.customExtraVars",
+              workspaceFolder
+            ) as { [key: string]: string };
+            const location = selectedTarget.boardInfo.location.replace(
+              "usb://",
+              ""
+            );
+            customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"] = location;
+            await writeParameter(
+              "idf.customExtraVars",
+              customExtraVars,
+              configurationTarget,
+              workspaceFolder.uri
+            );
+          }
+        } else {
+          await selectOpenOcdConfigFiles(
+            workspaceFolder.uri,
+            selectedTarget.target
+          );
+        }
 
         await setTargetInIDF(workspaceFolder, selectedTarget);
         const customExtraVars = readParameter(
