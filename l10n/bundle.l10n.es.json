@@ -185,6 +185,7 @@
   "Debug": "Depurar",
   "[OpenOCD Server]": "[Servidor OpenOCD]",
   "Open ESP-IDF Terminal": "Abrir terminal ESP-IDF",
+  "Open Classic Menuconfig Terminal": "Abrir terminal de configuración clásica",
   "Doctor Command": "Comando médico",
   "Execute Custom Task": "Ejecutar tarea personalizada",
   "Wait for ESP-IDF build or flash to finish": "Espere a que finalice la compilación o la actualización de ESP-IDF",

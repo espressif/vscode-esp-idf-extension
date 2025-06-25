@@ -29,6 +29,7 @@
 	"espIdf.createDevContainer.title": "Adicionar configuração de contêiner Docker",
 	"espIdf.createFiles.title": "Criar projeto a partir do modelo de extensão",
 	"espIdf.createIdfTerminal.title": "Abra o terminal ESP-IDF",
+	"espIdf.createClassicMenuconfig.title": "Abrir terminal de configuração clássica",
 	"espIdf.createNewComponent.title": "Criar novo componente ESP-IDF",
 	"espIdf.createSbom.title": "Execute a verificação de vulnerabilidade ESP-IDF-SBOM",
 	"espIdf.createVsCodeFolder.title": "Adicionar pasta de configuração vscode",

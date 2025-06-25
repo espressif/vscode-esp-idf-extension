@@ -47,6 +47,7 @@ export enum CommandKeys {
   Debug = "espIdf.debug",
   BuildFlashMonitor = "espIdf.buildFlashMonitor",
   IDFTerminal = "espIdf.createIdfTerminal",
+  ClassicMenuconfig = "espIdf.createClassicMenuconfig",
   CustomTask = "espIdf.customTask",
   QemuServer = "espIdf.qemuCommand",
   OpenOCD = "espIdf.openOCDCommand",
@@ -321,6 +322,14 @@ export function createCommandDictionary(): Record<
       ),
       iconId: "terminal",
       tooltip: l10n.t("Open ESP-IDF Terminal"),
+    },
+    [CommandKeys.ClassicMenuconfig]: {
+      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+        CommandKeys.ClassicMenuconfig,
+        TreeItemCheckboxState.Checked
+      ),
+      iconId: "gear",
+      tooltip: l10n.t("Classic Menuconfig"),
     },
     [CommandKeys.CustomTask]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(

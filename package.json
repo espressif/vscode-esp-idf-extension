@@ -576,6 +576,11 @@
         "mac": "cmd+i t"
       },
       {
+        "command": "espIdf.createClassicMenuconfig",
+        "key": "ctrl+e ctrl+g",
+        "mac": "cmd+i cmd+g"
+      },
+      {
         "command": "espIdf.selectPort",
         "key": "ctrl+e p",
         "mac": "cmd+i p"
@@ -1291,6 +1296,11 @@
       {
         "command": "espIdf.createIdfTerminal",
         "title": "%espIdf.createIdfTerminal.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.createClassicMenuconfig",
+        "title": "%espIdf.createClassicMenuconfig.title%",
         "category": "ESP-IDF"
       },
       {

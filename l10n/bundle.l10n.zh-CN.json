@@ -185,6 +185,7 @@
   "Debug": "调试",
   "[OpenOCD Server]": "[OpenOCD 服务器]",
   "Open ESP-IDF Terminal": "打开 ESP-IDF 终端",
+  "Open Classic Menuconfig Terminal": "打开经典菜单配置终端",
   "Doctor Command": "诊断命令",
   "Execute Custom Task": "执行自定义任务",
   "Wait for ESP-IDF build or flash to finish": "等待 ESP-IDF 构建或烧录完成",
