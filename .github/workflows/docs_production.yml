@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - master
+    - release/*
     paths:
     - 'docs_espressif/**'
     - '.github/workflows/docs_production.yml'
