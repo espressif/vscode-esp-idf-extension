@@ -17,20 +17,26 @@
  */
 
 import { basename, sep } from "path";
-import { Uri, window, workspace } from "vscode";
+import { RelativePattern, Uri, window, workspace } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { ESP } from "../../config";
 
 export async function getFileList(): Promise<Uri[]> {
   let files: Uri[] = [];
   try {
-    const workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
+    let workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
       ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
     );
+    if (!workspaceFolderUri) {
+      workspaceFolderUri = workspace.workspaceFolders
+        ? workspace.workspaceFolders[0].uri
+        : undefined;
+    }
     const filePattern =
       readParameter("idf.unitTestFilePattern", workspaceFolderUri) ||
       "**/test/test_*.c";
-    files = await workspace.findFiles(filePattern);
+    const relativePattern = new RelativePattern(workspaceFolderUri, filePattern);
+    files = await workspace.findFiles(relativePattern);
   } catch (err) {
     window.showErrorMessage("Cannot find test result path!", err);
     return [];

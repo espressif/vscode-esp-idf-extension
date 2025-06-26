@@ -35,6 +35,7 @@ import { EspIdfTestItem, idfTestData } from "./types";
 import { runPyTestWithTestCase } from "./testExecution";
 import { configurePyTestUnitApp } from "./configure";
 import { getFileList, getTestComponents } from "./utils";
+import { ESP } from "../../config";
 
 const unitTestControllerId = "IDF_UNIT_TEST_CONTROLLER";
 const unitTestControllerLabel = "ESP-IDF Unit test controller";
@@ -73,15 +74,19 @@ export class UnitTest {
       }
 
       if (!this.unitTestAppUri) {
-        const workspaceFolder = workspace.workspaceFolders
-          ? workspace.workspaceFolders[0]
-          : undefined;
-
-        if (!workspaceFolder) {
+        let workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
+          ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
+        );
+        if (!workspaceFolderUri) {
+          workspaceFolderUri = workspace.workspaceFolders
+            ? workspace.workspaceFolders[0].uri
+            : undefined;
+        }
+        if (!workspaceFolderUri) {
           return;
         }
         this.unitTestAppUri = await configurePyTestUnitApp(
-          workspaceFolder.uri,
+          workspaceFolderUri,
           this.testComponents,
           cancelToken
         );
@@ -202,7 +207,10 @@ export class UnitTest {
       children: [],
       testName: "TEST_ALL",
     };
-    const testRegex = new RegExp('TEST_CASE\\(\\s*"(.*)"\\s*,\\s*"(.*)"\\s*\\)', "gm");
+    const testRegex = new RegExp(
+      'TEST_CASE\\(\\s*"(.*)"\\s*,\\s*"(.*)"\\s*\\)',
+      "gm"
+    );
     const fileText = await readFile(file.fsPath, "utf8");
     let match = testRegex.exec(fileText);
     while (match != null) {

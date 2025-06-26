@@ -30,6 +30,7 @@ import { flashCommand } from "../../flash/uartFlash";
 import { OutputChannel } from "../../logger/outputChannel";
 import { Logger } from "../../logger/logger";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { getFileList, getTestComponents } from "./utils";
 
 export async function configurePyTestUnitApp(
   workspaceFolder: Uri,
@@ -41,12 +42,15 @@ export async function configurePyTestUnitApp(
     if (!isPyTestInstalled) {
       await installPyTestPackages(workspaceFolder, cancelToken);
     }
-    const unityTestApp = await copyTestAppProject(
-      workspaceFolder,
-      testComponents
-    );
-    await buildFlashTestApp(unityTestApp, cancelToken);
-    return unityTestApp;
+    let unitTestAppUri = Uri.joinPath(workspaceFolder, "unity-app");
+    const doesUnitTestAppExists = await pathExists(unitTestAppUri.fsPath);
+    if (!doesUnitTestAppExists) {
+      const unitTestFiles = await getFileList();
+      const testComponents = await getTestComponents(unitTestFiles);
+      unitTestAppUri = await copyTestAppProject(workspaceFolder, testComponents);
+      await buildFlashTestApp(unitTestAppUri, cancelToken);
+    }
+    return unitTestAppUri;
   } catch (error) {
     const msg =
       error && error.message
