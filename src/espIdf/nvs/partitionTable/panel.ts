@@ -104,6 +104,9 @@ export class NVSPartitionTable {
     try {
       const fileExists = await pathExists(filePath);
       if (!fileExists) {
+        Logger.warnNotify(
+          `File ${filePath} does not exist. Please open a valid CSV file or save current data first.`,
+        );
         return;
       }
       let csvContent: string = "";
