@@ -92,7 +92,6 @@ const webViewConfig = {
       "cmakelists-editor",
       "main.ts"
     ),
-    examples: path.resolve(__dirname, "src", "views", "examples", "main.ts"),
     size: path.resolve(__dirname, "src", "views", "size", "main.ts"),
     newSize: path.resolve(__dirname, "src", "views", "newSize", "main.ts"),
     tracing: path.resolve(__dirname, "src", "views", "tracing", "main.ts"),
