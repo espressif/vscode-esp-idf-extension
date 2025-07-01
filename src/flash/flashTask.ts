@@ -241,7 +241,7 @@ export class FlashTask {
         }
       }
     } else {
-      // No encryption needed, just add all files
+      // No encryption needed, just add all files.
       for (const flashFile of this.model.flashSections) {
         let binPath = replacePathSep
           ? flashFile.binFilePath.replace(/\//g, "\\")
