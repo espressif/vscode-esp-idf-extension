@@ -310,6 +310,8 @@ export async function activate(context: vscode.ExtensionContext) {
             "extension activate checkCMakeContent"
           );
         }
+      } else {
+        nonIdfFolders.push(workspaceFolder.name);
       }
     }
 
