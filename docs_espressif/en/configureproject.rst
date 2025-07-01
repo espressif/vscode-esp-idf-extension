@@ -7,7 +7,7 @@ Configure Your Project
 
 Select an Espressif target (esp32, esp32s2, etc.) by going to ``View`` > ``Command Palette`` and entering ``ESP-IDF: Set Espressif Device Target`` command.
 
-Go to ``View`` > ``Command Palette`` and enter ``ESP-IDF: Select OpenOCD Board Configuration`` to choose the openOCD configuration files for the extension openOCD server.
+If you are using a connected ESP-IDF development board, the OpenOCD configuration will be automatically selected based on your connected board. Otherwise, you can manually select the OpenOCD configuration by going to ``View`` > ``Command Palette`` and entering ``ESP-IDF: Select OpenOCD Board Configuration``.
 
 .. note::
 

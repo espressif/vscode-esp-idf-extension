@@ -233,5 +233,7 @@
   "Type 'SWITCH' to confirm switching to Release Mode": "Digite 'SWITCH' para confirmar a mudança para o Modo de Release",
   "Please type 'SWITCH' exactly to confirm": "Por favor, digite 'SWITCH' exatamente para confirmar",
   "Switching to Release Mode cancelled by user": "Mudança para o Modo de Release cancelada pelo usuário",
-  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Usuário confirmou a mudança para o Modo de Release. Prosseguindo com a criptografia flash."
+  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Usuário confirmou a mudança para o Modo de Release. Prosseguindo com a criptografia flash.",
+  "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.": "A detecção de devkit ESP-IDF conectados é ignorada durante a depuração. Você ainda pode selecionar um alvo manualmente.",
+  "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "A detecção de devkit ESP-IDF conectados não está disponível para sua versão do OpenOCD {openOCDVersion}. É necessária a versão {minRequiredVersion} ou superior. Você ainda pode selecionar um alvo manualmente."
 }
