@@ -277,50 +277,39 @@ export async function activate(context: vscode.ExtensionContext) {
   utils.setExtensionContext(context);
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
 
-  // Check for root CMakeLists.txt and its content before full activation
-  if (PreCheck.isWorkspaceFolderOpen() && vscode.workspace.workspaceFolders) {
+  // Check for CMakeLists.txt and its content before full activation
+  if (PreCheck.isWorkspaceFolderOpen()) {
+    const cmakeListsFiles = await vscode.workspace.findFiles(
+      "**/CMakeLists.txt",
+      "**/{build,node_modules}/**"
+    );
+
     let hasValidIdfProject = false;
-    let nonIdfFolders = [];
-
-    for (const workspaceFolder of vscode.workspace.workspaceFolders) {
-      const currentWorkspaceRootUri = workspaceFolder.uri;
-      const rootCMakeListsPath = path.join(
-        currentWorkspaceRootUri.fsPath,
-        "CMakeLists.txt"
-      );
-      const rootCMakeListsExists = await pathExists(rootCMakeListsPath);
-
-      if (rootCMakeListsExists) {
-        try {
-          const cmakeContent = await readFile(rootCMakeListsPath, "utf-8");
-          if (
-            cmakeContent.includes(
-              "include($ENV{IDF_PATH}/tools/cmake/project.cmake)"
-            )
-          ) {
-            hasValidIdfProject = true;
-            break; // Found a valid ESP-IDF project, no need to check other folders
-          } else {
-            nonIdfFolders.push(workspaceFolder.name);
-          }
-        } catch (error) {
-          Logger.error(
-            `Error reading root CMakeLists.txt for activation check in ${workspaceFolder.name}.`,
-            error,
-            "extension activate checkCMakeContent"
-          );
+    for (const cmakeList of cmakeListsFiles) {
+      try {
+        const cmakeContent = await readFile(cmakeList.fsPath, "utf-8");
+        if (
+          cmakeContent.includes(
+            "include($ENV{IDF_PATH}/tools/cmake/project.cmake)"
+          )
+        ) {
+          hasValidIdfProject = true;
+          break; // Found a valid project, activate immediately
         }
-      } else {
-        nonIdfFolders.push(workspaceFolder.name);
+      } catch (error) {
+        Logger.error(
+          `Error reading ${cmakeList.fsPath} for activation check.`,
+          error,
+          "extension activate checkCMakeContent"
+        );
       }
     }
 
-    // If no valid ESP-IDF project was found, ask user if they want to activate anyway
-    if (!hasValidIdfProject && nonIdfFolders.length > 0) {
+    if (!hasValidIdfProject) {
+      // At least one CMakeLists.txt was found, but none are ESP-IDF projects.
       const activateAnyway = await vscode.window.showInformationMessage(
         vscode.l10n.t(
-          "No standard ESP-IDF projects found in workspace folders: {0}. Do you want to activate the ESP-IDF extension anyway?",
-          nonIdfFolders.join(", ")
+          "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?"
         ),
         { modal: false },
         { title: vscode.l10n.t("Activate Anyway") }
@@ -329,13 +318,11 @@ export async function activate(context: vscode.ExtensionContext) {
         !activateAnyway ||
         activateAnyway.title !== vscode.l10n.t("Activate Anyway")
       ) {
-        Logger.info(
-          "User chose not to activate the ESP-IDF extension due to no valid ESP-IDF projects found."
-        );
+        Logger.info("User chose not to activate the ESP-IDF extension.");
         return; // Exit activation early
       }
       Logger.info(
-        "User chose to activate the ESP-IDF extension despite no valid ESP-IDF projects found."
+        "User chose to activate the ESP-IDF extension despite no standard ESP-IDF project was found."
       );
     }
   }
