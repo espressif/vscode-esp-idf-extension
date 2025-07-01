@@ -36,7 +36,7 @@ export class JTAGFlash {
           }
           if (response !== "0") {
             return reject(
-              `Failed to flash the device (JTag), please try again [got response: '${response}', expecting: '0']`
+              `Failed to flash the device (JTAG), please try again [got response: '${response}', expecting: '0']`
             );
           }
 
@@ -45,7 +45,7 @@ export class JTAGFlash {
         })
         .on("error", (err) => {
           reject(
-            "Failed to flash (via JTag), due to some unknown error in tcl, please try to relaunch open-ocd"
+            "Failed to flash (via JTAG), due to some unknown error in tcl, please try to relaunch open-ocd"
           );
         })
         .sendCommand(fullCommand);

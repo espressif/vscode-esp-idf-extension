@@ -31,7 +31,7 @@ export async function jtagFlashCommand(workspace: Uri) {
   const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
   if (!isOpenOCDLaunched) {
     const errStr =
-      "Can't perform JTag flash, because OpenOCD server is not running!";
+      "Can't perform JTAG flash, because OpenOCD server is not running!";
     OutputChannel.appendLineAndShow(errStr, "Flash");
     return Logger.warnNotify(errStr);
   }
@@ -78,7 +78,7 @@ export async function jtagFlashCommand(workspace: Uri) {
     );
     await customTask.addCustomTask(CustomTaskType.PostFlash);
     await customTask.runTasks(CustomTaskType.PostFlash);
-    const msg = "⚡️ Flashed Successfully (JTag)";
+    const msg = "⚡️ Flashed Successfully (JTAG)";
     OutputChannel.appendLineAndShow(msg, "Flash");
     Logger.infoNotify(msg);
   } catch (msg) {
