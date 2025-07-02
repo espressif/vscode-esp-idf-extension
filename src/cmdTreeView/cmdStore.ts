@@ -28,7 +28,7 @@ export interface IDFCommandDescription {
 export enum IDFWebCommandKeys {
   Flash = "espIdfWeb.flash",
   Monitor = "espIdfWeb.monitor",
-  FlashAndMonitor = "espIdfWeb.flashAndMonitor"
+  FlashAndMonitor = "espIdfWeb.flashAndMonitor",
 }
 
 export enum CommandKeys {
@@ -47,7 +47,6 @@ export enum CommandKeys {
   Debug = "espIdf.debug",
   BuildFlashMonitor = "espIdf.buildFlashMonitor",
   IDFTerminal = "espIdf.createIdfTerminal",
-  ClassicMenuconfig = "espIdf.createClassicMenuconfig",
   CustomTask = "espIdf.customTask",
   QemuServer = "espIdf.qemuCommand",
   OpenOCD = "espIdf.openOCDCommand",
@@ -75,6 +74,7 @@ export enum AdvancedCommandKeys {
   UartFlash = "espIdf.flashUart",
   DfuFlash = "espIdf.flashDFU",
   WebsocketMonitor = "espIdf.launchWSServerAndMonitor",
+  ClassicMenuconfig = "espIdf.createClassicMenuconfig",
 }
 
 export function createAdvancedCommandDictionary(): Record<
@@ -186,6 +186,11 @@ export function createAdvancedCommandDictionary(): Record<
       checkboxState: undefined,
       iconId: "device-desktop",
       tooltip: l10n.t("Launch Websocket server and IDF Monitor"),
+    },
+    [AdvancedCommandKeys.ClassicMenuconfig]: {
+      checkboxState: undefined,
+      iconId: "gear",
+      tooltip: l10n.t("Classic Menuconfig"),
     },
   };
 }
@@ -322,14 +327,6 @@ export function createCommandDictionary(): Record<
       ),
       iconId: "terminal",
       tooltip: l10n.t("Open ESP-IDF Terminal"),
-    },
-    [CommandKeys.ClassicMenuconfig]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.ClassicMenuconfig,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "gear",
-      tooltip: l10n.t("Classic Menuconfig"),
     },
     [CommandKeys.CustomTask]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
