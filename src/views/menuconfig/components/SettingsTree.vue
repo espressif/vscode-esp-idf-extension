@@ -8,7 +8,7 @@ interface TreeItem {
   id: string;
   label: string;
   value: string;
-  open: boolean;
+  readonly open: boolean;
   subItems: TreeItem[];
   isVisible?: boolean;
 }
@@ -32,7 +32,7 @@ const processMenuItems = (items: Menu[]): TreeItem[] => {
       id: item.id,
       label: item.title,
       value: item.id,
-      open: openStates.value[item.id] ?? true,
+      get open() { return openStates.value[item.id] ?? true; },
       isVisible: item.isVisible,
       subItems: item.children ? processMenuItems(item.children) : []
     }));
@@ -59,6 +59,7 @@ function toggleItem(item: TreeItem) {
 function selectItem(item: TreeItem) {
   if (!item) return;
   store.selectedMenu = item.value;
+  this.toggleItem(item);
   emit('select', item.value);
 }
 
@@ -78,7 +79,7 @@ onMounted(() => {
 
 <template>
   <div class="settings-tree">
-    <ul class="tree-list">
+    <ul>
       <li v-for="item in treeData" :key="item.id" class="tree-item">
         <div class="tree-item-content" :class="{ 'has-children': item.subItems && item.subItems.length > 0 }">
           <div v-if="item.subItems && item.subItems.length > 0" class="tree-item-toggle" @click="toggleItem(item)">
@@ -198,6 +199,6 @@ onMounted(() => {
 }
 
 .tree-list .tree-list {
-  padding-left: 16px;
+  padding-left: 10px;
 }
 </style>

@@ -69,22 +69,23 @@ const items = computed(() => {
 
 function onScroll() {
   const configList = document.querySelector(".config-list") as HTMLElement;
-  const searchContainer = document.querySelector(".search-container") as HTMLElement;
-  if (!configList || !searchContainer) return;
+  if (!configList) return;
 
   const sections = Array.from(document.querySelectorAll(".submenu.form-group")) as HTMLElement[];
-  const searchContainerBottom = searchContainer.getBoundingClientRect().bottom;
-  const configListTop = configList.getBoundingClientRect().top;
-  const scrollOffset = 100; // Add some offset to make selection more responsive
+  if (sections.length === 0) return;
 
-  const visibleSection = sections.find((section) => {
-    const rect = section.getBoundingClientRect();
-    const sectionTop = rect.top - configListTop;
-    return sectionTop >= -scrollOffset && sectionTop <= scrollOffset;
-  });
+  const scrollTop = configList.scrollTop;
+  let currentSection: HTMLElement | null = null;
+  for (const section of sections) {
+    if (section.offsetTop - configList.offsetTop <= scrollTop) {
+      currentSection = section;
+    } else {
+      break;
+    }
+  }
 
-  if (visibleSection) {
-    const sectionId = visibleSection.id;
+  if (currentSection) {
+    const sectionId = currentSection.id;
     if (sectionId && store.selectedMenu !== sectionId) {
       store.selectedMenu = sectionId;
     }
@@ -102,11 +103,8 @@ const handleScroll = (event) => {
 function handleMenuSelect(value: string) {
   store.selectedMenu = value;
   const secNew = document.querySelector('#' + value) as HTMLElement;
-  const configList = document.querySelector('.config-list') as HTMLElement;
-  const searchContainer = document.querySelector('.search-container') as HTMLElement;
-  if (secNew && configList && searchContainer) {
-    const endPosition = secNew.offsetTop + configList.clientTop - searchContainer.getBoundingClientRect().bottom;
-    configList.scrollTo({ left: 0, top: endPosition - 10, behavior: 'auto' });
+  if (secNew) {
+    secNew.scrollIntoView({ behavior: 'auto', block: 'start' });
   }
 }
 

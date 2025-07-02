@@ -67,7 +67,7 @@ function onChange(e) {
       />
     </div>
 
-    <div v-if="props.config.type !== 'choice'">
+    <div v-if="props.config.type !== 'choice'" class="config-children">
       <ConfigElement
         v-for="child in props.config.children"
         :key="child.id"
@@ -81,7 +81,8 @@ function onChange(e) {
 .form-group {
   padding-left: 30px;
   overflow: hidden;
-  margin-bottom: 0.5em;
+  margin-top: 9px;
+  margin-bottom: 9px;
 }
 .config-el {
   width: 90%;
@@ -92,7 +93,7 @@ function onChange(e) {
 .submenu {
   padding-left: 0px;
   overflow: hidden;
-  margin-bottom: 0.25em;
+  padding: 10px 10px 10px 15px;
 }
 .menuconfig {
   padding-left: 0px;
@@ -102,6 +103,13 @@ function onChange(e) {
   font-weight: 750;
   font-size: 26px;
   color: var(--vscode-settings-headerForeground, #888888);
-  user-select: none;
+}
+
+.config-children .menu-title {
+  font-size: 22px;
+}
+
+.config-children .config-children .menu-title {
+  font-size: 18px;
 }
 </style>

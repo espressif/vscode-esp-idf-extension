@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia';
-import { useMenuconfigStore } from '../store';
+import { storeToRefs } from "pinia";
+import { useMenuconfigStore } from "../store";
+import { onMounted } from "vue";
 
 const store = useMenuconfigStore();
 
 const { searchString, textDictionary } = storeToRefs(store);
 
+onMounted(() => {
+  const inputElement = document.querySelector(
+    ".search-input"
+  ) as HTMLInputElement;
+  if (inputElement) {
+    inputElement.focus();
+  }
+});
 </script>
 
 <template>
@@ -21,7 +30,11 @@ const { searchString, textDictionary } = storeToRefs(store);
       />
     </div>
     <div class="button-group">
-      <button class="vscode-button" @click="store.saveGuiConfig" id="searchbar-save">
+      <button
+        class="vscode-button"
+        @click="store.saveGuiConfig"
+        id="searchbar-save"
+      >
         {{ textDictionary.save }}
       </button>
       <button class="vscode-button" @click="store.resetGuiConfig">
@@ -62,6 +75,7 @@ const { searchString, textDictionary } = storeToRefs(store);
   border-radius: 2px;
   outline: none;
   transition: border-color 0.1s ease-in-out;
+  height: 26px;
 }
 
 .search-input:focus {

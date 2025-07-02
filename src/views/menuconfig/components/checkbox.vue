@@ -58,7 +58,10 @@ function onChange(e: Event) {
               ></i>
             </span>
           </label>
-          <label :for="props.config.id" v-text="props.config.title" />
+          <label
+            v-text="props.config.title"
+            @click="toggleHelp"
+          />
         </div>
         <div class="control">
           <div class="info-icon" @click="toggleHelp">
@@ -80,7 +83,8 @@ function onChange(e: Event) {
 .form-group {
   padding-left: 30px;
   overflow: hidden;
-  margin-bottom: 0.5em;
+  margin-top: 9px;
+  margin-bottom: 9px;
 }
 
 .field {
@@ -153,6 +157,7 @@ function onChange(e: Event) {
 }
 
 .info-icon {
+  padding-top: 5px;
   margin-left: 5px;
   cursor: pointer;
 }
