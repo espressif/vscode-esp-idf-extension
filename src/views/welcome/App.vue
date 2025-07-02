@@ -163,7 +163,6 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 #app {
-  padding: 20px;
   color: var(--vscode-foreground);
   background-color: var(--vscode-editor-background);
   height: 100vh;
@@ -176,8 +175,8 @@ onMounted(() => {
 .header {
   text-align: center;
   margin-bottom: 32px;
+  padding-top: 10px;
   padding-bottom: 24px;
-  border-bottom: 1px solid var(--vscode-panel-border);
 }
 
 .header-content {

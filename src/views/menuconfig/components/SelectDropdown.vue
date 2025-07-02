@@ -8,7 +8,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'change', value: string): void;
+  (e: "change", value: string): void;
 }>();
 
 let isHelpVisible: Ref<boolean> = ref(false);
@@ -19,7 +19,7 @@ function toggleHelp() {
 
 function onChange(e: Event) {
   const target = e.target as HTMLSelectElement;
-  emit('change', target.value);
+  emit("change", target.value);
 }
 </script>
 
@@ -27,7 +27,7 @@ function onChange(e: Event) {
   <div class="form-group">
     <div class="field">
       <div class="field has-addons">
-        <label v-text="props.config.title" />
+        <label v-text="props.config.title" @click="toggleHelp" />
         <div class="control">
           <div class="info-icon" @click="toggleHelp">
             <IconInfo />
@@ -58,7 +58,8 @@ function onChange(e: Event) {
     </div>
 
     <p v-show="isHelpVisible" class="help-kconfig-title">
-      KCONFIG Name: <label style="font-weight: 900;">{{ props.config.name }}</label>
+      KCONFIG Name:
+      <label style="font-weight: 900;">{{ props.config.name }}</label>
     </p>
     <div v-show="isHelpVisible" class="content" v-html="props.config.help" />
   </div>
@@ -68,7 +69,8 @@ function onChange(e: Event) {
 .form-group {
   padding-left: 30px;
   overflow: hidden;
-  margin-bottom: 0.5em;
+  margin-top: 9px;
+  margin-bottom: 9px;
 }
 
 .field {
@@ -91,7 +93,7 @@ function onChange(e: Event) {
 
 .vscode-select {
   width: 100%;
-  padding: 4px 8px;
+  padding: 2px 8px;
   background-color: var(--vscode-dropdown-background);
   color: var(--vscode-dropdown-foreground);
   border: 1px solid var(--vscode-dropdown-border);
@@ -106,6 +108,7 @@ function onChange(e: Event) {
   background-repeat: no-repeat;
   background-position: right 8px center;
   padding-right: 24px;
+  height: 26px;
 }
 
 .vscode-select:hover {
@@ -136,4 +139,4 @@ function onChange(e: Event) {
   color: var(--vscode-descriptionForeground);
   font-size: 12px;
 }
-</style> 
+</style>

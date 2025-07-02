@@ -26,7 +26,11 @@ function onChange(e: Event) {
 <template>
   <div class="form-group">
     <div class="field has-addons">
-      <label v-text="props.config.title" :data-config-id="props.config.id" />
+      <label
+        v-text="props.config.title"
+        :data-config-id="props.config.id"
+        @click="toggleHelp"
+      />
       <div class="info-icon" @click="toggleHelp">
         <IconInfo />
       </div>
@@ -55,7 +59,8 @@ function onChange(e: Event) {
 .form-group {
   padding-left: 30px;
   overflow: hidden;
-  margin-bottom: 0.5em;
+  margin-top: 9px;
+  margin-bottom: 9px;
 }
 
 .field {
@@ -71,6 +76,7 @@ function onChange(e: Event) {
   border-radius: 2px;
   font-size: 13px;
   line-height: 1.4;
+  height: 25px;
 }
 
 .vscode-input:hover {
@@ -88,6 +94,7 @@ function onChange(e: Event) {
 
 .info-icon {
   margin-left: 5px;
+  padding-top: 5px;
   cursor: pointer;
 }
 

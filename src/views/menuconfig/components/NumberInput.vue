@@ -8,7 +8,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'change', value: number): void;
+  (e: "change", value: number): void;
 }>();
 
 let isHelpVisible: Ref<boolean> = ref(false);
@@ -19,14 +19,14 @@ function toggleHelp() {
 
 function onChange(e: Event) {
   const target = e.target as HTMLInputElement;
-  emit('change', Number(target.value));
+  emit("change", Number(target.value));
 }
 </script>
 
 <template>
   <div class="form-group">
     <div class="field has-addons">
-      <label v-text="props.config.title" />
+      <label v-text="props.config.title" @click="toggleHelp" />
       <div class="control">
         <div class="info-icon" @click="toggleHelp">
           <IconInfo />
@@ -48,7 +48,8 @@ function onChange(e: Event) {
     </div>
 
     <p v-show="isHelpVisible" class="help-kconfig-title">
-      KCONFIG Name: <label style="font-weight: 900;">{{ props.config.name }}</label>
+      KCONFIG Name:
+      <label style="font-weight: 900;">{{ props.config.name }}</label>
     </p>
     <div v-show="isHelpVisible" class="content" v-html="props.config.help" />
   </div>
@@ -58,7 +59,8 @@ function onChange(e: Event) {
 .form-group {
   padding-left: 30px;
   overflow: hidden;
-  margin-bottom: 0.5em;
+  margin-top: 9px;
+  margin-bottom: 9px;
 }
 
 .field {
@@ -74,6 +76,7 @@ function onChange(e: Event) {
   border-radius: 2px;
   font-size: 13px;
   line-height: 1.4;
+  height: 25px;
 }
 
 .vscode-input:hover {
@@ -119,4 +122,4 @@ function onChange(e: Event) {
   color: var(--vscode-descriptionForeground);
   font-size: 12px;
 }
-</style> 
+</style>
