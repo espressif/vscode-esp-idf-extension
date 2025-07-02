@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ensureDir, readFile, readJSON, writeJSON, copy } from "fs-extra";
+import { ensureDir, readFile, readJSON, writeJSON } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../logger/logger";
@@ -53,7 +53,6 @@ export class ExamplesPlanel {
   private static readonly viewType = "examples";
   private readonly panel: vscode.WebviewPanel;
   private disposables: vscode.Disposable[] = [];
-  private extensionPath: string;
 
   private constructor(
     extensionPath: string,
@@ -62,7 +61,6 @@ export class ExamplesPlanel {
     targetDesc: string,
     idfSetup: IdfSetup
   ) {
-    this.extensionPath = extensionPath;
     const panelTitle = vscode.l10n.t("{targetDesc} Examples", { targetDesc });
     this.panel = vscode.window.createWebviewPanel(
       ExamplesPlanel.viewType,
