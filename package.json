@@ -1201,6 +1201,12 @@
             "default": false,
             "description": "%param.useSerialPortVendorProductFilter.title%"
           },
+          "idf.showHintsNotification": {
+            "type": "boolean",
+            "scope": "resource",
+            "default": true,
+            "description": "%param.showHintsNotification%"
+          },
           "idf.usbSerialPortFilters": {
             "type": "object",
             "scope": "application",

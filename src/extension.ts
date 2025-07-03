@@ -363,8 +363,6 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand(name, telemetryCallback)
     );
   };
-  // Store display hints notification (until VS Code is closed)
-  context.workspaceState.update("idf.showHintsNotification", true);
 
   // init rainmaker cache store
   ESP.Rainmaker.store = RainmakerStore.init(context);
@@ -3874,9 +3872,10 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     }
 
-    const showHintsNotification = context.workspaceState.get(
-      "idf.showHintsNotification"
-    );
+    const showHintsNotification = idfConf.readParameter(
+      "idf.showHintsNotification",
+      workspaceRoot
+    ) as boolean;
     if (foundAnyHint && showHintsNotification) {
       const actions = [
         {
@@ -3884,12 +3883,16 @@ export async function activate(context: vscode.ExtensionContext) {
           action: () => vscode.commands.executeCommand("idfErrorHints.focus"),
         },
         {
-          label: vscode.l10n.t("Mute for this session"),
-          action: () => {
-            context.workspaceState.update("idf.showHintsNotification", false);
+          label: vscode.l10n.t("Disable Hints Notifications"),
+          action: async () => {
+            await idfConf.writeParameter(
+              "idf.showHintsNotification",
+              false,
+              vscode.ConfigurationTarget.Workspace
+            );
             vscode.window.showInformationMessage(
               vscode.l10n.t(
-                "Hint notifications muted for this session. You can still access hints manually in ESP-IDF bottom panel"
+                "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel"
               )
             );
           },
