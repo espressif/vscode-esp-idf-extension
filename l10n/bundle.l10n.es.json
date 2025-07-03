@@ -196,6 +196,7 @@
   "JTAG selection may be affected by strapping configuration ({0} is set).": "La selección de JTAG puede verse afectada por la configuración de strapping (se ha establecido {0}).",
   "JTAG is not disabled.": "JTAG no está deshabilitado.",
   "IDF Version >= 4.3.x required to have eFuse view": "Se requiere IDF Versión >= 4.3.x para tener vista de e-fuse",
+  "%param.showHintsNotification%": "Mostrar notificaciones emergentes cuando se encuentren sugerencias para errores de compilación",
   "No ESP-IDF settings found to remove.": "No se encontró ninguna configuración de ESP-IDF para eliminar.",
   "Are you sure you want to remove all ESP-IDF settings? This will delete all idf.* configurations.": "¿Está seguro de que desea eliminar todas las configuraciones de ESP-IDF? Esto eliminará todas las configuraciones idf.*.",
   "{0} settings will be removed.": "{0} configuraciones serán eliminadas.",
@@ -239,7 +240,6 @@
   "🔗 Reference Documentation": "🔗 Documentación de Referencia",
   "Open {0}": "Abrir {0}",
   "💡 Show Hints": "💡 Mostrar Pistas",
-  "Mute for this session": "Silenciar para esta sesión",
-  "Hint notifications muted for this session. You can still access hints manually in ESP-IDF bottom panel": "Notificaciones de pistas silenciadas para esta sesión. Todavía puede acceder a las pistas manualmente en el panel inferior de ESP-IDF",
-  "Possible hint found for the error: {0}": "Posible pista encontrada para el error: {0}"
+  "Disable Hints Notifications": "Deshabilitar Notificaciones de Pistas",
+  "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel": "Las notificaciones de pistas están deshabilitadas para este espacio de trabajo. Puede volver a habilitarlas en la configuración o acceder a las pistas manualmente en el panel inferior de ESP-IDF"
 }
