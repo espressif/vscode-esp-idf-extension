@@ -277,31 +277,35 @@ export async function activate(context: vscode.ExtensionContext) {
   utils.setExtensionContext(context);
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
 
-  // Check for CMakeLists.txt and its content before full activation
-  if (PreCheck.isWorkspaceFolderOpen()) {
-    const cmakeListsFiles = await vscode.workspace.findFiles(
-      "**/CMakeLists.txt",
-      "**/{build,node_modules}/**"
-    );
-
+  // Check for root CMakeLists.txt and its content before full activation
+  if (PreCheck.isWorkspaceFolderOpen() && vscode.workspace.workspaceFolders) {
     let hasValidIdfProject = false;
-    for (const cmakeList of cmakeListsFiles) {
-      try {
-        const cmakeContent = await readFile(cmakeList.fsPath, "utf-8");
-        if (
-          cmakeContent.includes(
-            "include($ENV{IDF_PATH}/tools/cmake/project.cmake)"
-          )
-        ) {
-          hasValidIdfProject = true;
-          break; // Found a valid project, activate immediately
+
+    for (const workspaceFolder of vscode.workspace.workspaceFolders) {
+      const rootCMakeListsPath = path.join(
+        workspaceFolder.uri.fsPath,
+        "CMakeLists.txt"
+      );
+      const rootCMakeListsExists = await pathExists(rootCMakeListsPath);
+
+      if (rootCMakeListsExists) {
+        try {
+          const cmakeContent = await readFile(rootCMakeListsPath, "utf-8");
+          if (
+            cmakeContent.includes(
+              "include($ENV{IDF_PATH}/tools/cmake/project.cmake)"
+            )
+          ) {
+            hasValidIdfProject = true;
+            break; // Found a valid project, activate immediately
+          }
+        } catch (error) {
+          Logger.error(
+            `Error reading root CMakeLists.txt for activation check in ${workspaceFolder.name}.`,
+            error,
+            "extension activate checkCMakeContent"
+          );
         }
-      } catch (error) {
-        Logger.error(
-          `Error reading ${cmakeList.fsPath} for activation check.`,
-          error,
-          "extension activate checkCMakeContent"
-        );
       }
     }
 
