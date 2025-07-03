@@ -240,7 +240,7 @@
   "🔗 Reference Documentation": "🔗 Справочная Документация",
   "Open {0}": "Открыть {0}",
   "💡 Show Hints": "💡 Показать Подсказки",
-  "Mute for this session": "Отключить звук для этой сессии",
-  "Hint notifications muted for this session. You can still access hints manually in ESP-IDF bottom panel": "Уведомления с подсказками отключены для этой сессии. Вы все еще можете получить доступ к подсказкам вручную в нижней панели ESP-IDF",
-  "Possible hint found for the error: {0}": "Возможная подсказка найдена для ошибки: {0}"
+  "%param.showHintsNotification%": "Показывать всплывающие уведомления при обнаружении подсказок для ошибок сборки",
+  "Disable Hints Notifications": "Отключить уведомления с подсказками",
+  "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel": "Уведомления с подсказками отключены для этой рабочей области. Вы можете включить их в настройках или получить доступ к подсказкам вручную в нижней панели ESP-IDF"
 }
