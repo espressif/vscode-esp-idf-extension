@@ -38,7 +38,6 @@
 	"espIdf.troubleshootPanel.title": "ESP-IDF: Formulario de solución de problemas",
 	"espIdf.efuse.clearResults.title": "Limpiar resumen de efuse",
 	"espIdf.eraseFlash.title": "Borrar memoria Flash del dispositivo",
-	"espIdf.examples.title": "Mostrar proyectos de ejemplo",
 	"espIdf.flashAppUart.title": "Solo aplicación Flash (UART)",
 	"espIdf.flashAndEncryptDevice.title": "Encriptar y Flashear su Proyecto",
 	"espIdf.flashBootloaderUart.title": "SOLO ROBAJE DE BOOTOLA FLASH (UART)",

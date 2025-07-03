@@ -124,7 +124,7 @@ export function JSON2CSV(rows: PartitionTable.Row[]): String {
       return;
     }
     let flag = row.flag === true ? "encrypted" : "";
-    csv += `${row.name},${row.type},${row.subtype},${row.offset},${row.size},${flag},${EOL}`;
+    csv += `${row.name},${row.type},${row.subtype},${row.offset},${row.size},${flag}${EOL}`;
   });
   return csv;
 }
@@ -145,12 +145,12 @@ export function CSV2JSON<T>(csv: String): T[] {
     }
     const cols = line.split(",");
     rows.push({
-      name: cols.shift().trim(),
-      type: cols.shift().trim(),
-      subtype: cols.shift().trim(),
-      offset: cols.shift().trim(),
-      size: cols.shift().trim(),
-      flag: cols.shift().trim() === "encrypted" ? true : false,
+      name: (cols.shift() ?? "").trim(),
+      type: (cols.shift() ?? "").trim(),
+      subtype: (cols.shift() ?? "").trim(),
+      offset: (cols.shift() ?? "").trim(),
+      size: (cols.shift() ?? "").trim(),
+      flag: (cols.shift() ?? "").trim() === "encrypted" ? true : false,
       error: undefined,
     });
   });

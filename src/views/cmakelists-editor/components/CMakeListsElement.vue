@@ -21,7 +21,7 @@ function clearError() {
 </script>
 
 <template>
-  <div>
+  <div class="cmake-element">
     <ArrayElement :el="el" v-if="el.type === 'array'" @delete="deleteElem" />
     <BinaryDataElement
       :el="el"
@@ -33,3 +33,12 @@ function clearError() {
     <StringElement :el="el" v-if="el.type === 'string'" @delete="deleteElem"/>
   </div>
 </template>
+
+<style scoped>
+.cmake-element {
+  background-color: var(--vscode-editor-background);
+  border: 2px solid var(--vscode-panel-border);
+  border-radius: 2px;
+  padding: 1rem;
+}
+</style>
