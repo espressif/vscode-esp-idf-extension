@@ -2446,6 +2446,7 @@
     "package": "yarn clean && vsce package --yarn -o esp-idf-extension.vsix",
     "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN} --packagePath esp-idf-extension.vsix",
     "open-vsx-release": "ovsx -p ${OPENVSX_MARKETPLACE_TOKEN} publish --yarn esp-idf-extension.vsix",
+    "open-vsx-prerelease": "ovsx -p ${OPENVSX_MARKETPLACE_TOKEN} publish --yarn --pre-release esp-idf-extension.vsix",
     "clean": "node clean.js",
     "genLocalizationBundle": "npx @vscode/l10n-dev export --outDir ./l10n ./src",
     "webpack": "webpack --mode production",

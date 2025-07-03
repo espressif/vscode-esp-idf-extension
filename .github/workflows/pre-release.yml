@@ -41,6 +41,6 @@ jobs:
           VS_MARKETPLACE_TOKEN: ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
       - name: OpenVSX release
-        run: yarn run ovsx -p ${OPENVSX_MARKETPLACE_TOKEN} publish --yarn --pre-release esp-idf-extension.vsix
+        run: yarn run open-vsx-prerelease
         env:
           OPENVSX_MARKETPLACE_TOKEN: ${{ secrets.OPENVSX_MARKETPLACE_TOKEN }}
