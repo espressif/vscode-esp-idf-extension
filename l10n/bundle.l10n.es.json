@@ -198,6 +198,7 @@
   "JTAG selection may be affected by strapping configuration ({0} is set).": "La selección de JTAG puede verse afectada por la configuración de strapping (se ha establecido {0}).",
   "JTAG is not disabled.": "JTAG no está deshabilitado.",
   "IDF Version >= 4.3.x required to have eFuse view": "Se requiere IDF Versión >= 4.3.x para tener vista de e-fuse",
+  "%param.showHintsNotification%": "Mostrar notificaciones emergentes cuando se encuentren sugerencias para errores de compilación",
   "No ESP-IDF settings found to remove.": "No se encontró ninguna configuración de ESP-IDF para eliminar.",
   "Are you sure you want to remove all ESP-IDF settings? This will delete all idf.* configurations.": "¿Está seguro de que desea eliminar todas las configuraciones de ESP-IDF? Esto eliminará todas las configuraciones idf.*.",
   "{0} settings will be removed.": "{0} configuraciones serán eliminadas.",
@@ -235,5 +236,10 @@
   "Switching to Release Mode cancelled by user": "Cambio al Modo Release cancelado por el usuario",
   "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Usuario confirmó el cambio al Modo Release. Procediendo con el cifrado de flash.",
   "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.": "La detección de devkit ESP-IDF conectados se omite durante la depuración. Aún puede seleccionar un objetivo manualmente.",
-  "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "La detección de devkit ESP-IDF conectados no está disponible para su versión de OpenOCD {openOCDVersion}. Se requiere la versión {minRequiredVersion} o superior. Aún puede seleccionar un objetivo manualmente."
+  "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "La detección de devkit ESP-IDF conectados no está disponible para su versión de OpenOCD {openOCDVersion}. Se requiere la versión {minRequiredVersion} o superior. Aún puede seleccionar un objetivo manualmente.",
+  "🔗 Reference Documentation": "🔗 Documentación de Referencia",
+  "Open {0}": "Abrir {0}",
+  "💡 Show Hints": "💡 Mostrar Pistas",
+  "Disable Hints Notifications": "Deshabilitar Notificaciones de Pistas",
+  "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel": "Las notificaciones de pistas están deshabilitadas para este espacio de trabajo. Puede volver a habilitarlas en la configuración o acceder a las pistas manualmente en el panel inferior de ESP-IDF"
 }

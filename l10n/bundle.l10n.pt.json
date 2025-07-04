@@ -235,5 +235,11 @@
   "Switching to Release Mode cancelled by user": "Mudança para o Modo de Release cancelada pelo usuário",
   "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Usuário confirmou a mudança para o Modo de Release. Prosseguindo com a criptografia flash.",
   "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.": "A detecção de devkit ESP-IDF conectados é ignorada durante a depuração. Você ainda pode selecionar um alvo manualmente.",
-  "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "A detecção de devkit ESP-IDF conectados não está disponível para sua versão do OpenOCD {openOCDVersion}. É necessária a versão {minRequiredVersion} ou superior. Você ainda pode selecionar um alvo manualmente."
+  "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "A detecção de devkit ESP-IDF conectados não está disponível para sua versão do OpenOCD {openOCDVersion}. É necessária a versão {minRequiredVersion} ou superior. Você ainda pode selecionar um alvo manualmente.",
+  "🔗 Reference Documentation": "🔗Documentação de Referência",
+  "Open {0}": "Abrir {0}",
+  "💡 Show Hints": "💡 Mostrar Dicas",
+  "%param.showHintsNotification%": "Mostrar notificações pop-up quando dicas forem encontradas para erros de compilação",
+  "Disable Hints Notifications": "Desabilitar Notificações de Dicas",
+  "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel": "Notificações de dicas desabilitadas para este workspace. Você pode reabilitá-las nas configurações ou acessar dicas manualmente no painel inferior do ESP-IDF"
 }

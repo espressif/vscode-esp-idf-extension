@@ -235,5 +235,11 @@
   "Switching to Release Mode cancelled by user": "Переключение в Режим Релиза отменено пользователем",
   "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Пользователь подтвердил переключение в Режим Релиза. Продолжаем шифрование флеш-памяти.",
   "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.": "Обнаружение подключенных ESP-IDF devkit пропускается во время отладки. Вы все еще можете выбрать цель вручную.",
-  "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "Обнаружение подключенных ESP-IDF devkit недоступно для вашей версии OpenOCD {openOCDVersion}. Требуется версия {minRequiredVersion} или выше. Вы все еще можете выбрать цель вручную."
+  "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "Обнаружение подключенных ESP-IDF devkit недоступно для вашей версии OpenOCD {openOCDVersion}. Требуется версия {minRequiredVersion} или выше. Вы все еще можете выбрать цель вручную.",
+  "🔗 Reference Documentation": "🔗 Справочная Документация",
+  "Open {0}": "Открыть {0}",
+  "💡 Show Hints": "💡 Показать Подсказки",
+  "%param.showHintsNotification%": "Показывать всплывающие уведомления при обнаружении подсказок для ошибок сборки",
+  "Disable Hints Notifications": "Отключить уведомления с подсказками",
+  "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel": "Уведомления с подсказками отключены для этой рабочей области. Вы можете включить их в настройках или получить доступ к подсказкам вручную в нижней панели ESP-IDF"
 }
