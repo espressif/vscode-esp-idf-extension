@@ -1,0 +1,46 @@
+name: Pre-Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*-rc*'
+
+jobs:
+  build:
+    name: Upload .vsix in release asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: yarn
+
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/v}
+          VERSION=$(echo $TAG | sed 's/-rc.*//')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Update package.json version
+        run: yarn version --new-version $VERSION --no-git-tag-version
+
+      - name: VSIX Package
+        run: yarn run package --pre-release
+
+      - name: Marketplace release
+        run: yarn run release --pre-release
+        env:
+          VS_MARKETPLACE_TOKEN: ${{ secrets.VS_MARKETPLACE_TOKEN }}
+
+      - name: OpenVSX release
+        run: yarn run open-vsx-prerelease
+        env:
+          OPENVSX_MARKETPLACE_TOKEN: ${{ secrets.OPENVSX_MARKETPLACE_TOKEN }}
