@@ -185,6 +185,7 @@
   "Debug": "Отладка",
   "[OpenOCD Server]": "[Сервер OpenOCD]",
   "Open ESP-IDF Terminal": "Открыть терминал ESP-IDF",
+  "Open Classic Menuconfig Terminal": "Открыть классический терминал конфигурации",
   "Doctor Command": "Команда 'Доктор'",
   "Execute Custom Task": "Выполнить пользовательскую задачу",
   "Wait for ESP-IDF build or flash to finish": "Подождите завершения сборки или прошивки ESP-IDF",

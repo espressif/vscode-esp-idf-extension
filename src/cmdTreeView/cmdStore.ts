@@ -28,7 +28,7 @@ export interface IDFCommandDescription {
 export enum IDFWebCommandKeys {
   Flash = "espIdfWeb.flash",
   Monitor = "espIdfWeb.monitor",
-  FlashAndMonitor = "espIdfWeb.flashAndMonitor"
+  FlashAndMonitor = "espIdfWeb.flashAndMonitor",
 }
 
 export enum CommandKeys {
@@ -74,6 +74,7 @@ export enum AdvancedCommandKeys {
   UartFlash = "espIdf.flashUart",
   DfuFlash = "espIdf.flashDFU",
   WebsocketMonitor = "espIdf.launchWSServerAndMonitor",
+  ClassicMenuconfig = "espIdf.createClassicMenuconfig",
 }
 
 export function createAdvancedCommandDictionary(): Record<
@@ -185,6 +186,11 @@ export function createAdvancedCommandDictionary(): Record<
       checkboxState: undefined,
       iconId: "device-desktop",
       tooltip: l10n.t("Launch Websocket server and IDF Monitor"),
+    },
+    [AdvancedCommandKeys.ClassicMenuconfig]: {
+      checkboxState: undefined,
+      iconId: "gear",
+      tooltip: l10n.t("Classic Menuconfig"),
     },
   };
 }
