@@ -112,7 +112,9 @@ export async function downloadExtractAndRunEIM(
   useMirror: boolean = false
 ): Promise<void> {
   const jsonUrl = "https://dl.espressif.com/dl/eim/eim_unified_release.json";
-  const tempDir = join(tmpdir(), "eim_download");
+  const containerPath =
+    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+  const defaultToolsPath = join(containerPath, ".espressif");
 
   try {
     progress.report({
@@ -158,7 +160,7 @@ export async function downloadExtractAndRunEIM(
 
     let downloadUrl = fileInfo.browser_download_url;
     const fileName = basename(downloadUrl);
-    const downloadPath = join(tempDir, fileName);
+    const downloadPath = join(defaultToolsPath, fileName);
 
     const doesDownloadPathExists = await pathExists(downloadPath);
     if (!doesDownloadPathExists) {
@@ -169,9 +171,9 @@ export async function downloadExtractAndRunEIM(
         );
       }
 
-      const doesTmpDirExists = await pathExists(tempDir);
+      const doesTmpDirExists = await pathExists(defaultToolsPath);
       if (!doesTmpDirExists) {
-        await ensureDir(tempDir);
+        await ensureDir(defaultToolsPath);
       }
 
       const writeStream: WriteStream = createWriteStream(downloadPath, {
@@ -221,7 +223,7 @@ export async function downloadExtractAndRunEIM(
     }
 
     if (process.platform !== "win32") {
-      const destPath = join(tempDir, "eim");
+      const destPath = join(defaultToolsPath, "eim");
       await installZipFile(downloadPath, destPath, cancelToken);
       Logger.infoNotify(`File extracted to: ${destPath}`);
     }
@@ -229,13 +231,13 @@ export async function downloadExtractAndRunEIM(
     let binaryPath = "";
     if (process.platform === "win32") {
       binaryPath = `Start-Process -FilePath "${join(
-        tempDir,
+        defaultToolsPath,
         "eim-gui-windows-x64.exe"
       )}"`;
     } else if (process.platform === "linux") {
       binaryPath = `./eim`;
     } else if (process.platform === "darwin") {
-      binaryPath = `open ${join(tempDir, "eim", "eim.app")}`;
+      binaryPath = `open ${join(defaultToolsPath, "eim", "eim.app")}`;
     }
     const shellPath =
       process.platform === "win32"
@@ -244,7 +246,10 @@ export async function downloadExtractAndRunEIM(
     const espIdfTerminal = window.createTerminal({
       name: "ESP-IDF EIM",
       shellPath: shellPath,
-      cwd: process.platform === "win32" ? tempDir : join(tempDir, "eim"),
+      cwd:
+        process.platform === "win32"
+          ? defaultToolsPath
+          : join(defaultToolsPath, "eim"),
     });
     espIdfTerminal.sendText(binaryPath, true);
     espIdfTerminal.show();
