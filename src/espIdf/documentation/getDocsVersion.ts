@@ -134,7 +134,7 @@ async function downloadFile(url: string, outputLocationPath: string) {
       responseType: "stream",
     });
     response.data.pipe(writer);
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       writer.on("finish", resolve);
       writer.on("error", reject);
     });
