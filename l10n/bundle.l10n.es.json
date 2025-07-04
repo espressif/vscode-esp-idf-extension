@@ -233,7 +233,9 @@
   "Type 'SWITCH' to confirm switching to Release Mode": "Escriba 'SWITCH' para confirmar el cambio al Modo Release",
   "Please type 'SWITCH' exactly to confirm": "Por favor escriba 'SWITCH' exactamente para confirmar",
   "Switching to Release Mode cancelled by user": "Cambio al Modo Release cancelado por el usuario",
-  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Usuario confirmó el cambio al Modo Release. Procediendo con el cifrado de flash.",
   "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.": "La detección de devkit ESP-IDF conectados se omite durante la depuración. Aún puede seleccionar un objetivo manualmente.",
-  "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "La detección de devkit ESP-IDF conectados no está disponible para su versión de OpenOCD {openOCDVersion}. Se requiere la versión {minRequiredVersion} o superior. Aún puede seleccionar un objetivo manualmente."
+  "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "La detección de devkit ESP-IDF conectados no está disponible para su versión de OpenOCD {openOCDVersion}. Se requiere la versión {minRequiredVersion} o superior. Aún puede seleccionar un objetivo manualmente.",
+  "User confirmed switching to Release Mode. Proceeding with flash encryption.": "El usuario confirmó el cambio al Modo de Lanzamiento. Procediendo con el cifrado de flash.",
+  "Activate Anyway": "Activar de todos modos",
+  "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "No se encontró ningún proyecto ESP-IDF estándar en este espacio de trabajo. ¿Desea activar la extensión ESP-IDF de todos modos?"
 }
