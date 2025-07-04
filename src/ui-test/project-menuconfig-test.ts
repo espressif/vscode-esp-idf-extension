@@ -42,12 +42,12 @@ describe("SDKConfig Editor", () => {
     expect(await element.getText()).has.string("Save");
   });
 
-  it("find compiler toolprefix", async () => {
+  it("find element label text", async () => {
     const element = await view.findWebElement(
-      By.xpath(`.//label[@data-config-id='SDK_TOOLPREFIX']`)
+      By.xpath(`.//label[@data-config-id='PTHREAD_TASK_NAME_DEFAULT']`)
     );
     expect(await element.getText()).has.string(
-      "Compiler toolchain path/prefix"
+      "Default name of pthreads"
     );
   });
 

@@ -54,6 +54,10 @@ onMounted(() => {
       </div>
       <div class="level-right mright">
         <div class="level-item link">
+          <a href="https://github.com/espressif/idf-im-ui/releases">
+            <IconGithub class="icon-margin" />
+            ESP-IDF Installation Manager
+          </a>
           <a href="https://github.com/espressif/vscode-esp-idf-extension">
             <IconGithub class="icon-margin" />
             Repository

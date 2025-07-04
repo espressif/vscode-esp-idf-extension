@@ -10,7 +10,7 @@ testFiles/blink
 !testFiles/dist
 testFiles/tools
 testFiles/testWorkspace/build
-testFiles/testWorkspace/sdkconfig.*
+testFiles/testWorkspace/sdkconfig*
 *.log
 .DS_Store
 bandit_output.txt

@@ -16,7 +16,12 @@
  * limitations under the License.
  */
 
-import { BottomBarPanel, InputBox, Workbench } from "vscode-extension-tester";
+import {
+  BottomBarPanel,
+  EditorView,
+  InputBox,
+  Workbench,
+} from "vscode-extension-tester";
 import { expect } from "chai";
 import { resolve } from "path";
 import { pathExists } from "fs-extra";
@@ -26,10 +31,26 @@ describe("Build testing", async () => {
 
   before(async function () {
     this.timeout(100000);
+    const notifications = await new Workbench().getNotifications();
+    for (let n of notifications) {
+      await n.dismiss();
+    }
     await openTestProject();
   });
 
+  it("Log Doctor command configuration", async () => {
+    await new Promise((res) => setTimeout(res, 3000));
+    await new Workbench().executeCommand("ESP-IDF: Doctor Command");
+    await new Promise((res) => setTimeout(res, 10000));
+    const editorView = new EditorView();
+    const editor = await editorView.openEditor("report.txt");
+    const docCmdText = await editor.getText();
+    console.log(docCmdText);
+  }).timeout(999999);
+
   it("Build bin is generated", async () => {
+    await new Workbench().executeCommand("ESP-IDF: Full Clean Project");
+    await new Promise((res) => setTimeout(res, 10000));
     await new Workbench().executeCommand("ESP-IDF: Build your Project");
     await new Promise((res) => setTimeout(res, 5000));
     // get names of all available terminals

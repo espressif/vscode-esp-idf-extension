@@ -22,8 +22,8 @@ import * as utils from "../utils";
 import { IExample } from "../examples/Example";
 import { setCurrentSettingsInTemplate } from "./utils";
 import { NotificationMode, readParameter } from "../idfConfiguration";
-import { IdfSetup } from "../views/setup/types";
 import { createClangdFile } from "../clang";
+import { IdfSetup } from "../eim/types";
 
 export class NewProjectPanel {
   public static currentPanel: NewProjectPanel | undefined;
@@ -299,8 +299,8 @@ export class NewProjectPanel {
             idfSetup,
             port,
             selectedIdfTarget,
-            openOcdConfigs,
-            workspaceFolder
+            workspaceFolder,
+            openOcdConfigs
           );
           await createClangdFile(vscode.Uri.file(newProjectPath));
           await writeJSON(settingsJsonPath, settingsJson, {
