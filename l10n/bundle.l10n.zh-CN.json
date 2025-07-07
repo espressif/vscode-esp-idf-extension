@@ -147,7 +147,6 @@
   "Discarded changes in SDK Configuration editor": "已放弃 SDK 配置编辑器中的更改",
   "Error encountered while adding dependency {dependency} to the component \"{component}\"": "将依赖项 {dependency} 添加到组件 \"{component}\" 时出错",
   "Error encountered while creating project from example \"{example}\"": "基于 \"{example}\" 示例创建项目时出错",
-  "Create ESP-IDF From Extension Templates": "基于扩展模板创建 ESP-IDF",
   "Install ESP-ADF": "安装 ESP-ADF",
   "Install ESP-MDF": "安装 ESP-MDF",
   "Install ESP-Matter": "安装 ESP-Matter",

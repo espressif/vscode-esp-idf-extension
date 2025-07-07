@@ -37,12 +37,22 @@ const filteredBoards = computed(() => {
   );
 });
 
+
+// Only request initial values if the store is empty, to avoid resetting on navigation
 onMounted(() => {
-  store.requestInitialValues();
+  if (!store.projectName && (!store.boards || store.boards.length === 0)) {
+    store.requestInitialValues();
+  }
 });
 
+
+// Only update selectedBoard if it is not already set to a valid value
 watch(selectedIdfTarget, () => {
-  if (filteredBoards.value.length > 0) {
+  if (
+    filteredBoards.value.length > 0 &&
+    (!selectedBoard.value ||
+      !filteredBoards.value.some((b) => b.name === selectedBoard.value.name))
+  ) {
     selectedBoard.value = filteredBoards.value[0];
   }
 });

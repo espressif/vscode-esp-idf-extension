@@ -53,7 +53,6 @@
     "soc"
   ],
   "activationEvents": [
-    "onCommand:espIdf.createFiles",
     "onCommand:espIdf.addArduinoAsComponentToCurFolder",
     "onCommand:espIdf.createIdfTerminal",
     "onCommand:espIdf.createVsCodeFolder",
@@ -534,11 +533,6 @@
       ]
     },
     "keybindings": [
-      {
-        "command": "espIdf.createFiles",
-        "key": "ctrl+e c",
-        "mac": "cmd+i c"
-      },
       {
         "command": "espIdf.fullClean",
         "key": "ctrl+e x",
@@ -1271,11 +1265,6 @@
       {
         "command": "espIdf.searchError",
         "title": "%espIdf.searchError.title%"
-      },
-      {
-        "command": "espIdf.createFiles",
-        "title": "%espIdf.createFiles.title%",
-        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.addArduinoAsComponentToCurFolder",

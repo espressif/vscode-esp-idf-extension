@@ -27,7 +27,6 @@
 	"espIdf.clearSavedIdfSetups.title": "清除已保存的 ESP-IDF 设置",
 	"espIdf.cmakeListsEditor.start.title": "CMakeLists.txt 编辑器",
 	"espIdf.createDevContainer.title": "添加 Docker 容器配置",
-	"espIdf.createFiles.title": "基于模板创建新项目",
 	"espIdf.createIdfTerminal.title": "打开 ESP-IDF 终端",
 	"espIdf.createNewComponent.title": "创建新 ESP-IDF 组件",
 	"espIdf.createSbom.title": "运行 ESP-IDF-SBOM 漏洞检查",

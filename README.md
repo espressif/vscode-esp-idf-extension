@@ -240,12 +240,6 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
             <td></td>
         </tr>
         <tr>
-            <td>Create Project from Extension Template</td>
-            <td>Create an ESP-IDF project using one of the extension template projects.</td>
-            <td><kbd>⌘</kbd> <kbd>I</kbd> <kbd>C</kbd></td>
-            <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd></td>
-        </tr>
-        <tr>
             <td>Create New ESP-IDF Component</td>
             <td>Create a new component in the current directory based on ESP-IDF component template.</td>
             <td></td>
@@ -563,7 +557,7 @@ See an example in the [debugging](https://docs.espressif.com/projects/vscode-esp
 
 ## Available Tasks in `tasks.json`
 
-A template `tasks.json` is included when creating a project using **ESP-IDF: Create Project from Extension Template**. These tasks can be executed by pressing <kbd>F1</kbd>, writing `Tasks: Run task` and selecting one of the following:
+A template `tasks.json` is included when creating a project using **ESP-IDF: New Project**. These tasks can be executed by pressing <kbd>F1</kbd>, writing `Tasks: Run task` and selecting one of the following:
 
 1. `Build` - Build Project
 2. `Set Target to esp32`

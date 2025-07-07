@@ -13,7 +13,7 @@ ESP-IDF setup can include a fork of `Espressif QEMU fork <https://github.com/esp
 Development steps:
 
 1. Prepare a project folder in a container based on the dockerfile in the templates ``.devcontainer`` directory in this repository. For this you can:
-   - Create a project using **ESP-IDF: New Project**, **ESP-IDF: Show Examples Projects** or **ESP-IDF: Create Project from Extension Template** command which will include the ``.devcontainer`` directory.
+   - Create a project using **ESP-IDF: New Project**, **ESP-IDF: Show Examples Projects** command which will include the ``.devcontainer`` directory.
    - Use the **ESP-IDF: Add Docker Container Configuration** command to add the ``.devcontainer`` files to the currently opened project directory.
 2. Use the **Remote Containers: Open Folder in Container..** command to open the folder within the container.
 3. The **Remote Containers** will build the container from the Dockerfile (if it has not been created before) and install this extension on the container.

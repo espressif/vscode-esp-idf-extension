@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { useNewProjectStore } from "./store";
 import TemplateList from "./components/templateList.vue";
-import searchBar from "./components/searchBar.vue"
+import searchBar from "./components/searchBar.vue";
 import { storeToRefs } from "pinia";
 import { computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { IconArrowLeft } from "@iconify-prerendered/vue-codicon";
+
 const store = useNewProjectStore();
+const router = useRouter();
 
 let {
   hasTemplateDetail,
@@ -23,17 +27,27 @@ const frameworks = computed(() => {
   return Object.keys(templatesRootPath.value);
 });
 
-onMounted(()=> {
+function goToConfigure() {
+  router.push("/");
+}
+
+onMounted(() => {
   if (templatesRootPath.value) {
-      const frameworks = Object.keys(templatesRootPath.value);
-      store.selectedFramework = frameworks.length ? frameworks[0] : "";
-    }
-})
+    const frameworks = Object.keys(templatesRootPath.value);
+    store.selectedFramework = frameworks.length ? frameworks[0] : "";
+  }
+});
 </script>
 
 <template>
   <div id="templates-window">
     <div id="sidenav" class="content">
+      <div class="back-btn-wrapper">
+        <button class="vscode-button back-btn" @click="goToConfigure">
+          <IconArrowLeft style="vertical-align: middle; margin-right: 4px;" />
+          Back
+        </button>
+      </div>
       <div class="select-wrapper">
         <select v-model="selectedFramework" class="vscode-select">
           <option v-for="f in frameworks" :key="f" :value="f">
@@ -72,6 +86,11 @@ onMounted(()=> {
 
 <style lang="scss">
 @import "../commons/espCommons.scss";
+
+/* Add a little spacing for the back button */
+.back-btn-wrapper {
+  margin-bottom: 1rem;
+}
 
 #templates-window {
   color: var(--vscode-editor-foreground);

@@ -20,7 +20,7 @@ For more information, refer to `ESP Component Registry Documentation <https://do
 Install Arduino-ESP32 as Component
 ----------------------------------
 
-The ``ESP-IDF: Add Arduino-ESP32 as ESP-IDF Component`` command adds `Arduino-ESP32 <https://github.com/espressif/arduino-esp32>`_ as an ESP-IDF component in your current directory (``${CURRENT_DIRECTORY}/components/arduino``). You can also use the ``ESP-IDF: Create Project from Extension Template`` command with the ``arduino-as-component`` template to create a new project directory that includes Arduino-ESP32 as an ESP-IDF component.
+The ``ESP-IDF: Add Arduino-ESP32 as ESP-IDF Component`` command adds `Arduino-ESP32 <https://github.com/espressif/arduino-esp32>`_ as an ESP-IDF component in your current directory (``${CURRENT_DIRECTORY}/components/arduino``).
 
 .. note::
 

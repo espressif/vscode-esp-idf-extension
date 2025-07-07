@@ -147,7 +147,6 @@
   "Discarded changes in SDK Configuration editor": "Изменения в редакторе конфигурации SDK отменены",
   "Error encountered while adding dependency {dependency} to the component \"{component}\"": "Произошла ошибка при добавлении зависимости {dependent} к компоненту \"{comment}\"",
   "Error encountered while creating project from example \"{example}\"": "Ошибка при создании проекта из примера \"{example}\"",
-  "Create ESP-IDF From Extension Templates": "Создание ESP-IDF из шаблонов расширения",
   "Install ESP-ADF": "Установка ESP-ADF",
   "Install ESP-MDF": "Установка ESP-MDF",
   "Install ESP-Matter": "Установка ESP-Matter",

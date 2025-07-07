@@ -21,6 +21,7 @@ import { IExample, IExampleCategory } from "../../examples/Example";
 import { IdfBoard } from "../../espIdf/openOcd/boardConfiguration";
 import { Ref, ref } from "vue";
 import { IdfTarget } from "../../espIdf/setTarget/getTargets";
+import path from "path";
 
 declare var acquireVsCodeApi: any;
 let vscode: any;
@@ -57,6 +58,7 @@ export const useNewProjectStore = defineStore("newProject", () => {
   const templateDetail: Ref<string> = ref("");
   const templatesRootPath: Ref<{ [key: string]: IExampleCategory }> = ref({});
   const searchString = ref("");
+  const resultingProjectPath = ref("");
 
   function createProject() {
     const configFiles =
@@ -100,6 +102,14 @@ export const useNewProjectStore = defineStore("newProject", () => {
     });
   }
 
+  function openResultingProject() {
+    vscode.postMessage({
+      command: "openResultingProject",
+      path: resultingProjectPath.value,
+    });
+  }
+  
+
   return {
     boards,
     components,
@@ -118,10 +128,12 @@ export const useNewProjectStore = defineStore("newProject", () => {
     serialPortList,
     templateDetail,
     templatesRootPath,
+    resultingProjectPath,
     createProject,
     getTemplateDetail,
     openComponentFolder,
     openProjectDirectory,
+    openResultingProject,
     requestInitialValues,
   };
 });

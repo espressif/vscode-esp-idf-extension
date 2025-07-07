@@ -27,7 +27,6 @@
   "espIdf.clearSavedIdfSetups.title": "Clear Saved ESP-IDF Setups",
   "espIdf.cmakeListsEditor.start.title": "CMakeLists.txt Editor",
   "espIdf.createDevContainer.title": "Add Docker Container Configuration",
-  "espIdf.createFiles.title": "Create Project from Extension Template",
   "espIdf.createIdfTerminal.title": "Open ESP-IDF Terminal",
   "espIdf.createNewComponent.title": "Create New ESP-IDF Component",
   "espIdf.createSbom.title": "Run ESP-IDF-SBOM Vulnerability Check",

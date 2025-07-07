@@ -34,8 +34,6 @@ All commands start with ``ESP-IDF:``.
      - Set required values in your project SDKConfig to enable code coverage analysis.
    * - Configure project for ESP-Clang
      - Configure the current ESP-IDF project to use esp-clang as toolchain to use and configure LLVM Clang extension in settings.json.
-   * - Create Project from Extension Template
-     - Create an ESP-IDF project using one of the extension template projects.
    * - Create New ESP-IDF Component
      - Create a new component in the current directory based on ESP-IDF component template.
    * - Dispose of Current SDK Configuration Editor Server Process

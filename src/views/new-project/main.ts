@@ -24,9 +24,13 @@ import Configure from "./Configure.vue";
 import Templates from "./Templates.vue";
 import { useNewProjectStore } from "./store";
 
+
+import ProjectCreated from "./ProjectCreated.vue";
+
 const routes = [
   { path: "/", component: Configure },
   { path: "/templates", component: Templates },
+  { path: "/created", component: ProjectCreated },
 ];
 
 export const router = createRouter({
@@ -47,6 +51,7 @@ window.addEventListener("message", (event) => {
   switch (msg.command) {
     case "goToBeginning":
       router.push("/");
+      break;
     case "addComponentPath":
       if (msg.component) {
         store.components.push(msg.component);
@@ -75,8 +80,6 @@ window.addEventListener("message", (event) => {
       }
       if (msg.idfTargets) {
         store.idfTargets = msg.idfTargets;
-        console.log("first idf target");
-        console.log(msg.idfTargets[0]);
         store.selectedIdfTarget = msg.idfTargets[0];
       }
       break;
@@ -90,6 +93,12 @@ window.addEventListener("message", (event) => {
         store.templateDetail = msg.templateDetail;
         store.hasTemplateDetail = true;
       }
+      break;
+    case "projectCreated":
+      if (msg.resultingProjectPath) {
+        store.resultingProjectPath = msg.resultingProjectPath;        
+      }
+      router.push("/created");
       break;
     default:
       break;
