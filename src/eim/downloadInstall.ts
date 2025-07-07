@@ -51,13 +51,31 @@ export async function runExistingEIM(
   });
   try {
     const eimJSON = await getEimIdfJson();
-    if (!eimJSON) {
-      throw new Error("EIM JSON not found. Please download EIM first.");
+    if (eimJSON && eimJSON.eimPath) {
+      const doesEimPathExists = await pathExists(eimJSON.eimPath);
+      if (doesEimPathExists) {
+        eimPath = eimJSON.eimPath;
+      }
     }
-    if (!eimJSON.eimPath) {
-      return false;
+    // 2. Check EIM_PATH env variable if not found in eim_idf.json
+    if (!eimPath) {
+      eimPath = process.env.EIM_PATH || "";
     }
-    eimPath = eimJSON.eimPath;
+    // 3. Use default path based on platform if still not found
+    if (!eimPath) {
+      if (process.platform === "win32") {
+        eimPath = join(
+          process.env.USERPROFILE || "",
+          ".espressif",
+          "eim_gui",
+          "eim.exe"
+        );
+      } else if (process.platform === "darwin") {
+        eimPath = "/Applications/eim.app";
+      } else if (process.platform === "linux") {
+        eimPath = join(process.env.HOME || "", ".espressif", "eim_gui", "eim");
+      }
+    }
     const doesEimPathExists = await pathExists(eimPath);
     if (!doesEimPathExists) {
       throw new Error(`EIM not found at ${eimPath}`);
@@ -102,7 +120,7 @@ export async function runExistingEIM(
     cwd: dirname(eimPath),
   });
   espIdfTerminal.sendText(binaryPath, true);
-  espIdfTerminal.show();
+  espIdfTerminal.sendText("exit");
   return true;
 }
 
@@ -112,9 +130,19 @@ export async function downloadExtractAndRunEIM(
   useMirror: boolean = false
 ): Promise<void> {
   const jsonUrl = "https://dl.espressif.com/dl/eim/eim_unified_release.json";
-  const containerPath =
-    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
-  const defaultToolsPath = join(containerPath, ".espressif");
+  // Determine EIM install path
+  let eimInstallPath = "";
+  if (process.platform === "win32") {
+    eimInstallPath = join(
+      process.env.USERPROFILE || "",
+      ".espressif",
+      "eim_gui"
+    );
+  } else if (process.platform === "darwin") {
+    eimInstallPath = "/Applications";
+  } else if (process.platform === "linux") {
+    eimInstallPath = join(process.env.HOME || "", ".espressif", "eim_gui");
+  }
 
   try {
     progress.report({
@@ -160,7 +188,7 @@ export async function downloadExtractAndRunEIM(
 
     let downloadUrl = fileInfo.browser_download_url;
     const fileName = basename(downloadUrl);
-    const downloadPath = join(defaultToolsPath, fileName);
+    const downloadPath = join(eimInstallPath, fileName);
 
     const doesDownloadPathExists = await pathExists(downloadPath);
     if (!doesDownloadPathExists) {
@@ -171,9 +199,9 @@ export async function downloadExtractAndRunEIM(
         );
       }
 
-      const doesTmpDirExists = await pathExists(defaultToolsPath);
+      const doesTmpDirExists = await pathExists(eimInstallPath);
       if (!doesTmpDirExists) {
-        await ensureDir(defaultToolsPath);
+        await ensureDir(eimInstallPath);
       }
 
       const writeStream: WriteStream = createWriteStream(downloadPath, {
@@ -223,21 +251,20 @@ export async function downloadExtractAndRunEIM(
     }
 
     if (process.platform !== "win32") {
-      const destPath = join(defaultToolsPath, "eim");
-      await installZipFile(downloadPath, destPath, cancelToken);
-      Logger.infoNotify(`File extracted to: ${destPath}`);
+      await installZipFile(downloadPath, eimInstallPath, cancelToken);
+      Logger.infoNotify(`File ${osKey} extracted to: ${eimInstallPath}`);
     }
 
     let binaryPath = "";
     if (process.platform === "win32") {
       binaryPath = `Start-Process -FilePath "${join(
-        defaultToolsPath,
-        "eim-gui-windows-x64.exe"
+        eimInstallPath,
+        "eim.exe"
       )}"`;
     } else if (process.platform === "linux") {
       binaryPath = `./eim`;
     } else if (process.platform === "darwin") {
-      binaryPath = `open ${join(defaultToolsPath, "eim", "eim.app")}`;
+      binaryPath = `open ${join(eimInstallPath, "eim.app")}`;
     }
     const shellPath =
       process.platform === "win32"
@@ -246,13 +273,10 @@ export async function downloadExtractAndRunEIM(
     const espIdfTerminal = window.createTerminal({
       name: "ESP-IDF EIM",
       shellPath: shellPath,
-      cwd:
-        process.platform === "win32"
-          ? defaultToolsPath
-          : join(defaultToolsPath, "eim"),
+      cwd: eimInstallPath,
     });
     espIdfTerminal.sendText(binaryPath, true);
-    espIdfTerminal.show();
+    espIdfTerminal.sendText("exit");
   } catch (error) {
     Logger.errorNotify(
       `Error during download and extraction: ${error.message}`,
