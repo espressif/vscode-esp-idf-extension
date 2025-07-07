@@ -248,7 +248,6 @@
   "🔗 Reference Documentation": "🔗 参考文档",
   "Open {0}": "打开 {0}",
   "💡 Show Hints": "💡 显示提示",
-  "%param.showHintsNotification%": "当发现构建错误的提示时显示通知弹窗",
   "Disable Hints Notifications": "禁用提示通知",
   "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel": "已为此工作区禁用提示通知。您可以在设置中重新启用它们，或手动在 ESP-IDF 底部面板中访问提示"
 }

@@ -248,7 +248,6 @@
   "🔗 Reference Documentation": "🔗Documentação de Referência",
   "Open {0}": "Abrir {0}",
   "💡 Show Hints": "💡 Mostrar Dicas",
-  "%param.showHintsNotification%": "Mostrar notificações pop-up quando dicas forem encontradas para erros de compilação",
   "Disable Hints Notifications": "Desabilitar Notificações de Dicas",
   "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel": "Notificações de dicas desabilitadas para este workspace. Você pode reabilitá-las nas configurações ou acessar dicas manualmente no painel inferior do ESP-IDF"
 }

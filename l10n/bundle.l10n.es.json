@@ -196,7 +196,6 @@
   "JTAG selection may be affected by strapping configuration ({0} is set).": "La selección de JTAG puede verse afectada por la configuración de strapping (se ha establecido {0}).",
   "JTAG is not disabled.": "JTAG no está deshabilitado.",
   "IDF Version >= 4.3.x required to have eFuse view": "Se requiere IDF Versión >= 4.3.x para tener vista de e-fuse",
-  "%param.showHintsNotification%": "Mostrar notificaciones emergentes cuando se encuentren sugerencias para errores de compilación",
   "No ESP-IDF settings found to remove.": "No se encontró ninguna configuración de ESP-IDF para eliminar.",
   "Are you sure you want to remove all ESP-IDF settings? This will delete all idf.* configurations.": "¿Está seguro de que desea eliminar todas las configuraciones de ESP-IDF? Esto eliminará todas las configuraciones idf.*.",
   "{0} settings will be removed.": "{0} configuraciones serán eliminadas.",
