@@ -98,20 +98,7 @@ export class CmakeListsEditorPanel {
       )
     );
 
-    const codiconsUri = panel.webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        extensionPath,
-        "node_modules",
-        "@vscode/codicons",
-        "dist",
-        "codicon.css"
-      )
-    );
-
-    panel.webview.html = this.createCmakeListEditorHtml(
-      scriptsPath,
-      codiconsUri
-    );
+    panel.webview.html = this.createCmakeListEditorHtml(scriptsPath);
 
     const cmakeListsWatcher = vscode.workspace.createFileSystemWatcher(
       fileUri.fsPath,
@@ -149,7 +136,11 @@ export class CmakeListsEditorPanel {
               fileName: fileUri.fsPath,
             });
           } catch (error) {
-            Logger.errorNotify(`Failed reading ${fileUri.fsPath}`, error, "CmakeListsEditorPanel loadCMakeListSchema");
+            Logger.errorNotify(
+              `Failed reading ${fileUri.fsPath}`,
+              error,
+              "CmakeListsEditorPanel loadCMakeListSchema"
+            );
           }
         case "saveChanges":
           if (message.newValues) {
@@ -167,17 +158,13 @@ export class CmakeListsEditorPanel {
     CmakeListsEditorPanel.cmakeListsPanels.add(fileUri.fsPath, panel);
   }
 
-  private createCmakeListEditorHtml(
-    scriptPath: vscode.Uri,
-    codiconsUri: vscode.Uri
-  ): string {
+  private createCmakeListEditorHtml(scriptPath: vscode.Uri): string {
     return `<!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>CMakeLists.txt</title>
-            <link href="${codiconsUri}" rel="stylesheet" />
             </head>
             <body>
               <div id="editor"></div>
@@ -197,7 +184,7 @@ export class CmakeListsEditorPanel {
       panel.webview.postMessage({
         command: "loadEmptyElements",
         elements: listWithValues,
-        cmakeListsType: type
+        cmakeListsType: type,
       });
     }
     listWithValues = await updateWithValuesCMakeLists(fileUri, listWithValues);

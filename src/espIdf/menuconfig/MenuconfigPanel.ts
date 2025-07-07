@@ -77,22 +77,8 @@ export class MenuConfigPanel {
         path.join(extensionPath, "dist", "views", "menuconfig-bundle.js")
       )
     );
-    const codiconsUri = this.panel.webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(
-          extensionPath,
-          "node_modules",
-          "@vscode/codicons",
-          "dist",
-          "codicon.css"
-        )
-      )
-    );
     this.panel.iconPath = getWebViewFavicon(extensionPath);
-    this.panel.webview.html = this.createMenuconfigHtml(
-      scriptPath,
-      codiconsUri
-    );
+    this.panel.webview.html = this.createMenuconfigHtml(scriptPath);
 
     ConfserverProcess.registerListener(this.updateConfigValues);
 
@@ -261,17 +247,13 @@ export class MenuConfigPanel {
     });
   }
 
-  private createMenuconfigHtml(
-    scriptPath: vscode.Uri,
-    codiconsUri: vscode.Uri
-  ) {
+  private createMenuconfigHtml(scriptPath: vscode.Uri) {
     return `<!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>SDK Configuration Editor</title>
-            <link rel="stylesheet" href="${codiconsUri}" id="vscode-codicon-stylesheet">
             </head>
             <body>
               <div id="menuconfig"></div>

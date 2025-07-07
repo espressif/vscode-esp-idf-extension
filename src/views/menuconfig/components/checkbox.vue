@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Menu } from "../../../espIdf/menuconfig/Menu";
-import { IconInfo } from "@iconify-prerendered/vue-codicon";
+import { IconCheck, IconInfo } from "@iconify-prerendered/vue-codicon";
 import { Ref, ref, watch } from "vue";
 
 const props = defineProps<{
@@ -52,16 +52,10 @@ function onChange(e: Event) {
               :data-config-id="props.config.id"
             />
             <span class="icon">
-              <i
-                class="codicon codicon-check icon-checked"
-                v-if="isChecked"
-              ></i>
+              <IconCheck v-if="isChecked" class="icon-checked" />
             </span>
           </label>
-          <label
-            v-text="props.config.title"
-            @click="toggleHelp"
-          />
+          <label v-text="props.config.title" @click="toggleHelp" />
         </div>
         <div class="control">
           <div class="info-icon" @click="toggleHelp">
