@@ -59,7 +59,7 @@ function toggleItem(item: TreeItem) {
 function selectItem(item: TreeItem) {
   if (!item) return;
   store.selectedMenu = item.value;
-  this.toggleItem(item);
+  toggleItem(item);
   emit('select', item.value);
 }
 
