@@ -48,6 +48,24 @@ jobs:
           export PY_PKGS=$(python -m pip list --format json)
           xvfb-run --auto-servernum yarn test
 
+      - name: Print Test Results to Console
+        run: |
+          echo "=== Test Results Summary ==="
+          if [ -f "./out/results/test-results.json" ]; then
+            echo "Total tests: $(jq '.stats.tests' ./out/results/test-results.json)"
+            echo "Passed: $(jq '.stats.passes' ./out/results/test-results.json)"
+            echo "Failed: $(jq '.stats.failures' ./out/results/test-results.json)"
+            echo "Pending: $(jq '.stats.pending' ./out/results/test-results.json)"
+            echo ""
+            echo "=== Failed Tests ==="
+            jq -r '.failures[]? | "❌ \(.title): \(.err.message)"' ./out/results/test-results.json || echo "No failed tests"
+            echo ""
+            echo "=== All Test Results ==="
+            jq -r '.tests[]? | "\(if .state == "passed" then "✅" else "❌" end) \(.title)"' ./out/results/test-results.json || echo "No test results found"
+          else
+            echo "Test results file not found"
+          fi
+
       - name: Publish Test Report
         uses: dorny/test-reporter@v2
         if: always()
