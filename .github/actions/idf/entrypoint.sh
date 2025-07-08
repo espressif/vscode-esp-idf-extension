@@ -21,7 +21,7 @@ yarn lint
 Xvfb -ac :99 -screen 0 1920x1080x16 & sleep 2 & yarn test
 EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
 echo "result<<$EOF" >> $GITHUB_OUTPUT
-echo "$(cat ./out/results/test-results.xml)" >> $GITHUB_OUTPUT
+echo "$(cat ./out/results/test-results.json)" >> $GITHUB_OUTPUT
 echo "$EOF" >> $GITHUB_OUTPUT
 
 rm -r .vscode-test

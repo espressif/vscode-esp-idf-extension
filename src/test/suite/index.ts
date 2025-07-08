@@ -18,24 +18,21 @@
 
 import * as glob from "glob";
 import * as Mocha from "mocha";
-import * as ju from "mocha-junit-reporter";
 import * as path from "path";
 
 export function run(): Promise<void> {
   // Create the mocha test
   const mocha = new Mocha({
     ui: "tdd",
-    reporter: ju,
+    reporter: "json",
     reporterOptions: {
-      mochaFile: path.join(
+      output: path.join(
         __dirname,
         "..",
         "..",
         "results",
-        "test-results.xml"
+        "test-results.json"
       ),
-      toConsole: true,
-      outputs: true,
     },
     inlineDiffs: true,
   });
