@@ -26,13 +26,7 @@ export function run(): Promise<void> {
     ui: "tdd",
     reporter: "json",
     reporterOptions: {
-      output: path.join(
-        __dirname,
-        "..",
-        "..",
-        "results",
-        "test-results.json"
-      ),
+      output: path.join(__dirname, "..", "..", "results", "test-results.json"),
     },
     inlineDiffs: true,
   });
