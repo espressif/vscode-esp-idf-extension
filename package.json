@@ -2365,7 +2365,7 @@
     "genLocalizationBundle": "npx @vscode/l10n-dev export --outDir ./l10n ./src",
     "webpack": "webpack --mode production",
     "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json 'out/ui-test/*-test.js'",
-    "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG"
+    "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG --reporter json --reporter-option output=./out/ui-test-results.json"
   },
   "devDependencies": {
     "@babel/types": "^7.23.0",
