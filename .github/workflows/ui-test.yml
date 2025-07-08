@@ -44,6 +44,41 @@ jobs:
           export IDF_PATH=~/esp-idf
           source ~/esp-idf/export.sh && xvfb-run --auto-servernum yarn ci-test
 
+      - name: Print UI Test Results
+        run: |
+          echo "=== UI Test Results ==="
+          if [ -f "./out/ui-test-results.json" ]; then
+            echo "UI Test Results:"
+            cat ./out/ui-test-results.json | jq '.' || echo "Could not parse UI test results"
+          elif [ -f "./test-results.json" ]; then
+            echo "UI Test Results:"
+            cat ./test-results.json | jq '.' || echo "Could not parse UI test results"
+          else
+            echo "No UI test results file found"
+            echo "Checking for other test output files:"
+            find . -name "*test*result*" -o -name "*playwright*" -o -name "*report*" | head -10
+          fi
+
+      - name: Publish UI Test Report
+        uses: dorny/test-reporter@v2
+        if: always()
+        with:
+          name: UI Tests
+          path: ./out/ui-test-results.json
+          reporter: mocha-json
+          fail-on-error: false
+
+      - name: Upload UI test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-test-results
+          path: |
+            ./out/ui-test-results.json
+            ./test-results.json
+            ./playwright-report/
+            ./test-resources/screenshots/
+
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: failure()
