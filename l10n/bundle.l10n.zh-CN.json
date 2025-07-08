@@ -166,7 +166,6 @@
   "esp-clang not found in PATH. Make sure esp-clang is installed.": "在 PATH 中未找到 esp-clang。请确保已安装 esp-clang。",
   "Configure ESP-IDF Extension": "配置 ESP-IDF 扩展",
   "Select current ESP-IDF version": "选择当前的 ESP-IDF 版本",
-  "Show Examples": "展示示例项目",
   "New Project Wizard": "新项目向导",
   "Select Current Project workspace folder": "选择当前项目的工作区文件夹",
   "Select Monitor Port to Use (COM, tty, usbserial)": "选择要使用的监视器端 (COM、tty、usbserial)",

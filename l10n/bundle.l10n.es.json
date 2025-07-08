@@ -165,7 +165,6 @@
   "Configure ESP-IDF Extension": "Configurar la extensión ESP-IDF",
   "esp-clang not found in PATH. Make sure esp-clang is installed.": "No se ha encontrado a esp-clang en PATH. Verifique la instalación de esp-clang.",
   "Select current ESP-IDF version": "Seleccione la versión actual de ESP-IDF",
-  "Show Examples": "Mostrar ejemplos",
   "New Project Wizard": "Asistente para nuevos proyectos",
   "Select Current Project workspace folder": "Seleccione la carpeta del espacio de trabajo del proyecto actual",
   "Select Monitor Port to Use (COM, tty, usbserial)": "Seleccione el puerto de monitor para usar (com, tty, usbserial)",

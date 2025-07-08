@@ -165,13 +165,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
             <td></td>
         </tr>
         <tr>
-            <td rowspan=11 align="center">Basic</td>
-            <td>Show Example Projects</td>
-            <td>Launch UI to show examples from selected framework and allow you to create a project from them. This command will show frameworks already configured in the extension, so to view ESP-Rainmaker examples, you need to run the <strong>Install ESP-Rainmaker</strong> first (or set the equivalent setting idf.espRainmakerPath), and then execute this command to see the examples.</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
+            <td rowspan=10 align="center">Basic</td>
             <td>Set Espressif Device Target</td>
             <td>This will set the target for the current project (IDF_TARGET). Similar to <strong>idf.py set-target</strong>. For example, if you want to use ESP32 or ESP32-C3, you need to execute this command.</td>
             <td></td>
@@ -233,13 +227,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd></td>
         </tr>
         <tr>
-            <td rowspan=5 align="center">Project creation</td>
-            <td>Show Example Projects</td>
-            <td>Launch UI to show examples from selected framework and allow you to create a project from them. This command will show frameworks already configured in the extension, so to view ESP-Rainmaker examples, you need to run the <strong>Install ESP-Rainmaker</strong> first (or set the equivalent setting idf.espRainmakerPath), and then execute this command to see the examples.</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
+            <td rowspan=4 align="center">Project creation</td>
             <td>Create New ESP-IDF Component</td>
             <td>Create a new component in the current directory based on ESP-IDF component template.</td>
             <td></td>

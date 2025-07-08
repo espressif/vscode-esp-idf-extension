@@ -166,7 +166,6 @@
   "esp-clang not found in PATH. Make sure esp-clang is installed.": "esp-clang не найден в PATH. Убедитесь, что esp-clang установлен.",
   "Configure ESP-IDF Extension": "Настройка расширения ESP-IDF",
   "Select current ESP-IDF version": "Выбор текущей версии ESP-IDF",
-  "Show Examples": "Показать примеры",
   "New Project Wizard": "Мастер создания нового проекта",
   "Select Current Project workspace folder": "Выбор папки рабочей области текущего проекта",
   "Select Monitor Port to Use (COM, tty, usbserial)": "Выберите порт монитора для использования (com, tty, usbserial)",

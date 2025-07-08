@@ -165,13 +165,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td></td>
         </tr>
         <tr>
-            <td rowspan=11 align="center">基础命令</td>
-            <td>展示示例项目</td>
-            <td>启动 UI 以显示所选框架的示例，可从中创建新项目。此命令将显示扩展中已配置的框架，如果想查看 ESP-Rainmaker 示例，需要先运行 <strong>安装 ESP-Rainmaker</strong> 命令（或设置相应的 idf.espRainmakerPath），然后执行此命令以查看示例。</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
+            <td rowspan=10 align="center">基础命令</td>
             <td>设置乐鑫设备目标</td>
             <td>该命令为当前项目设置目标 (IDF_TARGET)，效果等同于 <strong>idf.py set-target</strong>。例如，若想使用 ESP32 或 ESP32-C3，则需执行此命令。</td>
             <td></td>
@@ -233,13 +227,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd></td>
         </tr>
         <tr>
-            <td rowspan=5 align="center">创建项目</td>
-            <td>展示示例项目</td>
-            <td>启动 UI 以显示所选框架的示例，可从中创建新项目。此命令将显示扩展中已配置的框架，如果想查看 ESP-Rainmaker 示例，需要先运行 <strong>安装 ESP-Rainmaker</strong> 命令（或设置相应的 idf.espRainmakerPath），然后执行此命令以查看示例。</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
+            <td rowspan=4 align="center">创建项目</td>
             <td>基于模板创建新项目</td>
             <td>使用扩展中的项目模板来创建一个新的 ESP-IDF 项目。</td>
             <td><kbd>⌘</kbd> <kbd>I</kbd> <kbd>C</kbd></td>

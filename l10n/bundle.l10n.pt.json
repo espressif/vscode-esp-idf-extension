@@ -166,7 +166,6 @@
   "esp-clang not found in PATH. Make sure esp-clang is installed.": "esp-clang não encontrado em PATH. Certifique-se de que o esp-clang está instalado.",
   "Configure ESP-IDF Extension": "Configurar extensão ESP-IDF",
   "Select current ESP-IDF version": "Selecione a versão atual do ESP-IDF",
-  "Show Examples": "Mostrar exemplos",
   "New Project Wizard": "Assistente de Novo Projeto",
   "Select Current Project workspace folder": "Selecione a pasta do espaço de trabalho do Projeto Atual",
   "Select Monitor Port to Use (COM, tty, usbserial)": "Selecione a porta do monitor para usar (com, tty, USBserial)",

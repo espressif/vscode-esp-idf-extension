@@ -14,11 +14,11 @@ Let's use the ESP-IDF `GCOV Example <https://github.com/espressif/esp-idf/tree/m
 
 - Navigate to **View** > **Command Palette**.
 
-- Type **ESP-IDF: Show Examples Projects** and choose ``Use Current ESP-IDF (/path/to/esp-idf)``.
+- Type **ESP-IDF: New Project** and choose ESP-IDF version to use.
 
 If you don't see the option, please review the current ESP-IDF setup in :ref:`Installation <installation>`.
 
-- A window will be open with a list a projects, go the **system** section and choose the ``gcov``. You will see a **Create Project Using Example gcov** button in the top and a description of the project below. Click **Create Project Using Example GCOV** button.
+- A window will be open with settings to configure the project. Later you can choose from a list a ESP-IDF examples, go the **system** section and choose the ``gcov``. You will see a **Create Project Using Example gcov** button in the top and a description of the project below. Click **Create Project Using Example GCOV** button.
 
 .. image:: ../../../media/tutorials/coverage/gcov_example.png
 
