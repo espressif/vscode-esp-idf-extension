@@ -56,7 +56,7 @@ jobs:
           else
             echo "No UI test results file found"
             echo "Checking for other test output files:"
-            find . -name "*test*result*" -o -name "*playwright*" -o -name "*report*" | head -10
+            find . -name "*test*results*" -o -name "*ui-test-results.json*" | head -10
           fi
 
       - name: Publish UI Test Report
