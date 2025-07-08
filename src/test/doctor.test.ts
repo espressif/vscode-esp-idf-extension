@@ -165,7 +165,7 @@ suite("Doctor Command tests", () => {
     await checkEspIdfRequirements(reportObj, mockUpContext);
     assert.equal(
       reportObj.idfCheckRequirements.result,
-      `Python requirements from ${process.env.IDF_PATH}/requirements.txt are satisfied.`
+      `Python requirements are satisfied.`
     );
   });
 
