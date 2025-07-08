@@ -49,7 +49,7 @@ suite("Doctor Command tests", () => {
     extensionPath: resolve(__dirname, "..", ".."),
     asAbsolutePath: absPath,
     workspaceState: createMockMemento(),
-    globalState: createMockMemento()
+    globalState: createMockMemento(),
   } as vscode.ExtensionContext;
   Logger.init(mockUpContext);
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
@@ -222,6 +222,12 @@ suite("Doctor Command tests", () => {
     );
   });
 
+  function replaceUserPathInStr(strReport: string) {
+    const escapedHome = process.env.HOME.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(escapedHome, "g");
+    return strReport.replace(re, "<HOMEPATH>");
+  }
+
   test("Match written report", async () => {
     const customExtraPaths = process.env.PATH.replace(
       delimiter + process.env.OLD_PATH,
@@ -280,6 +286,7 @@ suite("Doctor Command tests", () => {
     expectedOutput += `Notification Mode (idf.notificationMode) ${reportObj.configurationSettings.notificationMode}${os.EOL}`;
     expectedOutput += `Flash type (idf.flashType) ${reportObj.configurationSettings.flashType}${os.EOL}`;
     expectedOutput += `Flash partition to use (idf.flashPartitionToUse) ${reportObj.configurationSettings.flashPartitionToUse}${os.EOL}`;
+    expectedOutput = replaceUserPathInStr(expectedOutput);
     const actualReport = await writeTextReport(reportObj, mockUpContext);
     const subReport = actualReport.slice(
       0,
