@@ -12,6 +12,12 @@ const props = defineProps<{
   canDeleteRow: boolean;
 }>();
 
+const emit = defineEmits<{
+  (e: 'updateRow', field: string, value: string): void;
+  (e: 'delete'): void;
+  (e: 'showError', error: string): void;
+}>();
+
 const encodingTypes = computed(() => {
   return findEncodingTypes(props.rowType);
 });
@@ -20,21 +26,21 @@ const types = ["data", "file", "namespace"];
 </script>
 
 <template>
-  <tr :class="{ error: rowError }">
+  <tr :class="{ error: props.rowError }">
     <td>
       <input
         class="vscode-input"
         type="text"
         placeholder="Key"
         maxlength="15"
-        :value="rowKey"
+        :value="props.rowKey"
         @input="$emit('updateRow', 'key', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td class="w-md">
       <select
         class="vscode-select"
-        :value="rowType"
+        :value="props.rowType"
         @change="$emit('updateRow', 'type', ($event.target as HTMLSelectElement)?.value)"
       >
         <option v-for="t in types" :value="t"> {{ t }}</option>
@@ -43,9 +49,9 @@ const types = ["data", "file", "namespace"];
     <td class="w-md">
       <select
         class="vscode-select"
-        :value="encoding"
+        :value="props.encoding"
         @change="$emit('updateRow', 'encoding', ($event.target as HTMLSelectElement)?.value)"
-        v-if="rowType !== 'namespace'"
+        v-if="props.rowType !== 'namespace'"
       >
         <option v-for="t in encodingTypes" :value="t"> {{ t }}</option>
       </select>
@@ -55,20 +61,25 @@ const types = ["data", "file", "namespace"];
         class="vscode-input"
         type="text"
         placeholder="Value"
-        :value="rowValue"
+        :value="props.rowValue"
         @input="$emit('updateRow', 'value', ($event.target as HTMLInputElement)?.value)"
-        v-if="rowType !== 'namespace'"
+        v-if="props.rowType !== 'namespace'"
       />
     </td>
     <td>
       <div class="button-wrapper">
-        <button class="vscode-button-icon-only" @click="$emit('delete')" title="Delete" v-show="canDeleteRow">
+        <button class="vscode-button-icon-only" @click="$emit('delete')" title="Delete" v-show="props.canDeleteRow">
           <IconTrash />
         </button>
+      </div>
+    </td>
+    <td>
+      <div class="button-wrapper">
         <span
-          class="icon is-small has-tooltip-arrow"
-          :data-tooltip="rowError"
-          v-if="rowError"
+          class="icon is-small error-icon-clickable"
+          v-if="props.rowError"
+          @click="$emit('showError', props.rowError)"
+          title="Click to view error details"
         >
           <IconQuestion />
         </span>
@@ -216,6 +227,17 @@ const types = ["data", "file", "namespace"];
 
 .vscode-button-icon-only:hover :deep(svg) {
   color: var(--vscode-foreground);
+}
+
+/* Error icon styling */
+.error-icon-clickable {
+  color: var(--vscode-errorForeground);
+  cursor: pointer;
+}
+
+.error-icon-clickable:hover {
+  color: var(--vscode-errorForeground);
+  opacity: 0.8;
 }
 
 /* Table cell styles */

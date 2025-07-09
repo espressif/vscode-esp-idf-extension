@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import Header from "./components/Header.vue";
 import PartitionTable from "./components/PartitionTable.vue";
 import Row from "./components/Row.vue";
+import ErrorDialog from "./components/ErrorDialog.vue";
 import { useNvsPartitionTableStore } from "./store";
 import { findEncodingTypes } from "./util";
 
 const store = useNvsPartitionTableStore();
+
+// Error dialog state
+const showErrorDialog = ref(false);
+const currentError = ref("");
 
 function addNewRow() {
   store.rows.push({
@@ -43,6 +48,16 @@ function deleteRow(index: number) {
   store.rows.splice(index, 1);
 }
 
+function showError(error: string) {
+  currentError.value = error;
+  showErrorDialog.value = true;
+}
+
+function closeErrorDialog() {
+  showErrorDialog.value = false;
+  currentError.value = "";
+}
+
 onMounted(() => {
   store.initDataRequest();
 });
@@ -63,8 +78,16 @@ onMounted(() => {
         :rowType="row.type"
         :canDeleteRow="i !== 0"
         @updateRow="(prop: string, newValue: string) => updateRow(i, prop, newValue)"
+        @showError="showError"
       />
     </PartitionTable>
+    
+    <!-- Error Dialog -->
+    <ErrorDialog 
+      :error="currentError" 
+      :visible="showErrorDialog" 
+      @close="closeErrorDialog" 
+    />
   </div>
 </template>
 
