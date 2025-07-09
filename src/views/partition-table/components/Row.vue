@@ -12,6 +12,12 @@ const props = defineProps<{
   error: string;
 }>();
 
+const emit = defineEmits<{
+  (e: 'updateRow', field: string, value: string | boolean): void;
+  (e: 'delete'): void;
+  (e: 'showError', error: string): void;
+}>();
+
 const types = computed(() => {
   return ["app", "data"];
 });
@@ -46,21 +52,21 @@ const subtypes = computed(() => {
 </script>
 
 <template>
-  <tr :class="{ error: error }">
+  <tr :class="{ error: props.error }">
     <td>
       <input
         class="vscode-input"
         type="text"
         placeholder="Name"
         maxlength="16"
-        :value="sName"
+        :value="props.sName"
         @input="$emit('updateRow', 'name', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td class="w-md">
       <select
         class="vscode-select"
-        :value="sType"
+        :value="props.sType"
         @change="$emit('updateRow', 'type', ($event.target as HTMLSelectElement)?.value)"
       >
         <option v-for="t in types" :value="t"> {{ t }}</option>
@@ -69,7 +75,7 @@ const subtypes = computed(() => {
     <td class="w-md">
       <select
         class="vscode-select"
-        :value="sSubType"
+        :value="props.sSubType"
         @change="$emit('updateRow', 'subtype', ($event.target as HTMLSelectElement)?.value)"
       >
         <option v-for="t in subtypes" :value="t"> {{ t }}</option>
@@ -80,7 +86,7 @@ const subtypes = computed(() => {
         class="vscode-input"
         type="text"
         placeholder="Offset"
-        :value="sOffset"
+        :value="props.sOffset"
         @input="$emit('updateRow', 'offset', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
@@ -89,34 +95,47 @@ const subtypes = computed(() => {
         class="vscode-input"
         type="text"
         placeholder="Size"
-        :value="sSize"
+        :value="props.sSize"
         @input="$emit('updateRow','size', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td>
       <div class="checkbox-wrapper">
-        <label class="vscode-checkbox" role="checkbox" :aria-checked="sFlag.toString()">
+        <label
+          class="vscode-checkbox"
+          role="checkbox"
+          :aria-checked="props.sFlag"
+        >
           <input
             type="checkbox"
-            :checked="sFlag"
+            :checked="props.sFlag"
             @change="$emit('updateRow', 'flag', ($event.target as HTMLInputElement)?.checked)"
             style="display: none;"
           />
-          <span class="icon" :class="{ 'is-checked': sFlag }">
-            <span class="check-mark" v-if="sFlag">✓</span>
+          <span class="icon" :class="{ 'is-checked': props.sFlag }">
+            <span class="check-mark" v-if="props.sFlag">✓</span>
           </span>
         </label>
       </div>
     </td>
     <td>
       <div class="button-wrapper">
-        <button class="vscode-button-icon-only" @click="$emit('delete')" title="Delete">
+        <button
+          class="vscode-button-icon-only"
+          @click="$emit('delete')"
+          title="Delete"
+        >
           <IconTrash />
         </button>
+      </div>
+    </td>
+    <td>
+      <div class="button-wrapper">
         <span
-          class="icon is-small has-tooltip-arrow"
-          :data-tooltip="error"
-          v-if="error"
+          class="icon is-small error-icon-clickable"
+          v-show="props.error"
+          @click="$emit('showError', props.error)"
+          title="Click to view error details"
         >
           <IconQuestion />
         </span>
@@ -231,12 +250,17 @@ const subtypes = computed(() => {
 }
 
 /* VSCode-style checkbox */
-.checkbox-wrapper, .button-wrapper {
+.checkbox-wrapper,
+.button-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
   min-height: 28px;
+}
+
+.button-wrapper {
+  position: relative;
 }
 
 .vscode-checkbox {
@@ -245,7 +269,15 @@ const subtypes = computed(() => {
   justify-content: center;
   cursor: pointer;
   user-select: none;
-  font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif);
+  font-family: var(
+    --vscode-font-family,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Helvetica,
+    Arial,
+    sans-serif
+  );
   font-size: 13px;
   color: var(--vscode-settings-checkboxForeground, #cccccc);
   outline: none;
@@ -322,7 +354,8 @@ const subtypes = computed(() => {
   margin: 0;
 }
 
-.vscode-button-icon-only:hover, .vscode-button-icon-only:focus {
+.vscode-button-icon-only:hover,
+.vscode-button-icon-only:focus {
   background: var(--vscode-list-hoverBackground);
   outline: 1px solid var(--vscode-focusBorder);
   outline-offset: -1px;
@@ -336,5 +369,17 @@ const subtypes = computed(() => {
 
 .vscode-button-icon-only:hover :deep(svg) {
   color: var(--vscode-foreground);
+}
+
+/* Error icon styling */
+.error-icon-clickable {
+  color: var(--vscode-errorForeground);
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.error-icon-clickable:hover {
+  color: var(--vscode-errorForeground);
+  opacity: 0.8;
 }
 </style>

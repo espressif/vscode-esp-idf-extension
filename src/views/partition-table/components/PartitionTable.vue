@@ -28,6 +28,7 @@
             <th>Size</th>
             <th>Encrypted</th>
             <th></th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -81,5 +82,23 @@
 
 .settings-table-content {
   overflow-x: auto;
+}
+
+.settings-table-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.settings-table-content th,
+.settings-table-content td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.settings-table-content th {
+  font-weight: 600;
+  color: var(--vscode-settings-headerForeground);
+  background-color: var(--vscode-editor-background);
 }
 </style>

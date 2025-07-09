@@ -51,7 +51,6 @@ export const useNewProjectStore = defineStore("newProject", () => {
     target: "",
     configFiles: [],
   });
-  const selectedFramework: Ref<string> = ref("");
   const selectedPort: Ref<string> = ref("");
   const selectedTemplate: Ref<IExample> = ref({ name: "", path: "" });
   const serialPortList: Ref<string[]> = ref([]);
@@ -121,7 +120,6 @@ export const useNewProjectStore = defineStore("newProject", () => {
     projectName,
     searchString,
     selectedBoard,
-    selectedFramework,
     selectedIdfTarget,
     selectedPort,
     selectedTemplate,

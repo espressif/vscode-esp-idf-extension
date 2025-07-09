@@ -32,7 +32,7 @@ const processMenuItems = (items: Menu[]): TreeItem[] => {
       id: item.id,
       label: item.title,
       value: item.id,
-      get open() { return openStates.value[item.id] ?? true; },
+      get open() { return openStates.value[item.id] ?? false; },
       isVisible: item.isVisible,
       subItems: item.children ? processMenuItems(item.children) : []
     }));
@@ -43,7 +43,7 @@ const initializeOpenStates = (items: Menu[]) => {
   if (!items) return;
   items.forEach(item => {
     if (item && item.type === "menu" && item.isVisible !== false) {
-      openStates.value[item.id] = true;
+      openStates.value[item.id] = false;
       if (item.children && item.children.length > 0) {
         initializeOpenStates(item.children);
       }

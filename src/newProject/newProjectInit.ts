@@ -28,8 +28,12 @@ import {
   loadIdfSetupsFromEspIdfJson,
 } from "../setup/existingIdfSetups";
 import { IdfSetup } from "../views/setup/types";
-import { getTargetsFromEspIdf, IdfTarget } from "../espIdf/setTarget/getTargets";
+import {
+  getTargetsFromEspIdf,
+  IdfTarget,
+} from "../espIdf/setTarget/getTargets";
 import { getCurrentIdfSetup } from "../versionSwitcher";
+import { join } from "path";
 
 export interface INewProjectArgs {
   espIdfSetup: IdfSetup;
@@ -147,6 +151,18 @@ export async function getNewProjectArgs(
   if (idfExists) {
     const idfTemplates = getExamplesList(idfSetup.idfPath);
     templates["ESP-IDF"] = idfTemplates;
+    const idfToolsTemplateExists = await dirExistPromise(
+      join(idfSetup.idfPath, "tools", "templates")
+    );
+    if (idfToolsTemplateExists) {
+      const idfToolsTemplates = getExamplesList(idfSetup.idfPath, [
+        "tools",
+        "templates",
+      ], "ESP-IDF Templates");
+      if (idfToolsTemplates.examples.length > 0) {
+        templates["ESP-IDF Templates"] = idfToolsTemplates;
+      }
+    }
   }
   const adfExists = await dirExistPromise(espAdfPath);
   if (adfExists) {
@@ -174,8 +190,11 @@ export async function getNewProjectArgs(
     templates["ESP-HOMEKIT-SDK"] = homeKitSdkTemplates;
   }
 
-  const targetsFromIdf = await getTargetsFromEspIdf(workspace, idfSetup.idfPath);
-  
+  const targetsFromIdf = await getTargetsFromEspIdf(
+    workspace,
+    idfSetup.idfPath
+  );
+
   progress.report({ increment: 50, message: "Initializing wizard..." });
   return {
     boards: espBoards,

@@ -3,8 +3,15 @@ import { usePartitionTableStore } from "./store";
 import Header from "./components/Header.vue";
 import PartitionTable from "./components/PartitionTable.vue";
 import Row from "./components/Row.vue";
+import ErrorDialog from "./components/ErrorDialog.vue";
+import { ref } from "vue";
 
 const store = usePartitionTableStore();
+
+// Error dialog state
+const showErrorDialog = ref(false);
+const currentError = ref("");
+
 function addEmptyRow() {
   store.addRow({
     name: "",
@@ -20,6 +27,16 @@ function addEmptyRow() {
 function updateRow(index: number, prop: string, newValue: any) {
   store.rows[index].error = "";
   store.rows[index][prop] = newValue;
+}
+
+function showError(error: string) {
+  currentError.value = error;
+  showErrorDialog.value = true;
+}
+
+function closeErrorDialog() {
+  showErrorDialog.value = false;
+  currentError.value = "";
 }
 </script>
 
@@ -42,11 +59,19 @@ function updateRow(index: number, prop: string, newValue: any) {
               :error="row.error ? row.error : ''"
               @delete="store.rows.splice(i, 1)"
               @updateRow="(prop, newValue) => updateRow(i, prop, newValue)"
+              @showError="showError"
             />
           </PartitionTable>
         </div>
       </div>
     </div>
+    
+    <!-- Error Dialog -->
+    <ErrorDialog 
+      :error="currentError" 
+      :visible="showErrorDialog" 
+      @close="closeErrorDialog" 
+    />
   </div>
 </template>
 

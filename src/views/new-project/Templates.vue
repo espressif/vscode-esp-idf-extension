@@ -3,24 +3,55 @@ import { useNewProjectStore } from "./store";
 import TemplateList from "./components/templateList.vue";
 import searchBar from "./components/searchBar.vue";
 import { storeToRefs } from "pinia";
-import { computed, onMounted } from "vue";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { IconArrowLeft } from "@iconify-prerendered/vue-codicon";
 
 const store = useNewProjectStore();
 const router = useRouter();
 
+
 let {
   hasTemplateDetail,
-  selectedFramework,
   selectedTemplate,
   templateDetail,
   templatesRootPath,
+  searchString,
 } = storeToRefs(store);
 
+import type { IExample, IExampleCategory } from "../../examples/Example";
+
+function flattenExamples(category: IExampleCategory): IExample[] {
+  let result: IExample[] = [];
+  if (category.examples) {
+    result = result.concat(category.examples);
+  }
+  if (category.subcategories) {
+    for (const sub of category.subcategories) {
+      result = result.concat(flattenExamples(sub));
+    }
+  }
+  return result;
+}
+
 const templates = computed(() => {
-  if (templatesRootPath.value && templatesRootPath.value[selectedFramework.value]) {
-    return [templatesRootPath.value[selectedFramework.value]];
+  if (!templatesRootPath.value) return [];
+  if (searchString.value && searchString.value.trim() !== "") {
+    // Flat list of IExample matching search
+    const allCategories = Object.values(templatesRootPath.value).filter(Boolean) as IExampleCategory[];
+    let allExamples: IExample[] = [];
+    for (const cat of allCategories) {
+      allExamples = allExamples.concat(flattenExamples(cat));
+    }
+    const search = searchString.value.trim().toLowerCase();
+    const searchExamples = allExamples.filter((ex: IExample) => ex.name.toLowerCase().includes(search));
+    return [{
+      name: "Search Results",
+      examples: searchExamples,
+      subcategories: [],
+    }] as IExampleCategory[];
+  } else {
+    return Object.values(templatesRootPath.value).filter(Boolean);
   }
 });
 const frameworks = computed(() => {
@@ -30,13 +61,6 @@ const frameworks = computed(() => {
 function goToConfigure() {
   router.push("/");
 }
-
-onMounted(() => {
-  if (templatesRootPath.value) {
-    const frameworks = Object.keys(templatesRootPath.value);
-    store.selectedFramework = frameworks.length ? frameworks[0] : "";
-  }
-});
 </script>
 
 <template>
@@ -47,13 +71,6 @@ onMounted(() => {
           <IconArrowLeft style="vertical-align: middle; margin-right: 4px;" />
           Back
         </button>
-      </div>
-      <div class="select-wrapper">
-        <select v-model="selectedFramework" class="vscode-select">
-          <option v-for="f in frameworks" :key="f" :value="f">
-            {{ f }}
-          </option>
-        </select>
       </div>
       <searchBar />
       <div class="tree-container">
