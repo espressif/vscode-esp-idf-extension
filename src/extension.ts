@@ -2082,6 +2082,10 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.createClassicMenuconfig", () =>
+    createClassicMenuconfig(context.extensionPath)
+  );
+
   registerIDFCommand("espIdf.saveDefSdkconfig", async () => {
     const idfVersionCheck = await minIdfVersionCheck("5.0", workspaceRoot);
     PreCheck.perform([idfVersionCheck, openFolderCheck], () => {
@@ -4479,55 +4483,118 @@ async function startFlashing(
   }
 }
 
+async function createEspIdfTerminal(
+  extensionPath: string,
+  terminalName: string,
+  initialCommand?: string,
+  location?: vscode.TerminalLocation
+): Promise<vscode.Terminal> {
+  const modifiedEnv = await utils.appendIdfAndToolsToPath(workspaceRoot);
+  let shellArgs = [];
+  if (process.platform === "win32") {
+    if (
+      vscode.env.shell.indexOf("powershell") !== -1 ||
+      vscode.env.shell.indexOf("pwsh") !== -1
+    ) {
+      shellArgs = ["-ExecutionPolicy", "Bypass"];
+    }
+  }
+  let shellExecutablePath = idfConf.readParameter(
+    "idf.customTerminalExecutable",
+    workspaceRoot
+  ) as string;
+  const shellExecutableArgs = idfConf.readParameter(
+    "idf.customTerminalExecutableArgs",
+    workspaceRoot
+  ) as string[];
+  if (!shellExecutablePath) {
+    shellExecutablePath = vscode.env.shell;
+  }
+  if (shellExecutableArgs && shellExecutableArgs.length) {
+    shellArgs = shellExecutableArgs;
+  }
+
+  const espIdfTerminal = vscode.window.createTerminal({
+    name: terminalName,
+    env: modifiedEnv,
+    cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
+    strictEnv: true,
+    shellArgs,
+    shellPath: shellExecutablePath,
+    location,
+  });
+
+  if (process.platform === "win32") {
+    if (shellExecutablePath.indexOf("cmd.exe") !== -1) {
+      espIdfTerminal.sendText(
+        `call "${path.join(extensionPath, "export.bat")}"`
+      );
+    } else if (
+      shellExecutablePath.indexOf("powershell") !== -1 ||
+      shellExecutablePath.indexOf("pwsh") !== -1
+    ) {
+      espIdfTerminal.sendText(
+        `& '${path.join(extensionPath, "export.ps1").replace(/'/g, "''")}'`
+      );
+    }
+  }
+
+  if (initialCommand) {
+    espIdfTerminal.sendText(initialCommand);
+  }
+
+  espIdfTerminal.show();
+  return espIdfTerminal;
+}
+
 function createIdfTerminal(extensionPath: string) {
   PreCheck.perform([openFolderCheck], async () => {
-    const modifiedEnv = await utils.appendIdfAndToolsToPath(workspaceRoot);
-    let shellArgs = [];
-    if (process.platform === "win32") {
-      if (
-        vscode.env.shell.indexOf("powershell") !== -1 ||
-        vscode.env.shell.indexOf("pwsh") !== -1
-      ) {
-        shellArgs = ["-ExecutionPolicy", "Bypass"];
-      }
-    }
-    let shellExecutablePath = idfConf.readParameter(
-      "idf.customTerminalExecutable",
+    await createEspIdfTerminal(extensionPath, "ESP-IDF Terminal");
+  });
+}
+
+function createClassicMenuconfig(extensionPath: string) {
+  PreCheck.perform([openFolderCheck], async () => {
+    // Get build directory and sdkconfig file from settings
+    const buildDirPath = idfConf.readParameter(
+      "idf.buildPath",
       workspaceRoot
     ) as string;
-    const shellExecutableArgs = idfConf.readParameter(
-      "idf.customTerminalExecutableArgs",
+    const sdkconfigPath = await utils.getSDKConfigFilePath(workspaceRoot);
+    const sdkconfigDefaults = idfConf.readParameter(
+      "idf.sdkconfigDefaults",
       workspaceRoot
     ) as string[];
-    if (!shellExecutablePath) {
-      shellExecutablePath = vscode.env.shell;
+
+    // Build the idf.py menuconfig command with optional parameters
+    let menuconfigCommand = "idf.py";
+    if (buildDirPath) {
+      menuconfigCommand += ` -B "${buildDirPath}"`;
     }
-    if (shellExecutableArgs && shellExecutableArgs.length) {
-      shellArgs = shellExecutableArgs;
+    if (sdkconfigPath) {
+      menuconfigCommand += ` -DSDKCONFIG='${sdkconfigPath}'`;
     }
-    const espIdfTerminal = vscode.window.createTerminal({
-      name: "ESP-IDF Terminal",
-      env: modifiedEnv,
-      cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
-      strictEnv: true,
-      shellArgs,
-      shellPath: shellExecutablePath,
-    });
-    if (process.platform === "win32") {
-      if (shellExecutablePath.indexOf("cmd.exe") !== -1) {
-        espIdfTerminal.sendText(
-          `call "${path.join(extensionPath, "export.bat")}"`
-        );
-      } else if (
-        shellExecutablePath.indexOf("powershell") !== -1 ||
-        shellExecutablePath.indexOf("pwsh") !== -1
-      ) {
-        espIdfTerminal.sendText(
-          `& '${path.join(extensionPath, "export.ps1").replace(/'/g, "''")}'`
-        );
-      }
+    if (sdkconfigDefaults && sdkconfigDefaults.length > 0) {
+      menuconfigCommand += ` -DSDKCONFIG_DEFAULTS="${sdkconfigDefaults.join(
+        ";"
+      )}"`;
     }
-    espIdfTerminal.show();
+    menuconfigCommand += ` -C '${workspaceRoot.fsPath}' menuconfig`;
+
+    const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+
+    const terminalName = `ESP-IDF Menuconfig${
+      currentSelectedConfig ? ` - (${currentSelectedConfig})` : ""
+    }`;
+
+    await createEspIdfTerminal(
+      extensionPath,
+      terminalName,
+      menuconfigCommand,
+      vscode.TerminalLocation.Editor
+    );
   });
 }
 
