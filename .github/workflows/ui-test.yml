@@ -48,13 +48,26 @@ jobs:
           echo "Extracting JSON from test output..."
           if grep -q "Extension 'espressif.esp-idf-extension' was successfully uninstalled!" test-output.log; then
             # Extract everything after the uninstall message and find the JSON
-            sed -n '/Extension '\''espressif.esp-idf-extension'\'' was successfully uninstalled!/,$p' test-output.log | sed -n '/^{/,/^}/p' > ./out/ui-test-results.json
-            echo "JSON results extracted and saved to ./out/ui-test-results.json"
+            sed -n '/Extension '\''espressif.esp-idf-extension'\'' was successfully uninstalled!/,$p' test-output.log | sed -n '/^{/,/^}/p' > temp-json.txt
+            # Use jq to validate and format the JSON
+            if jq . temp-json.txt > ./out/ui-test-results.json 2>/dev/null; then
+              echo "JSON results extracted and saved to ./out/ui-test-results.json"
+            else
+              echo "Failed to parse JSON, trying alternative extraction..."
+              # Try to find the complete JSON object
+              awk '/^{/,/^}$/' temp-json.txt > ./out/ui-test-results.json
+            fi
+            rm -f temp-json.txt
           else
             echo "Uninstall message not found, trying to extract JSON from entire output..."
             if grep -q '{' test-output.log; then
-              sed -n '/^{/,/^}/p' test-output.log > ./out/ui-test-results.json
-              echo "JSON results extracted and saved to ./out/ui-test-results.json"
+              sed -n '/^{/,/^}/p' test-output.log > temp-json.txt
+              if jq . temp-json.txt > ./out/ui-test-results.json 2>/dev/null; then
+                echo "JSON results extracted and saved to ./out/ui-test-results.json"
+              else
+                awk '/^{/,/^}$/' temp-json.txt > ./out/ui-test-results.json
+              fi
+              rm -f temp-json.txt
             else
               echo "No JSON found in test output"
             fi
