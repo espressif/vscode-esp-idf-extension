@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
+import { IconClose } from "@iconify-prerendered/vue-codicon";
 
 const emit = defineEmits(["clearError", "delete"]);
 defineProps<{
