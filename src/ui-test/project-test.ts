@@ -51,6 +51,26 @@ describe("Example Create testing", async () => {
     await exampleSelect.click();
     await new Promise((res) => setTimeout(res, 2000));
 
+    const espIdfSection = await view.findWebElement(
+      By.xpath(`.//div[@data-node-name='ESP-IDF']`)
+    );
+    await espIdfSection.click();
+
+    await new Promise((res) => setTimeout(res, 1000));
+
+    const getStartedSection = await view.findWebElement(
+      By.xpath(`.//div[@data-node-name='get-started']`)
+    );
+    await getStartedSection.click();
+
+    await new Promise((res) => setTimeout(res, 1000));
+
+    const blinkExample = await view.findWebElement(
+      By.xpath(`.//div[@data-example-id='blink']`)
+    );
+    await blinkExample.click();
+
+    await new Promise((res) => setTimeout(res, 1000));
     const exampleElement = await view.findWebElement(
       By.xpath(`.//div[@data-example-id='blink']`)
     );

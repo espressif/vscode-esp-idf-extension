@@ -78,7 +78,12 @@ onMounted(() => {
         <IconChevronDown v-else />
       </div>
       <div v-else class="tree-item-toggle-placeholder"></div>
-      <div class="tree-item-label category" v-text="props.node.name" @click="toggleItem(props.node)"></div>
+      <div
+        class="tree-item-label category"
+        v-text="props.node.name"
+        @click="toggleItem(props.node)"
+        :data-node-name="props.node.name"
+      ></div>
     </div>
     <ul
       v-if="
