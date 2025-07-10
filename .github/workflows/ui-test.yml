@@ -130,6 +130,7 @@ jobs:
           path: |
             ./out/ui-test-results.json
             ./test-resources/screenshots/
+            test-output.log
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
