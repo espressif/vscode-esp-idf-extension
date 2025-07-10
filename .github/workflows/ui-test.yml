@@ -118,7 +118,6 @@ jobs:
           name: UI Tests
           path: ./out/ui-test-results.json
           reporter: mocha-json
-          fail-on-error: false
 
       - name: Upload UI test results
         uses: actions/upload-artifact@v4
