@@ -80,6 +80,24 @@ jobs:
             fi
           fi
 
+      - name: Clean and validate JSON
+        run: |
+          echo "Cleaning and validating JSON file..."
+          if [ -f "./out/ui-test-results.json" ]; then
+            # Remove any error messages that might be in the file
+            sed '/^jq:/d' ./out/ui-test-results.json > ./out/ui-test-results-clean.json
+            # Try to validate the JSON
+            if jq . ./out/ui-test-results-clean.json > ./out/ui-test-results.json 2>/dev/null; then
+              echo "JSON cleaned and validated successfully"
+            else
+              echo "JSON validation failed, keeping original file"
+              cp ./out/ui-test-results-clean.json ./out/ui-test-results.json
+            fi
+            rm -f ./out/ui-test-results-clean.json
+          else
+            echo "No JSON file found to clean"
+          fi
+
       - name: Print UI Test Results
         run: |
           echo "=== UI Test Results ==="
