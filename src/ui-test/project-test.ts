@@ -69,13 +69,7 @@ describe("Example Create testing", async () => {
       By.xpath(`.//div[@data-example-id='blink']`)
     );
     await blinkExample.click();
-
-    await new Promise((res) => setTimeout(res, 1000));
-    const exampleElement = await view.findWebElement(
-      By.xpath(`.//div[@data-example-id='blink']`)
-    );
-    await exampleElement.click();
-    await new Promise((res) => setTimeout(res, 1000));
+    await new Promise((res) => setTimeout(res, 3000));
     const createProjectButton = await view.findWebElement(
       By.id("createProjectButton")
     );
@@ -84,7 +78,7 @@ describe("Example Create testing", async () => {
     );
 
     await createProjectButton.click();
-    await new Promise((res) => setTimeout(res, 5000));
+    await new Promise((res) => setTimeout(res, 7000));
     const resultBlinkPathExists = await pathExists(resultBlinkPath);
     expect(resultBlinkPathExists).to.be.true;
     if (view) {
