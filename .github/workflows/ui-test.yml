@@ -56,8 +56,8 @@ jobs:
               start_line=$(cat start-line.txt)
               end_line=$(cat end-line.txt)
               sed -n "${start_line},${end_line}p" after-uninstall.log > ./out/ui-test-results.json
-              # Remove any content after the closing brace
-              sed -i 's/}.*$/}/' ./out/ui-test-results.json
+              # Remove any content after the closing brace, but preserve commas
+              sed -i 's/}[^,]*$/}/' ./out/ui-test-results.json
               echo "JSON results extracted and saved to ./out/ui-test-results.json"
             else
               echo "Could not find JSON boundaries"
@@ -72,8 +72,8 @@ jobs:
                 start_line=$(cat start-line.txt)
                 end_line=$(cat end-line.txt)
                 sed -n "${start_line},${end_line}p" test-output.log > ./out/ui-test-results.json
-                # Remove any content after the closing brace
-                sed -i 's/}.*$/}/' ./out/ui-test-results.json
+                # Remove any content after the closing brace, but preserve commas
+                sed -i 's/}[^,]*$/}/' ./out/ui-test-results.json
                 echo "JSON results extracted and saved to ./out/ui-test-results.json"
               else
                 echo "Could not find JSON boundaries"
