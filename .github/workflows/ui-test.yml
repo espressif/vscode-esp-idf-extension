@@ -48,26 +48,33 @@ jobs:
           echo "Extracting JSON from test output..."
           if grep -q "Extension 'espressif.esp-idf-extension' was successfully uninstalled!" test-output.log; then
             # Extract everything after the uninstall message and find the JSON
-            sed -n '/Extension '\''espressif.esp-idf-extension'\'' was successfully uninstalled!/,$p' test-output.log | sed -n '/^{/,/^}/p' > temp-json.txt
-            # Use jq to validate and format the JSON
-            if jq . temp-json.txt > ./out/ui-test-results.json 2>/dev/null; then
+            sed -n '/Extension '\''espressif.esp-idf-extension'\'' was successfully uninstalled!/,$p' test-output.log > after-uninstall.log
+            # Find the JSON object boundaries more precisely
+            grep -n '{' after-uninstall.log | head -1 | cut -d: -f1 > start-line.txt
+            grep -n '}' after-uninstall.log | tail -1 | cut -d: -f1 > end-line.txt
+            if [ -s start-line.txt ] && [ -s end-line.txt ]; then
+              start_line=$(cat start-line.txt)
+              end_line=$(cat end-line.txt)
+              sed -n "${start_line},${end_line}p" after-uninstall.log > ./out/ui-test-results.json
               echo "JSON results extracted and saved to ./out/ui-test-results.json"
             else
-              echo "Failed to parse JSON, trying alternative extraction..."
-              # Try to find the complete JSON object
-              awk '/^{/,/^}$/' temp-json.txt > ./out/ui-test-results.json
+              echo "Could not find JSON boundaries"
             fi
-            rm -f temp-json.txt
+            rm -f after-uninstall.log start-line.txt end-line.txt
           else
             echo "Uninstall message not found, trying to extract JSON from entire output..."
             if grep -q '{' test-output.log; then
-              sed -n '/^{/,/^}/p' test-output.log > temp-json.txt
-              if jq . temp-json.txt > ./out/ui-test-results.json 2>/dev/null; then
+              grep -n '{' test-output.log | head -1 | cut -d: -f1 > start-line.txt
+              grep -n '}' test-output.log | tail -1 | cut -d: -f1 > end-line.txt
+              if [ -s start-line.txt ] && [ -s end-line.txt ]; then
+                start_line=$(cat start-line.txt)
+                end_line=$(cat end-line.txt)
+                sed -n "${start_line},${end_line}p" test-output.log > ./out/ui-test-results.json
                 echo "JSON results extracted and saved to ./out/ui-test-results.json"
               else
-                awk '/^{/,/^}$/' temp-json.txt > ./out/ui-test-results.json
+                echo "Could not find JSON boundaries"
               fi
-              rm -f temp-json.txt
+              rm -f start-line.txt end-line.txt
             else
               echo "No JSON found in test output"
             fi
