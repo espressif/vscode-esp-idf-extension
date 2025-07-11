@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 21st July 2021 12:43:10 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,14 +29,20 @@ import {
   setExtensionContext,
   updateProjectNameInCMakeLists,
 } from "../utils";
-import { IdfSetup } from "../views/setup/types";
+import { IdfSetup } from "../eim/types";
+import { ProjectConfigStore } from "../project-conf";
+import { ESP } from "../config";
+import { createMockMemento } from "./mockUtils";
 
 suite("Project tests", () => {
   const absPath = (filename) => resolve(__dirname, "..", "..", filename);
   const mockUpContext: ExtensionContext = {
     extensionPath: resolve(__dirname, "..", ".."),
     asAbsolutePath: absPath,
+    workspaceState: createMockMemento(),
+    globalState: createMockMemento(),
   } as ExtensionContext;
+  ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
   const templateFolder = join(mockUpContext.extensionPath, "templates");
   const wsFolder = process.env.GITHUB_WORKSPACE
     ? join(process.env.GITHUB_WORKSPACE, "project-test")
@@ -78,11 +84,7 @@ suite("Project tests", () => {
       "xtensa-esp32-elf-gcc",
       process.env
     );
-    let compilerRelativePath = compilerAbsolutePath.split(
-      process.env.IDF_TOOLS_PATH
-    )[1];
-    templateCCppPropertiesJsonJson.configurations[0].compilerPath =
-      "${config:idf.toolsPath}" + compilerRelativePath;
+    templateCCppPropertiesJsonJson.configurations[0].compilerPath = compilerAbsolutePath;
     const targetCCppPropertiesJsonJson = await readJson(
       join(targetFolder, ".vscode", "c_cpp_properties.json")
     );
@@ -144,27 +146,22 @@ suite("Project tests", () => {
     const projectPath = join(wsFolder, "new-project");
     const settingsJsonPath = join(projectPath, ".vscode", "settings.json");
     const settingsJson = await readJson(settingsJsonPath);
-    assert.equal(settingsJson["idf.espIdfPath"], undefined);
     const openOcdConfigs =
       "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg";
 
     const idfSetup = {
       idfPath: process.env.IDF_PATH,
       toolsPath: process.env.IDF_TOOLS_PATH,
-      sysPythonPath: "python"
+      python: `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`,
     } as IdfSetup;
     const newSettingsJson = await setCurrentSettingsInTemplate(
       settingsJsonPath,
       idfSetup,
       "no port",
       "esp32",
-      openOcdConfigs,
-      Uri.file(projectPath)
+      Uri.file(wsFolder),
+      openOcdConfigs
     );
-    assert.equal(newSettingsJson["idf.espIdfPath"], process.env.IDF_PATH);
-    assert.equal(newSettingsJson["idf.espAdfPath"], "/test/esp-adf");
-    assert.equal(newSettingsJson["idf.espMdfPath"], "/test/esp-mdf");
-    assert.equal(newSettingsJson["idf.toolsPath"], process.env.IDF_TOOLS_PATH);
     assert.equal(newSettingsJson["idf.openOcdConfigs"], openOcdConfigs);
   });
 

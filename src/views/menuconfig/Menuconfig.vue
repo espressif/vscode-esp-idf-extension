@@ -180,7 +180,7 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss">
-@import "../commons/espCommons.scss";
+@use "../commons/espCommons.scss" as *;
 
 .container {
   width: 100%;

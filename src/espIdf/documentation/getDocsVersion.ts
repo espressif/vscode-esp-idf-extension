@@ -13,16 +13,22 @@
 // limitations under the License.
 
 import { ESP } from "../../config";
-import { pathExists, readFile, readJSON, stat, writeJSON } from "fs-extra";
+import {
+  createWriteStream,
+  pathExists,
+  readFile,
+  readJSON,
+  stat,
+  writeJSON,
+} from "fs-extra";
 import { tmpdir } from "os";
 import { basename, join } from "path";
-import { DownloadManager } from "../../downloadManager";
 import jsonic from "jsonic";
 import { Logger } from "../../logger/logger";
 import { extensionContext, getEspIdfFromCMake } from "../../utils";
 import * as vscode from "vscode";
-import * as idfConf from "../../idfConfiguration";
 import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
+import axios from "axios";
 
 export interface IEspIdfDocVersion {
   name: string;
@@ -110,13 +116,35 @@ export async function getDocsIndex(
 }
 
 export async function readObjectFromUrlFile(objectUrl: string) {
-  const downloadManager = new DownloadManager(tmpdir());
-  await downloadManager.downloadFile(objectUrl, 0, tmpdir());
   const fileName = join(tmpdir(), basename(objectUrl));
+  await downloadFile(objectUrl, fileName);
   const objectStr = await readFile(fileName, "utf-8");
   const objectMatches = objectStr.match(/{[\s\S]+}/g);
   if (objectMatches && objectMatches.length > 0) {
     return jsonic(objectMatches[0]);
+  }
+}
+
+async function downloadFile(url: string, outputLocationPath: string) {
+  const writer = createWriteStream(outputLocationPath);
+  try {
+    const response = await axios({
+      url,
+      method: "GET",
+      responseType: "stream",
+    });
+    response.data.pipe(writer);
+    return new Promise<void>((resolve, reject) => {
+      writer.on("finish", resolve);
+      writer.on("error", reject);
+    });
+  } catch (error) {
+    Logger.error(
+      `Error downloading ${basename(url)}: ${error}`,
+      error,
+      "getDocsVersion downloadFile"
+    );
+    throw error;
   }
 }
 
@@ -130,10 +158,10 @@ export async function getDocsUrl(
   documentationPart: string,
   workspace: vscode.Uri
 ) {
-  const espIdfPath = idfConf.readParameter(
-    "idf.espIdfPath",
-    workspace
-  ) as string;
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const espIdfPath = currentEnvVars["IDF_PATH"];
 
   const adapterTargetName = await getIdfTargetFromSdkconfig(workspace);
   const idfVersion = await getEspIdfFromCMake(espIdfPath);

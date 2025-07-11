@@ -15,52 +15,27 @@ After installing Visual Studio Code (VS Code), install the ESP-IDF extension for
 
     - Navigate to ``View`` > ``Command Palette``.
 
-    - Type ``ESP-IDF: Configure ESP-IDF Extension`` and select the command to launch the setup wizard. A loading notification will appear, followed by the setup wizard.
+    - Type ``ESP-IDF: Open ESP-IDF Install Manager`` to download and run the ESP-IDF install manager to install the ESP-IDF framework. A loading notification will appear, followed by the execution of the installer.
 
     .. note::
 
         For versions of ESP-IDF < 5.0, spaces are not supported in configured paths.
 
-    .. image:: ../../media/tutorials/setup/select-mode.png
-
-2.  Choose ``Express`` and select the download server:
+2.  Alternatively, you can download the ESP-IDF Install Manager from the following link `ESP-IDF Install Manager <https://dl.espressif.com/dl/eim/index.html>`_ among the following options:
 
     - ``Espressif``: Faster speed in China using Espressif download servers.
     - ``Github``: Using GitHub release links.
 
-3.  Pick an ESP-IDF version to download or use the ``Find ESP-IDF in your system`` option to search for an existing ESP-IDF directory.
+3.  Use the ESP-IDF Install Manager to install the ESP-IDF and tools. If necessary, here is the `ESP-IDF Install Manager Documentation <https://docs.espressif.com/projects/idf-im-ui/en/latest/general_info.html>`_.
 
-    .. image:: ../../media/tutorials/setup/select-esp-idf.png
+4. In Visual Studio Code, navigate to ``View`` > ``Command Palette`` and type ``select current esp-idf version`` and select **ESP-IDF: Select Current ESP-IDF Version** from the list.
+   The list of available ESP-IDF setups will be shown, select which one you want to use for the current ESP-IDF project. 
+   
+   - The selected setup will save a **idf.currentSetup** with selected ESP-IDF path and the extension will configure required environment variables for the current ESP-IDF project saved as workspace folder state. 
 
-    Choose the location for ESP-IDF Tools (``IDF_TOOLS_PATH``), which defaults to ``%USERPROFILE%\.espressif`` on Windows and ``$HOME\.espressif`` on macOS/Linux.
+   - You can review the setup by running the **ESP-IDF: Doctor Command** by navigate to ``View`` > ``Command Palette`` and type ``doctor command`` and select **ESP-IDF: ESP-IDF: Doctor Command** from the list. 
 
-    .. note::
-
-        Make sure that ``IDF_TOOLS_PATH`` does not contain spaces to avoid build issues. Also, ensure that ``IDF_TOOLS_PATH`` is not the same directory as ``IDF_PATH``.
-
-    .. note::
-
-        For macOS/Linux users, select the Python executable to create the ESP-IDF Python virtual environment.
-
-4.  Click ``Install`` to begin downloading and installing ESP-IDF and ESP-IDF Tools.
-
-5.  A page will appear showing the setup progress status:
-
-    - ESP-IDF download progress
-    - ESP-IDF Tools download and installation progress
-    - Creation of a Python virtual environment and installation of ESP-IDF Python requirements
-
-    .. image:: ../../media/tutorials/setup/install-status.png
-
-6.  If everything installs correctly, you will see a message indicating that all settings have been configured.
-
-    .. image:: ../../media/tutorials/setup/install-complete.png
-
-    .. note::
-
-        For Linux users, a message will prompt you to add OpenOCD rules in ``/etc/udev/rules.d``. You need to run this with sudo privileges.
-
-7.  The next step is to :ref:`Create an ESP-IDF Project <create_an_esp-idf_project>`.
+5.  The next step is to :ref:`Create an ESP-IDF Project <create_an_esp-idf_project>`.
 
     .. warning::
 
@@ -72,7 +47,7 @@ Uninstall ESP-IDF VS Code Extension
 
 To uninstall the ESP-IDF VS Code extension, follow these steps:
 
-1.  Open Command Palette (press shortcut F1) and type ``ESP-IDF: Clear Saved ESP-IDF Setups``. Select the command to remove all ESP-IDF settings.
+1.  Open Command Palette (press shortcut F1) and type ``ESP-IDF: Remove ESP-IDF Settings``. Select the command to remove all ESP-IDF settings.
 
 2.  Navigate to ``View`` > ``Extensions`` or use the keyboard shortcut :kbd:`Ctrl+Shift+X` in Windows/Linux or :kbd:`Shift+⌘+X` in macOS.
 

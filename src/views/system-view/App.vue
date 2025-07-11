@@ -98,7 +98,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-@import "../commons/espCommons.scss";
+@use "../commons/espCommons.scss" as *;
 html,
 body {
   height: 100vh;
