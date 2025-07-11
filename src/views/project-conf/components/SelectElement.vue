@@ -43,23 +43,114 @@ let customValue = computed({
 </script>
 
 <template>
-  <div class="block">
-    <div class="field">
-      <label class="label">{{ props.title }}</label>
-      <div class="control">
-        <div class="select">
-          <select v-model="selectedValue">
-            <option v-for="opt of props.options" :value="opt.value" :key="opt.name">{{
-              opt.name
-            }}</option>
-          </select>
-        </div>
+  <div class="settings-item">
+    <label class="settings-label">{{ props.title }}</label>
+    <div class="settings-control">
+      <div class="select-wrapper">
+        <select v-model="selectedValue" class="vscode-select">
+          <option v-for="opt of props.options" :value="opt.value" :key="opt.name">
+            {{ opt.name }}
+          </option>
+        </select>
       </div>
     </div>
-    <div class="field" v-if="isCustomValue">
-      <div class="control">
-        <input type="text is-small" v-model="customValue" class="input" />
-      </div>
+    <div class="settings-control" v-if="isCustomValue">
+      <input
+        type="text"
+        v-model="customValue"
+        class="vscode-input"
+        placeholder="Enter custom value"
+      />
     </div>
   </div>
 </template>
+
+<style scoped>
+.settings-item {
+  margin-bottom: 1.5rem;
+}
+
+.settings-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vscode-settings-headerForeground);
+  margin-bottom: 0.5rem;
+}
+
+.settings-control {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 0.5rem;
+}
+
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.vscode-select {
+  width: 100%;
+  height: 32px;
+  padding: 4px 8px;
+  padding-right: 24px;
+  background-color: var(--vscode-dropdown-background);
+  color: var(--vscode-dropdown-foreground);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%238C8C8C' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.vscode-select:hover {
+  background-color: var(--vscode-dropdown-background);
+  border-color: var(--vscode-dropdown-border);
+}
+
+.vscode-select:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.vscode-select option {
+  background-color: var(--vscode-dropdown-background);
+  color: var(--vscode-dropdown-foreground);
+}
+
+.vscode-input {
+  width: 100%;
+  height: 32px;
+  padding: 4px 8px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.vscode-input:hover {
+  border-color: var(--vscode-input-border);
+}
+
+.vscode-input:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.vscode-input::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+
+.select-icon :deep(svg) {
+  width: 14px;
+  height: 14px;
+}
+</style>

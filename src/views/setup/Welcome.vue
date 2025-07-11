@@ -90,16 +90,6 @@ const whatsNewLink = computed(() => {
         <div class="level level-left">
           <div class="field">
             <div class="control">
-              <button @click="store.openShowExamplesPanel" class="button">
-                <IconBeaker class="icon-margin" />
-                Show examples
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="level level-left">
-          <div class="field">
-            <div class="control">
               <button @click="store.exploreComponents" class="button">
                 <IconTypeHierarchy class="icon-margin" />
                 Components manager

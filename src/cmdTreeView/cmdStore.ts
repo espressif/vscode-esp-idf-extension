@@ -54,12 +54,10 @@ export enum CommandKeys {
 
 export enum AdvancedCommandKeys {
   Setup = "espIdf.setup.start",
-  Examples = "espIdf.examples.start",
   NewProject = "espIdf.newProject.start",
   Size = "espIdf.size",
   EraseFlash = "espIdf.eraseFlash",
   DoctorCommand = "espIdf.doctorCommand",
-  CreateFromIDFTemplate = "espIdf.createFiles",
   GetADF = "espIdf.getEspAdf",
   GetMDF = "espIdf.getEspMdf",
   GetEspMatter = "espIdf.getEspMatter",
@@ -87,11 +85,6 @@ export function createAdvancedCommandDictionary(): Record<
       iconId: "extensions",
       tooltip: l10n.t("Configure ESP-IDF Extension"),
     },
-    [AdvancedCommandKeys.Examples]: {
-      checkboxState: undefined,
-      iconId: "book",
-      tooltip: l10n.t("Show Examples"),
-    },
     [AdvancedCommandKeys.NewProject]: {
       checkboxState: undefined,
       iconId: "add",
@@ -111,11 +104,6 @@ export function createAdvancedCommandDictionary(): Record<
       checkboxState: undefined,
       iconId: "close-all",
       tooltip: l10n.t("Erase Flash"),
-    },
-    [AdvancedCommandKeys.CreateFromIDFTemplate]: {
-      checkboxState: undefined,
-      iconId: "add",
-      tooltip: l10n.t("Create ESP-IDF From Extension Templates"),
     },
     [AdvancedCommandKeys.GetADF]: {
       checkboxState: undefined,

@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 30th August 2023 6:24:14 pm
  * Copyright 2023 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -54,7 +54,7 @@ export function isValidJSON(
           /^(factory|test|ota_[0-9]|ota_1[0-5]|test|0x00)$|^(0x)(([1][0-9a-fA-F])|[2][0])$/
         )
       ) {
-        return "When type is \"app\", the subtype field can only be specified as \"factory\" (0x00), \"ota_0\" (0x10) … \"ota_15\" (0x1F) or \"test\" (0x20)";
+        return 'When type is "app", the subtype field can only be specified as "factory" (0x00), "ota_0" (0x10) … "ota_15" (0x1F) or "test" (0x20)';
       }
     }
     // For type "data"
@@ -64,7 +64,7 @@ export function isValidJSON(
           /^(ota|phy|nvs|nvs_keys|spiffs|coredump|fat)$|^(0x)(([0][0-6])|[8][0-2])$/
         )
       ) {
-        return "When type is \"data\", the subtype field can be specified as \"ota\" (0x00), \"phy\" (0x01), \"nvs\" (0x02), \"nvs_keys\" (0x04), \"fat\" (0x81), \"spiffs\" (0x82) or a range of other component-specific subtypes (0x05, 0x06, 0x80, 0x81, 0x82)";
+        return 'When type is "data", the subtype field can be specified as "ota" (0x00), "phy" (0x01), "nvs" (0x02), "nvs_keys" (0x04), "fat" (0x81), "spiffs" (0x82) or a range of other component-specific subtypes (0x05, 0x06, 0x80, 0x81, 0x82)';
       }
     }
     // For custom type
@@ -124,7 +124,7 @@ export function JSON2CSV(rows: PartitionTable.Row[]): String {
       return;
     }
     let flag = row.flag === true ? "encrypted" : "";
-    csv += `${row.name},${row.type},${row.subtype},${row.offset},${row.size},${flag},${EOL}`;
+    csv += `${row.name},${row.type},${row.subtype},${row.offset},${row.size},${flag}${EOL}`;
   });
   return csv;
 }
@@ -145,12 +145,12 @@ export function CSV2JSON<T>(csv: String): T[] {
     }
     const cols = line.split(",");
     rows.push({
-      name: cols.shift().trim(),
-      type: cols.shift().trim(),
-      subtype: cols.shift().trim(),
-      offset: cols.shift().trim(),
-      size: cols.shift().trim(),
-      flag: cols.shift().trim() === "encrypted" ? true : false,
+      name: (cols.shift() ?? "").trim(),
+      type: (cols.shift() ?? "").trim(),
+      subtype: (cols.shift() ?? "").trim(),
+      offset: (cols.shift() ?? "").trim(),
+      size: (cols.shift() ?? "").trim(),
+      flag: (cols.shift() ?? "").trim() === "encrypted" ? true : false,
       error: undefined,
     });
   });

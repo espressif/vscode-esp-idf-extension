@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { BottomBarPanel, InputBox, Workbench } from "vscode-extension-tester";
+import { BottomBarPanel, EditorView, InputBox, Workbench } from "vscode-extension-tester";
 import { expect } from "chai";
 import { resolve } from "path";
 import { pathExists } from "fs-extra";
@@ -29,7 +29,19 @@ describe("Build testing", async () => {
     await openTestProject();
   });
 
+  it("Log Doctor command configuration", async () => {
+     await new Promise((res) => setTimeout(res, 3000));
+     await new Workbench().executeCommand("ESP-IDF: Doctor Command");
+     await new Promise((res) => setTimeout(res, 10000));
+     const editorView = new EditorView();
+     const editor = await editorView.openEditor("report.txt");
+     const docCmdText = await editor.getText();
+     console.log(docCmdText);
+   }).timeout(999999);
+
   it("Build bin is generated", async () => {
+    await new Workbench().executeCommand("ESP-IDF: Full Clean Project");
+    await new Promise((res) => setTimeout(res, 10000));
     await new Workbench().executeCommand("ESP-IDF: Build your Project");
     await new Promise((res) => setTimeout(res, 5000));
     // get names of all available terminals
@@ -53,6 +65,32 @@ describe("Build testing", async () => {
     );
     const binExists = await pathExists(testBinPath);
     expect(binExists).to.be.true;
+  }).timeout(999999);
+
+  it("Create a test component", async function () {
+    await new Promise((res) => setTimeout(res, 3000));
+    await new Workbench().executeCommand("espIdf.createNewComponent");
+    await new Promise((res) => setTimeout(res, 8000));
+    const inputBox = await InputBox.create();
+    const componentName = "testComponent";
+    await inputBox.setText(componentName);
+    await inputBox.confirm();
+    const componentPath = resolve(
+      __dirname,
+      "..",
+      "..",
+      "testFiles",
+      "testWorkspace",
+      "components",
+      componentName
+    );
+    await new Promise((res) => setTimeout(res, 3000));
+    const componentPathExists = await pathExists(componentPath);
+    expect(componentPathExists).to.be.true;
+    const componentSrcPathExists = await pathExists(
+      resolve(componentPath, `${componentName}.c`)
+    );
+    expect(componentSrcPathExists).to.be.true;
   }).timeout(999999);
 });
 

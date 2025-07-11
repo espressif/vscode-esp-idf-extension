@@ -34,8 +34,6 @@ All commands start with ``ESP-IDF:``.
      - Set required values in your project SDKConfig to enable code coverage analysis.
    * - Configure project for ESP-Clang
      - Configure the current ESP-IDF project to use esp-clang as toolchain to use and configure LLVM Clang extension in settings.json.
-   * - Create Project from Extension Template
-     - Create an ESP-IDF project using one of the extension template projects.
    * - Create New ESP-IDF Component
      - Create a new component in the current directory based on ESP-IDF component template.
    * - Dispose of Current SDK Configuration Editor Server Process
@@ -126,8 +124,6 @@ All commands start with ``ESP-IDF:``.
      - This will set the target for the current project (IDF_TARGET). Similar to **idf.py set-target**. For example, if you want to use ESP32 or ESP32-C3, you need to execute this command.
    * - Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)
      - The **ESP-IDF: Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)** is used to define the device path for ESP-Matter. ESP-Matter is not supported in Windows.
-   * - Show Example Projects
-     - Launch UI to show examples from selected framework and allow you to create a project from them. This command will show frameworks already configured in the extension. To view ESP-Rainmaker examples, you need to run the **Install ESP-Rainmaker** first (or set the equivalent setting idf.espRainmakerPath), and then execute this command to see the examples.
    * - Show Ninja Build Summary
      - Execute the Chromium ninja-build-summary.py.
    * - Size Analysis of the Binaries

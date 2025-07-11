@@ -28,13 +28,14 @@ export interface IExampleCategory {
 
 export function getExamplesList(
   targetFrameworkFolder: string,
-  examplesContainer: string = "examples"
+  examplesContainer: string[] = ["examples"],
+  name?: string
 ): IExampleCategory {
   const rootName = path.basename(targetFrameworkFolder);
-  const examplesRoot = path.join(targetFrameworkFolder, examplesContainer);
+  const examplesRoot = path.join(targetFrameworkFolder, ...examplesContainer);
   const examplesPathList = utils.getSubProjects(examplesRoot);
   const rootFolder: IExampleCategory = {
-    name: rootName,
+    name: name || rootName.toUpperCase(),
     examples: [],
     subcategories: [],
   };
@@ -44,9 +45,15 @@ export function getExamplesList(
       .split(path.sep);
     addSubCategory(rootFolder, examplePath, pathSegments);
   }
-  const getStartedIndex = rootFolder.subcategories.findIndex((subCat) => subCat.name === "get-started");
+  const getStartedIndex = rootFolder.subcategories.findIndex(
+    (subCat) => subCat.name === "get-started"
+  );
   if (getStartedIndex !== -1) {
-    rootFolder.subcategories.splice(0, 0, rootFolder.subcategories.splice(getStartedIndex, 1)[0]);
+    rootFolder.subcategories.splice(
+      0,
+      0,
+      rootFolder.subcategories.splice(getStartedIndex, 1)[0]
+    );
   }
   return rootFolder;
 }

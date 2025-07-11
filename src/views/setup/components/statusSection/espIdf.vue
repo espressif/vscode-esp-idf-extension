@@ -23,6 +23,7 @@ const {
   isIdfInstalling,
   statusEspIdf,
 } = storeToRefs(store);
+
 </script>
 
 <template>

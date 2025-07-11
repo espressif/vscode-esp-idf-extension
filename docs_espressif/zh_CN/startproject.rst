@@ -8,7 +8,6 @@
 可以通过三种方式启动 ESP-IDF 项目：
 
 1. :ref:`ESP-IDF New Project`
-2. :ref:`ESP-IDF Show Examples Projects`
 3. :ref:`ESP-IDF Existing ESP-IDF Project`
 
 推荐使用第一种方式来自行配置项目，而第二和第三种方式则使用当前工作区文件夹配置来创建项目。
@@ -54,27 +53,6 @@
 - 选择想要使用的模板并点击 ``Create Project Using Template <template-name>`` 按钮，其中 ``<template-name>`` 是所选模板的名称。
 
 - 成功创建项目后，将弹出一个通知窗口，询问是否打开新创建的项目。
-
-.. image:: ../../media/tutorials/new_project/new_project_confirm.png
-  :width: 400px
-  :align: center
-
-.. _ESP-IDF Show Examples Projects:
-
-使用 ``ESP-IDF：展示示例项目``
--------------------------------------
-
-在 Visual Studio Code 中：
-
-- 前往菜单栏 ``查看`` > ``命令面板``。
-
-- 输入 ``ESP-IDF：展示示例项目``，选择该命令并从 ESP-IDF 例程中创建新项目。
-
-- 在下拉菜单中选择 ``ESP-IDF``，弹出的窗口中会显示 ESP-IDF 例程列表。
-
-- 选好例程后，界面中会出现 README 文件和 ``Create project using example example_name`` 按钮。
-
-- 为新项目选择存储位置，通知会提示你在新窗口中打开文件夹。
 
 .. image:: ../../media/tutorials/new_project/new_project_confirm.png
   :width: 400px

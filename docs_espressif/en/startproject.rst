@@ -8,8 +8,7 @@ Create an ESP-IDF Project
 You can start a project in three ways:
 
 1. :ref:`ESP-IDF New Project`
-2. :ref:`ESP-IDF Show Examples Projects`
-3. :ref:`ESP-IDF Existing ESP-IDF Project`
+2. :ref:`ESP-IDF Existing ESP-IDF Project`
 
 The first option is recommended because it allows to configure the project. The second and third options create the project with the current workspace folder configuration.
 
@@ -54,27 +53,6 @@ In Visual Studio Code:
 - Choose your desired template and click the ``Create Project Using Template <template-name>`` button, where ``<template-name>`` is the name of the selected template.
 
 - After the project is created, a notification window will appear, asking whether to open the newly created project.
-
-.. image:: ../../media/tutorials/new_project/new_project_confirm.png
-  :width: 400px
-  :align: center
-
-.. _ESP-IDF Show Examples Projects:
-
-Using ``ESP-IDF: Show Examples Projects``
---------------------------------------------
-
-In Visual Studio Code:
-
-- Navigate to ``View`` > ``Command Palette``.
-
-- Type ``ESP-IDF: Show Examples Projects`` and select the command to create a new project from ESP-IDF examples.
-
-- Select ``ESP-IDF`` from the dropdown. A window will appear, showing a list of ESP-IDF examples.
-
-- When you select an example, the README file will appear along with a ``Create project using example example_name`` button.
-
-- Choose a destination for the new project. A notification will prompt you to open the folder in a new window.
 
 .. image:: ../../media/tutorials/new_project/new_project_confirm.png
   :width: 400px

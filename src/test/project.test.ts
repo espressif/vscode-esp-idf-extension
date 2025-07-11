@@ -124,7 +124,7 @@ suite("Project tests", () => {
   test("get templates projects", async () => {
     const templatesCategories = getExamplesList(
       mockUpContext.extensionPath,
-      "templates"
+      ["templates"]
     );
     assert.notEqual(templatesCategories, undefined);
     assert.notEqual(templatesCategories.examples, undefined);

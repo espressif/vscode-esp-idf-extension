@@ -53,7 +53,6 @@
     "soc"
   ],
   "activationEvents": [
-    "onCommand:espIdf.createFiles",
     "onCommand:espIdf.addArduinoAsComponentToCurFolder",
     "onCommand:espIdf.createIdfTerminal",
     "onCommand:espIdf.createVsCodeFolder",
@@ -87,7 +86,6 @@
     "onCommand:espIdf.searchInEspIdfDocs",
     "onCommand:espIdf.setup.start",
     "onCommand:espIdf.welcome.start",
-    "onCommand:espIdf.examples.start",
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
     "onCommand:espIdf.getEspAdf",
@@ -533,11 +531,6 @@
       ]
     },
     "keybindings": [
-      {
-        "command": "espIdf.createFiles",
-        "key": "ctrl+e c",
-        "mac": "cmd+i c"
-      },
       {
         "command": "espIdf.fullClean",
         "key": "ctrl+e x",
@@ -1277,11 +1270,6 @@
         "title": "%espIdf.searchError.title%"
       },
       {
-        "command": "espIdf.createFiles",
-        "title": "%espIdf.createFiles.title%",
-        "category": "ESP-IDF"
-      },
-      {
         "command": "espIdf.addArduinoAsComponentToCurFolder",
         "title": "%espIdf.addArduinoAsComponentToCurFolder.title%",
         "category": "ESP-IDF"
@@ -1319,11 +1307,6 @@
       {
         "command": "espIdf.setup.start",
         "title": "%espIdf.setup.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.examples.start",
-        "title": "%espIdf.examples.title%",
         "category": "ESP-IDF"
       },
       {
@@ -2459,7 +2442,7 @@
     "genLocalizationBundle": "npx @vscode/l10n-dev export --outDir ./l10n ./src",
     "webpack": "webpack --mode production",
     "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json 'out/ui-test/*-test.js'",
-    "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG"
+    "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG"
   },
   "devDependencies": {
     "@babel/types": "^7.23.0",
@@ -2517,7 +2500,7 @@
     "ts-loader": "^9.4.4",
     "typescript": "^5.2.2",
     "vite": "^4.5.13",
-    "vscode-extension-tester": "7.3.2",
+    "vscode-extension-tester": "^8.15.0",
     "vue-hot-reload-api": "^2.3.2",
     "vue-loader": "^17.2.2",
     "vue-router": "^4.2.4",
@@ -2527,6 +2510,7 @@
   },
   "dependencies": {
     "@types/js-yaml": "^4.0.5",
+    "@vscode/codicons": "^0.0.36",
     "@vscode/l10n": "^0.0.18",
     "ansi-to-html": "^0.6.11",
     "assert": "^2.1.0",

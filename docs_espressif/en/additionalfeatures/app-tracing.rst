@@ -9,11 +9,11 @@ Let's open a ESP-IDF project. For this tutorial we will use the `system/app_trac
 
 - Navigate to **View** > **Command Palette**.
 
-- Type **ESP-IDF: Show Examples Projects**, select the command and choose ``Use Current ESP-IDF (/path/to/esp-idf)``.
+- Type **ESP-IDF: New Project**, select the command and choose ESP-IDF version to use.
 
 If you don't see the option, please review the setup in :ref:`Install ESP-IDF and Tools <installation>`.
 
-- A window will be open with a list a projects, go the **system** section and choose the ``app_trace_to_host``. You will see a **Create Project Using Example app_trace_to_host** button in the top and a description of the project below. Click the button and the project will be opened in a new window.
+- A window will be open with settings to configure the project. Later you can choose from a list a ESP-IDF examples, go the **system** section and choose the ``app_trace_to_host``. You will see a **Create Project Using Example app_trace_to_host** button in the top and a description of the project below. Click the button and the project will be opened in a new window.
 
 .. image:: ../../../media/tutorials/app_trace/app_tracing.png
 

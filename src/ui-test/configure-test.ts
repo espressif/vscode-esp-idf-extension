@@ -17,9 +17,8 @@
  */
 
 import { expect } from "chai";
-import { accessSync } from "fs";
-import { constants, pathExists, stat } from "fs-extra";
-import { delimiter, join, sep } from "path";
+import { pathExists, stat } from "fs-extra";
+import { delimiter, dirname, join, sep } from "path";
 import { By, EditorView, WebView, Workbench } from "vscode-extension-tester";
 
 describe("Configure extension", () => {
@@ -212,11 +211,9 @@ describe("Configure extension", () => {
       modifiedEnv
     );
     const xtensaEsp32Tool = await view.findWebElement(
-      By.id("xtensa-esp32-elf")
+      By.id("xtensa-esp-elf")
     );
-    const expectedXtensaEsp32Path = xtensaEsp32Path
-      .trim()
-      .replace(sep + "bin" + sep + "xtensa-esp32-elf-gcc", sep + "bin");
+    const expectedXtensaEsp32Path = dirname(xtensaEsp32Path);
     const actualXtensaEsp32Path = await xtensaEsp32Tool.getAttribute("value");
     expect(expectedXtensaEsp32Path).to.be.equal(actualXtensaEsp32Path);
 

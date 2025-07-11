@@ -27,6 +27,7 @@
               <th>Encoding</th>
               <th>Value</th>
               <th></th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
