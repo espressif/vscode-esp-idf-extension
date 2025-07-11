@@ -1201,11 +1201,11 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
 
   if (pathToGitDir) {
     modifiedEnv[pathNameInEnv] =
-      pathToGitDir + path.delimiter + modifiedEnv[pathNameInEnv];
+      modifiedEnv[pathNameInEnv] + path.delimiter + pathToGitDir;
   }
   if (pathToPigweed) {
     modifiedEnv[pathNameInEnv] =
-      pathToPigweed + path.delimiter + modifiedEnv[pathNameInEnv];
+      modifiedEnv[pathNameInEnv] + path.delimiter + pathToPigweed;
   }
 
   if (
