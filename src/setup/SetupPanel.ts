@@ -23,6 +23,7 @@ import { ESP } from "../config";
 import * as idfConf from "../idfConfiguration";
 import { ensureDir } from "fs-extra";
 import path from "path";
+import * as fs from "fs";
 import {
   CancellationToken,
   ConfigurationTarget,
@@ -326,7 +327,8 @@ export class SetupPanel {
         case "canAccessFile":
           if (message.path) {
             const pathIdfPy = path.join(message.path, "tools", "idf.py");
-            const fileExists = await canAccessFile(pathIdfPy);
+            // Only require read and execute permissions
+            const fileExists = await canAccessFile(pathIdfPy, fs.constants.R_OK | fs.constants.X_OK);
             if (!fileExists) {
               this.panel.webview.postMessage({
                 command: "canAccessFileResponse",
