@@ -196,5 +196,5 @@ function collapseOrExpandCalls() {
 </template>
 
 <style lang="scss" scoped>
-@import "table";
+@use "table" as *;
 </style>
