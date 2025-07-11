@@ -26,14 +26,15 @@ import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { Uri } from "vscode";
 import { OutputChannel } from "../logger/outputChannel";
 
-export async function jtagFlashCommand(workspace: Uri) {
+export async function jtagFlashCommand(workspace: Uri): Promise<boolean> {
   let continueFlag = true;
   const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
   if (!isOpenOCDLaunched) {
     const errStr =
       "Can't perform JTAG flash, because OpenOCD server is not running!";
     OutputChannel.appendLineAndShow(errStr, "Flash");
-    return Logger.warnNotify(errStr);
+    Logger.warnNotify(errStr);
+    return false;
   }
   const host = readParameter("openocd.tcl.host", workspace);
   const port = readParameter("openocd.tcl.port", workspace);
@@ -49,7 +50,8 @@ export async function jtagFlashCommand(workspace: Uri) {
   if (!isReady) {
     const errStr = "OpenOCD is not ready to accept commands. Please try again.";
     OutputChannel.appendLineAndShow(errStr, "JTAG Flash");
-    return Logger.warnNotify(errStr);
+    Logger.warnNotify(errStr);
+    return false;
   }
 
   FlashTask.isFlashing = true;
