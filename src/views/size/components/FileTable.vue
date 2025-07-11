@@ -4,9 +4,9 @@ defineProps<{
 }>();
 
 function getArchiveFileProp(fileInfo, firstProp, secondProp) {
-  return Object.keys(fileInfo).indexOf(firstProp) !== -1
+  return Object.keys(fileInfo).indexOf(firstProp) >= 0
     ? fileInfo[firstProp]
-    : Object.keys(fileInfo).indexOf(secondProp) !== -1
+    : Object.keys(fileInfo).indexOf(secondProp) >= 0
     ? fileInfo[secondProp]
     : "-";
 }
