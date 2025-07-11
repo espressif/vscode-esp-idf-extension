@@ -218,8 +218,8 @@ Extension Behaviour Settings
       - Enable style validation for Kconfig files
     * - **idf.telemetry**
       - Enable telemetry
-    * - **idf.deleteComponentsOnFullClean**
-      - Delete ``managed_components`` on **Full Clean Project** command (default ``true``)
+    * - **idf.extraCleanPaths**
+      - Additional paths to delete on **Full Clean Project** command (default `[]`). For example, you can set it to ``["managed_components", "dependencies.lock"]`` to delete the managed_components directory and the dependencies.lock file from the current workspace folder.
     * - **idf.monitorNoReset**
       - Enable no-reset flag to IDF Monitor (default ``false``)
     * - **idf.monitorEnableTimestamps**

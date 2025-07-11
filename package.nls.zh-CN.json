@@ -121,7 +121,7 @@
 	"param.customTask": "自定义任务",
 	"param.customTerminalExecutable.title": "自定义扩展任务的可执行文件",
 	"param.customTerminalExecutableArgs.title": "扩展任务的自定义可执行文件的参数列表",
-	"param.deleteComponentsOnFullClean": "在\"彻底清理项目\"命令中删除 managed_components",
+	"param.extraCleanPaths": "在\"彻底清理项目\"命令中删除额外的路径",
 	"param.enableCCache.title": "在构建任务中启用 CCache",
 	"param.enableIdfComponentManager.title": "在构建任务中启用 IDF 组件管理器",
 	"param.enableSizeTaskAfterBuildTask.title": "在构建任务完成后执行 IDF 二进制文件大小分析",

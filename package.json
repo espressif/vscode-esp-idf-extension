@@ -1102,11 +1102,11 @@
             "scope": "resource",
             "description": "%param.svdFile%"
           },
-          "idf.deleteComponentsOnFullClean": {
-            "type": "boolean",
-            "default": true,
+          "idf.extraCleanPaths": {
+            "type": "string[]",
+            "default": [],
             "scope": "resource",
-            "description": "%param.deleteComponentsOnFullClean%"
+            "description": "%param.extraCleanPaths%"
           },
           "idf.monitorDelay": {
             "type": "number",

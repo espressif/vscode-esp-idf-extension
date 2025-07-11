@@ -121,7 +121,7 @@
 	"param.customTask": "Пользовательская задача",
 	"param.customTerminalExecutable.title": "Абсолютный путь к исполняемому файлу пользовательской оболочки терминала (по умолчанию используется VS Code Terminal)",
 	"param.customTerminalExecutableArgs.title": "Список аргументов для пользовательской оболочки терминала",
-	"param.deleteComponentsOnFullClean": "Удалять папку managed_components по команде 'Полная очистка проекта'",
+	"param.extraCleanPaths": "Дополнительные пути для очистки во время задачи полной очистки",
 	"param.enableCCache.title": "Включить CCache в задаче сборки",
 	"param.enableIdfComponentManager.title": "Включить Диспетчер Компонентов IDF в задаче сборки.",
 	"param.enableSizeTaskAfterBuildTask.title": "Включить задачу 'Размер IDF' после задачи сборки",
