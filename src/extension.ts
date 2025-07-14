@@ -4327,54 +4327,62 @@ const shouldDisableMonitorReset = async (): Promise<boolean> => {
 async function checkAndPromptForClangdExtension() {
   const clangdExtensionId = "llvm-vs-code-extensions.vscode-clangd";
   const clangdExtension = vscode.extensions.getExtension(clangdExtensionId);
-  
+
   if (!clangdExtension) {
     Logger.info("clangd extension not found - prompting user to install");
-    
+
     const message = vscode.l10n.t(
       "For the best C/C++ development experience in this editor, we recommend installing the clangd extension. This provides enhanced IntelliSense, code completion, and error detection."
     );
-    
+
     const installAction = await vscode.window.showInformationMessage(
       message,
       { modal: false },
       { title: vscode.l10n.t("Install clangd") },
       { title: vscode.l10n.t("Not now") }
     );
-    
-    if (installAction && installAction.title === vscode.l10n.t("Install clangd")) {
+
+    if (
+      installAction &&
+      installAction.title === vscode.l10n.t("Install clangd")
+    ) {
       try {
         await vscode.commands.executeCommand(
           "workbench.extensions.installExtension",
           clangdExtensionId
         );
-        
+
         // Show success message
         await vscode.window.showInformationMessage(
-          vscode.l10n.t("clangd extension installed successfully! Please reload the window to activate it.")
+          vscode.l10n.t(
+            "clangd extension installed successfully! Please reload the window to activate it."
+          )
         );
-        
+
         // Offer to reload the window
         const reloadAction = await vscode.window.showInformationMessage(
-          vscode.l10n.t("Would you like to reload the window to activate the clangd extension?"),
+          vscode.l10n.t(
+            "Would you like to reload the window to activate the clangd extension?"
+          ),
           { modal: false },
           { title: vscode.l10n.t("Reload") },
           { title: vscode.l10n.t("Later") }
         );
-        
+
         if (reloadAction && reloadAction.title === vscode.l10n.t("Reload")) {
           await vscode.commands.executeCommand("workbench.action.reloadWindow");
         }
-        
       } catch (error) {
         Logger.error(
           "Failed to install clangd extension",
           error,
           "checkAndPromptForClangdExtension"
         );
-        
+
         await vscode.window.showErrorMessage(
-          vscode.l10n.t("Failed to install clangd extension. You can install it manually from the Extensions marketplace.")
+          vscode.l10n.t(
+            "Failed to install clangd extension. You can install it manually from the Extensions marketplace."
+          )
         );
       }
     } else {

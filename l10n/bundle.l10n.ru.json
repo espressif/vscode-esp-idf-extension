@@ -236,5 +236,13 @@
   "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.": "Обнаружение подключенных ESP-IDF devkit пропускается во время отладки. Вы все еще можете выбрать цель вручную.",
   "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "Обнаружение подключенных ESP-IDF devkit недоступно для вашей версии OpenOCD {openOCDVersion}. Требуется версия {minRequiredVersion} или выше. Вы все еще можете выбрать цель вручную.",
   "Activate Anyway": "Активировать в любом случае",
-  "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "В этой рабочей области не найден стандартный проект ESP-IDF. Хотите активировать расширение ESP-IDF в любом случае?"
+  "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "В этой рабочей области не найден стандартный проект ESP-IDF. Хотите активировать расширение ESP-IDF в любом случае?",
+  "For the best C/C++ development experience in this editor, we recommend installing the clangd extension. This provides enhanced IntelliSense, code completion, and error detection.": "Для лучшего опыта разработки C/C++ в этом редакторе мы рекомендуем установить расширение clangd. Это обеспечивает улучшенный IntelliSense, автодополнение кода и обнаружение ошибок.",
+  "Install clangd": "Установить clangd",
+  "Not now": "Не сейчас",
+  "clangd extension installed successfully! Please reload the window to activate it.": "Расширение clangd успешно установлено! Пожалуйста, перезагрузите окно для его активации.",
+  "Would you like to reload the window to activate the clangd extension?": "Хотите перезагрузить окно для активации расширения clangd?",
+  "Reload": "Перезагрузить",
+  "Later": "Позже",
+  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Не удалось установить расширение clangd. Вы можете установить его вручную из маркетплейса расширений."
 }
