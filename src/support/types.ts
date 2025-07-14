@@ -83,6 +83,7 @@ export class SystemInfo {
   systemName: string;
   vscodeVersion: string;
   remoteName: string;
+  appName: string;
 }
 
 export class pyPkgVersion {
