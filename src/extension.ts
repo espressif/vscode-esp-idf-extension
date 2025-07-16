@@ -3778,148 +3778,150 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   }
   // Hints Viewer
-  const treeDataProvider = new ErrorHintProvider(context);
+  if (PreCheck.isWorkspaceFolderOpen()) {
+    const treeDataProvider = new ErrorHintProvider(context);
 
-  // Create and register the tree view with collapse all button
-  const treeView = vscode.window.createTreeView("idfErrorHints", {
-    treeDataProvider: treeDataProvider,
-    showCollapseAll: true,
-  });
-
-  // Set a title for the tree view
-  treeView.title = "Error Hints";
-
-  // Add the tree view to disposables
-  context.subscriptions.push(treeView);
-
-  // Register commands for clearing error hints
-  vscode.commands.registerCommand("espIdf.errorHints.clearAll", () => {
-    treeDataProvider.clearErrorHints(true); // Clear both build and OpenOCD errors
-  });
-
-  vscode.commands.registerCommand("espIdf.errorHints.clearBuildErrors", () => {
-    treeDataProvider.clearErrorHints(false); // Clear only build errors
-  });
-
-  vscode.commands.registerCommand(
-    "espIdf.errorHints.clearOpenOCDErrors",
-    () => {
-      treeDataProvider.clearOpenOCDErrorsOnly(); // Clear only OpenOCD errors
-    }
-  );
-
-  // Initialize OpenOCD error monitoring
-  const openOCDErrorMonitor = OpenOCDErrorMonitor.init(
-    treeDataProvider,
-    workspaceRoot
-  );
-  await openOCDErrorMonitor.initialize();
-
-  // Register disposal of the monitor
-  context.subscriptions.push({
-    dispose: () => {
-      openOCDErrorMonitor.dispose();
-    },
-  });
-
-  // Register command to manually search for errors
-  vscode.commands.registerCommand("espIdf.searchError", async () => {
-    const errorMsg = await vscode.window.showInputBox({
-      placeHolder: "Enter the error message",
-    });
-    if (errorMsg) {
-      treeDataProvider.searchError(errorMsg, workspaceRoot);
-      await vscode.commands.executeCommand("idfErrorHints.focus");
-    }
-  });
-
-  // Function to process all ESP-IDF diagnostics from the problems panel
-  const processEspIdfDiagnostics = async () => {
-    // Get all diagnostics from all files that have source "esp-idf"
-    const espIdfDiagnostics: Array<{
-      uri: vscode.Uri;
-      diagnostic: vscode.Diagnostic;
-    }> = [];
-
-    // Collect all diagnostics from all files that have source "esp-idf"
-    vscode.languages.getDiagnostics().forEach(([uri, diagnostics]) => {
-      diagnostics
-        .filter(
-          (d) =>
-            d.source === "esp-idf" &&
-            d.severity === vscode.DiagnosticSeverity.Error
-        )
-        .forEach((diagnostic) => {
-          espIdfDiagnostics.push({ uri, diagnostic });
-        });
+    // Create and register the tree view with collapse all button
+    const treeView = vscode.window.createTreeView("idfErrorHints", {
+      treeDataProvider: treeDataProvider,
+      showCollapseAll: true,
     });
 
-    // Only clear build errors if no ESP-IDF diagnostics
-    if (espIdfDiagnostics.length === 0) {
-      treeDataProvider.clearErrorHints(false); // Don't clear OpenOCD errors
-      return;
-    }
+    // Set a title for the tree view
+    treeView.title = "Error Hints";
 
-    // Process all errors and collect hints
-    let foundAnyHint = false;
-    for (const { diagnostic } of espIdfDiagnostics) {
-      const foundHint = await treeDataProvider.searchError(
-        diagnostic.message,
-        workspaceRoot
-      );
-      if (foundHint) {
-        foundAnyHint = true;
+    // Add the tree view to disposables
+    context.subscriptions.push(treeView);
+
+    // Register commands for clearing error hints
+    vscode.commands.registerCommand("espIdf.errorHints.clearAll", () => {
+      treeDataProvider.clearErrorHints(true); // Clear both build and OpenOCD errors
+    });
+
+    vscode.commands.registerCommand("espIdf.errorHints.clearBuildErrors", () => {
+      treeDataProvider.clearErrorHints(false); // Clear only build errors
+    });
+
+    vscode.commands.registerCommand(
+      "espIdf.errorHints.clearOpenOCDErrors",
+      () => {
+        treeDataProvider.clearOpenOCDErrorsOnly(); // Clear only OpenOCD errors
       }
-    }
+    );
 
-    const showHintsNotification = idfConf.readParameter(
-      "idf.showHintsNotification",
+    // Initialize OpenOCD error monitoring
+    const openOCDErrorMonitor = OpenOCDErrorMonitor.init(
+      treeDataProvider,
       workspaceRoot
-    ) as boolean;
-    if (foundAnyHint && showHintsNotification) {
-      const actions = [
-        {
-          label: vscode.l10n.t("💡 Show Hints"),
-          action: () => vscode.commands.executeCommand("idfErrorHints.focus"),
-        },
-        {
-          label: vscode.l10n.t("Disable Hints Notifications"),
-          action: async () => {
-            await idfConf.writeParameter(
-              "idf.showHintsNotification",
-              false,
-              vscode.ConfigurationTarget.Workspace
-            );
-            vscode.window.showInformationMessage(
-              vscode.l10n.t(
-                "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel"
-              )
-            );
+    );
+    await openOCDErrorMonitor.initialize();
+
+    // Register disposal of the monitor
+    context.subscriptions.push({
+      dispose: () => {
+        openOCDErrorMonitor.dispose();
+      },
+    });
+
+    // Register command to manually search for errors
+    vscode.commands.registerCommand("espIdf.searchError", async () => {
+      const errorMsg = await vscode.window.showInputBox({
+        placeHolder: "Enter the error message",
+      });
+      if (errorMsg) {
+        treeDataProvider.searchError(errorMsg, workspaceRoot);
+        await vscode.commands.executeCommand("idfErrorHints.focus");
+      }
+    });
+
+    // Function to process all ESP-IDF diagnostics from the problems panel
+    const processEspIdfDiagnostics = async () => {
+      // Get all diagnostics from all files that have source "esp-idf"
+      const espIdfDiagnostics: Array<{
+        uri: vscode.Uri;
+        diagnostic: vscode.Diagnostic;
+      }> = [];
+
+      // Collect all diagnostics from all files that have source "esp-idf"
+      vscode.languages.getDiagnostics().forEach(([uri, diagnostics]) => {
+        diagnostics
+          .filter(
+            (d) =>
+              d.source === "esp-idf" &&
+              d.severity === vscode.DiagnosticSeverity.Error
+          )
+          .forEach((diagnostic) => {
+            espIdfDiagnostics.push({ uri, diagnostic });
+          });
+      });
+
+      // Only clear build errors if no ESP-IDF diagnostics
+      if (espIdfDiagnostics.length === 0) {
+        treeDataProvider.clearErrorHints(false); // Don't clear OpenOCD errors
+        return;
+      }
+
+      // Process all errors and collect hints
+      let foundAnyHint = false;
+      for (const { diagnostic } of espIdfDiagnostics) {
+        const foundHint = await treeDataProvider.searchError(
+          diagnostic.message,
+          workspaceRoot
+        );
+        if (foundHint) {
+          foundAnyHint = true;
+        }
+      }
+
+      const showHintsNotification = idfConf.readParameter(
+        "idf.showHintsNotification",
+        workspaceRoot
+      ) as boolean;
+      if (foundAnyHint && showHintsNotification) {
+        const actions = [
+          {
+            label: vscode.l10n.t("💡 Show Hints"),
+            action: () => vscode.commands.executeCommand("idfErrorHints.focus"),
           },
-        },
-      ];
+          {
+            label: vscode.l10n.t("Disable Hints Notifications"),
+            action: async () => {
+              await idfConf.writeParameter(
+                "idf.showHintsNotification",
+                false,
+                vscode.ConfigurationTarget.Workspace
+              );
+              vscode.window.showInformationMessage(
+                vscode.l10n.t(
+                  "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel"
+                )
+              );
+            },
+          },
+        ];
 
-      await showInfoNotificationWithMultipleActions(
-        vscode.l10n.t(
-          `Possible hints found for build errors. Click to view details.`
-        ),
-        actions
-      );
-    }
-  };
+        await showInfoNotificationWithMultipleActions(
+          vscode.l10n.t(
+            `Possible hints found for build errors. Click to view details.`
+          ),
+          actions
+        );
+      }
+    };
 
-  // Attach a listener to the diagnostics collection
-  vscode.languages.onDidChangeDiagnostics((_event) => {
-    processEspIdfDiagnostics();
-  });
+    // Attach a listener to the diagnostics collection
+    vscode.languages.onDidChangeDiagnostics((_event) => {
+      processEspIdfDiagnostics();
+    });
 
-  // Register the HintHoverProvider
-  context.subscriptions.push(
-    vscode.languages.registerHoverProvider(
-      { pattern: "**" },
-      new HintHoverProvider(treeDataProvider)
-    )
-  );
+    // Register the HintHoverProvider
+    context.subscriptions.push(
+      vscode.languages.registerHoverProvider(
+        { pattern: "**" },
+        new HintHoverProvider(treeDataProvider)
+      )
+    );
+  }
 
   checkAndNotifyMissingCompileCommands();
 
