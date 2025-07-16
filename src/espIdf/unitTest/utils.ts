@@ -35,7 +35,14 @@ export async function getFileList(): Promise<Uri[]> {
     const filePattern =
       readParameter("idf.unitTestFilePattern", workspaceFolderUri) ||
       "**/test/test_*.c";
-    const relativePattern = new RelativePattern(workspaceFolderUri, filePattern);
+    const workspaceFolder = workspace.getWorkspaceFolder(workspaceFolderUri);
+    if (!workspaceFolder) {
+      window.showErrorMessage(
+        "Cannot find workspace folder for the selected path!"
+      );
+      return [];
+    }
+    const relativePattern = new RelativePattern(workspaceFolder, filePattern);
     files = await workspace.findFiles(relativePattern);
   } catch (err) {
     window.showErrorMessage("Cannot find test result path!", err);
