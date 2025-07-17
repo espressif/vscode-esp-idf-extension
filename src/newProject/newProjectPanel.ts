@@ -23,7 +23,7 @@ import { IExample } from "../examples/Example";
 import { setCurrentSettingsInTemplate } from "./utils";
 import { NotificationMode, readParameter } from "../idfConfiguration";
 import { IdfSetup } from "../views/setup/types";
-import { createClangdFile } from "../clang";
+import { createClangdFile } from "../clang/clangd";
 
 export class NewProjectPanel {
   public static currentPanel: NewProjectPanel | undefined;

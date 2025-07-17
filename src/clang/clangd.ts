@@ -29,7 +29,7 @@ import {
   isBinInPath,
 } from "../utils";
 
-export async function configureClangSettings(
+export async function configureClangdSettings(
   workspaceFolder: Uri,
   showError = false
 ) {
@@ -50,13 +50,13 @@ export async function configureClangSettings(
       Logger.errorNotify(
         "Failed to parse settings.json. Ensure it has valid JSON syntax.",
         error,
-        "clang index configureClangSettings"
+        "clangd index configureClangSettings"
       );
       return;
     }
   }
 
-  await setClangSettings(settingsJson, workspaceFolder, showError);
+  await setClangdExtensionSettings(settingsJson, workspaceFolder, showError);
 
   await writeJSON(settingsJsonPath, settingsJson, {
     spaces: 2,
@@ -78,7 +78,7 @@ export async function validateEspClangExists(workspaceFolder: Uri) {
   return "";
 }
 
-export async function setClangSettings(
+export async function setClangdExtensionSettings(
   settingsJson: any,
   workspaceFolder: Uri,
   showError = false
@@ -92,7 +92,7 @@ export async function setClangSettings(
       Logger.errorNotify(
         error.message,
         error,
-        "clang index configureClangSettings"
+        "clangd index configureClangSettings"
       );
     }
     return;
@@ -127,7 +127,7 @@ export async function createClangdFile(workspaceFolder: Uri) {
     Logger.errorNotify(
       "Failed to create .clangd file.",
       error,
-      "clang index createClangdFile"
+      "clangd index createClangdFile"
     );
   }
 }

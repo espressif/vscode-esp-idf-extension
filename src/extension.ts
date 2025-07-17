@@ -174,7 +174,7 @@ import {
   HexTreeItem,
   HexViewProvider,
 } from "./cdtDebugAdapter/hexViewProvider";
-import { configureClangSettings } from "./clang";
+import { configureClangdSettings } from "./clang/clangd";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1206,10 +1206,10 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     } else if (e.affectsConfiguration("idf.buildPath" + winFlag)) {
       updateIdfComponentsTree(workspaceRoot);
-      await configureClangSettings(workspaceRoot);
+      await configureClangdSettings(workspaceRoot);
     } else if (e.affectsConfiguration("idf.customExtraVars")) {
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
-      await configureClangSettings(workspaceRoot);
+      await configureClangdSettings(workspaceRoot);
     }
   });
 
@@ -2374,10 +2374,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.setClangSettings", async () => {
     PreCheck.perform([openFolderCheck], async () => {
-      await configureClangSettings(workspaceRoot, true);
+      await configureClangdSettings(workspaceRoot, true);
       vscode.window.showInformationMessage(
         vscode.l10n.t(
-          "ESP-IDF: Clang settings have been configured for the project."
+          "ESP-IDF: Clangd settings have been configured for the project."
         )
       );
     });

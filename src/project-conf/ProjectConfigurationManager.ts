@@ -21,7 +21,7 @@ import { createStatusBarItem } from "../statusBar";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { Logger } from "../logger/logger";
 import { getProjectConfigurationElements } from "./index";
-import { configureClangSettings } from "../clang";
+import { configureClangdSettings } from "../clang/clangd";
 
 export function clearSelectedProjectConfiguration(): void {
   if (ESP.ProjectConfiguration.store) {
@@ -374,7 +374,7 @@ export class ProjectConfigurationManager {
       this.statusBarItems["target"]
     );
     await setCCppPropertiesJsonCompileCommands(this.workspaceUri);
-    await configureClangSettings(this.workspaceUri);
+    await configureClangdSettings(this.workspaceUri);
     ConfserverProcess.dispose();
   }
 
