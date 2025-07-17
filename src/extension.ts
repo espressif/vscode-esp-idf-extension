@@ -183,9 +183,9 @@ import {
 } from "./cdtDebugAdapter/hexViewProvider";
 import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
-import { 
-  createHintsStatusBarItem, 
-  updateHintsStatusBarItem 
+import {
+  createHintsStatusBarItem,
+  updateHintsStatusBarItem,
 } from "./statusBar";
 
 // Global variables shared by commands
@@ -3675,10 +3675,13 @@ export async function activate(context: vscode.ExtensionContext) {
       updateHintsStatusBarItem(false);
     });
 
-    vscode.commands.registerCommand("espIdf.errorHints.clearBuildErrors", () => {
-      treeDataProvider.clearErrorHints(false); // Clear only build errors
-      updateHintsStatusBarItem(false);
-    });
+    vscode.commands.registerCommand(
+      "espIdf.errorHints.clearBuildErrors",
+      () => {
+        treeDataProvider.clearErrorHints(false); // Clear only build errors
+        updateHintsStatusBarItem(false);
+      }
+    );
 
     vscode.commands.registerCommand(
       "espIdf.errorHints.clearOpenOCDErrors",
@@ -3742,10 +3745,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
       // Process all errors and collect hints
       for (const { diagnostic } of espIdfDiagnostics) {
-        await treeDataProvider.searchError(
-          diagnostic.message,
-          workspaceRoot
-        );
+        await treeDataProvider.searchError(diagnostic.message, workspaceRoot);
       }
     };
 
