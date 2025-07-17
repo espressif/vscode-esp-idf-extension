@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { pathExists, writeFile, writeJSON } from "fs-extra";
+import { ensureFile, pathExists, writeFile, writeJSON } from "fs-extra";
 import { parse } from "jsonc-parser";
 import { EOL } from "os";
 import { join } from "path";
@@ -58,6 +58,7 @@ export async function configureClangdSettings(
 
   await setClangdExtensionSettings(settingsJson, workspaceFolder, showError);
 
+  await ensureFile(settingsJsonPath);
   await writeJSON(settingsJsonPath, settingsJson, {
     spaces: 2,
   });
