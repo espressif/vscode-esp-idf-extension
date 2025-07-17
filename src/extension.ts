@@ -183,6 +183,10 @@ import {
 } from "./cdtDebugAdapter/hexViewProvider";
 import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
+import { 
+  createHintsStatusBarItem, 
+  updateHintsStatusBarItem 
+} from "./statusBar";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3668,16 +3672,19 @@ export async function activate(context: vscode.ExtensionContext) {
     // Register commands for clearing error hints
     vscode.commands.registerCommand("espIdf.errorHints.clearAll", () => {
       treeDataProvider.clearErrorHints(true); // Clear both build and OpenOCD errors
+      updateHintsStatusBarItem(false);
     });
 
     vscode.commands.registerCommand("espIdf.errorHints.clearBuildErrors", () => {
       treeDataProvider.clearErrorHints(false); // Clear only build errors
+      updateHintsStatusBarItem(false);
     });
 
     vscode.commands.registerCommand(
       "espIdf.errorHints.clearOpenOCDErrors",
       () => {
         treeDataProvider.clearOpenOCDErrorsOnly(); // Clear only OpenOCD errors
+        updateHintsStatusBarItem(false);
       }
     );
 
@@ -3734,49 +3741,10 @@ export async function activate(context: vscode.ExtensionContext) {
       }
 
       // Process all errors and collect hints
-      let foundAnyHint = false;
       for (const { diagnostic } of espIdfDiagnostics) {
-        const foundHint = await treeDataProvider.searchError(
+        await treeDataProvider.searchError(
           diagnostic.message,
           workspaceRoot
-        );
-        if (foundHint) {
-          foundAnyHint = true;
-        }
-      }
-
-      const showHintsNotification = idfConf.readParameter(
-        "idf.showHintsNotification",
-        workspaceRoot
-      ) as boolean;
-      if (foundAnyHint && showHintsNotification) {
-        const actions = [
-          {
-            label: vscode.l10n.t("💡 Show Hints"),
-            action: () => vscode.commands.executeCommand("idfErrorHints.focus"),
-          },
-          {
-            label: vscode.l10n.t("Disable Hints Notifications"),
-            action: async () => {
-              await idfConf.writeParameter(
-                "idf.showHintsNotification",
-                false,
-                vscode.ConfigurationTarget.Workspace
-              );
-              vscode.window.showInformationMessage(
-                vscode.l10n.t(
-                  "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel"
-                )
-              );
-            },
-          },
-        ];
-
-        await showInfoNotificationWithMultipleActions(
-          vscode.l10n.t(
-            `Possible hints found for build errors. Click to view details.`
-          ),
-          actions
         );
       }
     };
@@ -3793,6 +3761,15 @@ export async function activate(context: vscode.ExtensionContext) {
         new HintHoverProvider(treeDataProvider)
       )
     );
+
+    // --- Hints Status Bar Item ---
+    const hintsStatusBarItem = createHintsStatusBarItem();
+    context.subscriptions.push(hintsStatusBarItem);
+
+    // Subscribe to changes in the hints tree and update the status bar item
+    treeDataProvider.onDidChangeTreeData(() => {
+      updateHintsStatusBarItem(treeDataProvider.hasHints());
+    });
   }
 
   checkAndNotifyMissingCompileCommands();
