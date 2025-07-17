@@ -16,18 +16,18 @@
  * limitations under the License.
  */
 
+import { pathExists, writeFile, writeJSON } from "fs-extra";
+import { parse } from "jsonc-parser";
+import { EOL } from "os";
+import { join } from "path";
 import { l10n, Uri, workspace } from "vscode";
+import { readParameter } from "../idfConfiguration";
+import { Logger } from "../logger/logger";
 import {
   appendIdfAndToolsToPath,
   getToolchainPath,
   isBinInPath,
 } from "../utils";
-import { pathExists, writeJSON, writeFile } from "fs-extra";
-import { readParameter } from "../idfConfiguration";
-import { join } from "path";
-import { Logger } from "../logger/logger";
-import { parse } from "jsonc-parser";
-import { EOL } from "os";
 
 export async function configureClangSettings(
   workspaceFolder: Uri,
