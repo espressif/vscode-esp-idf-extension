@@ -29,6 +29,42 @@ import { Logger } from "../logger/logger";
 import { parse } from "jsonc-parser";
 import { EOL } from "os";
 
+export async function configureClangSettings(
+  workspaceFolder: Uri,
+  showError = false
+) {
+  const settingsJsonPath = join(
+    workspaceFolder.fsPath,
+    ".vscode",
+    "settings.json"
+  );
+  let settingsJson: any = {};
+  const settingsPathExists = await pathExists(settingsJsonPath);
+  if (settingsPathExists) {
+    try {
+      const settingsContent = await workspace.fs.readFile(
+        Uri.file(settingsJsonPath)
+      );
+      settingsJson = parse(settingsContent.toString());
+    } catch (error) {
+      Logger.errorNotify(
+        "Failed to parse settings.json. Ensure it has valid JSON syntax.",
+        error,
+        "clang index configureClangSettings"
+      );
+      return;
+    }
+  }
+
+  await setClangSettings(settingsJson, workspaceFolder, showError);
+
+  await writeJSON(settingsJsonPath, settingsJson, {
+    spaces: 2,
+  });
+
+  await createClangdFile(workspaceFolder);
+}
+
 export async function validateEspClangExists(workspaceFolder: Uri) {
   const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
 
@@ -69,42 +105,6 @@ export async function setClangSettings(
     `--query-driver=${gccPath}`,
     `--compile-commands-dir=${buildPath}`,
   ];
-}
-
-export async function configureClangSettings(
-  workspaceFolder: Uri,
-  showError = false
-) {
-  const settingsJsonPath = join(
-    workspaceFolder.fsPath,
-    ".vscode",
-    "settings.json"
-  );
-  let settingsJson: any = {};
-  const settingsPathExists = await pathExists(settingsJsonPath);
-  if (settingsPathExists) {
-    try {
-      const settingsContent = await workspace.fs.readFile(
-        Uri.file(settingsJsonPath)
-      );
-      settingsJson = parse(settingsContent.toString());
-    } catch (error) {
-      Logger.errorNotify(
-        "Failed to parse settings.json. Ensure it has valid JSON syntax.",
-        error,
-        "clang index configureClangSettings"
-      );
-      return;
-    }
-  }
-
-  await setClangSettings(settingsJson, workspaceFolder, showError);
-
-  await writeJSON(settingsJsonPath, settingsJson, {
-    spaces: 2,
-  });
-
-  await createClangdFile(workspaceFolder);
 }
 
 export async function createClangdFile(workspaceFolder: Uri) {
