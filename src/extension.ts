@@ -186,6 +186,7 @@ import {
 import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
+import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -370,6 +371,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Create Kconfig Language Server Client
   KconfigLangClient.startKconfigLangServer(context);
+
+  // Initialize ESP-IDF Language Tool for chat commands
+  activateLanguageTool(context);
 
   openOCDManager = OpenOCDManager.init();
   qemuManager = QemuManager.init();
@@ -4633,6 +4637,7 @@ export function deactivate() {
     covRenderer.dispose();
   }
   KconfigLangClient.stopKconfigLangServer();
+  deactivateLanguageTool();
 }
 
 class IdfDebugConfigurationProvider
