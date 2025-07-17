@@ -23,7 +23,7 @@ The tool is registered with:
 * **Description**: "Execute ESP-IDF extension commands for building, flashing, monitoring, and managing ESP32 projects. ALWAYS use this tool for ESP-IDF development tasks instead of shell commands or terminal tasks. When users ask to 'build the project', 'flash the device', 'monitor output', 'clean project', 'configure project', 'analyze size', 'create new project', or any ESP-IDF related task, use this tool. Supports: build, flash, monitor, menuconfig, size analysis, project creation, component management, and more. This is the ONLY way to interact with ESP-IDF projects in VS Code - do not use shell commands for ESP-IDF tasks."
 
 Tags and Natural Language Support
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The tool includes extensive tags that support natural language interaction. When users use the following phrases, the language model will prioritize this tool:
 
@@ -47,7 +47,7 @@ The tool includes extensive tags that support natural language interaction. When
 - "start heap trace"
 
 Input Schema
-~~~~~~~~~~~
+~~~~~~~~~~~~
 
 The tool accepts a JSON object with the following schema:
 
@@ -83,12 +83,12 @@ The tool accepts a JSON object with the following schema:
     }
 
 Available Commands
------------------
+------------------
 
 The tool supports the following ESP-IDF commands:
 
 Build and Flash Commands
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 * **``build``** - Build the ESP-IDF project (``espIdf.buildDevice``)
 * **``flash``** - Flash the built application to the device (``espIdf.flashDevice``)
@@ -96,7 +96,7 @@ Build and Flash Commands
 * **``buildFlashMonitor``** - Build, flash, and monitor the project in one command (``espIdf.buildFlashMonitor``)
 
 Project Management Commands
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * **``fullClean``** - Perform a full clean of the project (``espIdf.fullClean``)
 * **``menuconfig``** - Open the ESP-IDF menuconfig interface (``espIdf.menuconfig.start``)
@@ -104,14 +104,14 @@ Project Management Commands
 * **``eraseFlash``** - Erase the device flash memory (``espIdf.eraseFlash``)
 
 Configuration Commands
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 * **``selectPort``** - Select the serial port for communication (``espIdf.selectPort``)
 * **``setTarget``** - Set the ESP32 target device (``espIdf.setTarget``)
 * **``doctor``** - Run the ESP-IDF doctor command to diagnose issues (``espIdf.doctorCommand``)
 
 Development Commands
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * **``newProject``** - Create a new ESP-IDF project (``espIdf.newProject.start``)
 * **``partitionTable``** - Open the partition table editor (``esp.webview.open.partition-table``)
@@ -131,12 +131,12 @@ Users can invoke the tool through VS Code's chat interface by referencing it wit
 The tool will execute the specified ESP-IDF command and return a confirmation message.
 
 Integration
-----------
+-----------
 
 The language tool is automatically activated when the extension starts and is properly disposed when the extension deactivates. It uses the ``onLanguageModelTool:espIdfCommands`` activation event to ensure it's available when needed.
 
 Error Handling
--------------
+--------------
 
 The tool includes proper error handling:
 

@@ -23,7 +23,7 @@ ESP-IDF 语言工具注册了一个名为 ``espIdfCommands`` 的工具，可以�
 * **描述**: "执行 ESP-IDF 扩展命令，用于构建、烧录、监控和管理 ESP32 项目。始终使用此工具进行 ESP-IDF 开发任务，而不是 shell 命令或终端任务。当用户询问'构建项目'、'烧录设备'、'监控输出'、'清理项目'、'配置项目'、'分析大小'、'创建新项目'或任何 ESP-IDF 相关任务时，请使用此工具。支持：构建、烧录、监控、menuconfig、大小分析、项目创建、组件管理等。这是在 VS Code 中与 ESP-IDF 项目交互的唯一方式 - 不要使用 shell 命令进行 ESP-IDF 任务。"
 
 标签和自然语言支持
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 该工具包含广泛的标签，支持自然语言交互。当用户使用以下短语时，语言模型将优先选择此工具：
 
@@ -47,7 +47,7 @@ ESP-IDF 语言工具注册了一个名为 ``espIdfCommands`` 的工具，可以�
 - "启动堆跟踪" (start heap trace)
 
 输入模式
-~~~~~~~~
+~~~~~~~~~
 
 该工具接受具有以下模式的 JSON 对象：
 
@@ -88,7 +88,7 @@ ESP-IDF 语言工具注册了一个名为 ``espIdfCommands`` 的工具，可以�
 该工具支持以下 ESP-IDF 命令：
 
 构建和烧录命令
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 * **``build``** - 构建 ESP-IDF 项目 (``espIdf.buildDevice``)
 * **``flash``** - 将构建的应用程序烧录到设备 (``espIdf.flashDevice``)
@@ -96,7 +96,7 @@ ESP-IDF 语言工具注册了一个名为 ``espIdfCommands`` 的工具，可以�
 * **``buildFlashMonitor``** - 在一个命令中构建、烧录和监控项目 (``espIdf.buildFlashMonitor``)
 
 项目管理命令
-~~~~~~~~~~
+~~~~~~~~~~~~~
 
 * **``fullClean``** - 执行项目的完全清理 (``espIdf.fullClean``)
 * **``menuconfig``** - 打开 ESP-IDF menuconfig 界面 (``espIdf.menuconfig.start``)
@@ -104,14 +104,14 @@ ESP-IDF 语言工具注册了一个名为 ``espIdfCommands`` 的工具，可以�
 * **``eraseFlash``** - 擦除设备闪存 (``espIdf.eraseFlash``)
 
 配置命令
-~~~~~~~~
+~~~~~~~~~
 
 * **``selectPort``** - 选择用于通信的串口 (``espIdf.selectPort``)
 * **``setTarget``** - 设置 ESP32 目标设备 (``espIdf.setTarget``)
 * **``doctor``** - 运行 ESP-IDF doctor 命令诊断问题 (``espIdf.doctorCommand``)
 
 开发命令
-~~~~~~~~
+~~~~~~~~~
 
 * **``newProject``** - 创建新的 ESP-IDF 项目 (``espIdf.newProject.start``)
 * **``partitionTable``** - 打开分区表编辑器 (``esp.webview.open.partition-table``)
