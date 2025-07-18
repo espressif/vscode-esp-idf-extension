@@ -235,5 +235,13 @@
   "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "La detección de devkit ESP-IDF conectados no está disponible para su versión de OpenOCD {openOCDVersion}. Se requiere la versión {minRequiredVersion} o superior. Aún puede seleccionar un objetivo manualmente.",
   "User confirmed switching to Release Mode. Proceeding with flash encryption.": "El usuario confirmó el cambio al Modo de Lanzamiento. Procediendo con el cifrado de flash.",
   "Activate Anyway": "Activar de todos modos",
-  "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "No se encontró ningún proyecto ESP-IDF estándar en este espacio de trabajo. ¿Desea activar la extensión ESP-IDF de todos modos?"
+  "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "No se encontró ningún proyecto ESP-IDF estándar en este espacio de trabajo. ¿Desea activar la extensión ESP-IDF de todos modos?",
+  "For the best C/C++ development experience in this editor, we recommend installing the clangd extension. This provides enhanced IntelliSense, code completion, and error detection.": "Para la mejor experiencia de desarrollo C/C++ en este editor, recomendamos instalar la extensión clangd. Esto proporciona IntelliSense mejorado, autocompletado de código y detección de errores.",
+  "Install clangd": "Instalar clangd",
+  "Not now": "Ahora no",
+  "clangd extension installed successfully! Please reload the window to activate it.": "¡Extensión clangd instalada exitosamente! Por favor recargue la ventana para activarla.",
+  "Would you like to reload the window to activate the clangd extension?": "¿Le gustaría recargar la ventana para activar la extensión clangd?",
+  "Reload": "Recargar",
+  "Later": "Más tarde",
+  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Error al instalar la extensión clangd. Puede instalarla manualmente desde el marketplace de extensiones."
 }

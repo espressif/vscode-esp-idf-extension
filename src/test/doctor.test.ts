@@ -69,6 +69,7 @@ suite("Doctor Command tests", () => {
     assert.equal(reportObj.systemInfo.systemName, os.release());
     assert.equal(reportObj.systemInfo.shell, vscode.env.shell);
     assert.equal(reportObj.systemInfo.vscodeVersion, vscode.version);
+    assert.equal(reportObj.systemInfo.appName, vscode.env.appName);
   });
 
   test("Wrong access to ESP-IDF path", () => {
@@ -270,6 +271,7 @@ suite("Doctor Command tests", () => {
     expectedOutput += `Visual Studio Code version ${vscode.version} ${os.EOL}`;
     expectedOutput += `Visual Studio Code language ${vscode.env.language} ${os.EOL}`;
     expectedOutput += `Visual Studio Code shell ${vscode.env.shell} ${os.EOL}`;
+    expectedOutput += `Visual Studio Code app name ${vscode.env.appName} ${os.EOL}`;
     expectedOutput += `ESP-IDF Extension version ${extensionObj.packageJSON.version} ${os.EOL}`;
     expectedOutput += `Workspace folder ${reportObj.workspaceFolder} ${os.EOL}`;
     expectedOutput += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${os.EOL}`;
