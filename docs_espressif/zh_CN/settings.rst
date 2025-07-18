@@ -155,6 +155,28 @@ ESP-IDF 相关设置
       - 深色主题下 gcov 代码覆盖率报告中未覆盖行的背景颜色
 
 
+PyTest 相关设置
+---------------
+
+以下设置用于配置 PyTest 单元测试。
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - 设置 ID
+      - 描述
+    * - **idf.unitTestFilePattern**
+      - 用于发现单元测试文件的 glob 模式（默认值：``**/test/test_*.c``）
+    * - **idf.pyTestEmbeddedServices**
+      - pytest 执行的内嵌服务列表（默认值：``["esp", "idf"]``）
+
+扩展将按照以下方式使用上述设置：
+
+1. **idf.unitTestFilePattern** 用于扩展在项目中发现单元测试文件。默认模式 :code:`**/test/test_*.c` 会在任何 "test" 目录中查找以 "test" 开头的 C 文件。
+2. **idf.pyTestEmbeddedServices** 指定运行 pytest 命令时使用的内嵌服务。这些服务会作为 :code:`--embedded-services` 参数传递给 pytest 命令。
+
+
 扩展行为设置
 ------------
 
