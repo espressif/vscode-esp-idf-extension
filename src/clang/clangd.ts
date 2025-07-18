@@ -16,62 +16,20 @@
  * limitations under the License.
  */
 
+import { ensureFile, pathExists, writeFile, writeJSON } from "fs-extra";
+import { parse } from "jsonc-parser";
+import { EOL } from "os";
+import { join } from "path";
 import { l10n, Uri, workspace } from "vscode";
+import { readParameter } from "../idfConfiguration";
+import { Logger } from "../logger/logger";
 import {
   appendIdfAndToolsToPath,
   getToolchainPath,
   isBinInPath,
 } from "../utils";
-import { pathExists, writeJSON, writeFile } from "fs-extra";
-import { readParameter } from "../idfConfiguration";
-import { join } from "path";
-import { Logger } from "../logger/logger";
-import { parse } from "jsonc-parser";
-import { EOL } from "os";
 
-export async function validateEspClangExists(workspaceFolder: Uri) {
-  const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
-
-  const espClangdPath = await isBinInPath(
-    "clangd",
-    modifiedEnv
-  );
-  if (espClangdPath && espClangdPath.includes("esp-clang")) {
-    return espClangdPath;
-  }
-  return "";
-}
-
-export async function setClangSettings(
-  settingsJson: any,
-  workspaceFolder: Uri,
-  showError = false
-) {
-  const espClangPath = await validateEspClangExists(workspaceFolder);
-  if (!espClangPath) {
-    if (showError) {
-      const error = new Error(
-        l10n.t("esp-clang not found in PATH. Make sure esp-clang is installed.")
-      );
-      Logger.errorNotify(
-        error.message,
-        error,
-        "clang index configureClangSettings"
-      );
-    }
-    return;
-  }
-  const buildPath = readParameter("idf.buildPath", workspaceFolder);
-  const gccPath = await getToolchainPath(workspaceFolder, "gcc");
-  settingsJson["clangd.path"] = espClangPath;
-  settingsJson["clangd.arguments"] = [
-    "--background-index",
-    `--query-driver=${gccPath}`,
-    `--compile-commands-dir=${buildPath}`,
-  ];
-}
-
-export async function configureClangSettings(
+export async function configureClangdSettings(
   workspaceFolder: Uri,
   showError = false
 ) {
@@ -92,19 +50,62 @@ export async function configureClangSettings(
       Logger.errorNotify(
         "Failed to parse settings.json. Ensure it has valid JSON syntax.",
         error,
-        "clang index configureClangSettings"
+        "clangd index configureClangSettings"
       );
       return;
     }
   }
 
-  await setClangSettings(settingsJson, workspaceFolder, showError);
+  await setClangdExtensionSettings(settingsJson, workspaceFolder, showError);
 
+  await ensureFile(settingsJsonPath);
   await writeJSON(settingsJsonPath, settingsJson, {
     spaces: 2,
   });
 
   await createClangdFile(workspaceFolder);
+}
+
+export async function validateEspClangExists(workspaceFolder: Uri) {
+  const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
+
+  const espClangdPath = await isBinInPath(
+    "clangd",
+    modifiedEnv
+  );
+  if (espClangdPath && espClangdPath.includes("esp-clang")) {
+    return espClangdPath;
+  }
+  return "";
+}
+
+export async function setClangdExtensionSettings(
+  settingsJson: any,
+  workspaceFolder: Uri,
+  showError = false
+) {
+  const espClangPath = await validateEspClangExists(workspaceFolder);
+  if (!espClangPath) {
+    if (showError) {
+      const error = new Error(
+        l10n.t("esp-clang not found in PATH. Make sure esp-clang is installed.")
+      );
+      Logger.errorNotify(
+        error.message,
+        error,
+        "clangd index configureClangSettings"
+      );
+    }
+    return;
+  }
+  const buildPath = readParameter("idf.buildPath", workspaceFolder);
+  const gccPath = await getToolchainPath(workspaceFolder, "gcc");
+  settingsJson["clangd.path"] = espClangPath;
+  settingsJson["clangd.arguments"] = [
+    "--background-index",
+    `--query-driver=${gccPath}`,
+    `--compile-commands-dir=${buildPath}`,
+  ];
 }
 
 export async function createClangdFile(workspaceFolder: Uri) {
@@ -127,7 +128,7 @@ export async function createClangdFile(workspaceFolder: Uri) {
     Logger.errorNotify(
       "Failed to create .clangd file.",
       error,
-      "clang index createClangdFile"
+      "clangd index createClangdFile"
     );
   }
 }
