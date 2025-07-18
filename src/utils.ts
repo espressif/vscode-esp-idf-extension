@@ -1199,13 +1199,17 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     }
   }
 
-  if (pathToGitDir) {
-    modifiedEnv[pathNameInEnv] =
-      pathToGitDir + path.delimiter + modifiedEnv[pathNameInEnv];
+  if (
+    pathToGitDir &&
+    !modifiedEnv[pathNameInEnv].split(path.delimiter).includes(pathToGitDir)
+  ) {
+    modifiedEnv[pathNameInEnv] += path.delimiter + pathToGitDir;
   }
-  if (pathToPigweed) {
-    modifiedEnv[pathNameInEnv] =
-      pathToPigweed + path.delimiter + modifiedEnv[pathNameInEnv];
+  if (
+    pathToPigweed &&
+    !modifiedEnv[pathNameInEnv].split(path.delimiter).includes(pathToPigweed)
+  ) {
+    modifiedEnv[pathNameInEnv] += path.delimiter + pathToPigweed;
   }
 
   if (
