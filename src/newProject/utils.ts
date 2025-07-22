@@ -21,7 +21,7 @@ import { readJSON } from "fs-extra";
 import { Uri } from "vscode";
 import { IdfSetup } from "../views/setup/types";
 import { getSystemPythonFromSettings } from "../pythonManager";
-import { setClangSettings } from "../clang/index";
+import { setClangdExtensionSettings } from "../clang/clangd";
 
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
@@ -69,6 +69,6 @@ export async function setCurrentSettingsInTemplate(
     settingsJson["idf.customExtraVars"] = settingsJson["idf.customExtraVars"] || {};
     settingsJson["idf.customExtraVars"]["IDF_TARGET"] = selectedIdfTarget;
   }
-  await setClangSettings(settingsJson, workspace);
+  await setClangdExtensionSettings(settingsJson, workspace);
   return settingsJson;
 }
