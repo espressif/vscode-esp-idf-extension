@@ -272,7 +272,10 @@ export class InstallManager {
                   });
                   writeStream.on("close", async () => {
                     try {
-                      await utils.robustMove(absoluteEntryTmpPath, absolutePath);
+                      await utils.robustMove(
+                        absoluteEntryTmpPath,
+                        absolutePath
+                      );
                     } catch (closeWriteStreamErr) {
                       return reject(
                         new PackageError(

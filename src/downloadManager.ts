@@ -115,7 +115,7 @@ export class DownloadManager {
     const fileName = utils.fileNameFromUrl(urlInfoToUse.url);
     const destPath = this.getToolPackagesPath(["dist"]);
     const absolutePath: string = this.getToolPackagesPath(["dist", fileName]);
-    
+
     const pkgExists = await pathExists(absolutePath);
     if (pkgExists) {
       const checksumEqual = await utils.validateFileSizeAndChecksum(
@@ -134,7 +134,9 @@ export class DownloadManager {
         )} / ${(urlInfoToUse.size / 1024).toFixed(2)}) KB`;
         return;
       } else {
-        this.appendChannel(`Checksum mismatch for ${pkg.name}, will resume download`);
+        this.appendChannel(
+          `Checksum mismatch for ${pkg.name}, will resume download`
+        );
         // Don't delete the file - we'll resume from where we left off
       }
     }
@@ -168,7 +170,7 @@ export class DownloadManager {
   ): Promise<any> {
     const fileName = utils.fileNameFromUrl(urlToUse);
     const absolutePath = path.resolve(destPath, fileName);
-    
+
     // Ensure destination directory exists
     await ensureDir(destPath, { mode: 0o775 });
 
@@ -182,17 +184,19 @@ export class DownloadManager {
         if (await pathExists(absolutePath)) {
           const stats = await fs.promises.stat(absolutePath);
           startByte = stats.size;
-          
+
           if (startByte > 0) {
-            this.appendChannel(`Resuming download of ${fileName} from byte ${startByte}`);
+            this.appendChannel(
+              `Resuming download of ${fileName} from byte ${startByte}`
+            );
           }
         }
 
         // Check if server supports range requests
         const supportsRange = await this.checkRangeSupport(urlToUse);
-        
+
         let response: any;
-        
+
         if (supportsRange && startByte > 0) {
           // Resume download using range requests
           response = await this.downloadWithRange(
@@ -206,7 +210,9 @@ export class DownloadManager {
         } else {
           // Full download (either no range support or starting from beginning)
           if (startByte > 0) {
-            this.appendChannel(`Server doesn't support range requests, starting fresh download`);
+            this.appendChannel(
+              `Server doesn't support range requests, starting fresh download`
+            );
             await del(absolutePath, { force: true });
           }
           response = await this.downloadFull(
@@ -220,27 +226,33 @@ export class DownloadManager {
 
         this.appendChannel(`Successfully downloaded ${fileName}`);
         return response;
-
       } catch (error) {
         lastError = error;
         retryCount++;
 
         if (cancelToken && cancelToken.isCancellationRequested) {
-          throw new PackageError("Download cancelled by user", "downloadWithResume");
+          throw new PackageError(
+            "Download cancelled by user",
+            "downloadWithResume"
+          );
         }
 
         if (retryCount >= this.MAX_RETRIES) {
-          this.appendChannel(`Failed to download ${urlToUse} after ${this.MAX_RETRIES} attempts`);
+          this.appendChannel(
+            `Failed to download ${urlToUse} after ${this.MAX_RETRIES} attempts`
+          );
           throw error;
         }
 
         // Calculate exponential backoff delay
         const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 10000);
-        this.appendChannel(`Download failed (attempt ${retryCount}/${this.MAX_RETRIES}). Retrying in ${delay}ms...`);
+        this.appendChannel(
+          `Download failed (attempt ${retryCount}/${this.MAX_RETRIES}). Retrying in ${delay}ms...`
+        );
         this.appendChannel(`Error: ${error.message || error}`);
 
         // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
@@ -253,18 +265,18 @@ export class DownloadManager {
   private async checkRangeSupport(url: string): Promise<boolean> {
     try {
       const config: AxiosRequestConfig = {
-        method: 'HEAD',
+        method: "HEAD",
         timeout: this.TIMEOUT,
         headers: {
-          'User-Agent': ESP.HTTP_USER_AGENT
-        }
+          "User-Agent": ESP.HTTP_USER_AGENT,
+        },
       };
 
       const response = await axios.head(url, config);
-      const acceptRanges = response.headers['accept-ranges'];
-      const contentRange = response.headers['content-range'];
-      
-      return acceptRanges === 'bytes' || !!contentRange;
+      const acceptRanges = response.headers["accept-ranges"];
+      const contentRange = response.headers["content-range"];
+
+      return acceptRanges === "bytes" || !!contentRange;
     } catch (error) {
       this.appendChannel(`Could not check range support: ${error.message}`);
       return false;
@@ -283,23 +295,30 @@ export class DownloadManager {
     expectedSize?: number
   ): Promise<any> {
     const fileName = path.basename(filePath);
-    const fileStream = fs.createWriteStream(filePath, { flags: 'a', mode: 0o775 }); // Append mode
+    const fileStream = fs.createWriteStream(filePath, {
+      flags: "a",
+      mode: 0o775,
+    }); // Append mode
 
     const config: AxiosRequestConfig = {
-      method: 'GET',
+      method: "GET",
       timeout: this.TIMEOUT,
-      responseType: 'stream',
+      responseType: "stream",
       headers: {
-        'User-Agent': ESP.HTTP_USER_AGENT,
-        'Range': `bytes=${startByte}-`
+        "User-Agent": ESP.HTTP_USER_AGENT,
+        Range: `bytes=${startByte}-`,
       },
-      cancelToken: cancelToken ? this.createCancelToken(cancelToken) : undefined
+      cancelToken: cancelToken
+        ? this.createCancelToken(cancelToken)
+        : undefined,
     };
 
-    this.appendChannel(`Downloading ${fileName} with range request from byte ${startByte}`);
+    this.appendChannel(
+      `Downloading ${fileName} with range request from byte ${startByte}`
+    );
 
     const response = await axios.get(url, config);
-    
+
     if (response.status !== 206 && response.status !== 200) {
       throw new PackageManagerWebError(
         null,
@@ -310,8 +329,11 @@ export class DownloadManager {
       );
     }
 
-    const contentLength = parseInt(response.headers['content-length'] || '0', 10);
-    const contentRange = response.headers['content-range'];
+    const contentLength = parseInt(
+      response.headers["content-length"] || "0",
+      10
+    );
+    const contentRange = response.headers["content-range"];
     let totalSize = expectedSize || 0;
 
     // Parse content-range header to get total size
@@ -325,15 +347,20 @@ export class DownloadManager {
     let downloadedSize = startByte;
     let lastProgressUpdate = 0;
 
-    response.data.on('data', (chunk: Buffer) => {
+    response.data.on("data", (chunk: Buffer) => {
       downloadedSize += chunk.length;
-      
+
       if (pkgProgress && totalSize > 0) {
         const progress = (downloadedSize / totalSize) * 100;
-        const progressDetail = `(${(downloadedSize / 1024).toFixed(2)} / ${(totalSize / 1024).toFixed(2)}) KB`;
-        
+        const progressDetail = `(${(downloadedSize / 1024).toFixed(2)} / ${(
+          totalSize / 1024
+        ).toFixed(2)}) KB`;
+
         // Update progress only if significant change
-        if (progress - lastProgressUpdate >= this.refreshUIRate || downloadedSize === totalSize) {
+        if (
+          progress - lastProgressUpdate >= this.refreshUIRate ||
+          downloadedSize === totalSize
+        ) {
           pkgProgress.Progress = `${progress.toFixed(2)}%`;
           pkgProgress.ProgressDetail = progressDetail;
           lastProgressUpdate = progress;
@@ -344,17 +371,29 @@ export class DownloadManager {
     response.data.pipe(fileStream);
 
     return new Promise<any>((resolve, reject) => {
-      fileStream.on('finish', () => {
+      fileStream.on("finish", () => {
         this.appendChannel(`Range download completed: ${fileName}`);
         resolve(response);
       });
 
-      fileStream.on('error', (error) => {
-        reject(new PackageError(`File write error: ${error.message}`, "downloadWithRange", error));
+      fileStream.on("error", (error) => {
+        reject(
+          new PackageError(
+            `File write error: ${error.message}`,
+            "downloadWithRange",
+            error
+          )
+        );
       });
 
-      response.data.on('error', (error) => {
-        reject(new PackageError(`Download stream error: ${error.message}`, "downloadWithRange", error));
+      response.data.on("error", (error) => {
+        reject(
+          new PackageError(
+            `Download stream error: ${error.message}`,
+            "downloadWithRange",
+            error
+          )
+        );
       });
     });
   }
@@ -373,19 +412,21 @@ export class DownloadManager {
     const fileStream = fs.createWriteStream(filePath, { mode: 0o775 });
 
     const config: AxiosRequestConfig = {
-      method: 'GET',
+      method: "GET",
       timeout: this.TIMEOUT,
-      responseType: 'stream',
+      responseType: "stream",
       headers: {
-        'User-Agent': ESP.HTTP_USER_AGENT
+        "User-Agent": ESP.HTTP_USER_AGENT,
       },
-      cancelToken: cancelToken ? this.createCancelToken(cancelToken) : undefined
+      cancelToken: cancelToken
+        ? this.createCancelToken(cancelToken)
+        : undefined,
     };
 
     this.appendChannel(`Downloading ${fileName} (full download)`);
 
     const response = await axios.get(url, config);
-    
+
     if (response.status !== 200) {
       throw new PackageManagerWebError(
         null,
@@ -396,20 +437,28 @@ export class DownloadManager {
       );
     }
 
-    const contentLength = parseInt(response.headers['content-length'] || '0', 10);
+    const contentLength = parseInt(
+      response.headers["content-length"] || "0",
+      10
+    );
     const totalSize = expectedSize || contentLength;
     let downloadedSize = 0;
     let lastProgressUpdate = 0;
 
-    response.data.on('data', (chunk: Buffer) => {
+    response.data.on("data", (chunk: Buffer) => {
       downloadedSize += chunk.length;
-      
+
       if (pkgProgress && totalSize > 0) {
         const progress = (downloadedSize / totalSize) * 100;
-        const progressDetail = `(${(downloadedSize / 1024).toFixed(2)} / ${(totalSize / 1024).toFixed(2)}) KB`;
-        
+        const progressDetail = `(${(downloadedSize / 1024).toFixed(2)} / ${(
+          totalSize / 1024
+        ).toFixed(2)}) KB`;
+
         // Update progress only if significant change
-        if (progress - lastProgressUpdate >= this.refreshUIRate || downloadedSize === totalSize) {
+        if (
+          progress - lastProgressUpdate >= this.refreshUIRate ||
+          downloadedSize === totalSize
+        ) {
           pkgProgress.Progress = `${progress.toFixed(2)}%`;
           pkgProgress.ProgressDetail = progressDetail;
           lastProgressUpdate = progress;
@@ -420,17 +469,31 @@ export class DownloadManager {
     response.data.pipe(fileStream);
 
     return new Promise<any>((resolve, reject) => {
-      fileStream.on('finish', () => {
-        this.appendChannel(`Full download completed: ${fileName} into ${filePath}`);
+      fileStream.on("finish", () => {
+        this.appendChannel(
+          `Full download completed: ${fileName} into ${filePath}`
+        );
         resolve(response);
       });
 
-      fileStream.on('error', (error) => {
-        reject(new PackageError(`File write error: ${error.message}`, "downloadFull", error));
+      fileStream.on("error", (error) => {
+        reject(
+          new PackageError(
+            `File write error: ${error.message}`,
+            "downloadFull",
+            error
+          )
+        );
       });
 
-      response.data.on('error', (error) => {
-        reject(new PackageError(`Download stream error: ${error.message}`, "downloadFull", error));
+      response.data.on("error", (error) => {
+        reject(
+          new PackageError(
+            `Download stream error: ${error.message}`,
+            "downloadFull",
+            error
+          )
+        );
       });
     });
   }
@@ -438,13 +501,15 @@ export class DownloadManager {
   /**
    * Create axios cancel token from VS Code cancellation token
    */
-  private createCancelToken(cancelToken: vscode.CancellationToken): CancelToken {
+  private createCancelToken(
+    cancelToken: vscode.CancellationToken
+  ): CancelToken {
     const source = axios.CancelToken.source();
-    
+
     cancelToken.onCancellationRequested(() => {
-      source.cancel('Download cancelled by user');
+      source.cancel("Download cancelled by user");
     });
-    
+
     return source.token;
   }
 

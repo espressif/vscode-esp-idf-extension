@@ -32,7 +32,6 @@ import {
 import { marked } from "marked";
 import { EOL, platform } from "os";
 import * as path from "path";
-import * as url from "url";
 import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
@@ -1432,34 +1431,37 @@ export function markdownToWebviewHtml(
  * Robust move function that handles Windows EPERM errors
  * Falls back to copy + remove if rename fails
  */
-export async function robustMove(source: string, destination: string): Promise<void> {
+export async function robustMove(
+  source: string,
+  destination: string
+): Promise<void> {
   const maxRetries = 3;
   const retryDelay = 1000; // 1 second
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       await move(source, destination);
       return; // Success, exit the function
     } catch (error) {
       // On Windows, EPERM errors are common when moving directories
-      if (error.code === 'EPERM' || error.code === 'EACCES') {
+      if (error.code === "EPERM" || error.code === "EACCES") {
         if (attempt === maxRetries) {
           // Last attempt, use fallback method
           const fallbackMsg = `Move operation failed with ${error.code} after ${maxRetries} attempts, falling back to copy + remove...`;
           OutputChannel.init().appendLine(fallbackMsg);
           Logger.info(fallbackMsg);
-          
+
           // Ensure destination directory doesn't exist
           if (await pathExists(destination)) {
             await remove(destination);
           }
-          
+
           // Copy the directory
           await copy(source, destination);
-          
+
           // Remove the source directory
           await remove(source);
-          
+
           const successMsg = `Successfully moved directory using fallback method`;
           OutputChannel.init().appendLine(successMsg);
           Logger.info(successMsg);
@@ -1469,7 +1471,7 @@ export async function robustMove(source: string, destination: string): Promise<v
           const retryMsg = `Move operation failed with ${error.code}, retrying in ${retryDelay}ms (attempt ${attempt}/${maxRetries})...`;
           OutputChannel.init().appendLine(retryMsg);
           Logger.error(retryMsg, new Error(retryMsg), "robustMove");
-          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
       } else {
         // Re-throw other errors immediately
