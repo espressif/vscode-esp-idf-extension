@@ -1103,10 +1103,13 @@
             "description": "%param.svdFile%"
           },
           "idf.extraCleanPaths": {
-            "type": "string[]",
+            "type": "array",
             "default": [],
             "scope": "resource",
-            "description": "%param.extraCleanPaths%"
+            "description": "%param.extraCleanPaths%",
+            "items": {
+              "type": "string"
+            }
           },
           "idf.monitorDelay": {
             "type": "number",

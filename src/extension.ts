@@ -637,10 +637,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
       try {
         await del(buildDir, { force: true });
-        const extraPathsToClean = (await idfConf.readParameter(
-          "idf.extraPathsToClean",
+        const extraPathsToClean = idfConf.readParameter(
+          "idf.extraCleanPaths",
           workspaceRoot
-        )) as string[];
+        ) as string[];
         if (extraPathsToClean && extraPathsToClean.length > 0) {
           for (const extraPath of extraPathsToClean) {
             const fullPath = path.join(workspaceRoot.fsPath, extraPath);
