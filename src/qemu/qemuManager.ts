@@ -237,8 +237,8 @@ export class QemuManager extends EventEmitter {
     if (!this._statusBarItem) {
       this._statusBarItem = window.createStatusBarItem(
         CommandKeys.QemuServer,
-        StatusBarAlignment.Right,
-        1005
+        StatusBarAlignment.Left,
+        0
       );
       this._statusBarItem.name = this._statusBarItem.text = "[ESP-IDF: QEMU]";
       const commandDictionary = createCommandDictionary();
