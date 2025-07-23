@@ -1212,6 +1212,26 @@ export async function activate(context: vscode.ExtensionContext) {
     } else if (e.affectsConfiguration("idf.customExtraVars")) {
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
       await configureClangSettings(workspaceRoot);
+    } else if (e.affectsConfiguration("idf.unitTestFilePattern")) {
+      const cancelTokenSource = new vscode.CancellationTokenSource();
+      try {
+        await unitTestController.unitTestController.refreshHandler(
+          cancelTokenSource.token
+        );
+      } catch (error) {
+        Logger.error(
+          "Failed to refresh unit test controller",
+          error,
+          "extension refreshUnitTestController"
+        );
+        const errorMsg =
+          error && error.message
+            ? error.message
+            : "Error refreshing unit test controller";
+        OutputChannel.appendLine(errorMsg);
+      } finally {
+        cancelTokenSource.dispose();
+      }
     }
   });
 
