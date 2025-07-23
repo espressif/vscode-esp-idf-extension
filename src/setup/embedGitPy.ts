@@ -88,7 +88,7 @@ export async function installIdfGit(
     progress.report({ message: msgDownload });
     OutputChannel.appendLine(msgDownload);
     Logger.info(msgDownload);
-    await downloadManager.downloadWithRetries(
+    await downloadManager.downloadWithResume(
       gitURLToUse,
       join(idfToolsDir, "dist"),
       pkgProgress,
@@ -174,7 +174,7 @@ export async function installIdfPython(
     Logger.info(usingExistingPathMsg);
   } else {
     progress.report({ message: `Downloading ${idfPyZipPath}...` });
-    await downloadManager.downloadWithRetries(
+    await downloadManager.downloadWithResume(
       pythonURLToUse,
       join(idfToolsDir, "dist"),
       pkgProgress,
