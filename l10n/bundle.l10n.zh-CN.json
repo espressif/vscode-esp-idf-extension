@@ -239,7 +239,11 @@
   "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "在当前工作区中未找到标准 ESP-IDF 项目。您是否仍要激活 ESP-IDF 扩展？",
   "🔗 Reference Documentation": "🔗 参考文档",
   "Open {0}": "打开 {0}",
-  "💡 Show Hints": "💡 显示提示",
-  "Disable Hints Notifications": "禁用提示通知",
-  "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel": "已为此工作区禁用提示通知。您可以在设置中重新启用它们，或手动在 ESP-IDF 底部面板中访问提示"
+  "💡 New ESP-IDF Hints!": "💡 新的 ESP-IDF 提示！",
+  "ESP-IDF: Hints available. Click to view.": "ESP-IDF：提示可用。点击查看。",
+  "Error Hints": "错误提示",
+  "Clear All Error Hints": "清除所有错误提示",
+  "Clear Build Error Hints": "清除构建错误提示",
+  "Clear OpenOCD Error Hints": "清除 OpenOCD 错误提示",
+  "Open Reference": "打开参考"
 }

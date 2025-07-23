@@ -25,6 +25,7 @@ import {
   UIKind,
   Uri,
   window,
+  l10n,
 } from "vscode";
 import { getCurrentIdfSetup } from "../versionSwitcher";
 import { readParameter } from "../idfConfiguration";
@@ -266,8 +267,8 @@ let hintsStatusBarItem: StatusBarItem | undefined;
 export function createHintsStatusBarItem() {
   if (!hintsStatusBarItem) {
     hintsStatusBarItem = createStatusBarItem(
-      "💡 New ESP-IDF Hints!",
-      "ESP-IDF: Hints available. Click to view.",
+      l10n.t("💡 New ESP-IDF Hints!"),
+      l10n.t("ESP-IDF: Hints available. Click to view."),
       "idfErrorHints.focus",
       1000, // Highest priority to appear first
       TreeItemCheckboxState.Checked
@@ -284,8 +285,8 @@ export function createHintsStatusBarItem() {
 export function updateHintsStatusBarItem(hasHints: boolean) {
   if (!hintsStatusBarItem) return;
   if (hasHints) {
-    hintsStatusBarItem.text = "💡 New ESP-IDF Hints!";
-    hintsStatusBarItem.tooltip = "ESP-IDF: Hints available. Click to view.";
+    hintsStatusBarItem.text = l10n.t("💡 New ESP-IDF Hints!");
+    hintsStatusBarItem.tooltip = l10n.t("ESP-IDF: Hints available. Click to view.");
     hintsStatusBarItem.backgroundColor = "statusBarItem.warningBackground";
     hintsStatusBarItem.show();
   } else {
