@@ -247,7 +247,11 @@
   "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Falha ao instalar a extensão clangd. Você pode instalá-la manualmente no marketplace de extensões.",
   "🔗 Reference Documentation": "🔗Documentação de Referência",
   "Open {0}": "Abrir {0}",
-  "💡 Show Hints": "💡 Mostrar Dicas",
-  "Disable Hints Notifications": "Desabilitar Notificações de Dicas",
-  "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel": "Notificações de dicas desabilitadas para este workspace. Você pode reabilitá-las nas configurações ou acessar dicas manualmente no painel inferior do ESP-IDF"
+  "💡 New ESP-IDF Hints!": "💡 Novas Dicas ESP-IDF!",
+  "ESP-IDF: Hints available. Click to view.": "ESP-IDF: Dicas disponíveis. Clique para visualizar.",
+  "Error Hints": "Dicas de Erro",
+  "Clear All Error Hints": "Limpar Todas as Dicas de Erro",
+  "Clear Build Error Hints": "Limpar Dicas de Erro de Compilação",
+  "Clear OpenOCD Error Hints": "Limpar Dicas de Erro do OpenOCD",
+  "Open Reference": "Abrir Referência"
 }

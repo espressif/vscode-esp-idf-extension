@@ -313,8 +313,8 @@
       "espIdfHints": [
         {
           "id": "idfErrorHints",
-          "name": "Error Hints",
-          "title": "Error Hints ($idfErrorHints.count$)"
+          "name": "%view.idf.errorHints%",
+          "title": "%view.idf.errorHints% ($idfErrorHints.count$)"
         }
       ],
       "debug": [
@@ -1201,12 +1201,6 @@
             "default": false,
             "description": "%param.useSerialPortVendorProductFilter.title%"
           },
-          "idf.showHintsNotification": {
-            "type": "boolean",
-            "scope": "resource",
-            "default": true,
-            "description": "%param.showHintsNotification%"
-          },
           "idf.usbSerialPortFilters": {
             "type": "object",
             "scope": "application",
@@ -1300,19 +1294,19 @@
     "commands": [
       {
         "command": "espIdf.errorHints.clearAll",
-        "title": "Clear All Error Hints",
+        "title": "%command.errorHints.clearAll.title%",
         "icon": "$(clear-all)",
         "category": "ESP-IDF"
       },
       {
         "command": "espIdf.errorHints.clearBuildErrors",
-        "title": "Clear Build Error Hints",
+        "title": "%command.errorHints.clearBuild.title%",
         "icon": "$(trash)",
         "category": "ESP-IDF"
       },
       {
         "command": "espIdf.errorHints.clearOpenOCDErrors",
-        "title": "Clear OpenOCD Error Hints",
+        "title": "%command.errorHints.clearOpenOCD.title%",
         "icon": "$(trash)",
         "category": "ESP-IDF"
       },

@@ -3785,13 +3785,11 @@ export async function activate(context: vscode.ExtensionContext) {
   if (PreCheck.isWorkspaceFolderOpen()) {
     const treeDataProvider = new ErrorHintProvider(context);
 
-    // Create and register the tree view with collapse all button
     const treeView = vscode.window.createTreeView("idfErrorHints", {
       treeDataProvider: treeDataProvider,
       showCollapseAll: true,
     });
 
-    // Set a title for the tree view
     treeView.title = "Error Hints";
 
     // Add the tree view to disposables
@@ -3819,7 +3817,6 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     );
 
-    // Initialize OpenOCD error monitoring
     const openOCDErrorMonitor = OpenOCDErrorMonitor.init(
       treeDataProvider,
       workspaceRoot

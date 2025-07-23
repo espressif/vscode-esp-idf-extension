@@ -246,7 +246,11 @@
   "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Error al instalar la extensión clangd. Puede instalarla manualmente desde el marketplace de extensiones.",
   "🔗 Reference Documentation": "🔗 Documentación de Referencia",
   "Open {0}": "Abrir {0}",
-  "💡 Show Hints": "💡 Mostrar Pistas",
-  "Disable Hints Notifications": "Deshabilitar Notificaciones de Pistas",
-  "Hint notifications disabled for this workspace. You can re-enable them in settings or access hints manually in ESP-IDF bottom panel": "Las notificaciones de pistas están deshabilitadas para este espacio de trabajo. Puede volver a habilitarlas en la configuración o acceder a las pistas manualmente en el panel inferior de ESP-IDF"
+  "💡 New ESP-IDF Hints!": "💡 ¡Nuevas Pistas ESP-IDF!",
+  "ESP-IDF: Hints available. Click to view.": "ESP-IDF: Pistas disponibles. Haga clic para ver.",
+  "Error Hints": "Pistas de Error",
+  "Clear All Error Hints": "Borrar Todas las Pistas de Error",
+  "Clear Build Error Hints": "Borrar Pistas de Error de Compilación",
+  "Clear OpenOCD Error Hints": "Borrar Pistas de Error de OpenOCD",
+  "Open Reference": "Abrir Referencia"
 }

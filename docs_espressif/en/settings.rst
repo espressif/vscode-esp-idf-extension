@@ -236,8 +236,6 @@ Extension Behaviour Settings
       - Absolute path to shell terminal executable to use (default to VS Code Terminal)
     * - **idf.customTerminalExecutableArgs**
       - Shell arguments for idf.customTerminalExecutable
-    * - **idf.showHintsNotification**
-      - Show pop-up notifications when hints are found for compilation errors (default ``true``)
 
 
 Custom Tasks for Build and Flash Tasks

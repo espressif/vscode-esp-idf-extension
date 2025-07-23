@@ -203,5 +203,9 @@
 	"viewContainer.title": "ESP-IDF: Explorador",
 	"viewWelcome.idfPartitionExplorer": "Mostre a lista de partições do seu dispositivo com a opção de atualizar binários (.bin) para a partição selecionada.\n\n",
 	"viewWelcome.idfSearchResults": "Em qualquer editor de arquivo aberto, selecione algum texto e clique com o botão direito e selecione ESP-IDF: Pesquise na documentação para obter resultados correspondentes aqui.\n\n",
-	"viewWelcome.peripheralView": "Mostrar registros de periféricos do arquivo SVD definido na configuração ESP-IDF Svd File Path (idf.svdFilePath) durante a sessão de depuração ativa"
+	"viewWelcome.peripheralView": "Mostrar registros de periféricos do arquivo SVD definido na configuração ESP-IDF Svd File Path (idf.svdFilePath) durante a sessão de depuração ativa",
+	"view.idf.errorHints": "Dicas de Erro",
+	"command.errorHints.clearAll.title": "Limpar Todas as Dicas de Erro",
+	"command.errorHints.clearBuild.title": "Limpar Dicas de Erro de Compilação",
+	"command.errorHints.clearOpenOCD.title": "Limpar Dicas de Erro do OpenOCD"
 }
