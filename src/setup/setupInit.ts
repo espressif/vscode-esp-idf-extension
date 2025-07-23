@@ -132,7 +132,7 @@ export async function getSetupInitialValues(
   progress.report({ increment: 20, message: "Getting ESP-IDF versions..." });
   const espIdfVersionsList = await getEspIdfVersions(extensionPath);
   progress.report({ increment: 10, message: "Getting ESP-IDF Tags" });
-  const espIdfTagsList = await getEspIdfTags();
+  const espIdfTagsList = await getEspIdfTags("tags");
   progress.report({ increment: 10, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
   const idfSetups = await getPreviousIdfSetups(false);

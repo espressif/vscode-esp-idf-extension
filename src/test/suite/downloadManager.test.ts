@@ -117,7 +117,7 @@ suite("Download Manager Tests", () => {
       const pkgUrl = idfToolsManager.obtainUrlInfoForPlatform(pkgs[0]);
       const destPath = path.resolve(mockInstallPath, "dist");
       await downloadManager
-        .downloadFile(pkgUrl.url, 0, destPath)
+        .downloadWithResume(pkgUrl.url, destPath)
         .then((reply) => {
           assert.equal(reply.headers["content-length"], "12345");
         });
@@ -134,7 +134,7 @@ suite("Download Manager Tests", () => {
       const pkgUrl = idfToolsManager.obtainUrlInfoForPlatform(pkgs[0]);
       const destPath = path.resolve(mockInstallPath, "dist");
       await downloadManager
-        .downloadFile(pkgUrl.url, 0, destPath)
+        .downloadWithResume(pkgUrl.url, destPath)
         .then((reply) => {
           assert.fail("Expected an error, didn't receive it");
         })

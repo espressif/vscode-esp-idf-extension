@@ -26,10 +26,10 @@ import {
   sendDownloadedZip,
   sendExtractedZip,
 } from "./webviewMsgMethods";
-import { ensureDir, move, pathExists } from "fs-extra";
+import { ensureDir, pathExists } from "fs-extra";
 import { AbstractCloning } from "../common/abstractCloning";
 import { CancellationToken, Disposable, Progress } from "vscode";
-import { delimiter, dirname, join } from "path";
+import { dirname, join } from "path";
 
 export class EspIdfCloning extends AbstractCloning {
   constructor(branchName: string, gitBinPath: string = "git") {
@@ -42,6 +42,8 @@ export class EspIdfCloning extends AbstractCloning {
     );
   }
 }
+
+
 
 export async function downloadInstallIdfVersion(
   idfVersion: IEspIdfLink,
@@ -127,7 +129,7 @@ export async function downloadInstallIdfVersion(
         mirror == ESP.IdfMirror.Espressif ? "Espressif" : "Github"
       } with URL ${urlToUse}`
     );
-    await downloadManager.downloadWithRetries(
+    await downloadManager.downloadWithResume(
       urlToUse,
       destPath,
       pkgProgress,
@@ -149,7 +151,7 @@ export async function downloadInstallIdfVersion(
     const extractedMsg = `Extracted ${downloadedZipPath} in ${destPath}.\n`;
     OutputChannel.appendLine(extractedMsg);
     Logger.info(extractedMsg);
-    await move(extractedDirectory, expectedDirectory);
+    await utils.robustMove(extractedDirectory, expectedDirectory);
     sendExtractedZip(expectedDirectory);
 
     if (gitPath) {

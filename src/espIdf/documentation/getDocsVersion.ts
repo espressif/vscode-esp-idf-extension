@@ -111,7 +111,7 @@ export async function getDocsIndex(
 
 export async function readObjectFromUrlFile(objectUrl: string) {
   const downloadManager = new DownloadManager(tmpdir());
-  await downloadManager.downloadFile(objectUrl, 0, tmpdir());
+  await downloadManager.downloadWithResume(objectUrl, tmpdir());
   const fileName = join(tmpdir(), basename(objectUrl));
   const objectStr = await readFile(fileName, "utf-8");
   const objectMatches = objectStr.match(/{[\s\S]+}/g);
