@@ -11,7 +11,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.102.0"
+    "vscode": "^1.100.3"
   },
   "repository": {
     "type": "git",
@@ -2621,7 +2621,7 @@
     "@types/sanitize-html": "^2.6.2",
     "@types/tar-fs": "^2.0.1",
     "@types/tmp": "0.0.33",
-    "@types/vscode": "^1.102.0",
+    "@types/vscode": "^1.100.3",
     "@types/ws": "^7.2.5",
     "@types/xml2js": "^0.4.11",
     "@types/yauzl": "^2.9.1",
