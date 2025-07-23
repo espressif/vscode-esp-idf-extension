@@ -17,8 +17,6 @@
  */
 
 import * as assert from "assert";
-import * as del from "del";
-import * as nock from "nock";
 import * as path from "path";
 import { ExtensionContext } from "vscode";
 import { DownloadManager } from "../../downloadManager";
