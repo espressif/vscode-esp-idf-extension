@@ -182,7 +182,7 @@
   	"param.usbSerialPortFilters.vendorId": "Шестнадцатеричное число USB Vendor ID в виде строки, например, 0x0403",
   	"param.usbSerialPortFilters.productId": "Шестнадцатеричное число USB Product ID в виде строки, например, 0x6010",
 	"param.hasWalkthroughBeenShown": "Показывать руководство по настройке ESP-IDF при первом запуске",
-	"param.showHintsNotification": "Показывать всплывающие уведомления при обнаружении подсказок для ошибок сборки",
+
 	"trace.poll_period.description": "для apptrace будет установлен параметр poll_ period",
 	"trace.skip_size.description": "для apptrace будет установлен параметр skip_size",
 	"trace.stop_tmo.description": "для apptrace будет установлен параметр stop_tmo",
@@ -201,5 +201,9 @@
 	"viewContainer.title": "ESP-IDF: Проводник",
 	"viewWelcome.idfPartitionExplorer": "Показать список разделов устройства с возможностью перепрошивки бинарников (.bin) в выбранный раздел.\n\nВыберите последовательный порт устройства и кликните 'Обновить таблицу разделов'.",
 	"viewWelcome.idfSearchResults": "В любом открытом файле редактора выделите текст, кликните правой кнопкой мыши и выберите 'ESP-IDF: Поиск в документации', чтобы получить соответствующие результаты.\n\nРезультаты основаны на вашем текущем языке VS Code и версии idf.espIdfPath (в противном случае последней).",
-	"viewWelcome.peripheralView": "Показывать периферийные регистры из SVD-файлов, определенных в параметре конфигурации ESP-IDF путь к файлу SVD (idf.svdFilePath) во время активного сеанса отладки."
+	"viewWelcome.peripheralView": "Показывать периферийные регистры из SVD-файлов, определенных в параметре конфигурации ESP-IDF путь к файлу SVD (idf.svdFilePath) во время активного сеанса отладки.",
+	"view.idf.errorHints": "Подсказки по ошибкам",
+	"command.errorHints.clearAll.title": "Очистить все подсказки по ошибкам",
+	"command.errorHints.clearBuild.title": "Очистить подсказки по ошибкам сборки",
+	"command.errorHints.clearOpenOCD.title": "Очистить подсказки по ошибкам OpenOCD"
 }

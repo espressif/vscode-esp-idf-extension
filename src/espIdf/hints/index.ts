@@ -74,7 +74,7 @@ export class ErrorHintTreeItem extends vscode.TreeItem {
       this.tooltip = vscode.l10n.t(`Open {0}`, label);
       this.command = {
         command: "vscode.open",
-        title: "Open Reference",
+        title: vscode.l10n.t("Open Reference"),
         arguments: [vscode.Uri.parse(label)],
       };
       this.iconPath = new vscode.ThemeIcon("link-external");
