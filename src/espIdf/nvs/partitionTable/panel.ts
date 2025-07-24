@@ -23,6 +23,7 @@ import * as idfConf from "../../../idfConfiguration";
 import { canAccessFile, execChildProcess } from "../../../utils";
 import { OutputChannel } from "../../../logger/outputChannel";
 import { getVirtualEnvPythonPath } from "../../../pythonManager";
+import { ESP } from "../../../config";
 
 export class NVSPartitionTable {
   private static currentPanel: NVSPartitionTable;
@@ -142,11 +143,12 @@ export class NVSPartitionTable {
     partitionSize: string
   ) {
     try {
-      const idfPathDir =
-        idfConf.readParameter("idf.espIdfPath", this.workspaceFolder) ||
-        process.env.IDF_PATH;
+      const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+        [key: string]: string;
+      }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+      const idfPathDir = currentEnvVars["IDF_PATH"];
 
-      const pythonBinPath = await getVirtualEnvPythonPath(this.workspaceFolder);
+      const pythonBinPath = await getVirtualEnvPythonPath();
       const dirPath = dirname(this.filePath);
       const fileName = basename(this.filePath);
       const resultName = fileName.replace(".csv", ".bin");
@@ -173,7 +175,7 @@ export class NVSPartitionTable {
         Logger.errorNotify(
           "nvs_partition_gen.py is not defined",
           new Error(
-            "nvs_partition_gen.py is not defined, Make sure idf.espIdfPath is correct."
+            "nvs_partition_gen.py is not defined, Make sure IDF_PATH in your setup is correct."
           ),
           "NVSPartitionTable generateNvsPartition, toolsPath"
         );

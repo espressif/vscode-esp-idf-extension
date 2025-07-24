@@ -30,6 +30,7 @@ export namespace ESP {
   export namespace ProjectConfiguration {
     export let store: ProjectConfigStore;
     export const SELECTED_CONFIG = "SELECTED_PROJECT_CONFIG";
+    export const CURRENT_IDF_CONFIGURATION = "CURRENT_IDF_CONFIGURATION";
     export const PROJECT_CONFIGURATION_FILENAME =
       "esp_idf_project_configuration.json";
   }
@@ -53,21 +54,15 @@ export namespace ESP {
 
   export namespace GlobalConfiguration {
     export let store: ExtensionConfigStore;
-    export const IDF_SETUPS = "IDF_SETUPS";
     export const SELECTED_WORKSPACE_FOLDER = "SELECTED_WORKSPACE_FOLDER";
   }
 
   export const platformDepConfigurations: string[] = [
-    "idf.buildPath",
     "idf.espIdfPath",
-    "idf.espAdfPath",
-    "idf.espMdfPath",
-    "idf.espRainmakerPath",
-    "idf.espHomeKitSdkPath",
-    "idf.gitPath",
-    "idf.pythonBinPath",
-    "idf.port",
     "idf.toolsPath",
+    "idf.buildPath",
+    "idf.gitPath",
+    "idf.port",
   ];
 
   export namespace Rainmaker {
@@ -124,6 +119,10 @@ export namespace ESP {
         "https://dl.espressif.com/dl/esp-idf/idf_versions.js";
       export const README = ESP.URL.GithubRepository + "/blob/master/README.md";
       export const FLASH_ENCRYPTION = "/security/flash-encryption.html";
+    }
+
+    export namespace InstallManager {
+      export const Releases = "https://dl.espressif.com/dl/eim/index.html";
     }
   }
 

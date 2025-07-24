@@ -22,7 +22,7 @@ const dataModel = computed({
   },
 });
 
-const pathSep = navigator.platform.indexOf("Win") !== -1 ? "\\" : "/";
+const pathSep = navigator.platform.indexOf("Win") >= 0 ? "\\" : "/";
 function onKeyEnter() {
   if (props.keyEnterMethod) {
     props.keyEnterMethod();
