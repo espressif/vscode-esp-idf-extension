@@ -23,11 +23,12 @@ function addNewRow() {
   });
 }
 
+// Debug: This function updates encoding based on type
 function updateEncoding(index: number, newType: string) {
   const encodingTypes = findEncodingTypes(newType);
   if (newType === "namespace") {
     store.rows[index].encoding = "";
-  } else if (encodingTypes.indexOf(newType) === -1) {
+  } else if ((encodingTypes.indexOf(newType) as number) < 0) {
     store.rows[index].encoding = encodingTypes[0];
   }
 }
@@ -92,7 +93,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-@import "../commons/espCommons.scss";
+@use "../commons/espCommons.scss" as *;
 @import "~@creativebulma/bulma-tooltip/dist/bulma-tooltip.min.css";
 .input,
 .textarea,

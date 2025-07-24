@@ -17,6 +17,8 @@
   "exclude": [
     ".vscode-test",
     "esp",
+    "dist",
+    "out",
     "node_modules",
     "src/views",
     "test-resources"
