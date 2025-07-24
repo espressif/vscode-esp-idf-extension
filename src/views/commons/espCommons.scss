@@ -1,5 +1,5 @@
 @charset "utf-8";
-@import "~bulma/bulma";
+@use "~bulma/bulma" as bulma;
 
 html,
 body {

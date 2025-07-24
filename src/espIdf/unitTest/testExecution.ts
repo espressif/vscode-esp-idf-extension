@@ -29,11 +29,11 @@ import {
   workspace,
 } from "vscode";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
-import { appendIdfAndToolsToPath } from "../../utils";
 import { OutputChannel } from "../../logger/outputChannel";
 import { parseStringPromise } from "xml2js";
 import { TaskManager } from "../../taskManager";
 import { Logger } from "../../logger/logger";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export async function runPyTestWithTestCase(
   workspaceFolder: Uri,
@@ -93,7 +93,7 @@ export async function runTaskForCommand(
   cancelToken.onCancellationRequested(() => {
     TaskManager.cancelTasks();
   });
-  const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
+  const modifiedEnv = await configureEnvVariables(workspaceFolder);
 
   const options: ShellExecutionOptions = {
     cwd: workspaceFolder.fsPath,

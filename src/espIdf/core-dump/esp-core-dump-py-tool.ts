@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 3rd July 2020 5:49:06 pm
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,10 @@
  */
 
 import { join } from "path";
-import { appendIdfAndToolsToPath, spawn } from "../../utils";
+import { spawn } from "../../utils";
 import { Logger } from "../../logger/logger";
 import { Uri } from "vscode";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export enum InfoCoreFileFormat {
   Base64 = "b64",
@@ -49,7 +50,7 @@ export class ESPCoreDumpPyTool {
   public async generateCoreELFFile(options: CoreELFGenerationOptions) {
     let resp: Buffer;
     try {
-      const env = await appendIdfAndToolsToPath(options.workspaceUri);
+      const env = await configureEnvVariables(options.workspaceUri);
       resp = await spawn(
         options.pythonBinPath,
         [

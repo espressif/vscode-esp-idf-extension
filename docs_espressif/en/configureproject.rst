@@ -55,26 +55,24 @@ The file structure is as follows:
 
 .. code-block:: JSON
 
-    {
-        "configurations": [
-            {
-                "name": "ESP-IDF",
-                "compilerPath": "/path/to/toolchain-gcc",
-                "compileCommands": "${workspaceFolder}/build/compile_commands.json",
-                "includePath": [
-                    "${config:idf.espIdfPath}/components",
-                    "${config:idf.espIdfPathWin}/components/",
-                    "${workspaceFolder}/"
-                ],
-                "browse": {
-                    "path": [
-                        "${config:idf.espIdfPath}/components",
-                        "${config:idf.espIdfPathWin}/components",
-                        "${workspaceFolder}"
-                    ]
-                }
-            }
-        ]
-    }
+  {
+    "configurations": [
+      {
+        "name": "ESP-IDF",
+        "compilerPath": "/path/to/toolchain-gcc",
+        "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+        "includePath": [
+          "/path/to/esp-idf/components/**",
+          "${workspaceFolder}/**"
+        ],
+        "browse": {
+          "path": [
+            "/path/to/esp-idf/components",
+            "${workspaceFolder}"
+          ]
+        }
+      }
+    ]
+  }
 
 If ``compile_commands.json`` is not defined, Microsoft C/C++ extension will browse the provided ESP-IDF path to resolve code navigation.

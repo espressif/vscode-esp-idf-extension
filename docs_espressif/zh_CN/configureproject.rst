@@ -45,14 +45,12 @@ LLVM CLangd 扩展只需要用到 ``compile_commands.json`` 文件；而 Microso
                 "compilerPath": "/path/to/toolchain-gcc",
                 "compileCommands": "${workspaceFolder}/build/compile_commands.json",
                 "includePath": [
-                    "${config:idf.espIdfPath}/components",
-                    "${config:idf.espIdfPathWin}/components/",
+                    "/path/to/esp-idf/components/**",
                     "${workspaceFolder}/"
                 ],
                 "browse": {
                     "path": [
-                        "${config:idf.espIdfPath}/components",
-                        "${config:idf.espIdfPathWin}/components",
+                        "/path/to/esp-idf/components/**",
                         "${workspaceFolder}"
                     ]
                 }

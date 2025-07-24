@@ -19,9 +19,10 @@ import { dirname, join } from "path";
 import { l10n, Progress, ProgressLocation, Uri, window } from "vscode";
 import { NotificationMode, readParameter, readSerialPort } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { appendIdfAndToolsToPath, spawn } from "../../utils";
+import { spawn } from "../../utils";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { ensureDir } from "fs-extra";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export async function readPartition(
   name: string,
@@ -46,7 +47,7 @@ export async function readPartition(
     },
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
-        const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
+        const modifiedEnv = await configureEnvVariables(this.config.workspaceFolder);
         const serialPort = await readSerialPort(workspaceFolder, false);
         if (!serialPort) {
           return Logger.warnNotify(
@@ -56,8 +57,8 @@ export async function readPartition(
             )
           );
         }
-        const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-        const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+        const idfPath = modifiedEnv.IDF_PATH;
+        const pythonBinPath = await getVirtualEnvPythonPath();
         const esptoolPath = join(
           idfPath,
           "components",

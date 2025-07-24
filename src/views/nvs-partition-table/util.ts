@@ -143,7 +143,7 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
     return "";
   }
 
-  if (numberTypes.indexOf(row.encoding) !== -1) {
+  if (numberTypes.indexOf(row.encoding) >= 0) {
     if (!/^-?\d+$/.test(row.value)) {
       return "Value is not a valid number";
     }
