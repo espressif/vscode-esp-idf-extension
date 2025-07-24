@@ -29,13 +29,8 @@ export interface IEspIdfTool {
   doesToolExist: boolean;
   env: {};
   expected: string;
-  hashResult: boolean;
-  hasFailed: boolean;
-  id: string;
   name: string;
   path: string;
-  progress: string;
-  progressDetail: string;
 }
 
 export class IdfToolsManager {
@@ -383,13 +378,45 @@ export class IdfToolsManager {
         doesToolExist: isToolVersionCorrect,
         env: pkgVars,
         expected: expectedVersions.join(","),
-        hashResult: isToolVersionCorrect,
-        hasFailed: false,
-        id: pkg.name,
         name: pkg.name,
         path: pkgExportedPath,
-        progress: "0.00%",
-        progressDetail: "",
+      } as IEspIdfTool;
+    });
+    return idfToolsList;
+  }
+
+  public async getEIMToolsInfo(
+    pathToVerify: string,
+    onReqPkgs?: string[],
+    logToChannel: boolean = true
+  ) {
+    let versions: { [key: string]: string } = await this.verifyPackages(
+      pathToVerify,
+      onReqPkgs,
+      logToChannel
+    );
+    const packages = await this.getPackageList(onReqPkgs);
+    const idfToolsList = packages.map((pkg) => {
+      const pkgVersionsForPlatform = pkg.versions.filter((version) => {
+        return (
+          Object.getOwnPropertyNames(version).indexOf(
+            this.platformInfo.platformToUse
+          ) > -1 ||
+          Object.getOwnPropertyNames(version).indexOf(
+            this.platformInfo.fallbackPlatform
+          ) > -1
+        );
+      });
+      const expectedVersions = pkgVersionsForPlatform.map((p) => p.name);
+      let isToolVersionCorrect =
+        expectedVersions.indexOf(versions[pkg.name]) > -1 ||
+        (versions[pkg.name] && versions[pkg.name] === "No command version");
+      return {
+        actual: versions[pkg.name] || "",
+        description: pkg.description,
+        doesToolExist: isToolVersionCorrect,
+        expected: expectedVersions.join(","),
+        name: pkg.name,
       } as IEspIdfTool;
     });
     return idfToolsList;

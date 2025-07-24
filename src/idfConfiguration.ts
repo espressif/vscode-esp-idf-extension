@@ -345,6 +345,12 @@ export function resolveVariables(
       if (Object.keys(customExtraVars).indexOf(envVariable) !== -1) {
         return customExtraVars[envVariable];
       }
+      const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+        [key: string]: string;
+      }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+      if (Object.keys(currentEnvVars).indexOf(envVariable) !== -1) {
+        return currentEnvVars[envVariable];
+      }
       if (Object.keys(process.env).indexOf(envVariable) === -1) {
         return "";
       }

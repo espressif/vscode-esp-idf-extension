@@ -11,7 +11,7 @@ const props = defineProps<{
 }>();
 
 function getArchiveProp(prop1: string, prop2: string) {
-  return Object.keys(props.archiveInfo).indexOf(prop1) !== -1 ? prop1 : prop2;
+  return Object.keys(props.archiveInfo).indexOf(prop1) >= 0 ? prop1 : prop2;
 }
 
 function toggleArchiveFileInfoTable(archiveName: string) {
