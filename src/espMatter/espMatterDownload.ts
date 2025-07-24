@@ -38,7 +38,7 @@ import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { OutputChannel } from "../logger/outputChannel";
 import { PackageProgress } from "../PackageProgress";
-import { getVirtualEnvPythonPath, installEspMatterPyReqs } from "../pythonManager";
+import { installEspMatterPyReqs } from "../pythonManager";
 import { platform } from "os";
 
 export class EspMatterCloning extends AbstractCloning {
@@ -64,10 +64,11 @@ export class EspMatterCloning extends AbstractCloning {
     if (EspMatterCloning.isBuildingGn) {
       throw new Error("ALREADY_BUILDING");
     }
-    const matterPathDir = readParameter(
-      "idf.espMatterPath",
+    const customExtraVars = readParameter(
+      "idf.customExtraVars",
       this.currWorkspace
-    );
+    ) as { [key: string]: string };
+    const matterPathDir = customExtraVars["ESP_MATTER_PATH"];
     const espMatterPathExists = await pathExists(matterPathDir);
     if (!espMatterPathExists) {
       return;
@@ -182,7 +183,11 @@ export class EspMatterCloning extends AbstractCloning {
           );
         } catch (error) {
           OutputChannel.appendLine(error.message);
-          Logger.errorNotify(error.message, error, "EspMatterCloning initEsp32PlatformSubmodules");
+          Logger.errorNotify(
+            error.message,
+            error,
+            "EspMatterCloning initEsp32PlatformSubmodules"
+          );
         }
       }
     );
@@ -259,15 +264,6 @@ export async function installPythonReqs(
   espMatterPath: string,
   workspace?: Uri
 ) {
-  const espIdfPath = readParameter("idf.espIdfPath", workspace);
-  const pythonBinPath = await getVirtualEnvPythonPath(workspace);
-  const containerPath =
-    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
-  const confToolsPath = readParameter("idf.toolsPath", workspace);
-  const toolsPath =
-    confToolsPath ||
-    process.env.IDF_TOOLS_PATH ||
-    join(containerPath, ".espressif");
   const notificationMode = readParameter(
     "idf.notificationMode",
     workspace
@@ -291,10 +287,8 @@ export async function installPythonReqs(
         message: `Installing Python Requirements...`,
       });
       await installEspMatterPyReqs(
-        espIdfPath,
-        toolsPath,
+        workspace,
         espMatterPath,
-        pythonBinPath,
         undefined,
         cancelToken
       );
@@ -323,16 +317,18 @@ export async function getEspMatter(workspace?: Uri) {
 
   try {
     if (installAllSubmodules.target === "true") {
-      await espMatterInstaller.getRepository("idf.espMatterPath", workspace);
-      espMatterPath = readParameter("idf.espMatterPath", workspace);
+      await espMatterInstaller.getRepository("ESP_MATTER_PATH", workspace);
+      const customExtraVars = readParameter("idf.customExtraVars", workspace);
+      espMatterPath = customExtraVars["ESP_MATTER_PATH"];
       await espMatterInstaller.startBootstrap();
     } else {
       await espMatterInstaller.getRepository(
-        "idf.espMatterPath",
+        "ESP_MATTER_PATH",
         workspace,
         false
       );
-      espMatterPath = readParameter("idf.espMatterPath", workspace);
+      const customExtraVars = readParameter("idf.customExtraVars", workspace);
+      espMatterPath = customExtraVars["ESP_MATTER_PATH"];
       await espMatterInstaller.getSubmodules(espMatterPath);
       await espMatterInstaller.initEsp32PlatformSubmodules(
         espMatterPath,

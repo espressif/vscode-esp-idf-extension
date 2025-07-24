@@ -16,29 +16,52 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: "recursive"
-      - uses: actions/setup-node@v4
+
+      - name: Install ESP-IDF
+        run: |
+          ESP_IDF_VERSION="v5.3.2"
+          sudo apt update
+          sudo apt install -y python3-pip git wget flex bison gperf python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util
+          wget https://dl.espressif.com/github_assets/espressif/esp-idf/releases/download/${ESP_IDF_VERSION}/esp-idf-${ESP_IDF_VERSION}.zip -O esp-idf.zip
+          unzip esp-idf.zip -d ~/
+          rm esp-idf.zip
+          mv ~/esp-idf-${ESP_IDF_VERSION} ~/esp-idf
+          ~/esp-idf/install.sh
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Node Dependencies
-        run: yarn
+      - name: Install Yarn dependencies
+        run: |
+          yarn
+          yarn install
 
-      - name: Lint Check
-        run: yarn lint
+      - name: Run Yarn script with xvfb
+        run: |
+          source ~/esp-idf/export.sh
+          export GIT_VERSION=$(git --version | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p')
+          export IDF_VERSION=$(idf.py --version | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p')
+          export PY_VERSION=$(python --version | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p')
+          export PIP_VERSION=$(python -m pip --version | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p')
+          export PY_PKGS=$(python -m pip list --format json)
+          xvfb-run --auto-servernum yarn test
 
-      - name: Run test
-        uses: ./.github/actions/idf
-        id: idftest
-
-      - name: Get the test output
-        run: echo "${{ steps.idftest.outputs.result }}" | tee test-result.xml
+      - name: Publish Test Report
+        uses: dorny/test-reporter@v2
+        if: always()
+        with:
+          name: Mocha Tests
+          path: ./out/results/test-results.json
+          reporter: mocha-json
 
       - name: Upload if failed test results
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: test-result.xml
-          path: test-result.xml
+          name: test-result.json
+          path: ./out/results/test-results.json
 
       - name: Package .vsix
         run: yarn package

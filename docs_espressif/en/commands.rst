@@ -26,10 +26,6 @@ All commands start with ``ESP-IDF:``.
      - Clear the eFuse Summary tree from ESP Explorer EFUSEEXPLORER.
    * - Clear ESP-IDF Search Results
      - Clear results from ESP Explorer Documentation Search Results.
-   * - Clear Saved ESP-IDF Setups
-     - Clear existing ESP-IDF setups saved by the extension.
-   * - Configure ESP-IDF Extension
-     - Open a window with a setup wizard to install ESP-IDF, IDF Tools and Python virtual environment.
    * - Configure Project SDKConfig for Coverage
      - Set required values in your project SDKConfig to enable code coverage analysis.
    * - Configure project for ESP-Clang
@@ -67,17 +63,17 @@ All commands start with ``ESP-IDF:``.
    * - Import ESP-IDF Project
      - Import an existing ESP-IDF project, add .vscode and .devcontainer files to a new location, and optionally rename the project.
    * - Install ESP-ADF
-     - Clone ESP-ADF inside the selected directory and set **idf.espAdfPath** (**idf.espAdfPathWin** in Windows) configuration setting.
+     - Clone ESP-ADF inside the selected directory and set **ADF_PATH** in **idf.customExtraVars** configuration setting.
    * - Install ESP-IDF Python Packages (DEPRECATION NOTICE)
      - Install extension Python packages. This command is deprecated and will be removed soon.
    * - Install ESP-MDF
-     - Clone ESP-MDF inside the selected directory and set **idf.espMdfPath** (**idf.espMdfPathWin** in Windows) configuration setting.
+     - Clone ESP-MDF inside the selected directory and set **MDF_PATH** in **idf.customExtraVars** configuration setting.
    * - Install ESP-Matter
-     - Clone ESP-Matter and set **idf.espMatterPath**. ESP-Matter is not supported on Windows.
+     - Clone ESP-Matter and set **ESP_MATTER_PATH** in **idf.customExtraVars**. ESP-Matter is not supported on Windows.
    * - Install ESP-Rainmaker
-     - Clone ESP-Rainmaker and set **idf.espRainmakerPath** (**idf.espRainmakerPathWin** in Windows) configuration setting.
+     - Clone ESP-Rainmaker and set **RMAKER_PATH** in **idf.customExtraVars** configuration setting.
    * - Install ESP-HomeKit-SDK
-     - Clone ESP-HomeKit-SDK inside the selected directory and set **idf.espHomeKitSdkPath** (**idf.espHomeKitSdkPathWin** in Windows) configuration setting.
+     - Clone ESP-HomeKit-SDK inside the selected directory and set **HOMEKIT_PATH** in **idf.customExtraVars** configuration setting.
    * - Launch IDF Monitor for Core Dump Mode/GDB Stub Mode
      - Launch ESP-IDF Monitor with WebSocket capabilities. If you have configured the panic handler to gdbstub or core dump, the monitor will launch a post-mortem debug session of the chip.
    * - Launch QEMU Server
@@ -94,6 +90,8 @@ All commands start with ``ESP-IDF:``.
      - Launch UI to create a CSV file for `ESP-IDF Non-Volatile Storage Library <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_flash.html>`_.
    * - Open ESP-IDF Terminal
      - Open a terminal with IDF_PATH and Python virtual environment activated.
+   * - Open ESP-IDF Install Manager
+     - Open the ESP-IDF Install Manager to install and manage ESP-IDF versions and tools.
    * - Partition Table Editor
      - Launch UI to manage custom partition table as described in `ESP-IDF Partition Tables <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html>`_.
    * - Pick a Workspace Folder

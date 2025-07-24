@@ -102,7 +102,7 @@ function goToConfigure() {
 </template>
 
 <style lang="scss">
-@import "../commons/espCommons.scss";
+@use "../commons/espCommons.scss" as *;
 
 /* Add a little spacing for the back button */
 .back-btn-wrapper {

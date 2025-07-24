@@ -22,7 +22,6 @@ import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import {
-  appendIdfAndToolsToPath,
   getEspIdfFromCMake,
   getSDKConfigFilePath,
   isBinInPath,
@@ -31,19 +30,14 @@ import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 import { getVirtualEnvPythonPath } from "../pythonManager";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { configureEnvVariables } from "../common/prepareEnv";
 import { ESP } from "../config";
-
-import {
-  OutputCapturingExecution,
-  ShellOutputCapturingExecution,
-} from "../taskManager/customExecution";
-import { ProcessExecutionOptions } from "vscode";
+import { OutputCapturingExecution } from "../taskManager/customExecution";
 
 export class BuildTask {
   public static isBuilding: boolean;
   private buildDirPath: string;
   private currentWorkspace: vscode.Uri;
-  private idfPathDir: string;
 
   constructor(workspaceUri: vscode.Uri) {
     this.currentWorkspace = workspaceUri;
@@ -76,17 +70,14 @@ export class BuildTask {
       throw new Error("ALREADY_BUILDING");
     }
     this.building(true);
-    this.idfPathDir = idfConf.readParameter(
-      "idf.espIdfPath",
-      this.currentWorkspace
-    ) as string;
     this.buildDirPath = idfConf.readParameter(
       "idf.buildPath",
       this.currentWorkspace
     ) as string;
     await ensureDir(this.buildDirPath);
-    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
-    const processOptions: ProcessExecutionOptions = {
+    const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
+    const idfPathDir = modifiedEnv["IDF_PATH"];
+    const processOptions = {
       cwd: this.buildDirPath,
       env: modifiedEnv,
     };
@@ -118,7 +109,7 @@ export class BuildTask {
     let buildExecution: OutputCapturingExecution;
 
     if (!cmakeCacheExists) {
-      const espIdfVersion = await getEspIdfFromCMake(this.idfPathDir);
+      const espIdfVersion = await getEspIdfFromCMake(idfPathDir);
       let defaultCompilerArgs;
       if (espIdfVersion === "x.x") {
         Logger.warn(
@@ -260,9 +251,10 @@ export class BuildTask {
       notificationMode === idfConf.NotificationMode.Output
         ? vscode.TaskRevealKind.Always
         : vscode.TaskRevealKind.Silent;
-
+    const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
+    const idfPathDir = modifiedEnv["IDF_PATH"];
     const args = [
-      join(this.idfPathDir, "tools", "mkdfu.py"),
+      join(idfPathDir, "tools", "mkdfu.py"),
       "write",
       "-o",
       join(this.buildDirPath, "dfu.bin"),
@@ -271,8 +263,7 @@ export class BuildTask {
       "--pid",
       selectedDFUAdapterId(adapterTargetName).toString(),
     ];
-    const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
-    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    const pythonBinPath = await getVirtualEnvPythonPath();
     const processOptions = {
       cwd: this.buildDirPath,
       env: modifiedEnv,

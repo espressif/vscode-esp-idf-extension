@@ -17,7 +17,7 @@ let isCustomValue = computed(() => {
     props.selectValue &&
     props.customOption &&
     typeof props.selectValue === "string" &&
-    props.selectValue.indexOf(props.customOption.value) !== -1
+    props.selectValue.indexOf(props.customOption.value) >= 0
   );
 });
 

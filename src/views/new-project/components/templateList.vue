@@ -19,7 +19,7 @@ const openStates = ref<Record<string, boolean>>({});
 const filteredExamples = computed(() => {
   if (store.searchString !== "") {
     return props.node.examples.filter(
-      (e) => e.name.indexOf(store.searchString) !== -1
+      (e) => e.name.indexOf(store.searchString) >= 0
     );
   }
   return props.node.examples;

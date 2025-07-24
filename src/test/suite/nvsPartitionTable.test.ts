@@ -209,23 +209,40 @@ suite("NVS PartitionTable Suite", () => {
       });
   });
 
-  just64Types.forEach( i => {
-    test(`Value field invalid numbers for ${i}`, async() => {
+  just64Types.forEach(i => {
+    test(`Value field invalid numbers for ${i}`, async () => {
+      const min = minValues[i];
+      const max = maxValues[i];
+      let invalidMin: string;
+      let invalidMax: string;
+
+      if (typeof min === "number") {
+        invalidMin = `${min - 1}`;
+      } else {
+        invalidMin = `${min.minus(1)}`;
+      }
+
+      if (typeof max === "number") {
+        invalidMax = `${max + 1}`;
+      } else {
+        invalidMax = `${max.plus(1)}`;
+      }
+
       let invalidRow1 = {
         key: "0123456789abcde",
         type: "test",
         encoding: `${i}`,
-        value: `${minValues[i] === 0 ? minValues[i] - 1 : (minValues[i]).minus(1)}`,
+        value: invalidMin,
         error: ""
       };
       let invalidRow2 = {
         key: "0123456789abcde",
         type: "test",
         encoding: `${i}`,
-        value: `${(maxValues[i]).plus(1)}`,
+        value: invalidMax,
         error: ""
       };
-       
+
       await assert.equal(isInValidRow(invalidRow1), `Out of range for ${i}`);
       await assert.equal(isInValidRow(invalidRow2), `Out of range for ${i}`);
     });

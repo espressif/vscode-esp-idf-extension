@@ -16,7 +16,11 @@
  * limitations under the License.
  */
 
-import { extensionContext, getConfigValueFromSDKConfig, getEspIdfFromCMake } from "../utils";
+import {
+  extensionContext,
+  getConfigValueFromSDKConfig,
+  getEspIdfFromCMake,
+} from "../utils";
 import { NotificationMode, readParameter } from "../idfConfiguration";
 import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
 import {
@@ -27,8 +31,12 @@ import {
   Progress,
   CancellationToken,
 } from "vscode";
-import { getDocsLocaleLang, getDocsVersion } from "../espIdf/documentation/getDocsVersion";
+import {
+  getDocsLocaleLang,
+  getDocsVersion,
+} from "../espIdf/documentation/getDocsVersion";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { ESP } from "../config";
 
 export async function configureProjectWithGcov(workspacePath: Uri) {
   const appTraceDestTrax = await getConfigValueFromSDKConfig(
@@ -70,7 +78,9 @@ export async function configureProjectWithGcov(workspacePath: Uri) {
     appTraceGcovEnable === "y";
 
   if (isGcovEnabled) {
-    return window.showInformationMessage("Code coverage is already enabled in sdkconfig");
+    return window.showInformationMessage(
+      "Code coverage is already enabled in sdkconfig"
+    );
   }
 
   if (!ConfserverProcess.exists()) {
@@ -120,13 +130,13 @@ export async function configureProjectWithGcov(workspacePath: Uri) {
 
 export async function openCoverageUrl(workspacePath: Uri) {
   const docsVersions = await getDocsVersion();
-  const idfPath =
-    readParameter("idf.espIdfPath", workspacePath) || process.env.IDF_PATH;
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const idfPath = currentEnvVars["IDF_PATH"];
   let idfVersion = "v" + (await getEspIdfFromCMake(idfPath));
   let idfTarget = await getIdfTargetFromSdkconfig(workspacePath);
-  let docVersion = docsVersions.find(
-    (docVer) => docVer.name === idfVersion
-  );
+  let docVersion = docsVersions.find((docVer) => docVer.name === idfVersion);
   let targetToUse: string = "esp32";
   if (!docVersion) {
     docVersion = docsVersions.find((docVer) => docVer.name === "latest");
