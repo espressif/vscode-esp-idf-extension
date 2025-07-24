@@ -23,6 +23,9 @@ import { IdfToolsManager } from "../../idfToolsManager";
 import { OutputChannel } from "../../logger/outputChannel";
 import { PlatformInformation } from "../../PlatformInformation";
 import * as utils from "../../utils";
+import { ProjectConfigStore } from "../../project-conf";
+import { ESP } from "../../config";
+import { createMockMemento } from "../mockUtils";
 
 suite("IDF Tools Manager Tests", async () => {
   // Common setup variables
@@ -75,8 +78,11 @@ suite("IDF Tools Manager Tests", async () => {
           }]}`);
   const mockUpContext: ExtensionContext = {
     extensionPath: __dirname,
+    workspaceState: createMockMemento(),
+    globalState: createMockMemento(),
   } as ExtensionContext;
   utils.setExtensionContext(mockUpContext);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
   const platInfo: PlatformInformation = {
     architecture: "x86_64",
     platform: "darwin",
