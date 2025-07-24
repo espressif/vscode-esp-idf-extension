@@ -16,8 +16,9 @@
  * limitations under the License.
  */
 import * as vscode from "vscode";
-import { appendIdfAndToolsToPath, execChildProcess } from "../utils";
+import { execChildProcess } from "../utils";
 import { OutputChannel } from "../logger/outputChannel";
+import { configureEnvVariables } from "../common/prepareEnv";
 
 function deviceLabel(selectedDevice: string) {
   const regex = new RegExp(/:\d+\]/g);
@@ -30,7 +31,7 @@ function deviceLabel(selectedDevice: string) {
 }
 
 export async function getDfuList(workspaceUri: vscode.Uri) {
-  const modifiedEnv = await appendIdfAndToolsToPath(workspaceUri);
+  const modifiedEnv = await configureEnvVariables(workspaceUri);
   const dfuListStr =  await execChildProcess(
     "dfu-util",
     ["--list"],

@@ -5,14 +5,10 @@
       "compilerPath": "${default}",
       "compileCommands": "${config:idf.buildPath}/compile_commands.json",
       "includePath": [
-        "${config:idf.espIdfPath}/components/**",
-        "${config:idf.espIdfPathWin}/components/**",
         "${workspaceFolder}/**"
       ],
       "browse": {
         "path": [
-          "${config:idf.espIdfPath}/components",
-          "${config:idf.espIdfPathWin}/components",
           "${workspaceFolder}"
         ],
         "limitSymbolsToIncludedHeaders": true

@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
-import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
+import { ESP } from "./config";
 
 export async function asyncRemoveEspIdfSettings() {
   const config = vscode.workspace.getConfiguration();
@@ -133,8 +133,6 @@ export async function asyncRemoveEspIdfSettings() {
         );
       }
     }
-
-    await clearPreviousIdfSetups();
 
     OutputChannel.appendLineAndShow(
       vscode.l10n.t("ESP-IDF settings removed successfully.")

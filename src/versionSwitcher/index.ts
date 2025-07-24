@@ -16,36 +16,24 @@
  * limitations under the License.
  */
 
-import { ConfigurationTarget, StatusBarItem, Uri, window } from "vscode";
-import {
-  getPreviousIdfSetups,
-  loadIdfSetupsFromEspIdfJson,
-} from "../setup/existingIdfSetups";
-import {
-  checkIdfSetup,
-  useIdfSetupSettings,
-} from "../setup/setupValidation/espIdfSetup";
-import { readParameter } from "../idfConfiguration";
-import { getIdfMd5sum } from "../setup/espIdfJson";
-import { getEspIdfFromCMake } from "../utils";
-import { IdfSetup } from "../views/setup/types";
-import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
+import { commands, l10n, StatusBarItem, Uri, window } from "vscode";
+import { getIdfSetups } from "../eim/getExistingSetups";
+import { saveSettings } from "../eim/verifySetup";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
-  const globalStateSetups = await getPreviousIdfSetups(true);
-  const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
-  let existingIdfSetups = await loadIdfSetupsFromEspIdfJson(toolsPath);
-  if (process.env.IDF_TOOLS_PATH && toolsPath !== process.env.IDF_TOOLS_PATH) {
-    const systemIdfSetups = await loadIdfSetupsFromEspIdfJson(
-      process.env.IDF_TOOLS_PATH
+  let idfSetups = await getIdfSetups(workspaceFolder);
+  if (!idfSetups || (idfSetups && idfSetups.length === 0)) {
+    const action = await window.showInformationMessage(
+      l10n.t("No ESP-IDF Setups found"),
+      l10n.t("Open ESP-IDF Installation Manager")
     );
-    existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
+    if (action && action === l10n.t("Open ESP-IDF Installation Manager")) {
+      commands.executeCommand("espIdf.installManager");
+    }
   }
-  const currentIdfSetup = await getCurrentIdfSetup(workspaceFolder);
-  let idfSetups = [...globalStateSetups, ...existingIdfSetups, currentIdfSetup];
   idfSetups = idfSetups.filter(
     (setup, index, self) =>
       index ===
@@ -53,16 +41,7 @@ export async function selectIdfSetup(
         (s) => s.idfPath === setup.idfPath && s.toolsPath === setup.toolsPath
       )
   );
-  if (idfSetups.length === 0) {
-    await window.showInformationMessage("No ESP-IDF Setups found");
-    return;
-  }
-  const onlyValidIdfSetups = [
-    ...new Map(
-      idfSetups.filter((i) => i.isValid).map((item) => [item.idfPath, item])
-    ).values(),
-  ];
-  const idfSetupOptions = onlyValidIdfSetups.map((idfSetup) => {
+  const idfSetupOptions = idfSetups.map((idfSetup) => {
     return {
       label: `Version: v${idfSetup.version}`,
       description: `IDF_PATH: ${idfSetup.idfPath}`,
@@ -76,49 +55,10 @@ export async function selectIdfSetup(
   if (!selectedIdfSetupOption) {
     return;
   }
-  await useIdfSetupSettings(
+  await saveSettings(
     selectedIdfSetupOption.target,
-    ConfigurationTarget.WorkspaceFolder,
     workspaceFolder,
     espIdfStatusBar
   );
   return selectedIdfSetupOption.target;
-}
-
-export async function getCurrentIdfSetup(
-  workspaceFolder: Uri,
-  logToChannel: boolean = true
-) {
-  const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-  const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
-  const gitPath = readParameter("idf.gitPath", workspaceFolder);
-
-  // FIX use system Python path as setting instead venv
-  // REMOVE this line after neext release
-  const sysPythonBinPath = await getPythonPath(workspaceFolder);
-  let pythonBinPath = "";
-  if (sysPythonBinPath) {
-    pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-  }
-  if (!pythonBinPath) {
-    pythonBinPath = readParameter(
-      "idf.pythonBinPath",
-      workspaceFolder
-    ) as string;
-  }
-
-  const idfSetupId = getIdfMd5sum(idfPath);
-  const idfVersion = await getEspIdfFromCMake(idfPath);
-  const currentIdfSetup: IdfSetup = {
-    id: idfSetupId,
-    idfPath,
-    gitPath,
-    toolsPath,
-    sysPythonPath: sysPythonBinPath,
-    python: pythonBinPath,
-    version: idfVersion,
-    isValid: false,
-  };
-  currentIdfSetup.isValid = await checkIdfSetup(currentIdfSetup, logToChannel);
-  return currentIdfSetup;
 }

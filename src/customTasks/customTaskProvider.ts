@@ -28,8 +28,8 @@ import {
 } from "vscode";
 import { NotificationMode, readParameter } from "../idfConfiguration";
 import { TaskManager } from "../taskManager";
-import { appendIdfAndToolsToPath } from "../utils";
 import { ShellOutputCapturingExecution } from "../taskManager/customExecution";
+import { configureEnvVariables } from "../common/prepareEnv";
 
 export enum CustomTaskType {
   Custom = "custom",
@@ -89,7 +89,7 @@ export class CustomTask {
     if (!command) {
       return;
     }
-    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
     const options: ShellExecutionOptions = {
       cwd: this.currentWorkspace.fsPath,
       env: modifiedEnv,

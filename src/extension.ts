@@ -70,12 +70,9 @@ import { ESPEFuseTreeDataProvider } from "./efuse/view";
 import { ESPEFuseManager } from "./efuse";
 import { constants, createFileSync, pathExists, readFile } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
-import { SetupPanel } from "./setup/SetupPanel";
 import { ChangelogViewer } from "./changelog-viewer";
 import { PreReleaseNotification } from "./preReleaseNotification";
-import { getSetupInitialValues, ISetupInitArgs } from "./setup/setupInit";
 import { getVirtualEnvPythonPath } from "./pythonManager";
-import { checkExtensionSettings } from "./checkExtensionSettings";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
 import { seachInEspDocs } from "./espIdf/documentation/getSearchResults";
 import {
@@ -89,8 +86,6 @@ import {
   selectOpenOcdConfigFiles,
 } from "./espIdf/openOcd/boardConfiguration";
 import { clearAdapterSerial } from "./espIdf/openOcd/adapterSerial";
-import { getStoredAdapterSerial } from "./espIdf/openOcd/adapterSerial";
-import { DevkitsCommand } from "./espIdf/setTarget/DevkitsCommand";
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
@@ -124,7 +119,6 @@ import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
 import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
 import { ProjectConfigStore } from "./project-conf";
-import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 import { UnitTest } from "./espIdf/unitTest/adapter";
 import {
   buildFlashTestApp,
@@ -135,7 +129,7 @@ import {
 import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 import { createSBOM, installEspSBOM } from "./espBom";
-import { getCurrentIdfSetup, selectIdfSetup } from "./versionSwitcher";
+import { selectIdfSetup } from "./versionSwitcher";
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
 import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
@@ -172,12 +166,18 @@ import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
 import { readSerialPort } from "./idfConfiguration";
 import {
   openFolderCheck,
-  isNotDockerContainerCheck,
   webIdeCheck,
 } from "./common/PreCheck";
 import { buildFlashAndMonitor } from "./buildFlashMonitor";
 import { selectFlashMethod, startFlashing } from "./flash/startFlashing";
 import { jtagEraseFlashCommand } from "./flash/eraseFlashJtag";
+import { getIdfSetups } from "./eim/getExistingSetups";
+import { loadIdfSetup } from "./eim/loadIdfSetup";
+import { configureEnvVariables } from "./common/prepareEnv";
+import {
+  downloadExtractAndRunEIM,
+  runExistingEIM,
+} from "./eim/downloadInstall";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -230,12 +230,11 @@ const minIdfVersionCheck = async function (
   minVersion: string,
   workspace: vscode.Uri
 ) {
-  const espIdfPath = idfConf.readParameter(
-    "idf.espIdfPath",
-    workspace
-  ) as string;
-  const gitPath = idfConf.readParameter("idf.gitPath", workspace) || "git";
-  const currentVersion = await utils.getEspIdfFromCMake(espIdfPath);
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  let currentVersion = "";
+  currentVersion = await utils.getEspIdfFromCMake(currentEnvVars["IDF_PATH"]);
   return [
     () => PreCheck.espIdfVersionValidator(minVersion, currentVersion),
     `Selected command needs ESP-IDF v${minVersion} or higher`,
@@ -382,6 +381,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerQemuStatusBarItem(context);
 
   if (PreCheck.isWorkspaceFolderOpen()) {
+    await loadIdfSetup(vscode.workspace.workspaceFolders[0].uri);
     await createCmdsStatusBarItems(vscode.workspace.workspaceFolders[0].uri);
     workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
     ESP.GlobalConfiguration.store.set(
@@ -444,6 +444,7 @@ export async function activate(context: vscode.ExtensionContext) {
         for (const ws of e.removed) {
           if (workspaceRoot && ws.uri === workspaceRoot) {
             workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
+            await loadIdfSetup(workspaceRoot);
             ESP.GlobalConfiguration.store.set(
               ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER,
               workspaceRoot
@@ -484,17 +485,18 @@ export async function activate(context: vscode.ExtensionContext) {
                 ESP.ProjectConfiguration.SELECTED_CONFIG
               );
             }
-            const currentIdfSetup = await getCurrentIdfSetup(
-              workspaceRoot,
-              false
+            const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+              [key: string]: string;
+            }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+            const idfVersion = await utils.getEspIdfFromCMake(
+              currentEnvVars["IDF_PATH"]
             );
-            context.subscriptions.push(projectConfigManager);
             if (statusBarItems["currentIdfVersion"]) {
-              statusBarItems["currentIdfVersion"].text = currentIdfSetup.isValid
+              statusBarItems["currentIdfVersion"].text = idfVersion
                 ? `$(${
                     commandDictionary[CommandKeys.SelectCurrentIdfVersion]
                       .iconId
-                  }) ESP-IDF v${currentIdfSetup.version}`
+                  }) ESP-IDF v${idfVersion}`
                 : `$(${
                     commandDictionary[CommandKeys.SelectCurrentIdfVersion]
                       .iconId
@@ -507,6 +509,7 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         if (typeof workspaceRoot === "undefined") {
           workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
+          await loadIdfSetup(workspaceRoot);
           ESP.GlobalConfiguration.store.set(
             ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER,
             workspaceRoot
@@ -796,10 +799,10 @@ export async function activate(context: vscode.ExtensionContext) {
             const gitPath =
               (await idfConf.readParameter("idf.gitPath", workspaceRoot)) ||
               "git";
-            const idfPath = idfConf.readParameter(
-              "idf.espIdfPath",
-              workspaceRoot
-            ) as string;
+            const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+              [key: string]: string;
+            }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+            let idfPath = currentEnvVars["IDF_PATH"];
             const arduinoComponentManager = new ArduinoComponentInstaller(
               idfPath,
               workspaceRoot.fsPath,
@@ -954,6 +957,7 @@ export async function activate(context: vscode.ExtensionContext) {
           ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER,
           workspaceRoot
         );
+        await loadIdfSetup(workspaceRoot);
         await getIdfTargetFromSdkconfig(
           workspaceRoot,
           statusBarItems["target"]
@@ -997,12 +1001,18 @@ export async function activate(context: vscode.ExtensionContext) {
             ESP.ProjectConfiguration.SELECTED_CONFIG
           );
         }
-        const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot, false);
+        const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+          [key: string]: string;
+        }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+
+        const idfVersion = await utils.getEspIdfFromCMake(
+          currentEnvVars["IDF_PATH"]
+        );
         if (statusBarItems["currentIdfVersion"]) {
-          statusBarItems["currentIdfVersion"].text = currentIdfSetup.isValid
+          statusBarItems["currentIdfVersion"].text = idfVersion
             ? `$(${
                 commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-              }) ESP-IDF v${currentIdfSetup.version}`
+              }) ESP-IDF v${idfVersion}`
             : `$(${
                 commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
               }) ESP-IDF InvalidSetup`;
@@ -1078,10 +1088,6 @@ export async function activate(context: vscode.ExtensionContext) {
         mode: notificationTarget.label,
       })
     );
-  });
-
-  registerIDFCommand("espIdf.clearSavedIdfSetups", async () => {
-    await clearPreviousIdfSetups();
   });
 
   registerIDFCommand("espIdf.rmProjectConfStatusBar", async () => {
@@ -1189,7 +1195,7 @@ export async function activate(context: vscode.ExtensionContext) {
           statusBarItems[statusItem] = undefined;
         }
       }
-    } else if (e.affectsConfiguration("idf.espIdfPath" + winFlag)) {
+    } else if (e.affectsConfiguration("idf.customExtraVars")) {
       ESP.URL.Docs.IDF_INDEX = undefined;
     } else if (e.affectsConfiguration("idf.port" + winFlag)) {
       if (statusBarItems && statusBarItems["port"]) {
@@ -2118,54 +2124,55 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.setup.start", (setupArgs?: ISetupInitArgs) => {
-    PreCheck.perform([webIdeCheck, isNotDockerContainerCheck], async () => {
-      try {
-        if (SetupPanel.isCreatedAndHidden()) {
-          SetupPanel.createOrShow(context);
-          return;
-        }
-        const notificationMode = idfConf.readParameter(
-          "idf.notificationMode",
-          workspaceRoot
-        ) as string;
-        const ProgressLocation =
-          notificationMode === idfConf.NotificationMode.All ||
-          notificationMode === idfConf.NotificationMode.Notifications
-            ? vscode.ProgressLocation.Notification
-            : vscode.ProgressLocation.Window;
-        await vscode.window.withProgress(
-          {
-            cancellable: false,
-            location: ProgressLocation,
-            title: vscode.l10n.t("ESP-IDF: Configure ESP-IDF extension"),
-          },
-          async (
-            progress: vscode.Progress<{ message: string; increment: number }>
-          ) => {
-            try {
-              setupArgs = setupArgs
-                ? setupArgs
-                : await getSetupInitialValues(
-                    context.extensionPath,
-                    progress,
-                    workspaceRoot
-                  );
-              setupArgs.espIdfStatusBar = statusBarItems["currentIdfVersion"];
-              SetupPanel.createOrShow(context, setupArgs);
-            } catch (error) {
-              Logger.errorNotify(
-                error.message,
-                error,
-                "extension setup getSetupInitialValues"
-              );
-            }
-          }
+  registerIDFCommand("espIdf.installManager", async () => {
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
+    vscode.window.withProgress(
+      {
+        cancellable: true,
+        location: ProgressLocation,
+        title: vscode.l10n.t("ESP-IDF Install Manager"),
+      },
+      async (
+        progress: vscode.Progress<{ message: string; increment: number }>,
+        cancelToken: vscode.CancellationToken
+      ) => {
+        const doesEIMExecutableExist = await runExistingEIM(
+          progress,
+          cancelToken
         );
-      } catch (error) {
-        Logger.errorNotify(error.message, error, "extension setup");
+        if (!doesEIMExecutableExist) {
+          progress.report({
+            message: `EIM executable not found. Please choose a download mirror.`,
+            increment: 0,
+          });
+          const mirrorToUse = await vscode.window.showQuickPick(
+            ["Github", "Espressif (faster in China)", "Open Releases URL"],
+            {
+              placeHolder: vscode.l10n.t("Select mirror to use"),
+            }
+          );
+          if (mirrorToUse === "Open Releases URL") {
+            vscode.env.openExternal(
+              vscode.Uri.parse(ESP.URL.InstallManager.Releases)
+            );
+            return;
+          }
+          let useMirror = false;
+          if (mirrorToUse && mirrorToUse === "Espressif (faster in China)") {
+            useMirror = true;
+          }
+          await downloadExtractAndRunEIM(progress, cancelToken, useMirror);
+        }
       }
-    });
+    );
   });
 
   registerIDFCommand(
@@ -2212,10 +2219,7 @@ export async function activate(context: vscode.ExtensionContext) {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
-          const welcomeArgs = await getWelcomePageInitialValues(
-            progress,
-            workspaceRoot
-          );
+          const welcomeArgs = await getWelcomePageInitialValues(progress);
           if (!welcomeArgs) {
             throw new Error("Error getting welcome page initial values");
           }
@@ -2227,7 +2231,7 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
-  registerIDFCommand("espIdf.newProject.start", () => {
+  registerIDFCommand("espIdf.newProject.start", async () => {
     if (NewProjectPanel.isCreatedAndHidden()) {
       NewProjectPanel.createOrShow(context.extensionPath);
       return;
@@ -2241,6 +2245,21 @@ export async function activate(context: vscode.ExtensionContext) {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
+
+    let idfSetups = await getIdfSetups(workspaceRoot);
+    const currentIdfSetup = await loadIdfSetup(workspaceRoot);
+    const isCurrentSetupInList = idfSetups.findIndex((idfSetup) => {
+      return (
+        idfSetup.idfPath === currentIdfSetup.idfPath &&
+        idfSetup.toolsPath === currentIdfSetup.toolsPath
+      );
+    });
+    if (isCurrentSetupInList === -1) {
+      idfSetups.push(currentIdfSetup);
+    }
+    if (idfSetups.length === 0) {
+      return;
+    }
     vscode.window.withProgress(
       {
         cancellable: false,
@@ -2255,7 +2274,8 @@ export async function activate(context: vscode.ExtensionContext) {
           const newProjectArgs = await getNewProjectArgs(
             context.extensionPath,
             progress,
-            workspaceRoot
+            workspaceRoot,
+            idfSetups
           );
           if (newProjectArgs) {
             NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
@@ -2784,7 +2804,7 @@ export async function activate(context: vscode.ExtensionContext) {
       {
         cancellable: false,
         location: ProgressLocation,
-        title: vscode.l10n.t("ESP-IDF: Preparing ESP-IDF extension report"),
+        title: vscode.l10n.t("ESP-IDF Doctor"),
       },
       async (
         progress: vscode.Progress<{ message: string; increment: number }>
@@ -2794,7 +2814,8 @@ export async function activate(context: vscode.ExtensionContext) {
           await generateConfigurationReport(
             context,
             workspaceRoot,
-            reportedResult
+            reportedResult,
+            progress
           );
           await vscode.window.showTextDocument(
             vscode.Uri.file(path.join(context.extensionPath, "report.txt"))
@@ -2949,13 +2970,17 @@ export async function activate(context: vscode.ExtensionContext) {
         }
 
         // For Heap Trace, show the webview as before
+        const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+          [key: string]: string;
+        }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+        let espIdfPath = currentEnvVars["IDF_PATH"];
         AppTracePanel.createOrShow(context, {
           trace: {
             fileName: trace.fileName,
             filePath: trace.filePath,
             type: trace.type,
             workspacePath: workspaceRoot.fsPath,
-            idfPath: idfConf.readParameter("idf.espIdfPath", workspaceRoot),
+            idfPath: espIdfPath,
           },
         });
       });
@@ -3219,7 +3244,7 @@ export async function activate(context: vscode.ExtensionContext) {
           );
         }
 
-        const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
+        const pythonBinPath = await getVirtualEnvPythonPath();
         if (!utils.canAccessFile(pythonBinPath, constants.R_OK)) {
           Logger.errorNotify(
             vscode.l10n.t("Python binary path is not defined"),
@@ -3227,10 +3252,10 @@ export async function activate(context: vscode.ExtensionContext) {
             "extension launchWSServerAndMonitor python path not set"
           );
         }
-        const idfPath = idfConf.readParameter(
-          "idf.espIdfPath",
-          workspaceRoot
-        ) as string;
+        const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+          [key: string]: string;
+        }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+        let idfPath = currentEnvVars["IDF_PATH"];
         const idfMonitorToolPath = path.join(
           idfPath,
           "tools",
@@ -3610,7 +3635,7 @@ export async function activate(context: vscode.ExtensionContext) {
       },
       async () => {
         try {
-          const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
+          const pythonBinPath = await getVirtualEnvPythonPath();
           const ninjaSummaryScript = path.join(
             context.extensionPath,
             "external",
@@ -3762,7 +3787,6 @@ export async function activate(context: vscode.ExtensionContext) {
       Logger.warn(`Failed to handle URI Open, ${uri.toString()}`);
     },
   });
-  checkExtensionSettings(workspaceRoot, statusBarItems["currentIdfVersion"]);
 
   // WALK-THROUGH
   let disposable = vscode.commands.registerCommand(
@@ -4175,30 +4199,27 @@ async function createEspIdfTerminal(
   initialCommand?: string,
   location?: vscode.TerminalLocation
 ): Promise<vscode.Terminal> {
-  const modifiedEnv = await utils.appendIdfAndToolsToPath(workspaceRoot);
+  const shellExecutableArgs = idfConf.readParameter(
+    "idf.customTerminalExecutableArgs",
+    workspaceRoot
+  ) as string[];
+  const modifiedEnv = await configureEnvVariables(workspaceRoot);
   let shellArgs = [];
   if (process.platform === "win32") {
-    if (
-      vscode.env.shell.indexOf("powershell") !== -1 ||
-      vscode.env.shell.indexOf("pwsh") !== -1
-    ) {
-      shellArgs = ["-ExecutionPolicy", "Bypass"];
-    }
+    shellArgs = ["-ExecutionPolicy", "Bypass"];
+  } else if (shellExecutableArgs && shellExecutableArgs.length) {
+    shellArgs = shellExecutableArgs;
   }
   let shellExecutablePath = idfConf.readParameter(
     "idf.customTerminalExecutable",
     workspaceRoot
   ) as string;
-  const shellExecutableArgs = idfConf.readParameter(
-    "idf.customTerminalExecutableArgs",
-    workspaceRoot
-  ) as string[];
-  if (!shellExecutablePath) {
-    shellExecutablePath = vscode.env.shell;
-  }
-  if (shellExecutableArgs && shellExecutableArgs.length) {
-    shellArgs = shellExecutableArgs;
-  }
+  const shellPath =
+    process.platform === "win32"
+      ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      : shellExecutablePath
+      ? shellExecutablePath
+      : vscode.env.shell;
 
   const espIdfTerminal = vscode.window.createTerminal({
     name: terminalName,
@@ -4206,23 +4227,24 @@ async function createEspIdfTerminal(
     cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
     strictEnv: true,
     shellArgs,
-    shellPath: shellExecutablePath,
+    shellPath,
     location,
   });
 
+  const currentSetup = await loadIdfSetup(workspaceRoot);
+  const activationScriptPathExists = await pathExists(
+    currentSetup.activationScript
+  );
+
   if (process.platform === "win32") {
-    if (shellExecutablePath.indexOf("cmd.exe") !== -1) {
-      espIdfTerminal.sendText(
-        `call "${path.join(extensionPath, "export.bat")}"`
-      );
-    } else if (
-      shellExecutablePath.indexOf("powershell") !== -1 ||
-      shellExecutablePath.indexOf("pwsh") !== -1
-    ) {
-      espIdfTerminal.sendText(
-        `& '${path.join(extensionPath, "export.ps1").replace(/'/g, "''")}'`
-      );
-    }
+    const activationScriptPath = activationScriptPathExists
+      ? currentSetup.activationScript
+      : path.join(extensionPath, "export.ps1");
+    espIdfTerminal.sendText(`& '${activationScriptPath.replace(/'/g, "''")}'`);
+  } else if (activationScriptPathExists) {
+    espIdfTerminal.sendText(
+      `. '${currentSetup.activationScript.replace(/'/g, "''")}'`
+    );
   }
 
   if (initialCommand) {

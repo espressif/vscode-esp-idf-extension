@@ -27,24 +27,23 @@ import {
   workspace,
 } from "vscode";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
-import { appendIdfAndToolsToPath, getSDKConfigFilePath } from "../../utils";
+import { getSDKConfigFilePath } from "../../utils";
 import { join } from "path";
 import { TaskManager } from "../../taskManager";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export class IdfReconfigureTask {
   private buildDirPath: string;
   private curWorkspace: Uri;
-  private idfPathDir: string;
 
   constructor(workspace: Uri) {
     this.curWorkspace = workspace;
-    this.idfPathDir = readParameter("idf.espIdfPath", workspace) as string;
     this.buildDirPath = readParameter("idf.buildPath", workspace) as string;
   }
 
   public async reconfigure() {
-    const modifiedEnv = await appendIdfAndToolsToPath(this.curWorkspace);
+    const modifiedEnv = await configureEnvVariables(this.curWorkspace);
     const options: ProcessExecutionOptions = {
       cwd: this.curWorkspace.fsPath,
       env: modifiedEnv,
@@ -63,7 +62,7 @@ export class IdfReconfigureTask {
         ? TaskRevealKind.Always
         : TaskRevealKind.Silent;
 
-    const idfPy = join(this.idfPathDir, "tools", "idf.py");
+    const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
     const reconfigureArgs = [idfPy];
 
     let buildPathArgsIndex = reconfigureArgs.indexOf("-B");
@@ -102,7 +101,7 @@ export class IdfReconfigureTask {
 
     reconfigureArgs.push("reconfigure");
 
-    const pythonBinPath = await getVirtualEnvPythonPath(this.curWorkspace);
+    const pythonBinPath = await getVirtualEnvPythonPath();
 
     const reconfigureExecution = new ProcessExecution(
       pythonBinPath,

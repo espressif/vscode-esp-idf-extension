@@ -28,10 +28,6 @@ export function checkSpacesInSettings(reportedResult: reportObj) {
     reportedResult.configurationSettings.espIdfPath
   );
 
-  reportedResult.configurationSpacesValidation.sysPythonBinPath = checkSpacesInPath(
-    reportedResult.configurationSettings.sysPythonBinPath
-  );
-
   reportedResult.configurationSpacesValidation.pythonBinPath = checkSpacesInPath(
     reportedResult.configurationSettings.pythonBinPath
   );

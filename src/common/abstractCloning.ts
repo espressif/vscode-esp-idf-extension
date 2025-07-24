@@ -91,7 +91,14 @@ export class AbstractCloning {
     workspace?: Uri,
     recursiveDownload?: boolean
   ) {
-    const toolsDir = await idfConf.readParameter("idf.toolsPath", workspace);
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    const customExtraVars = idfConf.readParameter(
+      "idf.customExtraVars",
+      workspace
+    ) as { [key: string]: string };
+    const toolsDir = currentEnvVars["IDF_TOOLS_PATH"];
     const installDir = await window.showQuickPick(
       [
         {
@@ -150,7 +157,12 @@ export class AbstractCloning {
 
     if (installDir.target === "existing") {
       const target = idfConf.readParameter("idf.saveScope");
-      await idfConf.writeParameter(configurationId, installDirPath, target);
+      customExtraVars[configurationId] = installDirPath;
+      await idfConf.writeParameter(
+        "idf.customExtraVars",
+        customExtraVars,
+        target
+      );
       Logger.infoNotify(`${this.name} has been installed`);
       return;
     }
@@ -204,11 +216,20 @@ export class AbstractCloning {
             await this.updateSubmodules(resultingPath, undefined, progress);
           }
           const target = idfConf.readParameter("idf.saveScope");
-          await idfConf.writeParameter(configurationId, resultingPath, target);
+          customExtraVars[configurationId] = installDirPath;
+          await idfConf.writeParameter(
+            "idf.customExtraVars",
+            customExtraVars,
+            target
+          );
           Logger.infoNotify(`${this.name} has been installed`);
         } catch (error) {
           OutputChannel.appendLine(error.message);
-          Logger.errorNotify(error.message, error, "AbstractCloning getRepository");
+          Logger.errorNotify(
+            error.message,
+            error,
+            "AbstractCloning getRepository"
+          );
         }
       }
     );
@@ -377,7 +398,11 @@ export class AbstractCloning {
         if (!signal && code !== 0) {
           const msg = `Submodules clone has exit with ${code}`;
           OutputChannel.appendLine(msg);
-          Logger.errorNotify("Submodules cloning error", new Error(msg), "AbstractCloning spawnWithProgress");
+          Logger.errorNotify(
+            "Submodules cloning error",
+            new Error(msg),
+            "AbstractCloning spawnWithProgress"
+          );
           return reject(new Error(msg));
         }
         return resolve();
@@ -414,7 +439,11 @@ export class AbstractCloning {
           Logger.infoNotify(`${repoName} submodules checked out successfully`);
         } catch (error) {
           OutputChannel.appendLine(error.message);
-          Logger.errorNotify(error.message, error, "AbstractCloning getSubmodules");
+          Logger.errorNotify(
+            error.message,
+            error,
+            "AbstractCloning getSubmodules"
+          );
         }
       }
     );
