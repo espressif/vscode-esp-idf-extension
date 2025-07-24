@@ -102,7 +102,6 @@ const webViewConfig = {
       "menuconfig",
       "main.ts"
     ),
-    setup: path.resolve(__dirname, "src", "views", "setup", "main.ts"),
     nvsPartitionTable: path.resolve(
       __dirname,
       "src",
@@ -160,6 +159,7 @@ const webViewConfig = {
             loader: "sass-loader",
             options: {
               sourceMap: true,
+              implementation: require("sass"),
             },
           },
         ],

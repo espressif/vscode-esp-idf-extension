@@ -25,6 +25,7 @@ import { SerialPortDetails } from "./serialPortDetails";
 import { OutputChannel } from "../../logger/outputChannel";
 import * as SerialPortLib from "serialport";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { ESP } from "../../config";
 
 export class SerialPort {
   public static shared(): SerialPort {
@@ -118,11 +119,11 @@ export class SerialPort {
           );
         });
 
-        const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-        const idfPath = idfConf.readParameter(
-          "idf.espIdfPath",
-          workspaceFolder
-        );
+        const pythonBinPath = await getVirtualEnvPythonPath();
+        const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+          [key: string]: string;
+        }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+        const idfPath = currentEnvVars["IDF_PATH"];
         const enableSerialPortChipIdRequest = idfConf.readParameter(
           "idf.enableSerialPortChipIdRequest",
           workspaceFolder

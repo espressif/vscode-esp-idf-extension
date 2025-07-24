@@ -35,8 +35,7 @@
             }
         ],
         "settings": {
-            "idf.port": "/dev/ttyUSB1",
-            "idf.espIdfPath": "${env:HOME}/esp/esp-idf"
+            "idf.port": "/dev/ttyUSB1"
         }
     }
 
@@ -79,8 +78,7 @@
             }
         ],
         "settings": {
-            "idf.port": "/dev/ttyUSB1",
-            "idf.espIdfPath": "${env:HOME}/esp/esp-idf"
+            "idf.port": "/dev/ttyUSB1"
         }
     }
 

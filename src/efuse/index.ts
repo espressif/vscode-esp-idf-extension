@@ -24,6 +24,7 @@ import { readJson, unlink } from "fs-extra";
 import { Logger } from "../logger/logger";
 import { Uri, l10n } from "vscode";
 import { getVirtualEnvPythonPath } from "../pythonManager";
+import { ESP } from "../config";
 
 export type ESPEFuseSummary = {
   [category: string]: [
@@ -50,8 +51,10 @@ export class ESPEFuseManager {
   private idfPath: string;
 
   constructor(private workspace: Uri) {
-    this.idfPath =
-      readParameter("idf.espIdfPath", workspace) || process.env.IDF_PATH;
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    this.idfPath = currentEnvVars["IDF_PATH"] || process.env.IDF_PATH;
   }
 
   async summary(): Promise<ESPEFuseSummary> {
@@ -77,7 +80,7 @@ export class ESPEFuseManager {
 
   async readSummary() {
     const tempFile = join(tmpdir(), "espefusejsondump.tmp");
-    const pythonPath = await getVirtualEnvPythonPath(this.workspace);
+    const pythonPath = await getVirtualEnvPythonPath();
 
     await spawn(
       pythonPath,

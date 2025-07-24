@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 3rd November 2021 4:56:23 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,19 +20,19 @@ import { ensureDir } from "fs-extra";
 import { join } from "path";
 import {
   TaskPanelKind,
-  ProcessExecutionOptions,
   TaskPresentationOptions,
   TaskRevealKind,
   TaskScope,
   Uri,
   workspace,
-  ProcessExecution
+  ProcessExecution,
 } from "vscode";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { TaskManager } from "../../taskManager";
-import { appendIdfAndToolsToPath } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { configureEnvVariables } from "../../common/prepareEnv";
+import { ESP } from "../../config";
 
 export class IdfSizeTask {
   private currentWorkspace: Uri;
@@ -41,8 +41,11 @@ export class IdfSizeTask {
 
   constructor(workspaceUri: Uri) {
     this.currentWorkspace = workspaceUri;
-    const idfPathDir = readParameter("idf.espIdfPath", workspaceUri) as string;
-    this.idfSizePath = join(idfPathDir, "tools", "idf_size.py");
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    const idfPath = currentEnvVars["IDF_PATH"];
+    this.idfSizePath = join(idfPath, "tools", "idf_size.py");
     this.buildDirPath = readParameter("idf.buildPath", workspaceUri) as string;
   }
 
@@ -53,17 +56,21 @@ export class IdfSizeTask {
 
   public async getSizeInfo() {
     await ensureDir(this.buildDirPath);
-    const pythonCommand = await getVirtualEnvPythonPath(this.currentWorkspace);;
+    const pythonCommand = await getVirtualEnvPythonPath();
     const mapFilePath = await this.mapFilePath();
     const args = [this.idfSizePath, mapFilePath];
 
-    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
     const processOptions = {
       cwd: this.buildDirPath,
       env: modifiedEnv,
     };
 
-    const sizeExecution = new ProcessExecution(pythonCommand, args, processOptions);
+    const sizeExecution = new ProcessExecution(
+      pythonCommand,
+      args,
+      processOptions
+    );
     const notificationMode = readParameter(
       "idf.notificationMode",
       this.currentWorkspace

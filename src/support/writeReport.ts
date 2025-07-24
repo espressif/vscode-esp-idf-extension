@@ -40,17 +40,17 @@ export async function writeTextReport(
   output += `ESP-IDF Extension version ${reportedResult.systemInfo.extensionVersion} ${EOL}`;
   output += `Workspace folder ${reportedResult.workspaceFolder} ${EOL}`;
   output += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${EOL}`;
-  output += `ESP-ADF Path (idf.espAdfPath) ${reportedResult.configurationSettings.espAdfPath}${EOL}`;
-  output += `ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSettings.espIdfPath}${EOL}`;
-  output += `ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSettings.espMdfPath}${EOL}`;
-  output += `ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSettings.espMatterPath}${EOL}`;
-  output += `ESP-HomeKit-SDK Path (idf.espHomeKitSdkPath) ${reportedResult.configurationSettings.espHomeKitPath}${EOL}`;
+  output += `ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportedResult.configurationSettings.espAdfPath}${EOL}`;
+  output += `ESP-IDF Path (Project setup IDF_PATH) ${reportedResult.configurationSettings.espIdfPath}${EOL}`;
+  output += `ESP-MDF Path (idf.customExtraVars["MDF_PATH"]) ${reportedResult.configurationSettings.espMdfPath}${EOL}`;
+  output += `ESP-Matter Path (idf.customExtraVars["ESP_MATTER_PATH"]) ${reportedResult.configurationSettings.espMatterPath}${EOL}`;
+  output += `ESP-HomeKit-SDK Path (idf.customExtraVars["HOMEKIT_PATH"]) ${reportedResult.configurationSettings.espHomeKitPath}${EOL}`;
   output += `Custom extra paths ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
   if (
     reportedResult.configurationSettings.idfExtraVars &&
     Object.keys(reportedResult.configurationSettings.idfExtraVars)
   ) {
-    output += `ESP-IDF extra vars${EOL}`;
+    output += `ESP-IDF Project Setup Variables${EOL}`;
     for (let key in reportedResult.configurationSettings.idfExtraVars) {
       output += `    ${key}: ${reportedResult.configurationSettings.idfExtraVars[key]}${EOL}`;
     }
@@ -64,13 +64,12 @@ export async function writeTextReport(
       output += `    ${key}: ${reportedResult.configurationSettings.userExtraVars[key]}${EOL}`;
     }
   }
-  output += `System python Path (idf.pythonInstallPath) ${reportedResult.configurationSettings.sysPythonBinPath}${EOL}`;
   output += `Virtual environment Python path (computed) ${reportedResult.configurationSettings.pythonBinPath}${EOL}`;
   output += `Serial port (idf.port) ${reportedResult.configurationSettings.serialPort}${EOL}`;
   output += `OpenOCD Configs (idf.openOcdConfigs) ${reportedResult.configurationSettings.openOcdConfigs}${EOL}`;
   output += `OpenOCD log level (idf.openOcdDebugLevel) ${reportedResult.configurationSettings.openOCDDebugLevel}${EOL}`;
   output += `OpenOCD launch arguments (idf.openOcdLaunchArgs) ${reportedResult.configurationSettings.openOcdLaunchArgs}${EOL}`;
-  output += `ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSettings.toolsPath}${EOL}`;
+  output += `ESP-IDF Tools Path ${reportedResult.configurationSettings.toolsPath}${EOL}`;
   output += `Git Path (idf.gitPath) ${reportedResult.configurationSettings.gitPath}${EOL}`;
   output += `Notification Mode (idf.notificationMode) ${reportedResult.configurationSettings.notificationMode}${EOL}`;
   output += `Flash type (idf.flashType) ${reportedResult.configurationSettings.flashType}${EOL}`;
@@ -85,35 +84,33 @@ export async function writeTextReport(
     output += `Custom terminal executable args (idf.customTerminalExecutableArgs)${reportedResult.configurationSettings.customTerminalExecutableArgs}${EOL}`;
   }
   output += `-------------------------------------------------------- Configurations access -------------------------------------------------------------${EOL}`;
-  output += `Access to ESP-ADF Path (idf.espAdfPath) ${reportedResult.configurationAccess.espAdfPath}${EOL}`;
-  output += `Access to ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espIdfPath}${EOL}`;
-  output += `Access to ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationAccess.espMdfPath}${EOL}`;
-  output += `Access to ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationAccess.espMatterPath}${EOL}`;
-  output += `Access to ESP-HomeKit Path (idf.espHomeKitSdkPath) ${reportedResult.configurationAccess.espHomeKitPath}${EOL}`;
+  output += `Access to ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportedResult.configurationAccess.espAdfPath}${EOL}`;
+  output += `Access to ESP-IDF Path (Project setup IDF_PATH) ${reportedResult.configurationAccess.espIdfPath}${EOL}`;
+  output += `Access to ESP-MDF Path (idf.customExtraVars["MDF_PATH"]) ${reportedResult.configurationAccess.espMdfPath}${EOL}`;
+  output += `Access to ESP-Matter Path (idf.customExtraVars["ESP_MATTER_PATH"]) ${reportedResult.configurationAccess.espMatterPath}${EOL}`;
+  output += `Access to ESP-HomeKit Path (idf.customExtraVars["HOMEKIT_PATH"]) ${reportedResult.configurationAccess.espHomeKitPath}${EOL}`;
   output += `Access to ESP-IDF Custom extra paths${EOL}`;
   for (let key in reportedResult.configurationAccess.espIdfToolsPaths) {
     output += `Access to ${key}: ${reportedResult.configurationAccess.espIdfToolsPaths[key]}${EOL}`;
   }
-  output += `Access to System python Path (idf.pythonInstallPath) ${reportedResult.configurationAccess.sysPythonBinPath}${EOL}`;
   output += `Access to Virtual environment Python path (computed) ${reportedResult.configurationAccess.pythonBinPath}${EOL}`;
   output += `Access to CMake in environment PATH ${reportedResult.configurationAccess.cmakeInEnv}${EOL}`;
   output += `Access to Ninja in environment PATH ${reportedResult.configurationAccess.ninjaInEnv}${EOL}`;
-  output += `Access to ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationAccess.toolsPath}${EOL}`;
+  output += `Access to ESP-IDF Tools Path ${reportedResult.configurationAccess.toolsPath}${EOL}`;
   output += `-------------------------------------------------------- Configurations has spaces -------------------------------------------------------------${EOL}`;
   output += `Spaces in system environment Path ${reportedResult.configurationSpacesValidation.systemEnvPath}${EOL}`;
-  output += `Spaces in ESP-ADF Path (idf.espAdfPath) ${reportedResult.configurationSpacesValidation.espAdfPath}${EOL}`;
-  output += `Spaces in ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSpacesValidation.espIdfPath}${EOL}`;
-  output += `Spaces in ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSpacesValidation.espMdfPath}${EOL}`;
-  output += `Spaces in ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSpacesValidation.espMatterPath}${EOL}`;
-  output += `Spaces in ESP-HomeKit-SDK Path (idf.espHomeKitSdkPath) ${reportedResult.configurationSpacesValidation.espHomeKitPath}${EOL}`;
+  output += `Spaces in ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportedResult.configurationSpacesValidation.espAdfPath}${EOL}`;
+  output += `Spaces in ESP-IDF Path (Project setup IDF_PATH) ${reportedResult.configurationSpacesValidation.espIdfPath}${EOL}`;
+  output += `Spaces in ESP-MDF Path (idf.customExtraVars["MDF_PATH"]) ${reportedResult.configurationSpacesValidation.espMdfPath}${EOL}`;
+  output += `Spaces in ESP-Matter Path (idf.customExtraVars["ESP_MATTER_PATH"]) ${reportedResult.configurationSpacesValidation.espMatterPath}${EOL}`;
+  output += `Spaces in ESP-HomeKit-SDK Path (idf.customExtraVars["HOMEKIT_PATH"]) ${reportedResult.configurationSpacesValidation.espHomeKitPath}${EOL}`;
   output += `Spaces in ESP-IDF Custom extra paths${EOL}`;
   for (let key in reportedResult.configurationSpacesValidation
     .customExtraPaths) {
     output += `Spaces in ${key}: ${reportedResult.configurationSpacesValidation.customExtraPaths[key]}${EOL}`;
   }
-  output += `Spaces in System python Path (idf.pythonInstallPath) ${reportedResult.configurationSpacesValidation.sysPythonBinPath}${EOL}`;
   output += `Spaces in Virtual environment Python path (computed) ${reportedResult.configurationSpacesValidation.pythonBinPath}${EOL}`;
-  output += `Spaces in ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSpacesValidation.toolsPath}${EOL}`;
+  output += `Spaces in ESP-IDF Tools Path ${reportedResult.configurationSpacesValidation.toolsPath}${EOL}`;
   output += `----------------------------------------------------------- Executables Versions -----------------------------------------------------------${EOL}`;
   output += `Git version ${
     reportedResult.gitVersion.result
@@ -194,12 +191,27 @@ export async function writeTextReport(
       ? reportedResult.idfCheckRequirements.result
       : reportedResult.idfCheckRequirements.output
   }${EOL}`;
-  output += `---------------------------------------------------- Check ESP-IDF debug adapter requirements.txt ------------------------------------------${EOL}`;
-  output += `Check Debug AdapterPython packages ${
-    reportedResult.debugAdapterRequirements.result
-      ? reportedResult.debugAdapterRequirements.result
-      : reportedResult.debugAdapterRequirements.output
-  }${EOL}`;
+  if (reportedResult.espIdfSetups) {
+    output += `---------------------------------------------------- ESP-IDF Setups ------------------------------------------------------------------------${EOL}`;
+    for (const idfSetup of reportedResult.espIdfSetups) {
+      output += `ESP-IDF setup IDF PATH: ${idfSetup.idfPath}${EOL}`;
+      output += `------- git path: ${idfSetup.gitPath}${EOL}`;
+      output += `------- IDF_TOOLS_PATH: ${idfSetup.toolsPath}${EOL}`;
+      output += `------- version: ${idfSetup.version}${EOL}`;
+      output += `------- python path: ${idfSetup.python}${EOL}`;
+      if (idfSetup.sysPythonPath) {
+        output += `------- system python path: ${idfSetup.sysPythonPath}${EOL}`;
+      }
+      if (idfSetup.activationScript) {
+        output += `------- activation script path: ${idfSetup.sysPythonPath}${EOL}`;
+      }
+      output += `------- is valid? ${idfSetup.isValid}${EOL}`;
+      if (idfSetup.reason) {
+        output += `------- reason: ${idfSetup.reason}${EOL}`;
+      }
+      output += `--------------------------------------------------------${EOL}`;
+    }
+  }
   if (reportedResult.launchJson) {
     output += `---------------------------------------------------- Visual Studio Code launch.json --------------------------------------------------------${EOL}`;
     output += `${reportedResult.launchJson} ${EOL}`;

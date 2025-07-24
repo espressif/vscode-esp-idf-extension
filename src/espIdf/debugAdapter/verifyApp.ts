@@ -21,18 +21,18 @@ import { Uri } from "vscode";
 import { createFlashModel } from "../../flash/flashModelBuilder";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { appendIdfAndToolsToPath, spawn } from "../../utils";
+import { spawn } from "../../utils";
 import { pathExists } from "fs-extra";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export async function verifyAppBinary(workspaceFolder: Uri) {
-  const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
+  const modifiedEnv = await configureEnvVariables(workspaceFolder);
   const serialPort = readParameter("idf.port", workspaceFolder);
   const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolder);
-  const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+  const pythonBinPath = await getVirtualEnvPythonPath();
   const esptoolPath = join(
-    idfPath,
+    modifiedEnv["IDF_PATH"],
     "components",
     "esptool_py",
     "esptool",

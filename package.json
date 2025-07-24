@@ -84,7 +84,6 @@
     "onCommand:espIdf.partition.table.refresh",
     "onCommand:espIdf.removeCoverage",
     "onCommand:espIdf.searchInEspIdfDocs",
-    "onCommand:espIdf.setup.start",
     "onCommand:espIdf.welcome.start",
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
@@ -131,7 +130,7 @@
           {
             "id": "extension-configuration",
             "title": "Configuring the ESP-IDF Extension",
-            "description": "❗**Linux and MacOS users:** Please install prerequisites first. The process is quick and simple - follow the steps in our [ESP-IDF install documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html#step-1-install-prerequisites).\n\nOnce ready, let's configure the ESP-IDF extension:\n\n[Configure ESP-IDF Extension](command:espIdf.setup.start)\n\n",
+            "description": "❗**Linux and MacOS users:** Please install prerequisites first. The process is quick and simple - follow the steps in our [ESP-IDF install documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html#step-1-install-prerequisites).\n\nOnce ready, let's install ESP-IDF:\n\n[ESP-IDF: Open ESP-IDF Install Manager](command:espIdf.installManager)\n\n\n\nAfter that, run:\n\n[ESP-IDF: Select current ESP-IDF version](command:espIdf.selectCurrentIdfVersion)\n\n",
             "media": {
               "markdown": "walkthroughs/basic/configuration.md"
             }
@@ -606,82 +605,22 @@
       {
         "title": "%configuration.title%",
         "properties": {
-          "idf.espIdfPath": {
+          "idf.eimIdfJsonPath": {
             "type": "string",
-            "default": "${env:IDF_PATH}",
-            "description": "%param.espIdfPath%",
-            "scope": "resource"
+            "default": "",
+            "description": "%param.eimIdfJsonPath%",
+            "scope": "application"
           },
-          "idf.espAdfPath": {
-            "type": "string",
-            "default": "${env:ADF_PATH}",
-            "description": "%param.espAdfPath%",
-            "scope": "resource"
+          "idf.eimExecutableArgs": {
+            "type": "array",
+            "default": ["gui"],
+            "description": "%param.eimExecutableArgs%",
+            "scope": "application"
           },
-          "idf.espMdfPath": {
+          "idf.currentSetup": {
             "type": "string",
-            "default": "${env:MDF_PATH}",
-            "description": "%param.espMdfPath%",
-            "scope": "resource"
-          },
-          "idf.espMatterPath": {
-            "type": "string",
-            "default": "${env:ESP_MATTER_PATH}",
-            "description": "%param.espMatterPath%",
-            "scope": "resource"
-          },
-          "idf.espHomeKitSdkPath": {
-            "type": "string",
-            "default": "${env:HOMEKIT_PATH}",
-            "description": "%param.espHomeKitSdkPath%",
-            "scope": "resource"
-          },
-          "idf.toolsPath": {
-            "type": "string",
-            "default": "${env:IDF_TOOLS_PATH}",
-            "description": "%param.toolsPath%",
-            "scope": "resource"
-          },
-          "idf.espRainmakerPath": {
-            "type": "string",
-            "default": "${env:RMAKER_PATH}",
-            "description": "%param.espRainmakerPath%",
-            "scope": "resource"
-          },
-          "idf.espIdfPathWin": {
-            "type": "string",
-            "default": "${env:IDF_PATH}",
-            "description": "%param.espIdfPath%",
-            "scope": "resource"
-          },
-          "idf.espAdfPathWin": {
-            "type": "string",
-            "default": "${env:ADF_PATH}",
-            "description": "%param.espAdfPath%",
-            "scope": "resource"
-          },
-          "idf.espMdfPathWin": {
-            "type": "string",
-            "default": "${env:MDF_PATH}",
-            "description": "%param.espMdfPath%",
-            "scope": "resource"
-          },
-          "idf.toolsPathWin": {
-            "type": "string",
-            "default": "${env:IDF_TOOLS_PATH}",
-            "description": "%param.toolsPath%",
-            "scope": "resource"
-          },
-          "idf.espRainmakerPathWin": {
-            "type": "string",
-            "default": "${env:RMAKER_PATH}",
-            "description": "%param.espRainmakerPath%",
-            "scope": "resource"
-          },
-          "idf.espHomeKitSdkPathWin": {
-            "type": "string",
-            "default": "${env:HOMEKIT_PATH}",
-            "description": "%param.espHomeKitSdkPath%",
+            "default": "",
+            "description": "%param.currentSetup%",
             "scope": "resource"
           },
           "idf.port": {
@@ -700,12 +639,6 @@
             "type": "string",
             "default": "",
             "description": "%param.port%",
-            "scope": "resource"
-          },
-          "idf.pythonInstallPath": {
-            "type": "string",
-            "default": "python",
-            "description": "%param.pythonBinPath%",
             "scope": "resource"
           },
           "idf.flashBaudRate": {
@@ -1305,8 +1238,8 @@
         "category": "ESP-IDF"
       },
       {
-        "command": "espIdf.setup.start",
-        "title": "%espIdf.setup.title%",
+        "command": "espIdf.installManager",
+        "title": "%espIdf.installManager.title%",
         "category": "ESP-IDF"
       },
       {
@@ -1563,11 +1496,6 @@
         "category": "ESP-IDF"
       },
       {
-        "command": "espIdf.installPyReqs",
-        "title": "%espIdf.installPyReqs.title%",
-        "category": "ESP-IDF"
-      },
-      {
         "command": "esp.webview.open.partition-table",
         "title": "%esp.webview.open.partition-table.title%",
         "icon": "$(output)"
@@ -1690,11 +1618,6 @@
       {
         "command": "espIdf.projectConf",
         "title": "%espIdf.projectConf.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.clearSavedIdfSetups",
-        "title": "%espIdf.clearSavedIdfSetups.title%",
         "category": "ESP-IDF"
       },
       {
@@ -2442,7 +2365,7 @@
     "genLocalizationBundle": "npx @vscode/l10n-dev export --outDir ./l10n ./src",
     "webpack": "webpack --mode production",
     "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json 'out/ui-test/*-test.js'",
-    "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG"
+    "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m src/ui-test/.mocharc-ci.js"
   },
   "devDependencies": {
     "@babel/types": "^7.23.0",
@@ -2474,9 +2397,9 @@
     "@vscode/test-electron": "^2.1.2",
     "@vscode/vsce": "^3.6.0",
     "@vue/compiler-sfc": "^3.3.4",
-    "bulma": "^0.9.3",
+    "bulma": "^1.0.4",
     "chai": "^4.3.4",
-    "css-loader": "^3.1.0",
+    "css-loader": "^6.8.1",
     "d3-scale": "^4.0.2",
     "file-loader": "^6.2.0",
     "filemanager-webpack-plugin": "^8.0.0",
@@ -2493,16 +2416,16 @@
     "process": "^0.11.10",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^5.0.7",
-    "sass": "^1.49.8",
-    "sass-loader": "^10",
+    "sass": "^1.69.0",
+    "sass-loader": "^16.0.5",
     "string-replace-loader": "^3.1.0",
     "style-loader": "^3.3.1",
-    "ts-loader": "^9.4.4",
+    "ts-loader": "^9.5.2",
     "typescript": "^5.2.2",
     "vite": "^4.5.13",
     "vscode-extension-tester": "^8.15.0",
     "vue-hot-reload-api": "^2.3.2",
-    "vue-loader": "^17.2.2",
+    "vue-loader": "^17.4.2",
     "vue-router": "^4.2.4",
     "vue-style-loader": "^4.1.3",
     "webpack": "5",

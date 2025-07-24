@@ -141,12 +141,12 @@ export class TroubleshootingPanel {
       {
         cancellable: false,
         location: progressLoc,
-        title: l10n.t("ESP-IDF: Preparing ESP-IDF extension report"),
+        title: l10n.t("ESP-IDF Doctor"),
       },
       async (progress: Progress<{ message: string; increment: number }>) => {
         const reportedResult = initializeReportObject();
         try {
-          await generateConfigurationReport(context, workspace, reportedResult);
+          await generateConfigurationReport(context, workspace, reportedResult, progress);
           const reportOutput = await writeTextReport(reportedResult, context);
           troubleshootOutput += reportOutput;
           await env.clipboard.writeText(troubleshootOutput);

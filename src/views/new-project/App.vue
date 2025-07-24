@@ -12,7 +12,7 @@
 </template>
 
 <style lang="scss">
-@import "../commons/espCommons.scss";
+@use "../commons/espCommons.scss" as *;
 #init {
   cursor: default;
   margin: auto;

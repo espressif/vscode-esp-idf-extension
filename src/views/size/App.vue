@@ -120,7 +120,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-@import "../commons/espCommons.scss";
+@use "../commons/espCommons.scss" as *;
 
 #app {
   padding: 1rem;

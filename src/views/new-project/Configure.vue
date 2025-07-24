@@ -169,7 +169,7 @@ watch(selectedIdfTarget, () => {
 </template>
 
 <style lang="scss">
-@import "../commons/espCommons.scss";
+@use "../commons/espCommons.scss" as *;
 
 .configure {
   padding: 1rem;

@@ -26,13 +26,13 @@ import {
   Uri,
   window,
 } from "vscode";
-import { getCurrentIdfSetup } from "../versionSwitcher";
 import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 import { CommandItem } from "../cmdTreeView/cmdTreeDataProvider";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { pathExists } from "fs-extra";
+import { getEspIdfFromCMake } from "../utils";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
 
@@ -72,8 +72,9 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
   );
   let projectConfExists = await pathExists(projectConfPath);
-
-  let currentIdfVersion = await getCurrentIdfSetup(workspaceFolder, false);
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
 
   statusBarItems["workspace"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.pickWorkspace].iconId})`,
@@ -83,10 +84,11 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     commandDictionary[CommandKeys.pickWorkspace].checkboxState
   );
 
+  const idfVersion = await getEspIdfFromCMake(currentEnvVars["IDF_PATH"]);
   statusBarItems["currentIdfVersion"] = createStatusBarItem(
     `$(${
       commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-    }) ESP-IDF v${currentIdfVersion.version}`,
+    }) ESP-IDF v${idfVersion}`,
     commandDictionary[CommandKeys.SelectCurrentIdfVersion].tooltip,
     CommandKeys.SelectCurrentIdfVersion,
     103,

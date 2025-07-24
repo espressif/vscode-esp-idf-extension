@@ -17,7 +17,6 @@
  */
 
 import { ensureDir, pathExists, readFile, stat } from "fs-extra";
-import { EOL } from "os";
 import { join } from "path";
 import {
   Disposable,
@@ -29,20 +28,18 @@ import {
   TreeItem,
   Uri,
   window,
-  workspace,
 } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import {
-  appendIdfAndToolsToPath,
-  getConfigValueFromSDKConfig,
-  PreCheck,
-  spawn,
-} from "../../utils";
 import { CSV2JSON } from "../../views/partition-table/util";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { createFlashModel } from "../../flash/flashModelBuilder";
 import { formatAsPartitionSize } from "./partitionReader";
+import {
+  getConfigValueFromSDKConfig,
+  spawn,
+} from "../../utils";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export class PartitionItem extends TreeItem {
   name: string;
@@ -84,12 +81,12 @@ export class PartitionTreeDataProvider
   public async populatePartitionItems(workspace: Uri) {
     this.partitionItems = Array<PartitionItem>(0);
     try {
+      const modifiedEnv = await configureEnvVariables(workspace);
       const serialPort = readParameter("idf.port", workspace) as string;
-      const idfPath = readParameter("idf.espIdfPath", workspace);
       const buildPath = readParameter("idf.buildPath", workspace);
       const flashBaudRate = readParameter("idf.flashBaudRate", workspace);
-      const modifiedEnv = await appendIdfAndToolsToPath(workspace);
-      const pythonBinPath = await getVirtualEnvPythonPath(workspace);
+      const idfPath = modifiedEnv["IDF_PATH"];
+      const pythonBinPath = await getVirtualEnvPythonPath();
 
       const flasherArgsPath = join(buildPath, "flasher_args.json");
 

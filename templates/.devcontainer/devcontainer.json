@@ -7,8 +7,6 @@
 		"vscode": {
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "bash",
-				"idf.espIdfPath": "/opt/esp/idf",
-				"idf.toolsPath": "/opt/esp",
 				"idf.gitPath": "/usr/bin/git"
 			},
 			"extensions": [

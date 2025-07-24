@@ -16,10 +16,9 @@
  * limitations under the License.
  */
 import { join } from "path";
-import { IdfToolsManager } from "../idfToolsManager";
-import { getEnvVarsFromIdfTools, getPythonEnvPath } from "../pythonManager";
 import { reportObj } from "./types";
 import { Uri, workspace } from "vscode";
+import { ESP } from "../config";
 
 export async function getConfigurationSettings(
   reportedResult: reportObj,
@@ -30,69 +29,49 @@ export async function getConfigurationSettings(
   reportedResult.workspaceFolder = scope
     ? scope.fsPath
     : "No workspace folder is open";
-  const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
-    conf.get("idf.espIdfPath" + winFlag)
-  );
-  const extraPaths = await idfToolsManager.exportPathsInString(
-    join(conf.get("idf.toolsPath" + winFlag), "tools"),
-    ["cmake", "ninja"]
-  );
-  const customVars = await idfToolsManager.exportVars(
-    join(conf.get("idf.toolsPath" + winFlag), "tools")
-  );
 
-  const pythonVenvPath = await getPythonEnvPath(
-    conf
-      .get<string>("idf.espIdfPath" + winFlag)
-      .replace("${env:IDF_PATH}", process.env.IDF_PATH),
-    conf
-      .get<string>("idf.toolsPath" + winFlag)
-      .replace("${env:IDF_TOOLS_PATH}", process.env.IDF_TOOLS_PATH),
-    conf.get<string>("idf.pythonInstallPath")
-  );
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
 
-  const idfToolsExportVars = await getEnvVarsFromIdfTools(
-    conf
-      .get<string>("idf.espIdfPath" + winFlag)
-      .replace("${env:IDF_PATH}", process.env.IDF_PATH),
-    conf
-      .get<string>("idf.toolsPath" + winFlag)
-      .replace("${env:IDF_TOOLS_PATH}", process.env.IDF_TOOLS_PATH),
-    pythonVenvPath
-  );
+  const customExtraVars = conf.get("idf.customExtraVars") as {
+    [key: string]: string;
+  };
+  const idfPathDir = currentEnvVars["IDF_PATH"] || process.env.IDF_PATH;
+  const idfToolsPath =
+  currentEnvVars["IDF_TOOLS_PATH"] || process.env.IDF_TOOLS_PATH;
 
-  if (idfToolsExportVars) {
-    for (const envVar in idfToolsExportVars) {
-      if (envVar) {
-        customVars[envVar] = idfToolsExportVars[envVar];
-      }
-    }
-  }
+  const pyDir =
+    process.platform === "win32"
+      ? ["Scripts", "python.exe"]
+      : ["bin", "python3"];
+  const idfPythonEnvPath =
+  currentEnvVars["IDF_PYTHON_ENV_PATH"] || process.env.IDF_PYTHON_ENV_PATH;
+  const venvPythonPath = join(idfPythonEnvPath, ...pyDir);
 
   reportedResult.configurationSettings = {
-    espAdfPath: conf.get("idf.espAdfPath" + winFlag),
-    espIdfPath: conf.get("idf.espIdfPath" + winFlag),
-    espMdfPath: conf.get("idf.espMdfPath" + winFlag),
-    espMatterPath: conf.get("idf.espMatterPath"),
-    espHomeKitPath: conf.get("idf.espHomeKitSdkPath" + winFlag),
+    espAdfPath: customExtraVars["ADF_PATH"],
+    espIdfPath: idfPathDir,
+    espMdfPath: customExtraVars["MDF_PATH"],
+    espMatterPath: customExtraVars["ESP_MATTER_PATH"],
+    espHomeKitPath: customExtraVars["HOMEKIT_PATH"],
     customTerminalExecutable: conf.get("idf.customTerminalExecutable"),
     customTerminalExecutableArgs: conf.get("idf.customTerminalExecutableArgs"),
     flashType: conf.get("idf.flashType"),
     flashPartitionToUse: conf.get("idf.flashPartitionToUse"),
-    customExtraPaths: extraPaths,
-    idfExtraVars: customVars,
-    userExtraVars: conf.get("idf.customExtraVars"),
+    customExtraPaths: currentEnvVars["PATH"],
+    idfExtraVars: currentEnvVars,
+    userExtraVars: customExtraVars,
     notificationMode: conf.get("idf.notificationMode"),
-    pythonBinPath: pythonVenvPath,
+    pythonBinPath: venvPythonPath,
     pythonPackages: [],
     serialPort: conf.get("idf.port" + winFlag),
     openOCDDebugLevel: conf.get("idf.openOcdDebugLevel") || "2",
     openOcdConfigs: conf.get("idf.openOcdConfigs") || [],
     openOcdLaunchArgs: conf.get("idf.openOcdLaunchArgs") || [],
-    toolsPath: conf.get("idf.toolsPath" + winFlag),
+    toolsPath: idfToolsPath,
     systemEnvPath:
       process.platform === "win32" ? process.env.Path : process.env.PATH,
-    sysPythonBinPath: conf.get("idf.pythonInstallPath"),
     gitPath: conf.get("idf.gitPath" + winFlag),
   };
 }
