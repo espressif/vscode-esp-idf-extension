@@ -135,6 +135,8 @@
   "Error encountered while calling idf_size.py": "Erro encontrado ao chamar idf_size.py",
   "Select the available serial port where your device is connected.": "Selecione a porta serial disponível onde seu dispositivo está conectado.",
   "Port has been updated to ": "A porta foi atualizada para ",
+  "No serial port found for current IDF_TARGET: {0}": "Nenhuma porta serial encontrada para o IDF_TARGET atual: {0}",
+  "Detecting Espressif device serial port...": "Detectando porta serial do dispositivo Espressif...",
   "{buildFile} doesn't exist. Build first.": "{buildFile} {buildFile} não existe. Crie primeiro.",
   "SDK Configuration editor": "Editor de configuração do SDK",
   "Save": "Salvar",
