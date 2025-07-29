@@ -30,6 +30,7 @@ import { flashCommand } from "../../flash/uartFlash";
 import { OutputChannel } from "../../logger/outputChannel";
 import { Logger } from "../../logger/logger";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { getFileList, getTestComponents } from "./utils";
 
 export async function configurePyTestUnitApp(
   workspaceFolder: Uri,
@@ -41,12 +42,15 @@ export async function configurePyTestUnitApp(
     if (!isPyTestInstalled) {
       await installPyTestPackages(workspaceFolder, cancelToken);
     }
-    const unityTestApp = await copyTestAppProject(
-      workspaceFolder,
-      testComponents
-    );
-    await buildFlashTestApp(unityTestApp, cancelToken);
-    return unityTestApp;
+    let unitTestAppUri = Uri.joinPath(workspaceFolder, "unity-app");
+    const doesUnitTestAppExists = await pathExists(unitTestAppUri.fsPath);
+    if (!doesUnitTestAppExists) {
+      const unitTestFiles = await getFileList();
+      const testComponents = await getTestComponents(unitTestFiles);
+      unitTestAppUri = await copyTestAppProject(workspaceFolder, testComponents);
+      await buildFlashTestApp(unitTestAppUri, cancelToken);
+    }
+    return unitTestAppUri;
   } catch (error) {
     const msg =
       error && error.message
@@ -151,7 +155,7 @@ export async function installPyTestPackages(
   );
 }
 
-export async function buildFlashTestApp(
+export async function buildTestApp(
   unitTestAppDirPath: Uri,
   cancelToken: CancellationToken
 ) {
@@ -170,6 +174,16 @@ export async function buildFlashTestApp(
   if (!canContinue) {
     return;
   }
+}
+
+export async function flashTestApp(
+  unitTestAppDirPath: Uri,
+  cancelToken: CancellationToken
+) {
+  let flashType = readParameter(
+    "idf.flashType",
+    unitTestAppDirPath
+  ) as ESP.FlashType;
   const port = readParameter("idf.port", unitTestAppDirPath);
   if (!port) {
     Logger.infoNotify("Serial port is not defined for unit test");
@@ -189,6 +203,7 @@ export async function buildFlashTestApp(
   if (!canFlash) {
     return;
   }
+  let canContinue = true;
   if (flashType === ESP.FlashType.JTAG) {
     canContinue = await jtagFlashCommand(unitTestAppDirPath);
   } else {
@@ -205,4 +220,12 @@ export async function buildFlashTestApp(
   if (!canContinue) {
     return;
   }
+}
+
+export async function buildFlashTestApp(
+  unitTestAppDirPath: Uri,
+  cancelToken: CancellationToken
+) {
+  await buildTestApp(unitTestAppDirPath, cancelToken);
+  await flashTestApp(unitTestAppDirPath, cancelToken);
 }

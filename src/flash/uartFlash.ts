@@ -36,7 +36,7 @@ export async function flashCommand(
   flashType: ESP.FlashType,
   encryptPartitions: boolean,
   partitionToUse?: ESP.BuildType
-) {
+): Promise<boolean> {
   let continueFlag = true;
   const buildPath = readParameter("idf.buildPath", workspace) as string;
   const buildFiles = await readdir(buildPath);
@@ -47,14 +47,14 @@ export async function flashCommand(
     const errStr = `Build is required before Flashing, .bin file can't be accessed`;
     OutputChannel.show();
     OutputChannel.appendLineAndShow(errStr, "Flash");
-    return Logger.errorNotify(
+    Logger.errorNotify(
       errStr,
       new Error("BIN_FILE_ACCESS_ERROR"),
       "flashCommand binfile access error"
     );
+    return false;
   }
   const flasherArgsJsonPath = join(buildPath, "flasher_args.json");
-  let flashTask: FlashTask;
   cancelToken.onCancellationRequested(() => {
     TaskManager.cancelTasks();
     TaskManager.disposeListeners();
@@ -65,7 +65,12 @@ export async function flashCommand(
       port,
       flashBaudRate
     );
-    flashTask = new FlashTask(workspace, idfPathDir, model, encryptPartitions);
+    let flashTask = new FlashTask(
+      workspace,
+      idfPathDir,
+      model,
+      encryptPartitions
+    );
     const customTask = new CustomTask(workspace);
     cancelToken.onCancellationRequested(() => {
       FlashTask.isFlashing = false;
@@ -85,58 +90,50 @@ export async function flashCommand(
     if (error.message === "ALREADY_FLASHING") {
       const errStr = "Already one flash process is running!";
       OutputChannel.appendLineAndShow(errStr, "Flash");
-      return Logger.errorNotify(errStr, error, "flashCommand already flashing");
-    }
-    FlashTask.isFlashing = false;
-    if (error.message === "NO_DFU_DEVICE_SELECTED") {
+      Logger.errorNotify(errStr, error, "flashCommand already flashing");
+      return false;
+    } else if (error.message === "NO_DFU_DEVICE_SELECTED") {
       const errStr = "No DFU was selected";
       OutputChannel.appendLineAndShow(errStr, "Flash");
-      return Logger.infoNotify(errStr);
-    }
-    if (error.message === "Task ESP-IDF Flash exited with code 74") {
+      Logger.infoNotify(errStr);
+    } else if (error.message === "Task ESP-IDF Flash exited with code 74") {
       const errStr = "No DFU capable USB device available found";
       OutputChannel.appendLineAndShow(errStr, "Flash");
-      return Logger.errorNotify(
+      Logger.errorNotify(
         errStr,
         error,
         "flashCommand code 74 no dfu device found"
       );
-    }
-    if (error.message === "FLASH_TERMINATED") {
+    } else if (error.message === "FLASH_TERMINATED") {
       const errStr = "Flashing has been stopped!";
       OutputChannel.appendLineAndShow(errStr, "Flash");
-      return Logger.errorNotify(errStr, error, "flashCommand flash terminated");
-    }
-    if (error.message === "SECTION_BIN_FILE_NOT_ACCESSIBLE") {
+      Logger.errorNotify(errStr, error, "flashCommand flash terminated");
+    } else if (error.message === "SECTION_BIN_FILE_NOT_ACCESSIBLE") {
       const errStr = "Flash (.bin) files don't exists or can't be accessed!";
       OutputChannel.appendLineAndShow(errStr, "Flash");
-      return Logger.errorNotify(
+      Logger.errorNotify(
         errStr,
         error,
         "flashCommand section bin file access error"
       );
-    }
-    if (
+    } else if (
       error.code === "ENOENT" ||
       error.message === "SCRIPT_PERMISSION_ERROR"
     ) {
       const errStr = `Make sure you have the esptool.py installed and set in $PATH with proper permission`;
       OutputChannel.appendLineAndShow(errStr, "Flash");
-      return Logger.errorNotify(
+      Logger.errorNotify(errStr, error, "flashCommand esptool.py access error");
+    } else {
+      const errStr = `Failed to flash because of some unusual error. Check Terminal for more details`;
+      OutputChannel.appendLine(errStr, "Flash");
+      Logger.errorNotify(
         errStr,
         error,
-        "flashCommand esptool.py access error"
+        "flashCommand unknown error",
+        undefined,
+        false
       );
     }
-    const errStr = `Failed to flash because of some unusual error. Check Terminal for more details`;
-    OutputChannel.appendLine(errStr, "Flash");
-    Logger.errorNotify(
-      errStr,
-      error,
-      "flashCommand unknown error",
-      undefined,
-      false
-    );
     continueFlag = false;
   }
   FlashTask.isFlashing = false;

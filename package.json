@@ -1251,6 +1251,24 @@
             "items": {
               "type": "string"
             }
+          },
+          "idf.unitTestFilePattern": {
+            "type": "string",
+            "description": "%param.unitTestFilePattern.title%",
+            "scope": "resource",
+            "default": "**/test/test_*.c"
+          },
+          "idf.pyTestEmbeddedServices": {
+            "type": "array",
+            "description": "%param.pyTestEmbeddedServices.title%",
+            "scope": "resource",
+            "default": [
+              "esp",
+              "idf"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       }
@@ -1710,6 +1728,16 @@
       {
         "command": "espIdf.unitTest.buildFlashUnitTestApp",
         "title": "%espIdf.unitTest.buildFlashUnitTestApp.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.unitTest.buildUnitTestApp",
+        "title": "%espIdf.unitTest.buildUnitTestApp.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.unitTest.flashUnitTestApp",
+        "title": "%espIdf.unitTest.flashUnitTestApp.title%",
         "category": "ESP-IDF"
       },
       {
