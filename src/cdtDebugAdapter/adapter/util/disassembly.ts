@@ -8,36 +8,23 @@
  * SPDX-License-Identifier: EPL-2.0
  *********************************************************************/
 import { DebugProtocol } from "@vscode/debugprotocol";
-import { MIDataDisassembleAsmInsn, sendDataDisassemble } from "../mi";
+import { sendDataDisassemble } from "../mi";
 import { GDBBackend } from "../GDBBackend";
 import { calculateMemoryOffset } from "./calculateMemoryOffset";
 import { isHexString } from "./isHexString";
 
 /**
- * Converts the MIDataDisassembleAsmInsn object to DebugProtocol.DisassembledInstruction
- *
- * @param asmInstruction
- * 		MI instruction object
- * @return
- * 		Returns the DebugProtocol.DisassembledInstruction object
+ * Global cache to track which functions have already been inserted
+ * This prevents duplicate function declarations across multiple disassembly calls
  */
-export const getDisassembledInstruction = (
-  asmInstruction: MIDataDisassembleAsmInsn
-): DebugProtocol.DisassembledInstruction => {
-  let symbol: string | undefined;
-  if (asmInstruction["func-name"] && asmInstruction.offset) {
-    symbol = `${asmInstruction["func-name"]}+${asmInstruction.offset}`;
-  } else if (asmInstruction["func-name"]) {
-    symbol = asmInstruction["func-name"];
-  } else {
-    symbol = undefined;
-  }
-  return {
-    address: asmInstruction.address,
-    instructionBytes: asmInstruction.opcodes,
-    instruction: asmInstruction.inst,
-    ...(symbol ? { symbol } : {}),
-  } as DebugProtocol.DisassembledInstruction;
+const globalInsertedFunctions = new Set<string>();
+
+/**
+ * Clears the global inserted functions cache
+ * This can be useful when the program state changes
+ */
+export const clearInsertedFunctionsCache = (): void => {
+  globalInsertedFunctions.clear();
 };
 
 /**
@@ -124,7 +111,7 @@ export const getInstructions = async (
       return [];
     }
     const list: DebugProtocol.DisassembledInstruction[] = [];
-
+    
     const result = await sendDataDisassemble(
       gdb,
       formatMemoryAddress(lower),
@@ -139,13 +126,50 @@ export const getInstructions = async (
         path: asmInsn.fullname,
       } as DebugProtocol.Source;
       for (const asmLine of asmInsn.line_asm_insn) {
+        if (
+          asmLine["func-name"] &&
+          !globalInsertedFunctions.has(asmLine["func-name"])
+        ) {
+          try {
+              // Get the actual function start address using MI command
+              const funcAddrResult = await gdb.sendCommand(`-data-evaluate-expression &${asmLine["func-name"]}`) as any;
+              const addrMatch = funcAddrResult.value?.match(/^([0-9a-fx]+)\s*</);
+              const funcAddress = addrMatch ? addrMatch[1] : asmLine.address;
+
+              // Create a function declaration instruction
+              const funcDeclInstruction: DebugProtocol.DisassembledInstruction = {
+                address: funcAddress,
+                instruction: `${asmLine["func-name"]}:`,
+                location,
+                line: line ? line - 1 : undefined, // Show it before the current line
+              } as DebugProtocol.DisassembledInstruction;
+
+                          // Insert the function declaration before the current instruction
+            list.push(funcDeclInstruction);
+            globalInsertedFunctions.add(asmLine["func-name"]);
+          } catch (error) {
+            // If function declaration lookup fails, continue without it
+          }
+        }
+
+        // Create the instruction
+        let instruction: DebugProtocol.DisassembledInstruction = {
+          address: asmLine.address,
+          instructionBytes: asmLine.opcodes,
+          instruction: asmLine["func-name"]
+            ? `${asmLine.inst}  ; ${asmLine["func-name"]}`
+            : asmLine.inst,
+          symbol: asmLine["func-name"] ? asmLine["func-name"] : undefined,
+        } as DebugProtocol.DisassembledInstruction;
+
         list.push({
-          ...getDisassembledInstruction(asmLine),
+          ...instruction,
           location,
           line,
         });
       }
     }
+
     return list;
   };
 

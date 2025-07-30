@@ -27,15 +27,12 @@ import {
 import { DebugProtocol } from "@vscode/debugprotocol";
 import { GDBBackend } from "./GDBBackend";
 import * as mi from "./mi";
-import {
-  sendDataReadMemoryBytes,
-  sendDataWriteMemoryBytes,
-} from "./mi/data";
+import { sendDataReadMemoryBytes, sendDataWriteMemoryBytes } from "./mi/data";
 import { StoppedEvent } from "./stoppedEvent";
 import { VarObjType } from "./varManager";
 import { getGdbCwd } from "./util";
 import { calculateMemoryOffset } from "./util/calculateMemoryOffset";
-import { getInstructions } from "./util/disassembly";
+import { getInstructions, clearInsertedFunctionsCache } from "./util/disassembly";
 
 export interface RequestArguments extends DebugProtocol.LaunchRequestArguments {
   gdb?: string;
@@ -1575,51 +1572,54 @@ export class GDBDebugSession extends LoggingDebugSession {
     args: CDTDisassembleArguments
   ) {
     try {
+      // Clear the inserted functions cache for each new disassembly request
+      clearInsertedFunctionsCache();
+      
       if (!args.memoryReference) {
-          throw new Error('Target memory reference is not specified!');
+        throw new Error("Target memory reference is not specified!");
       }
       const instructionStartOffset = args.instructionOffset ?? 0;
       const instructionEndOffset =
-          args.instructionCount + instructionStartOffset;
+        args.instructionCount + instructionStartOffset;
       const instructions: DebugProtocol.DisassembledInstruction[] = [];
       const memoryReference =
-          args.offset === undefined
-              ? args.memoryReference
-              : calculateMemoryOffset(args.memoryReference, args.offset);
+        args.offset === undefined
+          ? args.memoryReference
+          : calculateMemoryOffset(args.memoryReference, args.offset);
 
       if (instructionStartOffset < 0) {
-          // Getting lower memory area
-          const list = await getInstructions(
-              this.gdb,
-              memoryReference,
-              instructionStartOffset
-          );
+        // Getting lower memory area
+        const list = await getInstructions(
+          this.gdb,
+          memoryReference,
+          instructionStartOffset
+        );
 
-          // Add them to instruction list
-          instructions.push(...list);
+        // Add them to instruction list
+        instructions.push(...list);
       }
 
       if (instructionEndOffset > 0) {
-          // Getting higher memory area
-          const list = await getInstructions(
-              this.gdb,
-              memoryReference,
-              instructionEndOffset
-          );
+        // Getting higher memory area
+        const list = await getInstructions(
+          this.gdb,
+          memoryReference,
+          instructionEndOffset
+        );
 
-          // Add them to instruction list
-          instructions.push(...list);
+        // Add them to instruction list
+        instructions.push(...list);
       }
 
       response.body = {
-          instructions,
+        instructions,
       };
       this.sendResponse(response);
-  } catch (err) {
+    } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.sendEvent(new OutputEvent(`Error: ${message}`));
       this.sendErrorResponse(response, 1, message);
-  }
+    }
   }
 
   protected async readMemoryRequest(
