@@ -644,8 +644,8 @@ export async function activate(context: vscode.ExtensionContext) {
         if (extraPathsToClean && extraPathsToClean.length > 0) {
           for (const extraPath of extraPathsToClean) {
             const fullPath = path.join(workspaceRoot.fsPath, extraPath);
-            const pathExists = await utils.dirExistPromise(fullPath);
-            if (pathExists) {
+            const doesExtraPathExist = await pathExists(fullPath);
+            if (doesExtraPathExist) {
               await del(fullPath, { force: true });
             }
           }
