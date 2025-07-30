@@ -312,9 +312,9 @@
     "views": {
       "espIdfHints": [
         {
-          "id": "idfErrorHints",
+          "id": "espIdf.errorHints",
           "name": "%view.idf.errorHints%",
-          "title": "%view.idf.errorHints% ($idfErrorHints.count$)"
+          "title": "%view.idf.errorHints% ($espIdf.errorHints.count$)"
         }
       ],
       "debug": [
@@ -402,13 +402,13 @@
       "view/title": [
         {
           "command": "espIdf.errorHints.clearAll",
-          "when": "view == idfErrorHints",
+          "when": "view == espIdf.errorHints",
           "group": "navigation"
         },
         {
           "command": "espIdf.searchError",
           "group": "navigation",
-          "when": "view == idfErrorHints"
+          "when": "view == espIdf.errorHints"
         },
         {
           "command": "espIdf.partition.table.refresh",
@@ -458,11 +458,11 @@
       "view/item/context": [
         {
           "command": "espIdf.errorHints.clearBuildErrors",
-          "when": "view == idfErrorHints && viewItem == buildError"
+          "when": "view == espIdf.errorHints && viewItem == buildError"
         },
         {
           "command": "espIdf.errorHints.clearOpenOCDErrors",
-          "when": "view == idfErrorHints && viewItem == openocdError"
+          "when": "view == espIdf.errorHints && viewItem == openocdError"
         },
         {
           "command": "esp.rainmaker.backend.logout",

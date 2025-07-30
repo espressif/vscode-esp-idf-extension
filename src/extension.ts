@@ -185,10 +185,7 @@ import {
 } from "./cdtDebugAdapter/hexViewProvider";
 import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
-import {
-  createHintsStatusBarItem,
-  updateHintsStatusBarItem,
-} from "./statusBar";
+import { updateHintsStatusBarItem } from "./statusBar";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3785,7 +3782,7 @@ export async function activate(context: vscode.ExtensionContext) {
   if (PreCheck.isWorkspaceFolderOpen()) {
     const treeDataProvider = new ErrorHintProvider(context);
 
-    const treeView = vscode.window.createTreeView("idfErrorHints", {
+    const treeView = vscode.window.createTreeView("espIdf.errorHints", {
       treeDataProvider: treeDataProvider,
       showCollapseAll: true,
     });
@@ -3796,26 +3793,20 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(treeView);
 
     // Register commands for clearing error hints
-    vscode.commands.registerCommand("espIdf.errorHints.clearAll", () => {
+    registerIDFCommand("espIdf.errorHints.clearAll", () => {
       treeDataProvider.clearErrorHints(true); // Clear both build and OpenOCD errors
       updateHintsStatusBarItem(false);
     });
 
-    vscode.commands.registerCommand(
-      "espIdf.errorHints.clearBuildErrors",
-      () => {
-        treeDataProvider.clearErrorHints(false); // Clear only build errors
-        updateHintsStatusBarItem(false);
-      }
-    );
+    registerIDFCommand("espIdf.errorHints.clearBuildErrors", () => {
+      treeDataProvider.clearErrorHints(false); // Clear only build errors
+      updateHintsStatusBarItem(false);
+    });
 
-    vscode.commands.registerCommand(
-      "espIdf.errorHints.clearOpenOCDErrors",
-      () => {
-        treeDataProvider.clearOpenOCDErrorsOnly(); // Clear only OpenOCD errors
-        updateHintsStatusBarItem(false);
-      }
-    );
+    registerIDFCommand("espIdf.errorHints.clearOpenOCDErrors", () => {
+      treeDataProvider.clearOpenOCDErrorsOnly(); // Clear only OpenOCD errors
+      updateHintsStatusBarItem(false);
+    });
 
     const openOCDErrorMonitor = OpenOCDErrorMonitor.init(
       treeDataProvider,
@@ -3831,13 +3822,13 @@ export async function activate(context: vscode.ExtensionContext) {
     });
 
     // Register command to manually search for errors
-    vscode.commands.registerCommand("espIdf.searchError", async () => {
+    registerIDFCommand("espIdf.searchError", async () => {
       const errorMsg = await vscode.window.showInputBox({
         placeHolder: "Enter the error message",
       });
       if (errorMsg) {
         treeDataProvider.searchError(errorMsg, workspaceRoot);
-        await vscode.commands.executeCommand("idfErrorHints.focus");
+        await vscode.commands.executeCommand("espIdf.errorHints.focus");
       }
     });
 
@@ -3886,10 +3877,6 @@ export async function activate(context: vscode.ExtensionContext) {
         new HintHoverProvider(treeDataProvider)
       )
     );
-
-    // --- Hints Status Bar Item ---
-    const hintsStatusBarItem = createHintsStatusBarItem();
-    context.subscriptions.push(hintsStatusBarItem);
 
     // Subscribe to changes in the hints tree and update the status bar item
     treeDataProvider.onDidChangeTreeData(() => {

@@ -236,6 +236,14 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     89,
     commandDictionary[CommandKeys.CustomTask].checkboxState
   );
+  statusBarItems["hints"] = createStatusBarItem(
+    l10n.t("💡 New ESP-IDF Hints!"),
+    l10n.t("ESP-IDF: Hints available. Click to view."),
+    "espIdf.errorHints.focus",
+    1000,
+    TreeItemCheckboxState.Unchecked
+  );
+  statusBarItems["hints"].hide();
   return statusBarItems;
 }
 
@@ -258,40 +266,22 @@ export function createStatusBarItem(
   return statusBarItem;
 }
 
-// --- ESP-IDF Hints Status Bar Item ---
-let hintsStatusBarItem: StatusBarItem | undefined;
-
-/**
- * Create the ESP-IDF Hints status bar item using createStatusBarItem
- */
-export function createHintsStatusBarItem() {
-  if (!hintsStatusBarItem) {
-    hintsStatusBarItem = createStatusBarItem(
-      l10n.t("💡 New ESP-IDF Hints!"),
-      l10n.t("ESP-IDF: Hints available. Click to view."),
-      "idfErrorHints.focus",
-      1000, // Highest priority to appear first
-      TreeItemCheckboxState.Checked
-    );
-    hintsStatusBarItem.hide(); // Hide by default until hints are available
-  }
-  return hintsStatusBarItem;
-}
-
 /**
  * Show the hints status bar item with an alert icon if hints are available
  * @param {boolean} hasHints - Whether hints are available
  */
 export function updateHintsStatusBarItem(hasHints: boolean) {
-  if (!hintsStatusBarItem) return;
+  if (!statusBarItems["hints"]) return;
   if (hasHints) {
-    hintsStatusBarItem.text = l10n.t("💡 New ESP-IDF Hints!");
-    hintsStatusBarItem.tooltip = l10n.t("ESP-IDF: Hints available. Click to view.");
-    hintsStatusBarItem.backgroundColor = "statusBarItem.warningBackground";
-    hintsStatusBarItem.show();
+    statusBarItems["hints"].text = l10n.t("💡 New ESP-IDF Hints!");
+    statusBarItems["hints"].tooltip = l10n.t(
+      "ESP-IDF: Hints available. Click to view."
+    );
+    statusBarItems["hints"].backgroundColor = "statusBarItem.warningBackground";
+    statusBarItems["hints"].show();
   } else {
-    hintsStatusBarItem.hide();
-    hintsStatusBarItem.color = undefined;
+    statusBarItems["hints"].hide();
+    statusBarItems["hints"].color = undefined;
   }
 }
 
@@ -299,8 +289,8 @@ export function updateHintsStatusBarItem(hasHints: boolean) {
  * Dispose the hints status bar item
  */
 export function disposeHintsStatusBarItem() {
-  if (hintsStatusBarItem) {
-    hintsStatusBarItem.dispose();
-    hintsStatusBarItem = undefined;
+  if (statusBarItems["hints"]) {
+    statusBarItems["hints"].dispose();
+    statusBarItems["hints"] = undefined;
   }
 }
