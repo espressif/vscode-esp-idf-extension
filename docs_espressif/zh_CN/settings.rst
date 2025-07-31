@@ -206,8 +206,8 @@ PyTest 相关设置
       - 启用 Kconfig 文件的样式验证
     * - **idf.telemetry**
       - 启用遥测
-    * - **idf.deleteComponentsOnFullClean**
-      - 在执行 **Full Clean Project** 命令时删除 ``managed_components`` （该选项默认启用）
+    * - **idf.extraCleanPaths**
+      - 在执行 **完全清理项目** 命令时删除额外的路径（该选项默认值为 `[]`）。例如，可以设置为 ``["managed_components", "dependencies.lock"]``，以从当前工作区文件夹中删除 managed_components 目录和 dependencies.lock 文件。
     * - **idf.monitorNoReset**
       - 启用 IDF 监视器的不重置标志（该选项默认禁用）
     * - **idf.monitorEnableTimestamps**

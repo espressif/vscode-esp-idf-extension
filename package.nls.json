@@ -121,7 +121,7 @@
   "param.customTask": "Custom task",
   "param.customTerminalExecutable.title": "Absolute path to custom shell terminal executable (default to VS Code Terminal)",
   "param.customTerminalExecutableArgs.title": "List of arguments for the custom shell terminal",
-  "param.deleteComponentsOnFullClean": "Delete managed_components on Full Clean Project command",
+  "param.extraCleanPaths": "Additional paths to clean during the full clean task",
   "param.enableCCache.title": "Enable CCache in build task",
   "param.enableIdfComponentManager.title": "Enable IDF Component Manager in build task",
   "param.enableSizeTaskAfterBuildTask.title": "Enable IDF size task after build task",

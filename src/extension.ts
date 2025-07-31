@@ -642,18 +642,17 @@ export async function activate(context: vscode.ExtensionContext) {
 
       try {
         await del(buildDir, { force: true });
-        const delComponentsOnFullClean = (await idfConf.readParameter(
-          "idf.deleteComponentsOnFullClean",
+        const extraPathsToClean = idfConf.readParameter(
+          "idf.extraCleanPaths",
           workspaceRoot
-        )) as boolean;
-        if (delComponentsOnFullClean) {
-          const managedComponents = path.join(
-            workspaceRoot.fsPath,
-            "managed_components"
-          );
-          const componentDirExists = await pathExists(managedComponents);
-          if (componentDirExists) {
-            await del(managedComponents, { force: true });
+        ) as string[];
+        if (extraPathsToClean && extraPathsToClean.length > 0) {
+          for (const extraPath of extraPathsToClean) {
+            const fullPath = path.join(workspaceRoot.fsPath, extraPath);
+            const doesExtraPathExist = await pathExists(fullPath);
+            if (doesExtraPathExist) {
+              await del(fullPath, { force: true });
+            }
           }
         }
         Logger.infoNotify(vscode.l10n.t("Build directory has been deleted."));

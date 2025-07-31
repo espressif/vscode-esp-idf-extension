@@ -121,7 +121,7 @@
 	"param.customTask": "Tarea personalizada",
 	"param.customTerminalExecutable.title": "Ejecutable personalizado para tareas de extensiones",
 	"param.customTerminalExecutableArgs.title": "Lista de argumentos para el ejecutable personalizado para tareas de extensiones",
-	"param.deleteComponentsOnFullClean": "Eliminar componentes administrados en el comando de Limpieza Completa del Proyecto",
+	"param.extraCleanPaths": "Rutas adicionales para limpiar durante la tarea de limpieza",
 	"param.enableCCache.title": "Habilitar CCache en la tarea de construcción",
 	"param.enableIdfComponentManager.title": "Habilitar Administrador de Componentes IDF en la tarea de construcción",
 	"param.enableSizeTaskAfterBuildTask.title": "Habilitar tarea de tamaño IDF después de la tarea de construcción",
