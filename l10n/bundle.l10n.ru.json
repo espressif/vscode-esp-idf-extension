@@ -236,5 +236,14 @@
   "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.": "Обнаружение подключенных ESP-IDF devkit пропускается во время отладки. Вы все еще можете выбрать цель вручную.",
   "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "Обнаружение подключенных ESP-IDF devkit недоступно для вашей версии OpenOCD {openOCDVersion}. Требуется версия {minRequiredVersion} или выше. Вы все еще можете выбрать цель вручную.",
   "Activate Anyway": "Активировать в любом случае",
-  "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "В этой рабочей области не найден стандартный проект ESP-IDF. Хотите активировать расширение ESP-IDF в любом случае?"
+  "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "В этой рабочей области не найден стандартный проект ESP-IDF. Хотите активировать расширение ESP-IDF в любом случае?",
+  "🔗 Reference Documentation": "🔗 Справочная Документация",
+  "Open {0}": "Открыть {0}",
+  "💡 New ESP-IDF Hints!": "💡 Новые подсказки ESP-IDF!",
+  "ESP-IDF: Hints available. Click to view.": "ESP-IDF: Подсказки доступны. Нажмите для просмотра.",
+  "Error Hints": "Подсказки по ошибкам",
+  "Clear All Error Hints": "Очистить все подсказки по ошибкам",
+  "Clear Build Error Hints": "Очистить подсказки по ошибкам сборки",
+  "Clear OpenOCD Error Hints": "Очистить подсказки по ошибкам OpenOCD",
+  "Open Reference": "Открыть ссылку"
 }

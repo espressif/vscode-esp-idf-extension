@@ -236,5 +236,14 @@
   "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "A detecção de devkit ESP-IDF conectados não está disponível para sua versão do OpenOCD {openOCDVersion}. É necessária a versão {minRequiredVersion} ou superior. Você ainda pode selecionar um alvo manualmente.",
   "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Usuário confirmou a mudança para o Modo de Lançamento. Prosseguindo com a criptografia da flash.",
   "Activate Anyway": "Ativar mesmo assim",
-  "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "Nenhum projeto ESP-IDF padrão foi encontrado neste espaço de trabalho. Deseja ativar a extensão ESP-IDF mesmo assim?"
+  "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "Nenhum projeto ESP-IDF padrão foi encontrado neste espaço de trabalho. Deseja ativar a extensão ESP-IDF mesmo assim?",
+  "🔗 Reference Documentation": "🔗Documentação de Referência",
+  "Open {0}": "Abrir {0}",
+  "💡 New ESP-IDF Hints!": "💡 Novas Dicas ESP-IDF!",
+  "ESP-IDF: Hints available. Click to view.": "ESP-IDF: Dicas disponíveis. Clique para visualizar.",
+  "Error Hints": "Dicas de Erro",
+  "Clear All Error Hints": "Limpar Todas as Dicas de Erro",
+  "Clear Build Error Hints": "Limpar Dicas de Erro de Compilação",
+  "Clear OpenOCD Error Hints": "Limpar Dicas de Erro do OpenOCD",
+  "Open Reference": "Abrir Referência"
 }
