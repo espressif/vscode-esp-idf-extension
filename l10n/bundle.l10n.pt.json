@@ -236,5 +236,13 @@
   "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "A detecção de devkit ESP-IDF conectados não está disponível para sua versão do OpenOCD {openOCDVersion}. É necessária a versão {minRequiredVersion} ou superior. Você ainda pode selecionar um alvo manualmente.",
   "User confirmed switching to Release Mode. Proceeding with flash encryption.": "Usuário confirmou a mudança para o Modo de Lançamento. Prosseguindo com a criptografia da flash.",
   "Activate Anyway": "Ativar mesmo assim",
-  "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "Nenhum projeto ESP-IDF padrão foi encontrado neste espaço de trabalho. Deseja ativar a extensão ESP-IDF mesmo assim?"
+  "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "Nenhum projeto ESP-IDF padrão foi encontrado neste área de trabalho. Deseja ativar a extensão ESP-IDF mesmo assim?",
+  "For the best C/C++ development experience in this editor, we recommend installing the clangd extension. This provides enhanced IntelliSense, code completion, and error detection.": "Para a melhor experiência de desenvolvimento C/C++ neste editor, recomendamos instalar a extensão clangd. Isso fornece IntelliSense aprimorado, preenchimento de código e detecção de erros.",
+  "Install clangd": "Instalar clangd",
+  "Not now": "Agora não",
+  "clangd extension installed successfully! Please reload the window to activate it.": "Extensão clangd instalada com sucesso! Por favor, reabra a janela para ativá-la",
+  "Would you like to reload the window to activate the clangd extension?": "Gostaria de reabrir a janela para ativar a extensão clangd?",
+  "Reload": "Reabrir",
+  "Later": "Mais tarde",
+  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Falha ao instalar a extensão clangd. Você pode instalá-la manualmente no marketplace de extensões."
 }

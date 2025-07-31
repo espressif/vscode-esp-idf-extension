@@ -115,6 +115,7 @@ export function initializeReportObject() {
     systemName: undefined,
     vscodeVersion: undefined,
     remoteName: undefined,
+    appName: undefined,
   };
   report.workspaceFolder = undefined;
   report.projectConfigurations = {};

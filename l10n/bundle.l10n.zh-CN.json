@@ -236,5 +236,13 @@
   "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually.": "调试时跳过已连接的 ESP-IDF 开发板检测。您仍可以手动选择目标。",
   "Connected ESP-IDF devkit detection is not available for your {openOCDVersion} OpenOCD version. Required version is {minRequiredVersion} or higher. You can still select a target manually.": "您的 OpenOCD 版本 {openOCDVersion} 不支持已连接的 ESP-IDF 开发板检测功能。需要 {minRequiredVersion} 或更高版本。您仍可以手动选择目标。",
   "Activate Anyway": "仍然激活",
-  "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "在当前工作区中未找到标准 ESP-IDF 项目。您是否仍要激活 ESP-IDF 扩展？"
+  "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "在当前工作区中未找到标准 ESP-IDF 项目。您是否仍要激活 ESP-IDF 扩展？",
+  "For the best C/C++ development experience in this editor, we recommend installing the clangd extension. This provides enhanced IntelliSense, code completion, and error detection.": "为了在此编辑器中获得最佳的 C/C++ 开发体验，我们建议安装 clangd 扩展。这提供了增强的 IntelliSense、代码补全和错误检测功能。",
+  "Install clangd": "安装 clangd",
+  "Not now": "现在不安装",
+  "clangd extension installed successfully! Please reload the window to activate it.": "clangd 扩展安装成功！请重新加载窗口以激活它。",
+  "Would you like to reload the window to activate the clangd extension?": "您是否要重新加载窗口以激活 clangd 扩展？",
+  "Reload": "重新加载",
+  "Later": "稍后",
+  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "安装 clangd 扩展失败。您可以从扩展市场手动安装它。"
 }

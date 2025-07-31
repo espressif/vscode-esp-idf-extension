@@ -99,6 +99,20 @@ export class PreCheck {
     }
     return process.env.WEB_IDE ? false : true;
   }
+
+  /**
+   * Checks if the extension is running in a VS Code fork (not the original Visual Studio Code)
+   * @returns true if running in a fork like Cursor, VSCodium, etc., false if running in original VS Code
+   * @example
+   * if (PreCheck.isRunningInVSCodeFork()) {
+   *   // Fork-specific behavior
+   *   Logger.info("Running in VS Code fork");
+   * }
+   */
+  public static isRunningInVSCodeFork(): boolean {
+    return vscode.env.appName !== "Visual Studio Code";
+  }
+
   public static openOCDVersionValidator(
     minVersion: string,
     currentVersion: string
