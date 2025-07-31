@@ -3,7 +3,7 @@ var DOCUMENTATION_VERSIONS = {
                 supported_targets: [ "esp32" ]
               },
     VERSIONS: [
-        { name: "master", old: false },
+        { name: "latest", old: false },
         { name: "release-v2.0", pre_release: true }
     ],
 };
