@@ -89,7 +89,9 @@ export class CDTDebugConfigurationProvider
         );
         if (isAppReproducibleBuildEnabled === "y") {
           const buildDirPath = readParameter("idf.buildPath", folder) as string;
-          config.initCommands.push(`source ${join(buildDirPath, "prefix_map_gdbinit")}`);
+          config.initCommands.push(
+            `source ${join(buildDirPath, "prefix_map_gdbinit")}`
+          );
         }
         if (typeof config.initialBreakpoint === "undefined") {
           config.initCommands.push(`thb app_main`);
@@ -165,7 +167,7 @@ export class CDTDebugConfigurationProvider
         config.sessionID !== "core-dump.debug.session.ws" &&
         config.sessionID !== "gdbstub.debug.session.ws" &&
         config.sessionID !== "qemu.debug.session" &&
-        !config.runOpenOCD
+        config.runOpenOCD !== false
       ) {
         await openOCDManager.start();
       }
