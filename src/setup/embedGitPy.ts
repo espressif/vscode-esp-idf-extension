@@ -46,11 +46,7 @@ export async function installIdfGit(
     mirror === ESP.IdfMirror.Github
       ? ESP.URL.IDF_EMBED_GIT.GITHUB_EMBED_GIT_URL
       : ESP.URL.IDF_EMBED_GIT.IDF_EMBED_GIT_URL;
-  const idfGitZipPath = join(
-    idfToolsDir,
-    "dist",
-    basename(gitURLToUse)
-  );
+  const idfGitZipPath = join(idfToolsDir, "dist", basename(gitURLToUse));
   const idfGitDestPath = join(
     idfToolsDir,
     "tools",
@@ -78,23 +74,17 @@ export async function installIdfGit(
     }
   }
 
-  const gitZipPathExists = await pathExists(idfGitZipPath);
-  if (gitZipPathExists) {
-    const existingMsg = `Using existing ${idfGitZipPath}`;
-    OutputChannel.appendLine(existingMsg);
-    Logger.info(existingMsg);
-  } else {
-    const msgDownload = `Downloading ${idfGitZipPath}...`;
-    progress.report({ message: msgDownload });
-    OutputChannel.appendLine(msgDownload);
-    Logger.info(msgDownload);
-    await downloadManager.downloadWithResume(
-      gitURLToUse,
-      join(idfToolsDir, "dist"),
-      pkgProgress,
-      cancelToken
-    );
-  }
+  const msgDownload = `Downloading ${idfGitZipPath}...`;
+  progress.report({ message: msgDownload });
+  OutputChannel.appendLine(msgDownload);
+  Logger.info(msgDownload);
+  await downloadManager.downloadWithResume(
+    gitURLToUse,
+    join(idfToolsDir, "dist"),
+    pkgProgress,
+    cancelToken
+  );
+
   const doesZipfileExist = await pathExists(idfGitZipPath);
   if (!doesZipfileExist) {
     throw new Error(`${idfGitZipPath} was not downloaded.`);
@@ -167,20 +157,13 @@ export async function installIdfPython(
       return join(idfPyDestPath, "python.exe");
     }
   }
-  const pyZipPathExists = await pathExists(idfPyZipPath);
-  if (pyZipPathExists) {
-    const usingExistingPathMsg = `Using existing ${idfPyZipPath}`;
-    OutputChannel.appendLine(usingExistingPathMsg);
-    Logger.info(usingExistingPathMsg);
-  } else {
-    progress.report({ message: `Downloading ${idfPyZipPath}...` });
-    await downloadManager.downloadWithResume(
-      pythonURLToUse,
-      join(idfToolsDir, "dist"),
-      pkgProgress,
-      cancelToken
-    );
-  }
+  progress.report({ message: `Downloading ${idfPyZipPath}...` });
+  await downloadManager.downloadWithResume(
+    pythonURLToUse,
+    join(idfToolsDir, "dist"),
+    pkgProgress,
+    cancelToken
+  );
   const doesZipfileExist = await pathExists(idfPyZipPath);
   if (!doesZipfileExist) {
     throw new Error(`${idfPyZipPath} was not downloaded.`);
