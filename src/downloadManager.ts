@@ -179,11 +179,25 @@ export class DownloadManager {
 
     while (retryCount < this.MAX_RETRIES) {
       try {
-        // Check if we can resume from existing file
         let startByte = 0;
+
         if (await pathExists(absolutePath)) {
           const stats = await fs.promises.stat(absolutePath);
           startByte = stats.size;
+
+          // Check if file is already complete
+          if (expectedSize && startByte >= expectedSize) {
+            this.appendChannel(
+              `File ${fileName} already exists and appears to be complete (${startByte} bytes >= ${expectedSize} expected)`
+            );
+            if (pkgProgress) {
+              pkgProgress.Progress = "100.00%";
+              pkgProgress.ProgressDetail = `(${(expectedSize / 1024).toFixed(
+                2
+              )} / ${(expectedSize / 1024).toFixed(2)}) KB`;
+            }
+            return { status: 200, data: null }; // Return success for completed download
+          }
 
           if (startByte > 0) {
             this.appendChannel(
@@ -229,6 +243,31 @@ export class DownloadManager {
       } catch (error) {
         lastError = error;
         retryCount++;
+
+        // Handle 416 Range Not Satisfiable error specifically
+        if (error.response && error.response.status === 416) {
+          this.appendChannel(
+            `Received 416 Range Not Satisfiable for ${fileName}. File may already be complete.`
+          );
+
+          // Check if the file exists and has reasonable size
+          if (await pathExists(absolutePath)) {
+            const stats = await fs.promises.stat(absolutePath);
+            if (stats.size > 0) {
+              this.appendChannel(
+                `File ${fileName} exists with size ${stats.size} bytes. Treating as complete.`
+              );
+              if (pkgProgress) {
+                const size = expectedSize || stats.size;
+                pkgProgress.Progress = "100.00%";
+                pkgProgress.ProgressDetail = `(${(size / 1024).toFixed(2)} / ${(
+                  size / 1024
+                ).toFixed(2)}) KB`;
+              }
+              return { status: 200, data: null }; // Return success for completed download
+            }
+          }
+        }
 
         if (cancelToken && cancelToken.isCancellationRequested) {
           throw new PackageError(
@@ -317,85 +356,90 @@ export class DownloadManager {
       `Downloading ${fileName} with range request from byte ${startByte}`
     );
 
-    const response = await axios.get(url, config);
+    try {
+      const response = await axios.get(url, config);
 
-    if (response.status !== 206 && response.status !== 200) {
-      throw new PackageManagerWebError(
-        null,
-        "HTTP Range Request Error",
-        "downloadWithRange",
-        `Unexpected status code: ${response.status}`,
-        response.status.toString()
-      );
-    }
-
-    const contentLength = parseInt(
-      response.headers["content-length"] || "0",
-      10
-    );
-    const contentRange = response.headers["content-range"];
-    let totalSize = expectedSize || 0;
-
-    // Parse content-range header to get total size
-    if (contentRange) {
-      const match = contentRange.match(/bytes \d+-\d+\/(\d+)/);
-      if (match) {
-        totalSize = parseInt(match[1], 10);
+      if (response.status !== 206 && response.status !== 200) {
+        throw new PackageManagerWebError(
+          null,
+          "HTTP Range Request Error",
+          "downloadWithRange",
+          `Unexpected status code: ${response.status}`,
+          response.status.toString()
+        );
       }
-    }
+      const contentRange = response.headers["content-range"];
+      let totalSize = expectedSize || 0;
 
-    let downloadedSize = startByte;
-    let lastProgressUpdate = 0;
-
-    response.data.on("data", (chunk: Buffer) => {
-      downloadedSize += chunk.length;
-
-      if (pkgProgress && totalSize > 0) {
-        const progress = (downloadedSize / totalSize) * 100;
-        const progressDetail = `(${(downloadedSize / 1024).toFixed(2)} / ${(
-          totalSize / 1024
-        ).toFixed(2)}) KB`;
-
-        // Update progress only if significant change
-        if (
-          progress - lastProgressUpdate >= this.refreshUIRate ||
-          downloadedSize === totalSize
-        ) {
-          pkgProgress.Progress = `${progress.toFixed(2)}%`;
-          pkgProgress.ProgressDetail = progressDetail;
-          lastProgressUpdate = progress;
+      // Parse content-range header to get total size
+      if (contentRange) {
+        const match = contentRange.match(/bytes \d+-\d+\/(\d+)/);
+        if (match) {
+          totalSize = parseInt(match[1], 10);
         }
       }
-    });
 
-    response.data.pipe(fileStream);
+      let downloadedSize = startByte;
+      let lastProgressUpdate = 0;
 
-    return new Promise<any>((resolve, reject) => {
-      fileStream.on("finish", () => {
-        this.appendChannel(`Range download completed: ${fileName}`);
-        resolve(response);
+      response.data.on("data", (chunk: Buffer) => {
+        downloadedSize += chunk.length;
+
+        if (pkgProgress && totalSize > 0) {
+          const progress = (downloadedSize / totalSize) * 100;
+          const progressDetail = `(${(downloadedSize / 1024).toFixed(2)} / ${(
+            totalSize / 1024
+          ).toFixed(2)}) KB`;
+
+          // Update progress only if significant change
+          if (
+            progress - lastProgressUpdate >= this.refreshUIRate ||
+            downloadedSize === totalSize
+          ) {
+            pkgProgress.Progress = `${progress.toFixed(2)}%`;
+            pkgProgress.ProgressDetail = progressDetail;
+            lastProgressUpdate = progress;
+          }
+        }
       });
 
-      fileStream.on("error", (error) => {
-        reject(
-          new PackageError(
-            `File write error: ${error.message}`,
-            "downloadWithRange",
-            error
-          )
-        );
-      });
+      response.data.pipe(fileStream);
 
-      response.data.on("error", (error) => {
-        reject(
-          new PackageError(
-            `Download stream error: ${error.message}`,
-            "downloadWithRange",
-            error
-          )
-        );
+      return new Promise<any>((resolve, reject) => {
+        fileStream.on("finish", () => {
+          this.appendChannel(`Range download completed: ${fileName}`);
+          resolve(response);
+        });
+
+        fileStream.on("error", (error) => {
+          reject(
+            new PackageError(
+              `File write error: ${error.message}`,
+              "downloadWithRange",
+              error
+            )
+          );
+        });
+
+        response.data.on("error", (error) => {
+          reject(
+            new PackageError(
+              `Download stream error: ${error.message}`,
+              "downloadWithRange",
+              error
+            )
+          );
+        });
       });
-    });
+    } catch (error) {
+      // Close the file stream if it was opened
+      if (fileStream) {
+        fileStream.end();
+      }
+
+      // Re-throw the error to be handled by the calling method
+      throw error;
+    }
   }
 
   /**

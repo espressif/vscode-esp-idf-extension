@@ -46,6 +46,10 @@ export async function installIdfGit(
     mirror === ESP.IdfMirror.Github
       ? ESP.URL.IDF_EMBED_GIT.GITHUB_EMBED_GIT_URL
       : ESP.URL.IDF_EMBED_GIT.IDF_EMBED_GIT_URL;
+  const gitSize: number =
+    mirror === ESP.IdfMirror.Github
+      ? ESP.URL.IDF_EMBED_GIT.GITHUB_EMBED_GIT_SIZE
+      : ESP.URL.IDF_EMBED_GIT.IDF_EMBED_GIT_SIZE;
   const idfGitZipPath = join(idfToolsDir, "dist", basename(gitURLToUse));
   const idfGitDestPath = join(
     idfToolsDir,
@@ -82,7 +86,8 @@ export async function installIdfGit(
     gitURLToUse,
     join(idfToolsDir, "dist"),
     pkgProgress,
-    cancelToken
+    cancelToken,
+    gitSize
   );
 
   const doesZipfileExist = await pathExists(idfGitZipPath);
@@ -115,16 +120,25 @@ export async function installIdfPython(
   const downloadManager = new DownloadManager(idfToolsDir);
   const installManager = new InstallManager(idfToolsDir);
   let pythonURLToUse: string;
+  let pythonSize: number;
   if (idfVersion >= "5.0") {
     pythonURLToUse =
       mirror === ESP.IdfMirror.Github
         ? ESP.URL.IDF_EMBED_PYTHON.GITHUB_EMBED_PYTHON_URL
         : ESP.URL.IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL;
+    pythonSize =
+      mirror === ESP.IdfMirror.Github
+        ? ESP.URL.IDF_EMBED_PYTHON.GITHUB_EMBED_PYTHON_SIZE
+        : ESP.URL.IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_SIZE;
   } else {
     pythonURLToUse =
       mirror === ESP.IdfMirror.Github
         ? ESP.URL.OLD_IDF_EMBED_PYTHON.GITHUB_EMBED_PYTHON_URL
         : ESP.URL.OLD_IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL;
+    pythonSize =
+      mirror === ESP.IdfMirror.Github
+        ? ESP.URL.OLD_IDF_EMBED_PYTHON.GITHUB_EMBED_PYTHON_SIZE
+        : ESP.URL.OLD_IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_SIZE;
   }
   const idfPyZipPath = join(idfToolsDir, "dist", basename(pythonURLToUse));
   const pkgProgress = new PackageProgress(
@@ -162,7 +176,8 @@ export async function installIdfPython(
     pythonURLToUse,
     join(idfToolsDir, "dist"),
     pkgProgress,
-    cancelToken
+    cancelToken,
+    pythonSize
   );
   const doesZipfileExist = await pathExists(idfPyZipPath);
   if (!doesZipfileExist) {
