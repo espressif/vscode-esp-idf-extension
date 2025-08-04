@@ -114,10 +114,14 @@ export class SerialPort {
           OutputChannel.appendLine(
             `Detecting default port using esptool.py...`
           );
-          const result = await spawn(pythonBinPath, [esptoolPath, "chip_id"], {
-            silent: false,
-            appendMode: "append",
-          });
+          const result = await spawn(
+            pythonBinPath,
+            [esptoolPath, "--chip", expectedTarget, "chip_id"],
+            {
+              silent: false,
+              appendMode: "append",
+            }
+          );
 
           const output = result.toString();
           const lines = output.split("\n");
