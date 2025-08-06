@@ -16,6 +16,8 @@ import * as vscode from "vscode";
 import { Logger } from "./logger/logger";
 import { ESP } from "./config";
 import { ProjectConfElement } from "./project-conf/projectConfiguration";
+import { SerialPort } from "./espIdf/serial/serialPort";
+import { showInfoNotificationWithAction } from "./logger/utils";
 
 export enum NotificationMode {
   Silent = "Silent",
@@ -356,4 +358,39 @@ export function resolveVariables(
     }
     return match;
   });
+}
+
+/**
+ * Read serial port configuration and handle "detect" mode
+ * @param workspaceFolder The workspace folder URI
+ * @param useMonitorPort Whether to use monitor port setting instead of flash port
+ * @returns The resolved port string or undefined if detection fails
+ */
+export async function readSerialPort(
+  workspaceFolder: vscode.Uri,
+  useMonitorPort: boolean = false
+): Promise<string> {
+  const portSetting = useMonitorPort ? "idf.monitorPort" : "idf.port";
+  const port = readParameter(portSetting, workspaceFolder) as string;
+
+  if (port === "detect") {
+    Logger.info("Port set to 'detect', running auto-detection...");
+    const detectedPort = await SerialPort.detectDefaultPort(workspaceFolder);
+    if (detectedPort) {
+      Logger.info(`Auto-detected port: ${detectedPort}`);
+      return detectedPort;
+    } else {
+      Logger.warn("Auto-detection failed, no compatible device found");
+      await showInfoNotificationWithAction(
+        vscode.l10n.t(
+          "Serial port auto-detection failed, no compatible device found"
+        ),
+        vscode.l10n.t("Detect"),
+        () => vscode.commands.executeCommand("espIdf.detectSerialPort")
+      );
+      return "";
+    }
+  }
+
+  return port;
 }

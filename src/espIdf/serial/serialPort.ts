@@ -26,6 +26,7 @@ import { OutputChannel } from "../../logger/outputChannel";
 import * as SerialPortLib from "serialport";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
+import { showInfoNotificationWithAction } from "../../logger/utils";
 
 export class SerialPort {
   /**
@@ -107,9 +108,8 @@ export class SerialPort {
           );
 
           const targetMatch = await getIdfTargetFromSdkconfig(workspaceFolder);
-          const expectedTarget = targetMatch ? targetMatch : "esp32"; // fallback to esp32
+          const expectedTarget = targetMatch ? targetMatch : "esp32";
 
-          // Use esptool.py to detect the default connected device
           OutputChannel.show();
           OutputChannel.appendLine(
             `Detecting default port using esptool.py...`
@@ -120,6 +120,7 @@ export class SerialPort {
             {
               silent: false,
               appendMode: "append",
+              timeout: 15000,
             }
           );
 
@@ -167,7 +168,7 @@ export class SerialPort {
                 .replace(/-/g, "");
 
               // Check if the chip type matches the expected target
-              if (chipType.includes(expectedTarget.toLowerCase())) {
+              if (chipType === expectedTarget.toLowerCase()) {
                 foundWorkingPort = this.convertPortName(currentPort);
                 break;
               }
@@ -184,7 +185,10 @@ export class SerialPort {
 
           if (!foundWorkingPort) {
             progress.report({
-              message: vscode.l10n.t("No compatible device found"),
+              message: vscode.l10n.t(
+                "No serial port found for current IDF_TARGET: {0}",
+                expectedTarget
+              ),
             });
           }
 
@@ -282,7 +286,11 @@ export class SerialPort {
               "No serial port found for current IDF_TARGET: {0}",
               currentTarget
             );
-            Logger.infoNotify(noPortFoundMsg);
+            await showInfoNotificationWithAction(
+              noPortFoundMsg,
+              vscode.l10n.t("Detect"),
+              () => vscode.commands.executeCommand("espIdf.detectSerialPort")
+            );
           }
         } else {
           await this.updatePortListStatus(

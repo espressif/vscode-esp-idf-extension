@@ -18,20 +18,23 @@
 import { join } from "path";
 import { commands, l10n, Uri } from "vscode";
 import { FlashTask } from "../../flash/flashTask";
-import { readParameter } from "../../idfConfiguration";
+import { readParameter, readSerialPort } from "../../idfConfiguration";
 import * as utils from "../../utils";
 import { BuildTask } from "../../build/buildTask";
 import { Logger } from "../../logger/logger";
 import { R_OK } from "constants";
 import { IDFMonitor, MonitorConfig } from ".";
 import { ESP } from "../../config";
-import { getIdfTargetFromSdkconfig, getProjectName } from "../../workspaceConfig";
+import {
+  getIdfTargetFromSdkconfig,
+  getProjectName,
+} from "../../workspaceConfig";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function createNewIdfMonitor(
   workspaceFolder: Uri,
   noReset: boolean = false,
-  serialPort?: string
+  givenSerialPort?: string
 ) {
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
     const waitProcessIsFinishedMsg = l10n.t("Wait for ESP-IDF task to finish");
@@ -42,17 +45,25 @@ export async function createNewIdfMonitor(
     );
     return;
   }
-  const monitorPort = readParameter("idf.monitorPort", workspaceFolder) as string;
-  const port = serialPort
-    ? serialPort
-    : monitorPort 
+  const serialPort = await readSerialPort(workspaceFolder, false);
+  const monitorPort = readParameter(
+    "idf.monitorPort",
+    workspaceFolder
+  ) as string;
+  const port = givenSerialPort
+    ? givenSerialPort
+    : monitorPort
     ? monitorPort
-    : (readParameter("idf.port", workspaceFolder) as string);
+    : serialPort;
   if (!port) {
     try {
       await commands.executeCommand("espIdf.selectPort");
     } catch (error) {
-      Logger.error("Unable to execute the command: espIdf.selectPort", error, "command createNewIdfMonitor");
+      Logger.error(
+        "Unable to execute the command: espIdf.selectPort",
+        error,
+        "command createNewIdfMonitor"
+      );
     }
     Logger.errorNotify(
       "Select a serial port before flashing",
@@ -70,7 +81,9 @@ export async function createNewIdfMonitor(
   }
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
   const idfVersion = await utils.getEspIdfFromCMake(idfPath);
-  let sdkMonitorBaudRate: string = await utils.getMonitorBaudRate(workspaceFolder);
+  let sdkMonitorBaudRate: string = await utils.getMonitorBaudRate(
+    workspaceFolder
+  );
   const idfMonitorToolPath = join(idfPath, "tools", "idf_monitor.py");
   if (!utils.canAccessFile(idfMonitorToolPath, R_OK)) {
     Logger.errorNotify(

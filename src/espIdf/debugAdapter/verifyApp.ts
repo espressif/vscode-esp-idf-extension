@@ -17,9 +17,9 @@
  */
 
 import { join } from "path";
-import { Uri } from "vscode";
+import { l10n, Uri } from "vscode";
 import { createFlashModel } from "../../flash/flashModelBuilder";
-import { readParameter } from "../../idfConfiguration";
+import { readParameter, readSerialPort } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
 import { pathExists } from "fs-extra";
@@ -27,7 +27,15 @@ import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function verifyAppBinary(workspaceFolder: Uri) {
   const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
-  const serialPort = readParameter("idf.port", workspaceFolder);
+  const serialPort = await readSerialPort(workspaceFolder, false);
+  if (!serialPort) {
+    return Logger.warnNotify(
+      l10n.t(
+        "No serial port found for current IDF_TARGET: {0}",
+        modifiedEnv["IDF_TARGET"] || "default"
+      )
+    );
+  }
   const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolder);
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
