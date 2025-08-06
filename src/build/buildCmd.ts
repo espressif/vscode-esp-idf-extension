@@ -29,7 +29,7 @@ import {
 } from "../workspaceConfig";
 import { IdfSizeTask } from "../espIdf/size/idfSizeTask";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
-import { readParameter } from "../idfConfiguration";
+import { readParameter, readSerialPort } from "../idfConfiguration";
 import { ESP } from "../config";
 import { createFlashModel } from "../flash/flashModelBuilder";
 import { OutputChannel } from "../logger/outputChannel";
@@ -132,7 +132,7 @@ export async function buildFinishFlashCmd(workspace: vscode.Uri) {
   if (!flasherArgsExists) {
     return;
   }
-  const port = readParameter("idf.port", workspace);
+  const port = await readSerialPort(workspace, false);
   const flashBaudRate = readParameter("idf.flashBaudRate", workspace);
 
   const flasherArgsModel = await createFlashModel(
@@ -159,9 +159,9 @@ export async function buildFinishFlashCmd(workspace: vscode.Uri) {
     flasherArgsModel.chip
   } -b ${flashBaudRate} --before ${flasherArgsModel.before} --after ${
     flasherArgsModel.after
-  } ${
-    flasherArgsModel.stub === false ? "--no-stub" : ""
-  } --port ${port} write_flash ${flashFiles}\n`;
+  } ${flasherArgsModel.stub === false ? "--no-stub" : ""} ${
+    port ? `--port ${port}` : ""
+  } write_flash ${flashFiles}\n`;
   flashString += `or from the "${buildPath}" directory\n`;
   flashString += `python -m esptool --chip ${flasherArgsModel.chip} `;
   flashString += `-b ${flashBaudRate} --before ${flasherArgsModel.before} `;
