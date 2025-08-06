@@ -175,13 +175,13 @@
   "Build Project": "Сборка проекта",
   "ESP-IDF Size": "Размер ESP-IDF",
   "Full Clean": "Полная очистка",
-  "ESP-IDF: Select Flash Method": "ESP-IDF: выбор метода прошивки",
+  "Select Flash Method": "Выбор метода прошивки",
   "Flash Device": "Прошивка",
   "Erase Flash": "Стереть Flash",
   "Monitor Device": "Монитор IDF",
-  "ESP-IDF: Build, Flash and Monitor": "ESP-IDF: сборка, прошивка и мониторинг",
+  "Build, Flash and Monitor": "Сборка, прошивка и мониторинг",
   "Debug": "Отладка",
-  "[OpenOCD Server]": "[Сервер OpenOCD]",
+  "OpenOCD Server": "Сервер OpenOCD",
   "Open ESP-IDF Terminal": "Открыть терминал ESP-IDF",
   "Open Classic Menuconfig Terminal": "Открыть классический терминал конфигурации",
   "Doctor Command": "Команда 'Доктор'",
@@ -253,5 +253,6 @@
   "Clear All Error Hints": "Очистить все подсказки по ошибкам",
   "Clear Build Error Hints": "Очистить подсказки по ошибкам сборки",
   "Clear OpenOCD Error Hints": "Очистить подсказки по ошибкам OpenOCD",
-  "Open Reference": "Открыть ссылку"
+  "Open Reference": "Открыть ссылку",
+  "Launch Debug": "Запуск отладки"
 }

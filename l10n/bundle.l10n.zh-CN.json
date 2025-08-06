@@ -175,13 +175,13 @@
   "Build Project": "构建项目",
   "ESP-IDF Size": "ESP-IDF 二进制文件大小分析",
   "Full Clean": "彻底清理",
-  "ESP-IDF: Select Flash Method": "ESP-IDF：选择烧录方式",
+  "Select Flash Method": "选择烧录方式",
   "Flash Device": "烧录项目",
   "Erase Flash": "擦除设备 flash 数据",
   "Monitor Device": "监视设备",
-  "ESP-IDF: Build, Flash and Monitor": "ESP-IDF：构建、烧录和监视",
+  "Build, Flash and Monitor": "构建、烧录和监视",
   "Debug": "调试",
-  "[OpenOCD Server]": "[OpenOCD 服务器]",
+  "OpenOCD Server": "OpenOCD 服务器",
   "Open ESP-IDF Terminal": "打开 ESP-IDF 终端",
   "Open Classic Menuconfig Terminal": "打开经典菜单配置终端",
   "Doctor Command": "诊断命令",
@@ -253,5 +253,6 @@
   "Clear All Error Hints": "清除所有错误提示",
   "Clear Build Error Hints": "清除构建错误提示",
   "Clear OpenOCD Error Hints": "清除 OpenOCD 错误提示",
-  "Open Reference": "打开参考"
+  "Open Reference": "打开参考",
+  "Launch Debug": "启动调试"
 }
