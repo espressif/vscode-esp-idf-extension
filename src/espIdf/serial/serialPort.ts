@@ -34,7 +34,7 @@ export class SerialPort {
    * @param portName The port name to convert
    * @returns The converted port name (TTY to CU or CU to TTY)
    */
-  private static convertPortName(portName: string): string {
+  private static convertMacOSPortName(portName: string): string {
     if (portName.startsWith("/dev/tty.")) {
       return portName.replace("/dev/tty.", "/dev/cu.");
     } else if (portName.startsWith("/dev/cu.")) {
@@ -55,10 +55,10 @@ export class SerialPort {
     // Convert both to TTY format for comparison
     const tty1 = port1.startsWith("/dev/tty.")
       ? port1
-      : this.convertPortName(port1);
+      : this.convertMacOSPortName(port1);
     const tty2 = port2.startsWith("/dev/tty.")
       ? port2
-      : this.convertPortName(port2);
+      : this.convertMacOSPortName(port2);
 
     return tty1 === tty2;
   }
@@ -169,7 +169,7 @@ export class SerialPort {
 
               // Check if the chip type matches the expected target
               if (chipType === expectedTarget.toLowerCase()) {
-                foundWorkingPort = this.convertPortName(currentPort);
+                foundWorkingPort = this.convertMacOSPortName(currentPort);
                 break;
               }
             }
