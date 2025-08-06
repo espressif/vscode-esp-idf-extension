@@ -210,7 +210,7 @@ export function createCommandDictionary(): Record<
         TreeItemCheckboxState.Checked
       ),
       iconId: "star-empty",
-      tooltip: l10n.t("ESP-IDF: Select Flash Method"),
+      tooltip: l10n.t("Select Flash Method"),
     },
     [CommandKeys.SelectSerialPort]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
@@ -290,7 +290,7 @@ export function createCommandDictionary(): Record<
         TreeItemCheckboxState.Checked
       ),
       iconId: "flame",
-      tooltip: l10n.t("ESP-IDF: Build, Flash and Monitor"),
+      tooltip: l10n.t("Build, Flash and Monitor"),
     },
     [CommandKeys.OpenOCD]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
@@ -298,7 +298,7 @@ export function createCommandDictionary(): Record<
         TreeItemCheckboxState.Checked
       ),
       iconId: "server-environment",
-      tooltip: l10n.t("[OpenOCD Server]"),
+      tooltip: l10n.t("OpenOCD Server"),
     },
     [CommandKeys.Debug]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
@@ -306,7 +306,7 @@ export function createCommandDictionary(): Record<
         TreeItemCheckboxState.Checked
       ),
       iconId: "debug-alt",
-      tooltip: l10n.t("Debug"),
+      tooltip: l10n.t("Launch Debug"),
     },
     [CommandKeys.IDFTerminal]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(

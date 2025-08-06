@@ -175,13 +175,13 @@
   "Build Project": "构建项目",
   "ESP-IDF Size": "ESP-IDF 二进制文件大小分析",
   "Full Clean": "彻底清理",
-  "ESP-IDF: Select Flash Method": "ESP-IDF：选择烧录方式",
+  "Select Flash Method": "选择烧录方式",
   "Flash Device": "烧录项目",
   "Erase Flash": "擦除设备 flash 数据",
   "Monitor Device": "监视设备",
-  "ESP-IDF: Build, Flash and Monitor": "ESP-IDF：构建、烧录和监视",
+  "Build, Flash and Monitor": "构建、烧录和监视",
   "Debug": "调试",
-  "[OpenOCD Server]": "[OpenOCD 服务器]",
+  "OpenOCD Server": "OpenOCD 服务器",
   "Open ESP-IDF Terminal": "打开 ESP-IDF 终端",
   "Open Classic Menuconfig Terminal": "打开经典菜单配置终端",
   "Doctor Command": "诊断命令",
@@ -244,5 +244,6 @@
   "Would you like to reload the window to activate the clangd extension?": "您是否要重新加载窗口以激活 clangd 扩展？",
   "Reload": "重新加载",
   "Later": "稍后",
-  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "安装 clangd 扩展失败。您可以从扩展市场手动安装它。"
+  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "安装 clangd 扩展失败。您可以从扩展市场手动安装它。",
+  "Launch Debug": "启动调试"
 }
