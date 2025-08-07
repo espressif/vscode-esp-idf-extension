@@ -13,13 +13,11 @@
 // limitations under the License.
 
 import * as del from "del";
-import { https } from "follow-redirects";
 import * as fs from "fs";
 import { ensureDir, pathExists } from "fs-extra";
-import * as http from "http";
 import * as path from "path";
-import * as url from "url";
 import * as vscode from "vscode";
+import axios, { AxiosRequestConfig, AxiosResponse, CancelToken } from "axios";
 import { IdfToolsManager } from "./idfToolsManager";
 import { IFileInfo, IPackage } from "./IPackage";
 import { Logger } from "./logger/logger";
@@ -31,6 +29,9 @@ import * as utils from "./utils";
 import { ESP } from "./config";
 
 export class DownloadManager {
+  private readonly MAX_RETRIES = 5;
+  private readonly TIMEOUT = 30000; // 30 seconds
+
   constructor(
     private installPath: string,
     private refreshUIRate: number = 0.5
@@ -114,6 +115,7 @@ export class DownloadManager {
     const fileName = utils.fileNameFromUrl(urlInfoToUse.url);
     const destPath = this.getToolPackagesPath(["dist"]);
     const absolutePath: string = this.getToolPackagesPath(["dist", fileName]);
+
     const pkgExists = await pathExists(absolutePath);
     if (pkgExists) {
       const checksumEqual = await utils.validateFileSizeAndChecksum(
@@ -132,22 +134,23 @@ export class DownloadManager {
         )} / ${(urlInfoToUse.size / 1024).toFixed(2)}) KB`;
         return;
       } else {
-        await del(absolutePath, { force: true });
-        await this.downloadWithRetries(
-          urlInfoToUse.url,
-          destPath,
-          pkgProgress,
-          cancelToken
+        this.appendChannel(
+          `Checksum mismatch for ${pkg.name}, will resume download`
         );
+        // Don't delete the file - we'll resume from where we left off
       }
-    } else {
-      await this.downloadWithRetries(
-        urlInfoToUse.url,
-        destPath,
-        pkgProgress,
-        cancelToken
-      );
     }
+
+    // Download with resume capability
+    await this.downloadWithResume(
+      urlInfoToUse.url,
+      destPath,
+      pkgProgress,
+      cancelToken,
+      urlInfoToUse.size
+    );
+
+    // Validate the downloaded file
     pkgProgress.FileMatchChecksum = await utils.validateFileSizeAndChecksum(
       absolutePath,
       urlInfoToUse.sha256,
@@ -155,248 +158,403 @@ export class DownloadManager {
     );
   }
 
-  public async downloadWithRetries(
+  /**
+   * Download file with resume capability using HTTP Range requests
+   */
+  public async downloadWithResume(
     urlToUse: string,
     destPath: string,
-    pkgProgress: PackageProgress,
-    cancelToken?: vscode.CancellationToken
-  ) {
-    let success: boolean = false;
-    let retryCount: number = 2;
-    const MAX_RETRIES: number = 5;
-    do {
-      try {
-        await this.downloadFile(
-          urlToUse,
-          retryCount,
-          destPath,
-          pkgProgress,
-          cancelToken
-        ).catch((pkgError: PackageError) => {
-          throw pkgError;
-        });
-        success = true;
-      } catch (error) {
-        const errMsg = error.message
-          ? error.message
-          : `Error downloading ${urlToUse}`;
-        Logger.error(errMsg, error, "downloadManager downloadWithRetries");
-        retryCount += 1;
-        if (cancelToken && cancelToken.isCancellationRequested) {
-          throw error;
-        }
-        if (retryCount > MAX_RETRIES) {
-          this.appendChannel("Failed to download " + urlToUse);
-          throw error;
-        } else {
-          this.appendChannel("Failed download. Retrying...");
-          this.appendChannel(`Error: ${error}`);
-          continue;
-        }
-      }
-    } while (!success && retryCount < MAX_RETRIES);
+    pkgProgress?: PackageProgress,
+    cancelToken?: vscode.CancellationToken,
+    expectedSize?: number
+  ): Promise<any> {
+    const fileName = utils.fileNameFromUrl(urlToUse);
+    const absolutePath = path.resolve(destPath, fileName);
 
-    if (!success && retryCount > MAX_RETRIES) {
-      throw new Error(`Downloading ${urlToUse} has not been successful.`);
+    // Ensure destination directory exists
+    await ensureDir(destPath, { mode: 0o775 });
+
+    let retryCount = 0;
+    let lastError: Error;
+
+    while (retryCount < this.MAX_RETRIES) {
+      try {
+        let startByte = 0;
+
+        if (await pathExists(absolutePath)) {
+          const stats = await fs.promises.stat(absolutePath);
+          startByte = stats.size;
+
+          // Check if file is already complete
+          if (expectedSize && startByte >= expectedSize) {
+            this.appendChannel(
+              `File ${fileName} already exists and appears to be complete (${startByte} bytes >= ${expectedSize} expected)`
+            );
+            if (pkgProgress) {
+              pkgProgress.Progress = "100.00%";
+              pkgProgress.ProgressDetail = `(${(expectedSize / 1024).toFixed(
+                2
+              )} / ${(expectedSize / 1024).toFixed(2)}) KB`;
+            }
+            return { status: 200, data: null }; // Return success for completed download
+          }
+
+          if (startByte > 0) {
+            this.appendChannel(
+              `Resuming download of ${fileName} from byte ${startByte}`
+            );
+          }
+        }
+
+        // Check if server supports range requests
+        const supportsRange = await this.checkRangeSupport(urlToUse);
+
+        let response: any;
+
+        if (supportsRange && startByte > 0) {
+          // Resume download using range requests
+          response = await this.downloadWithRange(
+            urlToUse,
+            absolutePath,
+            startByte,
+            pkgProgress,
+            cancelToken,
+            expectedSize
+          );
+        } else {
+          // Full download (either no range support or starting from beginning)
+          if (startByte > 0) {
+            this.appendChannel(
+              `Server doesn't support range requests, starting fresh download`
+            );
+            await del(absolutePath, { force: true });
+          }
+          response = await this.downloadFull(
+            urlToUse,
+            absolutePath,
+            pkgProgress,
+            cancelToken,
+            expectedSize
+          );
+        }
+
+        this.appendChannel(`Successfully downloaded ${fileName}`);
+        return response;
+      } catch (error) {
+        lastError = error;
+        retryCount++;
+
+        // Handle 416 Range Not Satisfiable error specifically
+        if (error.response && error.response.status === 416) {
+          this.appendChannel(
+            `Received 416 Range Not Satisfiable for ${fileName}. File may already be complete.`
+          );
+
+          // Check if the file exists and has reasonable size
+          if (await pathExists(absolutePath)) {
+            const stats = await fs.promises.stat(absolutePath);
+            if (stats.size > 0) {
+              this.appendChannel(
+                `File ${fileName} exists with size ${stats.size} bytes. Treating as complete.`
+              );
+              if (pkgProgress) {
+                const size = expectedSize || stats.size;
+                pkgProgress.Progress = "100.00%";
+                pkgProgress.ProgressDetail = `(${(size / 1024).toFixed(2)} / ${(
+                  size / 1024
+                ).toFixed(2)}) KB`;
+              }
+              return { status: 200, data: null }; // Return success for completed download
+            }
+          }
+        }
+
+        if (cancelToken && cancelToken.isCancellationRequested) {
+          throw new PackageError(
+            "Download cancelled by user",
+            "downloadWithResume"
+          );
+        }
+
+        if (retryCount >= this.MAX_RETRIES) {
+          this.appendChannel(
+            `Failed to download ${urlToUse} after ${this.MAX_RETRIES} attempts`
+          );
+          throw error;
+        }
+
+        // Calculate exponential backoff delay
+        const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 10000);
+        this.appendChannel(
+          `Download failed (attempt ${retryCount}/${this.MAX_RETRIES}). Retrying in ${delay}ms...`
+        );
+        this.appendChannel(`Error: ${error.message || error}`);
+
+        // Wait before retry
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError;
+  }
+
+  /**
+   * Check if server supports HTTP Range requests
+   */
+  private async checkRangeSupport(url: string): Promise<boolean> {
+    try {
+      const config: AxiosRequestConfig = {
+        method: "HEAD",
+        timeout: this.TIMEOUT,
+        headers: {
+          "User-Agent": ESP.HTTP_USER_AGENT,
+        },
+      };
+
+      const response = await axios.head(url, config);
+      const acceptRanges = response.headers["accept-ranges"];
+      const contentRange = response.headers["content-range"];
+
+      return acceptRanges === "bytes" || !!contentRange;
+    } catch (error) {
+      this.appendChannel(`Could not check range support: ${error.message}`);
+      return false;
     }
   }
 
-  public downloadFile(
-    urlString: string,
-    delay: number,
-    destinationPath: string,
+  /**
+   * Download file using HTTP Range requests for resume capability
+   */
+  private async downloadWithRange(
+    url: string,
+    filePath: string,
+    startByte: number,
     pkgProgress?: PackageProgress,
-    cancelToken?: vscode.CancellationToken
-  ): Promise<http.IncomingMessage> {
-    const parsedUrl: url.Url = url.parse(urlString);
-    const proxyStrictSSL: any = vscode.workspace
-      .getConfiguration()
-      .get("http.proxyStrictSSL", true);
+    cancelToken?: vscode.CancellationToken,
+    expectedSize?: number
+  ): Promise<any> {
+    const fileName = path.basename(filePath);
+    const fileStream = fs.createWriteStream(filePath, {
+      flags: "a",
+      mode: 0o775,
+    }); // Append mode
 
-    const options = {
-      agent: utils.getHttpsProxyAgent(),
-      host: parsedUrl.host,
-      path: parsedUrl.pathname,
-      rejectUnauthorized: proxyStrictSSL,
+    const config: AxiosRequestConfig = {
+      method: "GET",
+      timeout: this.TIMEOUT,
+      responseType: "stream",
+      headers: {
+        "User-Agent": ESP.HTTP_USER_AGENT,
+        Range: `bytes=${startByte}-`,
+      },
+      cancelToken: cancelToken
+        ? this.createCancelToken(cancelToken)
+        : undefined,
     };
 
-    return new Promise<http.IncomingMessage>((resolve, reject) => {
-      if (cancelToken && cancelToken.isCancellationRequested) {
-        return reject(
-          new PackageError("Download cancelled by user", "downloadFile")
+    this.appendChannel(
+      `Downloading ${fileName} with range request from byte ${startByte}`
+    );
+
+    try {
+      const response = await axios.get(url, config);
+
+      if (response.status !== 206 && response.status !== 200) {
+        throw new PackageManagerWebError(
+          null,
+          "HTTP Range Request Error",
+          "downloadWithRange",
+          `Unexpected status code: ${response.status}`,
+          response.status.toString()
         );
       }
-      let secondsDelay: number = Math.pow(2, delay);
-      if (secondsDelay === 1) {
-        secondsDelay = 0;
+      const contentRange = response.headers["content-range"];
+      let totalSize = expectedSize || 0;
+
+      // Parse content-range header to get total size
+      if (contentRange) {
+        const match = contentRange.match(/bytes \d+-\d+\/(\d+)/);
+        if (match) {
+          totalSize = parseInt(match[1], 10);
+        }
       }
-      if (secondsDelay > 4) {
-        this.appendChannel(`Waiting ${secondsDelay} seconds...`);
-      }
-      setTimeout(() => {
-        const handleResponse: (response: http.IncomingMessage) => void = async (
-          response: http.IncomingMessage
-        ) => {
-          if (response.statusCode === 301 || response.statusCode === 302) {
-            let redirectUrl: string;
-            if (!response.headers.location) {
-              return reject(
-                new PackageManagerWebError(
-                  response.socket,
-                  "HTTP/HTTPS Location header error",
-                  "downloadFile",
-                  "HTTP/HTTPS missing location header error",
-                  response.statusCode.toString()
-                )
-              );
-            }
-            if (typeof response.headers.location === "string") {
-              redirectUrl = response.headers.location;
-            } else {
-              redirectUrl = response.headers.location[0];
-            }
-            return resolve(
-              await this.downloadFile(
-                redirectUrl,
-                0,
-                destinationPath,
-                pkgProgress
-              )
-            );
-          } else if (response.statusCode !== 200) {
-            const errorMessage: string = `Failed web connection with error code: ${response.statusCode}\n${urlString}`;
-            this.appendChannel(`File download response error: ${errorMessage}`);
-            return reject(
-              new PackageManagerWebError(
-                response.socket,
-                "HTTP/HTTPS Response Error",
-                "downloadFile",
-                errorMessage,
-                response.statusCode.toString()
-              )
-            );
-          } else {
-            let contentLength: any = response.headers["content-length"] || 0;
-            let packageSize: number = parseInt(contentLength, 10);
-            let downloadPercentage: number = 0;
-            let downloadedSize: number = 0;
-            let isSizeUndefined: boolean = packageSize === 0;
-            let progressDetail: string;
 
-            this.appendChannel(`Downloading from ${urlString}`);
+      let downloadedSize = startByte;
+      let lastProgressUpdate = 0;
 
-            const fileName = utils.fileNameFromUrl(urlString);
-            const absolutePath: string = path.resolve(
-              destinationPath,
-              fileName
-            );
-            await ensureDir(destinationPath, { mode: 0o775 }).catch((err) => {
-              if (err) {
-                return reject(
-                  new PackageError(
-                    "Error creating dist directory",
-                    "DownloadPackage",
-                    err
-                  )
-                );
-              }
-            });
-            const fileStream: fs.WriteStream = fs.createWriteStream(
-              absolutePath,
-              { mode: 0o775 }
-            );
+      response.data.on("data", (chunk: Buffer) => {
+        downloadedSize += chunk.length;
 
-            fileStream.on("error", (e) => {
-              this.appendChannel(e.message);
-              return reject(
-                new PackageError("Error creating file", "DownloadPackage", e)
-              );
-            });
-            this.appendChannel(
-              `${fileName} has (${Math.ceil(packageSize / 1024)}) KB`
-            );
+        if (pkgProgress && totalSize > 0) {
+          const progress = (downloadedSize / totalSize) * 100;
+          const progressDetail = `(${(downloadedSize / 1024).toFixed(2)} / ${(
+            totalSize / 1024
+          ).toFixed(2)}) KB`;
 
-            response.on("data", (data) => {
-              downloadedSize += data.length;
-              if (isSizeUndefined) {
-                packageSize = downloadedSize * 1.25;
-              }
-              downloadPercentage = (downloadedSize / packageSize) * 100;
-              progressDetail = `(${(downloadedSize / 1024).toFixed(2)} / ${(
-                packageSize / 1024
-              ).toFixed(2)}) KB`;
-              this.appendChannel(
-                `${fileName} progress: ${downloadPercentage.toFixed(
-                  2
-                )}% ${progressDetail}`
-              );
-              if (pkgProgress) {
-                const diff =
-                  parseFloat(downloadPercentage.toFixed(2)) -
-                  parseFloat(pkgProgress.Progress.replace("%", ""));
-                if (
-                  diff > this.refreshUIRate ||
-                  downloadedSize === packageSize
-                ) {
-                  pkgProgress.Progress = `${downloadPercentage.toFixed(2)}%`;
-                  pkgProgress.ProgressDetail = progressDetail;
-                }
-              }
-            });
-
-            response.on("end", () => {
-              return resolve(response);
-            });
-
-            response.on("error", (error) => {
-              error.stack
-                ? this.appendChannel(error.stack)
-                : this.appendChannel(error.message);
-              return reject(
-                new PackageManagerWebError(
-                  response.socket,
-                  "HTTP/HTTPS Response error",
-                  "downloadFile",
-                  error.stack,
-                  error.name
-                )
-              );
-            });
-
-            response.on("aborted", () => {
-              return reject(
-                new PackageError("HTTP/HTTPS Response error", "downloadFile")
-              );
-            });
-            response.pipe(fileStream, { end: false });
+          // Update progress only if significant change
+          if (
+            progress - lastProgressUpdate >= this.refreshUIRate ||
+            downloadedSize === totalSize
+          ) {
+            pkgProgress.Progress = `${progress.toFixed(2)}%`;
+            pkgProgress.ProgressDetail = progressDetail;
+            lastProgressUpdate = progress;
           }
-        };
-        const req = https.request(options, handleResponse);
+        }
+      });
 
-        req.on("error", (error) => {
-          error.stack
-            ? this.appendChannel(error.stack)
-            : this.appendChannel(error.message);
-          return reject(
+      response.data.pipe(fileStream);
+
+      return new Promise<any>((resolve, reject) => {
+        fileStream.on("finish", () => {
+          this.appendChannel(`Range download completed: ${fileName}`);
+          resolve(response);
+        });
+
+        fileStream.on("error", (error) => {
+          reject(
             new PackageError(
-              "HTTP/HTTPS Request error " + urlString,
-              "downloadFile",
-              error.stack,
-              error.message
+              `File write error: ${error.message}`,
+              "downloadWithRange",
+              error
             )
           );
         });
-        if (cancelToken) {
-          cancelToken.onCancellationRequested(() => {
-            req.abort();
-            return reject(
-              new PackageError("Download cancelled by user", "downloadFile")
-            );
-          });
+
+        response.data.on("error", (error) => {
+          reject(
+            new PackageError(
+              `Download stream error: ${error.message}`,
+              "downloadWithRange",
+              error
+            )
+          );
+        });
+      });
+    } catch (error) {
+      // Close the file stream if it was opened
+      if (fileStream) {
+        fileStream.end();
+      }
+
+      // Re-throw the error to be handled by the calling method
+      throw error;
+    }
+  }
+
+  /**
+   * Download full file (no resume capability)
+   */
+  private async downloadFull(
+    url: string,
+    filePath: string,
+    pkgProgress?: PackageProgress,
+    cancelToken?: vscode.CancellationToken,
+    expectedSize?: number
+  ): Promise<any> {
+    const fileName = path.basename(filePath);
+    const fileStream = fs.createWriteStream(filePath, { mode: 0o775 });
+
+    const config: AxiosRequestConfig = {
+      method: "GET",
+      timeout: this.TIMEOUT,
+      responseType: "stream",
+      headers: {
+        "User-Agent": ESP.HTTP_USER_AGENT,
+      },
+      cancelToken: cancelToken
+        ? this.createCancelToken(cancelToken)
+        : undefined,
+    };
+
+    this.appendChannel(`Downloading ${fileName} (full download)`);
+
+    const response = await axios.get(url, config);
+
+    if (response.status !== 200) {
+      throw new PackageManagerWebError(
+        null,
+        "HTTP Download Error",
+        "downloadFull",
+        `Unexpected status code: ${response.status}`,
+        response.status.toString()
+      );
+    }
+
+    const contentLength = parseInt(
+      response.headers["content-length"] || "0",
+      10
+    );
+    const totalSize = expectedSize || contentLength;
+    let downloadedSize = 0;
+    let lastProgressUpdate = 0;
+
+    response.data.on("data", (chunk: Buffer) => {
+      downloadedSize += chunk.length;
+
+      if (pkgProgress && totalSize > 0) {
+        const progress = (downloadedSize / totalSize) * 100;
+        const progressDetail = `(${(downloadedSize / 1024).toFixed(2)} / ${(
+          totalSize / 1024
+        ).toFixed(2)}) KB`;
+
+        // Update progress only if significant change
+        if (
+          progress - lastProgressUpdate >= this.refreshUIRate ||
+          downloadedSize === totalSize
+        ) {
+          pkgProgress.Progress = `${progress.toFixed(2)}%`;
+          pkgProgress.ProgressDetail = progressDetail;
+          lastProgressUpdate = progress;
         }
-        req.end();
-      }, secondsDelay * 1000);
+      }
     });
+
+    response.data.pipe(fileStream);
+
+    return new Promise<any>((resolve, reject) => {
+      fileStream.on("finish", () => {
+        this.appendChannel(
+          `Full download completed: ${fileName} into ${filePath}`
+        );
+        resolve(response);
+      });
+
+      fileStream.on("error", (error) => {
+        reject(
+          new PackageError(
+            `File write error: ${error.message}`,
+            "downloadFull",
+            error
+          )
+        );
+      });
+
+      response.data.on("error", (error) => {
+        reject(
+          new PackageError(
+            `Download stream error: ${error.message}`,
+            "downloadFull",
+            error
+          )
+        );
+      });
+    });
+  }
+
+  /**
+   * Create axios cancel token from VS Code cancellation token
+   */
+  private createCancelToken(
+    cancelToken: vscode.CancellationToken
+  ): CancelToken {
+    const source = axios.CancelToken.source();
+
+    cancelToken.onCancellationRequested(() => {
+      source.cancel("Download cancelled by user");
+    });
+
+    return source.token;
   }
 
   private appendChannel(text: string): void {
