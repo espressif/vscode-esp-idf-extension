@@ -243,5 +243,14 @@
   "Would you like to reload the window to activate the clangd extension?": "¿Le gustaría recargar la ventana para activar la extensión clangd?",
   "Reload": "Recargar",
   "Later": "Más tarde",
-  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Error al instalar la extensión clangd. Puede instalarla manualmente desde el marketplace de extensiones."
+  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Error al instalar la extensión clangd. Puede instalarla manualmente desde el marketplace de extensiones.",
+  "🔗 Reference Documentation": "🔗 Documentación de Referencia",
+  "Open {0}": "Abrir {0}",
+  "💡 New ESP-IDF Hints!": "💡 ¡Nuevas Pistas ESP-IDF!",
+  "ESP-IDF: Hints available. Click to view.": "ESP-IDF: Pistas disponibles. Haga clic para ver.",
+  "Error Hints": "Pistas de Error",
+  "Clear All Error Hints": "Borrar Todas las Pistas de Error",
+  "Clear Build Error Hints": "Borrar Pistas de Error de Compilación",
+  "Clear OpenOCD Error Hints": "Borrar Pistas de Error de OpenOCD",
+  "Open Reference": "Abrir Referencia"
 }

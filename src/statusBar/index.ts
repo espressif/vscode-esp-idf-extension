@@ -25,6 +25,7 @@ import {
   UIKind,
   Uri,
   window,
+  l10n,
 } from "vscode";
 import { getCurrentIdfSetup } from "../versionSwitcher";
 import { readParameter } from "../idfConfiguration";
@@ -235,6 +236,14 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     89,
     commandDictionary[CommandKeys.CustomTask].checkboxState
   );
+  statusBarItems["hints"] = createStatusBarItem(
+    l10n.t("💡 New ESP-IDF Hints!"),
+    l10n.t("ESP-IDF: Hints available. Click to view."),
+    "espIdf.errorHints.focus",
+    1000,
+    TreeItemCheckboxState.Unchecked
+  );
+  statusBarItems["hints"].hide();
   return statusBarItems;
 }
 
@@ -255,4 +264,33 @@ export function createStatusBarItem(
     statusBarItem.show();
   }
   return statusBarItem;
+}
+
+/**
+ * Show the hints status bar item with an alert icon if hints are available
+ * @param {boolean} hasHints - Whether hints are available
+ */
+export function updateHintsStatusBarItem(hasHints: boolean) {
+  if (!statusBarItems["hints"]) return;
+  if (hasHints) {
+    statusBarItems["hints"].text = l10n.t("💡 New ESP-IDF Hints!");
+    statusBarItems["hints"].tooltip = l10n.t(
+      "ESP-IDF: Hints available. Click to view."
+    );
+    statusBarItems["hints"].backgroundColor = "statusBarItem.warningBackground";
+    statusBarItems["hints"].show();
+  } else {
+    statusBarItems["hints"].hide();
+    statusBarItems["hints"].color = undefined;
+  }
+}
+
+/**
+ * Dispose the hints status bar item
+ */
+export function disposeHintsStatusBarItem() {
+  if (statusBarItems["hints"]) {
+    statusBarItems["hints"].dispose();
+    statusBarItems["hints"] = undefined;
+  }
 }
