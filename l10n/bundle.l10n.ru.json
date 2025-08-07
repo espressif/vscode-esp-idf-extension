@@ -244,5 +244,11 @@
   "Would you like to reload the window to activate the clangd extension?": "Хотите перезагрузить окно для активации расширения clangd?",
   "Reload": "Перезагрузить",
   "Later": "Позже",
-  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Не удалось установить расширение clangd. Вы можете установить его вручную из маркетплейса расширений."
+  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Не удалось установить расширение clangd. Вы можете установить его вручную из маркетплейса расширений.",
+  "🎉 New ESP-IDF Extension setup available! We've completely redesigned the installation process with the ESP-IDF Installer Manager (EIM) for a smoother, more reliable setup experience. Help us improve by trying the pre-release!": "🎉 Доступна новая настройка расширения ESP-IDF! Мы полностью переработали процесс установки с помощью Менеджера установки ESP-IDF (EIM) для более плавного и надежного опыта настройки. Помогите нам улучшить его, попробовав предварительную версию!",
+  "Try New Pre-Release": "Попробовать новую предварительную версию",
+  "Learn More": "Узнать больше",
+  "Not Now": "Не сейчас",
+  "To install the pre-release version, click the 'Switch to Pre-Release Version' button.": "Для установки предварительной версии нажмите кнопку 'Переключиться на предварительную версию'.",
+  "Got it": "Понятно"
 }

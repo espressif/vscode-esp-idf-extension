@@ -244,5 +244,11 @@
   "Would you like to reload the window to activate the clangd extension?": "您是否要重新加载窗口以激活 clangd 扩展？",
   "Reload": "重新加载",
   "Later": "稍后",
-  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "安装 clangd 扩展失败。您可以从扩展市场手动安装它。"
+  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "安装 clangd 扩展失败。您可以从扩展市场手动安装它。",
+  "🎉 New ESP-IDF Extension setup available! We've completely redesigned the installation process with the ESP-IDF Installer Manager (EIM) for a smoother, more reliable setup experience. Help us improve by trying the pre-release!": "🎉 新的 ESP-IDF 扩展设置已发布！我们使用 ESP-IDF 安装管理器 (EIM) 完全重新设计了安装过程，提供更流畅、更可靠的设置体验。通过试用预发布版本帮助我们改进！",
+  "Try New Pre-Release": "试用新的预发布版本",
+  "Learn More": "了解更多",
+  "Not Now": "暂不使用",
+  "To install the pre-release version, click the 'Switch to Pre-Release Version' button.": "要安装预发布版本，请点击"切换到预发布版本"按钮。",
+  "Got it": "知道了"
 }
