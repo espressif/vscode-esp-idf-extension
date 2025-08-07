@@ -58,12 +58,12 @@ export async function getNewProjectArgs(
   progress.report({ increment: 10, message: "Loading ESP-IDF components..." });
   const components = [];
   progress.report({ increment: 10, message: "Loading serial ports..." });
-  let serialPortList: Array<string>;
+  let serialPortList: Array<string> = ["detect"];
   try {
     const serialPortListDetails = await SerialPort.shared().getListArray(
       workspace
     );
-    serialPortList = serialPortListDetails.map((p) => p.comName);
+    serialPortList.push(...serialPortListDetails.map((p) => p.comName));
   } catch (error) {
     const msg = error.message
       ? error.message

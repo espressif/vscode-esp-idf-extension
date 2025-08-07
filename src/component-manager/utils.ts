@@ -54,10 +54,8 @@ export async function addDependency(
       {
         cwd: workspace.fsPath,
         env: modifiedEnv,
+        cancelToken
       },
-      undefined,
-      undefined,
-      cancelToken
     );
     Logger.infoNotify(
       `Added dependency ${dependency} to the component "${component}"`

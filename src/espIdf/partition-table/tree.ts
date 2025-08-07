@@ -31,7 +31,7 @@ import {
   window,
   workspace,
 } from "vscode";
-import { readParameter } from "../../idfConfiguration";
+import { readParameter, readSerialPort } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import {
   appendIdfAndToolsToPath,
@@ -84,11 +84,19 @@ export class PartitionTreeDataProvider
   public async populatePartitionItems(workspace: Uri) {
     this.partitionItems = Array<PartitionItem>(0);
     try {
-      const serialPort = readParameter("idf.port", workspace) as string;
       const idfPath = readParameter("idf.espIdfPath", workspace);
       const buildPath = readParameter("idf.buildPath", workspace);
       const flashBaudRate = readParameter("idf.flashBaudRate", workspace);
       const modifiedEnv = await appendIdfAndToolsToPath(workspace);
+      const serialPort = await readSerialPort(workspace, false);
+      if (!serialPort) {
+        return Logger.warnNotify(
+          l10n.t(
+            "No serial port found for current IDF_TARGET: {0}",
+            modifiedEnv["IDF_TARGET"]
+          )
+        );
+      }
       const pythonBinPath = await getVirtualEnvPythonPath(workspace);
 
       const flasherArgsPath = join(buildPath, "flasher_args.json");

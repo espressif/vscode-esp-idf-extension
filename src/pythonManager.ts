@@ -153,8 +153,7 @@ export async function installPythonEnvFromIdfTools(
     pythonBinPath,
     [idfToolsPyPath, "install-python-env"],
     pyTracker,
-    { env: modifiedEnv, cwd: idfToolsDir },
-    cancelToken
+    { env: modifiedEnv, cwd: idfToolsDir, cancelToken }
   );
 
   const virtualEnvPython = await getPythonEnvPath(
@@ -170,8 +169,11 @@ export async function installExtensionPyReqs(
   espDir: string,
   idfToolsDir: string,
   pyTracker?: PyReqLog,
-  opts?: { env: NodeJS.ProcessEnv; cwd: string },
-  cancelToken?: CancellationToken
+  opts?: {
+    env: NodeJS.ProcessEnv;
+    cwd: string;
+    cancelToken?: CancellationToken;
+  }
 ) {
   const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
   const debugAdapterRequirements = join(
@@ -228,13 +230,7 @@ export async function installExtensionPyReqs(
     "--extra-index-url",
     "https://dl.espressif.com/pypi",
   ];
-  await execProcessWithLog(
-    virtualEnvPython,
-    args,
-    pyTracker,
-    opts,
-    cancelToken
-  );
+  await execProcessWithLog(virtualEnvPython, args, pyTracker, opts);
 }
 
 export async function installEspMatterPyReqs(
@@ -248,7 +244,7 @@ export async function installEspMatterPyReqs(
   const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
     Object.assign({}, process.env)
   );
-  const opts = { env: modifiedEnv, cwd: idfToolsDir };
+  const opts = { env: modifiedEnv, cwd: idfToolsDir, cancelToken };
   const virtualEnvPython = await getPythonEnvPath(
     espDir,
     idfToolsDir,
@@ -279,31 +275,20 @@ export async function installEspMatterPyReqs(
     "--extra-index-url",
     "https://dl.espressif.com/pypi",
   ];
-  await execProcessWithLog(
-    virtualEnvPython,
-    args,
-    pyTracker,
-    opts,
-    cancelToken
-  );
+  await execProcessWithLog(virtualEnvPython, args, pyTracker, opts);
   return virtualEnvPython;
 }
 export async function execProcessWithLog(
   cmd: string,
   args: string[],
   pyTracker?: PyReqLog,
-  opts?: { env: NodeJS.ProcessEnv; cwd: string },
-  cancelToken?: CancellationToken
+  opts?: {
+    env: NodeJS.ProcessEnv;
+    cwd: string;
+    cancelToken?: CancellationToken;
+  }
 ) {
-  const processResult = await utils.spawn(
-    cmd,
-    args,
-    opts,
-    undefined,
-    undefined,
-    cancelToken,
-    undefined
-  );
+  const processResult = await utils.spawn(cmd, args, opts);
   Logger.info(processResult + "\n");
   if (pyTracker) {
     pyTracker.Log = processResult + "\n";
