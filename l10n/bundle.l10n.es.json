@@ -243,5 +243,11 @@
   "Would you like to reload the window to activate the clangd extension?": "¿Le gustaría recargar la ventana para activar la extensión clangd?",
   "Reload": "Recargar",
   "Later": "Más tarde",
-  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Error al instalar la extensión clangd. Puede instalarla manualmente desde el marketplace de extensiones."
+  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Error al instalar la extensión clangd. Puede instalarla manualmente desde el marketplace de extensiones.",
+  "🎉 New ESP-IDF Extension setup available! We've completely redesigned the installation process with the ESP-IDF Installer Manager (EIM) for a smoother, more reliable setup experience. Help us improve by trying the pre-release!": "🎉 ¡Nueva configuración de la extensión ESP-IDF disponible! Hemos rediseñado completamente el proceso de instalación con el Gestor de Instalación ESP-IDF (EIM) para una experiencia de configuración más fluida y confiable. ¡Ayúdanos a mejorar probando la versión preliminar!",
+  "Try New Pre-Release": "Probar nueva versión preliminar",
+  "Learn More": "Más información",
+  "Not Now": "Ahora no",
+  "To install the pre-release version, click the 'Switch to Pre-Release Version' button.": "Para instalar la versión preliminar, haga clic en el botón 'Cambiar a versión preliminar'.",
+  "Got it": "Entendido"
 }
