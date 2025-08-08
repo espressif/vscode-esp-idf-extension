@@ -40,20 +40,20 @@ export namespace PreReleaseNotification {
 
     // Only show if this campaign hasn't been shown and notifications are enabled
     if (!shownCampaigns.includes(campaignKey) && enableNotification) {
-       // Track that the notification was shown
-       Telemetry.sendEvent("preReleaseNotification", {
-         campaign: campaignKey,
-         action: "shown",
-         extensionVersion: packageJson.version
-       });
+      // Track that the notification was shown
+      Telemetry.sendEvent("preReleaseNotification", {
+        campaign: campaignKey,
+        action: "shown",
+        extensionVersion: packageJson.version,
+      });
 
-       const message = l10n.t(
-         "🎉 New ESP-IDF Extension setup available! We've completely redesigned the installation process with the ESP-IDF Installer Manager (EIM) for a smoother, more reliable setup experience. Help us improve by trying the pre-release!"
-       );
+      const message = l10n.t(
+        "🎉 New ESP-IDF Extension setup available! We've completely redesigned the installation process with the ESP-IDF Installer Manager (EIM) for a smoother, more reliable setup experience. Help us improve by trying the pre-release!"
+      );
 
-       const tryPreRelease = l10n.t("Try New Pre-Release");
-       const learnMore = l10n.t("Learn More");
-       const notNow = l10n.t("Not Now");
+      const tryPreRelease = l10n.t("Try New Pre-Release");
+      const learnMore = l10n.t("Learn More");
+      const notNow = l10n.t("Not Now");
 
       const response = await window.showInformationMessage(
         message,
@@ -63,34 +63,36 @@ export namespace PreReleaseNotification {
         notNow
       );
 
-             if (response === tryPreRelease) {
-         // Track user clicked to try pre-release
-         Telemetry.sendEvent("preReleaseNotification", {
-           campaign: campaignKey,
-           action: "tryPreRelease",
-           extensionVersion: packageJson.version
-         });
+      if (response === tryPreRelease) {
+        // Track user clicked to try pre-release
+        Telemetry.sendEvent("preReleaseNotification", {
+          campaign: campaignKey,
+          action: "tryPreRelease",
+          extensionVersion: packageJson.version,
+        });
 
-         // Open the extension in Extensions view
-         const extensionUri = Uri.parse(
-           "vscode:extension/espressif.esp-idf-extension"
-         );
-         await env.openExternal(extensionUri);
-         
-         // Show additional guidance for enabling pre-release
-         const preReleaseInfo = await window.showInformationMessage(
-           l10n.t("To install the pre-release version, click the 'Switch to Pre-Release Version' button."),
-           { modal: false },
-           l10n.t("Got it")
-         );
-         
-         Logger.info("User clicked to try pre-release from notification");
+        // Open the extension in Extensions view
+        const extensionUri = Uri.parse(
+          "vscode:extension/espressif.esp-idf-extension"
+        );
+        await env.openExternal(extensionUri);
+
+        // Show additional guidance for enabling pre-release
+        const preReleaseInfo = await window.showInformationMessage(
+          l10n.t(
+            "To install the pre-release version, click the 'Switch to Pre-Release Version' button."
+          ),
+          { modal: false },
+          l10n.t("Got it")
+        );
+
+        Logger.info("User clicked to try pre-release from notification");
       } else if (response === learnMore) {
         // Track user clicked to learn more
         Telemetry.sendEvent("preReleaseNotification", {
           campaign: campaignKey,
           action: "learnMore",
-          extensionVersion: packageJson.version
+          extensionVersion: packageJson.version,
         });
 
         // Open documentation about the new setup experience
@@ -99,22 +101,27 @@ export namespace PreReleaseNotification {
         );
         await env.openExternal(docsUri);
         Logger.info("User clicked to learn more from pre-release notification");
+        
+        // Re-show the notification after viewing docs
+        setTimeout(() => {
+          showPreReleaseNotification(context);
+        }, 2000); // Small delay to let the external browser open
       } else {
         // Track user dismissed the notification (clicked "Not Now" or dismissed)
         Telemetry.sendEvent("preReleaseNotification", {
           campaign: campaignKey,
           action: response ? "notNow" : "dismissed",
-          extensionVersion: packageJson.version
+          extensionVersion: packageJson.version,
         });
         Logger.info("User dismissed pre-release notification");
       }
 
-    // Mark this campaign as shown
-    const updatedCampaigns = [...shownCampaigns, campaignKey];
-    await context.globalState.update(
+      // Mark this campaign as shown
+      const updatedCampaigns = [...shownCampaigns, campaignKey];
+      await context.globalState.update(
         ESP.PreReleaseNotification.SHOWN_KEY,
         updatedCampaigns
-    );
+      );
     }
   }
 }

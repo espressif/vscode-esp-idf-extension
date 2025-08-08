@@ -287,7 +287,7 @@ export async function activate(context: vscode.ExtensionContext) {
   Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
   utils.setExtensionContext(context);
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
-  
+
   // Show pre-release notification if not shown for this version
   PreReleaseNotification.showPreReleaseNotification(context);
 
