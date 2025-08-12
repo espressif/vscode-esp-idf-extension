@@ -95,6 +95,7 @@
   "espIdf.unitTest.flashUnitTestApp.title": "Unit Test: Flash Unit Test App",
   "espIdf.unitTest.installPyTest.title": "Unit Test: Install ESP-IDF PyTest Requirements",
   "espIdf.viewAsHex.title": "View as Hex",
+  "espIdf.openImageViewer.title": "Open Image Viewer",
   "espIdf.hexView.copyValue.title": "Copy value to clipboard",
   "espIdf.hexView.deleteElement.title": "Delete hex value from list",
   "espIdf.webview.nvsPartitionEditor.title": "Open NVS Partition Editor",

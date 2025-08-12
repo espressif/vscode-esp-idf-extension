@@ -176,6 +176,8 @@ import {
   HexTreeItem,
   HexViewProvider,
 } from "./cdtDebugAdapter/hexViewProvider";
+
+import { ImageViewPanel } from "./cdtDebugAdapter/imageViewPanel";
 import { configureClangSettings } from "./clang";
 
 // Global variables shared by commands
@@ -1476,6 +1478,16 @@ export async function activate(context: vscode.ExtensionContext) {
           const msg = e && e.message ? e.message : e;
           Logger.errorNotify(msg, e, "extension espIdf.viewAsHex");
         }
+      });
+    }
+  );
+  
+  registerIDFCommand(
+    "espIdf.openImageViewer",
+    () => {
+      return PreCheck.perform([openFolderCheck], () => {
+        // Show the ImageViewPanel without an image
+        ImageViewPanel.show(context.extensionPath);
       });
     }
   );

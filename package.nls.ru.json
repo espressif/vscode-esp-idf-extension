@@ -95,6 +95,7 @@
 	"espIdf.unitTest.flashUnitTestApp.title": "Unit Test: Прошивка Unit Test App",
 	"espIdf.unitTest.installPyTest.title": "Unit Test: Установка требований ESP-IDF PyTest.",
 	"espIdf.viewAsHex.title": "Просмотреть как шестнадцатеричное",
+	"espIdf.openImageViewer.title": "Открыть просмотрщик изображений",
 	"espIdf.hexView.copyValue.title": "Скопировать значение в буфер обмена",
   "espIdf.hexView.deleteElement.title": "Удалить шестнадцатеричное значение из списка",
 	"espIdf.webview.nvsPartitionEditor.title": "Открыть редактор разделов NVS",
