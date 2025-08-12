@@ -344,6 +344,48 @@ You can start a monitor session to capture fatal error events with **ESP-IDF: La
 - **GDB Stub** is configured when **Panic Handler Behaviour** is set to ``Invoke GDBStub`` using the ``ESP-IDF: SDK Configuration Editor`` extension command or ``idf.py menuconfig`` in a terminal.
 
 
+ESP-IDF: Image Viewer
+---------------------
+
+The ESP-IDF extension provides an **ESP-IDF: Image Viewer** feature that allows you to visualize binary image data from debug variables during a debugging session. This is particularly useful for applications that work with camera sensors, display buffers, or any raw image data.
+
+To use the Image Viewer:
+
+1. Start a debug session and pause at a breakpoint where your image data variable is in scope
+2. Go to ``View`` > ``Command Palette`` and enter ``ESP-IDF: Open Image Viewer``
+3. In the Image Viewer panel, enter the name of your image data variable and its size
+4. Select the appropriate image format and dimensions
+5. Click ``Load Image`` to visualize the data
+
+**Supported Image Formats:**
+- RGB565 (16-bit per pixel)
+- RGB888 (24-bit per pixel)
+- Grayscale (8-bit per pixel)
+- YUV420, YUV422, YUV444 (various YUV formats)
+
+**Example Usage:**
+
+Consider a camera application with the following variable:
+
+.. code-block:: C
+
+    uint8_t image_buffer[320 * 240 * 3];  // RGB888 format, 320x240 pixels
+    size_t image_size = sizeof(image_buffer);
+
+During debugging, you can:
+- Enter ``image_buffer`` as the variable name
+- Enter ``image_size`` or ``230400`` (320 * 240 * 3) as the size
+- Select ``RGB888`` format
+- Set width to ``320`` and height to ``240``
+
+**Important Notes:**
+- The Image Viewer only supports raw pixel formats. Compressed formats (JPEG, PNG, etc.) are not supported
+- You must specify the correct size of the image data array
+- The size can be provided as a number (bytes) or as the name of another variable containing the size
+- For pointer variables, make sure to provide the actual data size, not the pointer size
+- The Image Viewer automatically estimates dimensions based on the data size and selected format, but you can manually adjust them for better results
+
+
 Other extensions debug configuration
 ------------------------------------
 

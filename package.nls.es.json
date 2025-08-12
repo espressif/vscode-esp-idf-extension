@@ -98,6 +98,7 @@
 	"espIdf.webview.nvsPartitionEditor.title": "Abrir Editor de Partición NVS",
 	"espIdf.welcome.title": "Bienvenido",
 	"espIdf.viewAsHex.title": "Ver como Hexadecimal",
+	"espIdf.openImageViewer.title": "Abrir Visor de Imágenes",
 	"espIdf.hexView.copyValue.title": "Copiar valor al portapapeles",
   	"espIdf.hexView.deleteElement.title": "Eliminar valor hexadecimal de la lista",
 	"esp_idf.appOffset.description": "Anular la dirección de inicio del programa de compilación (ESP32_APP_FLASH_OFF)",

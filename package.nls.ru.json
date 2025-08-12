@@ -96,6 +96,7 @@
 	"espIdf.unitTest.buildUnitTestApp.title": "Unit Test: Сборка Unit Test App",
 	"espIdf.unitTest.flashUnitTestApp.title": "Unit Test: Прошивка Unit Test App",
 	"espIdf.viewAsHex.title": "Просмотреть как шестнадцатеричное",
+	"espIdf.openImageViewer.title": "Открыть просмотрщик изображений",
 	"espIdf.hexView.copyValue.title": "Скопировать значение в буфер обмена",
   	"espIdf.hexView.deleteElement.title": "Удалить шестнадцатеричное значение из списка",
 	"espIdf.webview.nvsPartitionEditor.title": "Открыть редактор разделов NVS",
