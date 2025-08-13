@@ -282,9 +282,8 @@ export class SetupPanel {
             });
             SetupPanel.postMessage({
               command: "setEspIdfErrorStatus",
-              errorMsg: `ESP-IDF is installed in ${
-                setupArgs.existingIdfSetups[message.selectedIdfSetup].idfPath
-              }`,
+              errorMsg: `ESP-IDF is installed in ${setupArgs.existingIdfSetups[message.selectedIdfSetup].idfPath
+                }`,
             });
             this.panel.webview.postMessage({
               command: "updateEspIdfToolsStatus",
@@ -325,40 +324,44 @@ export class SetupPanel {
           await commands.executeCommand("esp.component-manager.ui.show");
           break;
         case "canAccessFile":
-          if (message.path) {
-            const pathIdfPy = path.join(message.path, "tools", "idf.py");
-            // Only require read and execute permissions
-            const fileExists = await canAccessFile(pathIdfPy, fs.constants.R_OK | fs.constants.X_OK);
-            if (!fileExists) {
-              this.panel.webview.postMessage({
-                command: "canAccessFileResponse",
-                path: message.path,
-                exists: fileExists,
-              });
-            } else {
-              let versionEspIdf;
-              if (
-                message.currentVersion &&
-                typeof message.currentVersion === "string"
-              ) {
-                versionEspIdf = message.currentVersion;
-              } else {
-                versionEspIdf = await getEspIdfFromCMake(message.path);
-              }
-              // compareVersion returns a negative value if versionEspIdf is less than "5.0"
-              const noWhiteSpaceSupport =
-                compareVersion(versionEspIdf, "5.0") < 0;
-              const hasWhitespace = /\s/.test(message.path);
-              this.panel.webview.postMessage({
-                command: "canAccessFileResponse",
-                path: message.path,
-                exists: fileExists,
-                noWhiteSpaceSupport,
-                hasWhitespace,
-              });
-            }
+          if (!message.path) {
+            break;
           }
+
+          const pathIdfPy = path.join(message.path, "tools", "idf.py");
+          // Only require read and execute permissions
+          const fileExists = await canAccessFile(pathIdfPy, fs.constants.R_OK | fs.constants.X_OK);
+          if (!fileExists) {
+            this.panel.webview.postMessage({
+              command: "canAccessFileResponse",
+              path: pathIdfPy,
+              exists: fileExists,
+            });
+            break;
+          }
+
+          let versionEspIdf: string;
+          if (
+            message.currentVersion &&
+            typeof message.currentVersion === "string"
+          ) {
+            versionEspIdf = message.currentVersion;
+          } else {
+            versionEspIdf = await getEspIdfFromCMake(message.path);
+          }
+          // compareVersion returns a negative value if versionEspIdf is less than "5.0"
+          const noWhiteSpaceSupport =
+            compareVersion(versionEspIdf, "5.0") < 0;
+          const hasWhitespace = /\s/.test(message.path);
+          this.panel.webview.postMessage({
+            command: "canAccessFileResponse",
+            path: pathIdfPy,
+            exists: fileExists,
+            noWhiteSpaceSupport,
+            hasWhitespace,
+          });
           break;
+
         default:
           break;
       }
@@ -425,7 +428,7 @@ export class SetupPanel {
     ) as string;
     const progressLocation =
       notificationMode === idfConf.NotificationMode.All ||
-      notificationMode === idfConf.NotificationMode.Notifications
+        notificationMode === idfConf.NotificationMode.Notifications
         ? ProgressLocation.Notification
         : ProgressLocation.Window;
     return await window.withProgress(
@@ -559,7 +562,7 @@ export class SetupPanel {
     ) as string;
     const progressLocation =
       notificationMode === idfConf.NotificationMode.All ||
-      notificationMode === idfConf.NotificationMode.Notifications
+        notificationMode === idfConf.NotificationMode.Notifications
         ? ProgressLocation.Notification
         : ProgressLocation.Window;
     return await window.withProgress(
@@ -629,7 +632,7 @@ export class SetupPanel {
     ) as string;
     const progressLocation =
       notificationMode === idfConf.NotificationMode.All ||
-      notificationMode === idfConf.NotificationMode.Notifications
+        notificationMode === idfConf.NotificationMode.Notifications
         ? ProgressLocation.Notification
         : ProgressLocation.Window;
     return await window.withProgress(
