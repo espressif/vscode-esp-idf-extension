@@ -2858,7 +2858,11 @@ export async function activate(context: vscode.ExtensionContext) {
       if (configurations && configurations.length) {
         for (const conf of configurations) {
           if (conf.type === "gdbtarget") {
-            await vscode.debug.startDebugging(workspaceFolder, conf.name);
+            const resolvedConf = await cdtDebugProvider.resolveDebugConfiguration(
+              workspaceFolder,
+              conf
+            );
+            await vscode.debug.startDebugging(workspaceFolder, resolvedConf);
             return;
           }
         }
