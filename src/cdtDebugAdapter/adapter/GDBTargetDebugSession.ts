@@ -22,6 +22,7 @@ import { spawn, ChildProcess } from "child_process";
 import { SerialPort, ReadlineParser } from "serialport";
 import { Socket } from "net";
 import { createEnvValues, getGdbCwd } from "./util";
+import { OpenOCDManager } from "../../espIdf/openOcd/openOcdManager";
 
 interface UARTArguments {
   // Path to the serial port connected to the UART on the board.
@@ -93,6 +94,7 @@ export interface TargetAttachRequestArguments extends RequestArguments {
   imageAndSymbols?: ImageAndSymbolArguments;
   // Optional commands to issue between loading image and resuming target
   preRunCommands?: string[];
+  runOpenOCD?: boolean;
 }
 
 export interface TargetLaunchRequestArguments
@@ -132,6 +134,8 @@ export class GDBTargetDebugSession extends GDBDebugSession {
     ) {
       this.isPostMortem = true;
     }
+
+
 
     if (request === "launch") {
       const launchArgs = args as TargetLaunchRequestArguments;
@@ -444,6 +448,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
     const target = args.target;
     try {
       this.isAttach = true;
+      
       await this.spawn(args);
       await this.gdb.sendFileExecAndSymbols(args.program);
       await this.gdb.sendEnablePrettyPrint();
@@ -459,6 +464,23 @@ export class GDBTargetDebugSession extends GDBDebugSession {
               args.imageAndSymbols.symbolFileName
             );
           }
+        }
+      }
+
+      // Check if OpenOCD is running before GDB tries to connect to it
+      if (
+        args.sessionID !== "gdbstub.debug.session.ws" &&
+        args.sessionID !== "core-dump.debug.session.ws" &&
+        args.sessionID !== "qemu.debug.session" &&
+        args.runOpenOCD !== false
+      ) {
+        const openOCDManager = OpenOCDManager.init();
+        if (!openOCDManager.isRunning()) {
+          const errorMsg =
+            "OpenOCD is not running. Please start OpenOCD before launching the debug session.";
+          this.sendEvent(new OutputEvent(`❌ ${errorMsg}`, "stderr"));
+          this.sendErrorResponse(response, 1, errorMsg);
+          return;
         }
       }
 
