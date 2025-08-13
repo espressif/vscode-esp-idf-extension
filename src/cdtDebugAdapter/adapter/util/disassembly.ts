@@ -143,8 +143,6 @@ export const getInstructions = async (
                 location,
                 line: line ? line - 1 : undefined, // Show it before the current line
               } as DebugProtocol.DisassembledInstruction;
-
-                          // Insert the function declaration before the current instruction
             list.push(funcDeclInstruction);
             globalInsertedFunctions.add(asmLine["func-name"]);
           } catch (error) {
