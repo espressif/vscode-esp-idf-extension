@@ -114,13 +114,18 @@ export class SerialPort {
           OutputChannel.appendLine(
             `Detecting default port using esptool.py...`
           );
+          const timeout = idfConf.readParameter(
+            "idf.serialPortDetectionTimeout",
+            workspaceFolder
+          ) as number * 1000; // Convert seconds to milliseconds
+
           const result = await spawn(
             pythonBinPath,
             [esptoolPath, "--chip", expectedTarget, "chip_id"],
             {
               silent: false,
               appendMode: "append",
-              timeout: 15000,
+              timeout: timeout,
             }
           );
 

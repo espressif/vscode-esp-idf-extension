@@ -120,6 +120,8 @@ These settings are specific to the ESP32 Chip/Board.
       - Enable use of ``idf.usbSerialPortFilters`` list to filter serial port devices list. Scope can only be **Global (User Settings)**.
     * - **idf.usbSerialPortFilters**
       - USB productID and vendorID list to filter known Espressif devices. Scope can only be **Global (User Settings)**.
+    * - **idf.serialPortDetectionTimeout**
+      - Timeout in seconds for serial port detection using esptool.py (Default: 60)
     * - **openocd.jtag.command.force_unix_path_separator**
       - Forced to use ``/`` instead of ``\\`` as path separator for Win32 based OS
     * - **idf.svdFilePath**
@@ -136,6 +138,7 @@ This is how the extension uses them:
 5. **idf.openOcdDebugLevel** is the log level for OpenOCD server output from 0 (error messages only) to 4 (Verbose low-level debug message).
 6. **idf.openOcdLaunchArgs** is the launch arguments string array for OpenOCD. If not defined, the resulting OpenOCD launch command looks like this: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``.
 7. **idf.jtagFlashCommandExtraArgs** is used for OpenOCD JTAG flash task. Please review `Upload application for debugging <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/index.html#upload-application-for-debugging>`.
+8. **idf.serialPortDetectionTimeout** is the timeout value in seconds used for the **ESP-IDF: Select Port** command when auto-detecting serial ports using esptool.py. This setting allows users to configure how long the extension should wait when scanning for compatible devices on available serial ports.
 
 .. note::
 
