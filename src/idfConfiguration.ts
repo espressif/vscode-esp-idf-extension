@@ -378,6 +378,11 @@ export async function readSerialPort(
     const detectedPort = await SerialPort.detectDefaultPort(workspaceFolder);
     if (detectedPort) {
       Logger.info(`Auto-detected port: ${detectedPort}`);
+      await SerialPort.shared().updatePortListStatus(
+        detectedPort,
+        workspaceFolder,
+        useMonitorPort
+      );
       return detectedPort;
     } else {
       Logger.warn("Auto-detection failed, no compatible device found");

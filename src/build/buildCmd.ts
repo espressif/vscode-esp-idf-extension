@@ -132,7 +132,7 @@ export async function buildFinishFlashCmd(workspace: vscode.Uri) {
   if (!flasherArgsExists) {
     return;
   }
-  const port = await readSerialPort(workspace, false);
+  const port = readParameter("idf.port", workspace) as string;
   const flashBaudRate = readParameter("idf.flashBaudRate", workspace);
 
   const flasherArgsModel = await createFlashModel(
@@ -153,14 +153,16 @@ export async function buildFinishFlashCmd(workspace: vscode.Uri) {
     "ESP-IDF: Flash your project in the ESP-IDF Visual Studio Code Extension\n";
   flashString += "or in a ESP-IDF Terminal:\n";
   flashString += "idf.py flash\n";
-  flashString += "or\r\nidf.py -p PORT flash\n";
+  flashString += `or\r\nidf.py ${
+    port && port !== "detect" ? `-p ${port}` : ""
+  } flash\n`;
   flashString += "or\r\n";
   flashString += `python -m esptool --chip ${
     flasherArgsModel.chip
   } -b ${flashBaudRate} --before ${flasherArgsModel.before} --after ${
     flasherArgsModel.after
   } ${flasherArgsModel.stub === false ? "--no-stub" : ""} ${
-    port ? `--port ${port}` : ""
+    port && port !== "detect" ? `--port ${port}` : ""
   } write_flash ${flashFiles}\n`;
   flashString += `or from the "${buildPath}" directory\n`;
   flashString += `python -m esptool --chip ${flasherArgsModel.chip} `;

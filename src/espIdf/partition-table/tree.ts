@@ -88,7 +88,7 @@ export class PartitionTreeDataProvider
       const buildPath = readParameter("idf.buildPath", workspace);
       const flashBaudRate = readParameter("idf.flashBaudRate", workspace);
       const modifiedEnv = await appendIdfAndToolsToPath(workspace);
-      const serialPort = await readSerialPort(workspace, false);
+      const serialPort = readParameter("idf.port", workspace) as string;
       if (!serialPort) {
         return Logger.warnNotify(
           l10n.t(
