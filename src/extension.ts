@@ -894,7 +894,11 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
       const detectedPort = await SerialPort.detectDefaultPort(workspaceRoot);
       if (detectedPort) {
-        await this.updatePortListStatus(detectedPort, workspaceRoot, false);
+        await SerialPort.shared().updatePortListStatus(
+          detectedPort,
+          workspaceRoot,
+          false
+        );
       } else {
         const targetMatch = await getIdfTargetFromSdkconfig(workspaceRoot);
         const currentTarget = targetMatch ? targetMatch : "esp32";

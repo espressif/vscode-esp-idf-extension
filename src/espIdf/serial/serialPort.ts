@@ -314,7 +314,7 @@ export class SerialPort {
     return await this.list(workspaceFolder);
   }
 
-  private async updatePortListStatus(
+  public async updatePortListStatus(
     l: string,
     wsFolder: vscode.Uri,
     useMonitorPort: boolean
