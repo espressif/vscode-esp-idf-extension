@@ -1289,6 +1289,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "idf.serialPortDetectionTimeout": {
+            "type": "number",
+            "default": 60,
+            "scope": "resource",
+            "description": "%param.serialPortDetectionTimeout%"
           }
         }
       }
