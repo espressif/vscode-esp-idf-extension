@@ -35,5 +35,6 @@
   ],
   "typescript.updateImportsOnFileMove.enabled": "always",
   "workbench.editor.enablePreview": true,
-  "iis.configDir": ""
+  "iis.configDir": "",
+  "idf.pythonInstallPath": "/opt/homebrew/bin/python3"
 }
