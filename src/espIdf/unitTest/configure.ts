@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-import { CancellationToken, Uri, extensions } from "vscode";
+import { CancellationToken, Uri, extensions, l10n } from "vscode";
 import { ESP } from "../../config";
 import { join } from "path";
 import { copy, pathExists, readFile, writeFile } from "fs-extra";
-import { readParameter } from "../../idfConfiguration";
+import { readParameter, readSerialPort } from "../../idfConfiguration";
 import { startPythonReqsProcess } from "../../utils";
 import { runTaskForCommand } from "./testExecution";
 import { buildCommand } from "../../build/buildCmd";
@@ -31,6 +31,7 @@ import { OutputChannel } from "../../logger/outputChannel";
 import { Logger } from "../../logger/logger";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { getFileList, getTestComponents } from "./utils";
+import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 
 export async function configurePyTestUnitApp(
   workspaceFolder: Uri,
@@ -184,10 +185,14 @@ export async function flashTestApp(
     "idf.flashType",
     unitTestAppDirPath
   ) as ESP.FlashType;
-  const port = readParameter("idf.port", unitTestAppDirPath);
+  const port = await readSerialPort(unitTestAppDirPath, false);
   if (!port) {
-    Logger.infoNotify("Serial port is not defined for unit test");
-    return;
+    return Logger.warnNotify(
+      l10n.t(
+        "No serial port found for current IDF_TARGET: {0}",
+        await getIdfTargetFromSdkconfig(unitTestAppDirPath)
+      )
+    );
   }
   const flashBaudRate = readParameter("idf.flashBaudRate", unitTestAppDirPath);
   const idfPathDir = readParameter(

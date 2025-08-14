@@ -108,6 +108,8 @@ ESP-IDF 相关设置
       - 启用 ``idf.usbSerialPortFilters`` 列表以过滤串口设备列表
     * - **idf.usbSerialPortFilters**
       - 用于过滤已知乐鑫设备的 USB productID 和 vendorID 列表
+    * - **idf.serialPortDetectionTimeout**
+      - 使用 esptool.py 检测串口时的超时时间（秒）（默认值：60）
     * - **openocd.jtag.command.force_unix_path_separator**
       - 强制在 Windows 操作系统中使用 ``/`` 作为路径分隔符，而不是 ``\\``
     * - **idf.svdFilePath**
@@ -124,6 +126,7 @@ ESP-IDF 相关设置
 5. **idf.openOcdDebugLevel** 是 OpenOCD 服务器输出的日志级别，范围为 0 到 4。
 6. **idf.openOcdLaunchArgs** 是用于配置 OpenOCD 启动的参数字符串数组。生成的 OpenOCD 启动命令格式如下：``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}``。
 7. **idf.jtagFlashCommandExtraArgs** 用于OpenCD JTAG闪存任务。请查看 `上传待调试的应用程序 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/jtag-debugging/index.html#jtag-upload-app-debug>`.
+8. **idf.serialPortDetectionTimeout** 是用于 **ESP-IDF：选择端口** 命令的超时值（秒），当使用 esptool.py 自动检测串口时使用。此设置允许用户配置扩展在扫描可用串口上的兼容设备时应等待多长时间。
 
 .. note::
 
