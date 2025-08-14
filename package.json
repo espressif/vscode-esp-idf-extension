@@ -109,6 +109,7 @@
     "onView:idfPartitionExplorer",
     "onView:espRainmaker",
     "onView:idfComponents",
+    "onCommand:espIdf.openImageViewer",
     "workspaceContains:**/CMakeLists.txt"
   ],
   "main": "./dist/extension",
@@ -1767,6 +1768,11 @@
       {
         "command": "espIdf.viewAsHex",
         "title": "%espIdf.viewAsHex.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.openImageViewer",
+        "title": "%espIdf.openImageViewer.title%",
         "category": "ESP-IDF"
       },
       {
