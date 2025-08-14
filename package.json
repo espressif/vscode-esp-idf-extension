@@ -273,7 +273,8 @@
           "column": 3,
           "severity": 4,
           "message": 5
-        }
+        },
+        "source": "esp-idf"
       },
       {
         "name": "espIdfLd",
@@ -288,7 +289,8 @@
           "file": 1,
           "line": 2,
           "message": 3
-        }
+        },
+        "source": "esp-idf"
       }
     ],
     "viewsContainers": {
@@ -310,9 +312,9 @@
     "views": {
       "espIdfHints": [
         {
-          "id": "errorHints",
-          "name": "Error Hints",
-          "title": "Error Hints ($errorHints.count$)"
+          "id": "espIdf.errorHints",
+          "name": "%view.idf.errorHints%",
+          "title": "%view.idf.errorHints% ($espIdf.errorHints.count$)"
         }
       ],
       "debug": [
@@ -399,9 +401,14 @@
       ],
       "view/title": [
         {
+          "command": "espIdf.errorHints.clearAll",
+          "when": "view == espIdf.errorHints",
+          "group": "navigation"
+        },
+        {
           "command": "espIdf.searchError",
           "group": "navigation",
-          "when": "view == errorHints"
+          "when": "view == espIdf.errorHints"
         },
         {
           "command": "espIdf.partition.table.refresh",
@@ -449,6 +456,14 @@
         }
       ],
       "view/item/context": [
+        {
+          "command": "espIdf.errorHints.clearBuildErrors",
+          "when": "view == espIdf.errorHints && viewItem == buildError"
+        },
+        {
+          "command": "espIdf.errorHints.clearOpenOCDErrors",
+          "when": "view == espIdf.errorHints && viewItem == openocdError"
+        },
         {
           "command": "esp.rainmaker.backend.logout",
           "when": "view == espRainmaker && viewItem == account",
@@ -1280,17 +1295,37 @@
     ],
     "commands": [
       {
+        "command": "espIdf.errorHints.clearAll",
+        "title": "%command.errorHints.clearAll.title%",
+        "icon": "$(clear-all)",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.errorHints.clearBuildErrors",
+        "title": "%command.errorHints.clearBuild.title%",
+        "icon": "$(trash)",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.errorHints.clearOpenOCDErrors",
+        "title": "%command.errorHints.clearOpenOCD.title%",
+        "icon": "$(trash)",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.removeEspIdfSettings",
         "title": "%espIdf.removeEspIdfSettings.title%",
         "category": "ESP-IDF"
       },
       {
         "command": "espIdf.openWalkthrough",
-        "title": "ESP-IDF: Open Get Started Walkthrough"
+        "title": "ESP-IDF: Open Get Started Walkthrough",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.searchError",
-        "title": "%espIdf.searchError.title%"
+        "title": "%espIdf.searchError.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.addArduinoAsComponentToCurFolder",
