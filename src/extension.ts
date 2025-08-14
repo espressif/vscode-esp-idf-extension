@@ -130,6 +130,7 @@ import { WelcomePanel } from "./welcome/panel";
 import { getWelcomePageInitialValues } from "./welcome/welcomeInit";
 import { getEspMatter } from "./espMatter/espMatterDownload";
 import { setIdfTarget } from "./espIdf/setTarget";
+import { setTargetInIDF } from "./espIdf/setTarget/setTargetInIdf";
 import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
@@ -2192,16 +2193,40 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  registerIDFCommand("espIdf.setTarget", () => {
+  registerIDFCommand("espIdf.setTarget", (target?: string) => {
     PreCheck.perform([openFolderCheck], async () => {
-      const enterDeviceTargetMsg = vscode.l10n.t(
-        "Enter target name (IDF_TARGET)"
-      );
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(
         workspaceRoot
       );
-      await setIdfTarget(enterDeviceTargetMsg, workspaceFolder);
-      await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
+
+      if (target) {
+        // If a target is provided, set it directly
+        const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
+        const selectedTarget = targetsFromIdf.find((t) => t.target === target);
+
+        if (selectedTarget) {
+          await setTargetInIDF(workspaceFolder, selectedTarget);
+          await getIdfTargetFromSdkconfig(
+            workspaceRoot,
+            statusBarItems["target"]
+          );
+        } else {
+          const listOfTargets = targetsFromIdf.map((t) => t.target).join(", ");
+          vscode.window.showErrorMessage(
+            `Invalid target: ${target}. Please use one of the supported targets: ${listOfTargets}.`
+          );
+        }
+      } else {
+        // If no target is provided, show the selection dialog
+        const enterDeviceTargetMsg = vscode.l10n.t(
+          "Enter target name (IDF_TARGET)"
+        );
+        await setIdfTarget(enterDeviceTargetMsg, workspaceFolder);
+        await getIdfTargetFromSdkconfig(
+          workspaceRoot,
+          statusBarItems["target"]
+        );
+      }
     });
   });
 
