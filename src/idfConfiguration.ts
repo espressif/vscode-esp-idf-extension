@@ -386,7 +386,8 @@ export async function readSerialPort(
       return detectedPort;
     } else {
       Logger.warn("Auto-detection failed, no compatible device found");
-      await showInfoNotificationWithAction(
+      // Do not await this function so it doesn't block progress update
+      showInfoNotificationWithAction(
         vscode.l10n.t(
           "Serial port auto-detection failed, no compatible device found"
         ),
