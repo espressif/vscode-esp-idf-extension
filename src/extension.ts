@@ -129,8 +129,13 @@ import { TaskManager } from "./taskManager";
 import { WelcomePanel } from "./welcome/panel";
 import { getWelcomePageInitialValues } from "./welcome/welcomeInit";
 import { getEspMatter } from "./espMatter/espMatterDownload";
-import { setIdfTarget } from "./espIdf/setTarget";
+import {
+  setIdfTarget,
+  setIsSettingIDFTarget,
+  isSettingIDFTarget,
+} from "./espIdf/setTarget";
 import { setTargetInIDF } from "./espIdf/setTarget/setTargetInIdf";
+import { updateCurrentProfileIdfTarget } from "./project-conf";
 import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
@@ -2200,21 +2205,60 @@ export async function activate(context: vscode.ExtensionContext) {
       );
 
       if (target) {
-        // If a target is provided, set it directly
-        const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
-        const selectedTarget = targetsFromIdf.find((t) => t.target === target);
+        // Check if target setting is already in progress
+        if (isSettingIDFTarget) {
+          Logger.info("setTargetInIDF is already running.");
+          return;
+        }
+        setIsSettingIDFTarget(true);
 
-        if (selectedTarget) {
-          await setTargetInIDF(workspaceFolder, selectedTarget);
-          await getIdfTargetFromSdkconfig(
-            workspaceRoot,
-            statusBarItems["target"]
+        try {
+          // If a target is provided, set it directly
+          const targetsFromIdf = await getTargetsFromEspIdf(
+            workspaceFolder.uri
           );
-        } else {
-          const listOfTargets = targetsFromIdf.map((t) => t.target).join(", ");
-          vscode.window.showErrorMessage(
-            `Invalid target: ${target}. Please use one of the supported targets: ${listOfTargets}.`
+          const selectedTarget = targetsFromIdf.find(
+            (t) => t.target === target
           );
+
+          if (selectedTarget) {
+            await setTargetInIDF(workspaceFolder, selectedTarget);
+
+            // Update configuration like setIdfTarget does
+            const configurationTarget =
+              vscode.ConfigurationTarget.WorkspaceFolder;
+            const customExtraVars = idfConf.readParameter(
+              "idf.customExtraVars",
+              workspaceFolder
+            ) as { [key: string]: string };
+            customExtraVars["IDF_TARGET"] = selectedTarget.target;
+            await idfConf.writeParameter(
+              "idf.customExtraVars",
+              customExtraVars,
+              configurationTarget,
+              workspaceFolder.uri
+            );
+            await updateCurrentProfileIdfTarget(
+              selectedTarget.target,
+              workspaceFolder.uri
+            );
+
+            await getIdfTargetFromSdkconfig(
+              workspaceRoot,
+              statusBarItems["target"]
+            );
+          } else {
+            const listOfTargets = targetsFromIdf
+              .map((t) => t.target)
+              .join(", ");
+            vscode.window.showErrorMessage(
+              `Invalid target: ${target}. Please use one of the supported targets: ${listOfTargets}.`
+            );
+          }
+        } catch (error) {
+          Logger.errorNotify(error.message, error, "espIdf.setTarget command");
+        } finally {
+          setIsSettingIDFTarget(false);
         }
       } else {
         // If no target is provided, show the selection dialog
