@@ -41,6 +41,10 @@ import { DevkitsCommand } from "./DevkitsCommand";
 
 export let isSettingIDFTarget = false;
 
+export function setIsSettingIDFTarget(value: boolean) {
+  isSettingIDFTarget = value;
+}
+
 export async function setIdfTarget(
   placeHolderMsg: string,
   workspaceFolder: WorkspaceFolder
@@ -53,7 +57,7 @@ export async function setIdfTarget(
     Logger.info("setTargetInIDF is already running.");
     return;
   }
-  isSettingIDFTarget = true;
+  setIsSettingIDFTarget(true);
 
   const notificationMode = readParameter(
     "idf.notificationMode",
@@ -205,7 +209,7 @@ export async function setIdfTarget(
           OutputChannel.appendLine(errMsg);
         }
       } finally {
-        isSettingIDFTarget = false;
+        setIsSettingIDFTarget(false);
       }
     }
   );
