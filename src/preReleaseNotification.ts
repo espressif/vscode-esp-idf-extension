@@ -101,7 +101,7 @@ export namespace PreReleaseNotification {
         );
         await env.openExternal(docsUri);
         Logger.info("User clicked to learn more from pre-release notification");
-        
+
         // Re-show the notification after viewing docs
         setTimeout(() => {
           showPreReleaseNotification(context);
