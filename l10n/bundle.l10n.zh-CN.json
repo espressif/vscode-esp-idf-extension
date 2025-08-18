@@ -244,5 +244,14 @@
   "Would you like to reload the window to activate the clangd extension?": "您是否要重新加载窗口以激活 clangd 扩展？",
   "Reload": "重新加载",
   "Later": "稍后",
-  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "安装 clangd 扩展失败。您可以从扩展市场手动安装它。"
+  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "安装 clangd 扩展失败。您可以从扩展市场手动安装它。",
+  "🔗 Reference Documentation": "🔗 参考文档",
+  "Open {0}": "打开 {0}",
+  "💡 New ESP-IDF Hints!": "💡 新的 ESP-IDF 提示！",
+  "ESP-IDF: Hints available. Click to view.": "ESP-IDF：提示可用。点击查看。",
+  "Error Hints": "错误提示",
+  "Clear All Error Hints": "清除所有错误提示",
+  "Clear Build Error Hints": "清除构建错误提示",
+  "Clear OpenOCD Error Hints": "清除 OpenOCD 错误提示",
+  "Open Reference": "打开参考"
 }
