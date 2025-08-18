@@ -87,6 +87,13 @@ export namespace PreReleaseNotification {
         );
 
         Logger.info("User clicked to try pre-release from notification");
+
+        // Mark this campaign as shown when user tries pre-release
+        const updatedCampaigns = [...shownCampaigns, campaignKey];
+        await context.globalState.update(
+          ESP.PreReleaseNotification.SHOWN_KEY,
+          updatedCampaigns
+        );
       } else if (response === learnMore) {
         // Track user clicked to learn more
         Telemetry.sendEvent("preReleaseNotification", {
@@ -114,14 +121,14 @@ export namespace PreReleaseNotification {
           extensionVersion: packageJson.version,
         });
         Logger.info("User dismissed pre-release notification");
-      }
 
-      // Mark this campaign as shown
-      const updatedCampaigns = [...shownCampaigns, campaignKey];
-      await context.globalState.update(
-        ESP.PreReleaseNotification.SHOWN_KEY,
-        updatedCampaigns
-      );
+        // Mark this campaign as shown only when dismissed or "Not Now"
+        const updatedCampaigns = [...shownCampaigns, campaignKey];
+        await context.globalState.update(
+          ESP.PreReleaseNotification.SHOWN_KEY,
+          updatedCampaigns
+        );
+      }
     }
   }
 }
