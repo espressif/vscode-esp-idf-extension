@@ -215,7 +215,7 @@ export class QemuManager extends EventEmitter {
     const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
     this.qemuTerminal.sendText(`${pythonBinPath} ${qemuArgs.join(" ")}`);
     this.qemuTerminal.show(true);
-    this.updateStatusText("❇️ ESP-IDF: QEMU Server (Running)");
+          this.updateStatusText("❇️ QEMU Server (Running)");
   }
 
   public stop() {
@@ -224,7 +224,7 @@ export class QemuManager extends EventEmitter {
       this.qemuTerminal.dispose();
       this.qemuTerminal = undefined;
     }
-    this.updateStatusText("❌ ESP-IDF: QEMU Server (Stopped)");
+          this.updateStatusText("❌ QEMU Server (Stopped)");
   }
 
   public showOutputChannel(preserveFocus?: boolean) {
@@ -237,10 +237,10 @@ export class QemuManager extends EventEmitter {
     if (!this._statusBarItem) {
       this._statusBarItem = window.createStatusBarItem(
         CommandKeys.QemuServer,
-        StatusBarAlignment.Right,
-        1005
+        StatusBarAlignment.Left,
+        0
       );
-      this._statusBarItem.name = this._statusBarItem.text = "[ESP-IDF: QEMU]";
+      this._statusBarItem.name = this._statusBarItem.text = "QEMU";
       const commandDictionary = createCommandDictionary();
       this._statusBarItem.tooltip =
         commandDictionary[CommandKeys.QemuServer].tooltip;

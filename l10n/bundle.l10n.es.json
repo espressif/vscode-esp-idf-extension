@@ -174,13 +174,13 @@
   "Build Project": "Proyecto de construcción",
   "ESP-IDF Size": "Tamaño ESP-IDF",
   "Full Clean": "limpieza completa",
-  "ESP-IDF: Select Flash Method": "ESP-IDF: seleccione el método Flash",
+  "Select Flash Method": "Seleccione el método Flash",
   "Flash Device": "Dispositivo flash",
   "Erase Flash": "Borrar flash",
   "Monitor Device": "Monitorear dispositivo",
-  "ESP-IDF: Build, Flash and Monitor": "ESP-IDF: construir, flashear y monitorear",
+  "Build, Flash and Monitor": "Construir, flashear y monitorear",
   "Debug": "Depurar",
-  "[OpenOCD Server]": "[Servidor OpenOCD]",
+  "OpenOCD Server": "Servidor OpenOCD",
   "Open ESP-IDF Terminal": "Abrir terminal ESP-IDF",
   "Open Classic Menuconfig Terminal": "Abrir terminal de configuración clásica",
   "Doctor Command": "Comando médico",
@@ -252,5 +252,6 @@
   "Clear All Error Hints": "Borrar Todas las Pistas de Error",
   "Clear Build Error Hints": "Borrar Pistas de Error de Compilación",
   "Clear OpenOCD Error Hints": "Borrar Pistas de Error de OpenOCD",
-  "Open Reference": "Abrir Referencia"
+  "Open Reference": "Abrir Referencia",
+  "Launch Debug": "Iniciar depuración"
 }

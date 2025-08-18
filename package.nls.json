@@ -209,5 +209,6 @@
   "view.idf.errorHints": "Error Hints",
   "command.errorHints.clearAll.title": "Clear All Error Hints",
   "command.errorHints.clearBuild.title": "Clear Build Error Hints",
-  "command.errorHints.clearOpenOCD.title": "Clear OpenOCD Error Hints"
+  "command.errorHints.clearOpenOCD.title": "Clear OpenOCD Error Hints",
+  "Launch Debug": "Launch Debug"
 }
