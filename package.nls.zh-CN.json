@@ -47,7 +47,7 @@
 	"espIdf.flashUart.title": "通过 UART 接口烧录项目",
 	"espIdf.flashPartitionTableUart.title": "闪存分区表 UART",
 	"espIdf.fullClean.title": "彻底清理项目",
-	"espIdf.genCoverage.title": "添加编辑器覆盖率功能",
+	"espIdf.genCoverage.title": "添加编辑器覆盖率",
 	"espIdf.getCoverageReport.title": "生成 HTML 格式的代码覆盖率报告",
 	"espIdf.getEspAdf.title": "安装 ESP-ADF",
 	"espIdf.getEspHomeKitSdk.title": "安装 ESP-HomeKit-SDK",
