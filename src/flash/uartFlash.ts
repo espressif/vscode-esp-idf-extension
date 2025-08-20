@@ -27,7 +27,7 @@ import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 import { OutputChannel } from "../logger/outputChannel";
 
-export async function flashCommand(
+export async function uartFlashCommandMain(
   cancelToken: CancellationToken,
   flashBaudRate: string,
   idfPathDir: string,
@@ -36,8 +36,7 @@ export async function flashCommand(
   flashType: ESP.FlashType,
   encryptPartitions: boolean,
   partitionToUse?: ESP.BuildType
-): Promise<boolean> {
-  let continueFlag = true;
+) {
   const buildPath = readParameter("idf.buildPath", workspace) as string;
   const buildFiles = await readdir(buildPath);
   const binFiles = buildFiles.filter(
@@ -59,33 +58,56 @@ export async function flashCommand(
     TaskManager.cancelTasks();
     TaskManager.disposeListeners();
   });
+  const model = await createFlashModel(
+    flasherArgsJsonPath,
+    port,
+    flashBaudRate
+  );
+  let flashTask = new FlashTask(
+    workspace,
+    idfPathDir,
+    model,
+    encryptPartitions
+  );
+  const customTask = new CustomTask(workspace);
+  cancelToken.onCancellationRequested(() => {
+    FlashTask.isFlashing = false;
+  });
+  await customTask.addCustomTask(CustomTaskType.PreFlash);
+  await flashTask.flash(flashType, partitionToUse);
+  await customTask.addCustomTask(CustomTaskType.PostFlash);
+  await TaskManager.runTasks();
+  if (!cancelToken.isCancellationRequested) {
+    FlashTask.isFlashing = false;
+    const msg = "Flash Done ⚡️";
+    OutputChannel.appendLineAndShow(msg, "Flash");
+    Logger.infoNotify(msg);
+  }
+  TaskManager.disposeListeners();
+}
+
+export async function flashCommand(
+  cancelToken: CancellationToken,
+  flashBaudRate: string,
+  idfPathDir: string,
+  port: string,
+  workspace: Uri,
+  flashType: ESP.FlashType,
+  encryptPartitions: boolean,
+  partitionToUse?: ESP.BuildType
+) {
+  let continueFlag = true;
   try {
-    const model = await createFlashModel(
-      flasherArgsJsonPath,
-      port,
-      flashBaudRate
-    );
-    let flashTask = new FlashTask(
-      workspace,
+    await uartFlashCommandMain(
+      cancelToken,
+      flashBaudRate,
       idfPathDir,
-      model,
-      encryptPartitions
+      port,
+      workspace,
+      flashType,
+      encryptPartitions,
+      partitionToUse
     );
-    const customTask = new CustomTask(workspace);
-    cancelToken.onCancellationRequested(() => {
-      FlashTask.isFlashing = false;
-    });
-    await customTask.addCustomTask(CustomTaskType.PreFlash);
-    await flashTask.flash(flashType, partitionToUse);
-    await customTask.addCustomTask(CustomTaskType.PostFlash);
-    await TaskManager.runTasks();
-    if (!cancelToken.isCancellationRequested) {
-      FlashTask.isFlashing = false;
-      const msg = "Flash Done ⚡️";
-      OutputChannel.appendLineAndShow(msg, "Flash");
-      Logger.infoNotify(msg);
-    }
-    TaskManager.disposeListeners();
   } catch (error) {
     if (error.message === "ALREADY_FLASHING") {
       const errStr = "Already one flash process is running!";
