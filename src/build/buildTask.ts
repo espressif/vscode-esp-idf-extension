@@ -41,14 +41,6 @@ export class BuildTask {
 
   constructor(workspaceUri: vscode.Uri) {
     this.currentWorkspace = workspaceUri;
-    this.idfPathDir = idfConf.readParameter(
-      "idf.espIdfPath",
-      workspaceUri
-    ) as string;
-    this.buildDirPath = idfConf.readParameter(
-      "idf.buildPath",
-      workspaceUri
-    ) as string;
   }
 
   public building(flag: boolean) {
@@ -78,6 +70,14 @@ export class BuildTask {
       throw new Error("ALREADY_BUILDING");
     }
     this.building(true);
+    this.idfPathDir = idfConf.readParameter(
+      "idf.espIdfPath",
+      this.currentWorkspace
+    ) as string;
+    this.buildDirPath = idfConf.readParameter(
+      "idf.buildPath",
+      this.currentWorkspace
+    ) as string;
     await ensureDir(this.buildDirPath);
     const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
     const processOptions = {
