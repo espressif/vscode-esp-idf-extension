@@ -147,51 +147,75 @@ export class AppTraceManager extends EventEmitter {
           AppTraceButtonType.AppTraceButton,
           ""
         );
-        const fileName = `file:${sep}${sep}${join(
-          workspace.fsPath,
-          "trace",
-          `trace_${new Date().getTime()}.trace`
-        )}`.replace(/\\/g, "/");
-        const pollPeriod = idfConf.readParameter(
-          "trace.poll_period",
-          workspace
-        );
-        this.workspaceFolder = workspace;
-        const traceSize = idfConf.readParameter("trace.trace_size", workspace) as string;
-        const stopTmo = idfConf.readParameter("trace.stop_tmo", workspace) as string;
-        const wait4halt = idfConf.readParameter("trace.wait4halt", workspace) as string;
-        const skipSize = idfConf.readParameter("trace.skip_size", workspace) as string;
-        const startTrackingHandler = this.sendCommandToTCLSession(
-          [
-            "esp",
-            "apptrace",
-            "start",
-            fileName,
-            pollPeriod,
-            traceSize,
-            stopTmo,
-            wait4halt,
-            skipSize,
-          ].join(" "),
-          workspace
-        );
-        const tracingStatusHandler = this.appTracingStatusChecker(() => {
-          tracingStatusHandler.stop();
-          startTrackingHandler.stop();
 
-          this.treeDataProvider.showStartButton(
-            AppTraceButtonType.AppTraceButton
-          );
-          this.treeDataProvider.updateDescription(
-            AppTraceButtonType.AppTraceButton,
-            "[Stopped]"
-          );
-          this.archiveDataProvider.populateArchiveTree();
+        // Send reset command first to ensure proper initialization, then start app trace
+        const resetHandler = this.sendCommandToTCLSession("reset", workspace);
+        resetHandler.on("response", () => {
+          // Reset completed, now start app trace
+          this.executeAppTraceStart(workspace);
+          resetHandler.stop();
+        });
+
+        // If reset fails, still try to start app trace
+        resetHandler.on("error", () => {
+          this.executeAppTraceStart(workspace);
+          resetHandler.stop();
         });
       }
     } catch (error) {
       Logger.errorNotify(error.message, error, "AppTraceManager start");
     }
+  }
+
+  private executeAppTraceStart(workspace: vscode.Uri) {
+    const fileName = `file:${sep}${sep}${join(
+      workspace.fsPath,
+      "trace",
+      `trace_${new Date().getTime()}.trace`
+    )}`.replace(/\\/g, "/");
+    const pollPeriod = idfConf.readParameter("trace.poll_period", workspace);
+    this.workspaceFolder = workspace;
+    const traceSize = idfConf.readParameter(
+      "trace.trace_size",
+      workspace
+    ) as string;
+    const stopTmo = idfConf.readParameter(
+      "trace.stop_tmo",
+      workspace
+    ) as string;
+    const wait4halt = idfConf.readParameter(
+      "trace.wait4halt",
+      workspace
+    ) as string;
+    const skipSize = idfConf.readParameter(
+      "trace.skip_size",
+      workspace
+    ) as string;
+    const startTrackingHandler = this.sendCommandToTCLSession(
+      [
+        "esp",
+        "apptrace",
+        "start",
+        fileName,
+        pollPeriod,
+        traceSize,
+        stopTmo,
+        wait4halt,
+        skipSize,
+      ].join(" "),
+      workspace
+    );
+    const tracingStatusHandler = this.appTracingStatusChecker(() => {
+      tracingStatusHandler.stop();
+      startTrackingHandler.stop();
+
+      this.treeDataProvider.showStartButton(AppTraceButtonType.AppTraceButton);
+      this.treeDataProvider.updateDescription(
+        AppTraceButtonType.AppTraceButton,
+        "[Stopped]"
+      );
+      this.archiveDataProvider.populateArchiveTree();
+    });
   }
 
   public async stop() {
