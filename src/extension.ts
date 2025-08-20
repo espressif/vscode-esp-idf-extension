@@ -79,6 +79,7 @@ import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { SetupPanel } from "./setup/SetupPanel";
 import { ChangelogViewer } from "./changelog-viewer";
+import { PreReleaseNotification } from "./preReleaseNotification";
 import { getSetupInitialValues, ISetupInitArgs } from "./setup/setupInit";
 import {
   getVirtualEnvPythonPath,
@@ -286,6 +287,9 @@ export async function activate(context: vscode.ExtensionContext) {
   Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
   utils.setExtensionContext(context);
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
+
+  // Show pre-release notification if not shown for this version
+  PreReleaseNotification.showPreReleaseNotification(context);
 
   // Check if running in a VS Code fork and prompt for clangd extension installation
   if (PreCheck.isRunningInVSCodeFork()) {
