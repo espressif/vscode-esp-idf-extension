@@ -701,13 +701,13 @@
           },
           "idf.port": {
             "type": "string",
-            "default": "/dev/ttyUSB1",
+            "default": "detect",
             "description": "%param.port%",
             "scope": "resource"
           },
           "idf.portWin": {
             "type": "string",
-            "default": "COM1",
+            "default": "detect",
             "description": "%param.port%",
             "scope": "resource"
           },
@@ -1289,6 +1289,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "idf.serialPortDetectionTimeout": {
+            "type": "number",
+            "default": 60,
+            "scope": "resource",
+            "description": "%param.serialPortDetectionTimeout%"
           }
         }
       }
@@ -1381,6 +1387,12 @@
       {
         "command": "espIdf.selectMonitorPort",
         "title": "%espIdf.selectMonitorPort.title%",
+        "category": "ESP-IDF",
+        "when": "!isWeb"
+      },
+      {
+        "command": "espIdf.detectSerialPort",
+        "title": "%espIdf.detectSerialPort.title%",
         "category": "ESP-IDF",
         "when": "!isWeb"
       },

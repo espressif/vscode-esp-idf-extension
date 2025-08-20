@@ -17,8 +17,12 @@
  */
 
 import { basename, join } from "path";
-import { Progress, ProgressLocation, Uri, window } from "vscode";
-import { NotificationMode, readParameter } from "../../idfConfiguration";
+import { l10n, Progress, ProgressLocation, Uri, window } from "vscode";
+import {
+  NotificationMode,
+  readParameter,
+  readSerialPort,
+} from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
@@ -46,7 +50,15 @@ export async function flashBinaryToPartition(
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
         const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
-        const serialPort = readParameter("idf.port", workspaceFolder);
+        const serialPort = await readSerialPort(workspaceFolder, false);
+        if (!serialPort) {
+          return Logger.warnNotify(
+            l10n.t(
+              "No serial port found for current IDF_TARGET: {0}",
+              modifiedEnv["IDF_TARGET"]
+            )
+          );
+        }
         const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
         const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
         const esptoolPath = join(

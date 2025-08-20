@@ -18,12 +18,13 @@
 
 import { spawn } from "../utils";
 import { join } from "path";
-import { readParameter } from "../idfConfiguration";
+import { readParameter, readSerialPort } from "../idfConfiguration";
 import { tmpdir } from "os";
 import { readJson, unlink } from "fs-extra";
 import { Logger } from "../logger/logger";
 import { Uri, l10n } from "vscode";
 import { getVirtualEnvPythonPath } from "../pythonManager";
+import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 
 export type ESPEFuseSummary = {
   [category: string]: [
@@ -79,12 +80,22 @@ export class ESPEFuseManager {
     const tempFile = join(tmpdir(), "espefusejsondump.tmp");
     const pythonPath = await getVirtualEnvPythonPath(this.workspace);
 
+    const port = await readSerialPort(this.workspace, false);
+    if (!port) {
+      return Logger.warnNotify(
+        l10n.t(
+          "No serial port found for current IDF_TARGET: {0}",
+          await getIdfTargetFromSdkconfig(this.workspace)
+        )
+      );
+    }
+
     await spawn(
       pythonPath,
       [
         this.toolPath,
         "-p",
-        this.serialPort,
+        port,
         "summary",
         "--format",
         "json",
@@ -120,10 +131,5 @@ export class ESPEFuseManager {
       "esptool",
       "espefuse.py"
     );
-  }
-
-  private get serialPort(): string {
-    const port = readParameter("idf.port", this.workspace) as string;
-    return port;
   }
 }

@@ -157,33 +157,48 @@ export class PreCheck {
   }
 }
 
+export interface ISpawnOptions extends childProcess.SpawnOptions {
+  /** Cancellation token to cancel the spawn */
+  cancelToken?: vscode.CancellationToken;
+  /** The maximum time in milliseconds to wait for the command to complete */
+  timeout?: number;
+  /** Whether to suppress output to the console */
+  silent?: boolean;
+  /** A string to return the output of the command */
+  outputString?: string;
+  /** Output append mode: 'appendLine', 'append', or undefined */
+  appendMode?: "appendLine" | "append";
+}
+
 export function spawn(
   command: string,
   args: string[] = [],
-  options: any = {},
-  timeout: number = 0,
-  silent: boolean = false, // this switches the output to console off the output is only returned, not printed,
-  cancelToken?: vscode.CancellationToken,
-  outputString?: string
+  options: ISpawnOptions = { outputString: "", silent: true }
 ): Promise<Buffer> {
   let buff = Buffer.alloc(0);
   const sendToOutputChannel = (data: Buffer) => {
     buff = Buffer.concat([buff, data]);
-    outputString += buff.toString();
-    !silent && OutputChannel.appendLine(data.toString());
+    options.outputString += buff.toString();
+    if (!options.silent) {
+      if (options.appendMode === "appendLine") {
+        OutputChannel.appendLine(data.toString());
+      } else if (options.appendMode === "append") {
+        OutputChannel.append(data.toString());
+      }
+    }
   };
   return new Promise((resolve, reject) => {
     options.cwd = options.cwd || path.resolve(path.join(__dirname, ".."));
     const child = childProcess.spawn(command, args, options);
     let timeoutHandler = undefined;
-    if (timeout > 0) {
+    if (options.timeout > 0) {
       timeoutHandler = setTimeout(() => {
         child.kill();
-      }, timeout);
+      }, options.timeout);
     }
 
-    if (cancelToken) {
-      cancelToken.onCancellationRequested((e) => {
+    if (options.cancelToken) {
+      options.cancelToken.onCancellationRequested((e) => {
         child.kill();
       });
     }

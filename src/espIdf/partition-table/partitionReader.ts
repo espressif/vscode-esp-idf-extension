@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 import { dirname, join } from "path";
-import { Progress, ProgressLocation, Uri, window } from "vscode";
-import { NotificationMode, readParameter } from "../../idfConfiguration";
+import { l10n, Progress, ProgressLocation, Uri, window } from "vscode";
+import { NotificationMode, readParameter, readSerialPort } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
@@ -47,7 +47,15 @@ export async function readPartition(
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
         const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
-        const serialPort = readParameter("idf.port", workspaceFolder);
+        const serialPort = await readSerialPort(workspaceFolder, false);
+        if (!serialPort) {
+          return Logger.warnNotify(
+            l10n.t(
+              "No serial port found for current IDF_TARGET: {0}",
+              modifiedEnv["IDF_TARGET"]
+            )
+          );
+        }
         const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
         const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
         const esptoolPath = join(
@@ -69,13 +77,23 @@ export async function readPartition(
 
         await spawn(
           pythonBinPath,
-          [esptoolPath, "-p", serialPort, "read_flash", offset, parsedSize, resultBinaryPath],
+          [
+            esptoolPath,
+            "-p",
+            serialPort,
+            "read_flash",
+            offset,
+            parsedSize,
+            resultBinaryPath,
+          ],
           {
             cwd: workspaceFolder.fsPath,
             env: modifiedEnv,
           }
         );
-        window.showInformationMessage(`Device partition @${offset} saved as ${resultBinaryPath}`);
+        window.showInformationMessage(
+          `Device partition @${offset} saved as ${resultBinaryPath}`
+        );
       } catch (error) {
         let msg = error.message
           ? error.message
@@ -92,22 +110,22 @@ export function parsePartitionSize(size: string): string {
   const match = size.match(regex);
 
   if (!match) {
-    throw new Error('Invalid size format');
+    throw new Error("Invalid size format");
   }
   const value = parseInt(match[1], 10);
   const unit = match[2].toUpperCase();
 
   // Define the multiplier based on the unit
   const multipliers: { [key: string]: number } = {
-    'K': 1024,
-    'M': 1024 ** 2,
-    '': 1, // No unit defaults to bytes
+    K: 1024,
+    M: 1024 ** 2,
+    "": 1, // No unit defaults to bytes
   };
 
   const bytes = value * (multipliers[unit] || 1);
 
   // Convert to hexadecimal string prefixed with '0x'
-  return '0x' + bytes.toString(16).toUpperCase();
+  return "0x" + bytes.toString(16).toUpperCase();
 }
 
 export function formatAsPartitionSize(bytes: number): string {

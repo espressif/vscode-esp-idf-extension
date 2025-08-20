@@ -29,7 +29,7 @@ import {
 } from "../workspaceConfig";
 import { IdfSizeTask } from "../espIdf/size/idfSizeTask";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
-import { readParameter } from "../idfConfiguration";
+import { readParameter, readSerialPort } from "../idfConfiguration";
 import { ESP } from "../config";
 import { createFlashModel } from "../flash/flashModelBuilder";
 import { OutputChannel } from "../logger/outputChannel";
@@ -132,7 +132,7 @@ export async function buildFinishFlashCmd(workspace: vscode.Uri) {
   if (!flasherArgsExists) {
     return;
   }
-  const port = readParameter("idf.port", workspace);
+  const port = readParameter("idf.port", workspace) as string;
   const flashBaudRate = readParameter("idf.flashBaudRate", workspace);
 
   const flasherArgsModel = await createFlashModel(
@@ -153,15 +153,17 @@ export async function buildFinishFlashCmd(workspace: vscode.Uri) {
     "ESP-IDF: Flash your project in the ESP-IDF Visual Studio Code Extension\n";
   flashString += "or in a ESP-IDF Terminal:\n";
   flashString += "idf.py flash\n";
-  flashString += "or\r\nidf.py -p PORT flash\n";
+  flashString += `or\r\nidf.py ${
+    port && port !== "detect" ? `-p ${port}` : ""
+  } flash\n`;
   flashString += "or\r\n";
   flashString += `python -m esptool --chip ${
     flasherArgsModel.chip
   } -b ${flashBaudRate} --before ${flasherArgsModel.before} --after ${
     flasherArgsModel.after
-  } ${
-    flasherArgsModel.stub === false ? "--no-stub" : ""
-  } --port ${port} write_flash ${flashFiles}\n`;
+  } ${flasherArgsModel.stub === false ? "--no-stub" : ""} ${
+    port && port !== "detect" ? `--port ${port}` : ""
+  } write_flash ${flashFiles}\n`;
   flashString += `or from the "${buildPath}" directory\n`;
   flashString += `python -m esptool --chip ${flasherArgsModel.chip} `;
   flashString += `-b ${flashBaudRate} --before ${flasherArgsModel.before} `;

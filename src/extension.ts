@@ -688,7 +688,15 @@ export async function activate(context: vscode.ExtensionContext) {
         "idf.espIdfPath",
         workspaceRoot
       ) as string;
-      const port = idfConf.readParameter("idf.port", workspaceRoot) as string;
+      const port = await idfConf.readSerialPort(workspaceRoot, false);
+      if (!port) {
+        return Logger.warnNotify(
+          vscode.l10n.t(
+            "No serial port found for current IDF_TARGET: {0}",
+            await getIdfTargetFromSdkconfig(workspaceRoot)
+          )
+        );
+      }
       const flashScriptPath = path.join(
         idfPathDir,
         "components",
@@ -880,6 +888,31 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () =>
       SerialPort.shared().promptUserToSelect(workspaceRoot, true)
     );
+  });
+
+  registerIDFCommand("espIdf.detectSerialPort", () => {
+    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+      const detectedPort = await SerialPort.detectDefaultPort(workspaceRoot);
+      if (detectedPort) {
+        await SerialPort.shared().updatePortListStatus(
+          detectedPort,
+          workspaceRoot,
+          false
+        );
+      } else {
+        const targetMatch = await getIdfTargetFromSdkconfig(workspaceRoot);
+        const currentTarget = targetMatch ? targetMatch : "esp32";
+        const noPortFoundMsg = vscode.l10n.t(
+          "No serial port found for current IDF_TARGET: {0}",
+          currentTarget
+        );
+        await showInfoNotificationWithAction(
+          noPortFoundMsg,
+          vscode.l10n.t("Detect"),
+          () => vscode.commands.executeCommand("espIdf.detectSerialPort")
+        );
+      }
+    });
   });
 
   registerIDFCommand("espIdf.selectCurrentIdfVersion", () => {
@@ -3191,7 +3224,7 @@ export async function activate(context: vscode.ExtensionContext) {
         ) as string;
         const port = monitorPort
           ? monitorPort
-          : (idfConf.readParameter("idf.port", workspaceRoot) as string);
+          : await idfConf.readSerialPort(workspaceRoot, false);
         if (!port) {
           try {
             await vscode.commands.executeCommand("espIdf.selectPort");
@@ -4303,7 +4336,15 @@ async function startFlashing(
     }
   }
 
-  const port = idfConf.readParameter("idf.port", workspaceRoot);
+  const port = await idfConf.readSerialPort(workspaceRoot, false);
+  if (!port) {
+    return Logger.warnNotify(
+      vscode.l10n.t(
+        "No serial port found for current IDF_TARGET: {0}",
+        await getIdfTargetFromSdkconfig(workspaceRoot)
+      )
+    );
+  }
   const flashBaudRate = idfConf.readParameter(
     "idf.flashBaudRate",
     workspaceRoot
