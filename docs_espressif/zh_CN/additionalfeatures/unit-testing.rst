@@ -1,7 +1,7 @@
 .. _unit testing:
 
-单元测试
-========
+使用 Unity 框架进行单元测试
+=============================
 
 使用 ESP-IDF 开发应用程序并考虑为组件函数添加单元测试时，你可以使用此扩展基于 Unity 在设备上发现和执行测试，详情请参考 `ESP32 中的单元测试 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/unit-tests.html>`_。
 

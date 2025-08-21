@@ -1,7 +1,7 @@
 .. _unit testing:
 
-Unit Testing
-============
+Unit Testing with Unity
+=======================
 
 When developing an application using ESP-IDF and considering unit testing for your component functions, this extension helps discover and execute tests on your device based on Unity, as described in `Unit Testing in ESP32 <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/unit-tests.html>`_.
 
