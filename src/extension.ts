@@ -183,6 +183,8 @@ import {
   HexTreeItem,
   HexViewProvider,
 } from "./cdtDebugAdapter/hexViewProvider";
+
+import { ImageViewPanel } from "./cdtDebugAdapter/imageViewPanel";
 import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
@@ -1522,6 +1524,13 @@ export async function activate(context: vscode.ExtensionContext) {
       });
     }
   );
+
+  registerIDFCommand("espIdf.openImageViewer", () => {
+    return PreCheck.perform([openFolderCheck], () => {
+      // Show the ImageViewPanel without an image
+      ImageViewPanel.show(context.extensionPath);
+    });
+  });
 
   registerIDFCommand("espIdf.genCoverage", () => {
     return PreCheck.perform([openFolderCheck], async () => {
