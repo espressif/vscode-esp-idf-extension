@@ -110,7 +110,10 @@ export class CDTDebugConfigurationProvider
           | "esp32c3"
           | "esp32c6"
           | "esp32h2"
-          | "esp32p4";
+          | "esp32p4"
+          | "esp32c4"
+          | "esp32c5"
+          | "esp32c61";
         // Mapping of idfTarget to corresponding CPU watchpoint numbers
         const idfTargetWatchpointMap: Record<IdfTarget, number> = {
           esp32: 2,
@@ -121,11 +124,14 @@ export class CDTDebugConfigurationProvider
           esp32c6: 4,
           esp32h2: 4,
           esp32p4: 3,
+          esp32c4: 2,
+          esp32c5: 4,
+          esp32c61: 4,
         };
         config.initCommands = config.initCommands.map((cmd: string) =>
           cmd.replace(
             "{IDF_TARGET_CPU_WATCHPOINT_NUM}",
-            idfTargetWatchpointMap[idfTarget]
+            idfTargetWatchpointMap[idfTarget] || 2
           )
         );
       }
