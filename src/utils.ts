@@ -173,17 +173,21 @@ export interface ISpawnOptions extends childProcess.SpawnOptions {
 export function spawn(
   command: string,
   args: string[] = [],
-  options: ISpawnOptions = { outputString: "", silent: true }
+  options: ISpawnOptions = {
+    outputString: "",
+    silent: false,
+    appendMode: "appendLine",
+  }
 ): Promise<Buffer> {
   let buff = Buffer.alloc(0);
   const sendToOutputChannel = (data: Buffer) => {
     buff = Buffer.concat([buff, data]);
     options.outputString += buff.toString();
     if (!options.silent) {
-      if (options.appendMode === "appendLine") {
-        OutputChannel.appendLine(data.toString());
-      } else if (options.appendMode === "append") {
+      if (options.appendMode === "append") {
         OutputChannel.append(data.toString());
+      } else {
+        OutputChannel.appendLine(data.toString());
       }
     }
   };

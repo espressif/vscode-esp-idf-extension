@@ -26,6 +26,7 @@ import {
   Uri,
   window,
   l10n,
+  ThemeIcon,
 } from "vscode";
 import { getCurrentIdfSetup } from "../versionSwitcher";
 import { readParameter } from "../idfConfiguration";
@@ -277,7 +278,9 @@ export function updateHintsStatusBarItem(hasHints: boolean) {
     statusBarItems["hints"].tooltip = l10n.t(
       "ESP-IDF: Hints available. Click to view."
     );
-    statusBarItems["hints"].backgroundColor = "statusBarItem.warningBackground";
+    statusBarItems["hints"].backgroundColor = new ThemeIcon(
+      "statusBarItem.warningBackground"
+    );
     statusBarItems["hints"].show();
   } else {
     statusBarItems["hints"].hide();

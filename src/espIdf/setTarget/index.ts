@@ -34,12 +34,24 @@ import {
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import { selectOpenOcdConfigFiles } from "../openOcd/boardConfiguration";
-import { getTargetsFromEspIdf } from "./getTargets";
+import { getTargetsFromEspIdf, IdfTarget } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 import { updateCurrentProfileIdfTarget } from "../../project-conf";
 import { DevkitsCommand } from "./DevkitsCommand";
 
 export let isSettingIDFTarget = false;
+
+export interface ISetTargetQuickPickItems {
+  label: string;
+  idfTarget?: IdfTarget;
+  boardInfo?: {
+    location: string;
+    config_files: string[];
+  };
+  description?: string;
+  isConnected?: boolean;
+  kind?: QuickPickItemKind;
+}
 
 export async function setIdfTarget(
   placeHolderMsg: string,
@@ -73,7 +85,7 @@ export async function setIdfTarget(
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
         const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
-        let connectedBoards: any[] = [];
+        let connectedBoards: ISetTargetQuickPickItems[] = [];
 
         const isDebugging = debug.activeDebugSession !== undefined;
 
@@ -81,22 +93,27 @@ export async function setIdfTarget(
           try {
             const devkitsCmd = new DevkitsCommand(workspaceFolder.uri);
             const scriptPath = await devkitsCmd.getScriptPath();
-            
+
             if (scriptPath) {
               const devkitsOutput = await devkitsCmd.runDevkitsScript();
               if (devkitsOutput) {
                 const parsed = JSON.parse(devkitsOutput);
                 if (parsed && Array.isArray(parsed.boards)) {
-                  connectedBoards = parsed.boards.map((b: any) => ({
-                    label: b.name,
-                    target: b.target,
-                    description: b.description,
-                    detail: `Status: CONNECTED${
-                      b.location ? `   Location: ${b.location}` : ""
-                    }`,
-                    isConnected: true,
-                    boardInfo: b,
-                  }));
+                  connectedBoards = parsed.boards.map(
+                    (b: any) =>
+                      ({
+                        label: b.name,
+                        idfTarget: targetsFromIdf.find(
+                          (t) => t.target === b.target
+                        ),
+                        description: b.description,
+                        detail: `Status: CONNECTED${
+                          b.location ? `   Location: ${b.location}` : ""
+                        }`,
+                        isConnected: true,
+                        boardInfo: b,
+                      } as ISetTargetQuickPickItems)
+                  );
                 }
               }
             } else {
@@ -115,26 +132,24 @@ export async function setIdfTarget(
             "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually."
           );
         }
-        let quickPickItems: any[] = [];
-        if (connectedBoards.length > 0) {
-          quickPickItems = [
-            ...connectedBoards,
-            { kind: QuickPickItemKind.Separator, label: "Default Boards" },
-            ...targetsFromIdf.map((t) => ({
-              label: t.label,
-              target: t.target,
-              description: t.isPreview ? "Preview target" : undefined,
-              isConnected: false,
-            })),
-          ];
-        } else {
-          quickPickItems = targetsFromIdf.map((t) => ({
+        let quickPickItems: ISetTargetQuickPickItems[] = [];
+        const defaultBoards: ISetTargetQuickPickItems[] = targetsFromIdf.map(
+          (t) => ({
             label: t.label,
-            target: t.target,
+            idfTarget: t,
             description: t.isPreview ? "Preview target" : undefined,
             isConnected: false,
-          }));
-        }
+          })
+        );
+
+        quickPickItems =
+          connectedBoards.length > 0
+            ? [
+                ...connectedBoards,
+                { kind: QuickPickItemKind.Separator, label: "Default Boards" },
+                ...defaultBoards,
+              ]
+            : defaultBoards;
         const selectedTarget = await window.showQuickPick(quickPickItems, {
           placeHolder: placeHolderMsg,
         });
@@ -171,16 +186,16 @@ export async function setIdfTarget(
         } else {
           await selectOpenOcdConfigFiles(
             workspaceFolder.uri,
-            selectedTarget.target
+            selectedTarget.idfTarget.target
           );
         }
 
-        await setTargetInIDF(workspaceFolder, selectedTarget);
+        await setTargetInIDF(workspaceFolder, selectedTarget.idfTarget);
         const customExtraVars = readParameter(
           "idf.customExtraVars",
           workspaceFolder
         ) as { [key: string]: string };
-        customExtraVars["IDF_TARGET"] = selectedTarget.target;
+        customExtraVars["IDF_TARGET"] = selectedTarget.idfTarget.target;
         await writeParameter(
           "idf.customExtraVars",
           customExtraVars,
@@ -188,7 +203,7 @@ export async function setIdfTarget(
           workspaceFolder.uri
         );
         await updateCurrentProfileIdfTarget(
-          selectedTarget.target,
+          selectedTarget.idfTarget.target,
           workspaceFolder.uri
         );
       } catch (err) {

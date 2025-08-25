@@ -79,6 +79,7 @@ export async function setTargetInIDF(
     const setTargetResult = await spawn(pythonBinPath, setTargetArgs, {
       cwd: workspaceFolder.uri.fsPath,
       env: modifiedEnv,
+      silent: false,
     });
     Logger.info(setTargetResult.toString());
     const msg = vscode.l10n.t(
