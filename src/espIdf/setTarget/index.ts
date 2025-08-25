@@ -41,6 +41,18 @@ import { DevkitsCommand } from "./DevkitsCommand";
 
 export let isSettingIDFTarget = false;
 
+export interface ISetTargetQuickPickItems {
+  label: string;
+  idfTarget?: IdfTarget;
+  boardInfo?: {
+    location: string;
+    config_files: string[];
+  };
+  description?: string;
+  isConnected?: boolean;
+  kind?: QuickPickItemKind;
+}
+
 export async function setIdfTarget(
   placeHolderMsg: string,
   workspaceFolder: WorkspaceFolder
@@ -73,7 +85,7 @@ export async function setIdfTarget(
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
         const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
-        let connectedBoards: any[] = [];
+        let connectedBoards: ISetTargetQuickPickItems[] = [];
 
         const isDebugging = debug.activeDebugSession !== undefined;
 
@@ -87,16 +99,21 @@ export async function setIdfTarget(
               if (devkitsOutput) {
                 const parsed = JSON.parse(devkitsOutput);
                 if (parsed && Array.isArray(parsed.boards)) {
-                  connectedBoards = parsed.boards.map((b: any) => ({
-                    label: b.name,
-                    target: b.target,
-                    description: b.description,
-                    detail: `Status: CONNECTED${
-                      b.location ? `   Location: ${b.location}` : ""
-                    }`,
-                    isConnected: true,
-                    boardInfo: b,
-                  }));
+                  connectedBoards = parsed.boards.map(
+                    (b: any) =>
+                      ({
+                        label: b.name,
+                        idfTarget: targetsFromIdf.find(
+                          (t) => t.target === b.target
+                        ),
+                        description: b.description,
+                        detail: `Status: CONNECTED${
+                          b.location ? `   Location: ${b.location}` : ""
+                        }`,
+                        isConnected: true,
+                        boardInfo: b,
+                      } as ISetTargetQuickPickItems)
+                  );
                 }
               }
             } else {
@@ -115,22 +132,15 @@ export async function setIdfTarget(
             "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually."
           );
         }
-        let quickPickItems: {
-          label: string;
-          idfTarget: IdfTarget;
-          boardInfo?: {
-            location: string;
-            config_files: string[];
-          };
-          description?: string;
-          isConnected?: boolean;
-        }[] = [];
-        const defaultBoards = targetsFromIdf.map((t) => ({
-          label: t.label,
-          target: t,
-          description: t.isPreview ? "Preview target" : undefined,
-          isConnected: false,
-        }));
+        let quickPickItems: ISetTargetQuickPickItems[] = [];
+        const defaultBoards: ISetTargetQuickPickItems[] = targetsFromIdf.map(
+          (t) => ({
+            label: t.label,
+            idfTarget: t,
+            description: t.isPreview ? "Preview target" : undefined,
+            isConnected: false,
+          })
+        );
 
         quickPickItems =
           connectedBoards.length > 0
