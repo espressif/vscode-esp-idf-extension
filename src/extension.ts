@@ -2939,6 +2939,31 @@ export async function activate(context: vscode.ExtensionContext) {
             );
           }
         }
+
+        // For App Trace, directly open the file instead of showing the webview
+        if (trace.type === TraceType.AppTrace) {
+          try {
+            const textDocument = await vscode.workspace.openTextDocument(
+              trace.filePath
+            );
+            const column = vscode.window.activeTextEditor
+              ? vscode.window.activeTextEditor.viewColumn
+              : undefined;
+            await vscode.window.showTextDocument(textDocument, {
+              viewColumn: column || vscode.ViewColumn.One,
+            });
+            return;
+          } catch (error) {
+            Logger.errorNotify(
+              `Failed to open App Trace file: ${error.message}`,
+              error,
+              "extension apptrace showReport openFile"
+            );
+            return;
+          }
+        }
+
+        // For Heap Trace, show the webview as before
         AppTracePanel.createOrShow(context, {
           trace: {
             fileName: trace.fileName,
