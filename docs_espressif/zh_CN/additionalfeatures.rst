@@ -15,6 +15,7 @@
     通过 USB 升级设备固件<additionalfeatures/dfu>
     Docker 容器<additionalfeatures/docker-container>
     ESP-IDF 终端<additionalfeatures/esp-terminal>
+    ESP-IDF 配置文件<additionalfeatures/esp-idf-profiles>
     eFuse 资源管理器<additionalfeatures/efuse>
     flash 加密<additionalfeatures/flash-encryption>
     堆跟踪<additionalfeatures/heap-tracing>
