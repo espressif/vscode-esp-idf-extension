@@ -124,11 +124,26 @@ export async function selectOpenOcdConfigFiles(
         return;
       }
     }
+    if (idfTarget === "linux") {
+      return;
+    }
     const currentOpenOcdConfigs = readParameter(
       "idf.openOcdConfigs",
       workspaceFolder
     ) as string[];
     const boards = await getBoards(openOcdScriptsPath, idfTarget);
+    const message = l10n.t(
+      "No OpenOCD boards found for target {target}. Please check your OPENOCD_SCRIPTS environment variable.",
+      { target: idfTarget }
+    );
+    if (!boards || boards.length === 0) {
+      Logger.errorNotify(
+        message,
+        new Error(message),
+        "boardConfiguration selectOpenOcdConfigFiles"
+      );
+      return;
+    }
     const choices = boards.map((b) => {
       return {
         description: `${b.description} (${b.configFiles})`,
