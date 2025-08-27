@@ -9,7 +9,7 @@
     :maxdepth: 1
 
     应用程序大小分析<additionalfeatures/application-size-analysis>
-    应用跟踪<additionalfeatures/app-tracing>
+    应用程序跟踪<additionalfeatures/app-tracing>
     CMakeLists.txt 编辑器<additionalfeatures/cmakelists-editor>
     代码覆盖率<additionalfeatures/coverage>
     通过 USB 升级设备固件<additionalfeatures/dfu>
