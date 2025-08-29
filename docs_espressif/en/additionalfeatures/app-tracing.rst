@@ -17,7 +17,7 @@ If you don't see the option, please review the setup in :ref:`Install ESP-IDF an
 
 .. image:: ../../../media/tutorials/app_trace/app_tracing.png
 
-For this example, the project has been already configured for application tracing purposes. On other projects you need to enable ``CONFIG_APPTRACE_DEST_TRAX`` and ``CONFIG_APPTRACE_ENABLE`` with the **ESP-IDF: SDK Configuration Editor** command.
+For this example, the project has been already configured for application tracing purposes. On other projects you need to enable ``CONFIG_APPTRACE_DEST_JTAG`` and ``CONFIG_APPTRACE_ENABLE`` with the **ESP-IDF: SDK Configuration Editor** command.
 
 .. note::
   For the ``app_trace_basic`` example to work properly, you need to add the following settings to your project's ``.vscode/settings.json`` file:
