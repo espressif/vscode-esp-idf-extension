@@ -13,7 +13,7 @@ Let's open a ESP-IDF project. For this tutorial we will use the `system/app_trac
 
 If you don't see the option, please review the setup in :ref:`Install ESP-IDF and Tools <installation>`.
 
-- A window will be open with settings to configure the project. Later you can choose from a list a ESP-IDF examples, go the **system** section and choose the ``app_trace_basic``. You will see a **Create Project Using Example app_trace_basic project** button in the top and a description of the project below. Click the button and the project will be opened in a new window.
+- A window will be open with settings to configure the project. Later you can choose from the ESP-IDF examples, go the **system** section and choose the ``app_trace_basic``. You will see a **Create Project Using Example app_trace_basic project** button in the top and a description of the project below. Click the button and the project will be opened in a new window.
 
 .. image:: ../../../media/tutorials/app_trace/app_tracing.png
 
