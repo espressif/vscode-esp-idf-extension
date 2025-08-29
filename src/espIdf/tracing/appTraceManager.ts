@@ -174,7 +174,6 @@ export class AppTraceManager extends EventEmitter {
       `trace_${new Date().getTime()}.trace`
     )}`.replace(/\\/g, "/");
     const pollPeriod = idfConf.readParameter("trace.poll_period", workspace);
-    this.workspaceFolder = workspace;
     const traceSize = idfConf.readParameter(
       "trace.trace_size",
       workspace

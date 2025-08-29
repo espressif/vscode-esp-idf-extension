@@ -821,7 +821,7 @@
           },
           "trace.poll_period": {
             "type": "number",
-            "default": 1,
+            "default": 0,
             "scope": "resource",
             "description": "%trace.poll_period.description%"
           },
@@ -833,7 +833,7 @@
           },
           "trace.stop_tmo": {
             "type": "number",
-            "default": 5,
+            "default": 3,
             "scope": "resource",
             "description": "%trace.stop_tmo.description%"
           },
