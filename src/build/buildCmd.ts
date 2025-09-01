@@ -29,17 +29,22 @@ import {
 } from "../workspaceConfig";
 import { IdfSizeTask } from "../espIdf/size/idfSizeTask";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
-import { readParameter, readSerialPort } from "../idfConfiguration";
+import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 import { createFlashModel } from "../flash/flashModelBuilder";
 import { OutputChannel } from "../logger/outputChannel";
+import {
+  CustomExecutionTaskResult,
+  OutputCapturingExecution,
+  ShellOutputCapturingExecution,
+} from "../taskManager/customExecution";
 
 /**
  * Build the project with the given parameters.
- * 
+ *
  * This function is used to build the project with the given parameters.
  * It will build the project, run the size task, and flash the project if the flash type is set.
- * 
+ *
  * @param workspace - The workspace folder URI
  * @param cancelToken - The cancellation token
  * @param flashType - The flash type
@@ -51,8 +56,7 @@ export async function buildCommandMain(
   cancelToken: vscode.CancellationToken,
   flashType: ESP.FlashType,
   buildType?: ESP.BuildType
-) {
-  let continueFlag = true;
+): Promise<CustomExecutionTaskResult> {
   const buildTask = new BuildTask(workspace);
   const customTask = new CustomTask(workspace);
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
@@ -64,35 +68,45 @@ export async function buildCommandMain(
       new Error("One_Task_At_A_Time"),
       "buildCmd buildCommand"
     );
-    continueFlag = false;
-    return continueFlag;
+    return { continueFlag: false, executions: [] };
   }
   cancelToken.onCancellationRequested(() => {
     TaskManager.cancelTasks();
     TaskManager.disposeListeners();
     buildTask.building(false);
+    return { continueFlag: false, executions: [] };
   });
-  await customTask.addCustomTask(CustomTaskType.PreBuild);
-  await buildTask.build(buildType);
-  await TaskManager.runTasks();
+  let preBuildExecution = await customTask.addCustomTask(
+    CustomTaskType.PreBuild
+  );
+  let executions: (
+    | OutputCapturingExecution
+    | ShellOutputCapturingExecution
+  )[] = [];
+  const [compileExecution, buildExecution] = await buildTask.build(buildType);
+  executions.push(compileExecution, buildExecution, preBuildExecution);
   const enableSizeTask = (await readParameter(
     "idf.enableSizeTaskAfterBuildTask",
     workspace
   )) as boolean;
   if (enableSizeTask && typeof buildType === "undefined") {
     const sizeTask = new IdfSizeTask(workspace);
-    await sizeTask.getSizeInfo();
+    let sizeInfoExecution = await sizeTask.getSizeInfo();
+    executions.push(sizeInfoExecution);
   }
-  await customTask.addCustomTask(CustomTaskType.PostBuild);
-  await TaskManager.runTasks();
+
+  const postBuildExecution = await customTask.addCustomTask(
+    CustomTaskType.PostBuild
+  );
+  executions.push(postBuildExecution);
+
   if (flashType === ESP.FlashType.DFU) {
     const buildPath = readParameter("idf.buildPath", workspace) as string;
     if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
       Logger.warnNotify(
         "flasher_args.json file is missing from the build directory, can't proceed, please build properly!"
       );
-      continueFlag = false;
-      return continueFlag;
+      return { continueFlag: false, executions: [] };
     }
     const adapterTargetName = await getIdfTargetFromSdkconfig(workspace);
     if (
@@ -103,13 +117,13 @@ export async function buildCommandMain(
       Logger.warnNotify(
         `The selected device target "${adapterTargetName}" is not compatible for DFU, as a result the DFU.bin was not created.`
       );
-      continueFlag = false;
-      return continueFlag;
+      return { continueFlag: false, executions: [] };
     } else {
-      await buildTask.buildDfu();
-      await TaskManager.runTasks();
+      const dfuExecution = await buildTask.buildDfu();
+      executions.push(dfuExecution);
     }
   }
+  const buildResult = await TaskManager.runTasksWithOutput();
   if (!cancelToken.isCancellationRequested) {
     updateIdfComponentsTree(workspace);
     Logger.infoNotify("Build Successful");
@@ -118,7 +132,12 @@ export async function buildCommandMain(
     TaskManager.disposeListeners();
   }
   buildTask.building(false);
-  return continueFlag;
+
+  return {
+    continueFlag: buildResult.success,
+    executions,
+    results: buildResult.results,
+  };
 }
 
 export async function buildCommand(
@@ -126,30 +145,39 @@ export async function buildCommand(
   cancelToken: vscode.CancellationToken,
   flashType: ESP.FlashType,
   buildType?: ESP.BuildType
-) {
+): Promise<boolean> {
   let continueFlag = true;
   try {
-    continueFlag = await buildCommandMain(workspace, cancelToken, flashType, buildType);
+    let buildCmdResults = await buildCommandMain(
+      workspace,
+      cancelToken,
+      flashType,
+      buildType
+    );
+    continueFlag = buildCmdResults.continueFlag;
+    const taskExecutions = buildCmdResults.executions;
+    if (!continueFlag) {
+      throw buildCmdResults.results[0].error;
+    }
+    // const compileOutput = taskExecutions[1].getOutput();
+    // const buildOutput = taskExecutions[2].getOutput();
   } catch (error) {
     if (error.message === "ALREADY_BUILDING") {
-      return Logger.errorNotify(
-        "Already a build is running!",
-        error,
-        "buildCommand"
-      );
+      Logger.errorNotify("Already a build is running!", error, "buildCommand");
     }
     if (error.message === "BUILD_TERMINATED") {
-      return Logger.warnNotify(`Build is Terminated`);
+      Logger.warnNotify(`Build is Terminated`);
+    } else {
+      Logger.errorNotify(
+        "Something went wrong while trying to build the project",
+        error,
+        "buildCommand",
+        undefined,
+        false
+      );
     }
-    Logger.errorNotify(
-      "Something went wrong while trying to build the project",
-      error,
-      "buildCommand",
-      undefined,
-      false
-    );
-    continueFlag = false;
   }
+  continueFlag = false;
   return continueFlag;
 }
 

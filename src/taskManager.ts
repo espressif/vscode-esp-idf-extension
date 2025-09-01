@@ -27,6 +27,7 @@ export interface IdfTaskDefinition extends vscode.TaskDefinition {
 export class TaskManager {
   private static tasks: vscode.Task[] = [];
   private static disposables: vscode.Disposable[] = [];
+  private static taskResults: Array<{ taskId: string; output?: any; error?: Error }> = [];
 
   public static addTask(
     taskDefinition: IdfTaskDefinition,
@@ -50,7 +51,7 @@ export class TaskManager {
     newTask.presentationOptions = presentationOptions;
     TaskManager.tasks.push(newTask);
     return new Promise<void>((resolve, reject) => {
-      vscode.tasks.onDidEndTask((e) => {
+      const taskEndListener = vscode.tasks.onDidEndTask(async (e) => {
         if (
           e.execution &&
           e.execution.task.definition.taskId.indexOf(
@@ -60,6 +61,7 @@ export class TaskManager {
           return resolve();
         }
       });
+      TaskManager.disposables.push(taskEndListener);
     });
   }
 
@@ -95,6 +97,14 @@ export class TaskManager {
             lastExecution.task.definition.taskId
           ) !== -1
         ) {
+          // Store the result regardless of success/failure
+          const taskResult = {
+            taskId: lastExecution.task.definition.taskId,
+            exitCode: e.exitCode,
+            taskName: lastExecution.task.name
+          };
+          TaskManager.taskResults.push(taskResult);
+
           if (e.exitCode !== 0) {
             this.cancelTasks();
             this.disposeListeners();
@@ -117,5 +127,52 @@ export class TaskManager {
       });
       TaskManager.disposables.push(taskDisposable);
     });
+  }
+
+  public static getTaskResults() {
+    return TaskManager.taskResults;
+  }
+
+  public static clearTaskResults() {
+    TaskManager.taskResults = [];
+  }
+
+  public static async runTasksWithOutput() {
+    const results: Array<{ taskId: string; output?: any; error?: Error; exitCode: number }> = [];
+    
+    try {
+      await TaskManager.runTasks();
+      // If we get here, all tasks succeeded
+      return { success: true, results };
+    } catch (error) {
+      // Tasks failed, but we can still get output from custom executions
+      const customExecutions = TaskManager.tasks.filter(task => 
+        task.execution && 
+        (task.execution as any).getOutput && 
+        typeof (task.execution as any).getOutput === 'function'
+      );
+
+      for (const task of customExecutions) {
+        try {
+          const execution = task.execution as any;
+          const output = await execution.getOutput();
+          results.push({
+            taskId: task.definition.taskId,
+            output,
+            error: undefined,
+            exitCode: output.exitCode
+          });
+        } catch (execError) {
+          results.push({
+            taskId: task.definition.taskId,
+            output: undefined,
+            error: execError as Error,
+            exitCode: -1
+          });
+        }
+      }
+
+      return { success: false, results };
+    }
   }
 }
