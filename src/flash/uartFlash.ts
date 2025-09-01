@@ -26,6 +26,7 @@ import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 import { OutputChannel } from "../logger/outputChannel";
+import { CustomExecutionTaskResult } from "../taskManager/customExecution";
 
 export async function uartFlashCommandMain(
   cancelToken: CancellationToken,
@@ -36,7 +37,7 @@ export async function uartFlashCommandMain(
   flashType: ESP.FlashType,
   encryptPartitions: boolean,
   partitionToUse?: ESP.BuildType
-) {
+): Promise<CustomExecutionTaskResult> {
   const buildPath = readParameter("idf.buildPath", workspace) as string;
   const buildFiles = await readdir(buildPath);
   const binFiles = buildFiles.filter(
@@ -51,7 +52,7 @@ export async function uartFlashCommandMain(
       new Error("BIN_FILE_ACCESS_ERROR"),
       "flashCommand binfile access error"
     );
-    return false;
+    return { continueFlag: false, executions: [] };
   }
   const flasherArgsJsonPath = join(buildPath, "flasher_args.json");
   cancelToken.onCancellationRequested(() => {
@@ -73,17 +74,27 @@ export async function uartFlashCommandMain(
   cancelToken.onCancellationRequested(() => {
     FlashTask.isFlashing = false;
   });
-  await customTask.addCustomTask(CustomTaskType.PreFlash);
-  await flashTask.flash(flashType, partitionToUse);
-  await customTask.addCustomTask(CustomTaskType.PostFlash);
-  await TaskManager.runTasks();
+  const preFlashExecution = await customTask.addCustomTask(
+    CustomTaskType.PreFlash
+  );
+  const flashExecution = await flashTask.flash(flashType, partitionToUse);
+  const postFlashExecution = await customTask.addCustomTask(
+    CustomTaskType.PostFlash
+  );
+  const flashResult = await TaskManager.runTasksWithOutput();
+
   if (!cancelToken.isCancellationRequested) {
-    FlashTask.isFlashing = false;
     const msg = "Flash Done ⚡️";
     OutputChannel.appendLineAndShow(msg, "Flash");
     Logger.infoNotify(msg);
+    TaskManager.disposeListeners();
   }
-  TaskManager.disposeListeners();
+  FlashTask.isFlashing = false;
+  return {
+    continueFlag: flashResult.success,
+    executions: [preFlashExecution, flashExecution, postFlashExecution],
+    results: flashResult.results,
+  };
 }
 
 export async function flashCommand(
@@ -98,7 +109,7 @@ export async function flashCommand(
 ) {
   let continueFlag = true;
   try {
-    await uartFlashCommandMain(
+    let flashCmdResult = await uartFlashCommandMain(
       cancelToken,
       flashBaudRate,
       idfPathDir,
@@ -108,6 +119,10 @@ export async function flashCommand(
       encryptPartitions,
       partitionToUse
     );
+    continueFlag = flashCmdResult.continueFlag;
+    if (!continueFlag) {
+      throw flashCmdResult.results[0].error;
+    }
   } catch (error) {
     if (error.message === "ALREADY_FLASHING") {
       const errStr = "Already one flash process is running!";

@@ -28,7 +28,11 @@ import {
 } from "vscode";
 import { join } from "path";
 import { constants } from "fs";
-import { NotificationMode, readParameter, readSerialPort } from "../idfConfiguration";
+import {
+  NotificationMode,
+  readParameter,
+  readSerialPort,
+} from "../idfConfiguration";
 import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
 import { sleep } from "../utils";
 import { TaskManager } from "../taskManager";
@@ -38,6 +42,7 @@ import { IDFMonitor } from "../espIdf/monitor";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { OutputCapturingExecution } from "../taskManager/customExecution";
 
 export class EraseFlashTask {
   public static isErasing: boolean;
@@ -69,7 +74,7 @@ export class EraseFlashTask {
     }
   }
 
-  public async eraseFlash() {
+  public async eraseFlash(port: string) {
     if (EraseFlashTask.isErasing) {
       throw new Error("ALREADY_ERASING");
     }
@@ -106,7 +111,7 @@ export class EraseFlashTask {
       env: this.modifiedEnv,
     };
 
-    const eraseExecution = this._eraseExecution(pythonBinPath);
+    const eraseExecution = this._eraseExecution(pythonBinPath, port);
     const erasePresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,
@@ -126,22 +131,16 @@ export class EraseFlashTask {
       ["espIdf"],
       erasePresentationOptions
     );
-    OutputChannel.appendLine("Flash memory content has been erased.");
-    Logger.infoNotify("Flash memory content has been erased.");
+    return eraseExecution;
   }
 
-  private async _eraseExecution(pythonBinPath: string) {
+  private async _eraseExecution(pythonBinPath: string, port: string) {
     this.erasing(true);
-    const port = await readSerialPort(this.currentWorkspace, false);
-    if (!port) {
-      return Logger.warnNotify(
-        l10n.t(
-          "No serial port found for current IDF_TARGET: {0}",
-          await getIdfTargetFromSdkconfig(this.currentWorkspace)
-        )
-      );
-    }
     const args = [this.flashScriptPath, "-p", port, "erase_flash"];
-    return new ProcessExecution(pythonBinPath, args, this.processOptions);
+    return OutputCapturingExecution.create(
+      pythonBinPath,
+      args,
+      this.processOptions
+    );
   }
 }

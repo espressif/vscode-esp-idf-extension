@@ -195,6 +195,7 @@ import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
 import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
+import { readSerialPort } from "./idfConfiguration";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -715,8 +716,17 @@ export async function activate(context: vscode.ExtensionContext) {
           cancelToken: vscode.CancellationToken
         ) => {
           try {
+            const port = await readSerialPort(this.currentWorkspace, false);
+            if (!port) {
+              return Logger.warnNotify(
+                vscode.l10n.t(
+                  "No serial port found for current IDF_TARGET: {0}",
+                  await getIdfTargetFromSdkconfig(this.currentWorkspace)
+                )
+              );
+            }
             const eraseFlashTask = new EraseFlashTask(workspaceRoot);
-            await eraseFlashTask.eraseFlash();
+            await eraseFlashTask.eraseFlash(port);
             await TaskManager.runTasks();
             if (!cancelToken.isCancellationRequested) {
               EraseFlashTask.isErasing = false;
@@ -725,6 +735,8 @@ export async function activate(context: vscode.ExtensionContext) {
               Logger.infoNotify(msg);
             }
             TaskManager.disposeListeners();
+            OutputChannel.appendLine("Flash memory content has been erased.");
+            Logger.infoNotify("Flash memory content has been erased.");
           } catch (error) {
             Logger.errorNotify(error.message, error, "extension eraseFlash");
           }
@@ -4376,7 +4388,7 @@ async function startFlashing(
   flashType: ESP.FlashType,
   encryptPartitions: boolean,
   partitionToUse?: ESP.BuildType
-) {
+): Promise<boolean> {
   if (!flashType) {
     flashType = await selectFlashMethod();
   }
@@ -4409,12 +4421,13 @@ async function startFlashing(
 
   const port = await idfConf.readSerialPort(workspaceRoot, false);
   if (!port) {
-    return Logger.warnNotify(
+    Logger.warnNotify(
       vscode.l10n.t(
         "No serial port found for current IDF_TARGET: {0}",
         await getIdfTargetFromSdkconfig(workspaceRoot)
       )
     );
+    return false;
   }
   const flashBaudRate = idfConf.readParameter(
     "idf.flashBaudRate",
@@ -4427,7 +4440,7 @@ async function startFlashing(
     workspaceRoot
   );
   if (!canFlash) {
-    return;
+    return false;
   }
 
   if (flashType === ESP.FlashType.JTAG) {

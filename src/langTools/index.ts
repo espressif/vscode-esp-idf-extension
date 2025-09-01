@@ -30,6 +30,11 @@ import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { setTargetInIDF } from "../espIdf/setTarget/setTargetInIdf";
 import { statusBarItems } from "../statusBar";
 import { isSettingIDFTarget, setIsSettingIDFTarget } from "../espIdf/setTarget";
+import {
+  OutputCapturingExecution,
+  ShellOutputCapturingExecution,
+} from "../taskManager/customExecution";
+import { l10n } from "vscode";
 
 // Map of command names to their corresponding VS Code command IDs
 const COMMAND_MAP: Record<string, string> = {
@@ -66,10 +71,7 @@ const TASK_COMMANDS = new Set([
   "flash",
   "monitor",
   "buildFlashMonitor",
-  "fullClean",
   "eraseFlash",
-  "apptrace",
-  "heaptrace",
 ]);
 
 const WEBVIEW_COMMANDS = new Set([
@@ -79,9 +81,6 @@ const WEBVIEW_COMMANDS = new Set([
   "partitionTable",
   "componentManager",
 ]);
-
-// Commands that show dialogs or simple operations
-const DIALOG_COMMANDS = new Set(["selectPort", "setTarget", "doctor"]);
 
 let disposable: vscode.Disposable | undefined;
 
@@ -161,16 +160,22 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       }
 
       let continueFlag = true;
+      let taskExecutions: (
+        | OutputCapturingExecution
+        | ShellOutputCapturingExecution
+      )[] = [];
       if (commandId) {
         try {
           await focusOnAppropriateOutput(commandName);
           if (commandName === "build") {
-            continueFlag = await buildCommandMain(
+            let buildCmdResults = await buildCommandMain(
               workspaceURI,
               token,
               flashType,
               partitionToUse
             );
+            continueFlag = buildCmdResults.continueFlag;
+            taskExecutions.push(...buildCmdResults.executions);
           } else if (commandName === "flash") {
             if (IDFMonitor.terminal) {
               IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
@@ -224,7 +229,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 "idf.espIdfPath",
                 workspaceURI
               ) as string;
-              await uartFlashCommandMain(
+              const flashCmdResult = await uartFlashCommandMain(
                 token,
                 flashBaudRate,
                 idfPathDir,
@@ -234,6 +239,8 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 encryptPartitions,
                 partitionToUse
               );
+              continueFlag = flashCmdResult.continueFlag;
+              taskExecutions.push(...flashCmdResult.executions);
             }
           } else if (commandName === "monitor") {
             if (IDFMonitor.terminal) {
@@ -250,12 +257,14 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             const noReset = await shouldDisableMonitorReset(workspaceURI);
             await createNewIdfMonitor(workspaceURI, noReset);
           } else if (commandName === "buildFlashMonitor") {
-            continueFlag = await buildCommandMain(
+            let buildCmdResults = await buildCommandMain(
               workspaceURI,
               token,
               flashType,
               partitionToUse
             );
+            continueFlag = buildCmdResults.continueFlag;
+            taskExecutions.push(...buildCmdResults.executions);
             if (!continueFlag) {
               return new vscode.LanguageModelToolResult([
                 new vscode.LanguageModelTextPart(
@@ -327,7 +336,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 "idf.espIdfPath",
                 workspaceURI
               ) as string;
-              await uartFlashCommandMain(
+              let flashCmdResult = await uartFlashCommandMain(
                 token,
                 flashBaudRate,
                 idfPathDir,
@@ -337,6 +346,8 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 encryptPartitions,
                 partitionToUse
               );
+              continueFlag = flashCmdResult.continueFlag;
+              taskExecutions.push(...flashCmdResult.executions);
             }
             if (IDFMonitor.terminal) {
               IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
@@ -344,9 +355,19 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             const noReset = await shouldDisableMonitorReset(workspaceURI);
             await createNewIdfMonitor(workspaceURI, noReset);
           } else if (commandName === "eraseFlash") {
+            const port = await readSerialPort(this.currentWorkspace, false);
+            if (!port) {
+              Logger.warnNotify(
+                l10n.t(
+                  "No serial port found for current IDF_TARGET: {0}",
+                  await getIdfTargetFromSdkconfig(this.currentWorkspace)
+                )
+              );
+            }
             const eraseFlashTask = new EraseFlashTask(workspaceURI);
-            await eraseFlashTask.eraseFlash();
-            await TaskManager.runTasks();
+            const eraseFlashExecution = await eraseFlashTask.eraseFlash(port);
+            const eraseFlashResult = await TaskManager.runTasksWithOutput();
+            taskExecutions.push(eraseFlashExecution);
             if (!token.isCancellationRequested) {
               EraseFlashTask.isErasing = false;
               const msg = "Erase flash done";
@@ -354,6 +375,8 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               Logger.infoNotify(msg);
             }
             TaskManager.disposeListeners();
+            OutputChannel.appendLine("Flash memory content has been erased.");
+            Logger.infoNotify("Flash memory content has been erased.");
           } else if (commandName === "setTarget") {
             if (!target) {
               return new vscode.LanguageModelToolResult([
@@ -383,11 +406,17 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               workspaceURI
             );
             if (isSettingIDFTarget) {
-              Logger.info("setTargetInIDF is already running.");
-              return;
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart(
+                  `"setTargetInIDF is already running."`
+                ),
+              ]);
             }
             setIsSettingIDFTarget(true);
-            await setTargetInIDF(workspaceFolder, selectedTarget);
+            const setTargetResult = await setTargetInIDF(
+              workspaceFolder,
+              selectedTarget
+            );
 
             // Update configuration like setIdfTarget does
             const configurationTarget =
@@ -414,8 +443,23 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             );
 
             setIsSettingIDFTarget(false);
+            return new vscode.LanguageModelToolResult([
+              new vscode.LanguageModelTextPart(setTargetResult),
+            ]);
           } else {
             await vscode.commands.executeCommand(commandId);
+          }
+
+          let outputs: vscode.LanguageModelTextPart[] = [];
+          if (TASK_COMMANDS.has(commandName)) {
+            for (const execution of taskExecutions) {
+              if (execution) {
+                const output = await execution.getOutput();
+                outputs.push(new vscode.LanguageModelTextPart(output.stdout));
+                outputs.push(new vscode.LanguageModelTextPart(output.stderr));
+              }
+            }
+            return new vscode.LanguageModelToolResult(outputs);
           }
 
           const feedback = await getCommandFeedback(
@@ -573,27 +617,19 @@ async function getCommandFeedback(
   if (flashType) params.push(`flash type "${flashType}"`);
   const paramString = params.length > 0 ? ` with ${params.join(", ")}` : "";
 
-  if (TASK_COMMANDS.has(commandName)) {
-    const taskDescription = getTaskDescription(commandName);
-    return `Command "${commandName}"${paramString} has been started successfully. ${taskDescription} The task is now running in the background. The terminal tab has been focused for you to monitor the task progress. You can also check the output panel or status bar for additional information.`;
-  }
-
   if (WEBVIEW_COMMANDS.has(commandName)) {
     const webviewDescription = getWebviewDescription(commandName);
     return `Command "${commandName}"${paramString} has been executed successfully. A webview panel has been opened for you to interact with the ${webviewDescription}. The ESP-IDF output channel has been focused to show any relevant information.`;
   }
 
-  if (DIALOG_COMMANDS.has(commandName)) {
-    if (commandName === "setTarget" && target) {
-      return `Command "${commandName}" with target "${target}" is now running. The ESP-IDF target is being set to ${target}. The ESP-IDF output channel has been focused to show the operation details. You can verify this in the status bar or by checking your project configuration.`;
-    }
-    if (commandName === "selectPort") {
-      return `Command "${commandName}"${paramString} is now running. A port selection dialog has been opened. The ESP-IDF output channel has been focused to show any relevant information. Please select the appropriate serial port for your ESP-IDF device.`;
-    }
-    if (commandName === "doctor") {
-      return `Command "${commandName}"${paramString} is now running. The ESP-IDF doctor diagnostic tool is now running. The ESP-IDF output channel has been focused to show detailed information about your ESP-IDF setup and any potential issues.`;
-    }
-    return `Command "${commandName}"${paramString} is now running. A dialog or interface has been opened for you to complete the operation. The ESP-IDF output channel has been focused to show any relevant information.`;
+  if (commandName === "setTarget" && target) {
+    return `Command "${commandName}" with target "${target}" is now running. The ESP-IDF target is being set to ${target}. The ESP-IDF output channel has been focused to show the operation details. You can verify this in the status bar or by checking your project configuration.`;
+  }
+  if (commandName === "selectPort") {
+    return `Command "${commandName}"${paramString} is now running. A port selection dialog has been opened. The ESP-IDF output channel has been focused to show any relevant information. Please select the appropriate serial port for your ESP-IDF device.`;
+  }
+  if (commandName === "doctor") {
+    return `Command "${commandName}"${paramString} is now running. The ESP-IDF doctor diagnostic tool is now running. The ESP-IDF output channel has been focused to show detailed information about your ESP-IDF setup and any potential issues.`;
   }
 
   return `Command "${commandName}"${paramString}  is now running. The ESP-IDF output channel has been focused to show any relevant information.`;
@@ -624,10 +660,6 @@ function getInvocationMessage(
     )}: ${commandName}${paramString}. The ESP-IDF output channel will be focused.`;
   }
 
-  if (DIALOG_COMMANDS.has(commandName)) {
-    return `Executing ESP-IDF command: ${commandName}${paramString}. The ESP-IDF output channel will be focused.`;
-  }
-
   return `Executing ESP-IDF command: ${commandName}${paramString}. The ESP-IDF output channel will be focused.`;
 }
 
@@ -641,14 +673,8 @@ function getTaskDescription(commandName: string): string {
       return "This will open a serial monitor to view device output and send commands.";
     case "buildFlashMonitor":
       return "This will build the project, flash it to the device, and start monitoring in sequence.";
-    case "fullClean":
-      return "This will clean all build artifacts and temporary files from your project.";
     case "eraseFlash":
       return "This will completely erase the flash memory of your ESP-IDF device.";
-    case "apptrace":
-      return "This will start application tracing to analyze performance and behavior.";
-    case "heaptrace":
-      return "This will start heap tracing to monitor memory allocation and usage.";
     default:
       return "This task will be executed in the background.";
   }
