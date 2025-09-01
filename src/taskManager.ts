@@ -27,7 +27,11 @@ export interface IdfTaskDefinition extends vscode.TaskDefinition {
 export class TaskManager {
   private static tasks: vscode.Task[] = [];
   private static disposables: vscode.Disposable[] = [];
-  private static taskResults: Array<{ taskId: string; output?: any; error?: Error }> = [];
+  private static taskResults: Array<{
+    taskId: string;
+    output?: any;
+    error?: Error;
+  }> = [];
 
   public static addTask(
     taskDefinition: IdfTaskDefinition,
@@ -101,7 +105,7 @@ export class TaskManager {
           const taskResult = {
             taskId: lastExecution.task.definition.taskId,
             exitCode: e.exitCode,
-            taskName: lastExecution.task.name
+            taskName: lastExecution.task.name,
           };
           TaskManager.taskResults.push(taskResult);
 
@@ -138,18 +142,24 @@ export class TaskManager {
   }
 
   public static async runTasksWithOutput() {
-    const results: Array<{ taskId: string; output?: any; error?: Error; exitCode: number }> = [];
-    
+    const results: Array<{
+      taskId: string;
+      output?: any;
+      error?: Error;
+      exitCode: number;
+    }> = [];
+
     try {
       await TaskManager.runTasks();
       // If we get here, all tasks succeeded
       return { success: true, results };
     } catch (error) {
       // Tasks failed, but we can still get output from custom executions
-      const customExecutions = TaskManager.tasks.filter(task => 
-        task.execution && 
-        (task.execution as any).getOutput && 
-        typeof (task.execution as any).getOutput === 'function'
+      const customExecutions = TaskManager.tasks.filter(
+        (task) =>
+          task.execution &&
+          (task.execution as any).getOutput &&
+          typeof (task.execution as any).getOutput === "function"
       );
 
       for (const task of customExecutions) {
@@ -160,14 +170,14 @@ export class TaskManager {
             taskId: task.definition.taskId,
             output,
             error: undefined,
-            exitCode: output.exitCode
+            exitCode: output.exitCode,
           });
         } catch (execError) {
           results.push({
             taskId: task.definition.taskId,
             output: undefined,
             error: execError as Error,
-            exitCode: -1
+            exitCode: -1,
           });
         }
       }
