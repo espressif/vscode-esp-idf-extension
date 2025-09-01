@@ -155,12 +155,6 @@ export class AppTraceManager extends EventEmitter {
           this.executeAppTraceStart(workspace);
           resetHandler.stop();
         });
-
-        // If reset fails, still try to start app trace
-        resetHandler.on("error", () => {
-          this.executeAppTraceStart(workspace);
-          resetHandler.stop();
-        });
       }
     } catch (error) {
       Logger.errorNotify(error.message, error, "AppTraceManager start");
