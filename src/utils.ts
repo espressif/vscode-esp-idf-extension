@@ -180,8 +180,8 @@ export function spawn(
     appendMode: "appendLine",
   }
 ): Promise<Buffer> {
-  let buff = Buffer.alloc(0);
-  const sendToOutputChannel = (data: Buffer) => {
+  let buff: Buffer = Buffer.alloc(0);
+  const sendToOutputChannel = (data: any) => {
     buff = Buffer.concat([buff, data]);
     options.outputString += buff.toString();
     if (!options.silent) {
@@ -789,9 +789,9 @@ export function readProjectCMakeLists(dirPath: string) {
   const cmakeListFile = path.join(dirPath, "CMakeLists.txt");
   if (fileExists(cmakeListFile)) {
     const content = fs.readFileSync(cmakeListFile, "utf-8");
-    const projectMatches = content.match(/(project\(.*?\))/g);
-    if (projectMatches && projectMatches.length > 0) {
-      return projectMatches;
+    const projectMatches = content.match(/project\(([^)\s]+)/i);
+    if (projectMatches && projectMatches[1]) {
+      return projectMatches[1];
     }
   }
 }
@@ -997,7 +997,7 @@ export function validateFileSizeAndChecksum(
         const fileSize = fs.statSync(filePath).size;
         const readStream = fs.createReadStream(filePath);
         let fileChecksum: string;
-        readStream.on("data", (data) => {
+        readStream.on("data", (data: crypto.BinaryLike) => {
           shashum.update(data);
         });
         readStream.on("end", () => {
