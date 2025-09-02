@@ -2532,7 +2532,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (appTraceLabel) {
         await appTraceManager.start(workspaceRoot);
       } else {
-        await appTraceManager.stop();
+        await appTraceManager.stop(workspaceRoot);
       }
     });
   });

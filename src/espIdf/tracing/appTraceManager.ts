@@ -127,7 +127,6 @@ export class AppTraceManager extends EventEmitter {
   private archiveDataProvider: AppTraceArchiveTreeDataProvider;
   private tclConnectionParams: TCLConnection;
   private shallContinueCheckingStatus: boolean;
-  private workspaceFolder: vscode.Uri;
 
   constructor(
     treeDataProvider: AppTraceTreeDataProvider,
@@ -208,15 +207,21 @@ export class AppTraceManager extends EventEmitter {
         "[Stopped]"
       );
       this.archiveDataProvider.populateArchiveTree();
+
+      // Stop OpenOCD server when app tracing finishes naturally
+      const openOCDManager = OpenOCDManager.init();
+      if (openOCDManager.isRunning()) {
+        openOCDManager.stop();
+      }
     });
   }
 
-  public async stop() {
+  public async stop(workspace: vscode.Uri) {
     if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
       this.shallContinueCheckingStatus = false;
       const stopHandler = this.sendCommandToTCLSession(
         "esp apptrace stop",
-        this.workspaceFolder
+        workspace
       );
       stopHandler.on("response", (resp: Buffer) => {
         const respStr = resp.toString();
@@ -232,6 +237,12 @@ export class AppTraceManager extends EventEmitter {
           );
         }
         stopHandler.stop();
+
+        // Stop OpenOCD server after app tracing is stopped
+        const openOCDManager = OpenOCDManager.init();
+        if (openOCDManager.isRunning()) {
+          openOCDManager.stop();
+        }
       });
     } else {
       this.treeDataProvider.updateDescription(
