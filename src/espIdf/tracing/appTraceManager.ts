@@ -127,7 +127,6 @@ export class AppTraceManager extends EventEmitter {
   private archiveDataProvider: AppTraceArchiveTreeDataProvider;
   private tclConnectionParams: TCLConnection;
   private shallContinueCheckingStatus: boolean;
-  private workspaceFolder: vscode.Uri;
 
   constructor(
     treeDataProvider: AppTraceTreeDataProvider,
@@ -147,46 +146,13 @@ export class AppTraceManager extends EventEmitter {
           AppTraceButtonType.AppTraceButton,
           ""
         );
-        const fileName = `file:${sep}${sep}${join(
-          workspace.fsPath,
-          "trace",
-          `trace_${new Date().getTime()}.trace`
-        )}`.replace(/\\/g, "/");
-        const pollPeriod = idfConf.readParameter(
-          "trace.poll_period",
-          workspace
-        );
-        this.workspaceFolder = workspace;
-        const traceSize = idfConf.readParameter("trace.trace_size", workspace) as string;
-        const stopTmo = idfConf.readParameter("trace.stop_tmo", workspace) as string;
-        const wait4halt = idfConf.readParameter("trace.wait4halt", workspace) as string;
-        const skipSize = idfConf.readParameter("trace.skip_size", workspace) as string;
-        const startTrackingHandler = this.sendCommandToTCLSession(
-          [
-            "esp",
-            "apptrace",
-            "start",
-            fileName,
-            pollPeriod,
-            traceSize,
-            stopTmo,
-            wait4halt,
-            skipSize,
-          ].join(" "),
-          workspace
-        );
-        const tracingStatusHandler = this.appTracingStatusChecker(() => {
-          tracingStatusHandler.stop();
-          startTrackingHandler.stop();
 
-          this.treeDataProvider.showStartButton(
-            AppTraceButtonType.AppTraceButton
-          );
-          this.treeDataProvider.updateDescription(
-            AppTraceButtonType.AppTraceButton,
-            "[Stopped]"
-          );
-          this.archiveDataProvider.populateArchiveTree();
+        // Send reset command first to ensure proper initialization, then start app trace
+        const resetHandler = this.sendCommandToTCLSession("reset", workspace);
+        resetHandler.on("response", () => {
+          // Reset completed, now start app trace
+          this.executeAppTraceStart(workspace);
+          resetHandler.stop();
         });
       }
     } catch (error) {
@@ -194,12 +160,68 @@ export class AppTraceManager extends EventEmitter {
     }
   }
 
-  public async stop() {
+  private executeAppTraceStart(workspace: vscode.Uri) {
+    const fileName = `file:${sep}${sep}${join(
+      workspace.fsPath,
+      "trace",
+      `trace_${new Date().getTime()}.trace`
+    )}`.replace(/\\/g, "/");
+    const pollPeriod = idfConf.readParameter("trace.poll_period", workspace);
+    const traceSize = idfConf.readParameter(
+      "trace.trace_size",
+      workspace
+    ) as string;
+    const stopTmo = idfConf.readParameter(
+      "trace.stop_tmo",
+      workspace
+    ) as string;
+    const wait4halt = idfConf.readParameter(
+      "trace.wait4halt",
+      workspace
+    ) as string;
+    const skipSize = idfConf.readParameter(
+      "trace.skip_size",
+      workspace
+    ) as string;
+    const startTrackingHandler = this.sendCommandToTCLSession(
+      [
+        "esp",
+        "apptrace",
+        "start",
+        `{${fileName}}`,
+        pollPeriod,
+        traceSize,
+        stopTmo,
+        wait4halt,
+        skipSize,
+      ].join(" "),
+      workspace
+    );
+    const tracingStatusHandler = this.appTracingStatusChecker(() => {
+      tracingStatusHandler.stop();
+      startTrackingHandler.stop();
+
+      this.treeDataProvider.showStartButton(AppTraceButtonType.AppTraceButton);
+      this.treeDataProvider.updateDescription(
+        AppTraceButtonType.AppTraceButton,
+        "[Stopped]"
+      );
+      this.archiveDataProvider.populateArchiveTree();
+
+      // Stop OpenOCD server when app tracing finishes naturally
+      const openOCDManager = OpenOCDManager.init();
+      if (openOCDManager.isRunning()) {
+        openOCDManager.stop();
+      }
+    });
+  }
+
+  public async stop(workspace: vscode.Uri) {
     if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
       this.shallContinueCheckingStatus = false;
       const stopHandler = this.sendCommandToTCLSession(
         "esp apptrace stop",
-        this.workspaceFolder
+        workspace
       );
       stopHandler.on("response", (resp: Buffer) => {
         const respStr = resp.toString();
@@ -215,6 +237,12 @@ export class AppTraceManager extends EventEmitter {
           );
         }
         stopHandler.stop();
+
+        // Stop OpenOCD server after app tracing is stopped
+        const openOCDManager = OpenOCDManager.init();
+        if (openOCDManager.isRunning()) {
+          openOCDManager.stop();
+        }
       });
     } else {
       this.treeDataProvider.updateDescription(

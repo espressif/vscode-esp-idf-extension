@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Tuesday, 16th July 2019 1:38:00 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -119,19 +119,32 @@ export class AppTraceArchiveTreeDataProvider
     appTraceArchiveNode.fileName = label;
     appTraceArchiveNode.filePath = join(traceFolder, fileName);
     appTraceArchiveNode.type = type;
-    appTraceArchiveNode.command = {
-      command: "espIdf.apptrace.archive.showReport",
-      title: "Show Report",
-      arguments: [appTraceArchiveNode],
-    };
+
+    // Only set command for Heap Trace items - App Trace items will open the file directly
     if (appTraceArchiveNode.type === TraceType.HeapTrace) {
+      appTraceArchiveNode.command = {
+        command: "espIdf.apptrace.archive.showReport",
+        title: "Show Report",
+        arguments: [appTraceArchiveNode],
+      };
       appTraceArchiveNode.iconPath = new vscode.ThemeIcon("pulse");
     } else {
+      // For App Trace, set command to open file directly
+      appTraceArchiveNode.command = {
+        command: "vscode.open",
+        title: "Open File",
+        arguments: [vscode.Uri.file(appTraceArchiveNode.filePath)],
+      };
       appTraceArchiveNode.iconPath = new vscode.ThemeIcon("archive");
     }
+
     const traceSize = statSync(appTraceArchiveNode.filePath);
-    appTraceArchiveNode.description = `${this.sinceAgo(name[1].split(".trace")[0])} ${traceSize.size}B`;
-    appTraceArchiveNode.tooltip = `${label} has ${traceSize.size} bytes (${this.sinceAgo(name[1].split(".trace")[0])})`;
+    appTraceArchiveNode.description = `${this.sinceAgo(
+      name[1].split(".trace")[0]
+    )} ${traceSize.size}B`;
+    appTraceArchiveNode.tooltip = `${label} has ${
+      traceSize.size
+    } bytes (${this.sinceAgo(name[1].split(".trace")[0])})`;
     return appTraceArchiveNode;
   }
   private sinceAgo(epoch: string): string {
