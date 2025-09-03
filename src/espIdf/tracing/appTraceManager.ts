@@ -188,7 +188,7 @@ export class AppTraceManager extends EventEmitter {
         "esp",
         "apptrace",
         "start",
-        fileName,
+        `{${fileName}}`,
         pollPeriod,
         traceSize,
         stopTmo,
