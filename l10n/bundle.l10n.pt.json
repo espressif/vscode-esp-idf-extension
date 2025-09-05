@@ -258,5 +258,11 @@
   "Clear Build Error Hints": "Limpar Dicas de Erro de Compilação",
   "Clear OpenOCD Error Hints": "Limpar Dicas de Erro do OpenOCD",
   "Open Reference": "Abrir Referência",
-  "Launch Debug": "Iniciar depuração"
+  "Launch Debug": "Iniciar depuração",
+  "🎉 New ESP-IDF Extension setup available! We've completely redesigned the installation process with the ESP-IDF Installer Manager (EIM) for a smoother, more reliable setup experience. Help us improve by trying the pre-release!": "🎉 Nova configuração da extensão ESP-IDF disponível! Redesenhamos completamente o processo de instalação com o Gerenciador de Instalação ESP-IDF (EIM) para uma experiência de configuração mais suave e confiável. Ajude-nos a melhorar experimentando a versão pré-lançamento!",
+  "Try New Pre-Release": "Experimentar nova versão pré-lançamento",
+  "Learn More": "Saiba mais",
+  "Not Now": "Agora não",
+  "To install the pre-release version, click the 'Switch to Pre-Release Version' button.": "Para instalar a versão pré-lançamento, clique no botão 'Alternar para versão pré-lançamento'.",
+  "Got it": "Entendi"
 }
