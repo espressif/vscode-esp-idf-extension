@@ -112,11 +112,18 @@ export class DebugAdapterManager extends EventEmitter {
       const logFile = path.join(this.currentWorkspace.fsPath, "debug") + ".log";
 
       if (!this.appOffset) {
-        const serialPort = idfConf.readParameter(
-          "idf.port",
-          this.currentWorkspace
-        );
-        const flashBaudRate = idfConf.readParameter(
+        const serialPort = await idfConf.readSerialPort(this.currentWorkspace, false);
+        if (!serialPort) {
+          return reject(
+            new Error(
+              vscode.l10n.t(
+                "No serial port found for current IDF_TARGET: {0}",
+                this.target
+              )
+            )
+          );
+        }
+        const flashBaudRate = await idfConf.readParameter(
           "idf.flashBaudRate",
           this.currentWorkspace
         );
@@ -140,7 +147,9 @@ export class DebugAdapterManager extends EventEmitter {
         );
         this.appOffset = model.app.address;
       }
-      const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
+      const pythonBinPath = await getVirtualEnvPythonPath(
+        this.currentWorkspace
+      );
 
       const toolchainPrefix = getToolchainToolName(this.target, "");
       const adapterArgs = [

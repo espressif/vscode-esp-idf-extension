@@ -89,6 +89,7 @@ export async function setTargetInIDF(
     OutputChannel.appendLineAndShow(msg, "Set Target");
     Logger.infoNotify(msg);
     setCCppPropertiesJsonCompilerPath(workspaceFolder.uri);
+    return setTargetResult.toString();
   } catch (error) {
     throw new Error(
       `Failed to set target ${selectedTarget.target}: ${error.message}.`
