@@ -96,6 +96,7 @@
 	"espIdf.unitTest.buildUnitTestApp.title": "单元测试：构建单元测试应用程序",
 	"espIdf.unitTest.flashUnitTestApp.title": "单元测试：烧录单元测试应用程序",
 	"espIdf.viewAsHex.title": "以十六进制查看",
+	"espIdf.viewAsLVGLImage.title": "以 LVGL 图像查看",
 	"espIdf.openImageViewer.title": "打开图像查看器",
 	"espIdf.hexView.copyValue.title": "复制值到剪贴板",
 	"espIdf.hexView.deleteElement.title": "从列表中删除十六进制值",

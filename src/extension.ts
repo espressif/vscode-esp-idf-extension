@@ -1577,6 +1577,50 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  registerIDFCommand(
+    "espIdf.viewAsLVGLImage",
+    (debugContext: {
+      container: {
+        expensive: boolean;
+        name: string;
+        variablesReference: number;
+      };
+      sessionId: string;
+      variable: {
+        evaluateName: string;
+        memoryReference: string;
+        name: string;
+        value: string;
+        variablesReference: number;
+        type: string;
+      };
+    }) => {
+      return PreCheck.perform([openFolderCheck], async () => {
+        if (
+          !debugContext ||
+          !debugContext.variable ||
+          !debugContext.variable.evaluateName
+        ) {
+          return;
+        }
+        if (!vscode.debug.activeDebugSession) {
+          return;
+        }
+
+        try {
+          // Show the ImageViewPanel and pass the variable information
+          ImageViewPanel.show(context.extensionPath);
+
+          // Send the variable information to the ImageViewPanel
+          ImageViewPanel.handleLVGLVariableFromContext(debugContext);
+        } catch (e) {
+          const msg = e && e.message ? e.message : e;
+          Logger.errorNotify(msg, e, "extension espIdf.viewAsLVGLImage");
+        }
+      });
+    }
+  );
+
   registerIDFCommand("espIdf.openImageViewer", () => {
     return PreCheck.perform([openFolderCheck], () => {
       // Show the ImageViewPanel without an image

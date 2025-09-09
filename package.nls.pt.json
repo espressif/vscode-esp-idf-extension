@@ -98,6 +98,7 @@
 	"espIdf.webview.nvsPartitionEditor.title": "Abra o Editor de Partição NVS",
 	"espIdf.welcome.title": "Bem-vindo",
 	"espIdf.viewAsHex.title": "Ver como Hexadecimal",
+	"espIdf.viewAsLVGLImage.title": "Ver como Imagem LVGL",
 	"espIdf.openImageViewer.title": "Abrir Visor de Imagens",
 	"espIdf.hexView.copyValue.title": "Copiar valor para a área de transferência",
   	"espIdf.hexView.deleteElement.title": "Excluir valor hexadecimal da lista",

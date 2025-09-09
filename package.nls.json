@@ -97,6 +97,7 @@
   "espIdf.unitTest.buildUnitTestApp.title": "Unit Test: Build Unit Test App",
   "espIdf.unitTest.flashUnitTestApp.title": "Unit Test: Flash Unit Test App",
   "espIdf.viewAsHex.title": "View as Hex",
+  "espIdf.viewAsLVGLImage.title": "View as LVGL Image",
   "espIdf.openImageViewer.title": "Open Image Viewer",
   "espIdf.hexView.copyValue.title": "Copy value to clipboard",
   "espIdf.hexView.deleteElement.title": "Delete hex value from list",
