@@ -24,6 +24,16 @@ export interface ImageElement {
   data: Uint8Array;
 }
 
+export interface ImageWithDimensionsElement {
+  name: string;
+  data: Uint8Array;
+  dataSize?: number;
+  dataAddress?: string;
+  width: number;
+  height: number;
+  format: number;
+}
+
 export class ImageViewPanel {
   private static instance: ImageViewPanel;
   private readonly panel: vscode.WebviewPanel;
@@ -56,10 +66,30 @@ export class ImageViewPanel {
     ImageViewPanel.instance = new ImageViewPanel(panel, extensionPath);
   }
 
-  private constructor(
-    panel: vscode.WebviewPanel,
-    extensionPath: string
-  ) {
+  public static handleLVGLVariableFromContext(debugContext: {
+    container: {
+      expensive: boolean;
+      name: string;
+      variablesReference: number;
+    };
+    sessionId: string;
+    variable: {
+      evaluateName: string;
+      memoryReference: string;
+      name: string;
+      value: string;
+      variablesReference: number;
+      type: string;
+    };
+  }) {
+    if (ImageViewPanel.instance) {
+      ImageViewPanel.instance.handleExtractLVGLImageProperties(
+        debugContext.variable
+      );
+    }
+  }
+
+  private constructor(panel: vscode.WebviewPanel, extensionPath: string) {
     this.panel = panel;
     this.extensionPath = extensionPath;
 
@@ -80,6 +110,11 @@ export class ImageViewPanel {
               message.size
             );
             break;
+          case "extractLVGLImageProperties":
+            this.handleExtractLVGLImagePropertiesFromString(
+              message.variableName
+            );
+            break;
           default:
             break;
         }
@@ -89,13 +124,28 @@ export class ImageViewPanel {
     );
   }
 
-
   private sendImageData(imageElement: ImageElement) {
     const base64Data = Buffer.from(imageElement.data).toString("base64");
     this.panel.webview.postMessage({
       command: "updateImage",
       data: base64Data,
       name: imageElement.name,
+    });
+  }
+
+  private sendImageWithDimensionsData(
+    imageElement: ImageWithDimensionsElement
+  ) {
+    const base64Data = Buffer.from(imageElement.data).toString("base64");
+    this.panel.webview.postMessage({
+      command: "updateLVGLImage",
+      data: base64Data,
+      dataAddress: imageElement.dataAddress,
+      dataSize: imageElement.dataSize,
+      name: imageElement.name,
+      width: imageElement.width,
+      height: imageElement.height,
+      format: imageElement.format,
     });
   }
 
@@ -183,7 +233,7 @@ export class ImageViewPanel {
 
       if (readResponse && readResponse.data) {
         const binaryData = Buffer.from(readResponse.data, "base64");
-        const imageElement = {
+        const imageElement: ImageElement = {
           name: variableName,
           data: new Uint8Array(binaryData),
         };
@@ -208,6 +258,250 @@ export class ImageViewPanel {
       this.panel.webview.postMessage({
         command: "showError",
         error: `Error loading image: ${error}`,
+      });
+    }
+  }
+
+  private async processLVGLImageProperties(
+    variableName: string,
+    variablesResponse: any,
+    lvHeaderChildren: any,
+    session: vscode.DebugSession
+  ) {
+    // Extract properties from the image descriptor
+    const imageProperties: ImageWithDimensionsElement = {
+      name: variableName,
+      data: new Uint8Array(),
+      width: 0,
+      height: 0,
+      format: 0,
+    };
+
+    // Extract data_size and data from the main structure
+    variablesResponse.variables.forEach((child: any) => {
+      if (child.name === "data_size") {
+        imageProperties.dataSize = parseInt(child.value, 10);
+      } else if (child.name === "data") {
+        const match = child.value.match(/0x[0-9a-fA-F]+/);
+        if (match) {
+          imageProperties.dataAddress = match[0];
+        }
+      }
+    });
+
+    // Extract width, height, and format from header
+    lvHeaderChildren.variables.forEach((child: any) => {
+      if (child.name === "w") {
+        imageProperties.width = parseInt(child.value, 10);
+      } else if (child.name === "h") {
+        imageProperties.height = parseInt(child.value, 10);
+      } else if (child.name === "cf") {
+        imageProperties.format = parseInt(child.value, 10);
+      }
+    });
+
+    // Validate that we have the required data
+    if (!imageProperties.dataAddress || !imageProperties.dataSize) {
+      this.panel.webview.postMessage({
+        command: "showError",
+        error: `Could not extract data address or size from variable ${variableName}`,
+      });
+      return null;
+    }
+
+    // Read memory data
+    const readResponse = await session.customRequest("readMemory", {
+      memoryReference: imageProperties.dataAddress,
+      count: imageProperties.dataSize,
+    });
+
+    if (readResponse && readResponse.data) {
+      const binaryData = Buffer.from(readResponse.data, "base64");
+      imageProperties.data = new Uint8Array(binaryData);
+
+      // Update the panel title and send the data
+      this.panel.title = `Image Viewer: ${variableName}`;
+      this.sendImageWithDimensionsData(imageProperties);
+      return imageProperties;
+    } else {
+      this.panel.webview.postMessage({
+        command: "showError",
+        error: `Could not read memory data for variable ${variableName}`,
+      });
+      return null;
+    }
+  }
+
+  private async handleExtractLVGLImagePropertiesFromString(
+    variableName: string
+  ) {
+    try {
+      const session = vscode.debug.activeDebugSession;
+      if (!session) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: "No active debug session found",
+        });
+        return;
+      }
+
+      // Get current thread and frame
+      const threads = await session.customRequest("threads");
+      const threadId = threads.threads[0].id;
+
+      const stack = await session.customRequest("stackTrace", {
+        threadId,
+        startFrame: 0,
+        levels: 1,
+      });
+      const frameId = stack.stackFrames[0].id;
+
+      // Evaluate the variable to get its properties
+      const evaluateResponse = await session.customRequest("evaluate", {
+        expression: variableName,
+        frameId,
+      });
+
+      if (!evaluateResponse || !evaluateResponse.result) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `Could not evaluate variable ${variableName}`,
+        });
+        return;
+      }
+
+      // Check if the variable is of type lv_image_dsc_t
+      if (
+        !evaluateResponse.type ||
+        evaluateResponse.type.indexOf("lv_image_dsc_t") === -1
+      ) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `Variable ${variableName} is not of type lv_image_dsc_t`,
+        });
+        return;
+      }
+
+      // Get the variable's children to access its structure
+      const variablesResponse = await session.customRequest("variables", {
+        variablesReference: evaluateResponse.variablesReference,
+      });
+
+      if (!variablesResponse || !variablesResponse.variables) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `No children found for variable ${variableName}`,
+        });
+        return;
+      }
+
+      // Find the header child
+      const headerObj = variablesResponse.variables.find(
+        (child: any) => child.name === "header"
+      );
+
+      if (!headerObj) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `No header found in variable ${variableName}`,
+        });
+        return;
+      }
+
+      // Get header children
+      const lvHeaderChildren = await session.customRequest("variables", {
+        variablesReference: headerObj.variablesReference,
+      });
+
+      if (!lvHeaderChildren || !lvHeaderChildren.variables) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `No children found for header of variable ${variableName}`,
+        });
+        return;
+      }
+
+      // Process the LVGL image properties using shared function
+      await this.processLVGLImageProperties(
+        variableName,
+        variablesResponse,
+        lvHeaderChildren,
+        session
+      );
+    } catch (error) {
+      this.panel.webview.postMessage({
+        command: "showError",
+        error: `Error extracting LVGL image properties from string: ${error}`,
+      });
+    }
+  }
+
+  private async handleExtractLVGLImageProperties(variableName: {
+    evaluateName: string;
+    memoryReference: string;
+    name: string;
+    value: string;
+    variablesReference: number;
+    type: string;
+  }) {
+    try {
+      const session = vscode.debug.activeDebugSession;
+      if (!session) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: "No active debug session found",
+        });
+        return;
+      }
+
+      if (variableName.type.indexOf("lv_image_dsc_t") === -1) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `Variable ${variableName.name} is not of type lv_image_dsc_t`,
+        });
+        return;
+      }
+
+      const lvImageDscChildren = await session.customRequest("variables", {
+        variablesReference: variableName.variablesReference,
+      });
+
+      if (!lvImageDscChildren || lvImageDscChildren.length === 0) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `No children found for variable ${variableName.name}`,
+        });
+        return;
+      }
+
+      // Try to find the 'header' child to determine if it's new or legacy format
+      const headerObj = lvImageDscChildren.variables.find(
+        (child: any) => child.name === "header"
+      );
+
+      const lvHeaderChildren = await session.customRequest("variables", {
+        variablesReference: headerObj.variablesReference,
+      });
+
+      if (!lvHeaderChildren || lvHeaderChildren.length === 0) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `No children found for variable ${headerObj.name}`,
+        });
+        return;
+      }
+
+      // Process the LVGL image properties using shared function
+      await this.processLVGLImageProperties(
+        variableName.name,
+        lvImageDscChildren,
+        lvHeaderChildren,
+        session
+      );
+    } catch (error) {
+      this.panel.webview.postMessage({
+        command: "showError",
+        error: `Error extracting LVGL image properties: ${error}`,
       });
     }
   }
