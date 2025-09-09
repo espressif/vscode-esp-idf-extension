@@ -28,7 +28,7 @@ import {
 } from "vscode";
 import { join } from "path";
 import { ESP } from "../config";
-import { getProjectConfigurationElements, saveProjectConfFile } from ".";
+import { getProjectConfigurationElements, saveProjectConfFileLegacy, configurePresetToProjectConfElement, projectConfElementToConfigurePreset } from ".";
 import { IdfTarget } from "../espIdf/setTarget/getTargets";
 
 export class projectConfigurationPanel {
@@ -96,10 +96,17 @@ export class projectConfigurationPanel {
     this.panel.webview.html = this.createSetupHtml(scriptPath);
 
     this.panel.webview.onDidReceiveMessage(async (message) => {
-      let projectConfObj = await getProjectConfigurationElements(
+      let projectConfPresets = await getProjectConfigurationElements(
         this.workspaceFolder,
         false // Don't resolve paths for display
       );
+      
+      // Convert ConfigurePresets to legacy format for webview compatibility
+      let projectConfObj: { [key: string]: ProjectConfElement } = {};
+      for (const [name, preset] of Object.entries(projectConfPresets)) {
+        projectConfObj[name] = configurePresetToProjectConfElement(preset);
+      }
+      
       switch (message.command) {
         case "command":
           break;
@@ -185,7 +192,7 @@ export class projectConfigurationPanel {
   }) {
     const projectConfKeys = Object.keys(projectConfDict);
     this.clearSelectedProject(projectConfKeys);
-    await saveProjectConfFile(this.workspaceFolder, projectConfDict);
+    await saveProjectConfFileLegacy(this.workspaceFolder, projectConfDict);
     window.showInformationMessage(
       "Project Configuration changes has been saved"
     );

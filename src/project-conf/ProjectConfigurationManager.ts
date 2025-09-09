@@ -21,7 +21,8 @@ import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { createStatusBarItem } from "../statusBar";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { Logger } from "../logger/logger";
-import { getProjectConfigurationElements } from "./index";
+import { getProjectConfigurationElements, configurePresetToProjectConfElement, promptLegacyMigration, migrateLegacyConfiguration } from "./index";
+import { pathExists } from "fs-extra";
 import { configureClangSettings } from "../clang";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { clearAdapterSerial } from "../espIdf/openOcd/adapterSerial";
@@ -72,32 +73,15 @@ export class ProjectConfigurationManager {
       false
     );
 
-    this.initialize();
     this.registerEventHandlers();
+    // Initialize asynchronously
+    this.initialize();
   }
 
-  private initialize(): void {
+  private async initialize(): Promise<void> {
     if (!fileExists(this.configFilePath)) {
-      // File doesn't exist - this is normal for projects without multiple configurations
-      this.configVersions = [];
-
-      // If configuration status bar item exists, remove it
-      if (this.statusBarItems["projectConf"]) {
-        this.statusBarItems["projectConf"].dispose();
-        this.statusBarItems["projectConf"] = undefined;
-      }
-
-      // Clear any potentially stale configuration
-      const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
-        ESP.ProjectConfiguration.SELECTED_CONFIG
-      );
-      if (currentSelectedConfig) {
-        ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
-        ESP.ProjectConfiguration.store.clear(
-          ESP.ProjectConfiguration.SELECTED_CONFIG
-        );
-      }
-
+      // CMakePresets.json doesn't exist - check for legacy file
+      await this.checkForLegacyFile();
       return;
     }
 
@@ -388,7 +372,10 @@ export class ProjectConfigurationManager {
       this.workspaceUri,
       true // Resolve paths for building
     );
-    ESP.ProjectConfiguration.store.set(configName, resolvedConfig[configName]);
+    
+    // Convert ConfigurePreset to ProjectConfElement for store compatibility
+    const legacyElement = configurePresetToProjectConfElement(resolvedConfig[configName]);
+    ESP.ProjectConfiguration.store.set(configName, legacyElement);
 
     // Update UI
     if (this.statusBarItems["projectConf"]) {
@@ -430,8 +417,17 @@ export class ProjectConfigurationManager {
         !projectConfigurations ||
         Object.keys(projectConfigurations).length === 0
       ) {
+        // Check if we have legacy configurations to migrate
+        const legacyFilePath = Uri.joinPath(this.workspaceUri, "esp_idf_project_configuration.json");
+        
+        if (await pathExists(legacyFilePath.fsPath)) {
+          // Show migration dialog
+          await this.handleLegacyMigrationDialog(legacyFilePath);
+          return;
+        }
+
         const emptyOption = await window.showInformationMessage(
-          l10n.t("No project configuration found"),
+          l10n.t("No CMakePresets configure presets found"),
           "Open editor"
         );
 
@@ -464,6 +460,204 @@ export class ProjectConfigurationManager {
     } catch (error) {
       window.showErrorMessage(
         `Error selecting configuration: ${error.message}`
+      );
+    }
+  }
+
+  /**
+   * Checks for legacy esp_idf_project_configuration.json file and shows appropriate status
+   */
+  private async checkForLegacyFile(): Promise<void> {
+    const legacyFilePath = Uri.joinPath(this.workspaceUri, "esp_idf_project_configuration.json").fsPath;
+    
+    if (fileExists(legacyFilePath)) {
+      // Legacy file exists - show status bar with migration option
+      this.configVersions = [];
+      
+      try {
+        const legacyContent = readFileSync(legacyFilePath);
+        if (legacyContent && legacyContent.trim() !== "") {
+          const legacyData = JSON.parse(legacyContent);
+          const legacyConfigNames = Object.keys(legacyData);
+          
+          if (legacyConfigNames.length > 0) {
+            // Show status bar indicating legacy configurations are available
+            this.setLegacyConfigurationStatus(legacyConfigNames);
+            
+            // Show migration notification
+            this.showLegacyMigrationNotification(legacyConfigNames);
+            return;
+          }
+        }
+      } catch (error) {
+        Logger.warn(`Failed to parse legacy configuration file: ${error.message}`);
+      }
+    }
+    
+    // No configuration files found - clear everything
+    this.clearConfigurationState();
+  }
+
+  /**
+   * Sets status bar to indicate legacy configurations are available
+   */
+  private setLegacyConfigurationStatus(legacyConfigNames: string[]): void {
+    const statusBarItemName = `Legacy Configs (${legacyConfigNames.length})`;
+    const statusBarItemTooltip = `Found legacy project configurations: ${legacyConfigNames.join(", ")}. Click to migrate to CMakePresets.json format.`;
+    const commandToUse = "espIdf.projectConf";
+
+    if (this.statusBarItems["projectConf"]) {
+      this.statusBarItems["projectConf"].dispose();
+    }
+
+    this.statusBarItems["projectConf"] = createStatusBarItem(
+      `$(${
+        this.commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
+      }) ${statusBarItemName}`,
+      statusBarItemTooltip,
+      commandToUse,
+      99,
+      this.commandDictionary[CommandKeys.SelectProjectConfiguration]
+        .checkboxState
+    );
+  }
+
+  /**
+   * Shows notification about legacy configurations
+   */
+  private async showLegacyMigrationNotification(legacyConfigNames: string[]): Promise<void> {
+    const message = l10n.t(
+      "Found {0} legacy project configuration(s): {1}. Would you like to migrate them to the new CMakePresets.json format? Your original file will remain unchanged.",
+      legacyConfigNames.length,
+      legacyConfigNames.join(", ")
+    );
+    
+    const migrateOption = l10n.t("Migrate Now");
+    const laterOption = l10n.t("Later");
+    
+    const choice = await window.showInformationMessage(
+      message,
+      migrateOption,
+      laterOption
+    );
+    
+    if (choice === migrateOption) {
+      // Directly perform migration without additional popup
+      const legacyFilePath = Uri.joinPath(this.workspaceUri, "esp_idf_project_configuration.json");
+      await this.performDirectMigration(legacyFilePath);
+    }
+  }
+
+  /**
+   * Handles the legacy migration dialog when user clicks on project configuration
+   */
+  private async handleLegacyMigrationDialog(legacyFilePath: Uri): Promise<void> {
+    try {
+      const legacyContent = readFileSync(legacyFilePath.fsPath);
+      const legacyData = JSON.parse(legacyContent);
+      const legacyConfigNames = Object.keys(legacyData);
+      
+      const message = l10n.t(
+        "Found {0} legacy project configuration(s): {1}. Would you like to migrate them to the new CMakePresets.json format?",
+        legacyConfigNames.length,
+        legacyConfigNames.join(", ")
+      );
+      
+      const migrateOption = l10n.t("Migrate Now");
+      const cancelOption = l10n.t("Cancel");
+      
+      const choice = await window.showInformationMessage(
+        message,
+        { modal: true },
+        migrateOption,
+        cancelOption
+      );
+      
+      if (choice === migrateOption) {
+        await this.performMigration(legacyFilePath);
+      }
+    } catch (error) {
+      Logger.errorNotify(
+        "Failed to handle legacy migration",
+        error,
+        "handleLegacyMigrationDialog"
+      );
+      window.showErrorMessage(
+        l10n.t("Failed to process legacy configuration file: {0}", error.message)
+      );
+    }
+  }
+
+  /**
+   * Performs the actual migration and updates UI (with confirmation dialog)
+   */
+  private async performMigration(legacyFilePath: Uri): Promise<void> {
+    try {
+      await promptLegacyMigration(this.workspaceUri, legacyFilePath);
+      
+      // After migration, reinitialize to show the new configurations
+      await this.initialize();
+      
+      window.showInformationMessage(
+        l10n.t("Project configurations successfully migrated to CMakePresets.json format!")
+      );
+    } catch (error) {
+      Logger.errorNotify(
+        "Failed to perform migration",
+        error,
+        "performMigration"
+      );
+      window.showErrorMessage(
+        l10n.t("Failed to migrate project configuration: {0}", error.message)
+      );
+    }
+  }
+
+  /**
+   * Performs direct migration without additional confirmation (for notification)
+   */
+  private async performDirectMigration(legacyFilePath: Uri): Promise<void> {
+    try {
+      await migrateLegacyConfiguration(this.workspaceUri, legacyFilePath);
+      
+      // After migration, reinitialize to show the new configurations
+      await this.initialize();
+      
+      window.showInformationMessage(
+        l10n.t("Project configurations successfully migrated to CMakePresets.json format!")
+      );
+    } catch (error) {
+      Logger.errorNotify(
+        "Failed to perform direct migration",
+        error,
+        "performDirectMigration"
+      );
+      window.showErrorMessage(
+        l10n.t("Failed to migrate project configuration: {0}", error.message)
+      );
+    }
+  }
+
+  /**
+   * Clears all configuration state
+   */
+  private clearConfigurationState(): void {
+    this.configVersions = [];
+
+    // If configuration status bar item exists, remove it
+    if (this.statusBarItems["projectConf"]) {
+      this.statusBarItems["projectConf"].dispose();
+      this.statusBarItems["projectConf"] = undefined;
+    }
+
+    // Clear any potentially stale configuration
+    const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+    if (currentSelectedConfig) {
+      ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
+      ESP.ProjectConfiguration.store.clear(
+        ESP.ProjectConfiguration.SELECTED_CONFIG
       );
     }
   }
