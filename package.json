@@ -755,6 +755,12 @@
             "description": "%param.buildPath%",
             "scope": "resource"
           },
+          "idf.useCMakePresets": {
+            "type": "boolean",
+            "default": false,
+            "description": "Use idf.py --preset <name> build instead of direct CMake calls. Requires ESP-IDF with CMakePresets support.",
+            "scope": "resource"
+          },
           "idf.buildPathWin": {
             "type": "string",
             "default": "${workspaceFolder}\\build",
