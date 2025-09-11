@@ -347,17 +347,35 @@ You can start a monitor session to capture fatal error events with **ESP-IDF: La
 ESP-IDF: Image Viewer
 ---------------------
 
-The ESP-IDF extension provides an **ESP-IDF: Image Viewer** feature that allows you to visualize binary image data from debug variables during a debugging session. This is particularly useful for applications that work with camera sensors, display buffers, or any raw image data.
+The ESP-IDF extension provides an **ESP-IDF: Image Viewer** feature that allows you to visualize binary image data from debug variables during a debugging session. This is particularly useful for applications that work with camera sensors, display buffers, LVGL graphics, OpenCV computer vision, or any raw image data.
 
-To use the Image Viewer:
+**Quick Access Methods:**
 
-1. Start a debug session and pause at a breakpoint where your image data variable is in scope
-2. Go to ``View`` > ``Command Palette`` and enter ``ESP-IDF: Open Image Viewer``
-3. In the Image Viewer panel, enter the name of your image data variable and its size
-4. Select the appropriate image format and dimensions
-5. Click ``Load Image`` to visualize the data
+1. **Right-click on variables in the debug session:**
+   - Right-click on any ``lv_image_dsc_t`` variable and select ``View as LVGL Image``
+   - Right-click on any ``cv::Mat`` variable and select ``View as OpenCV Image``
+
+2. **Manual Image Viewer:**
+   - Go to ``View`` > ``Command Palette`` and enter ``ESP-IDF: Open Image Viewer``
+   - Enter the name of your image data variable and its size
+   - Select the appropriate image format and dimensions
+   - Click ``Load Image`` to visualize the data
 
 **Supported Image Formats:**
+
+**LVGL Color Formats (lv_color_format_t):**
+- RGB565, RGB888, RGBA8888, ARGB8888, XRGB8888
+- BGR888, BGRA8888, ABGR8888, XBGR8888
+- RGB332, RGB444, RGB555, RGB666, RGB777
+- Grayscale, YUV420, YUV422, YUV444
+- And many more LVGL-specific formats
+
+**OpenCV Mat Formats:**
+- BGR888 (3 channels)
+- BGRA8888 (4 channels)
+- Grayscale (1 channel)
+
+**Raw Pixel Formats:**
 - RGB565 (16-bit per pixel)
 - RGB888 (24-bit per pixel)
 - Grayscale (8-bit per pixel)
@@ -365,25 +383,54 @@ To use the Image Viewer:
 
 **Example Usage:**
 
-Consider a camera application with the following variable:
+**LVGL Image Example:**
+
+.. code-block:: C
+
+    // LVGL image descriptor
+    lv_image_dsc_t my_image = {
+        .header = {
+            .cf = LV_COLOR_FORMAT_RGB888,  // Color format
+            .w = 320,                      // Width
+            .h = 240                       // Height
+        },
+        .data_size = 320 * 240 * 3,        // Data size in bytes
+        .data = image_data                 // Pointer to image data
+    };
+
+During debugging, right-click on ``my_image`` and select ``View as LVGL Image``. The Image Viewer will automatically extract the format, dimensions, and data from the LVGL structure.
+
+**OpenCV Mat Example:**
+
+.. code-block:: C
+
+    cv::Mat image(240, 320, CV_8UC3);  // 320x240 BGR888 image
+    // ... populate image data ...
+
+During debugging, right-click on ``image`` and select ``View as OpenCV Image``. The Image Viewer will automatically extract the dimensions, format, and data from the OpenCV Mat structure.
+
+**Manual Raw Data Example:**
 
 .. code-block:: C
 
     uint8_t image_buffer[320 * 240 * 3];  // RGB888 format, 320x240 pixels
     size_t image_size = sizeof(image_buffer);
 
-During debugging, you can:
+For manual usage:
 - Enter ``image_buffer`` as the variable name
 - Enter ``image_size`` or ``230400`` (320 * 240 * 3) as the size
 - Select ``RGB888`` format
 - Set width to ``320`` and height to ``240``
 
 **Important Notes:**
-- The Image Viewer only supports raw pixel formats. Compressed formats (JPEG, PNG, etc.) are not supported
-- You must specify the correct size of the image data array
-- The size can be provided as a number (bytes) or as the name of another variable containing the size
-- For pointer variables, make sure to provide the actual data size, not the pointer size
-- The Image Viewer automatically estimates dimensions based on the data size and selected format, but you can manually adjust them for better results
+- **LVGL Support**: Automatically extracts image properties from ``lv_image_dsc_t`` structures
+- **OpenCV Support**: Automatically extracts image properties from ``cv::Mat`` objects
+- **Format Detection**: The Image Viewer automatically detects and maps LVGL and OpenCV formats to the appropriate display format
+- **Raw Data**: The Image Viewer supports raw pixel formats. Compressed formats (JPEG, PNG, etc.) are not supported
+- **Size Specification**: For manual usage, you must specify the correct size of the image data array
+- **Variable Size**: The size can be provided as a number (bytes) or as the name of another variable containing the size
+- **Pointer Variables**: For pointer variables, make sure to provide the actual data size, not the pointer size
+- **Auto-Dimensioning**: The Image Viewer automatically estimates dimensions based on the data size and selected format, but you can manually adjust them for better results
 
 
 Other extensions debug configuration
