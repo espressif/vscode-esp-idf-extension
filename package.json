@@ -2577,7 +2577,7 @@
     "style-loader": "^3.3.1",
     "ts-loader": "^9.4.4",
     "typescript": "^5.2.2",
-    "vite": "^4.5.13",
+    "vite": "^5.4.20",
     "vscode-extension-tester": "^8.15.0",
     "vue-hot-reload-api": "^2.3.2",
     "vue-loader": "^17.2.2",
