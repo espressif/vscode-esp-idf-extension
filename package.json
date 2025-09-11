@@ -550,6 +550,11 @@
           "command": "espIdf.viewAsLVGLImage",
           "when": "inDebugMode && debugType == 'gdbtarget' && debugState == stopped",
           "group": "navigation"
+        },
+        {
+          "command": "espIdf.viewAsOpenCVImage",
+          "when": "inDebugMode && debugType == 'gdbtarget' && debugState == stopped",
+          "group": "navigation"
         }
       ]
     },
@@ -1820,6 +1825,11 @@
       {
         "command": "espIdf.viewAsLVGLImage",
         "title": "%espIdf.viewAsLVGLImage.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.viewAsOpenCVImage",
+        "title": "%espIdf.viewAsOpenCVImage.title%",
         "category": "ESP-IDF"
       },
       {

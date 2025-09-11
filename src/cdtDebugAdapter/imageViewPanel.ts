@@ -89,6 +89,29 @@ export class ImageViewPanel {
     }
   }
 
+  public static handleOpenCVVariableFromContext(debugContext: {
+    container: {
+      expensive: boolean;
+      name: string;
+      variablesReference: number;
+    };
+    sessionId: string;
+    variable: {
+      evaluateName: string;
+      memoryReference: string;
+      name: string;
+      value: string;
+      variablesReference: number;
+      type: string;
+    };
+  }) {
+    if (ImageViewPanel.instance) {
+      ImageViewPanel.instance.handleExtractOpenCVImageProperties(
+        debugContext.variable
+      );
+    }
+  }
+
   private constructor(panel: vscode.WebviewPanel, extensionPath: string) {
     this.panel = panel;
     this.extensionPath = extensionPath;
@@ -502,6 +525,142 @@ export class ImageViewPanel {
       this.panel.webview.postMessage({
         command: "showError",
         error: `Error extracting LVGL image properties: ${error}`,
+      });
+    }
+  }
+
+  private async handleExtractOpenCVImageProperties(variableName: {
+    evaluateName: string;
+    memoryReference: string;
+    name: string;
+    value: string;
+    variablesReference: number;
+    type: string;
+  }) {
+    try {
+      const session = vscode.debug.activeDebugSession;
+      if (!session) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: "No active debug session found",
+        });
+        return;
+      }
+
+      // Check if the variable is of type cv::Mat
+      if (variableName.type.indexOf("cv::Mat") === -1 && variableName.type.indexOf("Mat") === -1) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `Variable ${variableName.name} is not of type cv::Mat`,
+        });
+        return;
+      }
+
+      // Get the Mat object's children
+      const matChildren = await session.customRequest("variables", {
+        variablesReference: variableName.variablesReference,
+      });
+
+      if (!matChildren || !matChildren.variables) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `No children found for variable ${variableName.name}`,
+        });
+        return;
+      }
+
+      // Extract OpenCV Mat properties
+      const imageProperties: ImageWithDimensionsElement = {
+        name: variableName.name,
+        data: new Uint8Array(),
+        width: 0,
+        height: 0,
+        format: 0,
+      };
+
+      // Extract rows, cols, and data from the Mat structure
+      matChildren.variables.forEach((child: any) => {
+        if (child.name === "rows") {
+          imageProperties.height = parseInt(child.value, 10);
+        } else if (child.name === "cols") {
+          imageProperties.width = parseInt(child.value, 10);
+        } else if (child.name === "data") {
+          const match = child.value.match(/0x[0-9a-fA-F]+/);
+          if (match) {
+            imageProperties.dataAddress = match[0];
+          }
+        } else if (child.name === "step") {
+          // step[0] contains bytes per row
+          // We'll need to get the step array children
+        }
+      });
+
+      // Get step array to determine bytes per row
+      const stepObj = matChildren.variables.find(
+        (child: any) => child.name === "step"
+      );
+
+      let bytesPerRow = 0;
+      if (stepObj) {
+        const stepChildren = await session.customRequest("variables", {
+          variablesReference: stepObj.variablesReference,
+        });
+
+        if (stepChildren && stepChildren.variables) {
+          // step[0] is bytes per row
+          const step0 = stepChildren.variables.find((child: any) => child.name === "[0]");
+          if (step0) {
+            bytesPerRow = parseInt(step0.value, 10);
+          }
+        }
+      }
+
+      // Calculate data size: rows * bytes_per_row
+      if (imageProperties.height > 0 && bytesPerRow > 0) {
+        imageProperties.dataSize = imageProperties.height * bytesPerRow;
+      } else {
+        // Fallback: estimate based on common OpenCV formats
+        // Assume 3 channels (BGR) if we can't determine
+        imageProperties.dataSize = imageProperties.width * imageProperties.height * 3;
+      }
+
+      // Validate that we have the required data
+      if (!imageProperties.dataAddress || !imageProperties.dataSize || 
+          imageProperties.width <= 0 || imageProperties.height <= 0) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `Could not extract complete OpenCV Mat properties from variable ${variableName.name}. Width: ${imageProperties.width}, Height: ${imageProperties.height}, DataSize: ${imageProperties.dataSize}`,
+        });
+        return;
+      }
+
+      // Read memory data
+      const readResponse = await session.customRequest("readMemory", {
+        memoryReference: imageProperties.dataAddress,
+        count: imageProperties.dataSize,
+      });
+
+      if (readResponse && readResponse.data) {
+        const binaryData = Buffer.from(readResponse.data, "base64");
+        imageProperties.data = new Uint8Array(binaryData);
+
+        // OpenCV Mat typically uses BGR888 format (3 bytes per pixel)
+        // Map this to our bgr888 format
+        imageProperties.format = 0x0E; // Map to BGR888 equivalent
+
+        // Update the panel title and send the data
+        this.panel.title = `Image Viewer: ${variableName.name} (OpenCV Mat)`;
+        this.sendImageWithDimensionsData(imageProperties);
+      } else {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `Could not read memory data for variable ${variableName.name}`,
+        });
+      }
+    } catch (error) {
+      this.panel.webview.postMessage({
+        command: "showError",
+        error: `Error extracting OpenCV Mat image properties: ${error}`,
       });
     }
   }
