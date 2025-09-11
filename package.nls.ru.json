@@ -97,6 +97,7 @@
 	"espIdf.unitTest.installPyTest.title": "Unit Test: Установка требований ESP-IDF PyTest.",
 	"espIdf.viewAsHex.title": "Просмотреть как шестнадцатеричное",
 	"espIdf.viewAsLVGLImage.title": "Просмотреть как изображение LVGL",
+	"espIdf.viewAsOpenCVImage.title": "Просмотреть как изображение OpenCV",
 	"espIdf.openImageViewer.title": "Открыть просмотрщик изображений",
 	"espIdf.hexView.copyValue.title": "Скопировать значение в буфер обмена",
   	"espIdf.hexView.deleteElement.title": "Удалить шестнадцатеричное значение из списка",

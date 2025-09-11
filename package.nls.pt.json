@@ -99,6 +99,7 @@
 	"espIdf.welcome.title": "Bem-vindo",
 	"espIdf.viewAsHex.title": "Ver como Hexadecimal",
 	"espIdf.viewAsLVGLImage.title": "Ver como Imagem LVGL",
+	"espIdf.viewAsOpenCVImage.title": "Ver como Imagem OpenCV",
 	"espIdf.openImageViewer.title": "Abrir Visor de Imagens",
 	"espIdf.hexView.copyValue.title": "Copiar valor para a área de transferência",
   	"espIdf.hexView.deleteElement.title": "Excluir valor hexadecimal da lista",

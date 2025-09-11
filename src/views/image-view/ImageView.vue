@@ -71,15 +71,15 @@
         <canvas ref="canvas" :width="canvasWidth" :height="canvasHeight"></canvas>
       </div>
       
-      <!-- LVGL Properties Display -->
+      <!-- Image Properties Display -->
       <div v-if="lvglProperties" class="lvgl-properties">
-        <h5>Extracted Properties:</h5>
+        <h5>{{ lvglProperties.sourceType === 1 ? 'OpenCV Mat Properties:' : 'LVGL Image Properties:' }}</h5>
         <ul>
           <li><strong>Dimensions:</strong> {{ lvglProperties.width }} × {{ lvglProperties.height }}</li>
           <li><strong>Format:</strong> {{ getFormatName(lvglProperties.format) }} ({{ lvglProperties.format }})</li>
           <li><strong>Data Size:</strong> {{ lvglProperties.dataSize }} bytes</li>
           <li><strong>Data Address:</strong> {{ lvglProperties.dataAddress }}</li>
-          <li><strong>Source Type:</strong> {{ lvglProperties.sourceType }}</li>
+          <li><strong>Source Type:</strong> {{ lvglProperties.sourceType === 1 ? 'OpenCV Mat' : 'LVGL Image' }}</li>
         </ul>
       </div>
     </div>
@@ -216,7 +216,6 @@ const vscode = (window as any).acquireVsCodeApi();
 // Watch for format changes and automatically update the image
 watch(selectedFormat, (newFormat, oldFormat) => {
   if (newFormat !== oldFormat && imageData.value) {
-    console.log('Format changed from', oldFormat, 'to', newFormat, '- updating image');
     updateImage();
   }
 });
@@ -224,14 +223,10 @@ watch(selectedFormat, (newFormat, oldFormat) => {
 // Watch for imageData changes and automatically update the image
 watch(imageData, (newImageData, oldImageData) => {
   if (newImageData && newImageData !== oldImageData) {
-    console.log('Image data loaded, length:', newImageData.length, '- will update image when canvas is ready');
     // Use nextTick to ensure the canvas is rendered
     nextTick(() => {
       if (canvas.value) {
-        console.log('Canvas is ready after imageData change, calling updateImage()');
         updateImage();
-      } else {
-        console.log('Canvas still not ready after imageData change');
       }
     });
   }
@@ -297,7 +292,12 @@ function extractLVGLImageProperties() {
 async function handleLVGLImageUpdate(message: any) {
   // Handle LVGL image data with dimensions and format
   try {
-    imageName.value = message.name || 'LVGL Image';
+    // Determine if this is an OpenCV Mat or LVGL image based on the name or source
+    const isOpenCV = message.name && message.name.includes('OpenCV') || 
+                    message.sourceType === 'opencv' ||
+                    (message.name && message.name.includes('(OpenCV Mat)'));
+    
+    imageName.value = message.name || (isOpenCV ? 'OpenCV Image' : 'LVGL Image');
     
     // Set dimensions from LVGL properties
     if (message.width && message.height) {
@@ -320,58 +320,38 @@ async function handleLVGLImageUpdate(message: any) {
       return;
     }
     
-    // Set format from LVGL format AFTER image data is loaded
+    // Set format from LVGL or OpenCV format AFTER image data is loaded
     if (message.format !== undefined) {
-      const formatValue = getFormatValueFromLVGLFormat(message.format);
-      console.log('LVGL Format mapping:', {
-        receivedFormat: message.format,
-        formatHex: `0x${message.format.toString(16).toUpperCase()}`,
-        mappedValue: formatValue,
-        formatName: getFormatName(message.format)
-      });
+      
+      const formatValue = isOpenCV ? 
+        getFormatValueFromOpenCVFormat(message.format) : 
+        getFormatValueFromLVGLFormat(message.format);
+        
       if (formatValue) {
-        console.log('Setting format from', selectedFormat.value, 'to', formatValue);
         selectedFormat.value = formatValue;
         // Use nextTick to ensure the dropdown updates before rendering
         await nextTick();
-        console.log('Format after nextTick:', selectedFormat.value);
         
         // Force immediate image update with new format (if canvas is ready)
-        console.log('Forcing immediate image update with format:', formatValue);
-        console.log('Canvas availability check:', {
-          hasCanvas: !!canvas.value,
-          canvasElement: canvas.value,
-          imageDataLength: imageData.value?.length || 0
-        });
-        
         if (canvas.value) {
-          console.log('Canvas is available, calling updateImage()');
           updateImage();
         } else {
-          console.log('Canvas not ready yet, will update after nextTick');
           await nextTick();
-          console.log('After nextTick - Canvas availability:', {
-            hasCanvas: !!canvas.value,
-            canvasElement: canvas.value
-          });
           if (canvas.value) {
-            console.log('Canvas is now available, calling updateImage()');
             updateImage();
-          } else {
-            console.log('Canvas still not ready after nextTick - this is the problem!');
           }
         }
       }
     }
     
-    // Create LVGL properties object for display
+    // Create properties object for display (LVGL or OpenCV)
     lvglProperties.value = {
       width: message.width || 0,
       height: message.height || 0,
       format: message.format || 0,
       dataSize: message.dataSize || imageData.value?.length || 0,
       dataAddress: message.dataAddress || '0x0',
-      sourceType: 0 // Variable source type
+      sourceType: isOpenCV ? 1 : 0 // 0 = LVGL, 1 = OpenCV
     };
     
     
@@ -402,16 +382,9 @@ async function handleLVGLImageUpdate(message: any) {
     }
     
     // Final attempt to update the image after all data is processed
-    console.log('Final updateImage() call at end of handleLVGLImageUpdate');
     await nextTick();
     if (canvas.value && imageData.value) {
-      console.log('Canvas and imageData are ready, calling final updateImage()');
       updateImage();
-    } else {
-      console.log('Final check failed:', {
-        hasCanvas: !!canvas.value,
-        hasImageData: !!imageData.value
-      });
     }
   } catch (err) {
     error.value = `Failed to load LVGL image: ${err}`;
@@ -526,6 +499,19 @@ function getFormatValueFromLVGLFormat(format: number): string {
   return formatMap[format] || 'rgb888'; // Default fallback
 }
 
+function getFormatValueFromOpenCVFormat(format: number): string {
+  // OpenCV Mat format mapping - using same format constants as getFormatName
+  // OpenCV typically uses BGR888 for color images and grayscale for single channel
+  const formatMap: { [key: number]: string } = {
+    0x00: 'grayscale',        // OpenCV Grayscale (1 channel) - matches getFormatName 'Unknown'
+    0x0E: 'bgr888',           // OpenCV BGR888 (3 channels) - matches getFormatName 'RGB888' 
+    0x0F: 'bgra8888',         // OpenCV BGRA8888 (4 channels) - matches getFormatName 'ARGB8888'
+    0x10: 'bgra8888',         // OpenCV XRGB8888 (4 channels) - matches getFormatName 'XRGB8888'
+  };
+  
+  return formatMap[format] || 'bgr888'; // Default to BGR888 for OpenCV
+}
+
 
 function handleImageUpdate(data: ImageData) {
   try {
@@ -546,12 +532,6 @@ function handleImageUpdate(data: ImageData) {
       return;
     }
     
-    console.log('Data conversion debug:', {
-      base64Length: data.data.length,
-      binaryStringLength: binaryString.length,
-      imageDataLength: imageData.value!.length,
-      firstBytes: Array.from(imageData.value!.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' ')
-    });
     
 
     
@@ -596,15 +576,7 @@ function setSize(width: number, height: number) {
 }
 
 function updateImage() {
-  console.log('updateImage() called with:', {
-    hasImageData: !!imageData.value,
-    imageDataLength: imageData.value?.length || 0,
-    hasCanvas: !!canvas.value,
-    selectedFormat: selectedFormat.value
-  });
-  
   if (!imageData.value || !canvas.value) {
-    console.log('updateImage() early return - missing imageData or canvas');
     return;
   }
   
@@ -693,17 +665,6 @@ function updateImage() {
     
     imageInfo.value = `${selectedFormat.value.toUpperCase()} - ${width}x${height} - ${imageData.value!.length} bytes - ${expectedPixels} pixels (${actualPixels} displayed)`;
     
-    // Add more detailed debugging
-    console.log('Image rendering debug:', {
-      format: selectedFormat.value,
-      width,
-      height,
-      dataLength: imageData.value!.length,
-      bytesPerPixel,
-      expectedPixels,
-      actualPixels,
-      firstBytes: Array.from(imageData.value!.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' ')
-    });
   } catch (err) {
     error.value = `Failed to render image: ${err}`;
   }
@@ -715,12 +676,6 @@ function estimateWidth(): number {
   // For different formats, calculate pixels differently
   const totalPixels = Math.floor(imageData.value!.length / getBytesPerPixel(selectedFormat.value));
   
-  console.log('Width estimation:', {
-    format: selectedFormat.value,
-    dataLength: imageData.value!.length,
-    totalPixels
-  });
-  
   // For your data: 191,724 bytes ÷ 3 = 63,908 pixels
   // Let's try to find reasonable dimensions
   // Common image sizes that might work:
@@ -729,14 +684,12 @@ function estimateWidth(): number {
   for (const testWidth of possibleWidths) {
     const testHeight = Math.floor(totalPixels / testWidth);
     if (testHeight > 0 && testHeight <= 1000) {
-      console.log('Found reasonable dimensions:', testWidth, 'x', testHeight);
       return testWidth;
     }
   }
   
   // If no reasonable dimensions found, use a simple square approximation
   const squareSize = Math.floor(Math.sqrt(totalPixels));
-  console.log('Using square size:', squareSize);
   return squareSize || 256;
 }
 
@@ -747,11 +700,6 @@ function estimateHeight(): number {
   const totalPixels = Math.floor(imageData.value!.length / getBytesPerPixel(selectedFormat.value));
   
   const height = Math.floor(totalPixels / customWidth.value);
-  console.log('Height estimation:', {
-    totalPixels,
-    width: customWidth.value,
-    height
-  });
   return height || 300;
 }
 
@@ -828,14 +776,6 @@ function renderRGB888(pixels: Uint8ClampedArray, width: number, height: number) 
   
   const bytesPerPixel = 3;
   const maxPixels = Math.min(imageData.value!.length / bytesPerPixel, width * height);
-  
-  console.log('RGB888 rendering:', {
-    dataLength: imageData.value!.length,
-    width,
-    height,
-    maxPixels,
-    firstPixel: [imageData.value![0], imageData.value![1], imageData.value![2]]
-  });
   
   for (let i = 0, j = 0; i < maxPixels; i++, j += bytesPerPixel) {
     const pixelIndex = i * 4;
