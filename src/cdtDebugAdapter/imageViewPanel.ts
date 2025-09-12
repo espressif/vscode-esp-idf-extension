@@ -34,11 +34,212 @@ export interface ImageWithDimensionsElement {
   format: number;
 }
 
+// Simplified JSON Configuration interfaces
+export interface ImageFormatConfig {
+  name: string;
+  typePattern: string; // Regex pattern to match variable type
+  width: FieldConfig;
+  height: FieldConfig;
+  format: FieldConfig;
+  dataAddress: FieldConfig;
+  dataSize: DataSizeConfig;
+  imageFormats?: { [key: number]: string }; // Format number to dropdown string mapping
+}
+
+export interface FieldConfig {
+  type: "number" | "string";
+  isChild: boolean;
+  value: string; // Field name or direct value
+}
+
+export interface DataSizeConfig {
+  type: "number" | "string" | "formula";
+  isChild: boolean;
+  value: string; // Field name, direct value, or formula
+}
+
 export class ImageViewPanel {
   private static instance: ImageViewPanel;
   private readonly panel: vscode.WebviewPanel;
   private readonly extensionPath: string;
   private disposables: vscode.Disposable[] = [];
+  private imageFormatConfigs: ImageFormatConfig[] = [];
+
+  // Default configurations for built-in formats
+  private static readonly DEFAULT_CONFIGS: ImageFormatConfig[] = [
+    {
+      name: "LVGL Image Descriptor",
+      typePattern: "lv_image_dsc_t",
+      width: {
+        type: "string",
+        isChild: true,
+        value: "header.w",
+      },
+      height: {
+        type: "string",
+        isChild: true,
+        value: "header.h",
+      },
+      format: {
+        type: "string",
+        isChild: true,
+        value: "header.cf",
+      },
+      dataAddress: {
+        type: "string",
+        isChild: true,
+        value: "data",
+      },
+      dataSize: {
+        type: "string",
+        isChild: true,
+        value: "data_size",
+      },
+      imageFormats: {
+        // IMPORTANT: All format values must match the frontend dropdown options
+        // LVGL Color Format constants (lv_color_format_t) -> dropdown values
+        0x00: "grayscale", // LV_COLOR_FORMAT_UNKNOWN -> fallback to grayscale
+        0x01: "grayscale", // LV_COLOR_FORMAT_RAW -> not supported, fallback
+        0x02: "grayscale", // LV_COLOR_FORMAT_RAW_ALPHA -> not supported, fallback
+        0x03: "grayscale", // LV_COLOR_FORMAT_L8 -> not supported, fallback
+        0x04: "grayscale", // LV_COLOR_FORMAT_I1 -> not supported, fallback
+        0x05: "grayscale", // LV_COLOR_FORMAT_I2 -> not supported, fallback
+        0x06: "grayscale", // LV_COLOR_FORMAT_I4 -> not supported, fallback
+        0x07: "grayscale", // LV_COLOR_FORMAT_I8 -> not supported, fallback
+        0x08: "grayscale", // LV_COLOR_FORMAT_A8 -> not supported, fallback
+        0x09: "rgb565", // LV_COLOR_FORMAT_RGB565
+        0x0a: "rgb565", // LV_COLOR_FORMAT_ARGB8565 -> closest match
+        0x0b: "rgb565", // LV_COLOR_FORMAT_RGB565A8 -> closest match
+        0x0c: "grayscale", // LV_COLOR_FORMAT_AL88 -> not supported, fallback
+        0x0d: "rgb565", // LV_COLOR_FORMAT_RGB565_SWAPPED -> closest match
+        0x0e: "rgb888", // LV_COLOR_FORMAT_RGB888
+        0x0f: "argb8888", // LV_COLOR_FORMAT_ARGB8888
+        0x10: "bgra8888", // LV_COLOR_FORMAT_XRGB8888 -> mapped to bgra8888
+        0x11: "argb8888", // LV_COLOR_FORMAT_ARGB8888_PREMULTIPLIED -> closest match
+        0x12: "grayscale", // LV_COLOR_FORMAT_A1 -> not supported, fallback
+        0x13: "grayscale", // LV_COLOR_FORMAT_A2 -> not supported, fallback
+        0x14: "grayscale", // LV_COLOR_FORMAT_A4 -> not supported, fallback
+        0x15: "rgb555", // LV_COLOR_FORMAT_ARGB1555 -> closest match
+        0x16: "rgb444", // LV_COLOR_FORMAT_ARGB4444 -> closest match
+        0x17: "rgb332", // LV_COLOR_FORMAT_ARGB2222 -> closest match
+        0x18: "yuv420", // LV_COLOR_FORMAT_YUV_START -> fallback to yuv420
+        0x19: "yuv420", // LV_COLOR_FORMAT_I420
+        0x1a: "yuv422", // LV_COLOR_FORMAT_I422
+        0x1b: "yuv444", // LV_COLOR_FORMAT_I444
+        0x1c: "grayscale", // LV_COLOR_FORMAT_I400 -> not supported, fallback
+        0x1d: "yuv420", // LV_COLOR_FORMAT_NV21 -> closest match
+        0x1e: "yuv420", // LV_COLOR_FORMAT_NV12 -> closest match
+        0x1f: "yuv422", // LV_COLOR_FORMAT_YUY2 -> closest match
+        0x20: "yuv422", // LV_COLOR_FORMAT_UYVY -> closest match
+        0x21: "yuv420", // LV_COLOR_FORMAT_YUV_END -> fallback to yuv420
+        0x22: "rgb888", // LV_COLOR_FORMAT_PROPRIETARY_START -> fallback
+        0x23: "rgb888", // LV_COLOR_FORMAT_NEMA_TSC_START -> fallback
+        0x24: "rgb444", // LV_COLOR_FORMAT_NEMA_TSC4 -> closest match
+        0x25: "rgb666", // LV_COLOR_FORMAT_NEMA_TSC6 -> closest match
+        0x26: "rgb666", // LV_COLOR_FORMAT_NEMA_TSC6A -> closest match
+        0x27: "rgb666", // LV_COLOR_FORMAT_NEMA_TSC6AP -> closest match
+        0x28: "rgb888", // LV_COLOR_FORMAT_NEMA_TSC12 -> closest match
+        0x29: "rgb888", // LV_COLOR_FORMAT_NEMA_TSC12A -> closest match
+        0x2a: "rgb888", // LV_COLOR_FORMAT_NEMA_TSC_END -> fallback
+        0x2b: "rgb888", // LV_COLOR_FORMAT_NATIVE -> fallback to rgb888
+        0x2c: "rgba8888", // LV_COLOR_FORMAT_NATIVE_WITH_ALPHA -> fallback to rgba8888
+      },
+    },
+    {
+      name: "OpenCV Mat",
+      typePattern: "cv::Mat|Mat",
+      width: {
+        type: "string",
+        isChild: true,
+        value: "cols",
+      },
+      height: {
+        type: "string",
+        isChild: true,
+        value: "rows",
+      },
+      format: {
+        type: "number",
+        isChild: false,
+        value: "0x0E", // BGR888 equivalent
+      },
+      dataAddress: {
+        type: "string",
+        isChild: true,
+        value: "data",
+      },
+      dataSize: {
+        type: "formula",
+        isChild: false,
+        value: "$var.rows * $var.step.buf[0]",
+      },
+      imageFormats: {
+        // IMPORTANT: All format values must match the frontend dropdown options
+        // OpenCV Mat format mapping
+        0x00: "grayscale", // OpenCV Grayscale (1 channel)
+        0x0e: "bgr888", // OpenCV BGR888 (3 channels)
+        0x0f: "bgra8888", // OpenCV BGRA8888 (4 channels)
+        0x10: "bgra8888", // OpenCV XRGB8888 (4 channels)
+      },
+    },
+    {
+      name: "libpng image",
+      typePattern: "png_image",
+      width: {
+        type: "string",
+        isChild: true,
+        value: "width",
+      },
+      height: {
+        type: "string",
+        isChild: true,
+        value: "height",
+      },
+      format: {
+        type: "string",
+        isChild: true,
+        value: "format",
+      },
+      dataAddress: {
+        type: "string",
+        isChild: false,
+        value: "image_data",
+      },
+      dataSize: {
+        type: "string",
+        isChild: false,
+        value: "buf_size",
+      },
+      imageFormats: {
+        // IMPORTANT: All format values must match the frontend dropdown options
+        // libpng PNG_COLOR_TYPE constants -> dropdown values
+        0x00: "grayscale", // PNG_COLOR_TYPE_GRAY (8-bit grayscale)
+        0x02: "rgb888", // PNG_COLOR_TYPE_RGB (24-bit RGB)
+        0x03: "rgb888", // PNG_COLOR_TYPE_PALETTE -> fallback to rgb888 (palette not directly supported)
+        0x04: "rgba8888", // PNG_COLOR_TYPE_GRAY_ALPHA (8-bit grayscale + alpha)
+        0x06: "rgba8888", // PNG_COLOR_TYPE_RGB_ALPHA (32-bit RGBA)
+        
+        // Extended bit depth combinations (format = color_type | (bit_depth << 8))
+        // 8-bit formats
+        0x0200: "rgb888", // PNG_COLOR_TYPE_RGB, 8-bit
+        0x0300: "rgb888", // PNG_COLOR_TYPE_PALETTE, 8-bit -> fallback
+        0x0400: "rgba8888", // PNG_COLOR_TYPE_GRAY_ALPHA, 8-bit
+        0x0600: "rgba8888", // PNG_COLOR_TYPE_RGB_ALPHA, 8-bit
+        
+        // 16-bit formats (mapped to closest 8-bit equivalents)
+        0x1000: "grayscale", // PNG_COLOR_TYPE_GRAY, 16-bit -> grayscale
+        0x1200: "rgb888", // PNG_COLOR_TYPE_RGB, 16-bit -> rgb888
+        0x1300: "rgb888", // PNG_COLOR_TYPE_PALETTE, 16-bit -> fallback
+        0x1400: "rgba8888", // PNG_COLOR_TYPE_GRAY_ALPHA, 16-bit -> rgba8888
+        0x1600: "rgba8888", // PNG_COLOR_TYPE_RGB_ALPHA, 16-bit -> rgba8888
+        
+        // Other bit depths (1, 2, 4-bit) - mapped to grayscale
+        0x0100: "grayscale", // PNG_COLOR_TYPE_GRAY, 1-bit
+        0x0201: "grayscale", // PNG_COLOR_TYPE_GRAY, 2-bit  
+        0x0401: "grayscale", // PNG_COLOR_TYPE_GRAY, 4-bit
+      },
+    },
+  ];
 
   public static show(extensionPath: string) {
     const column = vscode.window.activeTextEditor
@@ -66,7 +267,7 @@ export class ImageViewPanel {
     ImageViewPanel.instance = new ImageViewPanel(panel, extensionPath);
   }
 
-  public static handleLVGLVariableFromContext(debugContext: {
+  public static handleVariableAsImage(debugContext: {
     container: {
       expensive: boolean;
       name: string;
@@ -83,30 +284,8 @@ export class ImageViewPanel {
     };
   }) {
     if (ImageViewPanel.instance) {
-      ImageViewPanel.instance.handleExtractLVGLImageProperties(
-        debugContext.variable
-      );
-    }
-  }
-
-  public static handleOpenCVVariableFromContext(debugContext: {
-    container: {
-      expensive: boolean;
-      name: string;
-      variablesReference: number;
-    };
-    sessionId: string;
-    variable: {
-      evaluateName: string;
-      memoryReference: string;
-      name: string;
-      value: string;
-      variablesReference: number;
-      type: string;
-    };
-  }) {
-    if (ImageViewPanel.instance) {
-      ImageViewPanel.instance.handleExtractOpenCVImageProperties(
+      // Use the new configuration-based extraction with automatic type detection
+      ImageViewPanel.instance.handleExtractImageWithConfig(
         debugContext.variable
       );
     }
@@ -133,11 +312,6 @@ export class ImageViewPanel {
               message.size
             );
             break;
-          case "extractLVGLImageProperties":
-            this.handleExtractLVGLImagePropertiesFromString(
-              message.variableName
-            );
-            break;
           default:
             break;
         }
@@ -145,6 +319,325 @@ export class ImageViewPanel {
       null,
       this.disposables
     );
+
+    // Initialize with default configurations
+    this.initializeImageFormatConfigs();
+  }
+
+  private initializeImageFormatConfigs() {
+    this.imageFormatConfigs = [...ImageViewPanel.DEFAULT_CONFIGS];
+  }
+
+  private findMatchingConfig(variableType: string): ImageFormatConfig | null {
+    return (
+      this.imageFormatConfigs.find((config) => {
+        const regex = new RegExp(config.typePattern, "i");
+        return regex.test(variableType);
+      }) || null
+    );
+  }
+
+  private async extractFieldValue(
+    session: vscode.DebugSession,
+    variablesReference: number,
+    fieldConfig: FieldConfig,
+    frameId: number,
+    extractAsAddress: boolean = false
+  ): Promise<number | string> {
+    if (fieldConfig.type === "number") {
+      // Direct number value - handle both decimal and hex
+      const value = fieldConfig.value;
+      if (value.startsWith("0x") || value.startsWith("0X")) {
+        // Hex number
+        return parseInt(value, 16);
+      } else {
+        // Decimal number
+        return parseInt(value, 10);
+      }
+    }
+
+    if (fieldConfig.type === "string") {
+      if (fieldConfig.isChild) {
+        // Navigate through child variables
+        return await this.extractChildValue(
+          session,
+          variablesReference,
+          fieldConfig.value,
+          extractAsAddress
+        );
+      } else {
+        // Evaluate as expression
+        const evaluateResponse = await session.customRequest("evaluate", {
+          expression: fieldConfig.value,
+          frameId,
+        });
+        if (evaluateResponse && evaluateResponse.result) {
+          if (extractAsAddress) {
+            const match = evaluateResponse.result.match(/0x[0-9a-fA-F]+/);
+            if (match) {
+              return match[0];
+            }
+            throw new Error(
+              `Could not extract address from: ${evaluateResponse.result}`
+            );
+          } else {
+            return parseInt(evaluateResponse.result, 10);
+          }
+        }
+        throw new Error(`Could not evaluate expression: ${fieldConfig.value}`);
+      }
+    }
+
+    throw new Error(`Unsupported field type: ${fieldConfig.type}`);
+  }
+
+  private async extractChildValue(
+    session: vscode.DebugSession,
+    variablesReference: number,
+    fieldPath: string,
+    extractAsAddress: boolean = false
+  ): Promise<number | string> {
+    const pathParts = fieldPath.split(".");
+    let currentRef = variablesReference;
+
+    // Navigate through the path
+    for (let i = 0; i < pathParts.length; i++) {
+      const part = pathParts[i];
+
+      const response = await session.customRequest("variables", {
+        variablesReference: currentRef,
+      });
+
+      const variables = response.variables || [];
+      const variable = variables.find((v: any) => v.name === part);
+
+      if (!variable) {
+        throw new Error(`Property '${part}' not found in path '${fieldPath}'`);
+      }
+
+      if (i === pathParts.length - 1) {
+        // Last part - extract the value
+        if (extractAsAddress) {
+          const match = variable.value.match(/0x[0-9a-fA-F]+/);
+          if (match) {
+            return match[0];
+          }
+          throw new Error(`Could not extract address from: ${variable.value}`);
+        } else {
+          return parseInt(variable.value, 10);
+        }
+      } else {
+        // Navigate deeper
+        currentRef = variable.variablesReference;
+      }
+    }
+
+    throw new Error(`Could not extract value from path: ${fieldPath}`);
+  }
+
+  private async extractDataSize(
+    session: vscode.DebugSession,
+    variablesReference: number,
+    dataSizeConfig: DataSizeConfig,
+    frameId: number,
+    variableName: string
+  ): Promise<number> {
+    // Handle formula type specially
+    if (dataSizeConfig.type === "formula") {
+      // For formulas, we need to evaluate them in the context of the variable
+      let formula = dataSizeConfig.value;
+
+      // Replace $var with the actual variable name
+      // Example: "$var.rows * $var.step.buf[0]" -> "opencv_image.rows * opencv_image.step.buf[0]"
+      formula = formula.replace(/\$var/g, `${variableName}`);
+
+      // Evaluate the final formula with GDB
+      const evaluateResponse = await session.customRequest("evaluate", {
+        expression: formula,
+        frameId,
+      });
+      if (evaluateResponse && evaluateResponse.result) {
+        return parseInt(evaluateResponse.result, 10);
+      }
+      throw new Error(`Could not evaluate formula: ${formula}`);
+    }
+
+    // For number and string types, use the unified extractFieldValue method
+    // Convert DataSizeConfig to FieldConfig for compatibility
+    const fieldConfig: FieldConfig = {
+      type: dataSizeConfig.type as "number" | "string",
+      isChild: dataSizeConfig.isChild,
+      value: dataSizeConfig.value,
+    };
+
+    return (await this.extractFieldValue(
+      session,
+      variablesReference,
+      fieldConfig,
+      frameId
+    )) as number;
+  }
+
+  private async handleExtractImageWithConfig(variable: {
+    evaluateName: string;
+    memoryReference: string;
+    name: string;
+    value: string;
+    variablesReference: number;
+    type: string;
+  }) {
+    try {
+      const session = vscode.debug.activeDebugSession;
+      if (!session) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: "No active debug session found",
+        });
+        return;
+      }
+
+      // Find matching configuration
+      let config: ImageFormatConfig = this.findMatchingConfig(
+        variable.type || ""
+      );
+
+      if (!config) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `No matching configuration found for variable type: ${variable.type}`,
+        });
+        return;
+      }
+
+      // Get current thread and frame
+      const threads = await session.customRequest("threads");
+      const threadId = threads.threads[0].id;
+
+      const stack = await session.customRequest("stackTrace", {
+        threadId,
+        startFrame: 0,
+        levels: 1,
+      });
+      const frameId = stack.stackFrames[0].id;
+
+      // Extract image properties using the configuration
+      const imageProperties = await this.extractImagePropertiesWithConfig(
+        session,
+        variable.name,
+        variable.variablesReference,
+        config,
+        frameId
+      );
+
+      if (imageProperties) {
+        // Update the panel title and send the data
+        this.panel.title = `Image Viewer: ${variable.name} (${config.name})`;
+        this.sendImageWithDimensionsData(imageProperties, config.name, config.imageFormats);
+      }
+    } catch (error) {
+      this.panel.webview.postMessage({
+        command: "showError",
+        error: `Error extracting image with configuration: ${error}`,
+      });
+    }
+  }
+
+  private async extractImagePropertiesWithConfig(
+    session: vscode.DebugSession,
+    variableName: string,
+    variablesReference: number,
+    config: ImageFormatConfig,
+    frameId: number
+  ): Promise<ImageWithDimensionsElement | null> {
+    const imageProperties: ImageWithDimensionsElement = {
+      name: variableName,
+      data: new Uint8Array(),
+      width: 0,
+      height: 0,
+      format: 0,
+    };
+
+    try {
+      // Extract basic properties first
+      imageProperties.width = (await this.extractFieldValue(
+        session,
+        variablesReference,
+        config.width,
+        frameId
+      )) as number;
+
+      imageProperties.height = (await this.extractFieldValue(
+        session,
+        variablesReference,
+        config.height,
+        frameId
+      )) as number;
+
+      const rawFormat = (await this.extractFieldValue(
+        session,
+        variablesReference,
+        config.format,
+        frameId
+      )) as number;
+
+      // Convert numeric format to string using imageFormats mapping if available
+      if (config.imageFormats && typeof rawFormat === 'number') {
+        imageProperties.format = rawFormat; // Keep raw format for display
+        // The frontend will use the imageFormats mapping to convert to display format
+      } else {
+        imageProperties.format = rawFormat;
+      }
+
+      imageProperties.dataAddress = (await this.extractFieldValue(
+        session,
+        variablesReference,
+        config.dataAddress,
+        frameId,
+        true // extractAsAddress = true
+      )) as string;
+
+      // Extract data size (may use formula)
+      imageProperties.dataSize = await this.extractDataSize(
+        session,
+        variablesReference,
+        config.dataSize,
+        frameId,
+        variableName
+      );
+
+      // Validate required properties
+      if (!imageProperties.dataAddress || !imageProperties.dataSize) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `Could not extract data address or size from variable ${variableName}`,
+        });
+        return null;
+      }
+
+      // Read memory data
+      const readResponse = await session.customRequest("readMemory", {
+        memoryReference: imageProperties.dataAddress,
+        count: imageProperties.dataSize,
+      });
+
+      if (readResponse && readResponse.data) {
+        const binaryData = Buffer.from(readResponse.data, "base64");
+        imageProperties.data = new Uint8Array(binaryData);
+        return imageProperties;
+      } else {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `Could not read memory data for variable ${variableName}`,
+        });
+        return null;
+      }
+    } catch (error) {
+      this.panel.webview.postMessage({
+        command: "showError",
+        error: `Error extracting image properties: ${error}`,
+      });
+      return null;
+    }
   }
 
   private sendImageData(imageElement: ImageElement) {
@@ -157,7 +650,9 @@ export class ImageViewPanel {
   }
 
   private sendImageWithDimensionsData(
-    imageElement: ImageWithDimensionsElement
+    imageElement: ImageWithDimensionsElement,
+    configName?: string,
+    imageFormats?: { [key: number]: string }
   ) {
     const base64Data = Buffer.from(imageElement.data).toString("base64");
     this.panel.webview.postMessage({
@@ -169,6 +664,8 @@ export class ImageViewPanel {
       width: imageElement.width,
       height: imageElement.height,
       format: imageElement.format,
+      configName: configName, // Pass the configuration name
+      imageFormats: imageFormats, // Pass the format mapping
     });
   }
 
@@ -281,386 +778,6 @@ export class ImageViewPanel {
       this.panel.webview.postMessage({
         command: "showError",
         error: `Error loading image: ${error}`,
-      });
-    }
-  }
-
-  private async processLVGLImageProperties(
-    variableName: string,
-    variablesResponse: any,
-    lvHeaderChildren: any,
-    session: vscode.DebugSession
-  ) {
-    // Extract properties from the image descriptor
-    const imageProperties: ImageWithDimensionsElement = {
-      name: variableName,
-      data: new Uint8Array(),
-      width: 0,
-      height: 0,
-      format: 0,
-    };
-
-    // Extract data_size and data from the main structure
-    variablesResponse.variables.forEach((child: any) => {
-      if (child.name === "data_size") {
-        imageProperties.dataSize = parseInt(child.value, 10);
-      } else if (child.name === "data") {
-        const match = child.value.match(/0x[0-9a-fA-F]+/);
-        if (match) {
-          imageProperties.dataAddress = match[0];
-        }
-      }
-    });
-
-    // Extract width, height, and format from header
-    lvHeaderChildren.variables.forEach((child: any) => {
-      if (child.name === "w") {
-        imageProperties.width = parseInt(child.value, 10);
-      } else if (child.name === "h") {
-        imageProperties.height = parseInt(child.value, 10);
-      } else if (child.name === "cf") {
-        imageProperties.format = parseInt(child.value, 10);
-      }
-    });
-
-    // Validate that we have the required data
-    if (!imageProperties.dataAddress || !imageProperties.dataSize) {
-      this.panel.webview.postMessage({
-        command: "showError",
-        error: `Could not extract data address or size from variable ${variableName}`,
-      });
-      return null;
-    }
-
-    // Read memory data
-    const readResponse = await session.customRequest("readMemory", {
-      memoryReference: imageProperties.dataAddress,
-      count: imageProperties.dataSize,
-    });
-
-    if (readResponse && readResponse.data) {
-      const binaryData = Buffer.from(readResponse.data, "base64");
-      imageProperties.data = new Uint8Array(binaryData);
-
-      // Update the panel title and send the data
-      this.panel.title = `Image Viewer: ${variableName}`;
-      this.sendImageWithDimensionsData(imageProperties);
-      return imageProperties;
-    } else {
-      this.panel.webview.postMessage({
-        command: "showError",
-        error: `Could not read memory data for variable ${variableName}`,
-      });
-      return null;
-    }
-  }
-
-  private async handleExtractLVGLImagePropertiesFromString(
-    variableName: string
-  ) {
-    try {
-      const session = vscode.debug.activeDebugSession;
-      if (!session) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: "No active debug session found",
-        });
-        return;
-      }
-
-      // Get current thread and frame
-      const threads = await session.customRequest("threads");
-      const threadId = threads.threads[0].id;
-
-      const stack = await session.customRequest("stackTrace", {
-        threadId,
-        startFrame: 0,
-        levels: 1,
-      });
-      const frameId = stack.stackFrames[0].id;
-
-      // Evaluate the variable to get its properties
-      const evaluateResponse = await session.customRequest("evaluate", {
-        expression: variableName,
-        frameId,
-      });
-
-      if (!evaluateResponse || !evaluateResponse.result) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: `Could not evaluate variable ${variableName}`,
-        });
-        return;
-      }
-
-      // Check if the variable is of type lv_image_dsc_t
-      if (
-        !evaluateResponse.type ||
-        evaluateResponse.type.indexOf("lv_image_dsc_t") === -1
-      ) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: `Variable ${variableName} is not of type lv_image_dsc_t`,
-        });
-        return;
-      }
-
-      // Get the variable's children to access its structure
-      const variablesResponse = await session.customRequest("variables", {
-        variablesReference: evaluateResponse.variablesReference,
-      });
-
-      if (!variablesResponse || !variablesResponse.variables) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: `No children found for variable ${variableName}`,
-        });
-        return;
-      }
-
-      // Find the header child
-      const headerObj = variablesResponse.variables.find(
-        (child: any) => child.name === "header"
-      );
-
-      if (!headerObj) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: `No header found in variable ${variableName}`,
-        });
-        return;
-      }
-
-      // Get header children
-      const lvHeaderChildren = await session.customRequest("variables", {
-        variablesReference: headerObj.variablesReference,
-      });
-
-      if (!lvHeaderChildren || !lvHeaderChildren.variables) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: `No children found for header of variable ${variableName}`,
-        });
-        return;
-      }
-
-      // Process the LVGL image properties using shared function
-      await this.processLVGLImageProperties(
-        variableName,
-        variablesResponse,
-        lvHeaderChildren,
-        session
-      );
-    } catch (error) {
-      this.panel.webview.postMessage({
-        command: "showError",
-        error: `Error extracting LVGL image properties from string: ${error}`,
-      });
-    }
-  }
-
-  private async handleExtractLVGLImageProperties(variableName: {
-    evaluateName: string;
-    memoryReference: string;
-    name: string;
-    value: string;
-    variablesReference: number;
-    type: string;
-  }) {
-    try {
-      const session = vscode.debug.activeDebugSession;
-      if (!session) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: "No active debug session found",
-        });
-        return;
-      }
-
-      if (variableName.type.indexOf("lv_image_dsc_t") === -1) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: `Variable ${variableName.name} is not of type lv_image_dsc_t`,
-        });
-        return;
-      }
-
-      const lvImageDscChildren = await session.customRequest("variables", {
-        variablesReference: variableName.variablesReference,
-      });
-
-      if (!lvImageDscChildren || lvImageDscChildren.length === 0) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: `No children found for variable ${variableName.name}`,
-        });
-        return;
-      }
-
-      // Try to find the 'header' child to determine if it's new or legacy format
-      const headerObj = lvImageDscChildren.variables.find(
-        (child: any) => child.name === "header"
-      );
-
-      const lvHeaderChildren = await session.customRequest("variables", {
-        variablesReference: headerObj.variablesReference,
-      });
-
-      if (!lvHeaderChildren || lvHeaderChildren.length === 0) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: `No children found for variable ${headerObj.name}`,
-        });
-        return;
-      }
-
-      // Process the LVGL image properties using shared function
-      await this.processLVGLImageProperties(
-        variableName.name,
-        lvImageDscChildren,
-        lvHeaderChildren,
-        session
-      );
-    } catch (error) {
-      this.panel.webview.postMessage({
-        command: "showError",
-        error: `Error extracting LVGL image properties: ${error}`,
-      });
-    }
-  }
-
-  private async handleExtractOpenCVImageProperties(variableName: {
-    evaluateName: string;
-    memoryReference: string;
-    name: string;
-    value: string;
-    variablesReference: number;
-    type: string;
-  }) {
-    try {
-      const session = vscode.debug.activeDebugSession;
-      if (!session) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: "No active debug session found",
-        });
-        return;
-      }
-
-      // Check if the variable is of type cv::Mat
-      if (variableName.type.indexOf("cv::Mat") === -1 && variableName.type.indexOf("Mat") === -1) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: `Variable ${variableName.name} is not of type cv::Mat`,
-        });
-        return;
-      }
-
-      // Get the Mat object's children
-      const matChildren = await session.customRequest("variables", {
-        variablesReference: variableName.variablesReference,
-      });
-
-      if (!matChildren || !matChildren.variables) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: `No children found for variable ${variableName.name}`,
-        });
-        return;
-      }
-
-      // Extract OpenCV Mat properties
-      const imageProperties: ImageWithDimensionsElement = {
-        name: variableName.name,
-        data: new Uint8Array(),
-        width: 0,
-        height: 0,
-        format: 0,
-      };
-
-      // Extract rows, cols, and data from the Mat structure
-      matChildren.variables.forEach((child: any) => {
-        if (child.name === "rows") {
-          imageProperties.height = parseInt(child.value, 10);
-        } else if (child.name === "cols") {
-          imageProperties.width = parseInt(child.value, 10);
-        } else if (child.name === "data") {
-          const match = child.value.match(/0x[0-9a-fA-F]+/);
-          if (match) {
-            imageProperties.dataAddress = match[0];
-          }
-        } else if (child.name === "step") {
-          // step[0] contains bytes per row
-          // We'll need to get the step array children
-        }
-      });
-
-      // Get step array to determine bytes per row
-      const stepObj = matChildren.variables.find(
-        (child: any) => child.name === "step"
-      );
-
-      let bytesPerRow = 0;
-      if (stepObj) {
-        const stepChildren = await session.customRequest("variables", {
-          variablesReference: stepObj.variablesReference,
-        });
-
-        if (stepChildren && stepChildren.variables) {
-          // step[0] is bytes per row
-          const step0 = stepChildren.variables.find((child: any) => child.name === "[0]");
-          if (step0) {
-            bytesPerRow = parseInt(step0.value, 10);
-          }
-        }
-      }
-
-      // Calculate data size: rows * bytes_per_row
-      if (imageProperties.height > 0 && bytesPerRow > 0) {
-        imageProperties.dataSize = imageProperties.height * bytesPerRow;
-      } else {
-        // Fallback: estimate based on common OpenCV formats
-        // Assume 3 channels (BGR) if we can't determine
-        imageProperties.dataSize = imageProperties.width * imageProperties.height * 3;
-      }
-
-      // Validate that we have the required data
-      if (!imageProperties.dataAddress || !imageProperties.dataSize || 
-          imageProperties.width <= 0 || imageProperties.height <= 0) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: `Could not extract complete OpenCV Mat properties from variable ${variableName.name}. Width: ${imageProperties.width}, Height: ${imageProperties.height}, DataSize: ${imageProperties.dataSize}`,
-        });
-        return;
-      }
-
-      // Read memory data
-      const readResponse = await session.customRequest("readMemory", {
-        memoryReference: imageProperties.dataAddress,
-        count: imageProperties.dataSize,
-      });
-
-      if (readResponse && readResponse.data) {
-        const binaryData = Buffer.from(readResponse.data, "base64");
-        imageProperties.data = new Uint8Array(binaryData);
-
-        // OpenCV Mat typically uses BGR888 format (3 bytes per pixel)
-        // Map this to our bgr888 format
-        imageProperties.format = 0x0E; // Map to BGR888 equivalent
-
-        // Update the panel title and send the data
-        this.panel.title = `Image Viewer: ${variableName.name} (OpenCV Mat)`;
-        this.sendImageWithDimensionsData(imageProperties);
-      } else {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: `Could not read memory data for variable ${variableName.name}`,
-        });
-      }
-    } catch (error) {
-      this.panel.webview.postMessage({
-        command: "showError",
-        error: `Error extracting OpenCV Mat image properties: ${error}`,
       });
     }
   }
