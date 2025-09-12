@@ -1578,7 +1578,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   registerIDFCommand(
-    "espIdf.viewAsLVGLImage",
+    "espIdf.viewVariableAsImage",
     (debugContext: {
       container: {
         expensive: boolean;
@@ -1611,55 +1611,11 @@ export async function activate(context: vscode.ExtensionContext) {
           // Show the ImageViewPanel and pass the variable information
           ImageViewPanel.show(context.extensionPath);
 
-          // Send the variable information to the ImageViewPanel
-          ImageViewPanel.handleLVGLVariableFromContext(debugContext);
+          // Send the variable information to the ImageViewPanel with automatic type detection
+          ImageViewPanel.handleVariableAsImage(debugContext);
         } catch (e) {
           const msg = e && e.message ? e.message : e;
-          Logger.errorNotify(msg, e, "extension espIdf.viewAsLVGLImage");
-        }
-      });
-    }
-  );
-
-  registerIDFCommand(
-    "espIdf.viewAsOpenCVImage",
-    (debugContext: {
-      container: {
-        expensive: boolean;
-        name: string;
-        variablesReference: number;
-      };
-      sessionId: string;
-      variable: {
-        evaluateName: string;
-        memoryReference: string;
-        name: string;
-        value: string;
-        variablesReference: number;
-        type: string;
-      };
-    }) => {
-      return PreCheck.perform([openFolderCheck], async () => {
-        if (
-          !debugContext ||
-          !debugContext.variable ||
-          !debugContext.variable.evaluateName
-        ) {
-          return;
-        }
-        if (!vscode.debug.activeDebugSession) {
-          return;
-        }
-
-        try {
-          // Show the ImageViewPanel and pass the variable information
-          ImageViewPanel.show(context.extensionPath);
-
-          // Send the variable information to the ImageViewPanel
-          ImageViewPanel.handleOpenCVVariableFromContext(debugContext);
-        } catch (e) {
-          const msg = e && e.message ? e.message : e;
-          Logger.errorNotify(msg, e, "extension espIdf.viewAsOpenCVImage");
+          Logger.errorNotify(msg, e, "extension espIdf.viewVariableAsImage");
         }
       });
     }
