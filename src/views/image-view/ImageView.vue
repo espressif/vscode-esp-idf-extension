@@ -237,8 +237,8 @@ onMounted(() => {
       case "updateImage":
         handleImageUpdate(message);
         break;
-      case "updateLVGLImage":
-        handleLVGLImageUpdate(message);
+      case "updateImageWithProperties":
+        handleImageWithPropertiesUpdate(message);
         break;
       case "showError":
         loadError.value = message.error;
@@ -272,8 +272,8 @@ function loadImageFromVariable() {
   });
 }
 
-async function handleLVGLImageUpdate(message: any) {
-  // Handle LVGL image data with dimensions and format
+async function handleImageWithPropertiesUpdate(message: any) {
+  // Handle image data with dimensions and format (LVGL, OpenCV, libpng, etc.)
   try {
     // Use configName to determine the format type, fallback to name-based detection
     const configName = message.configName;
@@ -301,45 +301,19 @@ async function handleLVGLImageUpdate(message: any) {
       return;
     }
 
-    // Set format from backend format mapping AFTER image data is loaded
-    if (message.format !== undefined) {
-      let formatValue: string | null = null;
-
-      // Use imageFormats mapping from backend if available
-      if (message.imageFormats && typeof message.format === 'number') {
-        const backendFormat = message.imageFormats[message.format];
-        if (backendFormat && isValidFormat(backendFormat)) {
-          formatValue = backendFormat;
-        } else {
-          // Invalid format from backend mapping
-          error.value = `Invalid format '${backendFormat}' from backend mapping for format value ${message.format}. Please check the imageFormats configuration.`;
-          return;
-        }
-      } else if (configName) {
-        // Fallback to custom format detection for string formats
-        const customFormat = getFormatValueFromCustomFormat(message.format);
-        if (isValidFormat(customFormat)) {
-          formatValue = customFormat;
-        } else {
-          // This should not happen as getFormatValueFromCustomFormat always returns a valid format
-          error.value = `Internal error: getFormatValueFromCustomFormat returned invalid format '${customFormat}'`;
-          return;
-        }
-      }
-
-      if (formatValue) {
-        selectedFormat.value = formatValue;
-        // Use nextTick to ensure the dropdown updates before rendering
+    // Set format from backend validated format AFTER image data is loaded
+    if (message.validatedFormat) {
+      selectedFormat.value = message.validatedFormat;
+      // Use nextTick to ensure the dropdown updates before rendering
+      await nextTick();
+      
+      // Force immediate image update with new format (if canvas is ready)
+      if (canvas.value) {
+        updateImage();
+      } else {
         await nextTick();
-
-        // Force immediate image update with new format (if canvas is ready)
         if (canvas.value) {
           updateImage();
-        } else {
-          await nextTick();
-          if (canvas.value) {
-            updateImage();
-          }
         }
       }
     }
@@ -386,7 +360,7 @@ async function handleLVGLImageUpdate(message: any) {
       updateImage();
     }
   } catch (err) {
-    error.value = `Failed to load LVGL image: ${err}`;
+    error.value = `Failed to load image with properties: ${err}`;
   }
 }
 
@@ -406,96 +380,6 @@ function getPropertiesTitle(): string {
   }
 }
 
-// All available formats from the dropdown
-const ALL_FORMATS = [
-  "rgb565",
-  "rgb888",
-  "rgba8888",
-  "argb8888",
-  "xrgb8888",
-  "bgr888",
-  "bgra8888",
-  "abgr8888",
-  "xbgr8888",
-  "rgb332",
-  "rgb444",
-  "rgb555",
-  "rgb666",
-  "rgb777",
-  "rgb101010",
-  "rgb121212",
-  "rgb161616",
-  "grayscale",
-  "yuv420",
-  "yuv422",
-  "yuv444",
-];
-
-function isValidFormat(format: string): boolean {
-  return ALL_FORMATS.includes(format);
-}
-
-function getFormatValueFromCustomFormat(format: string): string {
-  // Direct string match (case-insensitive)
-  const directMatch = ALL_FORMATS.find(
-    (f) => f.toLowerCase() === format.toLowerCase()
-  );
-  if (directMatch) {
-    return directMatch;
-  }
-
-  // Partial string matching for common variations
-  const formatLower = format.toLowerCase();
-  if (formatLower.includes("rgb565") || formatLower.includes("565"))
-    return "rgb565";
-  if (formatLower.includes("rgb888") || formatLower.includes("888"))
-    return "rgb888";
-  if (formatLower.includes("rgba8888") || formatLower.includes("rgba"))
-    return "rgba8888";
-  if (formatLower.includes("argb8888") || formatLower.includes("argb"))
-    return "argb8888";
-  if (formatLower.includes("xrgb8888") || formatLower.includes("xrgb"))
-    return "xrgb8888";
-  if (formatLower.includes("bgr888") || formatLower.includes("bgr"))
-    return "bgr888";
-  if (formatLower.includes("bgra8888") || formatLower.includes("bgra"))
-    return "bgra8888";
-  if (formatLower.includes("abgr8888") || formatLower.includes("abgr"))
-    return "abgr8888";
-  if (formatLower.includes("xbgr8888") || formatLower.includes("xbgr"))
-    return "xbgr8888";
-  if (formatLower.includes("rgb332") || formatLower.includes("332"))
-    return "rgb332";
-  if (formatLower.includes("rgb444") || formatLower.includes("444"))
-    return "rgb444";
-  if (formatLower.includes("rgb555") || formatLower.includes("555"))
-    return "rgb555";
-  if (formatLower.includes("rgb666") || formatLower.includes("666"))
-    return "rgb666";
-  if (formatLower.includes("rgb777") || formatLower.includes("777"))
-    return "rgb777";
-  if (formatLower.includes("rgb101010") || formatLower.includes("101010"))
-    return "rgb101010";
-  if (formatLower.includes("rgb121212") || formatLower.includes("121212"))
-    return "rgb121212";
-  if (formatLower.includes("rgb161616") || formatLower.includes("161616"))
-    return "rgb161616";
-  if (
-    formatLower.includes("grayscale") ||
-    formatLower.includes("gray") ||
-    formatLower.includes("mono")
-  )
-    return "grayscale";
-  if (formatLower.includes("yuv420") || formatLower.includes("420"))
-    return "yuv420";
-  if (formatLower.includes("yuv422") || formatLower.includes("422"))
-    return "yuv422";
-  if (formatLower.includes("yuv444") || formatLower.includes("444"))
-    return "yuv444";
-
-  // Safe fallback for unrecognized string formats
-  return "rgb888";
-}
 
 function handleImageUpdate(data: ImageData) {
   try {

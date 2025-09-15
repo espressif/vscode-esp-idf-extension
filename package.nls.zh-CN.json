@@ -190,6 +190,7 @@
 	"param.hasWalkthroughBeenShown": "是否已经展示教程",
 	"param.unitTestFilePattern.title": "用于发现单元测试文件的 glob 模式",
 	"param.serialPortDetectionTimeout": "使用 esptool.py 检测串口时的超时时间（秒）",
+	"param.imageViewerConfigs.title": "自定义图像格式配置 JSON 文件的路径",
 	"trace.poll_period.description": "设置 apptrace 的 poll_period 参数",
 	"trace.skip_size.description": "设置 apptrace 的 skip_size 参数",
 	"trace.stop_tmo.description": "设置 apptrace 的 stop_tmo 参数",

@@ -1,0 +1,107 @@
+[
+  {
+    "name": "LVGL Image Descriptor",
+    "typePattern": "lv_image_dsc_t",
+    "width": {
+      "type": "string",
+      "isChild": true,
+      "value": "header.w"
+    },
+    "height": {
+      "type": "string",
+      "isChild": true,
+      "value": "header.h"
+    },
+    "format": {
+      "type": "string",
+      "isChild": true,
+      "value": "header.cf"
+    },
+    "dataAddress": {
+      "type": "string",
+      "isChild": true,
+      "value": "data"
+    },
+    "dataSize": {
+      "type": "string",
+      "isChild": true,
+      "value": "data_size"
+    },
+    "imageFormats": {
+      "0": "grayscale",
+      "1": "grayscale",
+      "2": "grayscale",
+      "3": "grayscale",
+      "4": "grayscale",
+      "5": "grayscale",
+      "6": "grayscale",
+      "7": "grayscale",
+      "8": "grayscale",
+      "9": "rgb565",
+      "10": "rgb565",
+      "11": "rgb565",
+      "12": "grayscale",
+      "13": "rgb565",
+      "14": "rgb888",
+      "15": "argb8888",
+      "16": "bgra8888",
+      "17": "argb8888",
+      "18": "yuv420",
+      "19": "yuv420",
+      "20": "yuv422",
+      "21": "yuv444",
+      "22": "grayscale",
+      "23": "yuv420",
+      "24": "yuv420",
+      "25": "yuv422",
+      "26": "yuv422",
+      "27": "yuv420",
+      "28": "rgb888",
+      "29": "rgb888",
+      "30": "rgb444",
+      "31": "rgb666",
+      "32": "rgb666",
+      "33": "rgb666",
+      "34": "rgb888",
+      "35": "rgb888",
+      "36": "rgb888",
+      "37": "rgb888",
+      "38": "rgba8888"
+    }
+  },
+  {
+    "name": "OpenCV Mat",
+    "typePattern": "cv::Mat|Mat",
+    "width": {
+      "type": "string",
+      "isChild": true,
+      "value": "cols"
+    },
+    "height": {
+      "type": "string",
+      "isChild": true,
+      "value": "rows"
+    },
+    "format": {
+      "type": "number",
+      "isChild": false,
+      "value": "0x0E"
+    },
+    "dataAddress": {
+      "type": "string",
+      "isChild": true,
+      "value": "data"
+    },
+    "dataSize": {
+      "type": "formula",
+      "isChild": false,
+      "value": "$var.rows * $var.step.buf[0]"
+    },
+    "imageFormats": {
+      "0": "grayscale",
+      "14": "bgr888",
+      "15": "bgra8888",
+      "16": "bgra8888"
+    }
+  }
+]

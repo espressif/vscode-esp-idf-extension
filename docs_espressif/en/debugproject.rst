@@ -352,8 +352,8 @@ The ESP-IDF extension provides an **ESP-IDF: Image Viewer** feature that allows 
 **Quick Access Methods:**
 
 1. **Right-click on variables in the debug session:**
-   - Right-click on any ``lv_image_dsc_t`` variable and select ``View as LVGL Image``
-   - Right-click on any ``cv::Mat`` variable and select ``View as OpenCV Image``
+   - Right-click on any image-related variable (``lv_image_dsc_t``, ``cv::Mat``, ``png_image``, etc.) and select ``View Variable as Image``
+   - The Image Viewer automatically detects the variable type and extracts the appropriate image properties
 
 2. **Manual Image Viewer:**
    - Go to ``View`` > ``Command Palette`` and enter ``ESP-IDF: Open Image Viewer``
@@ -363,23 +363,27 @@ The ESP-IDF extension provides an **ESP-IDF: Image Viewer** feature that allows 
 
 **Supported Image Formats:**
 
-**LVGL Color Formats (lv_color_format_t):**
+The Image Viewer supports a comprehensive range of image formats:
+
+**RGB Formats:**
 - RGB565, RGB888, RGBA8888, ARGB8888, XRGB8888
 - BGR888, BGRA8888, ABGR8888, XBGR8888
 - RGB332, RGB444, RGB555, RGB666, RGB777
-- Grayscale, YUV420, YUV422, YUV444
-- And many more LVGL-specific formats
+- RGB101010, RGB121212, RGB161616
 
-**OpenCV Mat Formats:**
-- BGR888 (3 channels)
-- BGRA8888 (4 channels)
-- Grayscale (1 channel)
-
-**Raw Pixel Formats:**
-- RGB565 (16-bit per pixel)
-- RGB888 (24-bit per pixel)
+**Other Formats:**
 - Grayscale (8-bit per pixel)
 - YUV420, YUV422, YUV444 (various YUV formats)
+
+**Built-in Support:**
+
+**LVGL Image Descriptor (lv_image_dsc_t):**
+- Automatically extracts format, dimensions, and data from LVGL structures
+- Supports all LVGL color formats with automatic mapping to display formats
+
+**OpenCV Mat (cv::Mat):**
+- Automatically extracts dimensions, format, and data from OpenCV Mat objects
+- Supports BGR888, BGRA8888, and Grayscale formats
 
 **Example Usage:**
 
@@ -398,7 +402,7 @@ The ESP-IDF extension provides an **ESP-IDF: Image Viewer** feature that allows 
         .data = image_data                 // Pointer to image data
     };
 
-During debugging, right-click on ``my_image`` and select ``View as LVGL Image``. The Image Viewer will automatically extract the format, dimensions, and data from the LVGL structure.
+During debugging, right-click on ``my_image`` and select ``View Variable as Image``. The Image Viewer will automatically detect it as an LVGL image and extract the format, dimensions, and data.
 
 **OpenCV Mat Example:**
 
@@ -407,7 +411,7 @@ During debugging, right-click on ``my_image`` and select ``View as LVGL Image``.
     cv::Mat image(240, 320, CV_8UC3);  // 320x240 BGR888 image
     // ... populate image data ...
 
-During debugging, right-click on ``image`` and select ``View as OpenCV Image``. The Image Viewer will automatically extract the dimensions, format, and data from the OpenCV Mat structure.
+During debugging, right-click on ``image`` and select ``View Variable as Image``. The Image Viewer will automatically detect it as an OpenCV Mat and extract the dimensions, format, and data.
 
 **Manual Raw Data Example:**
 
@@ -422,15 +426,90 @@ For manual usage:
 - Select ``RGB888`` format
 - Set width to ``320`` and height to ``240``
 
+**Custom Image Format Configuration:**
+
+You can extend the Image Viewer to support custom image formats by creating a JSON configuration file and setting the ``idf.imageViewerConfigs`` configuration option.
+
+**Example Custom Configuration:**
+
+.. code-block:: JSON
+
+    [
+      {
+        "name": "Custom Image Structure",
+        "typePattern": "my_image_t",
+        "width": {
+          "type": "string",
+          "isChild": true,
+          "value": "w"
+        },
+        "height": {
+          "type": "string",
+          "isChild": true,
+          "value": "h"
+        },
+        "format": {
+          "type": "number",
+          "isChild": false,
+          "value": "0x0E"
+        },
+        "dataAddress": {
+          "type": "string",
+          "isChild": true,
+          "value": "pixels"
+        },
+        "dataSize": {
+          "type": "formula",
+          "isChild": false,
+          "value": "$var.w * $var.h * 3"
+        },
+        "imageFormats": {
+          "14": "rgb888",
+          "15": "rgba8888"
+        }
+      }
+    ]
+
+**Configuration Options:**
+
+- **typePattern**: Regex pattern to match the GDB type of the selected variable when right-clicking "View Variable as Image" (e.g., ``"my_image_t"``, ``"lv_image_dsc_t"``, ``"cv::Mat|Mat"``)
+- **width/height**: Configuration for extracting image dimensions
+- **format**: Configuration for extracting image format
+- **dataAddress**: Configuration for extracting image data pointer
+- **dataSize**: Configuration for calculating image data size (supports formulas)
+- **imageFormats**: Mapping of numeric format values to display format strings
+
+**Field Configuration Details:**
+
+Each field (width, height, format, dataAddress, dataSize) has the following properties:
+
+- **type**: Specifies the data type of the field value:
+  - ``"string"``: The value is a string (field name or expression)
+  - ``"number"``: The value is a numeric constant (e.g., ``"0x0E"``, ``"14"``)
+  - ``"formula"``: The value is a mathematical formula (only for dataSize field)
+
+- **isChild**: Determines how the field value is interpreted:
+  - ``true``: The value represents a child field of the right-clicked variable (e.g., ``"header.w"``, ``"data"``)
+  - ``false``: The value is a direct expression or constant that can be evaluated by GDB
+
+- **value**: The actual field name, expression, or constant to use for extraction
+
+**Important Configuration Notes:**
+
+- **dataSize Formula**: When using formulas in the ``dataSize`` field, the string ``$var`` will be automatically replaced with the actual variable name when you right-click and select "View Variable as Image". For example, if your variable is named ``my_image`` and the formula is ``$var.w * $var.h * 3``, it will be evaluated as ``my_image.w * my_image.h * 3``. **Note**: The formula must be a valid GDB expression since it is calculated by GDB itself.
+
+- **Format Number Mapping**: The numeric keys in the ``imageFormats`` object must match the actual numeric values that the ``format`` field extracts from your image structure. For example, if your image structure's format field contains the value ``14``, then the ``imageFormats`` object should have a key ``"14"`` that maps to the appropriate display format string like ``"rgb888"``.
+
 **Important Notes:**
-- **LVGL Support**: Automatically extracts image properties from ``lv_image_dsc_t`` structures
-- **OpenCV Support**: Automatically extracts image properties from ``cv::Mat`` objects
-- **Format Detection**: The Image Viewer automatically detects and maps LVGL and OpenCV formats to the appropriate display format
+- **Automatic Detection**: The Image Viewer automatically detects supported image types and extracts properties
+- **Unified Interface**: Single ``View Variable as Image`` command works for all supported formats
+- **Format Validation**: All formats are validated against supported display formats
 - **Raw Data**: The Image Viewer supports raw pixel formats. Compressed formats (JPEG, PNG, etc.) are not supported
 - **Size Specification**: For manual usage, you must specify the correct size of the image data array
 - **Variable Size**: The size can be provided as a number (bytes) or as the name of another variable containing the size
 - **Pointer Variables**: For pointer variables, make sure to provide the actual data size, not the pointer size
 - **Auto-Dimensioning**: The Image Viewer automatically estimates dimensions based on the data size and selected format, but you can manually adjust them for better results
+- **Extensible**: Custom image formats can be added through configuration files
 
 
 Other extensions debug configuration

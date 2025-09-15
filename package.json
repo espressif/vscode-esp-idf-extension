@@ -1291,6 +1291,12 @@
             "default": 60,
             "scope": "resource",
             "description": "%param.serialPortDetectionTimeout%"
+          },
+          "idf.imageViewerConfigs": {
+            "type": "string",
+            "description": "%param.imageViewerConfigs.title%",
+            "scope": "resource",
+            "default": ""
           }
         }
       }

@@ -191,6 +191,7 @@
   "param.hasWalkthroughBeenShown": "Has the walkthrough been shown",
   "param.unitTestFilePattern.title": "Glob pattern for unit test files to discover",
   "param.serialPortDetectionTimeout": "Timeout in seconds for serial port detection using esptool.py",
+  "param.imageViewerConfigs.title": "Path to custom image format configurations JSON file",
   "trace.poll_period.description": "poll_period will be set for the apptrace",
   "trace.skip_size.description": "skip_size will be set for the apptrace",
   "trace.stop_tmo.description": "stop_tmo will be set for the apptrace",
