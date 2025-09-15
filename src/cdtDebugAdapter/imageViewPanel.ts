@@ -18,6 +18,11 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
+import * as fs from "fs";
+import { readParameter } from "../idfConfiguration";
+import { Logger } from "../logger/logger";
+import { ESP } from "../config";
+import { workspace } from "vscode";
 
 export interface ImageElement {
   name: string;
@@ -65,180 +70,29 @@ export class ImageViewPanel {
   private disposables: vscode.Disposable[] = [];
   private imageFormatConfigs: ImageFormatConfig[] = [];
 
-  // Default configurations for built-in formats
-  private static readonly DEFAULT_CONFIGS: ImageFormatConfig[] = [
-    {
-      name: "LVGL Image Descriptor",
-      typePattern: "lv_image_dsc_t",
-      width: {
-        type: "string",
-        isChild: true,
-        value: "header.w",
-      },
-      height: {
-        type: "string",
-        isChild: true,
-        value: "header.h",
-      },
-      format: {
-        type: "string",
-        isChild: true,
-        value: "header.cf",
-      },
-      dataAddress: {
-        type: "string",
-        isChild: true,
-        value: "data",
-      },
-      dataSize: {
-        type: "string",
-        isChild: true,
-        value: "data_size",
-      },
-      imageFormats: {
-        // IMPORTANT: All format values must match the frontend dropdown options
-        // LVGL Color Format constants (lv_color_format_t) -> dropdown values
-        0x00: "grayscale", // LV_COLOR_FORMAT_UNKNOWN -> fallback to grayscale
-        0x01: "grayscale", // LV_COLOR_FORMAT_RAW -> not supported, fallback
-        0x02: "grayscale", // LV_COLOR_FORMAT_RAW_ALPHA -> not supported, fallback
-        0x03: "grayscale", // LV_COLOR_FORMAT_L8 -> not supported, fallback
-        0x04: "grayscale", // LV_COLOR_FORMAT_I1 -> not supported, fallback
-        0x05: "grayscale", // LV_COLOR_FORMAT_I2 -> not supported, fallback
-        0x06: "grayscale", // LV_COLOR_FORMAT_I4 -> not supported, fallback
-        0x07: "grayscale", // LV_COLOR_FORMAT_I8 -> not supported, fallback
-        0x08: "grayscale", // LV_COLOR_FORMAT_A8 -> not supported, fallback
-        0x09: "rgb565", // LV_COLOR_FORMAT_RGB565
-        0x0a: "rgb565", // LV_COLOR_FORMAT_ARGB8565 -> closest match
-        0x0b: "rgb565", // LV_COLOR_FORMAT_RGB565A8 -> closest match
-        0x0c: "grayscale", // LV_COLOR_FORMAT_AL88 -> not supported, fallback
-        0x0d: "rgb565", // LV_COLOR_FORMAT_RGB565_SWAPPED -> closest match
-        0x0e: "rgb888", // LV_COLOR_FORMAT_RGB888
-        0x0f: "argb8888", // LV_COLOR_FORMAT_ARGB8888
-        0x10: "bgra8888", // LV_COLOR_FORMAT_XRGB8888 -> mapped to bgra8888
-        0x11: "argb8888", // LV_COLOR_FORMAT_ARGB8888_PREMULTIPLIED -> closest match
-        0x12: "grayscale", // LV_COLOR_FORMAT_A1 -> not supported, fallback
-        0x13: "grayscale", // LV_COLOR_FORMAT_A2 -> not supported, fallback
-        0x14: "grayscale", // LV_COLOR_FORMAT_A4 -> not supported, fallback
-        0x15: "rgb555", // LV_COLOR_FORMAT_ARGB1555 -> closest match
-        0x16: "rgb444", // LV_COLOR_FORMAT_ARGB4444 -> closest match
-        0x17: "rgb332", // LV_COLOR_FORMAT_ARGB2222 -> closest match
-        0x18: "yuv420", // LV_COLOR_FORMAT_YUV_START -> fallback to yuv420
-        0x19: "yuv420", // LV_COLOR_FORMAT_I420
-        0x1a: "yuv422", // LV_COLOR_FORMAT_I422
-        0x1b: "yuv444", // LV_COLOR_FORMAT_I444
-        0x1c: "grayscale", // LV_COLOR_FORMAT_I400 -> not supported, fallback
-        0x1d: "yuv420", // LV_COLOR_FORMAT_NV21 -> closest match
-        0x1e: "yuv420", // LV_COLOR_FORMAT_NV12 -> closest match
-        0x1f: "yuv422", // LV_COLOR_FORMAT_YUY2 -> closest match
-        0x20: "yuv422", // LV_COLOR_FORMAT_UYVY -> closest match
-        0x21: "yuv420", // LV_COLOR_FORMAT_YUV_END -> fallback to yuv420
-        0x22: "rgb888", // LV_COLOR_FORMAT_PROPRIETARY_START -> fallback
-        0x23: "rgb888", // LV_COLOR_FORMAT_NEMA_TSC_START -> fallback
-        0x24: "rgb444", // LV_COLOR_FORMAT_NEMA_TSC4 -> closest match
-        0x25: "rgb666", // LV_COLOR_FORMAT_NEMA_TSC6 -> closest match
-        0x26: "rgb666", // LV_COLOR_FORMAT_NEMA_TSC6A -> closest match
-        0x27: "rgb666", // LV_COLOR_FORMAT_NEMA_TSC6AP -> closest match
-        0x28: "rgb888", // LV_COLOR_FORMAT_NEMA_TSC12 -> closest match
-        0x29: "rgb888", // LV_COLOR_FORMAT_NEMA_TSC12A -> closest match
-        0x2a: "rgb888", // LV_COLOR_FORMAT_NEMA_TSC_END -> fallback
-        0x2b: "rgb888", // LV_COLOR_FORMAT_NATIVE -> fallback to rgb888
-        0x2c: "rgba8888", // LV_COLOR_FORMAT_NATIVE_WITH_ALPHA -> fallback to rgba8888
-      },
-    },
-    {
-      name: "OpenCV Mat",
-      typePattern: "cv::Mat|Mat",
-      width: {
-        type: "string",
-        isChild: true,
-        value: "cols",
-      },
-      height: {
-        type: "string",
-        isChild: true,
-        value: "rows",
-      },
-      format: {
-        type: "number",
-        isChild: false,
-        value: "0x0E", // BGR888 equivalent
-      },
-      dataAddress: {
-        type: "string",
-        isChild: true,
-        value: "data",
-      },
-      dataSize: {
-        type: "formula",
-        isChild: false,
-        value: "$var.rows * $var.step.buf[0]",
-      },
-      imageFormats: {
-        // IMPORTANT: All format values must match the frontend dropdown options
-        // OpenCV Mat format mapping
-        0x00: "grayscale", // OpenCV Grayscale (1 channel)
-        0x0e: "bgr888", // OpenCV BGR888 (3 channels)
-        0x0f: "bgra8888", // OpenCV BGRA8888 (4 channels)
-        0x10: "bgra8888", // OpenCV XRGB8888 (4 channels)
-      },
-    },
-    {
-      name: "libpng image",
-      typePattern: "png_image",
-      width: {
-        type: "string",
-        isChild: true,
-        value: "width",
-      },
-      height: {
-        type: "string",
-        isChild: true,
-        value: "height",
-      },
-      format: {
-        type: "string",
-        isChild: true,
-        value: "format",
-      },
-      dataAddress: {
-        type: "string",
-        isChild: false,
-        value: "image_data",
-      },
-      dataSize: {
-        type: "string",
-        isChild: false,
-        value: "buf_size",
-      },
-      imageFormats: {
-        // IMPORTANT: All format values must match the frontend dropdown options
-        // libpng PNG_COLOR_TYPE constants -> dropdown values
-        0x00: "grayscale", // PNG_COLOR_TYPE_GRAY (8-bit grayscale)
-        0x02: "rgb888", // PNG_COLOR_TYPE_RGB (24-bit RGB)
-        0x03: "rgb888", // PNG_COLOR_TYPE_PALETTE -> fallback to rgb888 (palette not directly supported)
-        0x04: "rgba8888", // PNG_COLOR_TYPE_GRAY_ALPHA (8-bit grayscale + alpha)
-        0x06: "rgba8888", // PNG_COLOR_TYPE_RGB_ALPHA (32-bit RGBA)
-        
-        // Extended bit depth combinations (format = color_type | (bit_depth << 8))
-        // 8-bit formats
-        0x0200: "rgb888", // PNG_COLOR_TYPE_RGB, 8-bit
-        0x0300: "rgb888", // PNG_COLOR_TYPE_PALETTE, 8-bit -> fallback
-        0x0400: "rgba8888", // PNG_COLOR_TYPE_GRAY_ALPHA, 8-bit
-        0x0600: "rgba8888", // PNG_COLOR_TYPE_RGB_ALPHA, 8-bit
-        
-        // 16-bit formats (mapped to closest 8-bit equivalents)
-        0x1000: "grayscale", // PNG_COLOR_TYPE_GRAY, 16-bit -> grayscale
-        0x1200: "rgb888", // PNG_COLOR_TYPE_RGB, 16-bit -> rgb888
-        0x1300: "rgb888", // PNG_COLOR_TYPE_PALETTE, 16-bit -> fallback
-        0x1400: "rgba8888", // PNG_COLOR_TYPE_GRAY_ALPHA, 16-bit -> rgba8888
-        0x1600: "rgba8888", // PNG_COLOR_TYPE_RGB_ALPHA, 16-bit -> rgba8888
-        
-        // Other bit depths (1, 2, 4-bit) - mapped to grayscale
-        0x0100: "grayscale", // PNG_COLOR_TYPE_GRAY, 1-bit
-        0x0201: "grayscale", // PNG_COLOR_TYPE_GRAY, 2-bit  
-        0x0401: "grayscale", // PNG_COLOR_TYPE_GRAY, 4-bit
-      },
-    },
+  // Valid format strings that match the frontend dropdown
+  private static readonly VALID_FORMATS = [
+    "rgb565",
+    "rgb888",
+    "rgba8888",
+    "argb8888",
+    "xrgb8888",
+    "bgr888",
+    "bgra8888",
+    "abgr8888",
+    "xbgr8888",
+    "rgb332",
+    "rgb444",
+    "rgb555",
+    "rgb666",
+    "rgb777",
+    "rgb101010",
+    "rgb121212",
+    "rgb161616",
+    "grayscale",
+    "yuv420",
+    "yuv422",
+    "yuv444",
   ];
 
   public static show(extensionPath: string) {
@@ -325,7 +179,218 @@ export class ImageViewPanel {
   }
 
   private initializeImageFormatConfigs() {
-    this.imageFormatConfigs = [...ImageViewPanel.DEFAULT_CONFIGS];
+    this.imageFormatConfigs = this.loadImageFormatConfigs();
+  }
+
+  private loadImageFormatConfigs(): ImageFormatConfig[] {
+    // Load default configurations from JSON file
+    const defaultConfigs = this.loadDefaultConfigs();
+
+    // Load user configurations if specified
+    const userConfigs = this.loadUserConfigs();
+
+    // Merge configurations: user configs override default configs based on typePattern
+    return this.mergeConfigurations(defaultConfigs, userConfigs);
+  }
+
+  private loadDefaultConfigs(): ImageFormatConfig[] {
+    try {
+      const defaultConfigPath = path.join(
+        this.extensionPath,
+        "DEFAULT_CONFIGS.json"
+      );
+      const configData = fs.readFileSync(defaultConfigPath, "utf8");
+      const configs = JSON.parse(configData) as ImageFormatConfig[];
+
+      // Convert string keys in imageFormats to numbers (JSON doesn't support numeric keys)
+      return configs.map((config) => ({
+        ...config,
+        imageFormats: config.imageFormats
+          ? this.convertImageFormatsKeys(config.imageFormats)
+          : undefined,
+      }));
+    } catch (error) {
+      Logger.error(
+        "Failed to load default image format configurations:",
+        error,
+        "ImageViewPanel loadDefaultConfigs"
+      );
+      return [];
+    }
+  }
+
+  private loadUserConfigs(): ImageFormatConfig[] {
+    try {
+      const userConfigPath = readParameter("idf.imageViewerConfigs");
+      if (!userConfigPath) {
+        return [];
+      }
+
+      // Resolve relative paths relative to workspace folder
+      let workspaceFolderUri = ESP.GlobalConfiguration.store.get<vscode.Uri>(
+        ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
+      );
+      if (!workspaceFolderUri) {
+        workspaceFolderUri = vscode.workspace.workspaceFolders
+          ? workspace.workspaceFolders[0].uri
+          : undefined;
+      }
+      const resolvedPath = workspaceFolderUri
+        ? path.resolve(workspaceFolderUri.fsPath, userConfigPath)
+        : userConfigPath;
+
+      if (!fs.existsSync(resolvedPath)) {
+        Logger.warn(
+          `User image format configuration file not found: ${resolvedPath}`
+        );
+        return [];
+      }
+
+      const configData = fs.readFileSync(resolvedPath, "utf8");
+      const configs = JSON.parse(configData) as ImageFormatConfig[];
+
+      // Convert string keys in imageFormats to numbers
+      return configs.map((config) => ({
+        ...config,
+        imageFormats: config.imageFormats
+          ? this.convertImageFormatsKeys(config.imageFormats)
+          : undefined,
+      }));
+    } catch (error) {
+      Logger.error(
+        "Failed to load user image format configurations:",
+        error,
+        "ImageViewPanel loadUserConfigs"
+      );
+      return [];
+    }
+  }
+
+  private convertImageFormatsKeys(imageFormats: {
+    [key: string]: string;
+  }): { [key: number]: string } {
+    const converted: { [key: number]: string } = {};
+    for (const [key, value] of Object.entries(imageFormats)) {
+      const numericKey = parseInt(key, 10);
+      if (!isNaN(numericKey)) {
+        converted[numericKey] = value;
+      }
+    }
+    return converted;
+  }
+
+  private mergeConfigurations(
+    defaultConfigs: ImageFormatConfig[],
+    userConfigs: ImageFormatConfig[]
+  ): ImageFormatConfig[] {
+    const merged = [...defaultConfigs];
+
+    for (const userConfig of userConfigs) {
+      const existingIndex = merged.findIndex(
+        (config) => config.typePattern === userConfig.typePattern
+      );
+      if (existingIndex >= 0) {
+        // Override existing configuration
+        merged[existingIndex] = userConfig;
+      } else {
+        // Add new configuration
+        merged.push(userConfig);
+      }
+    }
+
+    return merged;
+  }
+
+  private static isValidFormat(format: string): boolean {
+    return ImageViewPanel.VALID_FORMATS.includes(format);
+  }
+
+  private static validateAndGetFormat(
+    rawFormat: number | string,
+    imageFormats?: { [key: number]: string },
+    configName?: string
+  ): string {
+    // Handle numeric formats using imageFormats mapping
+    if (typeof rawFormat === "number" && imageFormats) {
+      const mappedFormat = imageFormats[rawFormat];
+      if (mappedFormat && ImageViewPanel.isValidFormat(mappedFormat)) {
+        return mappedFormat;
+      } else {
+        throw new Error(
+          `Invalid format '${mappedFormat}' from backend mapping for format value ${rawFormat}. ` +
+            `Please check the imageFormats configuration for ${
+              configName || "unknown config"
+            }.`
+        );
+      }
+    }
+
+    // Handle string formats
+    if (typeof rawFormat === "string") {
+      // Direct validation for string formats
+      if (ImageViewPanel.isValidFormat(rawFormat)) {
+        return rawFormat;
+      }
+
+      // Try partial matching for common variations
+      const formatLower = rawFormat.toLowerCase();
+      if (formatLower.includes("rgb565") || formatLower.includes("565"))
+        return "rgb565";
+      if (formatLower.includes("rgb888") || formatLower.includes("888"))
+        return "rgb888";
+      if (formatLower.includes("rgba8888") || formatLower.includes("rgba"))
+        return "rgba8888";
+      if (formatLower.includes("argb8888") || formatLower.includes("argb"))
+        return "argb8888";
+      if (formatLower.includes("xrgb8888") || formatLower.includes("xrgb"))
+        return "xrgb8888";
+      if (formatLower.includes("bgr888") || formatLower.includes("bgr"))
+        return "bgr888";
+      if (formatLower.includes("bgra8888") || formatLower.includes("bgra"))
+        return "bgra8888";
+      if (formatLower.includes("abgr8888") || formatLower.includes("abgr"))
+        return "abgr8888";
+      if (formatLower.includes("xbgr8888") || formatLower.includes("xbgr"))
+        return "xbgr8888";
+      if (formatLower.includes("rgb332") || formatLower.includes("332"))
+        return "rgb332";
+      if (formatLower.includes("rgb444") || formatLower.includes("444"))
+        return "rgb444";
+      if (formatLower.includes("rgb555") || formatLower.includes("555"))
+        return "rgb555";
+      if (formatLower.includes("rgb666") || formatLower.includes("666"))
+        return "rgb666";
+      if (formatLower.includes("rgb777") || formatLower.includes("777"))
+        return "rgb777";
+      if (formatLower.includes("rgb101010") || formatLower.includes("101010"))
+        return "rgb101010";
+      if (formatLower.includes("rgb121212") || formatLower.includes("121212"))
+        return "rgb121212";
+      if (formatLower.includes("rgb161616") || formatLower.includes("161616"))
+        return "rgb161616";
+      if (
+        formatLower.includes("grayscale") ||
+        formatLower.includes("gray") ||
+        formatLower.includes("mono")
+      )
+        return "grayscale";
+      if (formatLower.includes("yuv420") || formatLower.includes("420"))
+        return "yuv420";
+      if (formatLower.includes("yuv422") || formatLower.includes("422"))
+        return "yuv422";
+      if (formatLower.includes("yuv444") || formatLower.includes("444"))
+        return "yuv444";
+
+      // If no match found, throw error
+      throw new Error(
+        `Invalid format string '${rawFormat}'. Valid formats are: ${ImageViewPanel.VALID_FORMATS.join(
+          ", "
+        )}`
+      );
+    }
+
+    // Fallback for unknown format types
+    return "rgb888";
   }
 
   private findMatchingConfig(variableType: string): ImageFormatConfig | null {
@@ -532,7 +597,7 @@ export class ImageViewPanel {
       if (imageProperties) {
         // Update the panel title and send the data
         this.panel.title = `Image Viewer: ${variable.name} (${config.name})`;
-        this.sendImageWithDimensionsData(imageProperties, config.name, config.imageFormats);
+        this.sendImageWithDimensionsData(imageProperties, config.name);
       }
     } catch (error) {
       this.panel.webview.postMessage({
@@ -573,20 +638,23 @@ export class ImageViewPanel {
         frameId
       )) as number;
 
-      const rawFormat = (await this.extractFieldValue(
+      const rawFormat = await this.extractFieldValue(
         session,
         variablesReference,
         config.format,
         frameId
-      )) as number;
+      );
 
-      // Convert numeric format to string using imageFormats mapping if available
-      if (config.imageFormats && typeof rawFormat === 'number') {
-        imageProperties.format = rawFormat; // Keep raw format for display
-        // The frontend will use the imageFormats mapping to convert to display format
-      } else {
-        imageProperties.format = rawFormat;
-      }
+      // Validate and convert format to final string
+      const validatedFormat = ImageViewPanel.validateAndGetFormat(
+        rawFormat,
+        config.imageFormats,
+        config.name
+      );
+
+      // Store both raw format (for display) and validated format (for processing)
+      imageProperties.format = rawFormat as number; // Keep raw format for display
+      (imageProperties as any).validatedFormat = validatedFormat; // Add validated format
 
       imageProperties.dataAddress = (await this.extractFieldValue(
         session,
@@ -651,12 +719,11 @@ export class ImageViewPanel {
 
   private sendImageWithDimensionsData(
     imageElement: ImageWithDimensionsElement,
-    configName?: string,
-    imageFormats?: { [key: number]: string }
+    configName?: string
   ) {
     const base64Data = Buffer.from(imageElement.data).toString("base64");
     this.panel.webview.postMessage({
-      command: "updateLVGLImage",
+      command: "updateImageWithProperties",
       data: base64Data,
       dataAddress: imageElement.dataAddress,
       dataSize: imageElement.dataSize,
@@ -665,7 +732,7 @@ export class ImageViewPanel {
       height: imageElement.height,
       format: imageElement.format,
       configName: configName, // Pass the configuration name
-      imageFormats: imageFormats, // Pass the format mapping
+      validatedFormat: (imageElement as any).validatedFormat, // Pass the validated format string
     });
   }
 
