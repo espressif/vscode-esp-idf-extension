@@ -1,57 +1,43 @@
 Application Tracing
-=========================
+===================
 
-This feature allows to transfer arbitrary data between host and ESP32 via JTAG interface with small overhead on program execution.
+:link_to_translation:`zh_CN:[中文]`
 
-Developers can use this library to send application specific state of execution to the host and receive commands or other type of info in the opposite direction at runtime.
+This feature allows transferring arbitrary data between the host and ESP32 via the JTAG interface with small overhead on program execution.
 
-Let's open a ESP-IDF project. For this tutorial we will use the `system/app_trace_basic <https://github.com/espressif/esp-idf/tree/master/examples/system/app_trace_basic>`_ example.
+Developers can use this library to send application-specific state of execution to the host and receive commands or other types of information in the opposite direction at runtime.
 
-- Navigate to **View** > **Command Palette**.
+Let's open an ESP-IDF project. For this tutorial, we will use the `system/app_trace_to_host <https://github.com/espressif/esp-idf/tree/master/examples/system/app_trace_to_host>`_ example.
 
-- Type **ESP-IDF: New Project**, select the command and choose ESP-IDF version to use.
+1.  Navigate to ``View`` > ``Command Palette``.
 
-If you don't see the option, please review the setup in :ref:`Install ESP-IDF and Tools <installation>`.
+2.  Type ``ESP-IDF: New Project``, select the command, and choose the ESP-IDF version to use.
 
-- A window will be open with settings to configure the project. Later you can choose from the ESP-IDF examples, go the **system** section and choose the ``app_trace_basic``. You will see a **Create Project Using Example app_trace_basic project** button in the top and a description of the project below. Click the button and the project will be opened in a new window.
+    .. note::
 
-.. image:: ../../../media/tutorials/app_trace/app_tracing.png
+        If you don't see the option, please review the setup in :ref:`Install ESP-IDF and Tools <installation>`.
 
-For this example, the project has been already configured for application tracing purposes. On other projects you need to enable ``CONFIG_APPTRACE_DEST_JTAG`` and ``CONFIG_APPTRACE_ENABLE`` with the **ESP-IDF: SDK Configuration Editor** command.
+3.  A window will open with settings to configure the project. You can later choose from a list of ESP-IDF examples. Go to the ``system`` section and choose ``app_trace_to_host``. You will see a ``Create Project Using Example app_trace_to_host`` button at the top and a description of the project below. Click the button, and the project will open in a new window.
 
-.. note::
-  For the ``app_trace_basic`` example to work properly, you need to add the following settings to your project's ``.vscode/settings.json`` file:
+    .. image:: ../../../media/tutorials/app_trace/app_tracing.png
 
-  .. code-block:: json
+    For this example, the project is already configured for application tracing purposes. In other projects, you need to enable ``CONFIG_APPTRACE_DEST_TRAX`` and ``CONFIG_APPTRACE_ENABLE`` with the ``ESP-IDF: SDK Configuration Editor`` command.
 
-    {
-      "trace.poll_period": 0,
-      "trace.trace_size": 2048,
-      "trace.stop_tmo": 3,
-      "trace.wait4halt": 0,
-      "trace.skip_size": 0
-    }
+4.  Configure, build, and flash your project as explained in the :ref:`Build the project <build the project>`.
 
-  These settings ensure the same tracing behavior as demonstrated in the example.
+5.  First, click ``ESP-IDF Explorer`` in the `Visual Studio Code Activity bar <https://code.visualstudio.com/docs/getstarted/userinterface>`_. Second, in the ``IDF APP TRACER`` section, click ``Start App Trace``. This will execute the extension's OpenOCD server and send the corresponding tracing commands to generate a tracing log. Third, you can see the generated tracing log in the ``APP TRACE ARCHIVES`` named ``Trace Log #1``. 
 
-- Configure, build and flash your project as explained in the :ref:`Build the project <build the project>`.
+    Each time you execute ``Start App Trace``, a new tracing is generated and shown in the archives list. You can also start tracing by running the ``ESP-IDF: App Trace`` command.
 
-- Click the ``ESP-IDF Explorer`` in the `Visual Studio Code Activity bar <https://code.visualstudio.com/docs/getstarted/userinterface>`_.
+    .. note::
 
-1. On the ``IDF APP TRACER`` section, click the ``Start App Trace``. This will execute the extension's OpenOCD server and send the corresponding tracing commands to generate a tracing log.
+        * The OpenOCD server output is shown in menu ``View`` > ``Output`` > ``ESP-IDF``.
+        * Ensure that OpenOCD configuration files are properly configured with the ``ESP-IDF: Select OpenOCD Board Configuration`` command.
 
-2. You can see the generated tracing log in the ``APP TRACE ARCHIVES`` named with ``Trace Log #1``.
+    .. image:: ../../../media/tutorials/app_trace/start_tracing.png
 
-3. Each time you execute ``Start App Trace`` a new tracing will be generated and shown in the archives list. You can also start tracing by running the **ESP-IDF: App Trace** command.
+6.  Click ``Trace Log #1`` to open a window with the trace report. Click the ``Show Report`` button to see the trace output.
 
-.. note::
-  * The OpenOCD server output is shown in menu **View** > **Output** > **ESP-IDF**.
-  * Make sure that OpenOCD configuration files are properly configured with **ESP-IDF: Select OpenOCD Board Configuration** command.
+    .. image:: ../../../media/tutorials/app_trace/trace_report.png
 
-.. image:: ../../../media/tutorials/app_trace/start_tracing.png
-
-- Click on ``Trace Log #1`` to open the trace file directly in the editor.
-
-.. image:: ../../../media/tutorials/app_trace/trace_report.png
-
-For more information please take a look at the `Application Level Tracing library Documentation <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html>`_.
+For more information, please refer to `Application Level Tracing Library <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html>`_.
