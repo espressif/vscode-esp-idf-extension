@@ -1,0 +1,1 @@
+.. include:: ../../en/additionalfeatures/esp-idf-profiles.rst

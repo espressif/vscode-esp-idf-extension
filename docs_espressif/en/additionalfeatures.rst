@@ -24,7 +24,7 @@ Additional IDE Features
     NVS Partition Table Editor<additionalfeatures/nvs-partition-editor>
     Partition Table Editor<additionalfeatures/partition-table-editor>
     Project Configuration Editor<additionalfeatures/project-configuration>
-    QEMU<additionalfeatures/qemu>
+    QEMU Integration<additionalfeatures/qemu>
     ESP RainMaker<additionalfeatures/rainmaker>
     Unit Testing<additionalfeatures/unit-testing>
     Working with Multiple Projects<additionalfeatures/multiple-projects>
