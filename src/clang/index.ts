@@ -17,11 +17,7 @@
  */
 
 import { l10n, Uri, workspace } from "vscode";
-import {
-  appendIdfAndToolsToPath,
-  getToolchainPath,
-  isBinInPath,
-} from "../utils";
+import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
 import { pathExists, writeJSON, writeFile } from "fs-extra";
 import { readParameter } from "../idfConfiguration";
 import { join } from "path";
@@ -32,10 +28,7 @@ import { EOL } from "os";
 export async function validateEspClangExists(workspaceFolder: Uri) {
   const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
 
-  const espClangdPath = await isBinInPath(
-    "clangd",
-    modifiedEnv
-  );
+  const espClangdPath = await isBinInPath("clangd", modifiedEnv, ["esp-clang"]);
   if (espClangdPath && espClangdPath.includes("esp-clang")) {
     return espClangdPath;
   }
@@ -62,11 +55,10 @@ export async function setClangSettings(
     return;
   }
   const buildPath = readParameter("idf.buildPath", workspaceFolder);
-  const gccPath = await getToolchainPath(workspaceFolder, "gcc");
   settingsJson["clangd.path"] = espClangPath;
   settingsJson["clangd.arguments"] = [
     "--background-index",
-    `--query-driver=${gccPath}`,
+    `--query-driver=**`,
     `--compile-commands-dir=${buildPath}`,
   ];
 }

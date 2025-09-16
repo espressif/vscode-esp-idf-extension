@@ -1302,7 +1302,11 @@ export async function getAllBinPathInEnvPath(
   return foundBinaries;
 }
 
-export async function isBinInPath(binaryName: string, env: NodeJS.ProcessEnv) {
+export async function isBinInPath(
+  binaryName: string,
+  env: NodeJS.ProcessEnv,
+  containerDir?: string[]
+) {
   let pathNameInEnv: string = Object.keys(process.env).find(
     (k) => k.toUpperCase() == "PATH"
   );
@@ -1314,6 +1318,12 @@ export async function isBinInPath(binaryName: string, env: NodeJS.ProcessEnv) {
     }
     const doesPathExists = await pathExists(binaryPath);
     if (doesPathExists) {
+      if (containerDir && containerDir.length) {
+        const resultContainerPath = containerDir.join(path.sep);
+        if (binaryPath.indexOf(resultContainerPath) === -1) {
+          return "";
+        }
+      }
       const pathStats = await stat(binaryPath);
       if (pathStats.isFile() && canAccessFile(binaryPath, fs.constants.X_OK)) {
         return binaryPath;
