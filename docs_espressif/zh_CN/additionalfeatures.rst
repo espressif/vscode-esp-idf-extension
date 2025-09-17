@@ -24,8 +24,8 @@
     分区表编辑器<additionalfeatures/partition-table-editor>
     项目配置编辑器<additionalfeatures/project-configuration>
     QEMU 模拟器<additionalfeatures/qemu>
+    ESP RainMaker<additionalfeatures/rainmaker>
     使用 Unity 框架进行单元测试<additionalfeatures/unit-testing>
-    单元测试<additionalfeatures/unit-testing>
     处理多个项目<additionalfeatures/multiple-projects>
     在 Windows 系统中使用 WSL<additionalfeatures/wsl>
     Web Extension<additionalfeatures/web-extension>
