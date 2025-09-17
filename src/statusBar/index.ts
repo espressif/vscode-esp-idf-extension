@@ -101,11 +101,17 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   let projectConf = ESP.ProjectConfiguration.store.get<string>(
     ESP.ProjectConfiguration.SELECTED_CONFIG
   );
-  let projectConfPath = path.join(
+  let cmakePresetsPath = path.join(
     workspaceFolder.fsPath,
     ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
   );
-  let projectConfExists = await pathExists(projectConfPath);
+  let cmakeUserPresetsPath = path.join(
+    workspaceFolder.fsPath,
+    ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME
+  );
+  let cmakePresetsExists = await pathExists(cmakePresetsPath);
+  let cmakeUserPresetsExists = await pathExists(cmakeUserPresetsPath);
+  let anyConfigFileExists = cmakePresetsExists || cmakeUserPresetsExists;
 
   let currentIdfVersion = await getCurrentIdfSetup(workspaceFolder, false);
 
@@ -171,8 +177,8 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     }
   }
 
-  // Only create the project configuration status bar item if the configuration file exists
-  if (projectConfExists) {
+  // Only create the project configuration status bar item if any configuration file exists
+  if (anyConfigFileExists) {
     if (!projectConf) {
       // No configuration selected but file exists with configurations
       let statusBarItemName = "No Configuration Selected";
@@ -200,7 +206,7 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
       );
     }
   } else if (statusBarItems["projectConf"]) {
-    // If the configuration file doesn't exist but the status bar item does, remove it
+    // If no configuration files exist but the status bar item does, remove it
     statusBarItems["projectConf"].dispose();
     statusBarItems["projectConf"] = undefined;
   }

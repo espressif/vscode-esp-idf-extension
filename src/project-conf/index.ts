@@ -20,7 +20,14 @@ import * as path from "path";
 import { ExtensionContext, Uri, window, l10n } from "vscode";
 import { ESP } from "../config";
 import { pathExists, readJson, writeJson } from "fs-extra";
-import { ProjectConfElement, CMakePresets, ConfigurePreset, BuildPreset, ESPIDFSettings, ESPIDFVendorSettings } from "./projectConfiguration";
+import {
+  ProjectConfElement,
+  CMakePresets,
+  ConfigurePreset,
+  BuildPreset,
+  ESPIDFSettings,
+  ESPIDFVendorSettings,
+} from "./projectConfiguration";
 import { Logger } from "../logger/logger";
 import { resolveVariables } from "../idfConfiguration";
 
@@ -76,7 +83,7 @@ export async function updateCurrentProfileIdfTarget(
     );
     return;
   }
-  
+
   // Update IDF_TARGET in cacheVariables for ConfigurePreset
   if (!projectConfJson[selectedConfig].cacheVariables) {
     projectConfJson[selectedConfig].cacheVariables = {};
@@ -100,7 +107,9 @@ export async function saveProjectConfFile(
   );
 
   // Use ConfigurePreset objects directly
-  const configurePresets: ConfigurePreset[] = Object.values(projectConfElements);
+  const configurePresets: ConfigurePreset[] = Object.values(
+    projectConfElements
+  );
 
   const cmakePresets: CMakePresets = {
     version: 1,
@@ -124,7 +133,9 @@ export async function saveProjectConfFileLegacy(
   );
 
   // Convert to CMakePresets format
-  const configurePresets: ConfigurePreset[] = Object.keys(projectConfElements).map(name =>
+  const configurePresets: ConfigurePreset[] = Object.keys(
+    projectConfElements
+  ).map((name) =>
     convertProjectConfElementToConfigurePreset(name, projectConfElements[name])
   );
 
@@ -248,7 +259,10 @@ function substituteVariablesInString(
         configVarName = configVar.substring(0, delimiterIndex);
         prefix = configVar.substring(delimiterIndex + 1).trim();
       }
-      const configVarValue = parameterToSameProjectConfigMap(configVarName, config);
+      const configVarValue = parameterToSameProjectConfigMap(
+        configVarName,
+        config
+      );
 
       if (!configVarValue) {
         return match;
@@ -352,8 +366,8 @@ function resolveConfigPaths(
 // --- Main Function ---
 
 /**
- * Reads the CMakePresets.json file, performs variable substitution
- * on relevant fields, resolves paths, and returns the structured configuration.
+ * Reads both CMakePresets.json and CMakeUserPresets.json files, performs variable substitution
+ * on relevant fields, resolves paths, and returns the merged structured configuration.
  * @param workspaceFolder The Uri of the current workspace folder.
  * @param resolvePaths Whether to resolve paths to absolute paths (true for building, false for display)
  * @returns An object mapping configuration names to their processed ConfigurePreset.
@@ -362,44 +376,274 @@ export async function getProjectConfigurationElements(
   workspaceFolder: Uri,
   resolvePaths: boolean = false
 ): Promise<{ [key: string]: ConfigurePreset }> {
-  const projectConfFilePath = Uri.joinPath(
+  const allRawPresets: { [key: string]: ConfigurePreset } = {};
+
+  // Read CMakePresets.json
+  const cmakePresetsFilePath = Uri.joinPath(
     workspaceFolder,
     ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
   );
 
-  const doesPathExists = await pathExists(projectConfFilePath.fsPath);
-  if (!doesPathExists) {
-    // Check if legacy file exists and prompt for migration
+  // Read CMakeUserPresets.json
+  const cmakeUserPresetsFilePath = Uri.joinPath(
+    workspaceFolder,
+    ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME
+  );
+
+  const cmakePresetsExists = await pathExists(cmakePresetsFilePath.fsPath);
+  const cmakeUserPresetsExists = await pathExists(
+    cmakeUserPresetsFilePath.fsPath
+  );
+
+  // If neither file exists, check for legacy file
+  if (!cmakePresetsExists && !cmakeUserPresetsExists) {
     await checkAndPromptLegacyMigration(workspaceFolder);
     return {};
   }
 
-  let projectConfJson;
-  try {
-    projectConfJson = await readJson(projectConfFilePath.fsPath);
-    if (typeof projectConfJson !== "object" || projectConfJson === null) {
-      throw new Error("Configuration file content is not a valid JSON object.");
+  // First pass: Load all raw presets from both files without processing inheritance
+  if (cmakePresetsExists) {
+    try {
+      const cmakePresetsJson = await readJson(cmakePresetsFilePath.fsPath);
+      if (typeof cmakePresetsJson === "object" && cmakePresetsJson !== null) {
+        const presets = await loadRawConfigurationFile(
+          cmakePresetsJson,
+          "CMakePresets.json"
+        );
+        Object.assign(allRawPresets, presets);
+      }
+    } catch (error) {
+      Logger.errorNotify(
+        `Failed to read or parse ${ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME}`,
+        error,
+        "getProjectConfigurationElements"
+      );
+      window.showErrorMessage(
+        `Error reading or parsing CMakePresets.json file (${cmakePresetsFilePath.fsPath}): ${error.message}`
+      );
     }
-  } catch (error) {
-    Logger.errorNotify(
-      `Failed to read or parse ${ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME}`,
-      error,
-      "getProjectConfigurationElements"
-    );
-    window.showErrorMessage(
-      `Error reading or parsing CMakePresets.json file (${projectConfFilePath.fsPath}): ${error.message}`
-    );
-    return {}; // Return empty if JSON is invalid or unreadable
   }
 
+  if (cmakeUserPresetsExists) {
+    try {
+      const cmakeUserPresetsJson = await readJson(
+        cmakeUserPresetsFilePath.fsPath
+      );
+      if (
+        typeof cmakeUserPresetsJson === "object" &&
+        cmakeUserPresetsJson !== null
+      ) {
+        const presets = await loadRawConfigurationFile(
+          cmakeUserPresetsJson,
+          "CMakeUserPresets.json"
+        );
+        // User presets override project presets with the same name
+        Object.assign(allRawPresets, presets);
+      }
+    } catch (error) {
+      Logger.errorNotify(
+        `Failed to read or parse ${ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME}`,
+        error,
+        "getProjectConfigurationElements"
+      );
+      window.showErrorMessage(
+        `Error reading or parsing CMakeUserPresets.json file (${cmakeUserPresetsFilePath.fsPath}): ${error.message}`
+      );
+    }
+  }
+
+  // Second pass: Resolve inheritance and process variables
+  const processedPresets: { [key: string]: ConfigurePreset } = {};
+  for (const [name, preset] of Object.entries(allRawPresets)) {
+    try {
+      const resolvedPreset = await resolvePresetInheritance(
+        preset,
+        allRawPresets
+      );
+      const processedPreset = await processConfigurePresetVariables(
+        resolvedPreset,
+        workspaceFolder,
+        resolvePaths
+      );
+      processedPresets[name] = processedPreset;
+    } catch (error) {
+      Logger.warn(
+        `Failed to process configure preset "${name}": ${error.message}`,
+        error
+      );
+    }
+  }
+
+  return processedPresets;
+}
+
+/**
+ * Loads raw presets from a configuration file without processing inheritance or variables
+ * @param configJson The parsed JSON content of the configuration file
+ * @param fileName The name of the file being processed (for error messages)
+ * @returns An object mapping configuration names to their raw ConfigurePreset
+ */
+async function loadRawConfigurationFile(
+  configJson: any,
+  fileName: string
+): Promise<{ [key: string]: ConfigurePreset }> {
+  const rawPresets: { [key: string]: ConfigurePreset } = {};
+
+  // Only support CMakePresets format
+  if (configJson.version !== undefined && configJson.configurePresets) {
+    const cmakePresets = configJson as CMakePresets;
+
+    if (
+      !cmakePresets.configurePresets ||
+      cmakePresets.configurePresets.length === 0
+    ) {
+      return {};
+    }
+
+    // Load each configure preset without processing
+    for (const preset of cmakePresets.configurePresets) {
+      rawPresets[preset.name] = { ...preset };
+    }
+  } else {
+    // This might be a legacy file that wasn't migrated
+    Logger.warn(
+      `Invalid ${fileName} format detected. Expected 'version' and 'configurePresets' fields.`,
+      new Error("Invalid CMakePresets format")
+    );
+    window.showErrorMessage(
+      `Invalid ${fileName} format. Please ensure the file follows the CMakePresets specification.`
+    );
+  }
+
+  return rawPresets;
+}
+
+/**
+ * Resolves inheritance for a preset by merging it with its parent presets
+ * @param preset The preset to resolve inheritance for
+ * @param allPresets All available presets (for inheritance lookup)
+ * @returns The preset with inheritance resolved
+ */
+async function resolvePresetInheritance(
+  preset: ConfigurePreset,
+  allPresets: { [key: string]: ConfigurePreset }
+): Promise<ConfigurePreset> {
+  // If no inheritance, return as-is
+  if (!preset.inherits) {
+    return { ...preset };
+  }
+
+  // Handle both single string and array of strings for inherits
+  const parentNames = Array.isArray(preset.inherits)
+    ? preset.inherits
+    : [preset.inherits];
+
+  // Start with an empty base preset
+  let resolvedPreset: ConfigurePreset = { name: preset.name };
+
+  // Apply each parent preset in order
+  for (const parentName of parentNames) {
+    const parentPreset = allPresets[parentName];
+    if (!parentPreset) {
+      Logger.warn(
+        `Preset "${preset.name}" inherits from "${parentName}" which was not found`,
+        new Error("Missing parent preset")
+      );
+      continue;
+    }
+
+    // Recursively resolve parent's inheritance first
+    const resolvedParent = await resolvePresetInheritance(
+      parentPreset,
+      allPresets
+    );
+
+    // Merge parent into resolved preset
+    resolvedPreset = mergePresets(resolvedPreset, resolvedParent);
+  }
+
+  // Finally, merge the current preset (child overrides parent)
+  resolvedPreset = mergePresets(resolvedPreset, preset);
+
+  // Remove the inherits property from the final result
+  delete resolvedPreset.inherits;
+
+  return resolvedPreset;
+}
+
+/**
+ * Merges two presets, with the child preset overriding the parent preset
+ * @param parent The parent preset
+ * @param child The child preset (takes precedence)
+ * @returns The merged preset
+ */
+function mergePresets(
+  parent: ConfigurePreset,
+  child: ConfigurePreset
+): ConfigurePreset {
+  const merged: ConfigurePreset = { ...parent };
+
+  // Merge basic properties
+  if (child.name !== undefined) merged.name = child.name;
+  if (child.binaryDir !== undefined) merged.binaryDir = child.binaryDir;
+  if (child.inherits !== undefined) merged.inherits = child.inherits;
+
+  // Merge cacheVariables (child overrides parent)
+  if (child.cacheVariables || parent.cacheVariables) {
+    merged.cacheVariables = {
+      ...(parent.cacheVariables || {}),
+      ...(child.cacheVariables || {}),
+    };
+  }
+
+  // Merge environment (child overrides parent)
+  if (child.environment || parent.environment) {
+    merged.environment = {
+      ...(parent.environment || {}),
+      ...(child.environment || {}),
+    };
+  }
+
+  // Merge vendor settings (child overrides parent)
+  if (child.vendor || parent.vendor) {
+    merged.vendor = {
+      "espressif/vscode-esp-idf": {
+        settings: [
+          ...(parent.vendor?.["espressif/vscode-esp-idf"]?.settings || []),
+          ...(child.vendor?.["espressif/vscode-esp-idf"]?.settings || []),
+        ],
+      },
+    };
+  }
+
+  return merged;
+}
+
+/**
+ * Processes a single configuration file (CMakePresets.json or CMakeUserPresets.json)
+ * @param configJson The parsed JSON content of the configuration file
+ * @param workspaceFolder The workspace folder Uri
+ * @param resolvePaths Whether to resolve paths to absolute paths
+ * @param fileName The name of the file being processed (for error messages)
+ * @returns An object mapping configuration names to their processed ConfigurePreset
+ * @deprecated Use loadRawConfigurationFile and resolvePresetInheritance instead
+ */
+async function processConfigurationFile(
+  configJson: any,
+  workspaceFolder: Uri,
+  resolvePaths: boolean,
+  fileName: string
+): Promise<{ [key: string]: ConfigurePreset }> {
   const projectConfElements: { [key: string]: ConfigurePreset } = {};
 
   // Only support CMakePresets format
-  if (projectConfJson.version !== undefined && projectConfJson.configurePresets) {
-    // CMakePresets format
-    const cmakePresets = projectConfJson as CMakePresets;
-    
-    if (!cmakePresets.configurePresets || cmakePresets.configurePresets.length === 0) {
+  if (configJson.version !== undefined && configJson.configurePresets) {
+    const cmakePresets = configJson as CMakePresets;
+
+    if (
+      !cmakePresets.configurePresets ||
+      cmakePresets.configurePresets.length === 0
+    ) {
       return {};
     }
 
@@ -412,11 +656,11 @@ export async function getProjectConfigurationElements(
           workspaceFolder,
           resolvePaths
         );
-        
+
         projectConfElements[preset.name] = processedPreset;
       } catch (error) {
         Logger.warn(
-          `Failed to process configure preset "${preset.name}": ${error.message}`,
+          `Failed to process configure preset "${preset.name}" from ${fileName}: ${error.message}`,
           error
         );
       }
@@ -424,13 +668,12 @@ export async function getProjectConfigurationElements(
   } else {
     // This might be a legacy file that wasn't migrated
     Logger.warn(
-      `Invalid CMakePresets.json format detected. Expected 'version' and 'configurePresets' fields.`,
+      `Invalid ${fileName} format detected. Expected 'version' and 'configurePresets' fields.`,
       new Error("Invalid CMakePresets format")
     );
     window.showErrorMessage(
-      `Invalid CMakePresets.json format. Please ensure the file follows the CMakePresets specification.`
+      `Invalid ${fileName} format. Please ensure the file follows the CMakePresets specification.`
     );
-    return {};
   }
 
   return projectConfElements;
@@ -439,9 +682,14 @@ export async function getProjectConfigurationElements(
 /**
  * Checks for legacy project configuration file and prompts user for migration
  */
-async function checkAndPromptLegacyMigration(workspaceFolder: Uri): Promise<void> {
-  const legacyFilePath = Uri.joinPath(workspaceFolder, "esp_idf_project_configuration.json");
-  
+async function checkAndPromptLegacyMigration(
+  workspaceFolder: Uri
+): Promise<void> {
+  const legacyFilePath = Uri.joinPath(
+    workspaceFolder,
+    "esp_idf_project_configuration.json"
+  );
+
   if (await pathExists(legacyFilePath.fsPath)) {
     await promptLegacyMigration(workspaceFolder, legacyFilePath);
   }
@@ -450,23 +698,26 @@ async function checkAndPromptLegacyMigration(workspaceFolder: Uri): Promise<void
 /**
  * Prompts user to migrate legacy configuration file
  */
-export async function promptLegacyMigration(workspaceFolder: Uri, legacyFilePath: Uri): Promise<void> {
+export async function promptLegacyMigration(
+  workspaceFolder: Uri,
+  legacyFilePath: Uri
+): Promise<void> {
   const message = l10n.t(
     "A legacy project configuration file (esp_idf_project_configuration.json) was found. " +
-    "Would you like to migrate it to the new CMakePresets.json format? " +
-    "Your original file will remain unchanged."
+      "Would you like to migrate it to the new CMakePresets.json format? " +
+      "Your original file will remain unchanged."
   );
-  
+
   const migrateOption = l10n.t("Migrate");
   const cancelOption = l10n.t("Cancel");
-  
+
   const choice = await window.showInformationMessage(
     message,
     { modal: true },
     migrateOption,
     cancelOption
   );
-  
+
   if (choice === migrateOption) {
     await migrateLegacyConfiguration(workspaceFolder, legacyFilePath);
   }
@@ -475,13 +726,16 @@ export async function promptLegacyMigration(workspaceFolder: Uri, legacyFilePath
 /**
  * Migrates legacy configuration to CMakePresets format
  */
-export async function migrateLegacyConfiguration(workspaceFolder: Uri, legacyFilePath: Uri): Promise<void> {
+export async function migrateLegacyConfiguration(
+  workspaceFolder: Uri,
+  legacyFilePath: Uri
+): Promise<void> {
   // Read legacy configuration
   const legacyConfig = await readJson(legacyFilePath.fsPath);
-  
+
   // Convert to new format
   const projectConfElements: { [key: string]: ProjectConfElement } = {};
-  
+
   // Process legacy configurations
   for (const [confName, rawConfig] of Object.entries(legacyConfig)) {
     if (typeof rawConfig === "object" && rawConfig !== null) {
@@ -500,14 +754,16 @@ export async function migrateLegacyConfiguration(workspaceFolder: Uri, legacyFil
       }
     }
   }
-  
+
   // Save in new format using legacy compatibility function
   await saveProjectConfFileLegacy(workspaceFolder, projectConfElements);
-  
-  Logger.info(`Successfully migrated ${Object.keys(projectConfElements).length} configurations to CMakePresets.json`);
+
+  Logger.info(
+    `Successfully migrated ${
+      Object.keys(projectConfElements).length
+    } configurations to CMakePresets.json`
+  );
 }
-
-
 
 /**
  * Processes legacy project configuration format
@@ -661,10 +917,38 @@ async function processConfigurePresetVariables(
 ): Promise<ConfigurePreset> {
   const processedPreset: ConfigurePreset = {
     ...preset,
-    binaryDir: preset.binaryDir ? await processConfigurePresetPath(preset.binaryDir, workspaceFolder, preset, resolvePaths) : undefined,
-    cacheVariables: preset.cacheVariables ? await processConfigurePresetCacheVariables(preset.cacheVariables, workspaceFolder, preset, resolvePaths) : undefined,
-    environment: preset.environment ? await processConfigurePresetEnvironment(preset.environment, workspaceFolder, preset, resolvePaths) : undefined,
-    vendor: preset.vendor ? await processConfigurePresetVendor(preset.vendor, workspaceFolder, preset, resolvePaths) : undefined,
+    binaryDir: preset.binaryDir
+      ? await processConfigurePresetPath(
+          preset.binaryDir,
+          workspaceFolder,
+          preset,
+          resolvePaths
+        )
+      : undefined,
+    cacheVariables: preset.cacheVariables
+      ? await processConfigurePresetCacheVariables(
+          preset.cacheVariables,
+          workspaceFolder,
+          preset,
+          resolvePaths
+        )
+      : undefined,
+    environment: preset.environment
+      ? await processConfigurePresetEnvironment(
+          preset.environment,
+          workspaceFolder,
+          preset,
+          resolvePaths
+        )
+      : undefined,
+    vendor: preset.vendor
+      ? await processConfigurePresetVendor(
+          preset.vendor,
+          workspaceFolder,
+          preset,
+          resolvePaths
+        )
+      : undefined,
   };
 
   return processedPreset;
@@ -680,15 +964,19 @@ async function processConfigurePresetPath(
   resolvePaths: boolean
 ): Promise<string> {
   // Apply variable substitution
-  let processedPath = substituteVariablesInConfigurePreset(pathValue, workspaceFolder, preset);
-  
+  let processedPath = substituteVariablesInConfigurePreset(
+    pathValue,
+    workspaceFolder,
+    preset
+  );
+
   if (resolvePaths && processedPath) {
     // Resolve relative paths to absolute paths
     if (!path.isAbsolute(processedPath)) {
       processedPath = path.join(workspaceFolder.fsPath, processedPath);
     }
   }
-  
+
   return processedPath || pathValue;
 }
 
@@ -702,23 +990,30 @@ async function processConfigurePresetCacheVariables(
   resolvePaths: boolean
 ): Promise<{ [key: string]: any }> {
   const processedCacheVariables: { [key: string]: any } = {};
-  
+
   for (const [key, value] of Object.entries(cacheVariables)) {
     if (typeof value === "string") {
-      processedCacheVariables[key] = substituteVariablesInConfigurePreset(value, workspaceFolder, preset);
-      
+      processedCacheVariables[key] = substituteVariablesInConfigurePreset(
+        value,
+        workspaceFolder,
+        preset
+      );
+
       // Special handling for path-related cache variables
       if (resolvePaths && (key === "SDKCONFIG" || key.includes("PATH"))) {
         const processedValue = processedCacheVariables[key];
         if (processedValue && !path.isAbsolute(processedValue)) {
-          processedCacheVariables[key] = path.join(workspaceFolder.fsPath, processedValue);
+          processedCacheVariables[key] = path.join(
+            workspaceFolder.fsPath,
+            processedValue
+          );
         }
       }
     } else {
       processedCacheVariables[key] = value;
     }
   }
-  
+
   return processedCacheVariables;
 }
 
@@ -732,11 +1027,13 @@ async function processConfigurePresetEnvironment(
   resolvePaths: boolean
 ): Promise<{ [key: string]: string }> {
   const processedEnvironment: { [key: string]: string } = {};
-  
+
   for (const [key, value] of Object.entries(environment)) {
-    processedEnvironment[key] = substituteVariablesInConfigurePreset(value, workspaceFolder, preset) || value;
+    processedEnvironment[key] =
+      substituteVariablesInConfigurePreset(value, workspaceFolder, preset) ||
+      value;
   }
-  
+
   return processedEnvironment;
 }
 
@@ -751,33 +1048,47 @@ async function processConfigurePresetVendor(
 ): Promise<ESPIDFVendorSettings> {
   const processedVendor: ESPIDFVendorSettings = {
     "espressif/vscode-esp-idf": {
-      settings: []
-    }
+      settings: [],
+    },
   };
-  
+
   const espIdfSettings = vendor["espressif/vscode-esp-idf"]?.settings || [];
-  
+
   for (const setting of espIdfSettings) {
     const processedSetting: ESPIDFSettings = { ...setting };
-    
+
     // Process string values in settings
     if (typeof setting.value === "string") {
-      processedSetting.value = substituteVariablesInConfigurePreset(setting.value, workspaceFolder, preset) || setting.value;
+      processedSetting.value =
+        substituteVariablesInConfigurePreset(
+          setting.value,
+          workspaceFolder,
+          preset
+        ) || setting.value;
     } else if (Array.isArray(setting.value)) {
       // Process arrays of strings
-      processedSetting.value = setting.value.map(item => 
-        typeof item === "string" 
-          ? substituteVariablesInConfigurePreset(item, workspaceFolder, preset) || item
+      processedSetting.value = setting.value.map((item) =>
+        typeof item === "string"
+          ? substituteVariablesInConfigurePreset(
+              item,
+              workspaceFolder,
+              preset
+            ) || item
           : item
       );
     } else if (typeof setting.value === "object" && setting.value !== null) {
       // Process objects (like openOCD settings)
-      processedSetting.value = await processConfigurePresetSettingObject(setting.value, workspaceFolder, preset, resolvePaths);
+      processedSetting.value = await processConfigurePresetSettingObject(
+        setting.value,
+        workspaceFolder,
+        preset,
+        resolvePaths
+      );
     }
-    
+
     processedVendor["espressif/vscode-esp-idf"].settings.push(processedSetting);
   }
-  
+
   return processedVendor;
 }
 
@@ -791,21 +1102,27 @@ async function processConfigurePresetSettingObject(
   resolvePaths: boolean
 ): Promise<any> {
   const processedObj: any = {};
-  
+
   for (const [key, value] of Object.entries(obj)) {
     if (typeof value === "string") {
-      processedObj[key] = substituteVariablesInConfigurePreset(value, workspaceFolder, preset) || value;
+      processedObj[key] =
+        substituteVariablesInConfigurePreset(value, workspaceFolder, preset) ||
+        value;
     } else if (Array.isArray(value)) {
-      processedObj[key] = value.map(item => 
-        typeof item === "string" 
-          ? substituteVariablesInConfigurePreset(item, workspaceFolder, preset) || item
+      processedObj[key] = value.map((item) =>
+        typeof item === "string"
+          ? substituteVariablesInConfigurePreset(
+              item,
+              workspaceFolder,
+              preset
+            ) || item
           : item
       );
     } else {
       processedObj[key] = value;
     }
   }
-  
+
   return processedObj;
 }
 
@@ -865,8 +1182,11 @@ function substituteVariablesInConfigurePreset(
         configVarName = configVar.substring(0, delimiterIndex);
         prefix = configVar.substring(delimiterIndex + 1).trim();
       }
-      
-      const configVarValue = getConfigurePresetParameterValue(configVarName, preset);
+
+      const configVarValue = getConfigurePresetParameterValue(
+        configVarName,
+        preset
+      );
 
       if (!configVarValue) {
         return match;
@@ -910,7 +1230,10 @@ function substituteVariablesInConfigurePreset(
 /**
  * Gets parameter value from ConfigurePreset for variable substitution
  */
-function getConfigurePresetParameterValue(param: string, preset: ConfigurePreset): any {
+function getConfigurePresetParameterValue(
+  param: string,
+  preset: ConfigurePreset
+): any {
   switch (param) {
     case "idf.cmakeCompilerArgs":
       return getESPIDFSettingValue(preset, "compileArgs") || "";
@@ -962,23 +1285,36 @@ function getConfigurePresetParameterValue(param: string, preset: ConfigurePreset
 /**
  * Helper function to get ESP-IDF setting value from ConfigurePreset
  */
-function getESPIDFSettingValue(preset: ConfigurePreset, settingType: string): any {
-  const espIdfSettings = preset.vendor?.["espressif/vscode-esp-idf"]?.settings || [];
-  const setting = espIdfSettings.find(s => s.type === settingType);
+function getESPIDFSettingValue(
+  preset: ConfigurePreset,
+  settingType: string
+): any {
+  const espIdfSettings =
+    preset.vendor?.["espressif/vscode-esp-idf"]?.settings || [];
+  const setting = espIdfSettings.find((s) => s.type === settingType);
   return setting ? setting.value : undefined;
 }
 
 /**
  * Converts ConfigurePreset to ProjectConfElement for store compatibility
  */
-export function configurePresetToProjectConfElement(preset: ConfigurePreset): ProjectConfElement {
-  return convertConfigurePresetToProjectConfElement(preset, Uri.file(""), false);
+export function configurePresetToProjectConfElement(
+  preset: ConfigurePreset
+): ProjectConfElement {
+  return convertConfigurePresetToProjectConfElement(
+    preset,
+    Uri.file(""),
+    false
+  );
 }
 
 /**
  * Converts ProjectConfElement to ConfigurePreset for store compatibility
  */
-export function projectConfElementToConfigurePreset(name: string, element: ProjectConfElement): ConfigurePreset {
+export function projectConfElementToConfigurePreset(
+  name: string,
+  element: ProjectConfElement
+): ConfigurePreset {
   return convertProjectConfElementToConfigurePreset(name, element);
 }
 
@@ -998,11 +1334,12 @@ function convertConfigurePresetToProjectConfElement(
   resolvePaths: boolean = false
 ): ProjectConfElement {
   // Extract ESP-IDF specific settings from vendor section
-  const espIdfSettings = preset.vendor?.["espressif/vscode-esp-idf"]?.settings || [];
-  
+  const espIdfSettings =
+    preset.vendor?.["espressif/vscode-esp-idf"]?.settings || [];
+
   // Helper function to find setting by type
   const findSetting = (type: string): any => {
-    const setting = espIdfSettings.find(s => s.type === type);
+    const setting = espIdfSettings.find((s) => s.type === type);
     return setting ? setting.value : undefined;
   };
 
@@ -1011,18 +1348,32 @@ function convertConfigurePresetToProjectConfElement(
   const ninjaArgs = findSetting("ninjaArgs") || [];
   const flashBaudRate = findSetting("flashBaudRate") || "";
   const monitorBaudRate = findSetting("monitorBaudRate") || "";
-  const openOCDSettings = findSetting("openOCD") || { debugLevel: -1, configs: [], args: [] };
-  const taskSettings = findSetting("tasks") || { preBuild: "", preFlash: "", postBuild: "", postFlash: "" };
+  const openOCDSettings = findSetting("openOCD") || {
+    debugLevel: -1,
+    configs: [],
+    args: [],
+  };
+  const taskSettings = findSetting("tasks") || {
+    preBuild: "",
+    preFlash: "",
+    postBuild: "",
+    postFlash: "",
+  };
 
   // Process paths based on resolvePaths flag
   const binaryDir = preset.binaryDir || "";
-  const buildDirectoryPath = resolvePaths && binaryDir
-    ? (path.isAbsolute(binaryDir) ? binaryDir : path.join(workspaceFolder.fsPath, binaryDir))
-    : binaryDir;
+  const buildDirectoryPath =
+    resolvePaths && binaryDir
+      ? path.isAbsolute(binaryDir)
+        ? binaryDir
+        : path.join(workspaceFolder.fsPath, binaryDir)
+      : binaryDir;
 
   // Process SDKCONFIG_DEFAULTS - convert semicolon-separated string to array
   const sdkconfigDefaultsStr = preset.cacheVariables?.SDKCONFIG_DEFAULTS || "";
-  const sdkconfigDefaults = sdkconfigDefaultsStr ? sdkconfigDefaultsStr.split(";") : [];
+  const sdkconfigDefaults = sdkconfigDefaultsStr
+    ? sdkconfigDefaultsStr.split(";")
+    : [];
 
   return {
     build: {
@@ -1038,7 +1389,9 @@ function convertConfigurePresetToProjectConfElement(
     monitorBaudRate,
     openOCD: {
       debugLevel: openOCDSettings.debugLevel || -1,
-      configs: Array.isArray(openOCDSettings.configs) ? openOCDSettings.configs : [],
+      configs: Array.isArray(openOCDSettings.configs)
+        ? openOCDSettings.configs
+        : [],
       args: Array.isArray(openOCDSettings.args) ? openOCDSettings.args : [],
     },
     tasks: {
@@ -1058,9 +1411,10 @@ function convertProjectConfElementToConfigurePreset(
   element: ProjectConfElement
 ): ConfigurePreset {
   // Convert SDKCONFIG_DEFAULTS array to semicolon-separated string
-  const sdkconfigDefaults = element.build.sdkconfigDefaults.length > 0
-    ? element.build.sdkconfigDefaults.join(";")
-    : undefined;
+  const sdkconfigDefaults =
+    element.build.sdkconfigDefaults.length > 0
+      ? element.build.sdkconfigDefaults.join(";")
+      : undefined;
 
   const settings: ESPIDFSettings[] = [
     { type: "compileArgs", value: element.build.compileArgs },
@@ -1077,7 +1431,9 @@ function convertProjectConfElementToConfigurePreset(
     cacheVariables: {
       ...(element.idfTarget && { IDF_TARGET: element.idfTarget }),
       ...(sdkconfigDefaults && { SDKCONFIG_DEFAULTS: sdkconfigDefaults }),
-      ...(element.build.sdkconfigFilePath && { SDKCONFIG: element.build.sdkconfigFilePath }),
+      ...(element.build.sdkconfigFilePath && {
+        SDKCONFIG: element.build.sdkconfigFilePath,
+      }),
     },
     environment: Object.keys(element.env).length > 0 ? element.env : undefined,
     vendor: {
