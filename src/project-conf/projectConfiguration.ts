@@ -50,7 +50,13 @@ export interface CMakeVersion {
 }
 
 export interface ESPIDFSettings {
-  type: "compileArgs" | "ninjaArgs" | "flashBaudRate" | "monitorBaudRate" | "openOCD" | "tasks";
+  type:
+    | "compileArgs"
+    | "ninjaArgs"
+    | "flashBaudRate"
+    | "monitorBaudRate"
+    | "openOCD"
+    | "tasks";
   value: any;
 }
 
@@ -62,6 +68,7 @@ export interface ESPIDFVendorSettings {
 
 export interface ConfigurePreset {
   name: string;
+  inherits?: string | string[];
   binaryDir?: string;
   cacheVariables?: {
     IDF_TARGET?: string;
