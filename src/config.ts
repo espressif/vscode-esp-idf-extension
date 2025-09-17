@@ -32,6 +32,7 @@ export namespace ESP {
     export const SELECTED_CONFIG = "SELECTED_PROJECT_CONFIG";
     export const CURRENT_IDF_CONFIGURATION = "CURRENT_IDF_CONFIGURATION";
     export const PROJECT_CONFIGURATION_FILENAME = "CMakePresets.json";
+    export const USER_CONFIGURATION_FILENAME = "CMakeUserPresets.json";
   }
 
   export enum BuildType {
