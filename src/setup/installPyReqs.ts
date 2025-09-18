@@ -45,17 +45,6 @@ export async function installPyReqs(
     Logger.info(msg);
     return;
   }
-  const doesPipExists = await pythonManager.checkPipExists(
-    sysPyBinPath,
-    workingDir
-  );
-  if (!doesPipExists) {
-    const msg = "Pip have not been found in your environment.";
-    sendPyReqLog(msg);
-    OutputChannel.appendLine(msg);
-    Logger.info(msg);
-    return;
-  }
   const isNotVirtualEnv = await pythonManager.checkIfNotVirtualEnv(
     sysPyBinPath,
     workingDir

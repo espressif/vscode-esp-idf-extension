@@ -451,44 +451,6 @@ export async function checkPythonExists(pythonBin: string, workingDir: string) {
   return false;
 }
 
-export async function checkPipExists(pyBinPath: string, workingDir: string) {
-  try {
-    const args = ["-m", "pip", "--version"];
-    const pipResult = await utils.execChildProcess(pyBinPath, args, workingDir);
-    if (pipResult) {
-      const match = pipResult.match(/pip\s\d+(.\d+)?(.\d+)?/g);
-      if (match && match.length > 0) {
-        return true;
-      }
-    }
-  } catch (error) {
-    const newErr =
-      error && error.message
-        ? error
-        : new Error("Pip is not found in current environment");
-    Logger.error(newErr.message, newErr, "pythonManager checkPipExists");
-  }
-  return false;
-}
-
-export async function checkVenvExists(pyBinPath: string, workingDir: string) {
-  try {
-    const pipResult = await utils.execChildProcess(
-      pyBinPath,
-      ["-c", "import venv"],
-      workingDir
-    );
-    return true;
-  } catch (error) {
-    const newErr =
-      error && error.message
-        ? error
-        : new Error("Venv is not found in current environment");
-    Logger.error(newErr.message, newErr, "pythonManager checkVenvExists");
-  }
-  return false;
-}
-
 export async function getPythonBinList(workingDir: string) {
   if (process.platform === "win32") {
     return [];

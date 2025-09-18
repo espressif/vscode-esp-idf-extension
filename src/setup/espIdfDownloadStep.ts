@@ -15,14 +15,10 @@
 import { pathExists } from "fs-extra";
 import * as vscode from "vscode";
 import { ESP } from "../config";
-import { checkPythonExists, checkPipExists, checkVenvExists } from "../pythonManager";
+import { checkPythonExists } from "../pythonManager";
 import { SetupPanel } from "./SetupPanel";
 import * as utils from "../utils";
-import {
-  IEspIdfLink,
-  SetupMode,
-  StatusType,
-} from "../views/setup/types";
+import { IEspIdfLink, SetupMode, StatusType } from "../views/setup/types";
 import { downloadInstallIdfVersion } from "./espIdfDownload";
 import { Logger } from "../logger/logger";
 import { downloadIdfTools } from "./toolsDownloadStep";
@@ -50,18 +46,6 @@ export async function expressInstall(
   const doesPythonExists = await checkPythonExists(pyPath, __dirname);
   if (!(pyExists && doesPythonExists)) {
     const containerNotFoundMsg = `${pyPath} is not valid. (ERROR_INVALID_PYTHON)`;
-    Logger.infoNotify(containerNotFoundMsg);
-    throw new Error(containerNotFoundMsg);
-  }
-  const doesPipExists = await checkPipExists(pyPath, __dirname);
-  if (!doesPipExists) {
-    const containerNotFoundMsg = `"${pyPath} -m pip" is not valid. (ERROR_INVALID_PIP)`;
-    Logger.infoNotify(containerNotFoundMsg);
-    throw new Error(containerNotFoundMsg);
-  }
-  const doesVenvExists = await checkVenvExists(pyPath, __dirname);
-  if (!doesVenvExists) {
-    const containerNotFoundMsg = `"${pyPath} -m venv" is not valid. (ERROR_INVALID_VENV)`;
     Logger.infoNotify(containerNotFoundMsg);
     throw new Error(containerNotFoundMsg);
   }

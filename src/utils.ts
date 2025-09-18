@@ -1201,6 +1201,32 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     }
   }
 
+  try {
+    const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
+      "openocd-esp32",
+    ]);
+    if (openOcdPath) {
+      const openOcdDir = path.dirname(openOcdPath);
+      const openOcdScriptsPath = path.join(
+        openOcdDir,
+        "..",
+        "share",
+        "openocd",
+        "scripts"
+      );
+      const scriptsExists = await pathExists(openOcdScriptsPath);
+      if (scriptsExists && modifiedEnv.OPENOCD_SCRIPTS !== openOcdScriptsPath) {
+        modifiedEnv.OPENOCD_SCRIPTS = openOcdScriptsPath;
+      }
+    }
+  } catch (error) {
+    Logger.error(
+      `Error processing OPENOCD_SCRIPTS path: ${error.message}`,
+      error,
+      "appendIdfAndToolsToPath OPENOCD_SCRIPTS"
+    );
+  }
+
   if (
     pathToGitDir &&
     !modifiedEnv[pathNameInEnv].split(path.delimiter).includes(pathToGitDir)
