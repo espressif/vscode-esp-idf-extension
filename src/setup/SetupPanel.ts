@@ -51,7 +51,6 @@ import {
   checkSpacesInPath,
   getEspIdfFromCMake,
   canAccessFile,
-  execChildProcess,
   compareVersion,
 } from "../utils";
 import { useIdfSetupSettings } from "./setupValidation/espIdfSetup";
