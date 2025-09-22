@@ -1201,6 +1201,32 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     }
   }
 
+  try {
+    const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
+      "openocd-esp32",
+    ]);
+    if (openOcdPath) {
+      const openOcdDir = path.dirname(openOcdPath);
+      const openOcdScriptsPath = path.join(
+        openOcdDir,
+        "..",
+        "share",
+        "openocd",
+        "scripts"
+      );
+      const scriptsExists = await pathExists(openOcdScriptsPath);
+      if (scriptsExists && modifiedEnv.OPENOCD_SCRIPTS !== openOcdScriptsPath) {
+        modifiedEnv.OPENOCD_SCRIPTS = openOcdScriptsPath;
+      }
+    }
+  } catch (error) {
+    Logger.error(
+      `Error processing OPENOCD_SCRIPTS path: ${error.message}`,
+      error,
+      "appendIdfAndToolsToPath OPENOCD_SCRIPTS"
+    );
+  }
+
   if (
     pathToGitDir &&
     !modifiedEnv[pathNameInEnv].split(path.delimiter).includes(pathToGitDir)
@@ -1302,7 +1328,11 @@ export async function getAllBinPathInEnvPath(
   return foundBinaries;
 }
 
-export async function isBinInPath(binaryName: string, env: NodeJS.ProcessEnv) {
+export async function isBinInPath(
+  binaryName: string,
+  env: NodeJS.ProcessEnv,
+  containerDir?: string[]
+) {
   let pathNameInEnv: string = Object.keys(process.env).find(
     (k) => k.toUpperCase() == "PATH"
   );
@@ -1314,6 +1344,12 @@ export async function isBinInPath(binaryName: string, env: NodeJS.ProcessEnv) {
     }
     const doesPathExists = await pathExists(binaryPath);
     if (doesPathExists) {
+      if (containerDir && containerDir.length) {
+        const resultContainerPath = containerDir.join(path.sep);
+        if (binaryPath.indexOf(resultContainerPath) === -1) {
+          return "";
+        }
+      }
       const pathStats = await stat(binaryPath);
       if (pathStats.isFile() && canAccessFile(binaryPath, fs.constants.X_OK)) {
         return binaryPath;

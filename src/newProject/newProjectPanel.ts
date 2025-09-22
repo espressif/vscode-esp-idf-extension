@@ -305,7 +305,7 @@ export class NewProjectPanel {
             port,
             selectedIdfTarget,
             openOcdConfigs,
-            workspaceFolder || vscode.Uri.file(newProjectPath)
+            vscode.Uri.file(newProjectPath)
           );
           await createClangdFile(vscode.Uri.file(newProjectPath));
           await writeJSON(settingsJsonPath, settingsJson, {

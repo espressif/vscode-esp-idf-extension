@@ -61,10 +61,13 @@ export class OpenOCDManager extends EventEmitter {
 
   public async version(): Promise<string> {
     const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
-    if (!isBinInPath("openocd", modifiedEnv)) {
+    const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
+      "openocd-esp32",
+    ]);
+    if (!openOcdPath) {
       return "";
     }
-    const resp = await sspawn("openocd", ["--version"], {
+    const resp = await sspawn(openOcdPath, ["--version"], {
       cwd: this.workspace.fsPath,
       env: modifiedEnv,
     });
@@ -157,7 +160,10 @@ export class OpenOCDManager extends EventEmitter {
       return;
     }
     const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
-    if (!isBinInPath("openocd", modifiedEnv)) {
+    const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
+      "openocd-esp32",
+    ]);
+    if (!openOcdPath) {
       throw new Error(
         "Invalid OpenOCD bin path or access is denied for the user"
       );
@@ -208,7 +214,7 @@ export class OpenOCDManager extends EventEmitter {
       });
     }
 
-    this.server = spawn("openocd", openOcdArgs, {
+    this.server = spawn(openOcdPath, openOcdArgs, {
       cwd: this.workspace.fsPath,
       env: modifiedEnv,
     });
@@ -263,7 +269,7 @@ export class OpenOCDManager extends EventEmitter {
       }
       this.stop();
     });
-          this.updateStatusText("❇️ OpenOCD Server (Running)");
+    this.updateStatusText("❇️ OpenOCD Server (Running)");
     OutputChannel.show();
   }
 
