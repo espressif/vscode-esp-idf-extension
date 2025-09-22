@@ -13,28 +13,44 @@
 // limitations under the License.
 
 import * as os from "os";
-import * as utils from "./utils";
 
 export class PlatformInformation {
-  public static GetPlatformInformation(): Promise<PlatformInformation> {
+  public static GetPlatformInformation(): PlatformInformation {
     const platform: string = os.platform();
-    let architecturePromise: Promise<string>;
+    const arch = os.arch();
 
+    // Map os.arch() values to expected architecture strings
+    let architecture: string;
     switch (platform) {
       case "win32":
-        architecturePromise = PlatformInformation.GetWindowsArchitecture();
+        if (arch === "x64") {
+          architecture = "x86_x64";
+        } else if (arch === "ia32") {
+          architecture = "x86";
+        } else {
+          architecture = "Unknown";
+        }
         break;
       case "linux":
-        architecturePromise = PlatformInformation.GetUnixArchitecture();
-        break;
       case "darwin":
-        architecturePromise = PlatformInformation.GetUnixArchitecture();
+        if (arch === "x64") {
+          architecture = "x64";
+        } else if (arch === "ia32") {
+          architecture = "x86";
+        } else if (arch === "arm64") {
+          architecture = "arm64";
+        } else if (arch === "arm") {
+          architecture = "armhf";
+        } else {
+          architecture = arch;
+        }
+        break;
       default:
+        architecture = "Unknown";
         break;
     }
-    return Promise.all<string>([architecturePromise]).then(([architecture]) => {
-      return new PlatformInformation(platform, architecture);
-    });
+
+    return new PlatformInformation(platform, architecture);
   }
 
   public get platformToUse(): string {
@@ -75,48 +91,5 @@ export class PlatformInformation {
     }
   }
 
-  public static GetUnknownArchitecture(): string {
-    return "Unknown";
-  }
-
-  public static GetUnixArchitecture(): Promise<string> {
-    const command = "uname";
-    const args = ["-m"];
-    return utils
-      .execChildProcess(command, args, utils.extensionContext.extensionPath)
-      .then((architecture) => {
-        if (architecture) {
-          return architecture.trim();
-        }
-      });
-  }
-
-  private static GetWindowsArchitecture(): Promise<string> {
-    const command = "powershell";
-    const args = [
-      "-executionPolicy",
-      "bypass",
-      "(Get-WmiObject Win32_OperatingSystem).OSArchitecture",
-    ];
-    return utils
-      .execChildProcess(command, args, utils.extensionContext.extensionPath)
-      .then((architecture) => {
-        if (architecture) {
-          const archArray: string[] = architecture.split(os.EOL);
-          if (archArray.length > 2) {
-            const arch: string = archArray[1].trim();
-            if (arch.indexOf("64") >= 0) {
-              return "x86_x64";
-            } else if (arch.indexOf("32") >= 0) {
-              return "x86";
-            }
-          }
-        }
-        return PlatformInformation.GetUnknownArchitecture();
-      })
-      .catch((err) => {
-        return PlatformInformation.GetUnknownArchitecture();
-      });
-  }
   constructor(public platform: string, public architecture: string) {}
 }

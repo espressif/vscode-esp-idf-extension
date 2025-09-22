@@ -226,7 +226,9 @@ export class ConfserverProcess {
       (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
 
     if (reconfigureArgs.indexOf("SDKCONFIG") === -1) {
-      reconfigureArgs.push(`-DSDKCONFIG='${ConfserverProcess.instance.configFile}'`)
+      reconfigureArgs.push(
+        `-DSDKCONFIG='${ConfserverProcess.instance.configFile}'`
+      );
     }
 
     if (
@@ -261,7 +263,11 @@ export class ConfserverProcess {
         if (code !== 0) {
           const errorMsg = `When loading default values received exit signal: ${signal}, code : ${code}`;
           OutputChannel.appendLine(errorMsg, "SDK Configuration Editor");
-          Logger.error(errorMsg, new Error(errorMsg), "ConfserverProcess setDefaultValues");
+          Logger.error(
+            errorMsg,
+            new Error(errorMsg),
+            "ConfserverProcess setDefaultValues"
+          );
         }
         ConfserverProcess.init(currWorkspace, extensionPath);
         progress.report({ increment: 70, message: "The end" });
@@ -346,7 +352,7 @@ export class ConfserverProcess {
       (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
 
     if (confServerArgs.indexOf("SDKCONFIG") === -1) {
-      confServerArgs.push(`-DSDKCONFIG='${this.configFile}'`)
+      confServerArgs.push(`-DSDKCONFIG='${this.configFile}'`);
     }
 
     if (
@@ -429,6 +435,7 @@ export class ConfserverProcess {
         "Saving config to",
         "Loading config from",
         "The following config symbol(s) were not visible so were not updated",
+        "WARNING:",
       ];
 
       if (isStringNotEmpty(dataStr)) {
@@ -466,6 +473,10 @@ export class ConfserverProcess {
     OutputChannel.appendLine(
       "-----------------------END OF ERROR-----------------------"
     );
-    Logger.error(data.toString(), new Error(data.toString()), "ConfserverProcess printError");
+    Logger.error(
+      data.toString(),
+      new Error(data.toString()),
+      "ConfserverProcess printError"
+    );
   }
 }
