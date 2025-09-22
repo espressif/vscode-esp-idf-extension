@@ -127,6 +127,7 @@ export class SerialPort {
               silent: false,
               appendMode: "append",
               timeout: timeout,
+              sendToTelemetry: false,
             }
           );
 
@@ -310,7 +311,14 @@ export class SerialPort {
       const msg = error.message
         ? error.message
         : "Something went wrong while getting the serial port list";
-      Logger.errorNotify(msg, error, "SerialPort displayList");
+      const sendToTelemetry = msg.indexOf("No serial ports found") === -1;
+      Logger.errorNotify(
+        msg,
+        error,
+        "SerialPort displayList",
+        undefined,
+        sendToTelemetry
+      );
       OutputChannel.appendLine(msg, "Serial port");
       OutputChannel.appendLineAndShow(JSON.stringify(error));
     }

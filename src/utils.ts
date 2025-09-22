@@ -75,7 +75,9 @@ export class PreCheck {
         Logger.errorNotify(
           preCheck[1],
           new Error("PRECHECK_FAILED"),
-          "utils precheck failed"
+          "utils precheck failed",
+          undefined,
+          false
         );
       }
     });
@@ -674,7 +676,10 @@ export function execChildProcess(
           return reject(error);
         }
         if (stderr && stderr.length > 2) {
-          if (!stderr.startsWith("Open On-Chip Debugger v")) {
+          if (
+            !stderr.startsWith("Open On-Chip Debugger v") &&
+            !stderr.toLowerCase().startsWith("warning")
+          ) {
             Logger.error(
               stderr,
               new Error(stderr),
