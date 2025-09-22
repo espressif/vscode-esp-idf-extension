@@ -189,6 +189,7 @@
   "param.unitTestFilePattern.title": "Glob pattern for unit test files to discover",
   "param.pyTestEmbeddedServices.title": "List of embedded services for pytest execution",
   "param.serialPortDetectionTimeout": "Timeout in seconds for serial port detection using esptool.py",
+  "param.sourceDirectoryPath": "Source directory path for CMake -S flag (defaults to workspace folder)",
   "trace.poll_period.description": "poll_period will be set for the apptrace",
   "trace.skip_size.description": "skip_size will be set for the apptrace",
   "trace.stop_tmo.description": "stop_tmo will be set for the apptrace",

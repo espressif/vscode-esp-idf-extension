@@ -189,6 +189,7 @@
 	"param.unitTestFilePattern.title": "用于发现单元测试文件的 glob 模式",
 	"param.pyTestEmbeddedServices.title": "pytest 执行的内嵌服务列表",
 	"param.serialPortDetectionTimeout": "使用 esptool.py 检测串口时的超时时间（秒）",
+	"param.sourceDirectoryPath": "CMake -S 标志的源目录路径（默认为工作区文件夹）",
 	"trace.poll_period.description": "设置 apptrace 的 poll_period 参数",
 	"trace.skip_size.description": "设置 apptrace 的 skip_size 参数",
 	"trace.stop_tmo.description": "设置 apptrace 的 stop_tmo 参数",
