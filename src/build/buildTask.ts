@@ -142,7 +142,11 @@ export class BuildTask {
       }
       compilerArgs.push("-B", this.buildDirPath);
       if (compilerArgs.indexOf("-S") === -1) {
-        compilerArgs.push("-S", this.currentWorkspace.fsPath);
+        const sourceDirectoryPath = idfConf.readParameter(
+          "idf.sourceDirectoryPath",
+          this.currentWorkspace
+        ) as string;
+        compilerArgs.push("-S", sourceDirectoryPath);
       }
 
       const sdkconfigFile = await getSDKConfigFilePath(this.currentWorkspace);

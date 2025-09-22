@@ -188,6 +188,7 @@
 	"param.unitTestFilePattern.title": "Шаблон glob для обнаружения файлов модульных тестов",
 	"param.pyTestEmbeddedServices.title": "Список встроенных сервисов для выполнения pytest",
 	"param.serialPortDetectionTimeout": "Тайм-аут в секундах для обнаружения последовательного порта с помощью esptool.py",
+	"param.sourceDirectoryPath": "Путь к исходному каталогу для флага -S CMake (по умолчанию: папка рабочей области)",
 	"trace.poll_period.description": "для apptrace будет установлен параметр poll_ period",
 	"trace.skip_size.description": "для apptrace будет установлен параметр skip_size",
 	"trace.stop_tmo.description": "для apptrace будет установлен параметр stop_tmo",

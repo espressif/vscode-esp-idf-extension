@@ -300,6 +300,9 @@ suite("Doctor Command tests", () => {
       }
     }
     expectedOutput += `System python Path (idf.pythonInstallPath) ${reportObj.configurationSettings.sysPythonBinPath}${os.EOL}`;
+    expectedOutput += `Build Directory Path (idf.buildPath) ${reportObj.configurationSettings.buildPath}${os.EOL}`;
+    expectedOutput += `Source directory Path (idf.sourceDirectoryPath) ${reportObj.configurationSettings.sourceDirPath}${os.EOL}`;
+    expectedOutput += `SDKConfig file Path (idf.sdkconfigFilePath) ${reportObj.configurationSettings.sdkconfigPath}${os.EOL}`;
     expectedOutput += `Virtual environment Python path (computed) ${
       process.env.IDF_PYTHON_ENV_PATH + "/bin/python"
     }${os.EOL}`;

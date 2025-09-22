@@ -43,6 +43,9 @@ export function initializeReportObject() {
     openOcdLaunchArgs: undefined,
     toolsPath: undefined,
     gitPath: undefined,
+    buildPath: undefined,
+    sourceDirPath: undefined,
+    sdkconfigPath: undefined,
   };
   report.cCppPropertiesJson = undefined;
   report.configurationAccess = {
@@ -57,6 +60,9 @@ export function initializeReportObject() {
     ninjaInEnv: undefined,
     toolsPath: undefined,
     sysPythonBinPath: undefined,
+    buildPath: undefined,
+    sourceDirPath: undefined,
+    sdkconfigPath: undefined,
   };
   report.configurationSpacesValidation = {
     customExtraPaths: undefined,

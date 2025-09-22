@@ -30,6 +30,9 @@ export class ConfigurationAccess {
   ninjaInEnv: boolean;
   toolsPath: boolean;
   sysPythonBinPath: boolean;
+  buildPath: boolean;
+  sourceDirPath: boolean;
+  sdkconfigPath: boolean;
 }
 export class Configuration {
   systemEnvPath: string;
@@ -55,6 +58,9 @@ export class Configuration {
   gitPath: string;
   customTerminalExecutable: string;
   customTerminalExecutableArgs: string[];
+  buildPath: string;
+  sourceDirPath: string;
+  sdkconfigPath: string;
 }
 
 export class ConfigurationSpacesValidation {
