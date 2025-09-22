@@ -30,6 +30,6 @@ suite("PlatformInformation Tests", () => {
     utils.setExtensionContext(mockUpContext); // Need a path to execute a child process to get info
     const actual = PlatformInformation.GetPlatformInformation();
     assert.equal(actual.platform, os.platform());
-    assert.equal(actual.architecture, "x86_64");
+    assert.equal(actual.architecture, "x64");
   });
 });
