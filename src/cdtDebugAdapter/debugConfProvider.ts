@@ -89,9 +89,23 @@ export class CDTDebugConfigurationProvider
         );
         if (isAppReproducibleBuildEnabled === "y") {
           const buildDirPath = readParameter("idf.buildPath", folder) as string;
-          config.initCommands.push(
-            `source ${join(buildDirPath, "prefix_map_gdbinit")}`
-          );
+          const gdbinitPrefixMap = join(buildDirPath, "gdbinit", "prefix_map");
+          const gdbinitPrefixMapExists = await pathExists(gdbinitPrefixMap);
+          if (gdbinitPrefixMapExists) {
+            config.initCommands.push(`source ${gdbinitPrefixMap}`);
+          } else {
+            const prefix_map_gdbinit = join(buildDirPath, "prefix_map_gdbinit");
+            const prefix_map_gdbinitExists = await pathExists(
+              prefix_map_gdbinit
+            );
+            if (prefix_map_gdbinitExists) {
+              config.initCommands.push(`source ${prefix_map_gdbinit}`);
+            } else {
+              window.showInformationMessage(
+                `CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found.`
+              );
+            }
+          }
         }
         if (typeof config.initialBreakpoint === "undefined") {
           config.initCommands.push(`thb app_main`);
