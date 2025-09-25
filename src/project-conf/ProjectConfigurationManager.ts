@@ -28,6 +28,7 @@ import {
 } from "./index";
 import { pathExists } from "fs-extra";
 import { configureClangSettings } from "../clang";
+import * as idfConf from "../idfConfiguration";
 
 export function clearSelectedProjectConfiguration(): void {
   if (ESP.ProjectConfiguration.store) {
@@ -137,14 +138,30 @@ export class ProjectConfigurationManager {
         if (cmakePresetsExists) fileInfo.push("CMakePresets.json");
         if (cmakeUserPresetsExists) fileInfo.push("CMakeUserPresets.json");
 
-        window.showInformationMessage(
-          `Loaded ${
-            this.configVersions.length
-          } project configuration(s) from ${fileInfo.join(
-            " and "
-          )}: ${this.configVersions.join(", ")}`
-        );
-        this.setNoConfigurationSelectedStatus();
+        // Check if we should show no configuration selected status
+        const saveLastProjectConfiguration = idfConf.readParameter("idf.saveLastProjectConfiguration", this.workspaceUri);
+        
+        if (saveLastProjectConfiguration !== false) {
+          // When setting is enabled, show no configuration selected status
+          window.showInformationMessage(
+            `Loaded ${
+              this.configVersions.length
+            } project configuration(s) from ${fileInfo.join(
+              " and "
+            )}: ${this.configVersions.join(", ")}. No configuration selected.`
+          );
+          this.setNoConfigurationSelectedStatus();
+        } else {
+          // Show the current behavior when auto-selection is disabled
+          window.showInformationMessage(
+            `Loaded ${
+              this.configVersions.length
+            } project configuration(s) from ${fileInfo.join(
+              " and "
+            )}: ${this.configVersions.join(", ")}`
+          );
+          this.setNoConfigurationSelectedStatus();
+        }
       } else {
         // No configurations found
         Logger.info(
