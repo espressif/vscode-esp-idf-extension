@@ -1300,6 +1300,12 @@
             "default": 60,
             "scope": "resource",
             "description": "%param.serialPortDetectionTimeout%"
+          },
+          "idf.saveLastProjectConfiguration": {
+            "type": "boolean",
+            "default": true,
+            "scope": "resource",
+            "description": "%param.saveLastProjectConfiguration%"
           }
         }
       }
