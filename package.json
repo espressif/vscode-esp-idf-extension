@@ -668,6 +668,12 @@
             "description": "%param.currentSetup%",
             "scope": "resource"
           },
+          "idf.saveLastProjectConfiguration": {
+            "type": "boolean",
+            "default": true,
+            "scope": "resource",
+            "description": "%param.saveLastProjectConfiguration%"
+          },
           "idf.gitPath": {
             "type": "string",
             "description": "%param.gitPath.title%",
