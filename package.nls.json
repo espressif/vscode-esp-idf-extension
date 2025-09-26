@@ -212,5 +212,6 @@
   "command.errorHints.clearAll.title": "Clear All Error Hints",
   "command.errorHints.clearBuild.title": "Clear Build Error Hints",
   "command.errorHints.clearOpenOCD.title": "Clear OpenOCD Error Hints",
-  "Launch Debug": "Launch Debug"
+  "Launch Debug": "Launch Debug",
+  "param.saveLastProjectConfiguration": "Save and restore the last selected project configuration when reopening a workspace. When enabled, the extension will restore the last used configuration if it exists, otherwise no configuration will be selected. When disabled, no configuration will be selected by default."
 }

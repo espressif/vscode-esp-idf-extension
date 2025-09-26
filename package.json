@@ -114,6 +114,15 @@
   "main": "./dist/extension",
   "l10n": "./l10n",
   "contributes": {
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          "CMakePresets.json",
+          "CMakeUserPresets.json"
+        ],
+        "url": "./internal/com.espressif.idf.uploads/cmakepresets/esp-idf-cmakepresets-schema-v1.json"
+      }
+    ],
     "walkthroughs": [
       {
         "id": "espIdf.walkthrough.basic-usage",
@@ -753,6 +762,12 @@
             "description": "%param.buildPath%",
             "scope": "resource"
           },
+          "idf.useCMakePresets": {
+            "type": "boolean",
+            "default": false,
+            "description": "Use idf.py --preset <name> build instead of direct CMake calls. Requires ESP-IDF with CMakePresets support.",
+            "scope": "resource"
+          },
           "idf.buildPathWin": {
             "type": "string",
             "default": "${workspaceFolder}\\build",
@@ -1295,6 +1310,12 @@
             "default": 60,
             "scope": "resource",
             "description": "%param.serialPortDetectionTimeout%"
+          },
+          "idf.saveLastProjectConfiguration": {
+            "type": "boolean",
+            "default": true,
+            "scope": "resource",
+            "description": "%param.saveLastProjectConfiguration%"
           }
         }
       }
