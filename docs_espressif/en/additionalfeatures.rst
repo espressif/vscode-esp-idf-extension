@@ -26,7 +26,7 @@ Additional IDE Features
     Project Configuration Editor<additionalfeatures/project-configuration>
     QEMU Integration<additionalfeatures/qemu>
     ESP RainMaker<additionalfeatures/rainmaker>
-    Unit Testing<additionalfeatures/unit-testing>
+    Unit Testing with Unity<additionalfeatures/unit-testing>
     Working with Multiple Projects<additionalfeatures/multiple-projects>
     Using WSL in Windows<additionalfeatures/wsl>
     Web Extension<additionalfeatures/web-extension>
