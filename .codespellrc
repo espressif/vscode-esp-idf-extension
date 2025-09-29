@@ -1,0 +1,4 @@
+[codespell]
+skip = _build
+ignore-words-list = ser,dout,rsource,fram,inout,shs,ans,aci,unstall,unstalling,hart,wheight,ot,wel,parms,ehen,pre-empt,EMAC
+write-changes = false
