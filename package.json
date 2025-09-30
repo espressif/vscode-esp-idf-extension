@@ -1295,6 +1295,12 @@
             "default": 60,
             "scope": "resource",
             "description": "%param.serialPortDetectionTimeout%"
+          },
+          "idf.sourceDirectoryPath": {
+            "type": "string",
+            "default": "${workspaceFolder}",
+            "description": "%param.sourceDirectoryPath%",
+            "scope": "resource"
           }
         }
       }

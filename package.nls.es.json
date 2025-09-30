@@ -188,6 +188,7 @@
 	"param.unitTestFilePattern.title": "Patrón glob para descubrir archivos de prueba unitaria",
 	"param.pyTestEmbeddedServices.title": "Lista de servicios integrados para la ejecución de pytest",
 	"param.serialPortDetectionTimeout": "Tiempo de espera en segundos para la detección del puerto serie usando esptool.py",
+	"param.sourceDirectoryPath": "Ruta del directorio fuente para la bandera -S de CMake (por defecto: carpeta del espacio de trabajo)",
 	"trace.poll_period.description": "poll_period se establecerá para el rastreo de la aplicación",
 	"trace.skip_size.description": "skip_size se establecerá para el rastreo de la aplicación",
 	"trace.stop_tmo.description": "stop_tmo se establecerá para el rastreo de la aplicación",

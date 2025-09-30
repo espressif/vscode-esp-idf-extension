@@ -36,6 +36,8 @@ ESP-IDF 相关设置
       - 扩展命令的自定义构建目录名称（默认值：\${workspaceFolder}/build）
     * - idf.buildPathWin
       - Windows 系统中扩展命令的自定义构建目录名称（默认值：\${workspaceFolder}\\build）
+    * - idf.sourceDirectoryPath
+      - CMake -S 标志的源目录路径（默认值：\${workspaceFolder}）
     * - idf.sdkconfigFilePath
       - sdkconfig 文件的绝对路径
     * - idf.sdkconfigDefaults

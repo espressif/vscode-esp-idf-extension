@@ -46,6 +46,8 @@ These are the configuration settings that ESP-IDF extension contributes to your 
       - Custom build directory name for extension commands (Default: \${workspaceFolder}/build)
     * - idf.buildPathWin
       - Custom build directory name for extension commands in Windows (Default: \${workspaceFolder}\\build)
+    * - idf.sourceDirectoryPath
+      - Source directory path for CMake -S flag (Default: \${workspaceFolder})
     * - idf.sdkconfigFilePath
       - Absolute path for the sdkconfig file
     * - idf.sdkconfigDefaults

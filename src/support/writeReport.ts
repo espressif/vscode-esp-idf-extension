@@ -66,6 +66,9 @@ export async function writeTextReport(
     }
   }
   output += `System python Path (idf.pythonInstallPath) ${reportedResult.configurationSettings.sysPythonBinPath}${EOL}`;
+  output += `Build Directory Path (idf.buildPath) ${reportedResult.configurationSettings.buildPath}${EOL}`;
+  output += `Source directory Path (idf.sourceDirectoryPath) ${reportedResult.configurationSettings.sourceDirPath}${EOL}`;
+  output += `SDKConfig file Path (idf.sdkconfigFilePath) ${reportedResult.configurationSettings.sdkconfigPath}${EOL}`;
   output += `Virtual environment Python path (computed) ${reportedResult.configurationSettings.pythonBinPath}${EOL}`;
   output += `Serial port (idf.port) ${reportedResult.configurationSettings.serialPort}${EOL}`;
   output += `OpenOCD Configs (idf.openOcdConfigs) ${reportedResult.configurationSettings.openOcdConfigs}${EOL}`;
@@ -100,6 +103,9 @@ export async function writeTextReport(
   output += `Access to CMake in environment PATH ${reportedResult.configurationAccess.cmakeInEnv}${EOL}`;
   output += `Access to Ninja in environment PATH ${reportedResult.configurationAccess.ninjaInEnv}${EOL}`;
   output += `Access to ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationAccess.toolsPath}${EOL}`;
+  output += `Access to Build Directory Path (idf.buildPath) ${reportedResult.configurationAccess.buildPath}${EOL}`;
+  output += `Access to Source directory Path (idf.sourceDirectoryPath) ${reportedResult.configurationAccess.sourceDirPath}${EOL}`;
+  output += `Access to SDKConfig file Path (idf.sdkconfigFilePath) ${reportedResult.configurationAccess.sdkconfigPath}${EOL}`;
   output += `-------------------------------------------------------- Configurations has spaces -------------------------------------------------------------${EOL}`;
   output += `Spaces in system environment Path ${reportedResult.configurationSpacesValidation.systemEnvPath}${EOL}`;
   output += `Spaces in ESP-ADF Path (idf.espAdfPath) ${reportedResult.configurationSpacesValidation.espAdfPath}${EOL}`;

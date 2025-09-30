@@ -26,6 +26,26 @@ export async function getConfigurationAccess(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
+  reportedResult.configurationAccess.buildPath = canAccessFile(
+    reportedResult.configurationSettings.buildPath,
+    constants.R_OK
+  );
+  reportedResult.configurationAccess.sourceDirPath = canAccessFile(
+    reportedResult.configurationSettings.sourceDirPath,
+    constants.R_OK
+  );
+  reportedResult.configurationAccess.sdkconfigPath = canAccessFile(
+    reportedResult.configurationSettings.sdkconfigPath,
+    constants.R_OK
+  );
+  reportedResult.configurationAccess.toolsPath = canAccessFile(
+    reportedResult.configurationSettings.toolsPath,
+    constants.R_OK
+  );
+  reportedResult.configurationAccess.toolsPath = canAccessFile(
+    reportedResult.configurationSettings.toolsPath,
+    constants.R_OK
+  );
   reportedResult.configurationAccess.toolsPath = canAccessFile(
     reportedResult.configurationSettings.toolsPath,
     constants.R_OK

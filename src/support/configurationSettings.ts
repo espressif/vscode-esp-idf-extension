@@ -94,5 +94,8 @@ export async function getConfigurationSettings(
       process.platform === "win32" ? process.env.Path : process.env.PATH,
     sysPythonBinPath: conf.get("idf.pythonInstallPath"),
     gitPath: conf.get("idf.gitPath" + winFlag),
+    buildPath: conf.get("idf.buildPath" + winFlag),
+    sourceDirPath: conf.get("idf.sourceDirectoryPath"),
+    sdkconfigPath: conf.get("idf.sdkconfigFilePath"),
   };
 }
