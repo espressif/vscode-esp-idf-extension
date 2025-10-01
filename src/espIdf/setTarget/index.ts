@@ -36,7 +36,11 @@ import { OutputChannel } from "../../logger/outputChannel";
 import { selectOpenOcdConfigFiles } from "../openOcd/boardConfiguration";
 import { getTargetsFromEspIdf, IdfTarget } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
-import { updateCurrentProfileIdfTarget } from "../../project-conf";
+import { 
+  updateCurrentProfileIdfTarget,
+  updateCurrentProfileOpenOcdConfigs,
+  updateCurrentProfileCustomExtraVars 
+} from "../../project-conf";
 import { DevkitsCommand } from "./DevkitsCommand";
 
 export let isSettingIDFTarget = false;
@@ -165,6 +169,10 @@ export async function setIdfTarget(
             configurationTarget,
             workspaceFolder.uri
           );
+          
+          // Update project configuration with OpenOCD configs if a configuration is selected
+          await updateCurrentProfileOpenOcdConfigs(configFiles, workspaceFolder.uri);
+          
           // Store USB location if available
           if (selectedTarget.boardInfo.location) {
             const customExtraVars = readParameter(
@@ -180,6 +188,12 @@ export async function setIdfTarget(
               "idf.customExtraVars",
               customExtraVars,
               configurationTarget,
+              workspaceFolder.uri
+            );
+            
+            // Update project configuration with custom extra vars if a configuration is selected
+            await updateCurrentProfileCustomExtraVars(
+              { "OPENOCD_USB_ADAPTER_LOCATION": location },
               workspaceFolder.uri
             );
           }
@@ -202,6 +216,9 @@ export async function setIdfTarget(
           configurationTarget,
           workspaceFolder.uri
         );
+        
+        // Update project configuration with IDF_TARGET if a configuration is selected
+        // Note: IDF_TARGET goes in cacheVariables, not environment
         await updateCurrentProfileIdfTarget(
           selectedTarget.idfTarget.target,
           workspaceFolder.uri
