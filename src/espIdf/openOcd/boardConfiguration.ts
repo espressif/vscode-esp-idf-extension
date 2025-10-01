@@ -23,6 +23,7 @@ import { commands, ConfigurationTarget, l10n, Uri, window } from "vscode";
 import { defaultBoards } from "./defaultBoards";
 import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 import { configureEnvVariables } from "../../common/prepareEnv";
+import { updateCurrentProfileOpenOcdConfigs } from "../../project-conf";
 
 export interface IdfBoard {
   name: string;
@@ -193,6 +194,10 @@ export async function selectOpenOcdConfigFiles(
             ConfigurationTarget.WorkspaceFolder,
             workspaceFolder
           );
+          
+          // Update project configuration with OpenOCD configs if a configuration is selected
+          await updateCurrentProfileOpenOcdConfigs(selectedBoard.target.configFiles, workspaceFolder);
+          
           Logger.infoNotify(
             l10n.t(`OpenOCD Board configuration files set to {boards}.`, {
               boards: selectedBoard.target.configFiles.join(","),

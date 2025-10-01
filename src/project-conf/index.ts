@@ -59,11 +59,91 @@ export async function updateCurrentProfileIdfTarget(
   idfTarget: string,
   workspaceFolder: Uri
 ) {
+  await updateCurrentProjectConfiguration(workspaceFolder, (config) => {
+    // Update IDF_TARGET in cacheVariables for ConfigurePreset
+    if (!config.cacheVariables) {
+      config.cacheVariables = {};
+    }
+    config.cacheVariables.IDF_TARGET = idfTarget;
+    return config;
+  });
+}
+
+/**
+ * Updates OpenOCD configuration for the currently selected project configuration
+ */
+export async function updateCurrentProfileOpenOcdConfigs(
+  configs: string[],
+  workspaceFolder: Uri
+) {
+  await updateCurrentProjectConfiguration(workspaceFolder, (config) => {
+    // Update OpenOCD configs in vendor settings
+    if (!config.vendor) {
+      config.vendor = { "espressif/vscode-esp-idf": { settings: [] } };
+    }
+    if (!config.vendor["espressif/vscode-esp-idf"]) {
+      config.vendor["espressif/vscode-esp-idf"] = { settings: [] };
+    }
+
+    // Remove existing openOCD setting
+    config.vendor["espressif/vscode-esp-idf"].settings = 
+      config.vendor["espressif/vscode-esp-idf"].settings.filter(
+        (setting) => setting.type !== "openOCD"
+      );
+
+    // Add new openOCD setting
+    config.vendor["espressif/vscode-esp-idf"].settings.push({
+      type: "openOCD",
+      value: {
+        debugLevel: 2,
+        configs: configs,
+        args: []
+      }
+    });
+
+    return config;
+  });
+}
+
+/**
+ * Updates custom extra variables for the currently selected project configuration
+ * Note: IDF_TARGET is excluded as it should be in cacheVariables, not environment
+ */
+export async function updateCurrentProfileCustomExtraVars(
+  customVars: { [key: string]: string },
+  workspaceFolder: Uri
+) {
+  await updateCurrentProjectConfiguration(workspaceFolder, (config) => {
+    // Update custom extra variables in environment
+    if (!config.environment) {
+      config.environment = {};
+    }
+    
+    // Filter out IDF_TARGET as it should be in cacheVariables, not environment
+    const filteredVars = { ...customVars };
+    delete filteredVars.IDF_TARGET;
+    
+    // Merge the custom variables into the environment (excluding IDF_TARGET)
+    Object.assign(config.environment, filteredVars);
+    
+    return config;
+  });
+}
+
+
+/**
+ * Generic function to update any configuration setting for the currently selected project configuration
+ */
+export async function updateCurrentProjectConfiguration(
+  workspaceFolder: Uri,
+  updateFunction: (config: ConfigurePreset) => ConfigurePreset
+): Promise<void> {
   const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
     ESP.ProjectConfiguration.SELECTED_CONFIG
   );
 
   if (!selectedConfig) {
+    // No configuration selected - don't update any files
     return;
   }
 
@@ -74,27 +154,197 @@ export async function updateCurrentProfileIdfTarget(
 
   if (!projectConfJson[selectedConfig]) {
     const err = new Error(
-      `Configuration preset "${selectedConfig}" not found in ${ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME}. Please check your CMakePresets configurePresets section.`
+      `Configuration preset "${selectedConfig}" not found in project configuration files. Please check your CMakePresets configurePresets section.`
     );
     Logger.errorNotify(
       err.message,
       err,
-      "updateCurrentProfileIdfTarget project-conf"
+      "updateCurrentProjectConfiguration project-conf"
     );
     return;
   }
 
-  // Update IDF_TARGET in cacheVariables for ConfigurePreset
-  if (!projectConfJson[selectedConfig].cacheVariables) {
-    projectConfJson[selectedConfig].cacheVariables = {};
-  }
-  projectConfJson[selectedConfig].cacheVariables.IDF_TARGET = idfTarget;
+  // Apply the update function to the configuration
+  const updatedConfig = updateFunction(projectConfJson[selectedConfig]);
 
-  ESP.ProjectConfiguration.store.set(
-    selectedConfig,
-    projectConfJson[selectedConfig]
+  // Update the store
+  ESP.ProjectConfiguration.store.set(selectedConfig, updatedConfig);
+  
+  // Save to the correct file based on where the configuration originated
+  await saveProjectConfigurationToCorrectFile(workspaceFolder, selectedConfig, updatedConfig);
+}
+
+/**
+ * Saves a single configuration to the correct file based on its source
+ */
+export async function saveProjectConfigurationToCorrectFile(
+  workspaceFolder: Uri,
+  configName: string,
+  configPreset: ConfigurePreset
+) {
+  // Determine which file the configuration should be saved to
+  const configSource = await determineConfigurationSource(workspaceFolder, configName);
+  
+  if (configSource === 'user') {
+    await saveConfigurationToUserPresets(workspaceFolder, configName, configPreset);
+  } else if (configSource === 'project') {
+    await saveConfigurationToProjectPresets(workspaceFolder, configName, configPreset);
+  } else {
+    // If source is unknown and we have a selected config, default to user presets
+    // This handles the case where a user modifies a configuration that doesn't exist yet
+    await saveConfigurationToUserPresets(workspaceFolder, configName, configPreset);
+  }
+}
+
+/**
+ * Determines the source file for a configuration (project vs user presets)
+ */
+async function determineConfigurationSource(
+  workspaceFolder: Uri,
+  configName: string
+): Promise<'project' | 'user' | 'unknown'> {
+  const cmakePresetsFilePath = Uri.joinPath(
+    workspaceFolder,
+    ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
   );
-  await saveProjectConfFile(workspaceFolder, projectConfJson);
+  const cmakeUserPresetsFilePath = Uri.joinPath(
+    workspaceFolder,
+    ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME
+  );
+
+  // Check if config exists in CMakeUserPresets.json first (user presets take precedence)
+  if (await pathExists(cmakeUserPresetsFilePath.fsPath)) {
+    try {
+      const userPresetsJson = await readJson(cmakeUserPresetsFilePath.fsPath);
+      if (userPresetsJson?.configurePresets?.some((preset: any) => preset.name === configName)) {
+        return 'user';
+      }
+    } catch (error) {
+      Logger.error(`Error reading user presets file: ${error.message}`, error, "determineConfigurationSource");
+    }
+  }
+
+  // Check if config exists in CMakePresets.json
+  if (await pathExists(cmakePresetsFilePath.fsPath)) {
+    try {
+      const projectPresetsJson = await readJson(cmakePresetsFilePath.fsPath);
+      if (projectPresetsJson?.configurePresets?.some((preset: any) => preset.name === configName)) {
+        return 'project';
+      }
+    } catch (error) {
+      Logger.error(`Error reading project presets file: ${error.message}`, error, "determineConfigurationSource");
+    }
+  }
+
+  return 'unknown';
+}
+
+/**
+ * Saves a configuration to CMakeUserPresets.json
+ */
+async function saveConfigurationToUserPresets(
+  workspaceFolder: Uri,
+  configName: string,
+  configPreset: ConfigurePreset
+) {
+  const cmakeUserPresetsFilePath = Uri.joinPath(
+    workspaceFolder,
+    ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME
+  );
+
+  let userPresets: CMakePresets;
+  
+  // Read existing user presets or create new structure
+  if (await pathExists(cmakeUserPresetsFilePath.fsPath)) {
+    try {
+      userPresets = await readJson(cmakeUserPresetsFilePath.fsPath);
+    } catch (error) {
+      Logger.error(`Error reading user presets file: ${error.message}`, error, "saveConfigurationToUserPresets");
+      userPresets = {
+        version: 3,
+        configurePresets: []
+      };
+    }
+  } else {
+    userPresets = {
+      version: 3,
+      configurePresets: []
+    };
+  }
+
+  // Ensure configurePresets array exists
+  if (!userPresets.configurePresets) {
+    userPresets.configurePresets = [];
+  }
+
+  // Update or add the configuration
+  const existingIndex = userPresets.configurePresets.findIndex(
+    (preset: ConfigurePreset) => preset.name === configName
+  );
+
+  if (existingIndex >= 0) {
+    userPresets.configurePresets[existingIndex] = configPreset;
+  } else {
+    userPresets.configurePresets.push(configPreset);
+  }
+
+  await writeJson(cmakeUserPresetsFilePath.fsPath, userPresets, {
+    spaces: 2,
+  });
+}
+
+/**
+ * Saves a configuration to CMakePresets.json
+ */
+async function saveConfigurationToProjectPresets(
+  workspaceFolder: Uri,
+  configName: string,
+  configPreset: ConfigurePreset
+) {
+  const cmakePresetsFilePath = Uri.joinPath(
+    workspaceFolder,
+    ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+  );
+
+  let projectPresets: CMakePresets;
+  
+  // Read existing project presets or create new structure
+  if (await pathExists(cmakePresetsFilePath.fsPath)) {
+    try {
+      projectPresets = await readJson(cmakePresetsFilePath.fsPath);
+    } catch (error) {
+      Logger.error(`Error reading project presets file: ${error.message}`, error, "saveConfigurationToProjectPresets");
+      projectPresets = {
+        version: 3,
+        configurePresets: []
+      };
+    }
+  } else {
+    projectPresets = {
+      version: 3,
+      configurePresets: []
+    };
+  }
+
+  // Ensure configurePresets array exists
+  if (!projectPresets.configurePresets) {
+    projectPresets.configurePresets = [];
+  }
+
+  // Update or add the configuration
+  const existingIndex = projectPresets.configurePresets.findIndex(
+    (preset: ConfigurePreset) => preset.name === configName
+  );
+
+  if (existingIndex >= 0) {
+    projectPresets.configurePresets[existingIndex] = configPreset;
+  } else {
+    projectPresets.configurePresets.push(configPreset);
+  }
+
+  await writeJson(cmakePresetsFilePath.fsPath, projectPresets, {
+    spaces: 2,
+  });
 }
 
 export async function saveProjectConfFile(
@@ -112,7 +362,7 @@ export async function saveProjectConfFile(
   );
 
   const cmakePresets: CMakePresets = {
-    version: 1,
+    version: 3,
     cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
     configurePresets,
   };
