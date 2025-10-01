@@ -82,6 +82,7 @@ export class Logger {
         errorStack: error.stack,
         category,
         capturedBy: "Logger",
+        command: metadata?.command
       });
     }
     winston.log("error", message, {
