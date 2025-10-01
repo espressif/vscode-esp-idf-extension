@@ -37,7 +37,11 @@ import { selectOpenOcdConfigFiles } from "../openOcd/boardConfiguration";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { getTargetsFromEspIdf, IdfTarget } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
-import { updateCurrentProfileIdfTarget } from "../../project-conf";
+import { 
+  updateCurrentProfileIdfTarget,
+  updateCurrentProfileOpenOcdConfigs,
+  updateCurrentProfileCustomExtraVars 
+} from "../../project-conf";
 import { DevkitsCommand } from "./DevkitsCommand";
 import {
   clearAdapterSerial,
@@ -189,6 +193,13 @@ export async function setIdfTarget(
             configurationTarget,
             workspaceFolder.uri
           );
+
+          // Update project configuration with OpenOCD configs if a configuration is selected
+          await updateCurrentProfileOpenOcdConfigs(
+            configFiles,
+            workspaceFolder.uri
+          );
+
           // Store USB location if available (will be used as fallback if serial is not found)
           if (selectedTarget.boardInfo.location) {
             const location = selectedTarget.boardInfo.location.replace(
@@ -196,6 +207,18 @@ export async function setIdfTarget(
               ""
             );
             customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"] = location;
+            await writeParameter(
+              "idf.customExtraVars",
+              customExtraVars,
+              configurationTarget,
+              workspaceFolder.uri
+            );
+
+            // Update project configuration with custom extra vars if a configuration is selected
+            await updateCurrentProfileCustomExtraVars(
+              { "OPENOCD_USB_ADAPTER_LOCATION": location },
+              workspaceFolder.uri
+            );
           }
         } else {
           await selectOpenOcdConfigFiles(
@@ -212,7 +235,11 @@ export async function setIdfTarget(
           configurationTarget,
           workspaceFolder.uri
         );
+
         updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
+
+        // Update project configuration with IDF_TARGET if a configuration is selected
+        // Note: IDF_TARGET goes in cacheVariables, not environment
         await updateCurrentProfileIdfTarget(
           selectedTarget.idfTarget.target,
           workspaceFolder.uri
