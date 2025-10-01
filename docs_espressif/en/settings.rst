@@ -128,6 +128,8 @@ These settings are specific to the ESP32 Chip/Board.
       - SVD file absolute path to resolve chip debug peripheral tree view
     * - **idf.jtagFlashCommandExtraArgs**
       - OpenOCD JTAG flash extra arguments. Default is ``["verify", "reset"]``.
+    * - **idf.imageViewerConfigs**
+      - Path to custom image format configurations JSON file for the Image Viewer feature. Can be relative to workspace folder or absolute path.
 
 This is how the extension uses them:
 

@@ -116,6 +116,8 @@ ESP-IDF 相关设置
       - SVD 文件的绝对路径，用于解析芯片在调试器中的外设树视图
     * - **idf.jtagFlashCommandExtraArgs**
       - OpenOCD JTAG 闪存额外参数。默认值为 ["verify", "reset"]
+    * - **idf.imageViewerConfigs**
+      - 图像查看器功能的自定义图像格式配置 JSON 文件路径。可以是相对于工作区文件夹的相对路径或绝对路径。
 
 扩展将按照以下方式使用上述设置：
 
