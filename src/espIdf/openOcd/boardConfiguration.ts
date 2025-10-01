@@ -40,6 +40,7 @@ import {
   supportsSerialFromDetectConfig,
 } from "./adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
+import { updateCurrentProfileOpenOcdConfigs } from "../../project-conf";
 
 export interface IdfBoard {
   name: string;
@@ -308,6 +309,10 @@ export async function selectOpenOcdConfigFiles(
               ConfigurationTarget.WorkspaceFolder,
               workspaceFolder
             );
+            await updateCurrentProfileOpenOcdConfigs(
+              configFiles,
+              workspaceFolder
+            );
             Logger.infoNotify(
               l10n.t(`OpenOCD Board configuration files set to {boards}.`, {
                 boards: configFiles.join(","),
@@ -333,6 +338,10 @@ export async function selectOpenOcdConfigFiles(
               "idf.customExtraVars",
               customExtraVars,
               ConfigurationTarget.WorkspaceFolder,
+              workspaceFolder
+            );
+            await updateCurrentProfileOpenOcdConfigs(
+              selectedBoard.target.configFiles,
               workspaceFolder
             );
             Logger.infoNotify(
