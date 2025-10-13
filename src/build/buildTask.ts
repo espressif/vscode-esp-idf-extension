@@ -78,6 +78,22 @@ export class BuildTask {
       throw new Error("ALREADY_BUILDING");
     }
     this.building(true);
+
+    // Check if CMakePresets build mode is enabled
+    const useCMakePresets = idfConf.readParameter(
+      "idf.useCMakePresets",
+      this.currentWorkspace
+    ) as boolean;
+
+    if (useCMakePresets) {
+      return await this.buildWithPresets(buildType);
+    }
+
+    // Continue with traditional CMake build
+    return await this.buildWithCMake(buildType);
+  }
+
+  private async buildWithCMake(buildType?: ESP.BuildType) {
     await ensureDir(this.buildDirPath);
     const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
     const processOptions = {
@@ -286,6 +302,92 @@ export class BuildTask {
       currentWorkspaceFolder || vscode.TaskScope.Workspace,
       "ESP-IDF Write DFU.bin",
       writeExecution,
+      ["espIdf"],
+      buildPresentationOptions
+    );
+  }
+
+  private async buildWithPresets(buildType?: ESP.BuildType) {
+    await ensureDir(this.buildDirPath);
+    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+
+    // Get the selected project configuration preset name
+    const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+
+    if (!selectedConfig) {
+      throw new Error(
+        "No project configuration selected. Please select a CMakePresets configuration first."
+      );
+    }
+
+    const currentWorkspaceFolder = vscode.workspace.workspaceFolders.find(
+      (w) => w.uri === this.currentWorkspace
+    );
+
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      this.currentWorkspace
+    ) as string;
+    const showTaskOutput =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Output
+        ? vscode.TaskRevealKind.Always
+        : vscode.TaskRevealKind.Silent;
+
+    // Build idf.py command with preset
+    const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
+    const idfPy = join(this.idfPathDir, "tools", "idf.py");
+    
+    let args = [idfPy, "--preset", selectedConfig];
+    
+    // Add build type specific arguments if needed
+    if (buildType) {
+      switch (buildType) {
+        case ESP.BuildType.Bootloader:
+          args.push("bootloader");
+          break;
+        case ESP.BuildType.PartitionTable:
+          args.push("partition-table");
+          break;
+        default:
+          args.push("build");
+          break;
+      }
+    } else {
+      args.push("build");
+    }
+
+    Logger.info(`Building with CMakePresets using: ${pythonBinPath} ${args.join(" ")}`);
+
+    const processOptions = {
+      cwd: this.currentWorkspace.fsPath,
+      env: modifiedEnv,
+    };
+
+    const buildExecution = new vscode.ProcessExecution(
+      pythonBinPath,
+      args,
+      processOptions
+    );
+
+    const buildPresentationOptions = {
+      reveal: showTaskOutput,
+      showReuseMessage: false,
+      clear: false,
+      panel: vscode.TaskPanelKind.Shared,
+    } as vscode.TaskPresentationOptions;
+
+    TaskManager.addTask(
+      {
+        type: "esp-idf",
+        command: `ESP-IDF Build (CMakePresets: ${selectedConfig})`,
+        taskId: "idf-build-presets-task",
+      },
+      currentWorkspaceFolder || vscode.TaskScope.Workspace,
+      `ESP-IDF Build (CMakePresets: ${selectedConfig})`,
+      buildExecution,
       ["espIdf"],
       buildPresentationOptions
     );
