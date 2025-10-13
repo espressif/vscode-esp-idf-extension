@@ -38,7 +38,7 @@ import { configurePyTestUnitApp } from "./configure";
 import { getFileList, getTestComponents } from "./utils";
 import { ESP } from "../../config";
 import { UnityTestRunner } from "./unityRunner/unityTestRunner";
-import { readParameter } from "../../idfConfiguration";
+import { readParameter, readSerialPort } from "../../idfConfiguration";
 import { UnityParserOptions } from "./unityRunner/types";
 
 const unitTestControllerId = "IDF_UNIT_TEST_CONTROLLER";
@@ -119,10 +119,8 @@ export class UnitTest {
       }
 
       const runner = new UnityTestRunner();
-      const serialPort = readParameter(
-        "idf.port",
-        workspaceFolderUri
-      ) as string;
+
+      const serialPort = await readSerialPort(workspaceFolderUri, false);
       const baudRate =
         (readParameter("idf.baudRate", workspaceFolderUri) as number) || 115200;
       const runnerOptions: UnityParserOptions = {
@@ -173,18 +171,6 @@ export class UnitTest {
               } else if (result.status === "IGNORE") {
                 testRun.skipped(test);
               }
-              // const result = await runPyTestWithTestCase(
-              //   this.unitTestAppUri,
-              //   idfTestitem.testName,
-              //   cancelToken
-              // );
-              // result
-              //   ? testRun.passed(test, Date.now() - startTime)
-              //   : testRun.failed(
-              //       test,
-              //       new TestMessage("Error in test"),
-              //       Date.now() - startTime
-              //     );
             } catch (error) {
               testRun.failed(
                 test,
