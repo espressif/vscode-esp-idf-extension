@@ -21,7 +21,7 @@ import { ESP } from "../../config";
 import { join } from "path";
 import { copy, pathExists, readFile, writeFile } from "fs-extra";
 import { readParameter, readSerialPort } from "../../idfConfiguration";
-import { startPythonReqsProcess } from "../../utils";
+import { getEspIdfFromCMake, startPythonReqsProcess } from "../../utils";
 import { runTaskForCommand } from "./testExecution";
 import { buildCommand } from "../../build/buildCmd";
 import { verifyCanFlash } from "../../flash/flashCmd";
@@ -48,7 +48,10 @@ export async function configurePyTestUnitApp(
     if (!doesUnitTestAppExists) {
       const unitTestFiles = await getFileList();
       const testComponents = await getTestComponents(unitTestFiles);
-      unitTestAppUri = await copyTestAppProject(workspaceFolder, testComponents);
+      unitTestAppUri = await copyTestAppProject(
+        workspaceFolder,
+        testComponents
+      );
       await buildFlashTestApp(unitTestAppUri, cancelToken);
     }
     return unitTestAppUri;
@@ -132,6 +135,16 @@ export async function installPyTestPackages(
   cancelToken?: CancellationToken
 ) {
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
+  const containerPath =
+    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+  const confToolsPath = readParameter(
+    "idf.toolsPath",
+    workspaceFolder
+  ) as string;
+  const toolsPath =
+    confToolsPath ||
+    process.env.IDF_TOOLS_PATH ||
+    join(containerPath, ".espressif");
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   let requirementsPath = join(
     idfPath,
@@ -148,9 +161,27 @@ export async function installPyTestPackages(
     );
   }
 
+  const fullEspIdfVersion = await getEspIdfFromCMake(idfPath);
+  const majorMinorMatches = fullEspIdfVersion.match(/([0-9]+\.[0-9]+).*/);
+  const espIdfVersion =
+    majorMinorMatches && majorMinorMatches.length > 0
+      ? majorMinorMatches[1]
+      : "x.x";
+  const constrainsFile = join(
+    toolsPath,
+    `espidf.constraints.v${espIdfVersion}.txt`
+  );
+  const constrainsFileExists = await pathExists(constrainsFile);
+  let constraintArg = [];
+  if (constrainsFileExists) {
+    constraintArg = ["--constraint", constrainsFile];
+  }
+
   await runTaskForCommand(
     workspaceFolder,
-    `"${pythonBinPath}" -m pip install --upgrade --no-warn-script-location -r "${requirementsPath}" --extra-index-url https://dl.espressif.com/pypi`,
+    `"${pythonBinPath}" -m pip install --upgrade ${
+      constraintArg && constraintArg.length > 0 ? constraintArg.join(" ") : ""
+    } --no-warn-script-location -r "${requirementsPath}" --extra-index-url https://dl.espressif.com/pypi`,
     "Install Pytest",
     cancelToken
   );
