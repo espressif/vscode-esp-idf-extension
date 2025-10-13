@@ -75,7 +75,9 @@ export class PreCheck {
         Logger.errorNotify(
           preCheck[1],
           new Error("PRECHECK_FAILED"),
-          "utils precheck failed"
+          "utils precheck failed",
+          undefined,
+          false
         );
       }
     });
@@ -168,6 +170,8 @@ export interface ISpawnOptions extends childProcess.SpawnOptions {
   outputString?: string;
   /** Output append mode: 'appendLine', 'append', or undefined */
   appendMode?: "appendLine" | "append";
+  /** Send error to telemetry */
+  sendToTelemetry?: boolean;
 }
 
 export function spawn(
@@ -177,10 +181,11 @@ export function spawn(
     outputString: "",
     silent: false,
     appendMode: "appendLine",
+    sendToTelemetry: true,
   }
 ): Promise<Buffer> {
   let buff = Buffer.alloc(0);
-  const sendToOutputChannel = (data: Buffer) => {
+  const sendToOutputChannel = (data: any) => {
     buff = Buffer.concat([buff, data]);
     options.outputString += buff.toString();
     if (!options.silent) {
@@ -225,7 +230,13 @@ export function spawn(
         resolve(buff);
       } else {
         const err = new Error("non zero exit code " + code + EOL + EOL + buff);
-        Logger.error(err.message, err, "src utils spawn", { command });
+        Logger.error(
+          err.message,
+          err,
+          "src utils spawn",
+          { command },
+          options.sendToTelemetry
+        );
         reject(err);
       }
     });
@@ -665,7 +676,10 @@ export function execChildProcess(
           return reject(error);
         }
         if (stderr && stderr.length > 2) {
-          if (!stderr.startsWith("Open On-Chip Debugger v")) {
+          if (
+            !stderr.startsWith("Open On-Chip Debugger v") &&
+            !stderr.toLowerCase().startsWith("warning")
+          ) {
             Logger.error(
               stderr,
               new Error(stderr),
@@ -996,7 +1010,7 @@ export function validateFileSizeAndChecksum(
         const fileSize = fs.statSync(filePath).size;
         const readStream = fs.createReadStream(filePath);
         let fileChecksum: string;
-        readStream.on("data", (data) => {
+        readStream.on("data", (data: crypto.BinaryLike) => {
           shashum.update(data);
         });
         readStream.on("end", () => {

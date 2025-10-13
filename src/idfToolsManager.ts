@@ -40,7 +40,7 @@ export interface IEspIdfTool {
 
 export class IdfToolsManager {
   public static async createIdfToolsManager(idfPath: string) {
-    const platformInfo = await PlatformInformation.GetPlatformInformation();
+    const platformInfo = PlatformInformation.GetPlatformInformation();
     const toolsJsonPath = await utils.getToolsJsonPath(idfPath);
     const toolsObj = await readJSON(toolsJsonPath);
     const idfToolsManager = new IdfToolsManager(
@@ -230,6 +230,10 @@ export class IdfToolsManager {
     const command = pkg.version_cmd[0];
     const args = pkg.version_cmd.slice(1);
     try {
+      const isBinInPath = await utils.isBinInPath(command, modifiedEnv);
+      if (!isBinInPath) {
+        return "No match";
+      }
       const binVersionResponse = await utils.execChildProcess(
         command,
         args,

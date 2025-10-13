@@ -114,10 +114,11 @@ export class SerialPort {
           OutputChannel.appendLine(
             `Detecting default port using esptool.py...`
           );
-          const timeout = idfConf.readParameter(
-            "idf.serialPortDetectionTimeout",
-            workspaceFolder
-          ) as number * 1000; // Convert seconds to milliseconds
+          const timeout =
+            (idfConf.readParameter(
+              "idf.serialPortDetectionTimeout",
+              workspaceFolder
+            ) as number) * 1000; // Convert seconds to milliseconds
 
           const result = await spawn(
             pythonBinPath,
@@ -126,6 +127,7 @@ export class SerialPort {
               silent: false,
               appendMode: "append",
               timeout: timeout,
+              sendToTelemetry: false,
             }
           );
 
@@ -309,7 +311,14 @@ export class SerialPort {
       const msg = error.message
         ? error.message
         : "Something went wrong while getting the serial port list";
-      Logger.errorNotify(msg, error, "SerialPort displayList");
+      const sendToTelemetry = msg.indexOf("No serial ports found") === -1;
+      Logger.errorNotify(
+        msg,
+        error,
+        "SerialPort displayList",
+        undefined,
+        sendToTelemetry
+      );
       OutputChannel.appendLine(msg, "Serial port");
       OutputChannel.appendLineAndShow(JSON.stringify(error));
     }
@@ -413,7 +422,12 @@ export class SerialPort {
             const chipIdBuffer = await spawn(
               pythonBinPath,
               [esptoolPath, "--port", serialPort.comName, "chip_id"],
-              { timeout: 2000, silent: true, appendMode: "append" }
+              {
+                timeout: 2000,
+                silent: true,
+                appendMode: "append",
+                sendToTelemetry: false,
+              }
             );
             const regexp = /Chip is(.*?)[\r]?\n/;
             const chipIdString = chipIdBuffer.toString().match(regexp);
