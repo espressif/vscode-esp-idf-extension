@@ -155,12 +155,9 @@ export async function buildCommand(
       buildType
     );
     continueFlag = buildCmdResults.continueFlag;
-    const taskExecutions = buildCmdResults.executions;
     if (!continueFlag) {
       throw buildCmdResults.results[0].error;
     }
-    // const compileOutput = taskExecutions[1].getOutput();
-    // const buildOutput = taskExecutions[2].getOutput();
   } catch (error) {
     if (error.message === "ALREADY_BUILDING") {
       Logger.errorNotify("Already a build is running!", error, "buildCommand");

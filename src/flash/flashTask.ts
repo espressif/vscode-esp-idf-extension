@@ -167,11 +167,6 @@ export class FlashTask {
       flasherArgs,
       this.processOptions
     );
-    // return new vscode.ProcessExecution(
-    //   pythonBinPath,
-    //   flasherArgs,
-    //   this.processOptions
-    // );
   }
 
   public async _dfuFlashing(pythonBinPath: string) {
@@ -199,7 +194,6 @@ export class FlashTask {
       ];
     }
     return OutputCapturingExecution.create(cmd, args, this.processOptions);
-    // return new vscode.ProcessExecution(cmd, args, this.processOptions);
   }
 
   public _partitionFlashExecution(
@@ -216,11 +210,6 @@ export class FlashTask {
       flasherArgs,
       this.processOptions
     );
-    // return new vscode.ProcessExecution(
-    //   pythonBinPath,
-    //   flasherArgs,
-    //   this.processOptions
-    // );
   }
 
   public getSingleBinFlasherArgs(

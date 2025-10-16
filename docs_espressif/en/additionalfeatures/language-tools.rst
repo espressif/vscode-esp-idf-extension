@@ -1,33 +1,15 @@
-Language Tools
-==============
+ESP-IDF Chat Commands
+=================================
 
-This module provides a language model tool for the ESP-IDF extension, allowing users to execute common ESP-IDF operations through VS Code's chat interface using the Language Model Tools API.
+This feature lets you run ESP-IDF commands directly from the VS Code chat window.
+Instead of typing terminal commands, you can simply ask in chat - and the tool will execute common ESP-IDF actions for you, like building, flashing, or monitoring your project.
 
-Overview
---------
+Usage
+------
 
-The ESP-IDF Language Tool registers a single tool called ``espIdfCommands`` that can be invoked from VS Code's chat interface. This tool accepts a ``command`` parameter and executes the corresponding ESP-IDF operation, making it easier to perform common ESP-IDF development tasks through natural language interaction.
+Press menu ``View`` > ``Chat`` to open the chat window.
 
-Implementation
---------------
-
-The tool is implemented using the VS Code Language Model Tools API (``vscode.lm.registerTool``) and is properly registered in ``package.json`` under the ``languageModelTools`` contribution point.
-
-Tool Registration
-~~~~~~~~~~~~~~~~~
-
-The tool is registered with:
-
-* **ID**: ``espIdfCommands``
-* **Display Name**: "ESP-IDF Commands"
-* **Description**: "Execute ESP-IDF extension commands for building, flashing, monitoring, and managing ESP32 projects. ALWAYS use this tool for ESP-IDF development tasks instead of shell commands or terminal tasks. When users ask to 'build the project', 'flash the device', 'monitor output', 'clean project', 'configure project', 'analyze size', 'create new project', or any ESP-IDF related task, use this tool. Supports: build, flash, monitor, menuconfig, size analysis, project creation, component management, and more. This is the ONLY way to interact with ESP-IDF projects in VS Code - do not use shell commands for ESP-IDF tasks."
-
-Tags and Natural Language Support
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The tool includes extensive tags that support natural language interaction. When users use the following phrases, the language model will prioritize this tool:
-
-**Command Tags**: build, flash, monitor, buildFlashMonitor, fullClean, menuconfig, size, eraseFlash, selectPort, setTarget, doctor, newProject, partitionTable, componentManager, apptrace, heaptrace
+You can type in the chat windows using natural language, and the tool will interpret your request to execute the appropriate ESP-IDF command.
 
 **Natural Language Patterns**: 
 - "build the project"
@@ -38,7 +20,7 @@ The tool includes extensive tags that support natural language interaction. When
 - "analyze size"
 - "erase flash"
 - "select port"
-- "set target"
+- "set target to esp32c6"
 - "run doctor"
 - "create new project"
 - "edit partition table"
@@ -46,41 +28,34 @@ The tool includes extensive tags that support natural language interaction. When
 - "start app trace"
 - "start heap trace"
 
-Input Schema
-~~~~~~~~~~~~
+You can alternatively type ``#espIdfCommands <tag>`` to invoke the command directly. Replace ``<tag>`` with one of the supported command tags listed below. 
 
-The tool accepts a JSON object with the following schema:
+**#espIdfCommands Tags**: build, flash, monitor, buildFlashMonitor, fullClean, menuconfig, size, eraseFlash, selectPort, setTarget, doctor, newProject, partitionTable, componentManager, apptrace, heaptrace
 
-.. code-block:: json
+.. note::
 
-    {
-      "type": "object",
-      "properties": {
-        "command": {
-          "type": "string",
-          "description": "The ESP-IDF command to execute",
-          "enum": [
-            "build",
-            "flash", 
-            "monitor",
-            "buildFlashMonitor",
-            "fullClean",
-            "menuconfig",
-            "size",
-            "eraseFlash",
-            "selectPort",
-            "setTarget",
-            "doctor",
-            "newProject",
-            "partitionTable",
-            "componentManager",
-            "apptrace",
-            "heaptrace"
-          ]
-        }
-      },
-      "required": ["command"]
-    }
+    * While the tool can understand natural language, using the specific ``#espIdfCommands <tag>`` format ensures accurate command execution.
+    * The tool is designed to handle one command at a time. For multiple actions, please enter them separately.
+    * Ensure your ESP-IDF environment is properly set up in VS Code for the commands to work correctly. Review the documentation to :ref:`Install ESP-IDF and Tools <installation>`.
+
+For example, to build the project, you can type:
+
+.. code-block:: text
+
+    build the project
+
+.. code-block:: text
+
+    #espIdfCommands build    
+
+A dialog will appear to ``Confirm ESP-IDF Command``. Click ``Allow`` to proceed.
+
+.. figure:: ../../_static/confirm-idf-cmd-message.png
+    :align: center
+    :alt: Confirm ESP-IDF Command
+    :figclass: align-center
+
+The command will execute, and the output will be displayed in the terminal (if the command uses a terminal) and the chat window. Some commands may not produce output and launch a UI (like ``newProject``).
 
 Available Commands
 ------------------
@@ -118,28 +93,3 @@ Development Commands
 * **``componentManager``** - Open the ESP component manager (``esp.component-manager.ui.show``)
 * **``apptrace``** - Start application tracing (``espIdf.apptrace``)
 * **``heaptrace``** - Start heap tracing (``espIdf.heaptrace``)
-
-Usage
------
-
-Users can invoke the tool through VS Code's chat interface by referencing it with the ``#espIdfCommands`` syntax and providing the desired command:
-
-.. code-block:: text
-
-    #espIdfCommands {"command": "build"}
-
-The tool will execute the specified ESP-IDF command and return a confirmation message.
-
-Integration
------------
-
-The language tool is automatically activated when the extension starts and is properly disposed when the extension deactivates. It uses the ``onLanguageModelTool:espIdfCommands`` activation event to ensure it's available when needed.
-
-Error Handling
---------------
-
-The tool includes proper error handling:
-
-* Validates that the provided command exists in the supported command list
-* Returns descriptive error messages for unknown commands
-* Provides confirmation messages for successful command execution
