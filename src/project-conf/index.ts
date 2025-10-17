@@ -167,11 +167,27 @@ export async function updateCurrentProjectConfiguration(
   // Apply the update function to the configuration
   const updatedConfig = updateFunction(projectConfJson[selectedConfig]);
 
-  // Update the store
-  ESP.ProjectConfiguration.store.set(selectedConfig, updatedConfig);
-  
   // Save to the correct file based on where the configuration originated
-  await saveProjectConfigurationToCorrectFile(workspaceFolder, selectedConfig, updatedConfig);
+  await saveProjectConfigurationToCorrectFile(
+    workspaceFolder,
+    selectedConfig,
+    updatedConfig
+  );
+
+  // Keep in-memory store consistent with consumers expecting legacy ProjectConfElement
+  // Re-read processed presets (with resolved paths) and convert to legacy shape
+  try {
+    const resolvedConfigs = await getProjectConfigurationElements(
+      workspaceFolder,
+      true
+    );
+    const resolvedPreset = resolvedConfigs[selectedConfig] || updatedConfig;
+    const legacyElement = configurePresetToProjectConfElement(resolvedPreset);
+    ESP.ProjectConfiguration.store.set(selectedConfig, legacyElement);
+  } catch (e) {
+    // Fallback: ensure we at least keep the updated preset in store
+    ESP.ProjectConfiguration.store.set(selectedConfig, updatedConfig);
+  }
 }
 
 /**
