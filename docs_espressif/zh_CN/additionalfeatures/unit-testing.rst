@@ -43,62 +43,20 @@
 
 .. note::
 
-    你可以通过修改 VS Code 设置中的 ``idf.unitTestFilePattern`` 配置项来自定义测试文件发现模式，为测试文件使用不同的命名方式或目录结构。
-
-pytest 嵌入式服务配置
----------------------
-
-扩展使用 `pytest-embedded <https://docs.espressif.com/projects/pytest-embedded/en/latest/index.html>`_ 在 ESP-IDF 设备上运行测试。可以通过 ``idf.pyTestEmbeddedServices`` 配置项指定运行 pytest 命令时使用的嵌入式服务。
-
-默认情况下，扩展使用 ``["esp", "idf"]`` 作为嵌入式服务。服务提供以下功能：
-
-* **esp**：启用乐鑫特有功能，包括使用 ``esptool`` 进行目标自动检测和端口确认。
-* **idf**：提供 ESP-IDF 项目支持，包括自动烧录构建的二进制文件和解析二进制信息。
-
-通过修改 VS Code 设置中的 ``idf.pyTestEmbeddedServices`` 配置项，可以自定义嵌入式服务。例如，你可以添加以下服务：
-
-* **serial**：用于基本串口通信。
-* **jtag**：用于 OpenOCD/GDB 工具。
-* **qemu**：用于在 QEMU 而不是真实硬件上运行测试。
-* **wokwi**：用于在 Wokwi 仿真平台上运行测试。
-
-有关可用服务及其功能的完整列表，请参阅 `pytest-embedded 服务文档 <https://docs.espressif.com/projects/pytest-embedded/en/latest/concepts/services.html>`_。
-
-.. note::
-  
-    你选择的嵌入式服务将影响执行的 pytest 命令。请确保你指定的服务与你的测试环境和要求兼容。
-
 运行测试
 --------
 
 点击 `Visual Studio Code 活动栏 <https://code.visualstudio.com/docs/getstarted/userinterface>`_ 中的 ``Testing`` 选项卡时，扩展将尝试查找所有测试文件和测试用例，并保存测试组件列表以便在步骤 3 中添加。
 
+当按下测试上的运行按钮时，它将在测试前按如下方式配置当前项目：
+
+1. 从扩展模板复制 unity-app 并将测试组件添加到主 CMakeLists.txt 的 ``TEST_COMPONENTS`` cmake 变量中。扩展 unity-app 是一个基本的 ESP-IDF 应用程序，带有 unity 菜单，将在当前 **idf.port** 串行设备上构建和烧录，包含在探索步骤中找到的所有测试用例。
+
+2. 构建并烧录 unity-app 到设备。
+
 .. note::
+  您也可以使用 **ESP-IDF 单元测试：构建单元测试应用** 和 **ESP-IDF 单元测试：烧录单元测试应用** 扩展命令分别创建、构建和烧录 unity 测试应用程序，这些命令将复制构建并烧录生成的单元测试应用程序到您的设备。
 
-    用户需要安装 ESP-IDF pytest 的 Python 的依赖。请前往菜单栏选择 ``查看`` > ``命令面板``，输入 ``单元测试：安装 ESP-IDF pytest 依赖项``，选择该命令后，即可查看 pytest 包的安装输出。
+3. 捕获设备的串口输出并解析测试结果以在 ``测试`` 选项卡中显示。串口输出也会显示在 ``ESP-IDF`` 输出通道中。
 
-按下测试中的 ``run`` 按钮时，系统将在测试前按如下方式配置当前项目：
-
-1.  检查 ESP-IDF 的 pytest 依赖项是否满足。
-
-    .. note::
-
-        若想在此扩展中进行单元测试，需要先在你的 Python 虚拟环境中安装 `ESP-IDF pytest 依赖项 <https://github.com/espressif/esp-idf/blob/master/tools/requirements/requirements.pytest.txt>`_。
-
-2.  如果在 ``settings.json`` 文件中 ``idf.toolsPath`` 配置项所指定的 Python 虚拟环境中未找到 ESP-IDF 所需的 pytest 依赖，则系统会自动安装这些依赖。
-
-3.  从扩展模板中复制 ``unity-app``，并将所需的测试组件添加到主 ``CMakeLists.txt`` 文件的 ``TEST_COMPONENTS`` CMake 变量中。扩展提供的 ``unity-app`` 是一个包含 Unity 菜单的简单 ESP-IDF 应用程序，该程序会和探索步骤中发现的测试用例一起被构建并烧录到 ``idf.port`` 指定的串口设备上。
-
-    .. note::
-
-        你也可以使用 ``单元测试：安装 ESP-IDF pytest 依赖项`` 扩展命令，来创建、构建和烧录单元测试应用程序。该命令将把生成的单元测试应用程序复制、构建并烧录到你的设备上。
-
-4.  扩展会运行 `pytest-embedded <https://docs.espressif.com/projects/pytest-embedded/en/latest/index.html>`_ 插件，让 pytest 在 ESP-IDF 设备上执行测试，并把结果保存为 XML 文件放到 ``unity-app`` 目录。这个过程作为扩展任务执行，结果会显示在终端里（类似于构建和烧录任务）。pytest 的运行还依赖 ``idf.pyTestEmbeddedServices`` 配置项指定的服务（默认是 ``["esp", "idf"]``）。
-
-    .. note::
-
-        你可以通过修改 VS Code 设置中的 ``idf.pyTestEmbeddedServices`` 配置项来自定义 pytest 使用的嵌入式服务，从而指定不同的服务或根据需要为测试环境添加其他服务。
-
-5.  解析 XML 结果文件，并在 ``Testing`` 选项卡中更新测试结果，显示测试持续时间。
-
-6.  你可以使用 ``Testing`` 选项卡中的 ``Refresh Tests`` 按钮刷新测试并再次构建 ``unity-app``。
+4. 您可以使用 ``测试`` 选项卡中的 ``刷新测试`` 按钮刷新测试并再次构建 unity-app。
