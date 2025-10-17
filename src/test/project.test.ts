@@ -117,8 +117,8 @@ suite("Project tests", () => {
     const newProjectName = readProjectCMakeLists(projectPath);
     assert.notEqual(currProjectName, undefined);
     assert.notEqual(newProjectName, undefined);
-    assert.equal(currProjectName[0], `project(${prevName})`);
-    assert.equal(newProjectName[0], `project(${newName})`);
+    assert.equal(currProjectName, `${prevName}`);
+    assert.equal(newProjectName, `${newName}`);
   });
 
   test("get templates projects", async () => {

@@ -26,6 +26,7 @@ import { TaskManager } from "../taskManager";
 import { getDfuList, selectDfuDevice, selectedDFUAdapterId } from "./dfu";
 import { ESP } from "../config";
 import { getVirtualEnvPythonPath } from "../pythonManager";
+import { OutputCapturingExecution } from "../taskManager/customExecution";
 
 export class FlashTask {
   public static isFlashing: boolean;
@@ -102,7 +103,7 @@ export class FlashTask {
       notificationMode === idfConf.NotificationMode.Output
         ? vscode.TaskRevealKind.Always
         : vscode.TaskRevealKind.Silent;
-    let flashExecution: vscode.ProcessExecution;
+    let flashExecution: OutputCapturingExecution;
     this.modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
     this.processOptions = {
       cwd: this.buildDirPath,
@@ -155,12 +156,13 @@ export class FlashTask {
       ["espIdf"],
       flashPresentationOptions
     );
+    return flashExecution;
   }
 
   public _flashExecution(pythonBinPath: string) {
     this.flashing(true);
     const flasherArgs = this.getFlasherArgs(this.flashScriptPath);
-    return new vscode.ProcessExecution(
+    return OutputCapturingExecution.create(
       pythonBinPath,
       flasherArgs,
       this.processOptions
@@ -191,7 +193,7 @@ export class FlashTask {
         join(this.buildDirPath, "dfu.bin"),
       ];
     }
-    return new vscode.ProcessExecution(cmd, args, this.processOptions);
+    return OutputCapturingExecution.create(cmd, args, this.processOptions);
   }
 
   public _partitionFlashExecution(
@@ -203,7 +205,7 @@ export class FlashTask {
       this.flashScriptPath,
       sectionToUse
     );
-    return new vscode.ProcessExecution(
+    return OutputCapturingExecution.create(
       pythonBinPath,
       flasherArgs,
       this.processOptions

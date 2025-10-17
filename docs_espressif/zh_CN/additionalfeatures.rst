@@ -21,6 +21,7 @@
     堆跟踪<additionalfeatures/heap-tracing>
     提示查看器<additionalfeatures/hints-viewer>
     安装 ESP-IDF 组件<additionalfeatures/install-esp-components>
+    语言工具<additionalfeatures/language-tools>
     NVS 分区表编辑器<additionalfeatures/nvs-partition-editor>
     分区表编辑器<additionalfeatures/partition-table-editor>
     项目配置编辑器<additionalfeatures/project-configuration>

@@ -29,6 +29,7 @@ import {
 import { NotificationMode, readParameter } from "../idfConfiguration";
 import { TaskManager } from "../taskManager";
 import { appendIdfAndToolsToPath } from "../utils";
+import { ShellOutputCapturingExecution } from "../taskManager/customExecution";
 
 export enum CustomTaskType {
   Custom = "custom",
@@ -51,7 +52,7 @@ export class CustomTask {
     cmdString: string,
     options: ShellExecutionOptions
   ) {
-    return new ShellExecution(`${cmdString}`, options);
+    return new ShellOutputCapturingExecution(cmdString, options);
   }
 
   public async addCustomTask(taskType: CustomTaskType) {
@@ -133,6 +134,7 @@ export class CustomTask {
       ["espIdf", "espIdfLd"],
       customTaskPresentationOptions
     );
+    return customExecution;
   }
 
   public async runTasks(taskType: CustomTaskType) {

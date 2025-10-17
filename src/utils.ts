@@ -46,6 +46,7 @@ import {
   getVirtualEnvPythonPath,
 } from "./pythonManager";
 import { IdfToolsManager } from "./idfToolsManager";
+import { isFlashEncryptionEnabled } from "./flash/verifyFlashEncryption";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
 
@@ -184,7 +185,7 @@ export function spawn(
     sendToTelemetry: true,
   }
 ): Promise<Buffer> {
-  let buff = Buffer.alloc(0);
+  let buff: Buffer = Buffer.alloc(0);
   const sendToOutputChannel = (data: any) => {
     buff = Buffer.concat([buff, data]);
     options.outputString += buff.toString();
@@ -802,9 +803,9 @@ export function readProjectCMakeLists(dirPath: string) {
   const cmakeListFile = path.join(dirPath, "CMakeLists.txt");
   if (fileExists(cmakeListFile)) {
     const content = fs.readFileSync(cmakeListFile, "utf-8");
-    const projectMatches = content.match(/(project\(.*?\))/g);
-    if (projectMatches && projectMatches.length > 0) {
-      return projectMatches;
+    const projectMatches = content.match(/project\(([^)\s]+)/i);
+    if (projectMatches && projectMatches[1]) {
+      return projectMatches[1];
     }
   }
 }
@@ -1618,4 +1619,35 @@ export async function getConfigValueFromBuild(
   } catch (error) {
     throw new Error(`Failed to read or parse the JSON file: ${error.message}`);
   }
+}
+
+/**
+ * Determines if the monitor reset should be disabled.
+ * If flash encryption is enabled for release mode, we add --no-reset flag for monitoring
+ * because by default monitoring command resets the device which is not recommended.
+ * Reset should happen by Bootloader itself once it completes encrypting all artifacts.
+ *
+ * @returns {Promise<boolean>} True if monitor reset should be disabled, false otherwise.
+ */
+export async function shouldDisableMonitorReset(
+  workspaceUri: vscode.Uri
+): Promise<boolean> {
+  const configNoReset = idfConf.readParameter(
+    "idf.monitorNoReset",
+    workspaceUri
+  );
+
+  if (configNoReset === true) {
+    return true;
+  }
+
+  if (isFlashEncryptionEnabled(workspaceUri)) {
+    const valueReleaseModeEnabled = await getConfigValueFromSDKConfig(
+      "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE",
+      workspaceUri
+    );
+    return valueReleaseModeEnabled === "y";
+  }
+
+  return false;
 }
