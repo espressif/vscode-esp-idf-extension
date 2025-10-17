@@ -95,7 +95,6 @@
   "espIdf.unitTest.buildFlashUnitTestApp.title": "Unit Test: Build and Flash Unit Test App for Testing",
   "espIdf.unitTest.buildUnitTestApp.title": "Unit Test: Build Unit Test App",
   "espIdf.unitTest.flashUnitTestApp.title": "Unit Test: Flash Unit Test App",
-  "espIdf.unitTest.installPyTest.title": "Unit Test: Install ESP-IDF pytest Requirements",
   "espIdf.viewAsHex.title": "View as Hex",
   "espIdf.hexView.copyValue.title": "Copy value to clipboard",
   "espIdf.hexView.deleteElement.title": "Delete hex value from list",

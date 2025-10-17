@@ -1767,11 +1767,6 @@
         "category": "ESP-IDF"
       },
       {
-        "command": "espIdf.unitTest.installPyTest",
-        "title": "%espIdf.unitTest.installPyTest.title%",
-        "category": "ESP-IDF"
-      },
-      {
         "command": "espIdf.unitTest.buildFlashUnitTestApp",
         "title": "%espIdf.unitTest.buildFlashUnitTestApp.title%",
         "category": "ESP-IDF"
