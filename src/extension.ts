@@ -184,6 +184,8 @@ import {
   HexTreeItem,
   HexViewProvider,
 } from "./cdtDebugAdapter/hexViewProvider";
+
+import { ImageViewPanel } from "./cdtDebugAdapter/imageViewPanel";
 import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
@@ -1526,6 +1528,57 @@ export async function activate(context: vscode.ExtensionContext) {
       });
     }
   );
+
+  registerIDFCommand(
+    "espIdf.viewVariableAsImage",
+    (debugContext: {
+      container: {
+        expensive: boolean;
+        name: string;
+        variablesReference: number;
+      };
+      sessionId: string;
+      variable: {
+        evaluateName: string;
+        memoryReference: string;
+        name: string;
+        value: string;
+        variablesReference: number;
+        type: string;
+      };
+    }) => {
+      return PreCheck.perform([openFolderCheck], async () => {
+        if (
+          !debugContext ||
+          !debugContext.variable ||
+          !debugContext.variable.evaluateName
+        ) {
+          return;
+        }
+        if (!vscode.debug.activeDebugSession) {
+          return;
+        }
+
+        try {
+          // Show the ImageViewPanel and pass the variable information
+          ImageViewPanel.show(context.extensionPath);
+
+          // Send the variable information to the ImageViewPanel with automatic type detection
+          ImageViewPanel.handleVariableAsImage(debugContext);
+        } catch (e) {
+          const msg = e && e.message ? e.message : e;
+          Logger.errorNotify(msg, e, "extension espIdf.viewVariableAsImage");
+        }
+      });
+    }
+  );
+
+  registerIDFCommand("espIdf.openImageViewer", () => {
+    return PreCheck.perform([openFolderCheck], () => {
+      // Show the ImageViewPanel without an image
+      ImageViewPanel.show(context.extensionPath);
+    });
+  });
 
   registerIDFCommand("espIdf.genCoverage", () => {
     return PreCheck.perform([openFolderCheck], async () => {
