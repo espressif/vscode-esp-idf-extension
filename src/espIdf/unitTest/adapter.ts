@@ -85,8 +85,12 @@ export class UnitTest {
         if (!workspaceFolderUri) {
           return;
         }
+        let workspaceFolder = workspace.getWorkspaceFolder(workspaceFolderUri);
+        if (!workspaceFolder) {
+          return;
+        }
         this.unitTestAppUri = await configurePyTestUnitApp(
-          workspaceFolderUri,
+          workspaceFolder.uri,
           this.testComponents,
           cancelToken
         );
