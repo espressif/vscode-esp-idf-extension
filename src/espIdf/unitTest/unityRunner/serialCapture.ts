@@ -8,6 +8,7 @@ import { ReadlineParser } from '@serialport/parser-readline';
 import { UnityParserOptions, SerialPortConfig } from "./types"
 import { EventEmitter } from 'events';
 import { promises } from 'fs';
+import { Logger } from '../../../logger/logger';
 
 export class UnitySerialCapture extends EventEmitter {
   private port: SerialPort | null = null;
@@ -36,12 +37,12 @@ export class UnitySerialCapture extends EventEmitter {
 
       // Set up event handlers
       this.port.on('open', () => {
-        console.log(`Connected to ${this.config.port} at ${this.config.baudRate} baud`);
+        Logger.info(`Connected to ${this.config.port} at ${this.config.baudRate} baud`);
         this.emit('connected');
       });
 
       this.port.on('error', (err) => {
-        console.error(`Serial port error: ${err.message}`);
+        Logger.error(`Serial port error: ${err.message}`, err, "UnitySerialCapture port error");
         this.emit('error', err);
       });
 
@@ -50,7 +51,7 @@ export class UnitySerialCapture extends EventEmitter {
         if (trimmedLine) {
           this.capturedLines.push(trimmedLine);
           this.emit('data', trimmedLine);
-          console.log(`[${new Date().toISOString()}] ${trimmedLine}`);
+          Logger.info(`[${new Date().toISOString()}] ${trimmedLine}`);
         }
       });
 
@@ -75,7 +76,7 @@ export class UnitySerialCapture extends EventEmitter {
 
       return true;
     } catch (error) {
-      console.error(`Failed to connect to ${this.config.port}:`, error);
+      Logger.error(`Failed to connect to ${this.config.port}:`, error, "UnitySerialCapture connect");
       return false;
     }
   }
@@ -87,7 +88,7 @@ export class UnitySerialCapture extends EventEmitter {
     if (this.port && this.port.isOpen) {
       await new Promise<void>((resolve) => {
         this.port!.close(() => {
-          console.log('Disconnected from serial port');
+          Logger.info('Disconnected from serial port');
           this.emit('disconnected');
           resolve();
         });
@@ -108,7 +109,7 @@ export class UnitySerialCapture extends EventEmitter {
     }
 
     try {
-      console.log('Performing hard reset...');
+      Logger.info('Performing hard reset...');
       
       // Set DTR and RTS to false (reset state)
       this.port.set({ dtr: false, rts: false });
@@ -125,11 +126,11 @@ export class UnitySerialCapture extends EventEmitter {
       // Set both to true (normal operation)
       this.port.set({ dtr: true, rts: true });
       await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
-      
-      console.log('Hard reset completed');
+
+      Logger.info('Hard reset completed');
       this.emit('hardResetCompleted');
     } catch (error) {
-      console.error('Hard reset failed:', error);
+      Logger.error('Hard reset failed:', error, "UnitySerialCapture hardReset");
       this.emit('hardResetFailed', error);
       throw error;
     }
@@ -192,7 +193,7 @@ export class UnitySerialCapture extends EventEmitter {
   async saveToFile(filePath: string): Promise<void> {
     const content = this.capturedLines.join('\n');
     await promises.writeFile(filePath, content, 'utf-8');
-    console.log(`Output saved to ${filePath}`);
+    Logger.info(`Output saved to ${filePath}`);
   }
 
   /**
@@ -229,7 +230,7 @@ export class UnitySerialCapture extends EventEmitter {
         productId: port.productId
       }));
     } catch (error) {
-      console.error('Failed to list serial ports:', error);
+      Logger.error('Failed to list serial ports:', error, "UnitySerialCapture listPorts");
       return [];
     }
   }
