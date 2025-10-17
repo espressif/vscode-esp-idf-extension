@@ -5,7 +5,7 @@
 
 import { SerialPort } from 'serialport';
 import { ReadlineParser } from '@serialport/parser-readline';
-import { UnityParserOptions, SerialPortConfig } from "./types"
+import { SerialPortConfig } from "./types"
 import { EventEmitter } from 'events';
 import { promises } from 'fs';
 import { Logger } from '../../../logger/logger';
@@ -14,7 +14,6 @@ export class UnitySerialCapture extends EventEmitter {
   private port: SerialPort | null = null;
   private parser: ReadlineParser | null = null;
   private config: SerialPortConfig;
-  private isCapturing = false;
   private capturedLines: string[] = [];
 
   constructor(config: SerialPortConfig) {
@@ -96,7 +95,6 @@ export class UnitySerialCapture extends EventEmitter {
     }
     this.port = null;
     this.parser = null;
-    this.isCapturing = false;
   }
 
   /**
@@ -134,43 +132,6 @@ export class UnitySerialCapture extends EventEmitter {
       this.emit('hardResetFailed', error);
       throw error;
     }
-  }
-
-  /**
-   * Start capturing output
-   */
-  startCapture(): void {
-    this.isCapturing = true;
-    this.capturedLines = [];
-    this.emit('captureStarted');
-  }
-
-  /**
-   * Stop capturing output
-   */
-  stopCapture(): void {
-    this.isCapturing = false;
-    this.emit('captureStopped');
-  }
-
-  /**
-   * Capture output for a specified duration
-   */
-  async captureForDuration(durationMs: number): Promise<string[]> {
-    this.startCapture();
-    
-    return new Promise((resolve) => {
-      const timeout = setTimeout(() => {
-        this.stopCapture();
-        resolve([...this.capturedLines]);
-      }, durationMs);
-
-      // Allow manual stopping
-      this.once('captureStopped', () => {
-        clearTimeout(timeout);
-        resolve([...this.capturedLines]);
-      });
-    });
   }
 
   /**
