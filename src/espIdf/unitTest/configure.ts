@@ -21,28 +21,20 @@ import { ESP } from "../../config";
 import { join } from "path";
 import { copy, pathExists, readFile, writeFile } from "fs-extra";
 import { readParameter, readSerialPort } from "../../idfConfiguration";
-import { getEspIdfFromCMake, startPythonReqsProcess } from "../../utils";
-import { runTaskForCommand } from "./testExecution";
 import { buildCommand } from "../../build/buildCmd";
 import { verifyCanFlash } from "../../flash/flashCmd";
 import { jtagFlashCommand } from "../../flash/jtagCmd";
 import { flashCommand } from "../../flash/uartFlash";
 import { OutputChannel } from "../../logger/outputChannel";
 import { Logger } from "../../logger/logger";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { getFileList, getTestComponents } from "./utils";
 import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 
-export async function configurePyTestUnitApp(
+export async function configureUnityApp(
   workspaceFolder: Uri,
-  testComponents: string[],
   cancelToken?: CancellationToken
 ) {
   try {
-    const isPyTestInstalled = await checkPytestRequirements(workspaceFolder);
-    if (!isPyTestInstalled) {
-      await installPyTestPackages(workspaceFolder, cancelToken);
-    }
     let unitTestAppUri = Uri.joinPath(workspaceFolder, "unity-app");
     const doesUnitTestAppExists = await pathExists(unitTestAppUri.fsPath);
     if (!doesUnitTestAppExists) {
@@ -59,9 +51,9 @@ export async function configurePyTestUnitApp(
     const msg =
       error && error.message
         ? error.message
-        : "Error configuring PyTest Unit App for project";
+        : "Error configuring Unity App for project";
     OutputChannel.appendLine(msg, "idf-unit-test");
-    Logger.error(msg, error, "configurePyTestUnitApp");
+    Logger.error(msg, error, "configureUnityApp");
   }
 }
 
@@ -96,95 +88,6 @@ export async function updateTestComponents(
       await writeFile(cmakeListFile.fsPath, content);
     }
   }
-}
-
-export async function checkPytestRequirements(workspaceFolder: Uri) {
-  const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-  let requirementsPath = join(
-    idfPath,
-    "tools",
-    "requirements",
-    "requirements.pytest.txt"
-  );
-  let checkResult: string;
-  try {
-    const doesPyTestRequirementsExists = await pathExists(requirementsPath);
-    if (!doesPyTestRequirementsExists) {
-      requirementsPath = join(
-        extensions.getExtension(ESP.extensionID).extensionPath,
-        "requirements.pytest.txt"
-      );
-    }
-    checkResult = await startPythonReqsProcess(
-      pythonBinPath,
-      idfPath,
-      requirementsPath
-    );
-  } catch (error) {
-    checkResult = error && error.message ? error.message : " are not satisfied";
-  }
-  if (checkResult.indexOf("are satisfied") > -1) {
-    return true;
-  }
-  return false;
-}
-
-export async function installPyTestPackages(
-  workspaceFolder: Uri,
-  cancelToken?: CancellationToken
-) {
-  const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-  const containerPath =
-    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
-  const confToolsPath = readParameter(
-    "idf.toolsPath",
-    workspaceFolder
-  ) as string;
-  const toolsPath =
-    confToolsPath ||
-    process.env.IDF_TOOLS_PATH ||
-    join(containerPath, ".espressif");
-  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-  let requirementsPath = join(
-    idfPath,
-    "tools",
-    "requirements",
-    "requirements.pytest.txt"
-  );
-
-  const doesPyTestRequirementsExists = await pathExists(requirementsPath);
-  if (!doesPyTestRequirementsExists) {
-    requirementsPath = join(
-      extensions.getExtension(ESP.extensionID).extensionPath,
-      "requirements.pytest.txt"
-    );
-  }
-
-  const fullEspIdfVersion = await getEspIdfFromCMake(idfPath);
-  const majorMinorMatches = fullEspIdfVersion.match(/([0-9]+\.[0-9]+).*/);
-  const espIdfVersion =
-    majorMinorMatches && majorMinorMatches.length > 0
-      ? majorMinorMatches[1]
-      : "x.x";
-  const constrainsFile = join(
-    toolsPath,
-    `espidf.constraints.v${espIdfVersion}.txt`
-  );
-  const constrainsFileExists = await pathExists(constrainsFile);
-  let constraintArg = [];
-  if (constrainsFileExists) {
-    constraintArg = ["--constraint", constrainsFile];
-  }
-
-  await runTaskForCommand(
-    workspaceFolder,
-    `"${pythonBinPath}" -m pip install --upgrade ${
-      constraintArg && constraintArg.length > 0 ? constraintArg.join(" ") : ""
-    } --no-warn-script-location -r "${requirementsPath}" --extra-index-url https://dl.espressif.com/pypi`,
-    "Install Pytest",
-    cancelToken
-  );
 }
 
 export async function buildTestApp(

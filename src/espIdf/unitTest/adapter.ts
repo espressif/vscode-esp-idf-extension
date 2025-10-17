@@ -33,20 +33,19 @@ import {
   Range,
 } from "vscode";
 import { EspIdfTestItem, idfTestData } from "./types";
-import { runPyTestWithTestCase } from "./testExecution";
-import { configurePyTestUnitApp } from "./configure";
-import { getFileList, getTestComponents } from "./utils";
+import { configureUnityApp } from "./configure";
+import { getFileList } from "./utils";
 import { ESP } from "../../config";
 import { UnityTestRunner } from "./unityRunner/unityTestRunner";
 import { readParameter, readSerialPort } from "../../idfConfiguration";
 import { UnityParserOptions } from "./unityRunner/types";
+import { Logger } from "../../logger/logger";
 
 const unitTestControllerId = "IDF_UNIT_TEST_CONTROLLER";
 const unitTestControllerLabel = "ESP-IDF Unit test controller";
 
 export class UnitTest {
   public unitTestController: TestController;
-  private testComponents: string[];
   private unitTestAppUri: Uri;
 
   constructor(context: ExtensionContext) {
@@ -60,7 +59,6 @@ export class UnitTest {
     ) => {
       this.clearExistingTestCaseItems();
       const fileList = await getFileList();
-      this.testComponents = await getTestComponents(fileList);
       await this.loadTests(fileList);
     };
 
@@ -101,19 +99,18 @@ export class UnitTest {
           }
 
           if (!workspaceFolderUri) {
-            console.warn(
+            Logger.warn(
               "No workspace folder available for unit test configuration"
             );
             return;
           }
 
-          this.unitTestAppUri = await configurePyTestUnitApp(
+          this.unitTestAppUri = await configureUnityApp(
             workspaceFolderUri,
-            this.testComponents,
             cancelToken
           );
         } catch (error) {
-          console.error("Failed to configure unit test app:", error);
+          Logger.error("Failed to configure unit test app:", error, "unitTest runHandler configurePytestUnitApp");
           return;
         }
       }
@@ -206,7 +203,6 @@ export class UnitTest {
       if (!item) {
         const fileList = await getFileList();
         await this.loadTests(fileList);
-        this.testComponents = await getTestComponents(fileList);
         return;
       }
       const espIdfTestItem = await this.getTestsForFile(item.uri);
