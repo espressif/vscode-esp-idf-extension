@@ -54,35 +54,47 @@ export class OpenOCDManager extends EventEmitter {
   }
   private static instance: OpenOCDManager;
   private server: ChildProcess;
-  private chan: Buffer;
+  private chan: string;
   private statusBar: vscode.StatusBarItem;
   private workspace: vscode.Uri;
   private encounteredErrors: boolean = false;
+  private versionPromise: Promise<string> | null = null; // coalesce concurrent lookups only
 
   private constructor() {
     super();
     this.configureServerWithDefaultParam();
   }
 
-  public async version(silent: boolean = false): Promise<string> {
-    const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
-    const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
-      "openocd-esp32",
-    ]);
-    if (!openOcdPath) {
-      return "";
+  public async version(silent: boolean = true): Promise<string> {
+    // Coalesce concurrent calls; do not cache long-term to respect version changes
+    if (this.versionPromise) {
+      return this.versionPromise;
     }
-    const resp = await sspawn(openOcdPath, ["--version"], {
-      cwd: this.workspace.fsPath,
-      env: modifiedEnv,
-      silent,
-    });
-    const versionString = resp.toString();
-    const match = versionString.match(/v\d+\.\d+\.\d+\-\S*/gi);
-    if (!match) {
-      return "failed+to+match+version";
+
+    this.versionPromise = (async () => {
+      const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
+      const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
+        "openocd-esp32",
+      ]);
+      if (!openOcdPath) {
+        return "";
+      }
+      const resp = await sspawn(openOcdPath, ["--version"], {
+        cwd: this.workspace.fsPath,
+        env: modifiedEnv,
+        silent,
+        appendMode: "append",
+      });
+      const versionString = resp.toString();
+      const match = versionString.match(/v\d+\.\d+\.\d+\-\S*/gi);
+      return match ? match[0].replace("-dirty", "") : "failed+to+match+version";
+    })();
+
+    try {
+      return await this.versionPromise;
+    } finally {
+      this.versionPromise = null;
     }
-    return match[0].replace("-dirty", "");
   }
 
   public statusBarItem(): vscode.StatusBarItem {
@@ -365,7 +377,7 @@ export class OpenOCDManager extends EventEmitter {
     if (PreCheck.isWorkspaceFolderOpen()) {
       this.workspace = vscode.workspace.workspaceFolders[0].uri;
     }
-    this.chan = Buffer.alloc(0);
+    this.chan = "";
     OutputChannel.init();
     if (vscode.env.uiKind !== vscode.UIKind.Web) {
       this.registerOpenOCDStatusBarItem();
@@ -373,6 +385,6 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   private sendToOutputChannel(data: Buffer) {
-    this.chan = Buffer.concat([this.chan, data]);
+    this.chan = (this.chan || "") + data.toString();
   }
 }
