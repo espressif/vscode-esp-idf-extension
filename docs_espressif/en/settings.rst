@@ -171,7 +171,7 @@ These settings are used to configure the code coverage colors.
 
 
 Unit test Specific Settings
-------------------------
+-----------------------------
 
 These settings are used to configure unit testing.
 
