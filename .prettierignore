@@ -26,7 +26,6 @@ node_modules/
 templates/
 testFiles/
 media/
-esp_debug_adapter/
 external/
 test-resources/
 docs_espressif/
