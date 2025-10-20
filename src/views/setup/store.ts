@@ -177,9 +177,9 @@ export const useSetupStore = defineStore("setup", () => {
 
   function checkEspIdfTools() {
     const pyPath =
-      selectedSysPython === pyVersionsList[pyVersionsList.value.length - 1]
-        ? manualPythonPath
-        : selectedSysPython;
+      selectedSysPython.value === pyVersionsList.value[pyVersionsList.value.length - 1]
+        ? manualPythonPath.value
+        : selectedSysPython.value;
     console.log({
       command: "checkEspIdfTools",
       espIdf: espIdf.value,
@@ -254,6 +254,7 @@ export const useSetupStore = defineStore("setup", () => {
       tools: JSON.stringify(toolsResults.value),
       toolsPath: toolsFolder.value,
       saveScope: saveScope.value,
+      mirror: selectedIdfMirror.value,
     });
   }
 
