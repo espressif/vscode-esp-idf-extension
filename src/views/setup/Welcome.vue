@@ -191,11 +191,6 @@ const whatsNewLink = computed(() => {
               ESP-ADF
             </a>
           </div>
-          <div class="level-item mx-1 link">
-            <a href="https://github.com/espressif/esp-mdf">
-              ESP-MDF
-            </a>
-          </div>
         </div>
         <div class="level m-4">
           <div class="level-item mx-1 link">

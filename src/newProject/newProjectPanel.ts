@@ -77,20 +77,6 @@ export class NewProjectPanel {
         vscode.Uri.file(newProjectArgs.espIdfSetup.idfPath)
       );
     }
-    if (newProjectArgs.espMdfPath) {
-      localResourceRoots.push(vscode.Uri.file(newProjectArgs.espMdfPath));
-    }
-    if (newProjectArgs.espMatterPath) {
-      localResourceRoots.push(vscode.Uri.file(newProjectArgs.espMatterPath));
-    }
-    if (newProjectArgs.espRainmakerPath) {
-      localResourceRoots.push(vscode.Uri.file(newProjectArgs.espRainmakerPath));
-    }
-    if (newProjectArgs.espHomeKitSdkPath) {
-      localResourceRoots.push(
-        vscode.Uri.file(newProjectArgs.espHomeKitSdkPath)
-      );
-    }
     this.panel = vscode.window.createWebviewPanel(
       NewProjectPanel.viewType,
       newProjectTitle,
