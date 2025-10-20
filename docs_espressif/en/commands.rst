@@ -68,16 +68,6 @@ All commands start with ``ESP-IDF:``.
      - Import an existing ESP-IDF project, add .vscode and .devcontainer files to a new location, and optionally rename the project.
    * - Install ESP-ADF
      - Clone ESP-ADF inside the selected directory and set **idf.espAdfPath** (**idf.espAdfPathWin** in Windows) configuration setting.
-   * - Install ESP-IDF Python Packages (DEPRECATION NOTICE)
-     - Install extension Python packages. This command is deprecated and will be removed soon.
-   * - Install ESP-MDF
-     - Clone ESP-MDF inside the selected directory and set **idf.espMdfPath** (**idf.espMdfPathWin** in Windows) configuration setting.
-   * - Install ESP-Matter
-     - Clone ESP-Matter and set **idf.espMatterPath**. ESP-Matter is not supported on Windows.
-   * - Install ESP-Rainmaker
-     - Clone ESP-Rainmaker and set **idf.espRainmakerPath** (**idf.espRainmakerPathWin** in Windows) configuration setting.
-   * - Install ESP-HomeKit-SDK
-     - Clone ESP-HomeKit-SDK inside the selected directory and set **idf.espHomeKitSdkPath** (**idf.espHomeKitSdkPathWin** in Windows) configuration setting.
    * - Launch IDF Monitor for Core Dump Mode/GDB Stub Mode
      - Launch ESP-IDF Monitor with WebSocket capabilities. If you have configured the panic handler to gdbstub or core dump, the monitor will launch a post-mortem debug session of the chip.
    * - Launch QEMU Server
@@ -126,8 +116,6 @@ All commands start with ``ESP-IDF:``.
      - This extension shows many notifications and output in the Output window **ESP-IDF**. This command allows you to set if to show notifications only, output only, both notifications and output, or neither.
    * - Set Espressif Device Target
      - This will set the target for the current project (IDF_TARGET). Similar to **idf.py set-target**. For example, if you want to use ESP32 or ESP32-C3, you need to execute this command.
-   * - Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)
-     - The **ESP-IDF: Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)** is used to define the device path for ESP-Matter. ESP-Matter is not supported in Windows.
    * - Show Ninja Build Summary
      - Execute the Chromium ninja-build-summary.py.
    * - Size Analysis of the Binaries

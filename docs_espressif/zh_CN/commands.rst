@@ -68,16 +68,6 @@
      - 导入现有的 ESP-IDF 项目，在新位置添加 .vscode 和 .devcontainer 文件，同时可以重命名项目。
    * - 安装 ESP-ADF
      - 在所选目录中克隆 ESP-ADF，并配置 **idf.espAdfPath**（Windows 系统中为 **idf.espAdfPathWin**）。
-   * - 安装 ESP-IDF Python 包（已弃用）
-     - 安装扩展 Python 包。本命令已弃用，即将被移除。
-   * - 安装 ESP-MDF
-     - 在所选目录中克隆 ESP-MDF，并配置 **idf.espMdfPath**（Windows 系统中为 **idf.espMdfPathWin**）。
-   * - 安装 ESP-Matter
-     - 克隆 ESP-Matter 并设置 **idf.espMatterPath**。ESP-Matter 不支持 Windows。
-   * - 安装 ESP-Rainmaker
-     - 克隆 ESP-Rainmaker，并配置 **idf.espRainmakerPath**（Windows 系统中为 **idf.espRainmakerPathWin**）。
-   * - 安装 ESP-HomeKit-SDK
-     - 在所选目录中克隆 ESP-HomeKit-SDK，并配置 **idf.espHomeKitSdkPath**（Windows 系统中为 **idf.espHomeKitSdkPathWin**）。
    * - 启动 IDF 监视器以支持 Core Dump 模式/GDB Stub 模式
      - 启动支持 WebSocket 的 ESP-IDF 监控器。如果紧急处理程序已经配置为 gdbstub 或核心转储，监控器将启动芯片的事后调试会话。
    * - 启动 QEMU 服务器
@@ -126,10 +116,6 @@
      - 此扩展会在输出窗口 <strong>ESP-IDF</strong> 中显示通知和输出。此命令可设置是否只显示通知、只显示输出、两者都显示或都不显示。
    * - 设置乐鑫设备目标
      - 该命令为当前项目设置目标 (IDF_TARGET)，效果等同于 **idf.py set-target**。例如，若想使用 ESP32 或 ESP32-C3，则需执行此命令。
-   * - 设置 ESP-MATTER 设备路径 (ESP_MATTER_DEVICE_PATH)
-     - **ESP-IDF：设置 ESP-MATTER 设备路径 (ESP_MATTER_DEVICE_PATH)** 命令用于定义 ESP-Matter 的设备路径。Windows 系统不支持 ESP-Matter。
-   * - 展示示例项目
-     - 启动 UI 以显示所选框架的示例，可从中创建新项目。此命令将显示扩展中已配置的框架，如果想查看 ESP-Rainmaker 示例，需要先运行 **安装 ESP-Rainmaker** 命令（或设置相应的 idf.espRainmakerPath），然后执行此命令以查看示例。
    * - 显示 Ninja 构建摘要
      - 运行 Chromium ninja-build-summary.py。
    * - 二进制文件大小分析

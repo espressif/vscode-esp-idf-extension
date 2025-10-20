@@ -1,3 +1,0 @@
-[submodule "esp_debug_adapter"]
-	path = esp_debug_adapter
-	url = git@github.com:espressif/esp-debug-adapter.git

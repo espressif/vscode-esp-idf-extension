@@ -33,7 +33,6 @@ export async function setCurrentSettingsInTemplate(
 ) {
   const settingsJson = await readJSON(settingsJsonPath);
   const adfPathDir = readParameter("idf.espAdfPath", workspace);
-  const mdfPathDir = readParameter("idf.espMdfPath", workspace);
   const isWin = process.platform === "win32" ? "Win" : "";
   if (idfSetup.idfPath) {
     settingsJson["idf.espIdfPath" + isWin] = idfSetup.idfPath;
@@ -49,9 +48,6 @@ export async function setCurrentSettingsInTemplate(
   }
   if (adfPathDir) {
     settingsJson["idf.espAdfPath" + isWin] = adfPathDir;
-  }
-  if (mdfPathDir) {
-    settingsJson["idf.espMdfPath" + isWin] = mdfPathDir;
   }
   if (openOcdConfigs) {
     settingsJson["idf.openOcdConfigs"] =
