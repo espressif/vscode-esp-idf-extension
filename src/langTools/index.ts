@@ -137,7 +137,10 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
         ]);
       }
 
-      let encryptPartitions = await isFlashEncryptionEnabled(workspaceURI);
+      let encryptPartitions: boolean = false;
+      if (commandName === "flash" || commandName === "buildFlashMonitor") {
+        encryptPartitions = await isFlashEncryptionEnabled(workspaceURI);
+      }
 
       let partitionToUse = options.input.partitionToUse as
         | ESP.BuildType
@@ -165,6 +168,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
         | ShellOutputCapturingExecution
       )[] = [];
       if (commandId) {
+        let outputs: vscode.LanguageModelTextPart[] = [];
         try {
           await focusOnAppropriateOutput(commandName);
           if (commandName === "build") {
@@ -366,7 +370,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             }
             const eraseFlashTask = new EraseFlashTask(workspaceURI);
             const eraseFlashExecution = await eraseFlashTask.eraseFlash(port);
-            const eraseFlashResult = await TaskManager.runTasksWithOutput();
+            const eraseFlashResult = await TaskManager.runTasksWithBoolean();
             taskExecutions.push(eraseFlashExecution);
             if (!token.isCancellationRequested) {
               EraseFlashTask.isErasing = false;
@@ -450,7 +454,6 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             await vscode.commands.executeCommand(commandId);
           }
 
-          let outputs: vscode.LanguageModelTextPart[] = [];
           if (TASK_COMMANDS.has(commandName)) {
             for (const execution of taskExecutions) {
               if (execution) {
@@ -525,11 +528,16 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
           }
           const errorMessage = `Failed to execute command "${commandName}": ${error.message}\n${error.stack}`;
           return new vscode.LanguageModelToolResult([
+            ...outputs,
             new vscode.LanguageModelTextPart(errorMessage),
           ]);
         }
       } else {
-        throw new Error(`Unknown ESP-IDF command: ${commandName}`);
+        return new vscode.LanguageModelToolResult([
+          new vscode.LanguageModelTextPart(
+            `Unknown ESP-IDF command: ${commandName}`
+          ),
+        ]);
       }
     },
 

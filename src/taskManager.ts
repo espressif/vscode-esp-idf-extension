@@ -141,48 +141,12 @@ export class TaskManager {
     TaskManager.taskResults = [];
   }
 
-  public static async runTasksWithOutput() {
-    const results: Array<{
-      taskId: string;
-      output?: any;
-      error?: Error;
-      exitCode: number;
-    }> = [];
-
+  public static async runTasksWithBoolean() {
     try {
       await TaskManager.runTasks();
-      // If we get here, all tasks succeeded
-      return { success: true, results };
+      return true;
     } catch (error) {
-      // Tasks failed, but we can still get output from custom executions
-      const customExecutions = TaskManager.tasks.filter(
-        (task) =>
-          task.execution &&
-          (task.execution as any).getOutput &&
-          typeof (task.execution as any).getOutput === "function"
-      );
-
-      for (const task of customExecutions) {
-        try {
-          const execution = task.execution as any;
-          const output = await execution.getOutput();
-          results.push({
-            taskId: task.definition.taskId,
-            output,
-            error: undefined,
-            exitCode: output.exitCode,
-          });
-        } catch (execError) {
-          results.push({
-            taskId: task.definition.taskId,
-            output: undefined,
-            error: execError as Error,
-            exitCode: -1,
-          });
-        }
-      }
-
-      return { success: false, results };
+      return false;
     }
   }
 }

@@ -123,7 +123,7 @@ export async function buildCommandMain(
       executions.push(dfuExecution);
     }
   }
-  const buildResult = await TaskManager.runTasksWithOutput();
+  const buildResult = await TaskManager.runTasksWithBoolean();
   if (!cancelToken.isCancellationRequested) {
     updateIdfComponentsTree(workspace);
     Logger.infoNotify("Build Successful");
@@ -134,9 +134,8 @@ export async function buildCommandMain(
   buildTask.building(false);
 
   return {
-    continueFlag: buildResult.success,
+    continueFlag: buildResult,
     executions,
-    results: buildResult.results,
   };
 }
 
@@ -156,7 +155,20 @@ export async function buildCommand(
     );
     continueFlag = buildCmdResults.continueFlag;
     if (!continueFlag) {
-      throw buildCmdResults.results[0].error;
+      for (let i = 0; i < buildCmdResults.executions.length; i++) {
+        if (buildCmdResults.executions[i]) {
+          const executionOutput = await buildCmdResults.executions[
+            i
+          ].getOutput();
+          if (
+            executionOutput &&
+            !executionOutput.success &&
+            executionOutput.stderr
+          ) {
+            throw executionOutput.stderr;
+          }
+        }
+      }
     }
   } catch (error) {
     if (error.message === "ALREADY_BUILDING") {

@@ -81,7 +81,7 @@ export async function uartFlashCommandMain(
   const postFlashExecution = await customTask.addCustomTask(
     CustomTaskType.PostFlash
   );
-  const flashResult = await TaskManager.runTasksWithOutput();
+  const flashResult = await TaskManager.runTasksWithBoolean();
 
   if (!cancelToken.isCancellationRequested) {
     const msg = "Flash Done ⚡️";
@@ -91,9 +91,8 @@ export async function uartFlashCommandMain(
   }
   FlashTask.isFlashing = false;
   return {
-    continueFlag: flashResult.success,
+    continueFlag: flashResult,
     executions: [preFlashExecution, flashExecution, postFlashExecution],
-    results: flashResult.results,
   };
 }
 
@@ -121,7 +120,20 @@ export async function flashCommand(
     );
     continueFlag = flashCmdResult.continueFlag;
     if (!continueFlag) {
-      throw flashCmdResult.results[0].error;
+      for (let i = 0; i < flashCmdResult.executions.length; i++) {
+        if (flashCmdResult.executions[i]) {
+          const executionOutput = await flashCmdResult.executions[
+            i
+          ].getOutput();
+          if (
+            executionOutput &&
+            !executionOutput.success &&
+            executionOutput.stderr
+          ) {
+            throw executionOutput.stderr;
+          }
+        }
+      }
     }
   } catch (error) {
     if (error.message === "ALREADY_FLASHING") {

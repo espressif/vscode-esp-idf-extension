@@ -22,12 +22,6 @@ import * as childProcess from "child_process";
 export interface CustomExecutionTaskResult {
   continueFlag: boolean;
   executions: (OutputCapturingExecution | ShellOutputCapturingExecution)[];
-  results?: Array<{
-    taskId: string;
-    output?: any;
-    error?: Error;
-    exitCode: number;
-  }>;
 }
 
 export interface CapturedTaskOutput {
@@ -169,7 +163,7 @@ export class OutputCapturingExecution extends vscode.CustomExecution {
 
   public async getOutput(): Promise<CapturedTaskOutput> {
     if (!this.outputPromise) {
-      throw new Error("Task has not been executed yet");
+      return { stdout: "", stderr: "", exitCode: -1, success: false } as CapturedTaskOutput;
     }
     return this.outputPromise;
   }
