@@ -5,6 +5,7 @@ This feature lets you run ESP-IDF commands directly from the VS Code chat window
 Instead of typing terminal commands, you can simply ask in chat - and the tool will execute common ESP-IDF actions for you, like building, flashing, or monitoring your project.
 
 .. _available-language-commands:
+
 Available Commands
 ------------------
 
