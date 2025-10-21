@@ -31,6 +31,8 @@ import {
 import { Logger } from "../logger/logger";
 import { resolveVariables } from "../idfConfiguration";
 
+const ESP_IDF_VENDOR_KEY = "espressif/vscode-esp-idf";
+
 export class ProjectConfigStore {
   private static self: ProjectConfigStore;
   private ctx: ExtensionContext;
@@ -79,20 +81,20 @@ export async function updateCurrentProfileOpenOcdConfigs(
   await updateCurrentProjectConfiguration(workspaceFolder, (config) => {
     // Update OpenOCD configs in vendor settings
     if (!config.vendor) {
-      config.vendor = { "espressif/vscode-esp-idf": { settings: [] } };
+      config.vendor = { [ESP_IDF_VENDOR_KEY]: { settings: [] } };
     }
-    if (!config.vendor["espressif/vscode-esp-idf"]) {
-      config.vendor["espressif/vscode-esp-idf"] = { settings: [] };
+    if (!config.vendor[ESP_IDF_VENDOR_KEY]) {
+      config.vendor[ESP_IDF_VENDOR_KEY] = { settings: [] };
     }
 
     // Remove existing openOCD setting
-    config.vendor["espressif/vscode-esp-idf"].settings = 
-      config.vendor["espressif/vscode-esp-idf"].settings.filter(
+    config.vendor[ESP_IDF_VENDOR_KEY].settings = 
+      config.vendor[ESP_IDF_VENDOR_KEY].settings.filter(
         (setting) => setting.type !== "openOCD"
       );
 
     // Add new openOCD setting
-    config.vendor["espressif/vscode-esp-idf"].settings.push({
+    config.vendor[ESP_IDF_VENDOR_KEY].settings.push({
       type: "openOCD",
       value: {
         debugLevel: 2,
@@ -863,10 +865,10 @@ function mergePresets(
   // Merge vendor settings (child overrides parent)
   if (child.vendor || parent.vendor) {
     merged.vendor = {
-      "espressif/vscode-esp-idf": {
+      [ESP_IDF_VENDOR_KEY]: {
         settings: [
-          ...(parent.vendor?.["espressif/vscode-esp-idf"]?.settings || []),
-          ...(child.vendor?.["espressif/vscode-esp-idf"]?.settings || []),
+          ...(parent.vendor?.[ESP_IDF_VENDOR_KEY]?.settings || []),
+          ...(child.vendor?.[ESP_IDF_VENDOR_KEY]?.settings || []),
         ],
       },
     };
@@ -1299,12 +1301,12 @@ async function processConfigurePresetVendor(
   resolvePaths: boolean
 ): Promise<ESPIDFVendorSettings> {
   const processedVendor: ESPIDFVendorSettings = {
-    "espressif/vscode-esp-idf": {
+    [ESP_IDF_VENDOR_KEY]: {
       settings: [],
     },
   };
 
-  const espIdfSettings = vendor["espressif/vscode-esp-idf"]?.settings || [];
+  const espIdfSettings = vendor[ESP_IDF_VENDOR_KEY]?.settings || [];
 
   for (const setting of espIdfSettings) {
     const processedSetting: ESPIDFSettings = { ...setting };
@@ -1338,7 +1340,7 @@ async function processConfigurePresetVendor(
       );
     }
 
-    processedVendor["espressif/vscode-esp-idf"].settings.push(processedSetting);
+    processedVendor[ESP_IDF_VENDOR_KEY].settings.push(processedSetting);
   }
 
   return processedVendor;
@@ -1542,7 +1544,7 @@ function getESPIDFSettingValue(
   settingType: string
 ): any {
   const espIdfSettings =
-    preset.vendor?.["espressif/vscode-esp-idf"]?.settings || [];
+    preset.vendor?.[ESP_IDF_VENDOR_KEY]?.settings || [];
   const setting = espIdfSettings.find((s) => s.type === settingType);
   return setting ? setting.value : undefined;
 }
@@ -1587,7 +1589,7 @@ function convertConfigurePresetToProjectConfElement(
 ): ProjectConfElement {
   // Extract ESP-IDF specific settings from vendor section
   const espIdfSettings =
-    preset.vendor?.["espressif/vscode-esp-idf"]?.settings || [];
+    preset.vendor?.[ESP_IDF_VENDOR_KEY]?.settings || [];
 
   // Helper function to find setting by type
   const findSetting = (type: string): any => {
@@ -1689,7 +1691,7 @@ function convertProjectConfElementToConfigurePreset(
     },
     environment: Object.keys(element.env).length > 0 ? element.env : undefined,
     vendor: {
-      "espressif/vscode-esp-idf": {
+      [ESP_IDF_VENDOR_KEY]: {
         settings,
       },
     },
