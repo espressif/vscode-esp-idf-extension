@@ -57,6 +57,12 @@ export class ProjectConfigStore {
   }
 }
 
+/**
+ * Updates the IDF target (e.g., esp32, esp32s3) for the currently selected project configuration.
+ * The IDF_TARGET is stored in the cacheVariables section of the ConfigurePreset.
+ * @param idfTarget The target chip name (e.g., "esp32", "esp32s3", "esp32c3")
+ * @param workspaceFolder The workspace folder Uri where the configuration files are located
+ */
 export async function updateCurrentProfileIdfTarget(
   idfTarget: string,
   workspaceFolder: Uri
@@ -215,7 +221,13 @@ export async function saveProjectConfigurationToCorrectFile(
 }
 
 /**
- * Determines the source file for a configuration (project vs user presets)
+ * Determines the source file for a configuration preset (CMakePresets.json vs CMakeUserPresets.json).
+ * User presets take precedence over project presets when both contain the same configuration name.
+ * This is important for determining where to save modifications to a configuration.
+ * 
+ * @param workspaceFolder The workspace folder Uri where the configuration files are located
+ * @param configName The name of the configuration preset to locate
+ * @returns 'user' if found in CMakeUserPresets.json, 'project' if in CMakePresets.json, 'unknown' if not found
  */
 async function determineConfigurationSource(
   workspaceFolder: Uri,
@@ -258,7 +270,13 @@ async function determineConfigurationSource(
 }
 
 /**
- * Saves a configuration to CMakeUserPresets.json
+ * Saves a configuration preset to the CMakeUserPresets.json file.
+ * If the file doesn't exist, it will be created. If a preset with the same name already exists,
+ * it will be updated. CMakeUserPresets.json is gitignored and used for user-specific overrides.
+ * 
+ * @param workspaceFolder The workspace folder Uri where CMakeUserPresets.json is located
+ * @param configName The name of the configuration preset to save
+ * @param configPreset The ConfigurePreset object to save
  */
 async function saveConfigurationToUserPresets(
   workspaceFolder: Uri,
@@ -312,7 +330,13 @@ async function saveConfigurationToUserPresets(
 }
 
 /**
- * Saves a configuration to CMakePresets.json
+ * Saves a configuration preset to the CMakePresets.json file.
+ * If the file doesn't exist, it will be created. If a preset with the same name already exists,
+ * it will be updated. CMakePresets.json is typically committed to version control.
+ * 
+ * @param workspaceFolder The workspace folder Uri where CMakePresets.json is located
+ * @param configName The name of the configuration preset to save
+ * @param configPreset The ConfigurePreset object to save
  */
 async function saveConfigurationToProjectPresets(
   workspaceFolder: Uri,
@@ -365,6 +389,12 @@ async function saveConfigurationToProjectPresets(
   });
 }
 
+/**
+ * Saves project configuration elements to CMakePresets.json file.
+ * This function writes multiple ConfigurePreset objects to the project's CMakePresets.json file.
+ * @param workspaceFolder The workspace folder Uri where the configuration file will be saved
+ * @param projectConfElements An object mapping configuration names to their ConfigurePreset objects
+ */
 export async function saveProjectConfFile(
   workspaceFolder: Uri,
   projectConfElements: { [key: string]: ConfigurePreset }
@@ -390,7 +420,14 @@ export async function saveProjectConfFile(
   });
 }
 
-// Legacy compatibility function
+/**
+ * Legacy compatibility function to save project configuration elements to CMakePresets.json.
+ * This function converts legacy ProjectConfElement objects to ConfigurePreset format and saves them.
+ * Used during migration from the old esp_idf_project_configuration.json format.
+ * @param workspaceFolder The workspace folder Uri where the configuration file will be saved
+ * @param projectConfElements An object mapping configuration names to their legacy ProjectConfElement objects
+ * @deprecated Use saveProjectConfFile instead for new code
+ */
 export async function saveProjectConfFileLegacy(
   workspaceFolder: Uri,
   projectConfElements: { [key: string]: ProjectConfElement }
@@ -418,6 +455,16 @@ export async function saveProjectConfFileLegacy(
   });
 }
 
+/**
+ * Maps legacy parameter names to their corresponding values in a ProjectConfElement (legacy format).
+ * This function is used for backward compatibility when processing legacy configuration files
+ * that use variable substitution with parameter names like ${config:idf.buildPath}.
+ * 
+ * @param param The legacy parameter name (e.g., "idf.buildPath", "idf.cmakeCompilerArgs")
+ * @param currentProjectConf The ProjectConfElement to extract the value from
+ * @returns The parameter value, or empty string if not found or undefined
+ * @deprecated Use getConfigurePresetParameterValue for new code working with ConfigurePresets
+ */
 function parameterToSameProjectConfigMap(
   param: string,
   currentProjectConf: ProjectConfElement
@@ -495,10 +542,19 @@ function parameterToSameProjectConfigMap(
 }
 
 /**
- * Substitutes variables like ${workspaceFolder} and ${env:VARNAME} in a string.
- * @param text The input string potentially containing variables.
- * @param workspaceFolder The workspace folder Uri to resolve ${workspaceFolder}.
- * @returns The string with variables substituted, or undefined if input was undefined/null.
+ * Substitutes variables in a string for legacy ProjectConfElement format.
+ * Supports variable patterns like:
+ * - ${workspaceFolder} or ${workspaceRoot}: Replaced with workspace folder path
+ * - ${env:VARNAME}: Replaced with environment variable value
+ * - ${config:PARAM}: Replaced with configuration parameter value
+ * 
+ * This is the legacy version; for ConfigurePreset use substituteVariablesInConfigurePreset.
+ * 
+ * @param text The input string potentially containing variables
+ * @param workspaceFolder The workspace folder Uri to resolve ${workspaceFolder}
+ * @param config The legacy configuration object for resolving ${config:*} variables
+ * @returns The string with variables substituted, or undefined if input was undefined/null
+ * @deprecated Use substituteVariablesInConfigurePreset for new code
  */
 function substituteVariablesInString(
   text: string | undefined,
@@ -777,10 +833,14 @@ async function loadRawConfigurationFile(
 }
 
 /**
- * Resolves inheritance for a preset by merging it with its parent presets
- * @param preset The preset to resolve inheritance for
- * @param allPresets All available presets (for inheritance lookup)
- * @returns The preset with inheritance resolved
+ * Resolves inheritance for a preset by merging it with its parent presets.
+ * CMakePresets supports inheritance where a preset can inherit from one or more parent presets
+ * using the "inherits" field. This function recursively resolves the inheritance chain and
+ * merges all parent properties, with child properties overriding parent properties.
+ * 
+ * @param preset The preset to resolve inheritance for (may have an "inherits" field)
+ * @param allPresets All available presets from both CMakePresets.json and CMakeUserPresets.json
+ * @returns The preset with inheritance fully resolved and the "inherits" field removed
  */
 async function resolvePresetInheritance(
   preset: ConfigurePreset,
@@ -830,10 +890,14 @@ async function resolvePresetInheritance(
 }
 
 /**
- * Merges two presets, with the child preset overriding the parent preset
- * @param parent The parent preset
- * @param child The child preset (takes precedence)
- * @returns The merged preset
+ * Merges two presets, with the child preset overriding the parent preset.
+ * Used during inheritance resolution to combine parent and child preset properties.
+ * For object properties (cacheVariables, environment, vendor), child properties are merged
+ * into parent properties rather than replacing them entirely.
+ * 
+ * @param parent The parent preset (provides default values)
+ * @param child The child preset (takes precedence when properties conflict)
+ * @returns A new merged preset with child properties overriding parent properties
  */
 function mergePresets(
   parent: ConfigurePreset,
@@ -878,13 +942,19 @@ function mergePresets(
 }
 
 /**
- * Processes a single configuration file (CMakePresets.json or CMakeUserPresets.json)
+ * Processes a single configuration file (CMakePresets.json or CMakeUserPresets.json).
+ * This function loads and processes all configure presets from a single file,
+ * applying variable substitution and path resolution directly without inheritance processing.
+ * 
+ * Note: This function does NOT handle preset inheritance. For proper inheritance handling,
+ * use the two-pass approach with loadRawConfigurationFile and resolvePresetInheritance.
+ * 
  * @param configJson The parsed JSON content of the configuration file
- * @param workspaceFolder The workspace folder Uri
- * @param resolvePaths Whether to resolve paths to absolute paths
- * @param fileName The name of the file being processed (for error messages)
+ * @param workspaceFolder The workspace folder Uri for variable substitution and path resolution
+ * @param resolvePaths Whether to resolve relative paths to absolute paths
+ * @param fileName The name of the file being processed (used in error messages)
  * @returns An object mapping configuration names to their processed ConfigurePreset
- * @deprecated Use loadRawConfigurationFile and resolvePresetInheritance instead
+ * @deprecated Use loadRawConfigurationFile and resolvePresetInheritance instead for proper inheritance
  */
 async function processConfigurationFile(
   configJson: any,
@@ -934,7 +1004,11 @@ async function processConfigurationFile(
 }
 
 /**
- * Checks for legacy project configuration file and prompts user for migration
+ * Checks for the legacy project configuration file (esp_idf_project_configuration.json)
+ * and prompts the user to migrate it to the new CMakePresets.json format if found.
+ * This ensures a smooth transition from the old configuration format to the new one.
+ * 
+ * @param workspaceFolder The workspace folder Uri where the legacy file might be located
  */
 async function checkAndPromptLegacyMigration(
   workspaceFolder: Uri
@@ -1020,7 +1094,15 @@ export async function migrateLegacyConfiguration(
 }
 
 /**
- * Processes legacy project configuration format
+ * Processes legacy project configuration format (esp_idf_project_configuration.json).
+ * Converts the old configuration structure to the ProjectConfElement format, handling
+ * variable substitution and path resolution. This function is used during migration
+ * from the legacy format to CMakePresets.
+ * 
+ * @param rawConfig The raw legacy configuration object
+ * @param workspaceFolder The workspace folder Uri for variable substitution and path resolution
+ * @param resolvePaths If true, resolves relative paths to absolute paths
+ * @returns A ProjectConfElement with all legacy settings converted and processed
  */
 async function processLegacyProjectConfig(
   rawConfig: any,
@@ -1162,7 +1244,21 @@ async function processLegacyProjectConfig(
 }
 
 /**
- * Processes variable substitution and path resolution for ConfigurePreset
+ * Processes variable substitution and path resolution for a ConfigurePreset.
+ * This is a complex function that handles the transformation of raw ConfigurePreset data
+ * by substituting variables (like ${workspaceFolder}, ${env:VAR}) and optionally resolving
+ * relative paths to absolute paths.
+ * 
+ * The function processes:
+ * - binaryDir: The build output directory path
+ * - cacheVariables: CMake cache variables (like IDF_TARGET, SDKCONFIG)
+ * - environment: Environment variables for the build
+ * - vendor: ESP-IDF specific vendor settings (OpenOCD configs, tasks, etc.)
+ * 
+ * @param preset The raw ConfigurePreset to process
+ * @param workspaceFolder The workspace folder Uri used for resolving ${workspaceFolder} and relative paths
+ * @param resolvePaths If true, converts relative paths to absolute paths; if false, returns paths as-is for display
+ * @returns A new ConfigurePreset with all variables substituted and paths optionally resolved
  */
 async function processConfigurePresetVariables(
   preset: ConfigurePreset,
@@ -1209,7 +1305,13 @@ async function processConfigurePresetVariables(
 }
 
 /**
- * Processes paths in ConfigurePreset
+ * Processes path strings in ConfigurePreset by substituting variables and optionally resolving to absolute paths.
+ * Handles paths like "build" or "${workspaceFolder}/build" and converts them based on the resolvePaths flag.
+ * @param pathValue The raw path string from the preset (may contain variables)
+ * @param workspaceFolder The workspace folder Uri used for variable substitution and path resolution
+ * @param preset The ConfigurePreset containing environment and other variables for substitution
+ * @param resolvePaths If true, converts relative paths to absolute paths; if false, only substitutes variables
+ * @returns The processed path string with variables substituted and optionally resolved to absolute path
  */
 async function processConfigurePresetPath(
   pathValue: string,
@@ -1235,7 +1337,15 @@ async function processConfigurePresetPath(
 }
 
 /**
- * Processes cache variables in ConfigurePreset
+ * Processes CMake cache variables in ConfigurePreset by substituting variables and resolving paths.
+ * Cache variables include important CMake settings like IDF_TARGET, SDKCONFIG, and SDKCONFIG_DEFAULTS.
+ * String values undergo variable substitution, and path-related variables (SDKCONFIG, *PATH) are
+ * optionally resolved to absolute paths when resolvePaths is true.
+ * @param cacheVariables The cache variables object from the preset
+ * @param workspaceFolder The workspace folder Uri for variable substitution and path resolution
+ * @param preset The ConfigurePreset containing environment variables for substitution
+ * @param resolvePaths If true, resolves relative paths to absolute for path-related variables
+ * @returns A new cache variables object with all substitutions and resolutions applied
  */
 async function processConfigurePresetCacheVariables(
   cacheVariables: { [key: string]: any },
@@ -1272,7 +1382,14 @@ async function processConfigurePresetCacheVariables(
 }
 
 /**
- * Processes environment variables in ConfigurePreset
+ * Processes environment variables in ConfigurePreset by substituting variable references.
+ * Environment variables can reference other variables using ${env:VAR}, ${workspaceFolder}, etc.
+ * These variables are available to the build process and can be used in build scripts.
+ * @param environment The environment variables object from the preset
+ * @param workspaceFolder The workspace folder Uri for variable substitution
+ * @param preset The ConfigurePreset containing other variables for substitution
+ * @param resolvePaths Currently unused for environment variables but kept for consistency
+ * @returns A new environment object with all variable references substituted
  */
 async function processConfigurePresetEnvironment(
   environment: { [key: string]: string },
@@ -1292,7 +1409,19 @@ async function processConfigurePresetEnvironment(
 }
 
 /**
- * Processes vendor-specific settings in ConfigurePreset
+ * Processes ESP-IDF vendor-specific settings in ConfigurePreset.
+ * Vendor settings contain extension-specific configuration like:
+ * - OpenOCD configuration (debug level, configs, args)
+ * - Build tasks (preBuild, postBuild, preFlash, postFlash)
+ * - Compiler arguments and ninja arguments
+ * - Flash and monitor baud rates
+ * 
+ * Each setting is processed to substitute variables in string values, arrays, and nested objects.
+ * @param vendor The vendor settings object from the preset (under "espressif/vscode-esp-idf" key)
+ * @param workspaceFolder The workspace folder Uri for variable substitution
+ * @param preset The ConfigurePreset containing other variables for substitution
+ * @param resolvePaths If true, paths in vendor settings will be resolved to absolute paths
+ * @returns A new vendor settings object with all variables substituted
  */
 async function processConfigurePresetVendor(
   vendor: ESPIDFVendorSettings,
@@ -1347,7 +1476,14 @@ async function processConfigurePresetVendor(
 }
 
 /**
- * Processes object values in vendor settings
+ * Processes object values within vendor settings (e.g., OpenOCD configuration objects).
+ * Recursively processes string and array values within objects to substitute variables.
+ * For example, processes objects like { debugLevel: 2, configs: ["${env:BOARD_CONFIG}"], args: [] }
+ * @param obj The object to process (from a vendor setting value)
+ * @param workspaceFolder The workspace folder Uri for variable substitution
+ * @param preset The ConfigurePreset containing other variables for substitution
+ * @param resolvePaths Currently unused but kept for future path resolution in objects
+ * @returns A new object with all string and array values processed for variable substitution
  */
 async function processConfigurePresetSettingObject(
   obj: any,
@@ -1381,7 +1517,15 @@ async function processConfigurePresetSettingObject(
 }
 
 /**
- * Processes variable substitution and path resolution for ProjectConfElement (legacy compatibility)
+ * Processes variable substitution and path resolution for ProjectConfElement (legacy compatibility).
+ * This function provides backward compatibility for code that still uses the legacy ProjectConfElement
+ * format. It delegates to processLegacyProjectConfig for the actual processing.
+ * 
+ * @param element The ProjectConfElement to process
+ * @param workspaceFolder The workspace folder Uri for variable substitution and path resolution
+ * @param resolvePaths If true, resolves relative paths to absolute paths
+ * @returns A new ProjectConfElement with all variables substituted and paths resolved
+ * @deprecated Use processConfigurePresetVariables for new code
  */
 async function processProjectConfElementVariables(
   element: ProjectConfElement,
@@ -1482,7 +1626,21 @@ function substituteVariablesInConfigurePreset(
 }
 
 /**
- * Gets parameter value from ConfigurePreset for variable substitution
+ * Retrieves parameter values from a ConfigurePreset for variable substitution.
+ * This function maps legacy parameter names (like "idf.buildPath") to their corresponding
+ * values in the ConfigurePreset structure. Used to support ${config:idf.buildPath} style
+ * variable references in configuration strings.
+ * 
+ * Supported parameters include:
+ * - idf.cmakeCompilerArgs, idf.ninjaArgs
+ * - idf.buildPath, idf.sdkconfigDefaults, idf.sdkconfigFilePath
+ * - idf.flashBaudRate, idf.monitorBaudRate
+ * - idf.openOcdDebugLevel, idf.openOcdConfigs, idf.openOcdLaunchArgs
+ * - idf.preBuildTask, idf.postBuildTask, idf.preFlashTask, idf.postFlashTask
+ * 
+ * @param param The parameter name to look up (e.g., "idf.buildPath")
+ * @param preset The ConfigurePreset to extract the value from
+ * @returns The parameter value (string, array, or empty string if not found)
  */
 function getConfigurePresetParameterValue(
   param: string,
@@ -1537,7 +1695,13 @@ function getConfigurePresetParameterValue(
 }
 
 /**
- * Helper function to get ESP-IDF setting value from ConfigurePreset
+ * Helper function to retrieve ESP-IDF specific setting values from a ConfigurePreset's vendor section.
+ * ESP-IDF settings are stored in the vendor section under the "espressif/vscode-esp-idf" key.
+ * Each setting has a type (e.g., "openOCD", "tasks", "compileArgs") and a value.
+ * 
+ * @param preset The ConfigurePreset containing vendor settings
+ * @param settingType The type of setting to retrieve (e.g., "openOCD", "tasks", "flashBaudRate")
+ * @returns The setting value if found, or undefined if the setting doesn't exist
  */
 function getESPIDFSettingValue(
   preset: ConfigurePreset,
@@ -1574,13 +1738,23 @@ export function projectConfElementToConfigurePreset(
 
 /**
  * Type guard to filter out undefined values from arrays.
+ * Useful with array.filter() to remove undefined elements while maintaining type safety.
+ * @param value The value to check
+ * @returns True if the value is defined (not undefined), false otherwise
  */
 function isDefined<T>(value: T | undefined): value is T {
   return value !== undefined;
 }
 
 /**
- * Converts a CMakePresets ConfigurePreset to the legacy ProjectConfElement format
+ * Converts a CMakePresets ConfigurePreset to the legacy ProjectConfElement format.
+ * This conversion is necessary for backward compatibility with code that expects the legacy format.
+ * Extracts ESP-IDF specific settings from the vendor section and maps them to the legacy structure.
+ * 
+ * @param preset The ConfigurePreset to convert
+ * @param workspaceFolder The workspace folder Uri for path resolution
+ * @param resolvePaths If true, resolves relative paths to absolute paths
+ * @returns A ProjectConfElement representing the same configuration in the legacy format
  */
 function convertConfigurePresetToProjectConfElement(
   preset: ConfigurePreset,
@@ -1658,7 +1832,14 @@ function convertConfigurePresetToProjectConfElement(
 }
 
 /**
- * Converts a ProjectConfElement to CMakePresets ConfigurePreset format
+ * Converts a legacy ProjectConfElement to CMakePresets ConfigurePreset format.
+ * This conversion is used during migration and when saving configurations from legacy code.
+ * Maps the legacy structure to the CMakePresets format, storing ESP-IDF specific settings
+ * in the vendor section under "espressif/vscode-esp-idf".
+ * 
+ * @param name The name for the configuration preset
+ * @param element The ProjectConfElement to convert
+ * @returns A ConfigurePreset representing the same configuration in the CMakePresets format
  */
 function convertProjectConfElementToConfigurePreset(
   name: string,
