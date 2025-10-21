@@ -338,7 +338,10 @@ export class BuildTask {
     return writeExecution;
   }
 
-  private async buildWithPresets(buildType?: ESP.BuildType, captureOutput?: boolean) {
+  private async buildWithPresets(
+    buildType?: ESP.BuildType,
+    captureOutput?: boolean
+  ) {
     await ensureDir(this.buildDirPath);
     const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
 
