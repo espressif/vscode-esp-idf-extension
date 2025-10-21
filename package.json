@@ -2572,7 +2572,16 @@
             "flash partition table",
             "build and flash app",
             "build and flash bootloader",
-            "build and flash partition table"
+            "build and flash partition table",
+            "flash with UART",
+            "flash with JTAG",
+            "flash with DFU",
+            "flash device with UART",
+            "flash device with JTAG",
+            "flash device with DFU",
+            "build and flash with UART",
+            "build and flash with JTAG",
+            "build and flash with DFU"
           ],
         "icon": "$(run-view-icon)",
         "inputSchema": {
