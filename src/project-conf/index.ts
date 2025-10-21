@@ -684,9 +684,6 @@ export async function getProjectConfigurationElements(
         error,
         "getProjectConfigurationElements"
       );
-      window.showErrorMessage(
-        `Error reading or parsing CMakePresets.json file (${cmakePresetsFilePath.fsPath}): ${error.message}`
-      );
     }
   }
 
@@ -711,9 +708,6 @@ export async function getProjectConfigurationElements(
         `Failed to read or parse ${ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME}`,
         error,
         "getProjectConfigurationElements"
-      );
-      window.showErrorMessage(
-        `Error reading or parsing CMakeUserPresets.json file (${cmakeUserPresetsFilePath.fsPath}): ${error.message}`
       );
     }
   }
@@ -772,12 +766,8 @@ async function loadRawConfigurationFile(
     }
   } else {
     // This might be a legacy file that wasn't migrated
-    Logger.warn(
-      `Invalid ${fileName} format detected. Expected 'version' and 'configurePresets' fields.`,
-      new Error("Invalid CMakePresets format")
-    );
-    window.showErrorMessage(
-      `Invalid ${fileName} format. Please ensure the file follows the CMakePresets specification.`
+    Logger.warnNotify(
+      `Invalid ${fileName} format detected. Please ensure the file follows the CMakePresets specification.`
     );
   }
 
@@ -934,10 +924,6 @@ async function processConfigurationFile(
   } else {
     // This might be a legacy file that wasn't migrated
     Logger.warn(
-      `Invalid ${fileName} format detected. Expected 'version' and 'configurePresets' fields.`,
-      new Error("Invalid CMakePresets format")
-    );
-    window.showErrorMessage(
       `Invalid ${fileName} format. Please ensure the file follows the CMakePresets specification.`
     );
   }

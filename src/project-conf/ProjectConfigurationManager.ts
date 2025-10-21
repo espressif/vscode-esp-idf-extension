@@ -174,9 +174,6 @@ export class ProjectConfigurationManager {
         this.setNoConfigurationSelectedStatus();
       }
     } catch (error) {
-      window.showErrorMessage(
-        `Error reading or parsing project configuration files: ${error.message}`
-      );
       Logger.errorNotify(
         `Failed to parse project configuration files`,
         error,
@@ -287,8 +284,10 @@ export class ProjectConfigurationManager {
         this.setNoConfigurationSelectedStatus();
       }
     } catch (error) {
-      window.showErrorMessage(
-        `Error parsing configuration files: ${error.message}`
+      Logger.errorNotify(
+        `Error parsing configuration files: ${error.message}`,
+        error,
+        "ProjectConfigurationManager handleConfigFileChange"
       );
       this.setNoConfigurationSelectedStatus();
     }
@@ -315,11 +314,9 @@ export class ProjectConfigurationManager {
       this.statusBarItems["projectConf"].dispose();
       this.statusBarItems["projectConf"] = undefined;
     }
-
+  
     // Optionally notify the user
-    window.showInformationMessage(
-      "Project configuration file has been deleted."
-    );
+    Logger.infoNotify("Project configuration file has been deleted.");
   }
 
   private async handleConfigFileCreate(): Promise<void> {
@@ -364,8 +361,10 @@ export class ProjectConfigurationManager {
         this.setNoConfigurationSelectedStatus();
       }
     } catch (error) {
-      window.showErrorMessage(
-        `Error parsing newly created configuration file: ${error.message}`
+      Logger.errorNotify(
+        `Error parsing newly created configuration file: ${error.message}`,
+        error,
+        "ProjectConfigurationManager handleConfigFileCreate"
       );
       this.setNoConfigurationSelectedStatus();
     }
@@ -533,8 +532,10 @@ export class ProjectConfigurationManager {
 
       await this.updateConfiguration(option.target);
     } catch (error) {
-      window.showErrorMessage(
-        `Error selecting configuration: ${error.message}`
+      Logger.errorNotify(
+        `Error selecting configuration: ${error.message}`,
+        error,
+        "ProjectConfigurationManager selectProjectConfiguration"
       );
     }
   }
@@ -667,15 +668,9 @@ export class ProjectConfigurationManager {
       }
     } catch (error) {
       Logger.errorNotify(
-        "Failed to handle legacy migration",
+        l10n.t("Failed to handle legacy migration: {0}", error.message),
         error,
-        "handleLegacyMigrationDialog"
-      );
-      window.showErrorMessage(
-        l10n.t(
-          "Failed to process legacy configuration file: {0}",
-          error.message
-        )
+        "ProjectConfigurationManager handleLegacyMigrationDialog"
       );
     }
   }
@@ -697,12 +692,9 @@ export class ProjectConfigurationManager {
       );
     } catch (error) {
       Logger.errorNotify(
-        "Failed to perform migration",
+        l10n.t("Failed to migrate project configuration: {0}", error.message),
         error,
-        "performMigration"
-      );
-      window.showErrorMessage(
-        l10n.t("Failed to migrate project configuration: {0}", error.message)
+        "ProjectConfigurationManager performMigration"
       );
     }
   }
@@ -724,12 +716,9 @@ export class ProjectConfigurationManager {
       );
     } catch (error) {
       Logger.errorNotify(
-        "Failed to perform direct migration",
+        l10n.t("Failed to migrate project configuration: {0}", error.message),
         error,
-        "performDirectMigration"
-      );
-      window.showErrorMessage(
-        l10n.t("Failed to migrate project configuration: {0}", error.message)
+        "ProjectConfigurationManager performDirectMigration"
       );
     }
   }
