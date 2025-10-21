@@ -49,7 +49,7 @@ export class OpenOCDManager extends EventEmitter {
   }
   private static instance: OpenOCDManager;
   private server: ChildProcess;
-  private chan: string;
+  private chan: Buffer;
   private statusBar: vscode.StatusBarItem;
   private workspace: vscode.Uri;
   private encounteredErrors: boolean = false;
@@ -81,11 +81,13 @@ export class OpenOCDManager extends EventEmitter {
       const match = versionString.match(/v\d+\.\d+\.\d+\-\S*/gi);
       return match ? match[0].replace("-dirty", "") : "failed+to+match+version";
     })();
-
+    const p = this.versionPromise;
     try {
       return await this.versionPromise;
     } finally {
-      this.versionPromise = null;
+      if (this.versionPromise === p) {
+        this.versionPromise = null;
+      }
     }
   }
 
@@ -319,7 +321,7 @@ export class OpenOCDManager extends EventEmitter {
     if (PreCheck.isWorkspaceFolderOpen()) {
       this.workspace = vscode.workspace.workspaceFolders[0].uri;
     }
-    this.chan = "";
+    this.chan = Buffer.alloc(0);;
     OutputChannel.init();
     if (vscode.env.uiKind !== vscode.UIKind.Web) {
       this.registerOpenOCDStatusBarItem();
@@ -327,6 +329,6 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   private sendToOutputChannel(data: Buffer) {
-    this.chan = (this.chan || "") + data.toString();
+    this.chan = Buffer.concat([this.chan, data]);
   }
 }
