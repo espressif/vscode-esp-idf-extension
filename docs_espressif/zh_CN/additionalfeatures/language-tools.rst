@@ -16,45 +16,45 @@ ESP-IDF 聊天命令
 
 某些命令支持附加参数来自定义其行为：
 
-* **``target``** - 指定 ESP32 目标设备（用于 ``setTarget`` 命令）。支持的值：esp32, esp32s2, esp32s3, esp32c3, esp32c6, esp32h2, esp32p4, esp32c2, esp32c5, esp32c61, esp32h21, esp32h4, linux
-* **``partitionToUse``** - 指定要构建或烧录的分区（用于 ``build``、``flash`` 和 ``buildFlashMonitor`` 命令）。支持的值：app, bootloader, partition-table
-* **``flashType``** - 指定要使用的烧录方法（用于 ``flash`` 和 ``buildFlashMonitor`` 命令）。支持的值：UART, JTAG, DFU
+* **target** - 指定 ESP32 目标设备（用于 ``setTarget`` 命令）。支持的值：esp32, esp32s2, esp32s3, esp32c3, esp32c6, esp32h2, esp32p4, esp32c2, esp32c5, esp32c61, esp32h21, esp32h4, linux
+* **partitionToUse** - 指定要构建或烧录的分区（用于 ``build``、``flash`` 和 ``buildFlashMonitor`` 命令）。支持的值：app, bootloader, partition-table
+* **flashType** - 指定要使用的烧录方法（用于 ``flash`` 和 ``buildFlashMonitor`` 命令）。支持的值：UART, JTAG, DFU
 
 构建和烧录命令
 ~~~~~~~~~~~~~~~
 
-* **``build``** - 构建 ESP-IDF 项目 (``espIdf.buildDevice``)
-  * 可选参数：``partitionToUse`` (app, bootloader, partition-table)
-* **``flash``** - 将构建的应用程序烧录到设备 (``espIdf.flashDevice``)
-  * 可选参数：``partitionToUse`` (app, bootloader, partition-table), ``flashType`` (UART, JTAG, DFU)
-* **``monitor``** - 监控设备输出 (``espIdf.monitorDevice``)
-* **``buildFlashMonitor``** - 在一个命令中构建、烧录和监控项目 (``espIdf.buildFlashMonitor``)
-  * 可选参数：``partitionToUse`` (app, bootloader, partition-table), ``flashType`` (UART, JTAG, DFU)
+* **build** - 构建 ESP-IDF 项目 (``espIdf.buildDevice``)
+  * 可选参数 ``partitionToUse`` (app, bootloader, partition-table)
+* **flash** - 将构建的应用程序烧录到设备 (``espIdf.flashDevice``)
+  * 可选参数 ``partitionToUse`` (app, bootloader, partition-table), ``flashType`` (UART, JTAG, DFU)
+* **monitor** - 监控设备输出 (``espIdf.monitorDevice``)
+* **buildFlashMonitor** - 在一个命令中构建、烧录和监控项目 (``espIdf.buildFlashMonitor``)
+  * 可选参数 ``partitionToUse`` (app, bootloader, partition-table), ``flashType`` (UART, JTAG, DFU)
 
 项目管理命令
 ~~~~~~~~~~~~~
 
-* **``fullClean``** - 执行项目的完全清理 (``espIdf.fullClean``)
-* **``menuconfig``** - 打开 ESP-IDF menuconfig 界面 (``espIdf.menuconfig.start``)
-* **``size``** - 分析应用程序大小 (``espIdf.size``)
-* **``eraseFlash``** - 擦除设备闪存 (``espIdf.eraseFlash``)
+* **fullClean** - 执行项目的完全清理 (``espIdf.fullClean``)
+* **menuconfig** - 打开 ESP-IDF menuconfig 界面 (``espIdf.menuconfig.start``)
+* **size** - 分析应用程序大小 (``espIdf.size``)
+* **eraseFlash** - 擦除设备闪存 (``espIdf.eraseFlash``)
 
 配置命令
 ~~~~~~~~~
 
-* **``selectPort``** - 选择用于通信的串口 (``espIdf.selectPort``)
-* **``setTarget``** - 设置 ESP32 目标设备 (``espIdf.setTarget``)
+* **selectPort** - 选择用于通信的串口 (``espIdf.selectPort``)
+* **setTarget** - 设置 ESP32 目标设备 (``espIdf.setTarget``)
   * 可选参数：``target`` (esp32, esp32s2, esp32s3, esp32c3, esp32c6, esp32h2, esp32p4, esp32c2, esp32c5, esp32c61, esp32h21, esp32h4, linux)
-* **``doctor``** - 运行 ESP-IDF doctor 命令诊断问题 (``espIdf.doctorCommand``)
+* **doctor** - 运行 ESP-IDF doctor 命令诊断问题 (``espIdf.doctorCommand``)
 
 开发命令
 ~~~~~~~~~
 
-* **``newProject``** - 创建新的 ESP-IDF 项目 (``espIdf.newProject.start``)
-* **``partitionTable``** - 打开分区表编辑器 (``esp.webview.open.partition-table``)
-* **``componentManager``** - 打开 ESP 组件管理器 (``esp.component-manager.ui.show``)
-* **``apptrace``** - 启动应用程序跟踪 (``espIdf.apptrace``)
-* **``heaptrace``** - 启动堆跟踪 (``espIdf.heaptrace``)
+* **newProject** - 创建新的 ESP-IDF 项目 (``espIdf.newProject.start``)
+* **partitionTable** - 打开分区表编辑器 (``esp.webview.open.partition-table``)
+* **componentManager** - 打开 ESP 组件管理器 (``esp.component-manager.ui.show``)
+* **apptrace** - 启动应用程序跟踪 (``espIdf.apptrace``)
+* **heaptrace** - 启动堆跟踪 (``espIdf.heaptrace``)
 
 使用方法
 --------

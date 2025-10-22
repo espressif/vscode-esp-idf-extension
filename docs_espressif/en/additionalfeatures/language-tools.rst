@@ -16,45 +16,45 @@ Command Parameters
 
 Some commands support additional parameters to customize their behavior:
 
-* **``target``** - Specifies the ESP32 target device (for ``setTarget`` command). Supported values: esp32, esp32s2, esp32s3, esp32c3, esp32c6, esp32h2, esp32p4, esp32c2, esp32c5, esp32c61, esp32h21, esp32h4, linux
-* **``partitionToUse``** - Specifies which partition to build or flash (for ``build``, ``flash``, and ``buildFlashMonitor`` commands). Supported values: app, bootloader, partition-table
-* **``flashType``** - Specifies the flash method to use (for ``flash`` and ``buildFlashMonitor`` commands). Supported values: UART, JTAG, DFU
+* **target** - Specifies the ESP32 target device (for ``setTarget`` command). Supported values: esp32, esp32s2, esp32s3, esp32c3, esp32c6, esp32h2, esp32p4, esp32c2, esp32c5, esp32c61, esp32h21, esp32h4, linux
+* **partitionToUse** - Specifies which partition to build or flash (for ``build``, ``flash``, and ``buildFlashMonitor`` commands). Supported values: app, bootloader, partition-table
+* **flashType** - Specifies the flash method to use (for ``flash`` and ``buildFlashMonitor`` commands). Supported values: UART, JTAG, DFU
 
 Build and Flash Commands
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-* **``build``** - Build the ESP-IDF project (``espIdf.buildDevice``)
+* **build** - Build the ESP-IDF project (``espIdf.buildDevice``)
   * Optional parameter: ``partitionToUse`` (app, bootloader, partition-table)
-* **``flash``** - Flash the built application to the device (``espIdf.flashDevice``)
+* **flash** - Flash the built application to the device (``espIdf.flashDevice``)
   * Optional parameters: ``partitionToUse`` (app, bootloader, partition-table), ``flashType`` (UART, JTAG, DFU)
-* **``monitor``** - Monitor the device output (``espIdf.monitorDevice``)
-* **``buildFlashMonitor``** - Build, flash, and monitor the project in one command (``espIdf.buildFlashMonitor``)
+* **monitor** - Monitor the device output (``espIdf.monitorDevice``)
+* **buildFlashMonitor** - Build, flash, and monitor the project in one command (``espIdf.buildFlashMonitor``)
   * Optional parameters: ``partitionToUse`` (app, bootloader, partition-table), ``flashType`` (UART, JTAG, DFU)
 
 Project Management Commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* **``fullClean``** - Perform a full clean of the project (``espIdf.fullClean``)
-* **``menuconfig``** - Open the ESP-IDF menuconfig interface (``espIdf.menuconfig.start``)
-* **``size``** - Analyze the application size (``espIdf.size``)
-* **``eraseFlash``** - Erase the device flash memory (``espIdf.eraseFlash``)
+* **fullClean** - Perform a full clean of the project (``espIdf.fullClean``)
+* **menuconfig** - Open the ESP-IDF menuconfig interface (``espIdf.menuconfig.start``)
+* **size** - Analyze the application size (``espIdf.size``)
+* **eraseFlash** - Erase the device flash memory (``espIdf.eraseFlash``)
 
 Configuration Commands
 ~~~~~~~~~~~~~~~~~~~~~~
 
-* **``selectPort``** - Select the serial port for communication (``espIdf.selectPort``)
-* **``setTarget``** - Set the ESP32 target device (``espIdf.setTarget``)
+* **selectPort** - Select the serial port for communication (``espIdf.selectPort``)
+* **setTarget** - Set the ESP32 target device (``espIdf.setTarget``)
   * Optional parameter: ``target`` (esp32, esp32s2, esp32s3, esp32c3, esp32c6, esp32h2, esp32p4, esp32c2, esp32c5, esp32c61, esp32h21, esp32h4, linux)
-* **``doctor``** - Run the ESP-IDF doctor command to diagnose issues (``espIdf.doctorCommand``)
+* **doctor** - Run the ESP-IDF doctor command to diagnose issues (``espIdf.doctorCommand``)
 
 Development Commands
 ~~~~~~~~~~~~~~~~~~~~
 
-* **``newProject``** - Create a new ESP-IDF project (``espIdf.newProject.start``)
-* **``partitionTable``** - Open the partition table editor (``esp.webview.open.partition-table``)
-* **``componentManager``** - Open the ESP component manager (``esp.component-manager.ui.show``)
-* **``apptrace``** - Start application tracing (``espIdf.apptrace``)
-* **``heaptrace``** - Start heap tracing (``espIdf.heaptrace``)
+* **newProject** - Create a new ESP-IDF project (``espIdf.newProject.start``)
+* **partitionTable** - Open the partition table editor (``esp.webview.open.partition-table``)
+* **componentManager** - Open the ESP component manager (``esp.component-manager.ui.show``)
+* **apptrace** - Start application tracing (``espIdf.apptrace``)
+* **heaptrace** - Start heap tracing (``espIdf.heaptrace``)
 
 Usage
 ------
@@ -121,7 +121,7 @@ Here are some examples of how to use the commands with parameters:
 
 **Building Specific Partitions:**
 
-* "build app"
+* "build partition-table"
 * "#espIdfCommands build bootloader"
 * "build bootloader"
 * "#espIdfCommands build partition-table"
