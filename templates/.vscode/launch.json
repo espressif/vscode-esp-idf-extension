@@ -5,11 +5,6 @@
       "type": "gdbtarget",
       "request": "attach",
       "name": "Eclipse CDT GDB Adapter"
-    },
-    {
-      "type": "espidf",
-      "name": "Launch",
-      "request": "launch"
     }
   ]
 }

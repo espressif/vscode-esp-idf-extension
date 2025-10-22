@@ -21,9 +21,6 @@ import { ProjectConfElement } from "../project-conf/projectConfiguration";
 export class ConfigurationAccess {
   espIdfPath: boolean;
   espAdfPath: boolean;
-  espMdfPath: boolean;
-  espMatterPath: boolean;
-  espHomeKitPath: boolean;
   espIdfToolsPaths: { [key: string]: boolean };
   pythonBinPath: boolean;
   cmakeInEnv: boolean;
@@ -35,9 +32,6 @@ export class Configuration {
   systemEnvPath: string;
   espIdfPath: string;
   espAdfPath: string;
-  espMdfPath: string;
-  espMatterPath: string;
-  espHomeKitPath: string;
   customExtraPaths: string;
   flashType: string;
   flashPartitionToUse: string;
@@ -61,9 +55,6 @@ export class ConfigurationSpacesValidation {
   systemEnvPath: boolean;
   espIdfPath: boolean;
   espAdfPath: boolean;
-  espMdfPath: boolean;
-  espMatterPath: boolean;
-  espHomeKitPath: boolean;
   customExtraPaths: { [key: string]: boolean };
   pythonBinPath: boolean;
   sysPythonBinPath: boolean;
