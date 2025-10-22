@@ -21,6 +21,7 @@ Additional IDE Features
     Heap Tracing<additionalfeatures/heap-tracing>
     Hints Viewer<additionalfeatures/hints-viewer>
     Install ESP-IDF Components<additionalfeatures/install-esp-components>
+    Language Tools<additionalfeatures/language-tools>
     NVS Partition Table Editor<additionalfeatures/nvs-partition-editor>
     Partition Table Editor<additionalfeatures/partition-table-editor>
     Project Configuration Editor<additionalfeatures/project-configuration>
