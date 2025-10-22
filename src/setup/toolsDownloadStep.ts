@@ -68,6 +68,7 @@ export async function downloadIdfTools(
     progress,
     cancelToken,
     workspaceFolderUri,
-    espIdfStatusBar
+    espIdfStatusBar,
+    mirror
   );
 }
