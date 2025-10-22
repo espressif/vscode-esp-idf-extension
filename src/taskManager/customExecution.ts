@@ -108,6 +108,12 @@ export class OutputCapturingExecution extends vscode.CustomExecution {
     let stderr = "";
     let exitCode = 0;
 
+    if (this.options.env) {
+      this.options.env.FORCE_COLOR = "1";
+      this.options.env.TERM = "xterm-256color";
+      this.options.env.COLORTERM = "truecolor";
+    }
+
     this.childProcess = childProcess.execFile(
       this.command,
       this.args,
@@ -163,7 +169,12 @@ export class OutputCapturingExecution extends vscode.CustomExecution {
 
   public async getOutput(): Promise<CapturedTaskOutput> {
     if (!this.outputPromise) {
-      return { stdout: "", stderr: "", exitCode: -1, success: false } as CapturedTaskOutput;
+      return {
+        stdout: "",
+        stderr: "",
+        exitCode: -1,
+        success: false,
+      } as CapturedTaskOutput;
     }
     return this.outputPromise;
   }
@@ -210,6 +221,12 @@ export class ShellOutputCapturingExecution extends vscode.CustomExecution {
     let stdout = "";
     let stderr = "";
     let exitCode = 0;
+
+    if (this.options.env) {
+      this.options.env.FORCE_COLOR = "1";
+      this.options.env.TERM = "xterm-256color";
+      this.options.env.COLORTERM = "truecolor";
+    }
 
     const execOptions: any = {
       cwd: this.options.cwd,

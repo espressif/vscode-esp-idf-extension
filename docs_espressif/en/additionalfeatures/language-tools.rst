@@ -63,7 +63,8 @@ Press menu ``View`` > ``Chat`` to open the chat window.
 
 You can type in the chat windows using natural language, and the tool will interpret your request to execute the appropriate ESP-IDF command.
 
-**Natural Language Patterns**: 
+**Natural Language Patterns**:
+
 - "build the project"
 - "flash the device" 
 - "monitor the output"
@@ -114,16 +115,19 @@ Examples
 Here are some examples of how to use the commands with parameters:
 
 **Setting Target:**
+
 * "set target to esp32s3"
 * "#espIdfCommands setTarget esp32c6"
 
 **Building Specific Partitions:**
+
 * "build app"
 * "#espIdfCommands build bootloader"
 * "build bootloader"
 * "#espIdfCommands build partition-table"
 
 **Flashing with Different Methods:**
+
 * "flash with UART"
 * "#espIdfCommands flash UART"
 * "flash with JTAG"
@@ -132,6 +136,7 @@ Here are some examples of how to use the commands with parameters:
 * "#espIdfCommands flash DFU"
 
 **Combined Operations:**
+
 * "build and flash app with UART"
 * "#espIdfCommands buildFlashMonitor app UART"
 * "build and flash bootloader with JTAG"

@@ -63,7 +63,8 @@ ESP-IDF 聊天命令
 
 您可以在聊天窗口中使用自然语言输入，工具将解释您的请求以执行相应的 ESP-IDF 命令。
 
-**自然语言模式**: 
+**自然语言模式**:
+
 - "构建项目"
 - "烧录设备" 
 - "监控输出"
@@ -114,16 +115,19 @@ ESP-IDF 聊天命令
 以下是一些使用带参数命令的示例：
 
 **设置目标：**
+
 * "设置目标为 esp32s3"
 * "#espIdfCommands setTarget esp32c6"
 
 **构建特定分区：**
+
 * "构建应用"
 * "#espIdfCommands build bootloader"
 * "构建引导加载程序"
 * "#espIdfCommands build partition-table"
 
 **使用不同方法烧录：**
+
 * "使用 UART 烧录"
 * "#espIdfCommands flash UART"
 * "使用 JTAG 烧录"
@@ -132,6 +136,7 @@ ESP-IDF 聊天命令
 * "#espIdfCommands flash DFU"
 
 **组合操作：**
+
 * "构建并烧录应用使用 UART"
 * "#espIdfCommands buildFlashMonitor app UART"
 * "构建并烧录引导加载程序使用 JTAG"
