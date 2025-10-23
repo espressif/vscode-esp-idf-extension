@@ -98,6 +98,7 @@
 	"espIdf.viewAsHex.title": "Просмотреть как шестнадцатеричное",
 	"espIdf.viewVariableAsImage.title": "Просмотреть переменную как изображение",
 	"espIdf.openImageViewer.title": "Открыть просмотрщик изображений",
+	"espIdf.loadImageFromFile.title": "Загрузить изображение из LVGL C файла",
 	"espIdf.hexView.copyValue.title": "Скопировать значение в буфер обмена",
   	"espIdf.hexView.deleteElement.title": "Удалить шестнадцатеричное значение из списка",
 	"espIdf.webview.nvsPartitionEditor.title": "Открыть редактор разделов NVS",

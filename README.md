@@ -461,7 +461,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
             <td></td>
         </tr>
         <tr>
-            <td rowspan=10 align="center">Scripts and Tools</td>
+            <td rowspan=12 align="center">Scripts and Tools</td>
             <td>Run idf.py reconfigure Task</td>
             <td>This command will execute <strong>idf.py reconfigure</strong> (CMake configure task), which is useful for generating compile_commands.json for the C/C++ language support.</td>
             <td></td>
@@ -518,6 +518,18 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         <tr>
             <td>Search Error Hint</td>
             <td>Type some text to find a matching error from ESP-IDF hints dictionary.</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Load Image from LVGL C File</td>
+            <td>Load and display an image from a LVGL C file containing lv_image_dsc_t structure. This command allows you to view LVGL images without requiring a debug session.</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Open Image Viewer</td>
+            <td>Open the Image Viewer panel to display images from debug variables or LVGL C files. This panel provides tools for viewing and analyzing image data in various formats.</td>
             <td></td>
             <td></td>
         </tr>

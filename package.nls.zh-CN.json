@@ -98,6 +98,7 @@
 	"espIdf.viewAsHex.title": "以十六进制查看",
 	"espIdf.viewVariableAsImage.title": "以图像查看变量",
 	"espIdf.openImageViewer.title": "打开图像查看器",
+	"espIdf.loadImageFromFile.title": "从 LVGL C 文件加载图像",
 	"espIdf.hexView.copyValue.title": "复制值到剪贴板",
 	"espIdf.hexView.deleteElement.title": "从列表中删除十六进制值",
 	"espIdf.webview.nvsPartitionEditor.title": "打开 NVS 分区编辑器",

@@ -1628,6 +1628,35 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.loadImageFromFile", async () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      try {
+        // Show file picker to select LVGL C file
+        const fileUri = await vscode.window.showOpenDialog({
+          canSelectMany: false,
+          openLabel: "Select LVGL C file with image data",
+          filters: {
+            "C files": ["c", "h"],
+            "All files": ["*"],
+          },
+        });
+
+        if (fileUri && fileUri[0]) {
+          const filePath = fileUri[0].fsPath;
+
+          // Load LVGL image directly (no config selection needed)
+          await ImageViewPanel.loadImageFromFile(
+            context.extensionPath,
+            filePath
+          );
+        }
+      } catch (error) {
+        const msg = error && error.message ? error.message : error;
+        Logger.errorNotify(msg, error, "extension espIdf.loadImageFromFile");
+      }
+    });
+  });
+
   registerIDFCommand("espIdf.genCoverage", () => {
     return PreCheck.perform([openFolderCheck], async () => {
       try {

@@ -461,7 +461,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td></td>
         </tr>
         <tr>
-            <td rowspan=10 align="center">脚本和工具</td>
+            <td rowspan=12 align="center">脚本和工具</td>
             <td>运行 idf.py reconfigure 任务</td>
             <td>此命令将执行 <strong>idf.py reconfigure</strong>（CMake 配置任务），能够帮助生成 compile_commands.json 文件以支持 C/C++ 语言特性。</td>
             <td></td>
@@ -522,7 +522,19 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td></td>
         </tr>
         <tr>
-            <td rowspan=2 align="center"> 清理</td>
+            <td>从 LVGL C 文件加载图像</td>
+            <td>从包含 lv_image_dsc_t 结构的 LVGL C 文件中加载并显示图像。此命令允许您在不需要调试会话的情况下查看 LVGL 图像。</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>打开图像查看器</td>
+            <td>打开图像查看器面板，用于显示来自调试变量或 LVGL C 文件的图像。此面板提供查看和分析各种格式图像数据的工具。</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td rowspan=2 align="center"> 清理</td>
             <td>清除 ESP-IDF 搜索结果</td>
             <td>清除资源管理器<strong>文档搜索结果</strong>选项卡中的所有搜索结果。</td>
             <td></td>
