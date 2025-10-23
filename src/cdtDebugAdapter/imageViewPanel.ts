@@ -145,6 +145,32 @@ export class ImageViewPanel {
     }
   }
 
+  public static async loadImageFromFile(
+    extensionPath: string,
+    filePath: string
+  ) {
+    try {
+      // Show the ImageViewPanel
+      ImageViewPanel.show(extensionPath);
+
+      if (ImageViewPanel.instance) {
+        await ImageViewPanel.instance.parseLvglImageFromFile(filePath);
+      }
+    } catch (error) {
+      Logger.error(
+        "Failed to load image from file:",
+        error,
+        "ImageViewPanel loadImageFromFile"
+      );
+      if (ImageViewPanel.instance) {
+        ImageViewPanel.instance.panel.webview.postMessage({
+          command: "showError",
+          error: `Failed to load image from LVGL cfile: ${error}`,
+        });
+      }
+    }
+  }
+
   private constructor(panel: vscode.WebviewPanel, extensionPath: string) {
     this.panel = panel;
     this.extensionPath = extensionPath;
@@ -868,6 +894,385 @@ export class ImageViewPanel {
       <script src="${scriptPath}"></script>
     </body>
     </html>`;
+  }
+
+  private async parseLvglImageFromFile(filePath: string) {
+    try {
+      const fileContent = fs.readFileSync(filePath, "utf8");
+      if (!fileContent.includes("lv_image_dsc_t")) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `File does not contain LVGL image data (lv_image_dsc_t). Only LVGL C files are supported.`,
+        });
+        return;
+      }
+      const config = this.imageFormatConfigs.find(
+        (c) => c.typePattern === "lv_image_dsc_t"
+      );
+      if (!config) {
+        this.panel.webview.postMessage({
+          command: "showError",
+          error: `LVGL configuration not found.`,
+        });
+        return;
+      }
+
+      const imageData = this.parseImageDataFromCFile(fileContent, config);
+
+      if (imageData) {
+        this.panel.title = `Image Viewer: ${path.basename(filePath)} (LVGL)`;
+        this.sendImageWithDimensionsData(imageData, config.name);
+      }
+    } catch (error) {
+      this.panel.webview.postMessage({
+        command: "showError",
+        error: `Error parsing LVGL image from file: ${error}`,
+      });
+    }
+  }
+
+  private parseImageDataFromCFile(
+    fileContent: string,
+    config: ImageFormatConfig
+  ): ImageWithDimensionsElement | null {
+    try {
+      const imageData: ImageWithDimensionsElement = {
+        name: "parsed_image",
+        data: new Uint8Array(),
+        width: 0,
+        height: 0,
+        format: 0,
+      };
+
+      imageData.width = this.extractValueFromCFile(fileContent, config.width);
+      imageData.height = this.extractValueFromCFile(fileContent, config.height);
+      imageData.format = this.extractValueFromCFile(fileContent, config.format);
+
+      imageData.dataSize = this.extractValueFromCFile(
+        fileContent,
+        config.dataSize
+      );
+      const dataAddress = this.extractDataAddressFromCFile(fileContent, config);
+      if (!dataAddress) {
+        throw new Error("Could not extract data address from C file");
+      }
+
+      const dataArray = this.extractDataArrayFromCFile(
+        fileContent,
+        dataAddress
+      );
+      if (dataArray) {
+        imageData.data = new Uint8Array(dataArray);
+      } else {
+        throw new Error("Could not extract image data array from C file");
+      }
+
+      const validatedFormat = ImageViewPanel.validateAndGetFormat(
+        imageData.format,
+        config.imageFormats,
+        config.name
+      );
+
+      (imageData as any).validatedFormat = validatedFormat;
+
+      return imageData;
+    } catch (error) {
+      Logger.error(
+        "Error parsing image data from C file:",
+        error,
+        "ImageViewPanel parseImageDataFromCFile"
+      );
+      return null;
+    }
+  }
+
+  private extractValueFromCFile(
+    fileContent: string,
+    fieldConfig: FieldConfig | DataSizeConfig
+  ): number {
+    if (fieldConfig.type === "number") {
+      const value = fieldConfig.value;
+      if (value.startsWith("0x") || value.startsWith("0X")) {
+        return parseInt(value, 16);
+      } else {
+        return parseInt(value, 10);
+      }
+    }
+
+    if (fieldConfig.type === "string") {
+      if (fieldConfig.isChild) {
+        const pathParts = fieldConfig.value.split(".");
+        const structMatch = this.findLvImageStruct(fileContent);
+        if (!structMatch) {
+          throw new Error(
+            `Could not find lv_image_dsc_t struct definition for field: ${fieldConfig.value}`
+          );
+        }
+
+        let currentContent = structMatch[0];
+
+        for (const part of pathParts) {
+          const fieldRegex = new RegExp(`\\.${part}\\s*=\\s*([^,}]+)`, "i");
+          const match = currentContent.match(fieldRegex);
+          if (match) {
+            const valueStr = match[1].trim();
+            if (valueStr.startsWith("0x") || valueStr.startsWith("0X")) {
+              return parseInt(valueStr, 16);
+            } else if (valueStr.startsWith("LV_COLOR_FORMAT_")) {
+              return this.parseLvColorFormat(valueStr);
+            } else if (valueStr.startsWith("sizeof(")) {
+              const arrayMatch = valueStr.match(/sizeof\(([^)]+)\)/);
+              if (arrayMatch) {
+                return this.findArraySize(fileContent, arrayMatch[1]);
+              }
+            } else {
+              // Try to parse as number
+              const numValue = parseInt(valueStr, 10);
+              if (!isNaN(numValue)) {
+                return numValue;
+              }
+            }
+          }
+        }
+
+        throw new Error(`Could not find field: ${fieldConfig.value}`);
+      } else {
+        throw new Error(
+          "Direct expression evaluation not supported for file parsing"
+        );
+      }
+    }
+
+    if (fieldConfig.type === "formula") {
+      throw new Error(
+        "Formula-based data size supported for file parsing"
+      );
+    }
+
+    throw new Error(`Unsupported field type: ${fieldConfig.type}`);
+  }
+
+  private findLvImageStruct(fileContent: string): RegExpMatchArray | null {
+    // Look for lv_image_dsc_t struct definition with more specific pattern
+    const patterns = [
+      // Pattern 1: const lv_image_dsc_t name = { ... };
+      /const\s+lv_image_dsc_t\s+\w+\s*=\s*\{([^}]+)\}/s,
+      // Pattern 2: lv_image_dsc_t name = { ... };
+      /lv_image_dsc_t\s+\w+\s*=\s*\{([^}]+)\}/s,
+      // Pattern 3: const struct with lv_image_dsc_t
+      /const\s+.*lv_image_dsc_t.*=\s*\{([^}]+)\}/s,
+    ];
+
+    for (const pattern of patterns) {
+      const match = fileContent.match(pattern);
+      if (match) {
+        return match;
+      }
+    }
+
+    return null;
+  }
+
+  private parseLvColorFormat(formatStr: string): number {
+    const formatMap: { [key: string]: number } = {
+      LV_COLOR_FORMAT_NATIVE_WITH_ALPHA: 15, // Same as ARGB8888
+      LV_COLOR_FORMAT_NATIVE: 14, // Same as RGB888
+      LV_COLOR_FORMAT_RGB565: 9,
+      LV_COLOR_FORMAT_RGB888: 14,
+      LV_COLOR_FORMAT_ARGB8888: 15,
+      LV_COLOR_FORMAT_BGRA8888: 16,
+      LV_COLOR_FORMAT_YUV420: 18,
+      LV_COLOR_FORMAT_YUV422: 20,
+      LV_COLOR_FORMAT_YUV444: 21,
+      LV_COLOR_FORMAT_GRAYSCALE: 0,
+    };
+
+    const result = formatMap[formatStr] || 0;
+    Logger.info(
+      `Parsed LVGL color format: ${formatStr} -> ${result}`,
+      "ImageViewPanel parseLvColorFormat"
+    );
+    return result;
+  }
+
+  private findArraySize(fileContent: string, arrayName: string): number {
+    const arrayPattern = new RegExp(
+      `const\\s+.*\\s+${arrayName}\\s*\\[\\]\\s*=\\s*\\{([^}]+)\\}`,
+      "s"
+    );
+    const match = fileContent.match(arrayPattern);
+
+    if (match) {
+      const arrayContent = match[1];
+      const items = arrayContent.split(",");
+      return items.filter((item) => item.trim()).length;
+    }
+
+    return 0;
+  }
+
+  private extractDataAddressFromCFile(
+    fileContent: string,
+    config: ImageFormatConfig
+  ): string | null {
+    try {
+      // Find the lv_image_dsc_t struct first
+      const structMatch = this.findLvImageStruct(fileContent);
+      if (!structMatch) {
+        return null;
+      }
+
+      const structContent = structMatch[0];
+
+      // Look for the data field assignment
+      const dataFieldMatch = structContent.match(/\.data\s*=\s*(\w+)/);
+      if (dataFieldMatch) {
+        return dataFieldMatch[1];
+      }
+
+      return null;
+    } catch (error) {
+      Logger.error(
+        "Error extracting data address from C file:",
+        error,
+        "ImageViewPanel extractDataAddressFromCFile"
+      );
+      return null;
+    }
+  }
+
+  private extractDataArrayFromCFile(
+    fileContent: string,
+    dataAddress: string
+  ): number[] | null {
+    try {
+      const rawData = this.findArrayByName(fileContent, dataAddress);
+      if (!rawData) {
+        return null;
+      }
+      return this.correctEndianness(rawData);
+    } catch (error) {
+      Logger.error(
+        "Error extracting data array from C file:",
+        error,
+        "ImageViewPanel extractDataArrayFromCFile"
+      );
+      return null;
+    }
+  }
+
+  private findArrayByName(
+    fileContent: string,
+    arrayName: string
+  ): number[] | null {
+    // Look for the specific array by name with various patterns
+    const arrayPatterns = [
+      // Pattern 1: const uint8_t arrayName[] = { ... };
+      new RegExp(
+        `const\\s+uint8_t\\s+${arrayName}\\s*\\[\\]\\s*=\\s*\\{([^}]+)\\}`,
+        "s"
+      ),
+      // Pattern 2: const unsigned char arrayName[] = { ... };
+      new RegExp(
+        `const\\s+unsigned\\s+char\\s+${arrayName}\\s*\\[\\]\\s*=\\s*\\{([^}]+)\\}`,
+        "s"
+      ),
+      // Pattern 3: const char arrayName[] = { ... };
+      new RegExp(
+        `const\\s+char\\s+${arrayName}\\s*\\[\\]\\s*=\\s*\\{([^}]+)\\}`,
+        "s"
+      ),
+      // Pattern 4: uint8_t arrayName[] = { ... };
+      new RegExp(
+        `uint8_t\\s+${arrayName}\\s*\\[\\]\\s*=\\s*\\{([^}]+)\\}`,
+        "s"
+      ),
+      // Pattern 5: unsigned char arrayName[] = { ... };
+      new RegExp(
+        `unsigned\\s+char\\s+${arrayName}\\s*\\[\\]\\s*=\\s*\\{([^}]+)\\}`,
+        "s"
+      ),
+    ];
+
+    for (const pattern of arrayPatterns) {
+      const match = fileContent.match(pattern);
+      if (match) {
+        const arrayContent = match[1];
+        return this.parseArrayContent(arrayContent);
+      }
+    }
+
+    return null;
+  }
+
+  private parseArrayContent(arrayContent: string): number[] | null {
+    try {
+      const values: number[] = [];
+      const cleanedContent = arrayContent.replace(/\s+/g, " ").trim();
+      const items = cleanedContent.split(",");
+      for (const item of items) {
+        const trimmed = item.trim();
+        if (trimmed && trimmed !== "") {
+          let value: number;
+          if (trimmed.startsWith("0x") || trimmed.startsWith("0X")) {
+            value = parseInt(trimmed, 16);
+          } else if (
+            trimmed.startsWith("0") &&
+            trimmed.length > 1 &&
+            !trimmed.startsWith("0x")
+          ) {
+            value = parseInt(trimmed, 8);
+          } else {
+            value = parseInt(trimmed, 10);
+          }
+
+          if (!isNaN(value) && value >= 0 && value <= 255) {
+            values.push(value);
+          }
+        }
+      }
+
+      return values.length > 0 ? values : null;
+    } catch (error) {
+      Logger.error(
+        "Error parsing array content:",
+        error,
+        "ImageViewPanel parseArrayContent"
+      );
+      return null;
+    }
+  }
+
+  private correctEndianness(rawData: number[]): number[] {
+    try {
+
+      if (rawData.length % 4 !== 0) {
+        return rawData;
+      }
+
+      const correctedData: number[] = [];
+
+      // Process data in groups of 4 bytes (one pixel)
+      for (let i = 0; i < rawData.length; i += 4) {
+        if (i + 3 < rawData.length) {
+          // Swap bytes within each 4-byte pixel
+          // Original: [B0, B1, B2, B3] (little-endian)
+          // Corrected: [B3, B2, B1, B0] (big-endian)
+          correctedData.push(rawData[i + 3]); // Alpha
+          correctedData.push(rawData[i + 2]); // Red
+          correctedData.push(rawData[i + 1]); // Green
+          correctedData.push(rawData[i]); // Blue
+        }
+      }
+      return correctedData;
+    } catch (error) {
+      Logger.error(
+        "Error correcting endianness:",
+        error,
+        "ImageViewPanel correctEndianness"
+      );
+      return rawData;
+    }
   }
 
   private dispose() {

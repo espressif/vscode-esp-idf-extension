@@ -136,3 +136,7 @@ All commands start with ``ESP-IDF:``.
      - Copy the unit test app in the current project, build the current project and flash the unit test application to the connected device. More information can be found in :ref:`Unit Testing Documentation <unit testing>`.
    * - Unit Test: Install ESP-IDF Pytest Requirements
      - Install the ESP-IDF Pytest requirement packages to be able to execute ESP-IDF unit tests. More information can be found in :ref:`Unit Testing Documentation <unit testing>`.
+   * - Load Image from LVGL C File
+     - Load and display an image from a LVGL C file containing lv_image_dsc_t structure. This command allows you to view LVGL images without requiring a debug session.
+   * - Open Image Viewer
+     - Open the Image Viewer panel to display images from debug variables or LVGL C files. This panel provides tools for viewing and analyzing image data in various formats.

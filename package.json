@@ -1839,6 +1839,11 @@
         "category": "ESP-IDF"
       },
       {
+        "command": "espIdf.loadImageFromFile",
+        "title": "%espIdf.loadImageFromFile.title%",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.hexView.copyValue",
         "title": "%espIdf.hexView.copyValue.title%",
         "category": "ESP-IDF",

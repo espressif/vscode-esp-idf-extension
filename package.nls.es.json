@@ -100,6 +100,7 @@
 	"espIdf.viewAsHex.title": "Ver como Hexadecimal",
 	"espIdf.viewVariableAsImage.title": "Ver variable como imagen",
 	"espIdf.openImageViewer.title": "Abrir Visualizador de Imágenes",
+	"espIdf.loadImageFromFile.title": "Cargar Imagen desde Archivo C LVGL",
 	"espIdf.hexView.copyValue.title": "Copiar valor al portapapeles",
   	"espIdf.hexView.deleteElement.title": "Eliminar valor hexadecimal de la lista",
 	"esp_idf.appOffset.description": "Anular la dirección de inicio del programa de compilación (ESP32_APP_FLASH_OFF)",
