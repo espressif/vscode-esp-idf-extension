@@ -109,6 +109,7 @@
     "onView:idfPartitionExplorer",
     "onView:espRainmaker",
     "onView:idfComponents",
+    "onCommand:espIdf.openImageViewer",
     "workspaceContains:**/CMakeLists.txt"
   ],
   "main": "./dist/extension",
@@ -540,6 +541,11 @@
       "debug/variables/context": [
         {
           "command": "espIdf.viewAsHex",
+          "when": "inDebugMode && debugType == 'gdbtarget' && debugState == stopped",
+          "group": "navigation"
+        },
+        {
+          "command": "espIdf.viewVariableAsImage",
           "when": "inDebugMode && debugType == 'gdbtarget' && debugState == stopped",
           "group": "navigation"
         }
@@ -1295,6 +1301,12 @@
             "default": 60,
             "scope": "resource",
             "description": "%param.serialPortDetectionTimeout%"
+          },
+          "idf.imageViewerConfigs": {
+            "type": "string",
+            "description": "%param.imageViewerConfigs.title%",
+            "scope": "resource",
+            "default": ""
           }
         }
       }
@@ -1814,6 +1826,21 @@
       {
         "command": "espIdf.viewAsHex",
         "title": "%espIdf.viewAsHex.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.viewVariableAsImage",
+        "title": "%espIdf.viewVariableAsImage.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.openImageViewer",
+        "title": "%espIdf.openImageViewer.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.loadImageFromFile",
+        "title": "%espIdf.loadImageFromFile.title%",
         "category": "ESP-IDF"
       },
       {
