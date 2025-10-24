@@ -148,21 +148,23 @@ export class ProjectConfigurationManager {
         if (saveLastProjectConfiguration !== false) {
           // When setting is enabled, show no configuration selected status
           window.showInformationMessage(
-            `Loaded ${
-              this.configVersions.length
-            } project configuration(s) from ${fileInfo.join(
-              " and "
-            )}: ${this.configVersions.join(", ")}. No configuration selected.`
+            l10n.t(
+              "Loaded {0} project configuration(s) from {1}: {2}. No configuration selected.",
+              this.configVersions.length,
+              fileInfo.join(" and "),
+              this.configVersions.join(", ")
+            )
           );
           this.setNoConfigurationSelectedStatus();
         } else {
           // Show the current behavior when auto-selection is disabled
           window.showInformationMessage(
-            `Loaded ${
-              this.configVersions.length
-            } project configuration(s) from ${fileInfo.join(
-              " and "
-            )}: ${this.configVersions.join(", ")}`
+            l10n.t(
+              "Loaded {0} project configuration(s) from {1}: {2}",
+              this.configVersions.length,
+              fileInfo.join(" and "),
+              this.configVersions.join(", ")
+            )
           );
           this.setNoConfigurationSelectedStatus();
         }
@@ -175,7 +177,7 @@ export class ProjectConfigurationManager {
       }
     } catch (error) {
       Logger.errorNotify(
-        `Failed to parse project configuration files`,
+        l10n.t("Failed to parse project configuration files"),
         error,
         "ProjectConfigurationManager initialize"
       );
@@ -247,13 +249,13 @@ export class ProjectConfigurationManager {
 
       if (addedVersions.length > 0) {
         window.showInformationMessage(
-          `New configurations added: ${addedVersions.join(", ")}`
+          l10n.t("New configurations added: {0}", addedVersions.join(", "))
         );
       }
 
       if (removedVersions.length > 0) {
         window.showInformationMessage(
-          `Configurations removed: ${removedVersions.join(", ")}`
+          l10n.t("Configurations removed: {0}", removedVersions.join(", "))
         );
       }
 
@@ -316,7 +318,7 @@ export class ProjectConfigurationManager {
     }
   
     // Optionally notify the user
-    Logger.infoNotify("Project configuration file has been deleted.");
+    Logger.infoNotify(l10n.t("Project configuration file has been deleted."));
   }
 
   private async handleConfigFileCreate(): Promise<void> {
@@ -353,7 +355,10 @@ export class ProjectConfigurationManager {
 
           // Notify the user about available configurations
           window.showInformationMessage(
-            `Project configuration file created with ${this.configVersions.length} configuration(s). Select one to use.`
+            l10n.t(
+              "Project configuration file created with {0} configuration(s). Select one to use.",
+              this.configVersions.length
+            )
           );
         }
       } else {
@@ -374,9 +379,9 @@ export class ProjectConfigurationManager {
    * Sets the status bar to indicate no configuration is selected
    */
   private setNoConfigurationSelectedStatus(): void {
-    const statusBarItemName = "No Configuration Selected";
+    const statusBarItemName = l10n.t("No Configuration Selected");
     const statusBarItemTooltip =
-      "No project configuration selected. Click to select one";
+      l10n.t("No project configuration selected. Click to select one");
     const commandToUse = "espIdf.projectConf";
 
     if (this.statusBarItems["projectConf"]) {
@@ -500,12 +505,13 @@ export class ProjectConfigurationManager {
           return;
         }
 
+        const openEditorLabel = l10n.t("Open editor");
         const emptyOption = await window.showInformationMessage(
           l10n.t("No CMakePresets configure presets found"),
-          "Open editor"
+          openEditorLabel
         );
 
-        if (emptyOption === "Open editor") {
+        if (emptyOption === openEditorLabel) {
           commands.executeCommand("espIdf.projectConfigurationEditor");
         }
         return;
@@ -515,7 +521,7 @@ export class ProjectConfigurationManager {
       let quickPickItems = Object.keys(projectConfigurations).map((k) => {
         return {
           description: k,
-          label: `Configuration ${k}`,
+          label: l10n.t("Configuration {0}", k),
           target: k,
         };
       });
@@ -583,10 +589,14 @@ export class ProjectConfigurationManager {
    * Sets status bar to indicate legacy configurations are available
    */
   private setLegacyConfigurationStatus(legacyConfigNames: string[]): void {
-    const statusBarItemName = `Legacy Configs (${legacyConfigNames.length})`;
-    const statusBarItemTooltip = `Found legacy project configurations: ${legacyConfigNames.join(
-      ", "
-    )}. Click to migrate to CMakePresets.json format.`;
+    const statusBarItemName = l10n.t(
+      "Legacy Configs ({0})",
+      legacyConfigNames.length
+    );
+    const statusBarItemTooltip = l10n.t(
+      "Found legacy project configurations: {0}. Click to migrate to the new CMakePresets.json format.",
+      legacyConfigNames.join(", ")
+    );
     const commandToUse = "espIdf.projectConf";
 
     if (this.statusBarItems["projectConf"]) {
