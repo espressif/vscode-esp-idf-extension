@@ -194,7 +194,7 @@ export class projectConfigurationPanel {
     this.clearSelectedProject(projectConfKeys);
     await saveProjectConfFileLegacy(this.workspaceFolder, projectConfDict);
     window.showInformationMessage(
-      "Project Configuration changes has been saved"
+      l10n.t("Project Configuration changes have been saved")
     );
   }
 
