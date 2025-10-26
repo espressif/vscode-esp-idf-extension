@@ -102,25 +102,56 @@ Use Multiple Build Configurations in the Same Workspace Folder
 
 Use the ESP-IDF CMake `Multiple Build Configurations Example <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_ to follow this tutorial.
 
-Use the ``ESP-IDF: Open Project Configuration`` command to create two configuration profiles: ``prod1`` and ``prod2``. Set ``sdkconfig.prod_common;sdkconfig.prod1`` and ``sdkconfig.prod_common;sdkconfig.prod2`` in the sdkconfig defaults field as shown below:
+.. note::
 
-.. image:: ../../../media/tutorials/project_conf/enterConfigName.png
+   The ESP-IDF ``multi_config`` example already ships with a ready-to-use ``CMakePresets.json`` and works out of the box. When you select a project configuration in this extension, the extension will automatically attach vendor settings under ``espressif/vscode-esp-idf`` for the chosen preset (for example, OpenOCD configuration and ``IDF_TARGET``) based on your currently selected board configuration and target in the extension.
 
-.. image:: ../../../media/tutorials/project_conf/prod1.png
+Define your configurations in ``CMakePresets.json`` (and optionally ``CMakeUserPresets.json``). Then use ``ESP-IDF: Select Project Configuration`` to choose among the discovered presets. The extension will apply the selected preset when building/flashing/monitoring.
 
-.. image:: ../../../media/tutorials/project_conf/prod2.png
+Typical entries in ``CMakePresets.json``:
 
-After creating each profile and setting the configuration, click the ``Save`` button. Use the ``ESP-IDF: Select Project Configuration`` command to choose the configuration to override extension configuration settings.
+.. code-block:: JSON
 
-.. image:: ../../../media/tutorials/project_conf/selectConfig.png
+   {
+       "version": 3,
+       "configurePresets": [
+           {
+               "name": "default",
+               "binaryDir": "build/default",
+               "displayName": "Default (development)",
+               "description": "Development configuration",
+               "cacheVariables": {
+                   "SDKCONFIG": "./build/default/sdkconfig"
+               }
+           },
+           {
+               "name": "prod1",
+               "binaryDir": "build/prod1",
+               "displayName": "Product 1",
+               "description": "Production configuration for product 1",
+               "cacheVariables": {
+                   "SDKCONFIG_DEFAULTS": "sdkconfig.defaults.prod_common;sdkconfig.defaults.prod1",
+                   "SDKCONFIG": "./build/prod1/sdkconfig"
+               }
+           },
+           {
+               "name": "prod2",
+               "binaryDir": "build/prod2",
+               "displayName": "Product 2",
+               "description": "Production configuration for product 2",
+               "cacheVariables": {
+                   "SDKCONFIG_DEFAULTS": "sdkconfig.defaults.prod_common;sdkconfig.defaults.prod2",
+                   "SDKCONFIG": "./build/prod2/sdkconfig"
+               }
+           }
+       ]
+   }
 
-Once a configuration profile is selected, it will appear in the status bar as shown before.
+Selecting presets:
 
-.. image:: ../../../media/tutorials/project_conf/configInStatusBar.png
-
-Now, use the ``ESP-IDF: Build your Project`` command to build the project for ``prod1`` and ``prod2``. You will see binaries generated for each profile in the specified path. Use the ``ESP-IDF: Select Project Configuration`` command to switch between configurations.
-
-Use the ``ESP-IDF: Open Project Configuration`` command to modify, add, or delete the configuration profiles. To stop using these profiles, delete all configuration profiles.
+1. Open Command Palette and run ``ESP-IDF: Select Project Configuration``.
+2. Pick ``default``, ``prod1`` or ``prod2``.
+3. Run ``ESP-IDF: Build Your Project`` to build with the selected preset. Switch presets any time via the same selection command.
 
 Multiple ESP-IDF Versions
 -------------------------
