@@ -1699,6 +1699,11 @@
         "category": "ESP-IDF"
       },
       {
+        "command": "espIdf.createNewProject",
+        "title": "%espIdf.createNewProject.title%",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.eraseFlash",
         "title": "%espIdf.eraseFlash.title%",
         "category": "ESP-IDF"

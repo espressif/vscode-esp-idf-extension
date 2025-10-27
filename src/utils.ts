@@ -1403,6 +1403,31 @@ export function getWebViewFavicon(extensionPath: string): vscode.Uri {
   );
 }
 
+/**
+ * Create a new ESP-IDF project in the current workspace.
+ * @param {string} name - Name of the new project to create.
+ * @param {string} targetDirectory - The directory where the project will be created.
+ * @returns {Promise<vscode.Uri>} - The URI of the created project directory.
+ */
+export async function createNewProject(
+  name: string,
+  targetDirectory: vscode.Uri
+) {
+  const destinationDir = vscode.Uri.joinPath(targetDirectory, name);
+  await mkdirp(destinationDir.fsPath);
+  await copyFromSrcProject(
+    path.join(extensionContext.extensionPath, "templates", "template-app"),
+    destinationDir
+  );
+  await updateProjectNameInCMakeLists(destinationDir.fsPath, name);
+  return destinationDir;
+}
+
+/**
+ * Create a new ESP-IDF component in the current workspace.
+ * @param {string} name - Name of the new component to create.
+ * @param {string} currentDirectory - The current directory where the component will be created.
+ */
 export async function createNewComponent(
   name: string,
   currentDirectory: string
