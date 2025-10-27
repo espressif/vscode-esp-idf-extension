@@ -227,9 +227,15 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd></td>
         </tr>
         <tr>
-            <td rowspan=4 align="center">Project creation</td>
+            <td rowspan=5 align="center">Project creation</td>
             <td>Create New ESP-IDF Component</td>
             <td>Create a new component in the current directory based on ESP-IDF component template.</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Create New Project</td>
+            <td>Launch UI with an ESP-IDF project creation wizard using templates and examples from ESP-IDF and additional frameworks configured in the extension.</td>
             <td></td>
             <td></td>
         </tr>
