@@ -36,8 +36,8 @@ All commands start with ``ESP-IDF:``.
      - Configure the current ESP-IDF project to use esp-clang as toolchain to use and configure LLVM Clang extension in settings.json.
    * - Create New ESP-IDF Component
      - Create a new component in the current directory based on ESP-IDF component template.
-   * - Create New Project
-     - Launch UI with an ESP-IDF project creation wizard using templates and examples from ESP-IDF and additional frameworks configured in the extension.
+   * - Create New Boilerplate Project
+     - Ask for the new project name, choose the directory to create the project, and show a notification to open the newly created project.
    * - Dispose of Current SDK Configuration Editor Server Process
      - If you already executed the SDK Configuration editor, a cache process will remain in the background for faster reopening. This command will dispose of such cache process.
    * - Doctor Command

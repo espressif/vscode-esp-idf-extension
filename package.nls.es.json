@@ -66,7 +66,7 @@
 	"espIdf.monitorDevice.title": "Monitorear Dispositivo",
 	"espIdf.monitorQemu.title": "Monitorear Dispositivo QEMU",
 	"espIdf.newProject.start.title": "Nuevo Proyecto",
-	"espIdf.createNewProject.title": "Crear Nuevo Proyecto",
+	"espIdf.createNewProject.title": "Crear Nuevo Proyecto Plantilla",
 	"espIdf.ninja.summary.title": "Mostrar Resumen de Compilación Ninja",
 	"espIdf.openDocUrl.title": "Abrir Documentación ESP-IDF...",
 	"espIdf.openOCDCommand.title": "Administrador de OpenOCD",

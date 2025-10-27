@@ -2003,41 +2003,66 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.createNewProject", async () => {
     PreCheck.perform([openFolderCheck], async () => {
-      try {
-        const projectName = await vscode.window.showInputBox({
-          placeHolder: vscode.l10n.t("Enter ESP-IDF project name"),
-          value: "",
-        });
-        if (!projectName) {
-          return;
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspaceRoot
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
+      vscode.window.withProgress(
+        {
+          cancellable: false,
+          location: ProgressLocation,
+          title: "ESP-IDF: Create boilerplate project",
+        },
+        async (
+          progress: vscode.Progress<{ increment: number; message: string }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            const projectName = await vscode.window.showInputBox({
+              placeHolder: vscode.l10n.t("Enter ESP-IDF project name"),
+              value: "",
+            });
+            if (!projectName) {
+              return;
+            }
+            const selectedFolder = await vscode.window.showOpenDialog({
+              canSelectFolders: true,
+              canSelectFiles: false,
+              canSelectMany: false,
+            });
+            if (!selectedFolder) {
+              return;
+            }
+            await utils.createNewProject(projectName, selectedFolder[0]);
+            const openItem = vscode.l10n.t(`Open {0}`, projectName);
+            const opt = await vscode.window.showInformationMessage(
+              vscode.l10n.t("ESP-IDF project {name} has been created", {
+                name: projectName,
+              }),
+              openItem
+            );
+            if (opt === openItem) {
+              vscode.commands.executeCommand(
+                "vscode.openFolder",
+                vscode.Uri.joinPath(selectedFolder[0], projectName),
+                true
+              );
+            }
+          } catch (error) {
+            const errMsg = error.message || "Error creating ESP-IDF project";
+            return Logger.errorNotify(
+              errMsg,
+              error,
+              "extension createNewProject"
+            );
+          }
         }
-        const selectedFolder = await vscode.window.showOpenDialog({
-          canSelectFolders: true,
-          canSelectFiles: false,
-          canSelectMany: false,
-        });
-        if (!selectedFolder) {
-          return;
-        }
-        await utils.createNewProject(projectName, selectedFolder[0]);
-        const openItem = vscode.l10n.t(`Open {0}`, selectedFolder[0].fsPath);
-        const opt = await vscode.window.showInformationMessage(
-          vscode.l10n.t("ESP-IDF project {name} has been created", {
-            name: projectName,
-          }),
-          openItem
-        );
-        if (opt === openItem) {
-          vscode.commands.executeCommand(
-            "vscode.openFolder",
-            selectedFolder[0],
-            true
-          );
-        }
-      } catch (error) {
-        const errMsg = error.message || "Error creating ESP-IDF project";
-        return Logger.errorNotify(errMsg, error, "extension createNewProject");
-      }
+      );
     });
   });
 

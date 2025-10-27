@@ -234,8 +234,8 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
             <td></td>
         </tr>
         <tr>
-            <td>Create New Project</td>
-            <td>Launch UI with an ESP-IDF project creation wizard using templates and examples from ESP-IDF and additional frameworks configured in the extension.</td>
+            <td>Create New Boilerplate Project</td>
+            <td>Ask for the new project name, choose the directory to create the project, and show a notification to open the newly created project.</td>
             <td></td>
             <td></td>
         </tr>

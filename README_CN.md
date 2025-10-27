@@ -234,8 +234,8 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd></td>
         </tr>
         <tr>
-            <td>创建新项目</td>
-            <td>启动 UI，通过 ESP-IDF 项目创建向导，使用 ESP-IDF 中的模板和示例以及扩展中配置的其他框架。</td>
+            <td>创建新模板项目</td>
+            <td>询问新项目名称，选择创建项目的目录，并显示通知以打开新创建的项目。</td>
             <td></td>
             <td></td>
         </tr>

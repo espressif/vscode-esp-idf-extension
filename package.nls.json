@@ -66,7 +66,7 @@
   "espIdf.monitorDevice.title": "Monitor Device",
   "espIdf.monitorQemu.title": "Monitor QEMU Device",
   "espIdf.newProject.start.title": "New Project",
-  "espIdf.createNewProject.title": "Create New Project",
+	"espIdf.createNewProject.title": "Create New Boilerplate Project",
   "espIdf.ninja.summary.title": "Show Ninja Build Summary",
   "espIdf.openDocUrl.title": "Open ESP-IDF Documentation...",
   "espIdf.openOCDCommand.title": "OpenOCD Manager",
