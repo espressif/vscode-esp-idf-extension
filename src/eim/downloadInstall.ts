@@ -68,7 +68,7 @@ export async function runExistingEIM(
           process.env.USERPROFILE || "",
           ".espressif",
           "eim_gui",
-          "eim.exe"
+          "eim-gui-windows-x64.exe"
         );
       } else if (process.platform === "darwin") {
         eimPath = "/Applications/eim.app";
@@ -259,7 +259,7 @@ export async function downloadExtractAndRunEIM(
     if (process.platform === "win32") {
       binaryPath = `Start-Process -FilePath "${join(
         eimInstallPath,
-        "eim.exe"
+        "eim-gui-windows-x64.exe"
       )}"`;
     } else if (process.platform === "linux") {
       binaryPath = `./eim`;
