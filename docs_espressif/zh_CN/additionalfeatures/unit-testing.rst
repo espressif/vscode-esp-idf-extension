@@ -41,8 +41,6 @@
 
 此结构来自 `ESP-IDF unit_test 示例 <https://github.com/espressif/esp-idf/tree/master/examples/system/unit_test>`_，可以作为参考。
 
-.. note::
-
 运行测试
 --------
 

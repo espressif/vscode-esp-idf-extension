@@ -41,8 +41,6 @@ To add tests for a ``testable`` component, define a ``test`` subdirectory and ad
 
 This structure is from the `ESP-IDF unit_test example <https://github.com/espressif/esp-idf/tree/master/examples/system/unit_test>`_, which can serve as a reference.
 
-.. note::
-
 Running the tests
 --------------------------------------------
 
