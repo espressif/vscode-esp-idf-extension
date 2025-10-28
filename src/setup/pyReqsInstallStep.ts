@@ -19,7 +19,6 @@ import { SetupPanel } from "./SetupPanel";
 import { saveSettings } from "./setupInit";
 import { getOpenOcdRules } from "./addOpenOcdRules";
 import { addIdfPath } from "./espIdfJson";
-import { ESP } from "../config";
 
 export async function createPyReqs(
   idfPath: string,
@@ -32,7 +31,7 @@ export async function createPyReqs(
   cancelToken: vscode.CancellationToken,
   workspaceFolderUri: vscode.Uri,
   espIdfStatusBar: vscode.StatusBarItem,
-  mirror: ESP.IdfMirror
+  pypiIndexUrl?: string
 ) {
   SetupPanel.postMessage({
     command: "updatePyVEnvStatus",
@@ -45,8 +44,8 @@ export async function createPyReqs(
     gitPath,
     context,
     progress,
-    mirror,
-    cancelToken
+    cancelToken,
+    pypiIndexUrl
   );
   await saveSettings(
     idfPath,

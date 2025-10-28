@@ -100,6 +100,7 @@ export const useSetupStore = defineStore("setup", () => {
   let extensionVersion: Ref<string> = ref("");
   let idfPathError: Ref<string> = ref("");
   let isInstallButtonDisabled: Ref<boolean> = ref(false);
+  let pypiIndex: Ref<string> = ref("");
 
   function clearIdfPathError() {
     idfPathError.value = "";
@@ -210,6 +211,7 @@ export const useSetupStore = defineStore("setup", () => {
       setupMode: setupMode.value,
       toolsPath: toolsFolder.value,
       saveScope: saveScope.value,
+      pypiIndex: pypiIndex.value,
     });
   }
 
@@ -226,6 +228,7 @@ export const useSetupStore = defineStore("setup", () => {
       pyPath,
       toolsPath: toolsFolder.value,
       saveScope: saveScope.value,
+      pypiIndex: pypiIndex.value,
     });
   }
 
@@ -255,6 +258,7 @@ export const useSetupStore = defineStore("setup", () => {
       toolsPath: toolsFolder.value,
       saveScope: saveScope.value,
       mirror: selectedIdfMirror.value,
+      pypiIndex: pypiIndex.value,
     });
   }
 
@@ -505,5 +509,6 @@ export const useSetupStore = defineStore("setup", () => {
     validateEspIdfPath,
     clearIdfPathError,
     espIdfVersion,
+    pypiIndex,
   };
 });

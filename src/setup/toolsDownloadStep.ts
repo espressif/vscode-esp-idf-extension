@@ -34,6 +34,7 @@ export async function downloadIdfTools(
   progress?: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken?: vscode.CancellationToken,
   onReqPkgs?: string[],
+  pypiIndexUrl?: string
 ) {
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(idfPath);
   const requiredTools = await idfToolsManager.getRequiredToolsInfo(
@@ -69,6 +70,6 @@ export async function downloadIdfTools(
     cancelToken,
     workspaceFolderUri,
     espIdfStatusBar,
-    mirror
+    pypiIndexUrl
   );
 }

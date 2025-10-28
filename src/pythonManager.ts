@@ -115,8 +115,8 @@ export async function installPythonEnvFromIdfTools(
   pythonBinPath: string,
   gitPath: string,
   context: ExtensionContext,
-  mirror: ESP.IdfMirror,
-  cancelToken?: CancellationToken
+  cancelToken?: CancellationToken,
+  pypiIndexUrl?: string
 ) {
   const idfToolsPyPath = join(espDir, "tools", "idf_tools.py");
   const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
@@ -124,8 +124,8 @@ export async function installPythonEnvFromIdfTools(
   );
   modifiedEnv.IDF_TOOLS_PATH = idfToolsDir;
   modifiedEnv.IDF_PATH = espDir;
-  if (mirror === ESP.IdfMirror.Espressif) {
-    modifiedEnv.PIP_EXTRA_INDEX_URL = "https://dl.espressif.cn/pypi";
+  if (pypiIndexUrl) {
+    modifiedEnv.PIP_INDEX_URL = pypiIndexUrl;
   }
   if (process.platform === "win32") {
     let pathToGitDir: string;

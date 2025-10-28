@@ -19,7 +19,6 @@ import { OutputChannel } from "../logger/outputChannel";
 import { PyReqLog } from "../PyReqLog";
 import { CancellationToken, ExtensionContext, Progress } from "vscode";
 import { Logger } from "../logger/logger";
-import { ESP } from "../config";
 
 export async function installPyReqs(
   espIdfPath: string,
@@ -28,8 +27,8 @@ export async function installPyReqs(
   gitPath: string,
   context: ExtensionContext,
   progress: Progress<{ message: string; increment?: number }>,
-  mirror: ESP.IdfMirror,
-  cancelToken?: CancellationToken
+  cancelToken?: CancellationToken,
+  pypiIndexUrl?: string
 ) {
   progress.report({
     message: `Checking Python and pip exists...`,
@@ -70,8 +69,8 @@ export async function installPyReqs(
     sysPyBinPath,
     gitPath,
     context,
-    mirror,
-    cancelToken
+    cancelToken,
+    pypiIndexUrl
   );
   if (virtualEnvPyBin) {
     if (logTracker.Log.indexOf("Exception") < 0) {

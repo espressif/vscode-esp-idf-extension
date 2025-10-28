@@ -164,7 +164,8 @@ export class SetupPanel {
               context,
               setupArgs.espIdfStatusBar,
               setupArgs.workspaceFolder,
-              setupArgs.onReqPkgs
+              setupArgs.onReqPkgs,
+              message.pypiIndex
             );
           }
           break;
@@ -186,7 +187,8 @@ export class SetupPanel {
               setupArgs.workspaceFolder,
               context,
               setupArgs.espIdfStatusBar,
-              setupArgs.onReqPkgs
+              setupArgs.onReqPkgs,
+              message.pypiIndex
             );
           }
           break;
@@ -260,7 +262,8 @@ export class SetupPanel {
               context,
               setupArgs.workspaceFolder,
               setupArgs.espIdfStatusBar,
-              message.mirror
+              message.mirror,
+              message.pypiIndex
             );
           }
           break;
@@ -425,7 +428,8 @@ export class SetupPanel {
     context: ExtensionContext,
     espIdfStatusBar: StatusBarItem,
     workspaceFolderUri: Uri,
-    onReqPkgs?: string[]
+    onReqPkgs?: string[],
+    pypiIndex?: string
   ) {
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode"
@@ -503,7 +507,8 @@ export class SetupPanel {
             idfGitPath,
             progress,
             cancelToken,
-            onReqPkgs
+            onReqPkgs,
+            pypiIndex
           );
         } catch (error) {
           this.setupErrHandler(error);
@@ -559,7 +564,8 @@ export class SetupPanel {
     workspaceFolderUri: Uri,
     context: ExtensionContext,
     espIdfStatusBar: StatusBarItem,
-    onReqPkgs?: string[]
+    onReqPkgs?: string[],
+    pypiIndex?: string
   ) {
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode"
@@ -612,7 +618,8 @@ export class SetupPanel {
             espIdfStatusBar,
             progress,
             cancelToken,
-            onReqPkgs
+            onReqPkgs,
+            pypiIndex
           );
         } catch (error) {
           this.setupErrHandler(error);
@@ -630,7 +637,8 @@ export class SetupPanel {
     context: ExtensionContext,
     workspaceFolderUri: Uri,
     espIdfStatusBar: StatusBarItem,
-    mirror: ESP.IdfMirror
+    mirror: ESP.IdfMirror,
+    pypiIndex?: string
   ) {
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode"
@@ -667,7 +675,7 @@ export class SetupPanel {
             cancelToken,
             workspaceFolderUri,
             espIdfStatusBar,
-            mirror
+            pypiIndex
           );
         } catch (error) {
           this.setupErrHandler(error);

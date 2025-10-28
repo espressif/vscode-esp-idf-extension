@@ -33,6 +33,7 @@ const {
   espIdf,
   espIdfContainer,
   isInstallButtonDisabled,
+  pypiIndex,
 } = storeToRefs(store);
 
 const isNotWinPlatform = computed(() => {
@@ -112,6 +113,10 @@ function setPyExecErrorStatus() {
 function setToolsFolder(newToolsPath: string) {
   store.toolsFolder = newToolsPath;
 }
+
+function setPypiIndex(newPypiIndex: string) {
+  store.pypiIndex = newPypiIndex;
+}
 </script>
 
 <template>
@@ -152,6 +157,23 @@ function setToolsFolder(newToolsPath: string) {
 
       <div v-if="!toolsFolder" class="notification is-danger">
         ESP-IDF Tools path should not be empty.
+      </div>
+
+      <div class="field">
+        <label class="label">PyPI Index URL (optional):</label>
+        <div class="control">
+          <input
+            class="input"
+            type="text"
+            placeholder="https://pypi.org/simple/"
+            :value="pypiIndex"
+            @input="setPypiIndex(($event.target as HTMLInputElement).value)"
+            data-config-id="pypi-index-input"
+          />
+        </div>
+        <p class="help">
+          Specify a custom PyPI index URL for Python package installation. Leave empty to use the default PyPI index.
+        </p>
       </div>
 
       <selectPyVersion v-if="isNotWinPlatform" />
