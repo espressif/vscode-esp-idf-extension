@@ -33,6 +33,12 @@ import { getVirtualEnvPythonPath } from "../pythonManager";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { ESP } from "../config";
 
+import {
+  OutputCapturingExecution,
+  ShellOutputCapturingExecution,
+} from "../taskManager/customExecution";
+import { ProcessExecutionOptions } from "vscode";
+
 export class BuildTask {
   public static isBuilding: boolean;
   private buildDirPath: string;
@@ -41,14 +47,6 @@ export class BuildTask {
 
   constructor(workspaceUri: vscode.Uri) {
     this.currentWorkspace = workspaceUri;
-    this.idfPathDir = idfConf.readParameter(
-      "idf.espIdfPath",
-      workspaceUri
-    ) as string;
-    this.buildDirPath = idfConf.readParameter(
-      "idf.buildPath",
-      workspaceUri
-    ) as string;
   }
 
   public building(flag: boolean) {
@@ -78,20 +76,22 @@ export class BuildTask {
       throw new Error("ALREADY_BUILDING");
     }
     this.building(true);
+    this.idfPathDir = idfConf.readParameter(
+      "idf.espIdfPath",
+      this.currentWorkspace
+    ) as string;
+    this.buildDirPath = idfConf.readParameter(
+      "idf.buildPath",
+      this.currentWorkspace
+    ) as string;
     await ensureDir(this.buildDirPath);
     const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
-    const processOptions = {
+    const processOptions: ProcessExecutionOptions = {
       cwd: this.buildDirPath,
       env: modifiedEnv,
     };
-    const canAccessCMake = await isBinInPath(
-      "cmake",
-      modifiedEnv
-    );
-    const canAccessNinja = await isBinInPath(
-      "ninja",
-      modifiedEnv
-    );
+    const canAccessCMake = await isBinInPath("cmake", modifiedEnv);
+    const canAccessNinja = await isBinInPath("ninja", modifiedEnv);
 
     const cmakeCachePath = join(this.buildDirPath, "CMakeCache.txt");
     const cmakeCacheExists = await pathExists(cmakeCachePath);
@@ -113,6 +113,9 @@ export class BuildTask {
       notificationMode === idfConf.NotificationMode.Output
         ? vscode.TaskRevealKind.Always
         : vscode.TaskRevealKind.Silent;
+
+    let compileExecution: OutputCapturingExecution;
+    let buildExecution: OutputCapturingExecution;
 
     if (!cmakeCacheExists) {
       const espIdfVersion = await getEspIdfFromCMake(this.idfPathDir);
@@ -173,7 +176,7 @@ export class BuildTask {
           compilerArgs.push("-DCCACHE_ENABLE=1");
         }
       }
-      const compileExecution = new vscode.ProcessExecution(
+      compileExecution = OutputCapturingExecution.create(
         canAccessCMake,
         compilerArgs,
         processOptions
@@ -207,7 +210,7 @@ export class BuildTask {
       buildArgs.push(buildType);
     }
     const ninjaCommand = "ninja";
-    const buildExecution = new vscode.ProcessExecution(
+    buildExecution = OutputCapturingExecution.create(
       ninjaCommand,
       buildArgs,
       processOptions
@@ -226,6 +229,14 @@ export class BuildTask {
       ["espIdf", "espIdfLd"],
       buildPresentationOptions
     );
+    let results: OutputCapturingExecution[] = [];
+    if (compileExecution) {
+      results.push(compileExecution);
+    }
+    if (buildExecution) {
+      results.push(buildExecution);
+    }
+    return results;
   }
 
   public async buildDfu() {
@@ -266,7 +277,7 @@ export class BuildTask {
       cwd: this.buildDirPath,
       env: modifiedEnv,
     };
-    const writeExecution = new vscode.ProcessExecution(
+    const writeExecution = OutputCapturingExecution.create(
       pythonBinPath,
       args,
       processOptions
@@ -289,5 +300,6 @@ export class BuildTask {
       ["espIdf"],
       buildPresentationOptions
     );
+    return writeExecution;
   }
 }

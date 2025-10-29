@@ -45,7 +45,7 @@ import {
   showInfoNotificationWithMultipleActions,
 } from "./logger/utils";
 import * as utils from "./utils";
-import { PreCheck } from "./utils";
+import { PreCheck, shouldDisableMonitorReset } from "./utils";
 import {
   getIdfTargetFromSdkconfig,
   getProjectName,
@@ -69,6 +69,7 @@ import { WSServer } from "./espIdf/communications/ws";
 import { IDFMonitor } from "./espIdf/monitor";
 import { BuildTask } from "./build/buildTask";
 import { FlashTask } from "./flash/flashTask";
+import { EraseFlashTask } from "./flash/eraseFlashTask";
 import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "./espIdf/core-dump";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
 import { PartitionTableEditorPanel } from "./espIdf/partition-table";
@@ -129,7 +130,13 @@ import { TaskManager } from "./taskManager";
 import { WelcomePanel } from "./welcome/panel";
 import { getWelcomePageInitialValues } from "./welcome/welcomeInit";
 import { getEspMatter } from "./espMatter/espMatterDownload";
-import { setIdfTarget } from "./espIdf/setTarget";
+import {
+  setIdfTarget,
+  setIsSettingIDFTarget,
+  isSettingIDFTarget,
+} from "./espIdf/setTarget";
+import { setTargetInIDF } from "./espIdf/setTarget/setTargetInIdf";
+import { updateCurrentProfileIdfTarget } from "./project-conf";
 import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
@@ -187,6 +194,8 @@ import {
 import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
+import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
+import { readSerialPort } from "./idfConfiguration";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -374,6 +383,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Create Kconfig Language Server Client
   KconfigLangClient.startKconfigLangServer(context);
+
+  // Initialize ESP-IDF Language Tool for chat commands
+  activateLanguageTool(context);
 
   openOCDManager = OpenOCDManager.init();
   qemuManager = QemuManager.init();
@@ -679,36 +691,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.eraseFlash", async () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      if (IDFMonitor.terminal) {
-        IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-        const monitorDelay = idfConf.readParameter(
-          "idf.monitorDelay",
-          workspaceRoot
-        ) as number;
-        await utils.sleep(monitorDelay);
-      }
-      const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
-      const idfPathDir = idfConf.readParameter(
-        "idf.espIdfPath",
-        workspaceRoot
-      ) as string;
-      const port = await idfConf.readSerialPort(workspaceRoot, false);
-      if (!port) {
-        return Logger.warnNotify(
-          vscode.l10n.t(
-            "No serial port found for current IDF_TARGET: {0}",
-            await getIdfTargetFromSdkconfig(workspaceRoot)
-          )
-        );
-      }
-      const flashScriptPath = path.join(
-        idfPathDir,
-        "components",
-        "esptool_py",
-        "esptool",
-        "esptool.py"
-      );
-
       const notificationMode = idfConf.readParameter(
         "idf.notificationMode",
         workspaceRoot
@@ -718,7 +700,6 @@ export async function activate(context: vscode.ExtensionContext) {
         notificationMode === idfConf.NotificationMode.Notifications
           ? vscode.ProgressLocation.Notification
           : vscode.ProgressLocation.Window;
-
       vscode.window.withProgress(
         {
           cancellable: true,
@@ -735,16 +716,26 @@ export async function activate(context: vscode.ExtensionContext) {
           cancelToken: vscode.CancellationToken
         ) => {
           try {
-            const args = [flashScriptPath, "-p", port, "erase_flash"];
-            const result = await utils.execChildProcess(
-              pythonBinPath,
-              args,
-              process.cwd(),
-              OutputChannel.init(),
-              null,
-              cancelToken
-            );
-            OutputChannel.appendLine(result);
+            const port = await readSerialPort(this.currentWorkspace, false);
+            if (!port) {
+              return Logger.warnNotify(
+                vscode.l10n.t(
+                  "No serial port found for current IDF_TARGET: {0}",
+                  await getIdfTargetFromSdkconfig(this.currentWorkspace)
+                )
+              );
+            }
+            const eraseFlashTask = new EraseFlashTask(workspaceRoot);
+            await eraseFlashTask.eraseFlash(port);
+            await TaskManager.runTasks();
+            if (!cancelToken.isCancellationRequested) {
+              EraseFlashTask.isErasing = false;
+              const msg = "Erase flash done";
+              OutputChannel.appendLineAndShow(msg, "Erase flash");
+              Logger.infoNotify(msg);
+            }
+            TaskManager.disposeListeners();
+            OutputChannel.appendLine("Flash memory content has been erased.");
             Logger.infoNotify("Flash memory content has been erased.");
           } catch (error) {
             Logger.errorNotify(error.message, error, "extension eraseFlash");
@@ -2188,16 +2179,79 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  registerIDFCommand("espIdf.setTarget", () => {
+  registerIDFCommand("espIdf.setTarget", (target?: string) => {
     PreCheck.perform([openFolderCheck], async () => {
-      const enterDeviceTargetMsg = vscode.l10n.t(
-        "Enter target name (IDF_TARGET)"
-      );
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(
         workspaceRoot
       );
-      await setIdfTarget(enterDeviceTargetMsg, workspaceFolder);
-      await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
+
+      if (target) {
+        // Check if target setting is already in progress
+        if (isSettingIDFTarget) {
+          Logger.info("setTargetInIDF is already running.");
+          return;
+        }
+        setIsSettingIDFTarget(true);
+
+        try {
+          // If a target is provided, set it directly
+          const targetsFromIdf = await getTargetsFromEspIdf(
+            workspaceFolder.uri
+          );
+          const selectedTarget = targetsFromIdf.find(
+            (t) => t.target === target
+          );
+
+          if (selectedTarget) {
+            await setTargetInIDF(workspaceFolder, selectedTarget);
+
+            // Update configuration like setIdfTarget does
+            const configurationTarget =
+              vscode.ConfigurationTarget.WorkspaceFolder;
+            const customExtraVars = idfConf.readParameter(
+              "idf.customExtraVars",
+              workspaceFolder
+            ) as { [key: string]: string };
+            customExtraVars["IDF_TARGET"] = selectedTarget.target;
+            await idfConf.writeParameter(
+              "idf.customExtraVars",
+              customExtraVars,
+              configurationTarget,
+              workspaceFolder.uri
+            );
+            await updateCurrentProfileIdfTarget(
+              selectedTarget.target,
+              workspaceFolder.uri
+            );
+
+            await getIdfTargetFromSdkconfig(
+              workspaceRoot,
+              statusBarItems["target"]
+            );
+          } else {
+            const listOfTargets = targetsFromIdf
+              .map((t) => t.target)
+              .join(", ");
+            vscode.window.showErrorMessage(
+              `Invalid target: ${target}. Please use one of the supported targets: ${listOfTargets}.`
+            );
+          }
+        } catch (error) {
+          Logger.errorNotify(error.message, error, "espIdf.setTarget command");
+        } finally {
+          setIsSettingIDFTarget(false);
+        }
+      } else {
+        // If no target is provided, show the selection dialog
+        const enterDeviceTargetMsg = vscode.l10n.t(
+          "Enter target name (IDF_TARGET)"
+        );
+        await setIdfTarget(enterDeviceTargetMsg, workspaceFolder);
+        await getIdfTargetFromSdkconfig(
+          workspaceRoot,
+          statusBarItems["target"]
+        );
+      }
     });
   });
 
@@ -4334,7 +4388,7 @@ async function startFlashing(
   flashType: ESP.FlashType,
   encryptPartitions: boolean,
   partitionToUse?: ESP.BuildType
-) {
+): Promise<boolean> {
   if (!flashType) {
     flashType = await selectFlashMethod();
   }
@@ -4367,12 +4421,13 @@ async function startFlashing(
 
   const port = await idfConf.readSerialPort(workspaceRoot, false);
   if (!port) {
-    return Logger.warnNotify(
+    Logger.warnNotify(
       vscode.l10n.t(
         "No serial port found for current IDF_TARGET: {0}",
         await getIdfTargetFromSdkconfig(workspaceRoot)
       )
     );
+    return false;
   }
   const flashBaudRate = idfConf.readParameter(
     "idf.flashBaudRate",
@@ -4385,7 +4440,7 @@ async function startFlashing(
     workspaceRoot
   );
   if (!canFlash) {
-    return;
+    return false;
   }
 
   if (flashType === ESP.FlashType.JTAG) {
@@ -4541,39 +4596,10 @@ async function createMonitor() {
       vscode.commands.executeCommand(IDFWebCommandKeys.Monitor);
       return;
     }
-    const noReset = await shouldDisableMonitorReset();
+    const noReset = await shouldDisableMonitorReset(workspaceRoot);
     await createNewIdfMonitor(workspaceRoot, noReset);
   });
 }
-
-/**
- * Determines if the monitor reset should be disabled.
- * If flash encryption is enabled for release mode, we add --no-reset flag for monitoring
- * because by default monitoring command resets the device which is not recommended.
- * Reset should happen by Bootloader itself once it completes encrypting all artifacts.
- *
- * @returns {Promise<boolean>} True if monitor reset should be disabled, false otherwise.
- */
-const shouldDisableMonitorReset = async (): Promise<boolean> => {
-  const configNoReset = idfConf.readParameter(
-    "idf.monitorNoReset",
-    workspaceRoot
-  );
-
-  if (configNoReset === true) {
-    return true;
-  }
-
-  if (isFlashEncryptionEnabled(workspaceRoot)) {
-    const valueReleaseModeEnabled = await utils.getConfigValueFromSDKConfig(
-      "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE",
-      workspaceRoot
-    );
-    return valueReleaseModeEnabled === "y";
-  }
-
-  return false;
-};
 
 /**
  * Checks if the clangd extension is installed and prompts the user to install it if not.
@@ -4662,6 +4688,7 @@ export function deactivate() {
     covRenderer.dispose();
   }
   KconfigLangClient.stopKconfigLangServer();
+  deactivateLanguageTool();
 }
 
 class IdfDebugConfigurationProvider

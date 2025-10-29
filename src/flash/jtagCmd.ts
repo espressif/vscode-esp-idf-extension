@@ -26,8 +26,7 @@ import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { Uri } from "vscode";
 import { OutputChannel } from "../logger/outputChannel";
 
-export async function jtagFlashCommand(workspace: Uri): Promise<boolean> {
-  let continueFlag = true;
+export async function jtagFlashCommandMain(workspace: Uri) {
   const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
   if (!isOpenOCDLaunched) {
     const errStr =
@@ -69,23 +68,28 @@ export async function jtagFlashCommand(workspace: Uri): Promise<boolean> {
   if (forceUNIXPathSeparator === true) {
     buildPath = buildPath.replace(/\\/g, "/");
   }
+  await customTask.addCustomTask(CustomTaskType.PreFlash);
+  await customTask.runTasks(CustomTaskType.PreFlash);
+  await jtag.flash(
+    "program_esp_bins",
+    buildPath,
+    "flasher_args.json",
+    ...openOCDJTagFlashArguments
+  );
+  await customTask.addCustomTask(CustomTaskType.PostFlash);
+  await customTask.runTasks(CustomTaskType.PostFlash);
+  const msg = "⚡️ Flashed Successfully (JTAG)";
+  OutputChannel.appendLineAndShow(msg, "Flash");
+  Logger.infoNotify(msg);
+  const closingOpenOCDMsg = "Closing OpenOCD server connection...";
+  OutputChannel.appendLineAndShow(closingOpenOCDMsg, "Flash");
+  OpenOCDManager.init().stop();
+}
+
+export async function jtagFlashCommand(workspace: Uri) {
+  let continueFlag = true;
   try {
-    await customTask.addCustomTask(CustomTaskType.PreFlash);
-    await customTask.runTasks(CustomTaskType.PreFlash);
-    await jtag.flash(
-      "program_esp_bins",
-      buildPath,
-      "flasher_args.json",
-      ...openOCDJTagFlashArguments
-    );
-    await customTask.addCustomTask(CustomTaskType.PostFlash);
-    await customTask.runTasks(CustomTaskType.PostFlash);
-    const msg = "⚡️ Flashed Successfully (JTAG)";
-    OutputChannel.appendLineAndShow(msg, "Flash");
-    Logger.infoNotify(msg);
-    const closingOpenOCDMsg = "Closing OpenOCD server connection...";
-    OutputChannel.appendLineAndShow(closingOpenOCDMsg, "Flash");
-    OpenOCDManager.init().stop();
+    await jtagFlashCommandMain(workspace);
   } catch (msg) {
     OpenOCDManager.init().showOutputChannel(true);
     OutputChannel.appendLine(msg, "Flash");

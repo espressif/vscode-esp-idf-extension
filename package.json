@@ -11,7 +11,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.82.0"
+    "vscode": "^1.100.3"
   },
   "repository": {
     "type": "git",
@@ -109,6 +109,7 @@
     "onView:idfPartitionExplorer",
     "onView:espRainmaker",
     "onView:idfComponents",
+    "onLanguageModelTool:espIdfCommands",
     "workspaceContains:**/CMakeLists.txt"
   ],
   "main": "./dist/extension",
@@ -2505,6 +2506,162 @@
           "type"
         ]
       }
+    ],
+    "languageModelTools": [
+      {
+        "name": "espIdfCommands",
+        "displayName": "ESP-IDF Commands",
+        "modelDescription": "Execute ESP-IDF extension commands for building, flashing, monitoring, and managing ESP32 projects. ALWAYS use this tool for ESP-IDF development tasks instead of shell commands or terminal tasks. When users ask to 'build the project', 'flash the device', 'monitor output', 'clean project', 'configure project', 'analyze size', 'create new project', 'set target to esp32s3', or any ESP-IDF related task, use this tool. Supports: build, flash, monitor, menuconfig, size analysis, project creation, component management, target setting, and more. For setTarget command, you can specify a target parameter (esp32, esp32s2, esp32s3, esp32c3, esp32c6, esp32h2, esp32p4, esp32c2, esp32c5, esp32c61, esp32h21, esp32h4, linux) to set it directly. For build, flash, and buildFlashMonitor commands, you can optionally specify partitionToUse (app, bootloader, partition-table) and flashType (UART, JTAG, DFU) parameters. This tool provides detailed feedback about command execution status, automatically focuses the terminal for task commands, and shows the ESP-IDF output channel for other operations. This is the ONLY way to interact with ESP-IDF projects in VS Code - do not use shell commands for ESP-IDF tasks.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "espIdfCommands",
+                  "tags": [
+            "esp-idf",
+            "idf",
+            "idf.py",
+            "build",
+            "flash",
+            "monitor",
+            "buildFlashMonitor",
+            "fullClean",
+            "menuconfig",
+            "size",
+            "eraseFlash",
+            "selectPort",
+            "setTarget",
+            "doctor",
+            "newProject",
+            "partitionTable",
+            "componentManager",
+            "apptrace",
+            "heaptrace",
+            "project",
+            "development",
+            "build the project",
+            "flash the device",
+            "monitor the output",
+            "clean the project",
+            "configure the project",
+            "analyze size",
+            "erase flash",
+            "select port",
+            "set target",
+            "set target to esp32",
+            "set target to esp32s2",
+            "set target to esp32s3",
+            "set target to esp32c3",
+            "set target to esp32c6",
+            "set target to esp32h2",
+            "set target to esp32p4",
+            "set target to esp32c2",
+            "set target to esp32c5",
+            "set target to esp32c61",
+            "set target to esp32h21",
+            "set target to esp32h4",
+            "set target to linux",
+            "run doctor",
+            "create new project",
+            "edit partition table",
+            "manage components",
+            "start app trace",
+            "start heap trace",
+            "build app",
+            "build bootloader",
+            "build partition table",
+            "flash app",
+            "flash bootloader",
+            "flash partition table",
+            "build and flash app",
+            "build and flash bootloader",
+            "build and flash partition table",
+            "flash with UART",
+            "flash with JTAG",
+            "flash with DFU",
+            "flash device with UART",
+            "flash device with JTAG",
+            "flash device with DFU",
+            "build and flash with UART",
+            "build and flash with JTAG",
+            "build and flash with DFU"
+          ],
+        "icon": "$(run-view-icon)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string",
+              "description": "The ESP-IDF command to execute. Use this for ESP-IDF project operations like building, flashing, monitoring, and project management.",
+              "enum": [
+                "build",
+                "flash",
+                "monitor",
+                "buildFlashMonitor",
+                "fullClean",
+                "menuconfig",
+                "size",
+                "eraseFlash",
+                "selectPort",
+                "setTarget",
+                "doctor",
+                "newProject",
+                "partitionTable",
+                "componentManager",
+                "apptrace",
+                "heaptrace"
+              ],
+              "default": "build"
+            },
+            "target": {
+              "type": "string",
+              "description": "The ESP-IDF target to set when using the setTarget command. Common targets include: esp32, esp32s2, esp32s3, esp32c3, esp32c6, esp32h2, esp32p4, esp32c2, esp32c5, esp32c61, esp32h21, esp32h4, linux. This parameter is only used when command is 'setTarget'.",
+              "enum": [
+                "esp32",
+                "esp32s2",
+                "esp32c3",
+                "esp32s3",
+                "esp32c2",
+                "esp32c6",
+                "esp32h2",
+                "esp32p4",
+                "linux",
+                "esp32c5",
+                "esp32c61",
+                "esp32h21",
+                "esp32h4"
+              ]
+            },
+            "partitionToUse": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "description": "Specifies which partition to build or flash. This parameter is optional and only used for build, flash, and buildFlashMonitor commands.",
+                  "enum": [
+                    "app",
+                    "bootloader",
+                    "partition-table"
+                  ]
+                },
+                {
+                  "type": "null",
+                  "description": "Use undefined to explicitly use the default configuration"
+                }
+              ],
+              "description": "Specifies which partition to build or flash. Use undefined to explicitly use the default configuration. This parameter is optional and only used for build, flash, and buildFlashMonitor commands."
+            },
+            "flashType": {
+              "type": "string",
+              "description": "Specifies the flash method to use. This parameter is optional and only used for flash and buildFlashMonitor commands.",
+              "enum": [
+                "UART",
+                "JTAG",
+                "DFU"
+              ]
+            }
+          },
+          "required": [
+            "command"
+          ]
+        }
+      }
     ]
   },
   "scripts": {
@@ -2541,7 +2698,7 @@
     "@types/sanitize-html": "^2.6.2",
     "@types/tar-fs": "^2.0.1",
     "@types/tmp": "0.0.33",
-    "@types/vscode": "^1.82.0",
+    "@types/vscode": "^1.100.3",
     "@types/ws": "^7.2.5",
     "@types/xml2js": "^0.4.11",
     "@types/yauzl": "^2.9.1",
@@ -2578,7 +2735,7 @@
     "ts-loader": "^9.4.4",
     "typescript": "^5.2.2",
     "vite": "^5.4.20",
-    "vscode-extension-tester": "^8.15.0",
+    "vscode-extension-tester": "^8.17.0",
     "vue-hot-reload-api": "^2.3.2",
     "vue-loader": "^17.2.2",
     "vue-router": "^4.2.4",
