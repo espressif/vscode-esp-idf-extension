@@ -2017,13 +2017,17 @@ export async function activate(context: vscode.ExtensionContext) {
       {
         cancellable: false,
         location: ProgressLocation,
-        title: "ESP-IDF: Create boilerplate project",
+        title: vscode.l10n.t("New Project"),
       },
       async (
         progress: vscode.Progress<{ increment: number; message: string }>,
         cancelToken: vscode.CancellationToken
       ) => {
         try {
+          progress.report({
+            message: "Waiting for project name",
+            increment: 10,
+          });
           projectName = await vscode.window.showInputBox({
             placeHolder: vscode.l10n.t("Enter ESP-IDF project name"),
             value: "",
@@ -2031,6 +2035,10 @@ export async function activate(context: vscode.ExtensionContext) {
           if (!projectName) {
             return;
           }
+          progress.report({
+            message: "Waiting for folder selection",
+            increment: 20,
+          });
           selectedFolder = await vscode.window.showOpenDialog({
             canSelectFolders: true,
             canSelectFiles: false,
@@ -2039,6 +2047,10 @@ export async function activate(context: vscode.ExtensionContext) {
           if (!selectedFolder) {
             return;
           }
+          progress.report({
+            message: "Creating ESP-IDF project...",
+            increment: 30,
+          });
           await utils.createNewProject(projectName, selectedFolder[0]);
         } catch (error) {
           const errMsg = error.message || "Error creating ESP-IDF project";
