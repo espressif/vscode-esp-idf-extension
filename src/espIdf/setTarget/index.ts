@@ -94,7 +94,7 @@ export async function setIdfTarget(
     {
       cancellable: false,
       location: progressLocation,
-      title: l10n.t("ESP-IDF: Setting device target..."),
+      title: "ESP-IDF: Setting device target...",
     },
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
@@ -123,11 +123,9 @@ export async function setIdfTarget(
                           (t) => t.target === b.target
                         ),
                         description: b.description,
-                        detail:
-                          l10n.t("Status: CONNECTED") +
-                          (b.location
-                            ? `   ${l10n.t("Location: {0}", b.location)}`
-                            : ""),
+                        detail: `Status: CONNECTED${
+                          b.location ? `   Location: ${b.location}` : ""
+                        }`,
                         isConnected: true,
                         boardInfo: b,
                       } as ISetTargetQuickPickItems)
@@ -136,16 +134,13 @@ export async function setIdfTarget(
               }
             } else {
               Logger.info(
-                l10n.t(
                   "Devkit detection script not available. A default list of targets will be displayed instead."
-                )
               );
             }
           } catch (e) {
             Logger.info(
-              l10n.t(
-                "No connected boards detected or error running DevkitsCommand: "
-              ) + (e && e.message ? e.message : e)
+              "No connected boards detected or error running DevkitsCommand: " +
+                (e && e.message ? e.message : e)
             );
           }
         } else {
@@ -160,7 +155,7 @@ export async function setIdfTarget(
           (t) => ({
             label: t.label,
             idfTarget: t,
-            description: t.isPreview ? l10n.t("Preview target") : undefined,
+            description: t.isPreview ? "Preview target" : undefined,
             isConnected: false,
           })
         );
@@ -169,10 +164,7 @@ export async function setIdfTarget(
           connectedBoards.length > 0
             ? [
                 ...connectedBoards,
-                {
-                  kind: QuickPickItemKind.Separator,
-                  label: l10n.t("Default Boards"),
-                },
+                { kind: QuickPickItemKind.Separator, label: "Default Boards" },
                 ...defaultBoards,
               ]
             : defaultBoards;

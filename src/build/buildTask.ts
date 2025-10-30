@@ -66,9 +66,8 @@ export class BuildTask {
     try {
       await this.saveBeforeBuild();
     } catch (error) {
-      const errorMessage = vscode.l10n.t(
-        "Failed to save unsaved files, ignoring and continuing with the build"
-      );
+      const errorMessage =
+        "Failed to save unsaved files, ignoring and continuing with the build";
       Logger.error(errorMessage, error, "build saveBeforeBuild");
       Logger.warnNotify(errorMessage);
     }
@@ -141,9 +140,7 @@ export class BuildTask {
       let defaultCompilerArgs;
       if (espIdfVersion === "x.x") {
         Logger.warn(
-          vscode.l10n.t(
             "Could not determine ESP-IDF version. Using default compiler arguments for the latest known version."
-          )
         );
         defaultCompilerArgs = [
           "-G",
