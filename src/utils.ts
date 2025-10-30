@@ -47,6 +47,7 @@ import {
 } from "./pythonManager";
 import { IdfToolsManager } from "./idfToolsManager";
 import { isFlashEncryptionEnabled } from "./flash/verifyFlashEncryption";
+import { configureClangSettings } from "./clang";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
 
@@ -1420,6 +1421,7 @@ export async function createNewProject(
     destinationDir
   );
   await updateProjectNameInCMakeLists(destinationDir.fsPath, name);
+  await configureClangSettings(destinationDir, false);
   return destinationDir;
 }
 
