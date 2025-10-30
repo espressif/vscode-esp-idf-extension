@@ -234,7 +234,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
             <td></td>
         </tr>
         <tr>
-            <td>Create New Boilerplate Project</td>
+            <td>Create New Empty Project</td>
             <td>Ask for the new project name, choose the directory to create the project, and show a notification to open the newly created project.</td>
             <td></td>
             <td></td>

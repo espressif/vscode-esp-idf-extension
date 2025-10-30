@@ -66,7 +66,7 @@
 	"espIdf.monitorDevice.title": "Монитор IDF",
 	"espIdf.monitorQemu.title": "Монитор QEMU IDF",
 	"espIdf.newProject.start.title": "Новый проект",
-	"espIdf.createNewProject.title": "Создать Новый Проект-Шаблон",
+	"espIdf.createNewProject.title": "Создать Новый Пустой Проект",
 	"espIdf.ninja.summary.title": "Показать сводку сборки Ninja",
 	"espIdf.openDocUrl.title": "Открыть документацию ESP-IDF...",
 	"espIdf.openOCDCommand.title": "Менеджер OpenOCD",
