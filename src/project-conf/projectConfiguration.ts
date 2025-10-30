@@ -63,6 +63,7 @@ export interface ESPIDFSettings {
 export interface ESPIDFVendorSettings {
   "espressif/vscode-esp-idf": {
     settings: ESPIDFSettings[];
+    schemaVersion?: number
   };
 }
 
