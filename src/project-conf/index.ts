@@ -29,9 +29,11 @@ import {
   ESPIDFVendorSettings,
 } from "./projectConfiguration";
 import { Logger } from "../logger/logger";
-import { resolveVariables } from "../idfConfiguration";
+import { resolveVariables, readParameter } from "../idfConfiguration";
 
 const ESP_IDF_VENDOR_KEY = "espressif/vscode-esp-idf";
+const CMAKE_PRESET_VERSION = 3;
+const CMAKE_PRESET_SCHEMA_VERSION = 1;
 
 export class ProjectConfigStore {
   private static self: ProjectConfigStore;
@@ -100,10 +102,14 @@ export async function updateCurrentProfileOpenOcdConfigs(
       );
 
     // Add new openOCD setting
+    const openOcdDebugLevel = readParameter(
+            "idf.openOcdDebugLevel",
+            this.workspace
+          ) as string;
     config.vendor[ESP_IDF_VENDOR_KEY].settings.push({
       type: "openOCD",
       value: {
-        debugLevel: 2,
+        debugLevel: openOcdDebugLevel || 2,
         configs: configs,
         args: []
       }
@@ -297,13 +303,13 @@ async function saveConfigurationToUserPresets(
     } catch (error) {
       Logger.error(`Error reading user presets file: ${error.message}`, error, "saveConfigurationToUserPresets");
       userPresets = {
-        version: 3,
+        version: CMAKE_PRESET_VERSION,
         configurePresets: []
       };
     }
   } else {
     userPresets = {
-      version: 3,
+      version: CMAKE_PRESET_VERSION,
       configurePresets: []
     };
   }
@@ -357,13 +363,13 @@ async function saveConfigurationToProjectPresets(
     } catch (error) {
       Logger.error(`Error reading project presets file: ${error.message}`, error, "saveConfigurationToProjectPresets");
       projectPresets = {
-        version: 3,
+        version: CMAKE_PRESET_VERSION,
         configurePresets: []
       };
     }
   } else {
     projectPresets = {
-      version: 3,
+      version: CMAKE_PRESET_VERSION,
       configurePresets: []
     };
   }
@@ -410,7 +416,7 @@ export async function saveProjectConfFile(
   );
 
   const cmakePresets: CMakePresets = {
-    version: 3,
+    version: CMAKE_PRESET_VERSION,
     cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
     configurePresets,
   };
@@ -445,7 +451,7 @@ export async function saveProjectConfFileLegacy(
   );
 
   const cmakePresets: CMakePresets = {
-    version: 1,
+    version: CMAKE_PRESET_VERSION,
     cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
     configurePresets,
   };
@@ -1370,6 +1376,7 @@ async function processConfigurePresetVendor(
   const processedVendor: ESPIDFVendorSettings = {
     [ESP_IDF_VENDOR_KEY]: {
       settings: [],
+      schemaVersion: 1
     },
   };
 
@@ -1812,6 +1819,7 @@ function convertProjectConfElementToConfigurePreset(
     vendor: {
       [ESP_IDF_VENDOR_KEY]: {
         settings,
+        schemaVersion: CMAKE_PRESET_SCHEMA_VERSION
       },
     },
   };
