@@ -32,6 +32,8 @@
      - 打开一个带有安装向导的窗口，可以安装 ESP-IDF、IDF 工具和 Python 虚拟环境。
    * - 配置 SDKConfig 文件以启用代码覆盖率
      - 在项目的 SDKConfig 文件中设置必要的值，启用代码覆盖率分析。
+   * - 配置项目以使用 ESP-Clang
+     - 配置当前 ESP-IDF 项目使用 esp-clang 作为工具链，并在 settings.json 中配置 LLVM Clang 扩展。
    * - 创建新 ESP-IDF 组件
      - 在当前目录下，基于 ESP-IDF 组件模板创建新组件。
    * - 创建新的空项目
@@ -79,7 +81,7 @@
    * - 启动 IDF 监视器以支持 Core Dump 模式/GDB Stub 模式
      - 启动支持 WebSocket 的 ESP-IDF 监控器。如果紧急处理程序已经配置为 gdbstub 或核心转储，监控器将启动芯片的事后调试会话。
    * - 启动 QEMU 服务器
-     - 如 :ref:`QEMU 文档 <qemu>` 中所述，此命令将启动终端，通过使用项目的 Dockerfile 和二进制文件来监视 ESP32 QEMU。
+     - 如 :ref:`QEMU 文档 <qemu>` 中所述，此命令将使用项目的 Dockerfile 和当前项目二进制文件执行 ESP32 QEMU。
    * - 启动 QEMU 调试会话
      - 如 :ref:`QEMU 文档 <qemu>` 中所述，此命令将使用项目的 Dockerfile 和二进制文件启动 ESP32 QEMU 的调试会话。
    * - 监控设备
@@ -87,7 +89,7 @@
    * - 监视 QEMU 设备
      - 如 :ref:`QEMU 文档 <qemu>` 中所述，此命令将启动终端，通过使用项目的 Dockerfile 和二进制文件来监视 ESP32 QEMU。
    * - 新建项目
-     - 启动 UI，通过 ESP-IDF 项目创建向导，使用 ESP-IDF 中的示例模板和扩展中配置的其他框架。
+     - 启动 UI，通过 ESP-IDF 项目创建向导，使用 ESP-IDF 和 ESP-ADF 中的示例模板。
    * - NVS 分区编辑器
      - 启动 UI，创建 `ESP-IDF 非易失性存储库 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-reference/storage/nvs_flash.html>`_ 的 CSV 文件。
    * - 打开 ESP-IDF 终端
