@@ -942,68 +942,6 @@ function mergePresets(
 }
 
 /**
- * Processes a single configuration file (CMakePresets.json or CMakeUserPresets.json).
- * This function loads and processes all configure presets from a single file,
- * applying variable substitution and path resolution directly without inheritance processing.
- * 
- * Note: This function does NOT handle preset inheritance. For proper inheritance handling,
- * use the two-pass approach with loadRawConfigurationFile and resolvePresetInheritance.
- * 
- * @param configJson The parsed JSON content of the configuration file
- * @param workspaceFolder The workspace folder Uri for variable substitution and path resolution
- * @param resolvePaths Whether to resolve relative paths to absolute paths
- * @param fileName The name of the file being processed (used in error messages)
- * @returns An object mapping configuration names to their processed ConfigurePreset
- * @deprecated Use loadRawConfigurationFile and resolvePresetInheritance instead for proper inheritance
- */
-async function processConfigurationFile(
-  configJson: any,
-  workspaceFolder: Uri,
-  resolvePaths: boolean,
-  fileName: string
-): Promise<{ [key: string]: ConfigurePreset }> {
-  const projectConfElements: { [key: string]: ConfigurePreset } = {};
-
-  // Only support CMakePresets format
-  if (configJson.version !== undefined && configJson.configurePresets) {
-    const cmakePresets = configJson as CMakePresets;
-
-    if (
-      !cmakePresets.configurePresets ||
-      cmakePresets.configurePresets.length === 0
-    ) {
-      return {};
-    }
-
-    // Process each configure preset
-    for (const preset of cmakePresets.configurePresets) {
-      try {
-        // Apply variable substitution and path resolution directly to ConfigurePreset
-        const processedPreset = await processConfigurePresetVariables(
-          preset,
-          workspaceFolder,
-          resolvePaths
-        );
-
-        projectConfElements[preset.name] = processedPreset;
-      } catch (error) {
-        Logger.warn(
-          `Failed to process configure preset "${preset.name}" from ${fileName}: ${error.message}`,
-          error
-        );
-      }
-    }
-  } else {
-    // This might be a legacy file that wasn't migrated
-    Logger.warn(
-      `Invalid ${fileName} format. Please ensure the file follows the CMakePresets specification.`
-    );
-  }
-
-  return projectConfElements;
-}
-
-/**
  * Checks for the legacy project configuration file (esp_idf_project_configuration.json)
  * and prompts the user to migrate it to the new CMakePresets.json format if found.
  * This ensures a smooth transition from the old configuration format to the new one.
