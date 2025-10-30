@@ -182,9 +182,7 @@ export async function selectOpenOcdConfigFiles(
         const selectedBoard = boardQuickPick.selectedItems[0];
         if (!selectedBoard) {
           Logger.infoNotify(
-            l10n.t(
-              "ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs"
-            )
+            `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`
           );
         } else if (selectedBoard && selectedBoard.target) {
           if (selectedBoard.label.indexOf("Custom board") !== -1) {

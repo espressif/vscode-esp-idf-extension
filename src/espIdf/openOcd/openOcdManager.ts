@@ -53,7 +53,6 @@ export class OpenOCDManager extends EventEmitter {
   private statusBar: vscode.StatusBarItem;
   private workspace: vscode.Uri;
   private encounteredErrors: boolean = false;
-  private versionPromise: Promise<string> | null = null; // coalesce concurrent lookups only
 
   private constructor() {
     super();
@@ -61,12 +60,6 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   public async version(): Promise<string> {
-    // Coalesce concurrent calls; do not cache long-term to respect version changes
-    if (this.versionPromise) {
-      return this.versionPromise;
-    }
-
-    this.versionPromise = (async () => {
       const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
       if (!isBinInPath("openocd", modifiedEnv)) {
         return "";
@@ -74,21 +67,13 @@ export class OpenOCDManager extends EventEmitter {
       const resp = await sspawn("openocd", ["--version"], {
         cwd: this.workspace.fsPath,
         env: modifiedEnv,
-        silent: true,
-        appendMode: "append",
       });
       const versionString = resp.toString();
       const match = versionString.match(/v\d+\.\d+\.\d+\-\S*/gi);
-      return match ? match[0].replace("-dirty", "") : "failed+to+match+version";
-    })();
-    const p = this.versionPromise;
-    try {
-      return await this.versionPromise;
-    } finally {
-      if (this.versionPromise === p) {
-        this.versionPromise = null;
-      }
+    if (!match) {
+      return "failed+to+match+version";
     }
+    return match[0].replace("-dirty", "");
   }
 
   public statusBarItem(): vscode.StatusBarItem {
@@ -153,12 +138,12 @@ export class OpenOCDManager extends EventEmitter {
     const tclClient = new TCLClient(tclConnectionParams);
     if (!(await tclClient.isOpenOCDServerRunning())) {
       const resp = await vscode.window.showInformationMessage(
-        vscode.l10n.t("OpenOCD is not running, do you want to launch it?"),
+        "OpenOCD is not running, do you want to launch it?",
         { modal: true },
-        { title: vscode.l10n.t("Yes") },
-        { title: vscode.l10n.t("Cancel"), isCloseAffordance: true }
+        { title: "Yes" },
+        { title: "Cancel", isCloseAffordance: true }
       );
-      if (resp && resp.title === vscode.l10n.t("Yes")) {
+      if (resp && resp.title === "Yes") {
         await OpenOCDManager.init().start();
         return await tclClient.isOpenOCDServerRunning();
       }
@@ -174,16 +159,12 @@ export class OpenOCDManager extends EventEmitter {
     const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
     if (!isBinInPath("openocd", modifiedEnv)) {
       throw new Error(
-        vscode.l10n.t(
           "Invalid OpenOCD bin path or access is denied for the user"
-        )
       );
     }
     if (typeof modifiedEnv.OPENOCD_SCRIPTS === "undefined") {
       throw new Error(
-        vscode.l10n.t(
           "OPENOCD_SCRIPTS environment variable is missing. Please set it in idf.customExtraVars or in your system environment variables."
-        )
       );
     }
 
@@ -206,9 +187,7 @@ export class OpenOCDManager extends EventEmitter {
         openOcdConfigFilesList.length < 1
       ) {
         throw new Error(
-          vscode.l10n.t(
             "Invalid OpenOCD Config files. Check idf.openOcdConfigs configuration value."
-          )
         );
       }
 
@@ -266,10 +245,7 @@ export class OpenOCDManager extends EventEmitter {
     this.server.on("close", (code: number, signal: string) => {
       if (this.encounteredErrors) {
         OutputChannel.appendLine(
-          vscode.l10n.t(
-            "For assistance with OpenOCD errors, please refer to our Troubleshooting FAQ: {0}",
-            ESP.URL.OpenOcdTroubleshootingFaq
-          ),
+          `For assistance with OpenOCD errors, please refer to our Troubleshooting FAQ: ${ESP.URL.OpenOcdTroubleshootingFaq}`,
           "OpenOCD"
         );
       }
@@ -287,7 +263,7 @@ export class OpenOCDManager extends EventEmitter {
       }
       this.stop();
     });
-    this.updateStatusText(`❇️ ${vscode.l10n.t("OpenOCD Server (Running)")}`);
+          this.updateStatusText("❇️ OpenOCD Server (Running)");
     OutputChannel.show();
   }
 
@@ -295,8 +271,8 @@ export class OpenOCDManager extends EventEmitter {
     if (this.server && !this.server.killed) {
       this.server.kill("SIGKILL");
       this.server = undefined;
-      this.updateStatusText(`❌ ${vscode.l10n.t("OpenOCD Server (Stopped)")}`);
-      const endMsg = `${vscode.l10n.t("[Stopped] : OpenOCD Server")}`;
+      this.updateStatusText("❌ OpenOCD Server (Stopped)");
+      const endMsg = "[Stopped] : OpenOCD Server";
       OutputChannel.appendLine(endMsg, "OpenOCD");
       Logger.info(endMsg);
     }
@@ -312,7 +288,7 @@ export class OpenOCDManager extends EventEmitter {
       vscode.StatusBarAlignment.Left,
       1
     );
-    this.statusBar.name = this.statusBar.text = vscode.l10n.t("OpenOCD Server");
+    this.statusBar.name = this.statusBar.text = "OpenOCD Server";
     const commandDictionary = createCommandDictionary();
     this.statusBar.tooltip = commandDictionary[CommandKeys.OpenOCD].tooltip;
     this.statusBar.command = CommandKeys.OpenOCD;
@@ -330,7 +306,7 @@ export class OpenOCDManager extends EventEmitter {
     if (PreCheck.isWorkspaceFolderOpen()) {
       this.workspace = vscode.workspace.workspaceFolders[0].uri;
     }
-    this.chan = Buffer.alloc(0);;
+    this.chan = Buffer.alloc(0);
     OutputChannel.init();
     if (vscode.env.uiKind !== vscode.UIKind.Web) {
       this.registerOpenOCDStatusBarItem();
