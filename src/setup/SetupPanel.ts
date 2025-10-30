@@ -164,7 +164,8 @@ export class SetupPanel {
               context,
               setupArgs.espIdfStatusBar,
               setupArgs.workspaceFolder,
-              setupArgs.onReqPkgs
+              setupArgs.onReqPkgs,
+              message.pypiIndex
             );
           }
           break;
@@ -186,7 +187,8 @@ export class SetupPanel {
               setupArgs.workspaceFolder,
               context,
               setupArgs.espIdfStatusBar,
-              setupArgs.onReqPkgs
+              setupArgs.onReqPkgs,
+              message.pypiIndex
             );
           }
           break;
@@ -244,7 +246,8 @@ export class SetupPanel {
             message.toolsPath &&
             message.pyBinPath &&
             message.tools &&
-            message.saveScope
+            message.saveScope &&
+            typeof message.mirror !== undefined
           ) {
             this.panel.webview.postMessage({
               command: "updateEspIdfToolsStatus",
@@ -258,7 +261,9 @@ export class SetupPanel {
               message.saveScope,
               context,
               setupArgs.workspaceFolder,
-              setupArgs.espIdfStatusBar
+              setupArgs.espIdfStatusBar,
+              message.mirror,
+              message.pypiIndex
             );
           }
           break;
@@ -281,8 +286,9 @@ export class SetupPanel {
             });
             SetupPanel.postMessage({
               command: "setEspIdfErrorStatus",
-              errorMsg: `ESP-IDF is installed in ${setupArgs.existingIdfSetups[message.selectedIdfSetup].idfPath
-                }`,
+              errorMsg: `ESP-IDF is installed in ${
+                setupArgs.existingIdfSetups[message.selectedIdfSetup].idfPath
+              }`,
             });
             this.panel.webview.postMessage({
               command: "updateEspIdfToolsStatus",
@@ -329,7 +335,10 @@ export class SetupPanel {
 
           const pathIdfPy = path.join(message.path, "tools", "idf.py");
           // Only require read and execute permissions
-          const fileExists = await canAccessFile(pathIdfPy, fs.constants.R_OK | fs.constants.X_OK);
+          const fileExists = await canAccessFile(
+            pathIdfPy,
+            fs.constants.R_OK | fs.constants.X_OK
+          );
           if (!fileExists) {
             this.panel.webview.postMessage({
               command: "canAccessFileResponse",
@@ -349,8 +358,7 @@ export class SetupPanel {
             versionEspIdf = await getEspIdfFromCMake(message.path);
           }
           // compareVersion returns a negative value if versionEspIdf is less than "5.0"
-          const noWhiteSpaceSupport =
-            compareVersion(versionEspIdf, "5.0") < 0;
+          const noWhiteSpaceSupport = compareVersion(versionEspIdf, "5.0") < 0;
           const hasWhitespace = /\s/.test(message.path);
           this.panel.webview.postMessage({
             command: "canAccessFileResponse",
@@ -420,14 +428,15 @@ export class SetupPanel {
     context: ExtensionContext,
     espIdfStatusBar: StatusBarItem,
     workspaceFolderUri: Uri,
-    onReqPkgs?: string[]
+    onReqPkgs?: string[],
+    pypiIndex?: string
   ) {
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode"
     ) as string;
     const progressLocation =
       notificationMode === idfConf.NotificationMode.All ||
-        notificationMode === idfConf.NotificationMode.Notifications
+      notificationMode === idfConf.NotificationMode.Notifications
         ? ProgressLocation.Notification
         : ProgressLocation.Window;
     return await window.withProgress(
@@ -498,7 +507,8 @@ export class SetupPanel {
             idfGitPath,
             progress,
             cancelToken,
-            onReqPkgs
+            onReqPkgs,
+            pypiIndex
           );
         } catch (error) {
           this.setupErrHandler(error);
@@ -554,14 +564,15 @@ export class SetupPanel {
     workspaceFolderUri: Uri,
     context: ExtensionContext,
     espIdfStatusBar: StatusBarItem,
-    onReqPkgs?: string[]
+    onReqPkgs?: string[],
+    pypiIndex?: string
   ) {
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode"
     ) as string;
     const progressLocation =
       notificationMode === idfConf.NotificationMode.All ||
-        notificationMode === idfConf.NotificationMode.Notifications
+      notificationMode === idfConf.NotificationMode.Notifications
         ? ProgressLocation.Notification
         : ProgressLocation.Window;
     return await window.withProgress(
@@ -607,7 +618,8 @@ export class SetupPanel {
             espIdfStatusBar,
             progress,
             cancelToken,
-            onReqPkgs
+            onReqPkgs,
+            pypiIndex
           );
         } catch (error) {
           this.setupErrHandler(error);
@@ -624,14 +636,16 @@ export class SetupPanel {
     saveScope: ConfigurationTarget,
     context: ExtensionContext,
     workspaceFolderUri: Uri,
-    espIdfStatusBar: StatusBarItem
+    espIdfStatusBar: StatusBarItem,
+    mirror: ESP.IdfMirror,
+    pypiIndex?: string
   ) {
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode"
     ) as string;
     const progressLocation =
       notificationMode === idfConf.NotificationMode.All ||
-        notificationMode === idfConf.NotificationMode.Notifications
+      notificationMode === idfConf.NotificationMode.Notifications
         ? ProgressLocation.Notification
         : ProgressLocation.Window;
     return await window.withProgress(
@@ -660,7 +674,8 @@ export class SetupPanel {
             progress,
             cancelToken,
             workspaceFolderUri,
-            espIdfStatusBar
+            espIdfStatusBar,
+            pypiIndex
           );
         } catch (error) {
           this.setupErrHandler(error);

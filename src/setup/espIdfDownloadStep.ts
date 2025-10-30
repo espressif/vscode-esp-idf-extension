@@ -40,7 +40,8 @@ export async function expressInstall(
   gitPath?: string,
   progress?: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken?: vscode.CancellationToken,
-  onReqPkgs?: string[]
+  onReqPkgs?: string[],
+  pypiIndexUrl?: string
 ) {
   const pyExists = pyPath === "python" ? true : await pathExists(pyPath);
   const doesPythonExists = await checkPythonExists(pyPath, __dirname);
@@ -118,6 +119,7 @@ export async function expressInstall(
     espIdfStatusBar,
     progress,
     cancelToken,
-    onReqPkgs
+    onReqPkgs,
+    pypiIndexUrl
   );
 }

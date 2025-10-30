@@ -27,7 +27,8 @@ export async function installPyReqs(
   gitPath: string,
   context: ExtensionContext,
   progress: Progress<{ message: string; increment?: number }>,
-  cancelToken?: CancellationToken
+  cancelToken?: CancellationToken,
+  pypiIndexUrl?: string
 ) {
   progress.report({
     message: `Checking Python and pip exists...`,
@@ -68,7 +69,8 @@ export async function installPyReqs(
     sysPyBinPath,
     gitPath,
     context,
-    cancelToken
+    cancelToken,
+    pypiIndexUrl
   );
   if (virtualEnvPyBin) {
     if (logTracker.Log.indexOf("Exception") < 0) {

@@ -30,7 +30,8 @@ export async function createPyReqs(
   progress: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken: vscode.CancellationToken,
   workspaceFolderUri: vscode.Uri,
-  espIdfStatusBar: vscode.StatusBarItem
+  espIdfStatusBar: vscode.StatusBarItem,
+  pypiIndexUrl?: string
 ) {
   SetupPanel.postMessage({
     command: "updatePyVEnvStatus",
@@ -43,7 +44,8 @@ export async function createPyReqs(
     gitPath,
     context,
     progress,
-    cancelToken
+    cancelToken,
+    pypiIndexUrl
   );
   await saveSettings(
     idfPath,
