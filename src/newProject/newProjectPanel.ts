@@ -283,7 +283,7 @@ export class NewProjectPanel {
             const boilerplatePath = path.join(
               this.extensionPath,
               "templates",
-              "boilerplate"
+              "template-app"
             );
             await utils.copyFromSrcProject(
               boilerplatePath,

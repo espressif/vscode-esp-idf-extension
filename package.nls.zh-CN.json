@@ -66,6 +66,7 @@
 	"espIdf.monitorDevice.title": "监视设备",
 	"espIdf.monitorQemu.title": "监视 QEMU 设备",
 	"espIdf.newProject.start.title": "新建项目",
+	"espIdf.createNewProject.title": "创建新的空项目",
 	"espIdf.ninja.summary.title": "显示 Ninja 构建摘要",
 	"espIdf.openDocUrl.title": "打开 ESP-IDF 文档…",
 	"espIdf.openOCDCommand.title": "OpenOCD 管理器",
