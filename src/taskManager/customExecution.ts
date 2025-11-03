@@ -17,8 +17,13 @@
  */
 
 import * as vscode from "vscode";
-import { ChildProcess, execFile, ExecFileOptions, spawn } from "child_process";
 import { basename } from "path";
+import {
+  ChildProcess,
+  execFile as originalExecFile,
+  ExecFileOptions,
+  spawn,
+} from "child_process";
 
 export interface CustomExecutionTaskResult {
   continueFlag: boolean;
@@ -151,11 +156,12 @@ export class OutputCapturingExecution extends vscode.CustomExecution {
       this.options.env.COLORTERM = "truecolor";
     }
 
-    this.childProcess = execFile(
-      this.command,
-      this.args,
-      this.options
-    ) as ChildProcess;
+    const execFile: (
+      file: string,
+      args: readonly string[],
+      options: ExecFileOptions
+    ) => ChildProcess = originalExecFile;
+    this.childProcess = execFile(this.command, this.args, this.options);
 
     // Stream stdout in real-time
     this.childProcess.stdout?.on("data", (data: Buffer) => {
