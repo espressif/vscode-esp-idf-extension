@@ -2739,7 +2739,7 @@
     "style-loader": "^3.3.1",
     "ts-loader": "^9.4.4",
     "typescript": "^5.2.2",
-    "vite": "^5.4.20",
+    "vite": "^5.4.21",
     "vscode-extension-tester": "^8.17.0",
     "vue-hot-reload-api": "^2.3.2",
     "vue-loader": "^17.2.2",
