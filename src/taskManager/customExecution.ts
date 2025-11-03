@@ -17,7 +17,7 @@
  */
 
 import * as vscode from "vscode";
-import * as childProcess from "child_process";
+import { ChildProcess, execFile, ExecFileOptions, spawn } from "child_process";
 
 export interface CustomExecutionTaskResult {
   continueFlag: boolean;
@@ -78,12 +78,12 @@ export class OutputCapturingExecution extends vscode.CustomExecution {
   private resolveOutput: ((output: CapturedTaskOutput) => void) | undefined;
   private rejectOutput: ((error: Error) => void) | undefined;
   private writeEmitter: vscode.EventEmitter<string> | undefined;
-  private childProcess: childProcess.ChildProcess | undefined;
+  private childProcess: ChildProcess | undefined;
 
   constructor(
     private command: string,
     private args: string[],
-    private options: childProcess.ExecFileOptions
+    private options: ExecFileOptions
   ) {
     super(async (resolvedDefinition) => {
       this.outputPromise = new Promise<CapturedTaskOutput>(
@@ -114,11 +114,11 @@ export class OutputCapturingExecution extends vscode.CustomExecution {
       this.options.env.COLORTERM = "truecolor";
     }
 
-    this.childProcess = childProcess.execFile(
+    this.childProcess = execFile(
       this.command,
       this.args,
       this.options
-    );
+    ) as ChildProcess;
 
     // Stream stdout in real-time
     this.childProcess.stdout?.on("data", (data: Buffer) => {
@@ -182,7 +182,7 @@ export class OutputCapturingExecution extends vscode.CustomExecution {
   public static create(
     command: string,
     args: string[],
-    options: childProcess.ExecFileOptions
+    options: ExecFileOptions
   ): OutputCapturingExecution {
     return new OutputCapturingExecution(command, args, options);
   }
@@ -193,7 +193,7 @@ export class ShellOutputCapturingExecution extends vscode.CustomExecution {
   private resolveOutput: ((output: CapturedTaskOutput) => void) | undefined;
   private rejectOutput: ((error: Error) => void) | undefined;
   private writeEmitter: vscode.EventEmitter<string> | undefined;
-  private childProcess: childProcess.ChildProcess | undefined;
+  private childProcess: ChildProcess | undefined;
 
   constructor(
     private command: string,
@@ -241,7 +241,7 @@ export class ShellOutputCapturingExecution extends vscode.CustomExecution {
       execOptions.shellArgs = this.options.shellArgs;
     }
 
-    this.childProcess = childProcess.spawn(
+    this.childProcess = spawn(
       this.options.executable || process.env.SHELL || "sh",
       this.options.shellArgs || [],
       {

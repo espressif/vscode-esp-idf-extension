@@ -146,10 +146,7 @@ import { selectIdfSetup } from "./versionSwitcher";
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
 import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
-import {
-  ErrorHintProvider,
-  HintHoverProvider,
-} from "./espIdf/hints/index";
+import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
 import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
 import { TroubleshootingPanel } from "./support/troubleshootPanel";
 import { createCmdsStatusBarItems, statusBarItems } from "./statusBar";
