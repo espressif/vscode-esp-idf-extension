@@ -170,10 +170,10 @@ These settings are used to configure the code coverage colors.
       - Background color for uncovered lines in dark theme for gcov coverage
 
 
-PyTest Specific Settings
-------------------------
+Unit test Specific Settings
+-----------------------------
 
-These settings are used to configure unit testing with PyTest.
+These settings are used to configure unit testing.
 
 .. list-table::
     :widths: 25 75
@@ -183,13 +183,10 @@ These settings are used to configure unit testing with PyTest.
       - Description
     * - **idf.unitTestFilePattern**
       - Glob pattern for unit test files to discover (default: ``**/test/test_*.c``)
-    * - **idf.pyTestEmbeddedServices**
-      - List of embedded services for pytest execution (default: ``["esp", "idf"]``)
 
 This is how the extension uses them:
 
 1. **idf.unitTestFilePattern** is used by the extension to discover unit test files in your project. The default pattern :code:`**/test/test_*.c` looks for C files names starting with "test" in any "test" directory.
-2. **idf.pyTestEmbeddedServices** specifies the embedded services to use when running pytest commands. These services are passed to the pytest command as the :code:`--embedded-services` parameter.
 
 
 Extension Behaviour Settings

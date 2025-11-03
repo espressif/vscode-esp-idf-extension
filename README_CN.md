@@ -97,11 +97,11 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 
 10. 根据 ESP-IDF 文档中的要求来配置驱动程序，详情请参考[配置 JTAG 接口](https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html)。
 
-11. 在调试设备之前，先按 <kbd>F1</kbd> 输入 **ESP-IDF：选择 OpenOCD 开发板配置**，选择设备的 OpenOCD 开发板配置文件。点击状态栏图标 ![openocd](./media/readme/openocd.png) 或按 <kbd>F1</kbd> 输入 **ESP-IDF：OpenOCD 管理器** 命令来测试连接。可以在菜单栏中的`查看` -> `输出`里选择下拉列表中的 `ESP-IDF` 来查看输出信息。
+11. 在调试设备之前，如果您使用的是已连接的 ESP-IDF 开发板，OpenOCD 配置将根据您连接的开发板自动选择，包括 USB 位置（如果可用）（需要 OpenOCD 版本 v0.12.0-esp32-20240821 或更高）。否则，您可以按 <kbd>F1</kbd> 输入 **ESP-IDF：选择 OpenOCD 开发板配置** 手动选择设备的 OpenOCD 开发板配置文件。点击状态栏图标 ![openocd](./media/readme/openocd.png) 或按 <kbd>F1</kbd> 输入 **ESP-IDF：OpenOCD 管理器** 命令来测试连接。可以在菜单栏中的`查看` -> `输出`里选择下拉列表中的 `ESP-IDF` 来查看输出信息。
 
     > **注意：** 可以使用 **ESP-IDF：OpenOCD 管理器** 命令或者点击 VS Code 状态栏中的 `OpenOCD Server (Running | Stopped)` 按钮来启动或停止 OpenOCD。
 
-12. 确保项目已经构建并烧录，OpenOCD 连接正常，调试器能正常工作。按 <kbd>F5</kbd> 启动调试会话。调试会话的输出可在菜单栏中选择`查看` -> `调试控制台`进行查看。
+12. 如果您想启动调试会话，只需按 <kbd>F5</kbd>（确保项目已构建、烧录，并且 OpenOCD 正确连接以便调试器正常工作）。调试会话的输出可在菜单栏中选择`查看` -> `调试控制台`进行查看。
 
 如有问题，请参阅[故障排除](#Troubleshooting)部分。
 
@@ -109,7 +109,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 
 所有的教程、命令和功能都收录在[适用于 VS Code 的 ESP-IDF 扩展文档中心](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/)。
 
-# 可用命令列表
+## 所有可用命令
 
 按 <kbd>F1</kbd> 或点击菜单栏中的`查看` -> `命令面板`，输入 **ESP-IDF** 即可查看 ESP-IDF 扩展所支持的所有命令。
 
@@ -227,21 +227,15 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd></td>
         </tr>
         <tr>
-            <td rowspan=5 align="center">创建项目</td>
-            <td>基于模板创建新项目</td>
-            <td>使用扩展中的项目模板来创建一个新的 ESP-IDF 项目。</td>
-            <td><kbd>⌘</kbd> <kbd>I</kbd> <kbd>C</kbd></td>
-            <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd></td>
+            <td rowspan=4 align="center">创建项目</td>
+            <td>创建新 ESP-IDF 组件</td>
+            <td>在当前目录下，基于 ESP-IDF 组件模板创建新组件。</td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td>创建新的空项目</td>
             <td>询问新项目名称，选择创建项目的目录，并显示通知以打开新创建的项目。</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>创建新 ESP-IDF 组件</td>
-            <td>在当前目录下，基于 ESP-IDF 组件模板创建新组件。</td>
             <td></td>
             <td></td>
         </tr>
@@ -448,15 +442,21 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>G</kbd></td>
         </tr>
         <tr>
-            <td rowspan=2 align="center">单元测试</td>
-            <td>单元测试：构建并烧录单元测试应用程序</td>
-            <td>复制当前项目中的单元测试应用程序，构建当前项目并将单元测试应用程序烧录到连接的设备上。详情请参阅<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">单元测试</a>。</td>
+            <td rowspan=3 align="center">单元测试</td>
+            <td>单元测试：构建单元测试应用程序</td>
+            <td>构建当前项目的单元测试应用程序。详情请参阅<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">单元测试</a>。</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
-            <td>单元测试：安装 ESP-IDF PyTest 依赖项</td>
-            <td>安装 ESP-IDF Pytest 依赖项，以便能够执行 ESP-IDF 单元测试。详情请参阅<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">单元测试</a>。</td>
+            <td>单元测试：烧录单元测试应用程序</td>
+            <td>将当前项目的单元测试应用程序烧录到连接的设备上。详情请参阅<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">单元测试</a>。</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>单元测试：构建并烧录单元测试应用程序</td>
+            <td>复制当前项目中的单元测试应用程序，构建当前项目并将单元测试应用程序烧录到连接的设备上。详情请参阅<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">单元测试</a>。</td>
             <td></td>
             <td></td>
         </tr>
@@ -557,11 +557,11 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 
 ## tasks.json 模板任务
 
-使用 **ESP-IDF：基于模板创建新项目** 命令创建项目时，会包含 tasks.json 模板。按 <kbd>F1</kbd> 并输入 `Tasks: Run task`，选择执行以下任一任务：
+使用 **ESP-IDF：新建项目** 命令创建项目时，会包含 tasks.json 模板。按 <kbd>F1</kbd> 并输入 `Tasks: Run task`，选择执行以下任一任务：
 
 1. `Build` - 构建项目
 2. `Set Target to esp32` - 选择 ESP32 为对象
-3. `Set Target to esp32s2` - - 选择 ESP32-S2 为对象
+3. `Set Target to esp32s2` - 选择 ESP32-S2 为对象
 4. `Clean` - 清除项目
 5. `Flash` - 烧录设备
 6. `Monitor` - 启动监视终端
@@ -574,9 +574,9 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 
 如果遇到问题，请检查以下方面是否有错误：
 
-> **注意：** 将 `idf.OpenOCDDebugLevel` 配置项设为 3 或更高值，OpenOCD 服务器将输出调试日志。
+> **注意：** 在您的 <project-directory>/.vscode/settings.json 中将 `idf.OpenOCDDebugLevel` 配置项设为 3 或更高值，以在 `ESP-IDF` 输出中显示 OpenOCD 服务器的调试级别日志。
 
-> **注意：** 将 `<project-directory>/.vscode/launch.json` 文件中的 `logLevel` 配置项设为 3 或更高值，调试适配器将输出详细日志。
+> **注意：** 在您的 <project-directory>/.vscode/launch.json 中设置 `verbose: true` 以获得更详细的调试适配器输出。
 
 1. 在 VS Code 菜单栏中选择**查看** > **输出** > **ESP-IDF**。此输出信息有助于了解扩展的运行状况。
 2. 在 VS Code 菜单栏中选择**查看** > **命令面板...**，输入 `ESP-IDF：诊断命令`，该命令将生成环境配置的报告并复制到剪贴板中，报告内容可粘贴至任意位置。
@@ -587,11 +587,13 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 
 4. 在 VS Code 菜单栏中选择**帮助** > **切换开发人员工具**，Console 选项卡中会显示与扩展相关的错误信息，可自行复制。
 
-5. VS Code 支持不同级别的设置，如：**全局（用户设置）**、**工作区** 和 **工作区文件夹**，请确保项目配置正确。运行 `ESP-IDF：诊断命令`得到的结果可能来自于用户设置，而非工作区文件夹。
+5. 在 VS Code 菜单栏中选择**查看** > **输出** > **Extension Host**。此输出信息有助于了解扩展激活期间发生的情况。如果扩展命令都不工作，您可以分享此处的输出来查看错误堆栈。
 
-6. 查看 [OpenOCD 故障排除 FAQ](https://github.com/espressif/OpenOCD-esp32/wiki/Troubleshooting-FAQ)，可帮助进行应用追踪及调试，并解决 `OpenOCD` 输出中显示的其他相关问题。
+6. VS Code 支持不同级别的设置，如：**全局（用户设置）**、**工作区** 和 **工作区文件夹**，请确保项目配置正确。运行 `ESP-IDF：诊断命令`得到的结果可能来自于用户设置，而非工作区文件夹。
 
-7. 有时 VS Code 中配置的默认 shell（Powershell、zsh、sh 等）可能会影响扩展的行为。请确保环境中未设置 MSYS/MinGW，且变量与终端行为不冲突。`ESP-IDF：诊断命令`会显示运行构建、烧录和监视任务时扩展检测到的 shell。详情请参考[此处](https://code.visualstudio.com/docs/terminal/profiles)。
+7. 查看 [OpenOCD 故障排除 FAQ](https://github.com/espressif/OpenOCD-esp32/wiki/Troubleshooting-FAQ)，可帮助进行应用追踪及调试，并解决 `OpenOCD` 输出中显示的其他相关问题。
+
+8. 有时 VS Code 中配置的默认 shell（Powershell、zsh、sh 等）可能会影响扩展的行为。请确保环境中未设置 MSYS/MinGW，且变量与终端行为不冲突。`ESP-IDF：诊断命令`会显示运行构建、烧录和监视任务时扩展检测到的 shell。详情请参考[此处](https://code.visualstudio.com/docs/terminal/profiles)。
 
 如果出现 Python 包错误，请尝试使用 **ESP-IDF：安装 ESP-IDF Python 包** 命令重新安装所需的 Python 包，或通过 **ESP-IDF：配置 ESP-IDF 扩展** 命令重新设置。
 

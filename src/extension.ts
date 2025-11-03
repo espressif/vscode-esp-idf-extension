@@ -152,10 +152,8 @@ import { UnitTest } from "./espIdf/unitTest/adapter";
 import {
   buildFlashTestApp,
   buildTestApp,
-  checkPytestRequirements,
   copyTestAppProject,
   flashTestApp,
-  installPyTestPackages,
 } from "./espIdf/unitTest/configure";
 import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
@@ -1746,58 +1744,6 @@ export async function activate(context: vscode.ExtensionContext) {
               ? error
               : "Error installing ESP-Matter Python Requirements";
             Logger.errorNotify(msg, error, "extension installEspMatterPyReqs");
-          }
-        }
-      );
-    });
-  });
-
-  registerIDFCommand("espIdf.unitTest.installPyTest", () => {
-    return PreCheck.perform([openFolderCheck], async () => {
-      try {
-        const isPyTestInstalled = await checkPytestRequirements(workspaceRoot);
-        if (isPyTestInstalled) {
-          return Logger.infoNotify(
-            vscode.l10n.t("PyTest python packages are already installed.")
-          );
-        }
-      } catch (error) {
-        const msg =
-          error && error.message
-            ? error.message
-            : "Error checking PyTest python packages";
-        OutputChannel.appendLine(msg, "idf-unit-test");
-        Logger.error(msg, error, "extension checkPytestRequirements");
-      }
-
-      const notificationMode = idfConf.readParameter(
-        "idf.notificationMode",
-        workspaceRoot
-      ) as string;
-      const ProgressLocation =
-        notificationMode === idfConf.NotificationMode.All ||
-        notificationMode === idfConf.NotificationMode.Notifications
-          ? vscode.ProgressLocation.Notification
-          : vscode.ProgressLocation.Window;
-      vscode.window.withProgress(
-        {
-          cancellable: true,
-          location: ProgressLocation,
-          title: "ESP-IDF:",
-        },
-        async (
-          progress: vscode.Progress<{ message: string; increment?: number }>,
-          cancelToken: vscode.CancellationToken
-        ) => {
-          try {
-            await installPyTestPackages(workspaceRoot, cancelToken);
-          } catch (error) {
-            const msg =
-              error && error.message
-                ? error.message
-                : "Error installing PyTest python packages";
-            OutputChannel.appendLine(msg, "idf-unit-test");
-            Logger.error(msg, error, "extension installPyTestPackages");
           }
         }
       );

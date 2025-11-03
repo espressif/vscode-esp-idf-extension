@@ -227,7 +227,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd></td>
         </tr>
         <tr>
-            <td rowspan=5 align="center">Project creation</td>
+            <td rowspan=4 align="center">Project creation</td>
             <td>Create New ESP-IDF Component</td>
             <td>Create a new component in the current directory based on ESP-IDF component template.</td>
             <td></td>
@@ -442,29 +442,21 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>G</kbd></td>
         </tr>
         <tr>
-            <td rowspan=2 align="center">Unit Testing</td>
+            <td rowspan=3 align="center">Unit Testing</td>
             <td>"Unit Test: Build Unit Test App"</td>
             <td>Copy the unit test app in the current project, build the current project. More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">Unit testing documentation</a>.</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
-            <td rowspan=2 align="center">Unit Testing</td>
             <td>Unit Test: Flash Unit Test App</td>
             <td>Flash the unit test application to the connected device. More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">Unit testing documentation</a>.</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
-            <td rowspan=2 align="center">Unit Testing</td>
             <td>Unit Test: Build and Flash Unit Test App for Testing</td>
             <td>Copy the unit test app in the current project, build the current project and flash the unit test application to the connected device. More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">Unit testing documentation</a>.</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Unit Test: Install ESP-IDF PyTest Requirements</td>
-            <td>Install the ESP-IDF Pytest requirement packages to be able to execute ESP-IDF unit tests. More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">Unit Testing documentation</a>.</td>
             <td></td>
             <td></td>
         </tr>

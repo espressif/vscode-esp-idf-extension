@@ -1279,18 +1279,6 @@
             "scope": "resource",
             "default": "**/test/test_*.c"
           },
-          "idf.pyTestEmbeddedServices": {
-            "type": "array",
-            "description": "%param.pyTestEmbeddedServices.title%",
-            "scope": "resource",
-            "default": [
-              "esp",
-              "idf"
-            ],
-            "items": {
-              "type": "string"
-            }
-          },
           "idf.serialPortDetectionTimeout": {
             "type": "number",
             "default": 60,
@@ -1776,11 +1764,6 @@
       {
         "command": "espIdf.selectNotificationMode",
         "title": "%espIdf.selectNotificationMode.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.unitTest.installPyTest",
-        "title": "%espIdf.unitTest.installPyTest.title%",
         "category": "ESP-IDF"
       },
       {

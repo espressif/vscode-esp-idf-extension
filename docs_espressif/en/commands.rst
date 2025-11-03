@@ -136,5 +136,3 @@ All commands start with ``ESP-IDF:``.
      - Flash the unit test application for the current project to the connected device. More information can be found in :ref:`Unit Testing Documentation <unit testing>`.
    * - Unit Test: Build and Flash Unit Test App for Testing
      - Copy the unit test app in the current project, build the current project and flash the unit test application to the connected device. More information can be found in :ref:`Unit Testing Documentation <unit testing>`.
-   * - Unit Test: Install ESP-IDF Pytest Requirements
-     - Install the ESP-IDF Pytest requirement packages to be able to execute ESP-IDF unit tests. More information can be found in :ref:`Unit Testing Documentation <unit testing>`.

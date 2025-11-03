@@ -21,7 +21,6 @@ import { basename } from "path";
 import {
   ExtensionContext,
   TestController,
-  window,
   tests,
   Uri,
   CancellationToken,
@@ -30,19 +29,23 @@ import {
   TestItem,
   TestMessage,
   workspace,
+  Location,
+  Range,
 } from "vscode";
 import { EspIdfTestItem, idfTestData } from "./types";
-import { runPyTestWithTestCase } from "./testExecution";
-import { configurePyTestUnitApp } from "./configure";
-import { getFileList, getTestComponents } from "./utils";
+import { configureUnityApp } from "./configure";
+import { getFileList } from "./utils";
 import { ESP } from "../../config";
+import { UnityTestRunner } from "./unityRunner/unityTestRunner";
+import { readParameter, readSerialPort } from "../../idfConfiguration";
+import { UnityParserOptions } from "./unityRunner/types";
+import { Logger } from "../../logger/logger";
 
 const unitTestControllerId = "IDF_UNIT_TEST_CONTROLLER";
 const unitTestControllerLabel = "ESP-IDF Unit test controller";
 
 export class UnitTest {
   public unitTestController: TestController;
-  private testComponents: string[];
   private unitTestAppUri: Uri;
 
   constructor(context: ExtensionContext) {
@@ -56,7 +59,6 @@ export class UnitTest {
     ) => {
       this.clearExistingTestCaseItems();
       const fileList = await getFileList();
-      this.testComponents = await getTestComponents(fileList);
       await this.loadTests(fileList);
     };
 
@@ -68,74 +70,124 @@ export class UnitTest {
       const queue: TestItem[] = [];
 
       if (request.include) {
-        request.include.forEach((test) => queue.push(test));
+        request.include.forEach((test) => {
+          test.children.forEach((testChild) => {
+            queue.push(testChild);
+          });
+          queue.push(test);
+        });
       } else {
         this.unitTestController.items.forEach((t) => queue.push(t));
       }
 
+      let workspaceFolderUri: Uri | undefined;
       if (!this.unitTestAppUri) {
-        let workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
-          ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
-        );
-        if (!workspaceFolderUri) {
-          workspaceFolderUri = workspace.workspaceFolders
-            ? workspace.workspaceFolders[0].uri
+        try {
+          // Get stored workspace folder URI and ensure it's a proper vscode.Uri object
+          const storedUri = ESP.GlobalConfiguration.store.get<Uri>(
+            ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
+          );
+          let workspaceFolder = workspace.getWorkspaceFolder(storedUri);
+
+          workspaceFolderUri = workspaceFolder
+            ? workspaceFolder.uri
             : undefined;
-        }
-        if (!workspaceFolderUri) {
-          return;
-        }
-        let workspaceFolder = workspace.getWorkspaceFolder(workspaceFolderUri);
-        if (!workspaceFolder) {
-          return;
-        }
-        this.unitTestAppUri = await configurePyTestUnitApp(
-          workspaceFolder.uri,
-          this.testComponents,
-          cancelToken
-        );
-      }
 
-      while (queue.length > 0 && !cancelToken.isCancellationRequested) {
-        const test = queue.pop();
-
-        if (request.exclude?.includes(test)) {
-          continue;
-        }
-
-        const idfTestitem = idfTestData.get(test);
-
-        if (testRun.token.isCancellationRequested) {
-          testRun.skipped(test);
-        } else if (idfTestitem.type !== "suite") {
-          testRun.appendOutput(`Running ${test.id}\r\n`);
-          testRun.started(test);
-          const startTime = Date.now();
-          try {
-            const result = await runPyTestWithTestCase(
-              this.unitTestAppUri,
-              idfTestitem.testName,
-              cancelToken
-            );
-            result
-              ? testRun.passed(test, Date.now() - startTime)
-              : testRun.failed(
-                  test,
-                  new TestMessage("Error in test"),
-                  Date.now() - startTime
-                );
-          } catch (error) {
-            testRun.failed(
-              test,
-              new TestMessage(error.message),
-              Date.now() - startTime
-            );
+          // Fallback to first workspace folder if no stored URI or conversion failed
+          if (!workspaceFolderUri && workspace.workspaceFolders?.length > 0) {
+            workspaceFolderUri = workspace.workspaceFolders[0].uri;
           }
-          testRun.appendOutput(`Completed ${test.id}\r\n`);
+
+          if (!workspaceFolderUri) {
+            Logger.warn(
+              "No workspace folder available for unit test configuration"
+            );
+            return;
+          }
+
+          this.unitTestAppUri = await configureUnityApp(
+            workspaceFolderUri,
+            cancelToken
+          );
+        } catch (error) {
+          Logger.error("Failed to configure unit test app:", error, "unitTest runHandler configurePytestUnitApp");
+          return;
         }
-        test.children.forEach((t) => queue.push(t));
       }
-      testRun.end();
+
+      const runner = new UnityTestRunner();
+
+      const serialPort = await readSerialPort(workspaceFolderUri, false);
+      const baudRate =
+        (readParameter("idf.baudRate", workspaceFolderUri) as number) || 115200;
+      const runnerOptions: UnityParserOptions = {
+        port: serialPort,
+        baudRate: baudRate,
+        showOutput: true,
+      };
+      try {
+        await runner.runFromSerial(runnerOptions);
+
+        while (queue.length > 0 && !cancelToken.isCancellationRequested) {
+          const test = queue.pop();
+
+          if (request.exclude?.includes(test)) {
+            continue;
+          }
+
+          const idfTestitem = idfTestData.get(test);
+
+          if (testRun.token.isCancellationRequested) {
+            testRun.skipped(test);
+          } else if (idfTestitem.type !== "suite") {
+            testRun.appendOutput(`Running ${test.id}\r\n`);
+            testRun.started(test);
+            const startTime = Date.now();
+            try {
+              const result = await runner.runTestFromSerialByName(test.label);
+              if (!result) {
+                throw new Error("No result from test execution");
+              }
+              testRun.appendOutput(
+                result.output + `\r\n`,
+                test.uri && typeof result.lineNumber === "number"
+                  ? new Location(
+                      test.uri,
+                      new Range(result.lineNumber, 0, result.lineNumber, 0)
+                    )
+                  : undefined,
+                test
+              );
+              if (result.status === "PASS") {
+                testRun.passed(test, result.duration);
+              } else if (result.status === "FAIL") {
+                const message = new TestMessage(
+                  result.message || "Test failed"
+                );
+                testRun.failed(test, message, result.duration);
+              } else if (result.status === "IGNORE") {
+                testRun.skipped(test);
+              }
+            } catch (error) {
+              testRun.failed(
+                test,
+                new TestMessage(error.message),
+                Date.now() - startTime
+              );
+              runner.stop();
+            }
+            testRun.appendOutput(`\r\nCompleted ${test.id}\r\n`);
+          }
+          test.children.forEach((t) => queue.push(t));
+        }
+      } catch (error) {
+        testRun.appendOutput(`Error: ${error.message}\r\n`);
+        runner.stop();
+        testRun.end();
+      } finally {
+        runner.stop();
+        testRun.end();
+      }
     };
 
     this.unitTestController.createRunProfile(
@@ -151,7 +203,6 @@ export class UnitTest {
       if (!item) {
         const fileList = await getFileList();
         await this.loadTests(fileList);
-        this.testComponents = await getTestComponents(fileList);
         return;
       }
       const espIdfTestItem = await this.getTestsForFile(item.uri);
