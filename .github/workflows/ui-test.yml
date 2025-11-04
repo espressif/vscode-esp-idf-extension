@@ -34,9 +34,7 @@ jobs:
 
       - name: Run Yarn script with xvfb
         run: |
-          export IDF_TOOLS_PATH=~/.espressif
-          export IDF_PATH=~/esp-idf
-          source ~/esp-idf/export.sh && xvfb-run --auto-servernum yarn ci-test 2>&1 | tee test-output.log
+          xvfb-run --auto-servernum yarn ci-test 2>&1 | tee test-output.log
           
           # Extract JSON from the output and save to file
           echo "Extracting JSON from test output..."
