@@ -255,16 +255,27 @@ export async function downloadExtractAndRunEIM(
       Logger.infoNotify(`File ${osKey} extracted to: ${eimInstallPath}`);
     }
 
+    const idfEimExecutableArgs = readParameter(
+      "idf.eimExecutableArgs"
+    ) as string[];
+    const argsString = idfEimExecutableArgs.join(" ");
+
     let binaryPath = "";
     if (process.platform === "win32") {
-      binaryPath = `Start-Process -FilePath "${join(
+      binaryPath = `& '${join(
         eimInstallPath,
         "eim-gui-windows-x64.exe"
-      )}"`;
+      ).replace(/'/g, "''")}'${
+        argsString ? " " + argsString : ""
+      }`;
     } else if (process.platform === "linux") {
-      binaryPath = `./eim`;
+      binaryPath = `./eim${
+        argsString ? " " + argsString : ""
+      }`;
     } else if (process.platform === "darwin") {
-      binaryPath = `open ${join(eimInstallPath, "eim.app")}`;
+      binaryPath = `open ${join(eimInstallPath, "eim.app")}${
+        argsString ? " --args " + argsString : ""
+      }`;
     }
     const shellPath =
       process.platform === "win32"
