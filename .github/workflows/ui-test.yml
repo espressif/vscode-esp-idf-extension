@@ -19,7 +19,7 @@ jobs:
 
       - name: Install ESP-IDF
         run: |
-          ESP_IDF_VERSION="v5.3.2"
+          ESP_IDF_VERSION="v5.4.2"
           sudo apt update
           sudo apt install -y python3-pip git wget flex bison gperf python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util
           wget https://dl.espressif.com/github_assets/espressif/esp-idf/releases/download/${ESP_IDF_VERSION}/esp-idf-${ESP_IDF_VERSION}.zip -O esp-idf.zip
