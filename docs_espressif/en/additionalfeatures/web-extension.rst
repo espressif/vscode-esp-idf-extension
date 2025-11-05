@@ -1,5 +1,7 @@
 ESP-IDF Web Extension
-======================
+=====================
+
+:link_to_translation:`zh_CN:[中文]`
 
 The `ESP-IDF Web Extension <https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-web>`_ is a Visual Studio Code extension that provides a set of tools to enable Web serial communication for Espressif microcontrollers using the ESP-IDF framework.
 
@@ -7,7 +9,7 @@ This extension works on VSCode Web and Codespaces using `esptool-js <https://git
 
 When you use ESP-IDF VS Code extension in Web environment, flash and monitor commands will try to use ESP-IDF Web VS Code extension commands instead.
 
-How to use
+How to Use
 ----------
 
 1. Open a workspace folder with an ESP-IDF project in CodeSpaces or VSCode Web.
@@ -67,7 +69,7 @@ After adding these files, just open the project in Codespaces and the ESP-IDF We
 It might be necessary to manually install ESP-IDF-Web extension in Codespaces if it is not automatically installed.
 
 ESP-IDF-Web Commands
----------------------
+--------------------
 
 Press menu **View**, select **Command Palette...** and search for these commands:
 
@@ -83,10 +85,10 @@ Press menu **View**, select **Command Palette...** and search for these commands
 
 .. note::
 
-    * The ``ESP-IDF-Web Flash`` command depends on ``flasher_args.json`` and the ``ESP-IDF-Web Monitor`` command depends on ``project_description.json`` from ESP-IDF project build directory, where the build directory is defined using ``idf.buildPath`` from `ESP-IDF extension VS Code <https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension>`_ configuration setting or it will use the currently selected workspace folder ``build`` otherwise (``${workspaceFolder}/build``).
+    The ``ESP-IDF-Web Flash`` command depends on ``flasher_args.json`` and the ``ESP-IDF-Web Monitor`` command depends on ``project_description.json`` from ESP-IDF project build directory, where the build directory is defined using ``idf.buildPath`` from `ESP-IDF extension VS Code <https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension>`_ configuration setting or it will use the currently selected workspace folder ``build`` otherwise (``${workspaceFolder}/build``).
 
 ESP-IDF-Web Settings
----------------------
+--------------------
 
 ``idfWeb.flashBaudRate``: Allow the user to set the flash baudrate being used to flash the current workspace folder ESP-IDF project application to your device.
 
