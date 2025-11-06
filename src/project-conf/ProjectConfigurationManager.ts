@@ -58,6 +58,7 @@ export class ProjectConfigurationManager {
   private workspaceUri: Uri;
   private context: ExtensionContext;
   private commandDictionary: any;
+  private initPromise: Promise<void>;
 
   constructor(
     workspaceUri: Uri,
@@ -95,8 +96,8 @@ export class ProjectConfigurationManager {
     );
 
     this.registerEventHandlers();
-    // Initialize asynchronously
-    this.initialize();
+    // Initialize asynchronously and store the promise to prevent race conditions
+    this.initPromise = this.initialize();
   }
 
   private async initialize(): Promise<void> {
@@ -228,6 +229,9 @@ export class ProjectConfigurationManager {
   }
 
   private async handleConfigFileChange(): Promise<void> {
+    // Wait for initialization to complete before processing file changes
+    await this.initPromise;
+    
     try {
       // Use the updated getProjectConfigurationElements function that handles both files
       const projectConfElements = await getProjectConfigurationElements(
@@ -296,6 +300,9 @@ export class ProjectConfigurationManager {
   }
 
   private async handleConfigFileDelete(): Promise<void> {
+    // Wait for initialization to complete before processing file deletion
+    await this.initPromise;
+    
     // When the config file is deleted, clear all configurations
     this.configVersions = [];
 
@@ -322,6 +329,9 @@ export class ProjectConfigurationManager {
   }
 
   private async handleConfigFileCreate(): Promise<void> {
+    // Wait for initialization to complete before processing file creation
+    await this.initPromise;
+    
     try {
       // Use the updated getProjectConfigurationElements function that handles both files
       const projectConfElements = await getProjectConfigurationElements(
@@ -483,6 +493,9 @@ export class ProjectConfigurationManager {
    * Method to select a project configuration via command
    */
   public async selectProjectConfiguration(): Promise<void> {
+    // Wait for initialization to complete before allowing configuration selection
+    await this.initPromise;
+    
     try {
       const projectConfigurations = await getProjectConfigurationElements(
         this.workspaceUri,
