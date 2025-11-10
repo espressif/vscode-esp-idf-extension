@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 14th July 2021 2:51:09 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,12 +22,7 @@ import { env, Uri, window } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
-import {
-  appendIdfAndToolsToPath,
-  getToolchainToolName,
-  isBinInPath,
-  PreCheck,
-} from "../../utils";
+import { getToolchainToolName, isBinInPath } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
@@ -35,13 +30,13 @@ import {
   AppTraceButtonType,
   AppTraceTreeDataProvider,
 } from "./tree/appTraceTreeDataProvider";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export class GdbHeapTraceManager {
   private treeDataProvider: AppTraceTreeDataProvider;
   private archiveDataProvider: AppTraceArchiveTreeDataProvider;
   private childProcess: ChildProcess;
   private gdbinitFileName: string = "heaptrace-gdbinit";
-  private workspace: Uri;
 
   constructor(
     treeDataProvider: AppTraceTreeDataProvider,
@@ -71,7 +66,7 @@ export class GdbHeapTraceManager {
           throw new Error(`${buildDirPath} doesn't exist. Build first.`);
         }
         await this.createGdbinitFile(fileName, buildDirPath);
-        const modifiedEnv = await appendIdfAndToolsToPath(workspace);
+        const modifiedEnv = await configureEnvVariables(workspace);
         const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
         const gdbTool = getToolchainToolName(idfTarget, "gdb");
         const isGdbToolInPath = await isBinInPath(
@@ -108,14 +103,22 @@ export class GdbHeapTraceManager {
         });
 
         this.childProcess.on("error", (err) => {
-          Logger.errorNotify(err.message, err, "GdbHeapTraceManager start error");
+          Logger.errorNotify(
+            err.message,
+            err,
+            "GdbHeapTraceManager start error"
+          );
           this.stop();
         });
 
         this.childProcess.on("exit", (code, signal) => {
           if (code && code !== 0) {
             const errMsg = `Heap tracing process exited with code ${code} and signal ${signal}`;
-            Logger.errorNotify(errMsg, new Error(errMsg), "GdbHeapTraceManager start exit");
+            Logger.errorNotify(
+              errMsg,
+              new Error(errMsg),
+              "GdbHeapTraceManager start exit"
+            );
           }
         });
       }

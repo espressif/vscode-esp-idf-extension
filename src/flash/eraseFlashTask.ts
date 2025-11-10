@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 import {
-  l10n,
-  ProcessExecution,
   ProcessExecutionOptions,
   TaskPanelKind,
   TaskPresentationOptions,
@@ -28,48 +26,31 @@ import {
 } from "vscode";
 import { join } from "path";
 import { constants } from "fs";
-import {
-  NotificationMode,
-  readParameter,
-  readSerialPort,
-} from "../idfConfiguration";
-import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
+import { NotificationMode, readParameter } from "../idfConfiguration";
+import { canAccessFile } from "../utils";
 import { sleep } from "../utils";
 import { TaskManager } from "../taskManager";
 import { ESP } from "../config";
 import { getVirtualEnvPythonPath } from "../pythonManager";
 import { IDFMonitor } from "../espIdf/monitor";
-import { Logger } from "../logger/logger";
-import { OutputChannel } from "../logger/outputChannel";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { OutputCapturingExecution } from "../taskManager/customExecution";
+import { configureEnvVariables } from "../common/prepareEnv";
 
 export class EraseFlashTask {
   public static isErasing: boolean;
   private currentWorkspace: Uri;
-  private flashScriptPath: string;
-  private idfPathDir: string;
-  private modifiedEnv: { [key: string]: string };
   private processOptions: ProcessExecutionOptions;
 
   constructor(workspaceUri: Uri) {
     this.currentWorkspace = workspaceUri;
-    this.idfPathDir = readParameter("idf.espIdfPath", workspaceUri) as string;
-    this.flashScriptPath = join(
-      this.idfPathDir,
-      "components",
-      "esptool_py",
-      "esptool",
-      "esptool.py"
-    );
   }
 
   public erasing(flag: boolean) {
     EraseFlashTask.isErasing = flag;
   }
 
-  private verifyArgs() {
-    if (!canAccessFile(this.flashScriptPath, constants.R_OK)) {
+  private verifyArgs(flashScriptPath: string) {
+    if (!canAccessFile(flashScriptPath, constants.R_OK)) {
       throw new Error("SCRIPT_PERMISSION_ERROR");
     }
   }
@@ -78,8 +59,6 @@ export class EraseFlashTask {
     if (EraseFlashTask.isErasing) {
       throw new Error("ALREADY_ERASING");
     }
-
-    this.verifyArgs();
 
     // Stop monitor if running
     if (IDFMonitor.terminal) {
@@ -95,7 +74,6 @@ export class EraseFlashTask {
       "idf.notificationMode",
       this.currentWorkspace
     ) as string;
-    const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
     const currentWorkspaceFolder = workspace.workspaceFolders.find(
       (w) => w.uri === this.currentWorkspace
     );
@@ -105,13 +83,26 @@ export class EraseFlashTask {
         ? TaskRevealKind.Always
         : TaskRevealKind.Silent;
 
-    this.modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
+    const flashScriptPath = join(
+      modifiedEnv["IDF_PATH"],
+      "components",
+      "esptool_py",
+      "esptool",
+      "esptool.py"
+    );
+    this.verifyArgs(flashScriptPath);
     this.processOptions = {
       cwd: process.cwd(),
-      env: this.modifiedEnv,
+      env: modifiedEnv,
     };
 
-    const eraseExecution = this._eraseExecution(pythonBinPath, port);
+    const pythonBinPath = await getVirtualEnvPythonPath();
+    const eraseExecution = this._eraseExecution(
+      pythonBinPath,
+      port,
+      flashScriptPath
+    );
     const erasePresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,
@@ -134,9 +125,13 @@ export class EraseFlashTask {
     return eraseExecution;
   }
 
-  private async _eraseExecution(pythonBinPath: string, port: string) {
+  private async _eraseExecution(
+    pythonBinPath: string,
+    port: string,
+    flashScriptPath: string
+  ) {
     this.erasing(true);
-    const args = [this.flashScriptPath, "-p", port, "erase_flash"];
+    const args = [flashScriptPath, "-p", port, "erase_flash"];
     return OutputCapturingExecution.create(
       pythonBinPath,
       args,
