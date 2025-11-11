@@ -24,16 +24,11 @@ import {
   ProjectConfElement,
   CMakePresets,
   ConfigurePreset,
-  BuildPreset,
   ESPIDFSettings,
   ESPIDFVendorSettings,
 } from "./projectConfiguration";
 import { Logger } from "../logger/logger";
 import { resolveVariables, readParameter } from "../idfConfiguration";
-
-const ESP_IDF_VENDOR_KEY = "espressif/vscode-esp-idf";
-const CMAKE_PRESET_VERSION = 3;
-const CMAKE_PRESET_SCHEMA_VERSION = 1;
 
 export class ProjectConfigStore {
   private static self: ProjectConfigStore;
@@ -89,15 +84,15 @@ export async function updateCurrentProfileOpenOcdConfigs(
   await updateCurrentProjectConfiguration(workspaceFolder, (config) => {
     // Update OpenOCD configs in vendor settings
     if (!config.vendor) {
-      config.vendor = { [ESP_IDF_VENDOR_KEY]: { settings: [] } };
+      config.vendor = { [ESP.CMakePresets.ESP_IDF_VENDOR_KEY]: { settings: [] } };
     }
-    if (!config.vendor[ESP_IDF_VENDOR_KEY]) {
-      config.vendor[ESP_IDF_VENDOR_KEY] = { settings: [] };
+    if (!config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]) {
+      config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY] = { settings: [] };
     }
 
     // Remove existing openOCD setting
-    config.vendor[ESP_IDF_VENDOR_KEY].settings = 
-      config.vendor[ESP_IDF_VENDOR_KEY].settings.filter(
+    config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY].settings = 
+      config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY].settings.filter(
         (setting) => setting.type !== "openOCD"
       );
 
@@ -106,7 +101,7 @@ export async function updateCurrentProfileOpenOcdConfigs(
             "idf.openOcdDebugLevel",
             this.workspace
           ) as string;
-    config.vendor[ESP_IDF_VENDOR_KEY].settings.push({
+    config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY].settings.push({
       type: "openOCD",
       value: {
         debugLevel: openOcdDebugLevel || 2,
@@ -303,13 +298,13 @@ async function saveConfigurationToUserPresets(
     } catch (error) {
       Logger.error(`Error reading user presets file: ${error.message}`, error, "saveConfigurationToUserPresets");
       userPresets = {
-        version: CMAKE_PRESET_VERSION,
+        version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
         configurePresets: []
       };
     }
   } else {
     userPresets = {
-      version: CMAKE_PRESET_VERSION,
+      version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
       configurePresets: []
     };
   }
@@ -363,13 +358,13 @@ async function saveConfigurationToProjectPresets(
     } catch (error) {
       Logger.error(`Error reading project presets file: ${error.message}`, error, "saveConfigurationToProjectPresets");
       projectPresets = {
-        version: CMAKE_PRESET_VERSION,
+        version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
         configurePresets: []
       };
     }
   } else {
     projectPresets = {
-      version: CMAKE_PRESET_VERSION,
+      version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
       configurePresets: []
     };
   }
@@ -416,7 +411,7 @@ export async function saveProjectConfFile(
   );
 
   const cmakePresets: CMakePresets = {
-    version: CMAKE_PRESET_VERSION,
+    version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
     cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
     configurePresets,
   };
@@ -451,7 +446,7 @@ export async function saveProjectConfFileLegacy(
   );
 
   const cmakePresets: CMakePresets = {
-    version: CMAKE_PRESET_VERSION,
+    version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
     cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
     configurePresets,
   };
@@ -935,10 +930,10 @@ function mergePresets(
   // Merge vendor settings (child overrides parent)
   if (child.vendor || parent.vendor) {
     merged.vendor = {
-      [ESP_IDF_VENDOR_KEY]: {
+      [ESP.CMakePresets.ESP_IDF_VENDOR_KEY]: {
         settings: [
-          ...(parent.vendor?.[ESP_IDF_VENDOR_KEY]?.settings || []),
-          ...(child.vendor?.[ESP_IDF_VENDOR_KEY]?.settings || []),
+          ...(parent.vendor?.[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]?.settings || []),
+          ...(child.vendor?.[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]?.settings || []),
         ],
       },
     };
@@ -1374,13 +1369,13 @@ async function processConfigurePresetVendor(
   resolvePaths: boolean
 ): Promise<ESPIDFVendorSettings> {
   const processedVendor: ESPIDFVendorSettings = {
-    [ESP_IDF_VENDOR_KEY]: {
+    [ESP.CMakePresets.ESP_IDF_VENDOR_KEY]: {
       settings: [],
       schemaVersion: 1
     },
   };
 
-  const espIdfSettings = vendor[ESP_IDF_VENDOR_KEY]?.settings || [];
+  const espIdfSettings = vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]?.settings || [];
 
   for (const setting of espIdfSettings) {
     const processedSetting: ESPIDFSettings = { ...setting };
@@ -1414,7 +1409,7 @@ async function processConfigurePresetVendor(
       );
     }
 
-    processedVendor[ESP_IDF_VENDOR_KEY].settings.push(processedSetting);
+    processedVendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY].settings.push(processedSetting);
   }
 
   return processedVendor;
@@ -1653,7 +1648,7 @@ function getESPIDFSettingValue(
   settingType: string
 ): any {
   const espIdfSettings =
-    preset.vendor?.[ESP_IDF_VENDOR_KEY]?.settings || [];
+    preset.vendor?.[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]?.settings || [];
   const setting = espIdfSettings.find((s) => s.type === settingType);
   return setting ? setting.value : undefined;
 }
@@ -1708,7 +1703,7 @@ function convertConfigurePresetToProjectConfElement(
 ): ProjectConfElement {
   // Extract ESP-IDF specific settings from vendor section
   const espIdfSettings =
-    preset.vendor?.[ESP_IDF_VENDOR_KEY]?.settings || [];
+    preset.vendor?.[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]?.settings || [];
 
   // Helper function to find setting by type
   const findSetting = (type: string): any => {
@@ -1817,9 +1812,9 @@ function convertProjectConfElementToConfigurePreset(
     },
     environment: Object.keys(element.env).length > 0 ? element.env : undefined,
     vendor: {
-      [ESP_IDF_VENDOR_KEY]: {
+      [ESP.CMakePresets.ESP_IDF_VENDOR_KEY]: {
         settings,
-        schemaVersion: CMAKE_PRESET_SCHEMA_VERSION
+        schemaVersion: ESP.CMakePresets.CMAKE_PRESET_SCHEMA_VERSION
       },
     },
   };
