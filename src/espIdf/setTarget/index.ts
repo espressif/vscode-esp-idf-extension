@@ -160,10 +160,12 @@ export async function setIdfTarget(
         if (!selectedTarget) {
           return;
         }
-        const customExtraVars = readParameter(
+        // Create a plain object copy to avoid proxy issues when modifying/deleting properties
+        const customExtraVarsRead = readParameter(
           "idf.customExtraVars",
           workspaceFolder
         ) as { [key: string]: string };
+        const customExtraVars = { ...customExtraVarsRead };
 
         if (selectedTarget.isConnected && selectedTarget.boardInfo) {
           // Directly set OpenOCD configs for connected board
