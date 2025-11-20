@@ -160,6 +160,11 @@ export async function setIdfTarget(
         if (!selectedTarget) {
           return;
         }
+        const customExtraVars = readParameter(
+          "idf.customExtraVars",
+          workspaceFolder
+        ) as { [key: string]: string };
+
         if (selectedTarget.isConnected && selectedTarget.boardInfo) {
           // Directly set OpenOCD configs for connected board
           const configFiles = selectedTarget.boardInfo.config_files || [];
@@ -171,10 +176,6 @@ export async function setIdfTarget(
           );
           // Store USB location if available
           if (selectedTarget.boardInfo.location) {
-            const customExtraVars = readParameter(
-              "idf.customExtraVars",
-              workspaceFolder
-            ) as { [key: string]: string };
             const location = selectedTarget.boardInfo.location.replace(
               "usb://",
               ""
@@ -186,8 +187,25 @@ export async function setIdfTarget(
               configurationTarget,
               workspaceFolder.uri
             );
+          } else {
+            // Clear OPENOCD_USB_ADAPTER_LOCATION if no location is available
+            delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
+            await writeParameter(
+              "idf.customExtraVars",
+              customExtraVars,
+              configurationTarget,
+              workspaceFolder.uri
+            );
           }
         } else {
+          // Clear OPENOCD_USB_ADAPTER_LOCATION when switching to non-connected target
+          delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
+          await writeParameter(
+            "idf.customExtraVars",
+            customExtraVars,
+            configurationTarget,
+            workspaceFolder.uri
+          );
           await selectOpenOcdConfigFiles(
             workspaceFolder.uri,
             selectedTarget.idfTarget.target
@@ -195,10 +213,6 @@ export async function setIdfTarget(
         }
 
         await setTargetInIDF(workspaceFolder, selectedTarget.idfTarget);
-        const customExtraVars = readParameter(
-          "idf.customExtraVars",
-          workspaceFolder
-        ) as { [key: string]: string };
         customExtraVars["IDF_TARGET"] = selectedTarget.idfTarget.target;
         await writeParameter(
           "idf.customExtraVars",
