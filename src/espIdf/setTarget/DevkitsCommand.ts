@@ -34,7 +34,7 @@ export class DevkitsCommand {
     this.workspaceRoot = workspaceRoot;
   }
 
-  public async runDevkitsScript(): Promise<string> {
+  public async runDevkitsScript(openOCDVersion: string): Promise<string> {
     try {
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(
         this.workspaceRoot
@@ -47,8 +47,6 @@ export class DevkitsCommand {
         "idf.toolsPath",
         this.workspaceRoot
       ) as string;
-      const openOCDManager = OpenOCDManager.init();
-      const openOCDVersion = await openOCDManager.version();
 
       if (!toolsPath || !openOCDVersion) {
         throw new Error("Could not get toolsPath or OpenOCD version");
@@ -144,14 +142,12 @@ export class DevkitsCommand {
     }
   }
 
-  public async getScriptPath(): Promise<string | null> {
+  public async getScriptPath(openOCDVersion: string): Promise<string | null> {
     try {
       const toolsPath = idfConf.readParameter(
         "idf.toolsPath",
         this.workspaceRoot
       ) as string;
-      const openOCDManager = OpenOCDManager.init();
-      const openOCDVersion = await openOCDManager.version();
 
       if (!toolsPath || !openOCDVersion) {
         return null;

@@ -34,6 +34,7 @@ import {
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import { selectOpenOcdConfigFiles } from "../openOcd/boardConfiguration";
+import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { getTargetsFromEspIdf, IdfTarget } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 import { updateCurrentProfileIdfTarget } from "../../project-conf";
@@ -95,11 +96,13 @@ export async function setIdfTarget(
 
         if (!isDebugging) {
           try {
+            const openOCDManager = OpenOCDManager.init();
+            const openOCDVersion = await openOCDManager.version();
             const devkitsCmd = new DevkitsCommand(workspaceFolder.uri);
-            const scriptPath = await devkitsCmd.getScriptPath();
+            const scriptPath = await devkitsCmd.getScriptPath(openOCDVersion);
 
             if (scriptPath) {
-              const devkitsOutput = await devkitsCmd.runDevkitsScript();
+              const devkitsOutput = await devkitsCmd.runDevkitsScript(openOCDVersion);
               if (devkitsOutput) {
                 const parsed = JSON.parse(devkitsOutput);
                 if (parsed && Array.isArray(parsed.boards)) {
