@@ -109,7 +109,11 @@ export async function checkIdfSetup(
       );
     }
 
-    const pyEnvReqs = await checkPyVenv(virtualEnvPython, setupConf.idfPath);
+    const pyEnvReqs = await checkPyVenv(
+      virtualEnvPython,
+      setupConf.idfPath,
+      setupConf.toolsPath
+    );
     return pyEnvReqs;
   } catch (error) {
     const msg =
