@@ -25,6 +25,7 @@ import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function checkDebugAdapterRequirements(workspaceFolder: Uri) {
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
+  const espIdfToolsPath = readParameter("idf.espIdfToolsPath", workspaceFolder);
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   let requirementsPath = join(
     extensionContext.extensionPath,
@@ -40,6 +41,7 @@ export async function checkDebugAdapterRequirements(workspaceFolder: Uri) {
     checkResult = await startPythonReqsProcess(
       pythonBinPath,
       idfPath,
+      espIdfToolsPath,
       requirementsPath
     );
   } catch (error) {

@@ -107,8 +107,13 @@ export async function checkPreviousInstall(
       gitPath = gitPathFromJson;
     }
     existingIdfSetups = await loadIdfSetupsFromEspIdfJson(toolsPath);
-    if (process.env.IDF_TOOLS_PATH && toolsPath !== process.env.IDF_TOOLS_PATH) {
-      const systemIdfSetups = await loadIdfSetupsFromEspIdfJson(process.env.IDF_TOOLS_PATH);
+    if (
+      process.env.IDF_TOOLS_PATH &&
+      toolsPath !== process.env.IDF_TOOLS_PATH
+    ) {
+      const systemIdfSetups = await loadIdfSetupsFromEspIdfJson(
+        process.env.IDF_TOOLS_PATH
+      );
       existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
     }
   }
@@ -169,10 +174,7 @@ export async function getSetupInitialValues(
         pythonVersions &&
         pythonVersions.length > 0;
 
-      const canAccessCMake = await utils.isBinInPath(
-        "cmake",
-        process.env
-      );
+      const canAccessCMake = await utils.isBinInPath("cmake", process.env);
 
       if (canAccessCMake === "") {
         setupInitArgs.onReqPkgs = setupInitArgs.onReqPkgs
@@ -180,10 +182,7 @@ export async function getSetupInitialValues(
           : ["cmake"];
       }
 
-      const canAccessNinja = await utils.isBinInPath(
-        "ninja",
-        process.env
-      );
+      const canAccessNinja = await utils.isBinInPath("ninja", process.env);
 
       if (canAccessNinja === "") {
         setupInitArgs.onReqPkgs = setupInitArgs.onReqPkgs
@@ -242,17 +241,11 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
   );
   let extraReqPaths = [];
   if (process.platform !== "win32") {
-    const canAccessCMake = await utils.isBinInPath(
-      "cmake",
-      process.env
-    );
+    const canAccessCMake = await utils.isBinInPath("cmake", process.env);
     if (!canAccessCMake) {
       extraReqPaths.push("cmake");
     }
-    const canAccessNinja = await utils.isBinInPath(
-      "ninja",
-      process.env
-    );
+    const canAccessNinja = await utils.isBinInPath("ninja", process.env);
     if (!canAccessNinja) {
       extraReqPaths.push("ninja");
     }
@@ -290,7 +283,7 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
       workspaceFolder
     ) as string;
   }
-  const isPyEnvValid = await checkPyVenv(pythonBinPath, espIdfPath);
+  const isPyEnvValid = await checkPyVenv(pythonBinPath, espIdfPath, toolsPath);
   return isPyEnvValid;
 }
 
