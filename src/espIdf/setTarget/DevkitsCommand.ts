@@ -88,6 +88,10 @@ export class DevkitsCommand {
       const pythonBinPath = await getVirtualEnvPythonPath(this.workspaceRoot);
       const modifiedEnv = await appendIdfAndToolsToPath(this.workspaceRoot);
 
+      // Remove OPENOCD_USB_ADAPTER_LOCATION from environment during device detection
+      // to allow scanning all available devices, not just the one at the configured location
+      delete modifiedEnv.OPENOCD_USB_ADAPTER_LOCATION;
+
       OutputChannel.init();
       OutputChannel.appendLine(
         "Running ESP Detect Config...",
