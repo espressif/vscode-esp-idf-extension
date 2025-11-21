@@ -102,7 +102,7 @@ const handleScroll = (event) => {
 
 function handleMenuSelect(value: string) {
   store.selectedMenu = value;
-  const secNew = document.querySelector('#' + value) as HTMLElement;
+  const secNew = document.getElementById(value);
   if (secNew) {
     secNew.scrollIntoView({ behavior: 'auto', block: 'start' });
   }

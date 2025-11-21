@@ -27,10 +27,18 @@ export async function checkEspIdfRequirements(
 ) {
   try {
     let requirementsPath: string;
-    requirementsPath = join(reportedResult.configurationSettings.espIdfPath, "tools", "requirements", "requirements.core.txt");
+    requirementsPath = join(
+      reportedResult.configurationSettings.espIdfPath,
+      "tools",
+      "requirements",
+      "requirements.core.txt"
+    );
     const coreRequirementsExists = await pathExists(requirementsPath);
     if (!coreRequirementsExists) {
-      requirementsPath = join(reportedResult.configurationSettings.espIdfPath, "requirements.txt");
+      requirementsPath = join(
+        reportedResult.configurationSettings.espIdfPath,
+        "requirements.txt"
+      );
       const requirementsExists = await pathExists(requirementsPath);
       if (!requirementsExists) {
         throw new Error("Requirements doesn't exists.");
@@ -63,9 +71,23 @@ export async function checkRequirements(
     Object.assign({}, process.env)
   );
   modifiedEnv.IDF_PATH = reportedResult.configurationSettings.espIdfPath;
+  const majorMinorMatches = reportedResult.espIdfVersion.result.match(/([0-9]+\.[0-9]+).*/);
+  const espIdfVersion =
+    majorMinorMatches && majorMinorMatches.length > 0
+      ? majorMinorMatches[1]
+      : "x.x";
+  const constrainsFile = join(
+    reportedResult.configurationSettings.toolsPath,
+    `espidf.constraints.v${espIdfVersion}.txt`
+  );
+  let checkPyArgs = [checkPythonDepsScript, "-r", requirementsPath];
+  const constrainsFileExists = await pathExists(constrainsFile);
+  if (constrainsFileExists) {
+    checkPyArgs = checkPyArgs.concat(["--constraint", constrainsFile]);
+  }
   const requirementsResult = await execChildProcess(
     reportedResult.configurationSettings.pythonBinPath,
-    [checkPythonDepsScript, "-r", requirementsPath],
+    checkPyArgs,
     context.extensionPath,
     { env: modifiedEnv, cwd: context.extensionPath }
   );
