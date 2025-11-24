@@ -59,7 +59,7 @@ export class OpenOCDManager extends EventEmitter {
     this.configureServerWithDefaultParam();
   }
 
-  public async version(): Promise<string> {
+  public async version(silent: boolean = false): Promise<string> {
     const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
     const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
       "openocd-esp32",
@@ -70,6 +70,7 @@ export class OpenOCDManager extends EventEmitter {
     const resp = await sspawn(openOcdPath, ["--version"], {
       cwd: this.workspace.fsPath,
       env: modifiedEnv,
+      silent,
     });
     const versionString = resp.toString();
     const match = versionString.match(/v\d+\.\d+\.\d+\-\S*/gi);
