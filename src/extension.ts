@@ -597,6 +597,25 @@ export async function activate(context: vscode.ExtensionContext) {
     debugAdapterManager.stop();
   });
 
+  const kconfigMenusWatcher = vscode.workspace.createFileSystemWatcher(
+    "**/config/kconfig_menus.json",
+    true,
+    false,
+    false
+  );
+  context.subscriptions.push(
+    kconfigMenusWatcher.onDidChange(async (e) => {
+      if (ConfserverProcess.exists()) {
+        ConfserverProcess.dispose();
+      }
+    }),
+    kconfigMenusWatcher.onDidDelete(async (e) => {
+      if (ConfserverProcess.exists()) {
+        ConfserverProcess.dispose();
+      }
+    })
+  );
+
   const sdkconfigWatcher = vscode.workspace.createFileSystemWatcher(
     "**/sdkconfig",
     false,
