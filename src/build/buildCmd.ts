@@ -185,8 +185,8 @@ export async function buildCommand(
         false
       );
     }
+    continueFlag = false;
   }
-  continueFlag = false;
   return continueFlag;
 }
 
