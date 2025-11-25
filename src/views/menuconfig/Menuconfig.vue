@@ -249,7 +249,6 @@ p {
   min-width: 300px;
   max-width: 800px;
   padding: 0 0.5rem;
-  margin: 0 auto;
 }
 
 .sidenav {

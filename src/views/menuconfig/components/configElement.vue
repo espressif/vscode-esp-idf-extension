@@ -81,8 +81,10 @@ function onChange(e) {
 .form-group {
   padding-left: 30px;
   overflow: hidden;
-  margin-top: 9px;
-  margin-bottom: 9px;
+}
+
+.form-group .field{
+  margin-bottom: 0.15rem;
 }
 .config-el {
   width: 90%;
@@ -93,14 +95,13 @@ function onChange(e) {
 .submenu {
   padding-left: 0px;
   overflow: hidden;
-  padding: 10px 10px 10px 15px;
 }
 .menuconfig {
   padding-left: 0px;
 }
 .menu-title {
   font-family: var(--vscode-font-family, "Segoe WPC", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif);
-  font-weight: 750;
+  font-weight: 500;
   font-size: 26px;
   color: var(--vscode-settings-headerForeground, #888888);
 }

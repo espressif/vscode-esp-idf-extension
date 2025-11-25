@@ -77,12 +77,10 @@ function onChange(e: Event) {
 .form-group {
   padding-left: 30px;
   overflow: hidden;
-  margin-top: 9px;
-  margin-bottom: 9px;
 }
 
 .field {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.05rem;
 }
 
 .checkbox-wrapper {
