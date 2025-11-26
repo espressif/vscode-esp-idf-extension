@@ -193,6 +193,10 @@ onUnmounted(() => {
 <style lang="scss">
 @import "../commons/espCommons.scss";
 
+.field:not(:last-child) {
+  margin-bottom: 0 !important;
+}
+
 .container {
   width: 100%;
   max-width: 1600px;
