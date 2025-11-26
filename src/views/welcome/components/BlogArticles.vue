@@ -57,9 +57,9 @@ const getImageUrl = (originalUrl: string) => {
   return originalUrl; // Always try the original URL first
 };
 
-onMounted(() => {
-  store.fetchBlogArticles();
-});
+// onMounted(() => {
+//   store.fetchBlogArticles();
+// });
 </script>
 
 <template>

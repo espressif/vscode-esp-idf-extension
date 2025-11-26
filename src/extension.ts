@@ -142,11 +142,7 @@ import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
 import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
 import { ProjectConfigStore } from "./project-conf";
-import {
-  clearPreviousIdfSetups,
-  getPreviousIdfSetups,
-  loadIdfSetupsFromEspIdfJson,
-} from "./setup/existingIdfSetups";
+import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
 import { UnitTest } from "./espIdf/unitTest/adapter";
 import {
@@ -177,7 +173,6 @@ import {
   createCommandDictionary,
   IDFWebCommandKeys,
 } from "./cmdTreeView/cmdStore";
-import { IdfSetup } from "./views/setup/types";
 import { asyncRemoveEspIdfSettings } from "./uninstall";
 import {
   clearSelectedProjectConfiguration,
@@ -194,6 +189,13 @@ import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
 import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
 import { readSerialPort } from "./idfConfiguration";
+import {
+  openFolderCheck,
+  isNotDockerContainerCheck,
+  webIdeCheck,
+} from "./common/PreCheck";
+import { buildFlashAndMonitor } from "./buildFlashMonitor";
+import { selectFlashMethod, startFlashing } from "./flash/startFlashing";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -242,28 +244,6 @@ let peripheralTreeView: vscode.TreeView<PeripheralBaseNode>;
 let wsServer: WSServer;
 
 // Precheck methods and their messages
-
-const openFolderFirstMsg = vscode.l10n.t("Open a folder first.");
-const cmdNotForWebIdeMsg = vscode.l10n.t(
-  "Selected command is not available in {envName}",
-  { envName: "Codespaces" }
-);
-const cmdNotDockerContainerMsg = vscode.l10n.t(
-  "Selected command is not available in {envName}",
-  { envName: "Docker container" }
-);
-const openFolderCheck = [
-  PreCheck.isWorkspaceFolderOpen,
-  openFolderFirstMsg,
-] as utils.PreCheckInput;
-const webIdeCheck = [
-  PreCheck.notUsingWebIde,
-  cmdNotForWebIdeMsg,
-] as utils.PreCheckInput;
-const isNotDockerContainerCheck = [
-  PreCheck.isNotDockerContainer,
-  cmdNotDockerContainerMsg,
-] as utils.PreCheckInput;
 
 const minIdfVersionCheck = async function (
   minVersion: string,
@@ -2093,7 +2073,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.flashAndEncryptDevice", () => flash(true));
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
-  registerIDFCommand("espIdf.buildFlashMonitor", buildFlashAndMonitor);
+  registerIDFCommand("espIdf.buildFlashMonitor", () => buildFlashAndMonitor(workspaceRoot));
   registerIDFCommand("espIdf.monitorQemu", createQemuMonitor);
 
   registerIDFCommand("espIdf.buildApp", () =>
@@ -3826,7 +3806,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.selectFlashMethodAndFlash", () => {
     PreCheck.perform([openFolderCheck, webIdeCheck], async () => {
-      await selectFlashMethod();
+      await selectFlashMethod(workspaceRoot);
     });
   });
 
@@ -4266,6 +4246,7 @@ const flash = (
         }
         if (
           await startFlashing(
+            workspaceRoot,
             cancelToken,
             flashType,
             encryptPartitions,
@@ -4317,206 +4298,6 @@ function createQemuMonitor() {
       }
     );
   });
-}
-
-const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
-  PreCheck.perform([openFolderCheck], async () => {
-    const notificationMode = idfConf.readParameter(
-      "idf.notificationMode",
-      workspaceRoot
-    ) as string;
-    const ProgressLocation =
-      notificationMode === idfConf.NotificationMode.All ||
-      notificationMode === idfConf.NotificationMode.Notifications
-        ? vscode.ProgressLocation.Notification
-        : vscode.ProgressLocation.Window;
-
-    await vscode.window.withProgress(
-      {
-        cancellable: true,
-        location: ProgressLocation,
-        title: vscode.l10n.t("ESP-IDF: Building project"),
-      },
-      async (
-        progress: vscode.Progress<{ message: string; increment: number }>,
-        cancelToken: vscode.CancellationToken
-      ) => {
-        progress.report({ message: "Building project...", increment: 20 });
-        const flashType = idfConf.readParameter("idf.flashType", workspaceRoot);
-        let canContinue = await buildCommand(
-          workspaceRoot,
-          cancelToken,
-          flashType
-        );
-        if (!canContinue) {
-          return;
-        }
-        // Re route to ESP-IDF Web extension if using Codespaces or Browser
-        if (vscode.env.uiKind === vscode.UIKind.Web) {
-          vscode.commands.executeCommand(IDFWebCommandKeys.FlashAndMonitor);
-          return;
-        }
-        progress.report({
-          message: "Flashing project into device...",
-          increment: 60,
-        });
-
-        let encryptPartitions = await isFlashEncryptionEnabled(workspaceRoot);
-
-        let partitionToUse = idfConf.readParameter(
-          "idf.flashPartitionToUse",
-          workspaceRoot
-        ) as ESP.BuildType;
-
-        if (
-          partitionToUse &&
-          !["app", "bootloader", "partition-table"].includes(partitionToUse)
-        ) {
-          partitionToUse = undefined;
-        }
-
-        canContinue = await startFlashing(
-          cancelToken,
-          flashType,
-          encryptPartitions,
-          partitionToUse
-        );
-        if (!canContinue) {
-          return;
-        }
-        if (runMonitor) {
-          progress.report({
-            message: "Launching monitor...",
-            increment: 10,
-          });
-          if (IDFMonitor.terminal) {
-            IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-          }
-          await createMonitor();
-        }
-      }
-    );
-  });
-};
-
-async function selectFlashMethod() {
-  let curflashType = idfConf.readParameter(
-    "idf.flashType",
-    workspaceRoot
-  ) as ESP.FlashType;
-  let newFlashType = (await vscode.window.showQuickPick(
-    Object.keys(ESP.FlashType),
-    {
-      ignoreFocusOut: true,
-      placeHolder: vscode.l10n.t(
-        "Select flash method, you can modify the choice later from 'settings.json' (idf.flashType)"
-      ),
-    }
-  )) as ESP.FlashType;
-  if (!newFlashType) {
-    return curflashType;
-  }
-  await idfConf.writeParameter(
-    "idf.flashType",
-    newFlashType,
-    vscode.ConfigurationTarget.WorkspaceFolder,
-    workspaceRoot
-  );
-  vscode.window.showInformationMessage(
-    `Flash method changed to ${newFlashType}.`
-  );
-  return newFlashType;
-}
-
-async function startFlashing(
-  cancelToken: vscode.CancellationToken,
-  flashType: ESP.FlashType,
-  encryptPartitions: boolean,
-  partitionToUse?: ESP.BuildType
-): Promise<boolean> {
-  if (!flashType) {
-    flashType = await selectFlashMethod();
-  }
-
-  if (IDFMonitor.terminal) {
-    IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-    const monitorDelay = idfConf.readParameter(
-      "idf.monitorDelay",
-      workspaceRoot
-    ) as number;
-    await utils.sleep(monitorDelay);
-  }
-
-  if (encryptPartitions) {
-    const encryptionValidationResult = await checkFlashEncryption(
-      flashType,
-      workspaceRoot
-    );
-    if (!encryptionValidationResult.success) {
-      if (
-        encryptionValidationResult.resultType ===
-        FlashCheckResultType.ErrorEfuseNotSet
-      ) {
-        encryptPartitions = false;
-      } else {
-        return;
-      }
-    }
-  }
-
-  const port = await idfConf.readSerialPort(workspaceRoot, false);
-  if (!port) {
-    Logger.warnNotify(
-      vscode.l10n.t(
-        "No serial port found for current IDF_TARGET: {0}",
-        await getIdfTargetFromSdkconfig(workspaceRoot)
-      )
-    );
-    return false;
-  }
-  const flashBaudRate = idfConf.readParameter(
-    "idf.flashBaudRate",
-    workspaceRoot
-  );
-  const canFlash = await verifyCanFlash(
-    flashBaudRate,
-    port,
-    flashType,
-    workspaceRoot
-  );
-  if (!canFlash) {
-    return false;
-  }
-
-  if (flashType === ESP.FlashType.JTAG) {
-    const currOpenOcdVersion = await openOCDManager.version();
-    const openOCDVersionIsValid = PreCheck.openOCDVersionValidator(
-      "v0.10.0-esp32-20201125",
-      currOpenOcdVersion
-    );
-    if (!openOCDVersionIsValid) {
-      Logger.infoNotify(
-        `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currOpenOcdVersion} version installed`
-      );
-      return;
-    }
-    return await jtagFlashCommand(workspaceRoot);
-  } else {
-    const idfPathDir = idfConf.readParameter(
-      "idf.espIdfPath",
-      workspaceRoot
-    ) as string;
-    return await flashCommand(
-      cancelToken,
-      flashBaudRate,
-      idfPathDir,
-      port,
-      workspaceRoot,
-      flashType,
-      encryptPartitions,
-      partitionToUse
-    );
-  }
 }
 
 async function createEspIdfTerminal(
@@ -4794,7 +4575,7 @@ class IdfDebugConfigurationProvider
         "Build"
       );
       if (startBuild === "Build") {
-        await buildFlashAndMonitor(false);
+        await buildFlashAndMonitor(workspaceRoot, false);
         return;
       }
     }
