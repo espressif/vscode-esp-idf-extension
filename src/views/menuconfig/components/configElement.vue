@@ -83,9 +83,6 @@ function onChange(e) {
   overflow: hidden;
 }
 
-.form-group .field{
-  margin-bottom: 0.15rem;
-}
 .config-el {
   width: 90%;
 }
@@ -101,16 +98,17 @@ function onChange(e) {
 }
 .menu-title {
   font-family: var(--vscode-font-family, "Segoe WPC", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif);
-  font-weight: 500;
-  font-size: 26px;
+  font-weight: 750;
+  font-size: 16px;
   color: var(--vscode-settings-headerForeground, #888888);
 }
 
 .config-children .menu-title {
-  font-size: 22px;
+  font-size: 16px;
 }
 
 .config-children .config-children .menu-title {
-  font-size: 18px;
+  font-size: 14px;
+  font-weight: 600;
 }
 </style>
