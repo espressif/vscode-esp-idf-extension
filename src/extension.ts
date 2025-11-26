@@ -2094,7 +2094,9 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.flashAndEncryptDevice", () => flash(true));
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
-  registerIDFCommand("espIdf.buildFlashMonitor", () => buildFlashAndMonitor(workspaceRoot));
+  registerIDFCommand("espIdf.buildFlashMonitor", () =>
+    buildFlashAndMonitor(workspaceRoot)
+  );
   registerIDFCommand("espIdf.monitorQemu", createQemuMonitor);
 
   registerIDFCommand("espIdf.buildApp", () =>
