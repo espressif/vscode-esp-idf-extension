@@ -35,6 +35,7 @@ import { Logger } from "../logger/logger";
 import { getConfigValueFromSDKConfig, getToolchainPath } from "../utils";
 import { createNewIdfMonitor } from "../espIdf/monitor/command";
 import { ESP } from "../config";
+import { buildFlashAndMonitor } from "../buildFlashMonitor";
 
 export class CDTDebugConfigurationProvider
   implements DebugConfigurationProvider {
@@ -57,6 +58,19 @@ export class CDTDebugConfigurationProvider
             throw new Error("No folder was selected to start debug session");
           }
         }
+      }
+      const useMonitorWithDebug = readParameter(
+        "idf.launchMonitorOnDebugSession",
+        folder
+      );
+      if (config.buildFlashMonitor) {
+        await buildFlashAndMonitor(folder.uri, true);
+      } else if (
+        config.sessionID !== "core-dump.debug.session.ws" &&
+        config.sessionID !== "gdbstub.debug.session.ws" &&
+        useMonitorWithDebug
+      ) {
+        await createNewIdfMonitor(folder.uri, true);
       }
       if (!config.program) {
         const buildDirPath = readParameter("idf.buildPath", folder) as string;
@@ -169,17 +183,6 @@ export class CDTDebugConfigurationProvider
             `Current app binary is different from your project. Flash first.`
           );
         }
-      }
-      const useMonitorWithDebug = readParameter(
-        "idf.launchMonitorOnDebugSession",
-        folder
-      );
-      if (
-        config.sessionID !== "core-dump.debug.session.ws" &&
-        config.sessionID !== "gdbstub.debug.session.ws" &&
-        useMonitorWithDebug
-      ) {
-        await createNewIdfMonitor(folder.uri, true);
       }
       const openOCDManager = OpenOCDManager.init();
       if (
