@@ -89,6 +89,110 @@
 
 其中 ``0x20000`` 是分区表中使用的应用程序镜像偏移量。
 
+调试配置
+--------
+
+要配置调试会话，请打开项目的 ``.vscode/launch.json`` 文件。此文件包含调试会话的配置。默认配置如下：
+
+.. code-block:: JSON
+
+    {
+        "configurations": [
+            {
+                "type": "gdbtarget",
+                "request": "attach",
+                "name": "Eclipse CDT GDB Adapter"
+            }
+        ]
+    }
+
+你可以根据需要修改配置。以下是配置选项的说明：
+
+- ``type``: 调试配置的类型。应设置为 ``gdbtarget``。
+- ``program``: 项目构建目录中的 ELF 文件，用于执行调试会话。可以使用命令 ``${command:espIdf.getProjectName}`` 查询扩展以查找当前构建目录的项目名称。
+- ``initCommands``: 用于初始化 GDB 和目标设备的 GDB 命令。默认值为 ``["set remote hardware-watchpoint-limit IDF_TARGET_CPU_WATCHPOINT_NUM", "mon reset halt", "maintenance flush register-cache"]``。
+- ``initialBreakpoint``: 当未定义 ``initCommands`` 时，此命令将在默认 ``initCommands`` 中添加指定函数名的硬件断点。例如 app_main（默认值）将在默认 initCommands 中添加 ``thb app_main``。如果设置为 ""（空字符串），则不会设置初始断点；如果未定义，则使用默认值 thb app_main。
+- ``gdb``: 要使用的 GDB 可执行文件。默认情况下，"${command:espIdf.getToolchainGdb}" 将查询扩展以查找当前 ESP-IDF 项目的 IDF_TARGET（esp32、esp32c6 等）对应的 ESP-IDF 工具链 GDB。
+
+.. note::
+     **IDF_TARGET_CPU_WATCHPOINT_NUM** 由扩展根据当前 ESP-IDF 项目的 ``IDF_TARGET``（esp32、esp32c6 等）解析。
+
+你可能使用的其他参数包括：
+
+- ``buildFlashMonitor``: （默认值：false）。在启动调试会话之前构建、烧录并启动 IDF Monitor。使用 ``idf.monitorDelay`` 设置启动监视器后的延迟时间（以毫秒为单位，默认值为 ``1000``）。
+- ``debugPort``: （默认值：43476）启动 Eclipse CDT GDB 调试适配器服务器的端口。如果未指定，将使用默认值 43476。
+- ``runOpenOCD``: （默认值：true）。运行扩展 OpenOCD 服务器。
+- ``verifyAppBinBeforeDebug``: （默认值：false）验证当前 ESP-IDF 项目二进制文件是否与芯片中的二进制文件相同。
+- ``logFile``: 用于记录与 gdb 交互的文件的绝对路径。示例：${workspaceFolder}/gdb.log。
+- ``verbose``: 生成详细的日志输出。
+- ``environment``: 应用于 ESP-IDF 调试适配器的环境变量。它将替换全局环境变量和扩展使用的环境变量。
+
+.. code-block:: JSON
+
+    {
+        "environment": {
+            "VAR": "Value"
+        }
+    }
+
+- ``imageAndSymbols`` :
+
+.. code-block:: JSON
+
+    {
+        "imageAndSymbols": {
+            "symbolFileName": "如果指定，则在给定（可选）偏移量处加载的符号文件",
+            "symbolOffset": "如果指定了 symbolFileName，则使用的偏移量",
+            "imageFileName": "如果指定，则在给定（可选）偏移量处加载的镜像文件",
+            "imageOffset": "如果指定了 imageFileName，则使用的偏移量"
+        }
+    }
+
+- ``target``: 要附加的目标配置。指定如何连接到要调试的设备。通常 OpenOCD 将芯片作为端口 3333 上的远程目标公开。
+
+.. code-block:: JSON
+
+    {
+        "target": {
+            "type": "要执行的目标调试类型。传递给 -target-select（默认为 remote）",
+            "host": "要连接的目标主机（默认为 'localhost'，如果设置了 parameters 则忽略）",
+            "port": "要连接的目标端口（默认为 serverPortRegExp 捕获的值，如果设置了 parameters 则忽略）",
+            "parameters": "目标类型的目标参数。通常是类似 localhost:12345 的内容。（默认为 `${host}:${port}`）",
+            "connectCommands": "替换所有先前的参数，指定用于建立连接的命令数组"
+        }
+    }
+
+下面显示了一个修改后的 launch.json 文件示例：
+
+.. code-block:: JSON
+
+    {
+        "configurations": [
+            {
+                "type": "gdbtarget",
+                "request": "attach",
+                "name": "Eclipse CDT GDB Adapter",
+                "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
+                "initCommands": [
+                    "set remote hardware-watchpoint-limit IDF_TARGET_CPU_WATCHPOINT_NUM",
+                    "mon reset halt",
+                    "maintenance flush register-cache"
+                ],
+                "gdb": "${command:espIdf.getToolchainGdb}",
+                "target": {
+                    "connectCommands": [
+                        "set remotetimeout 20",
+                        "-target-select extended-remote localhost:3333"
+                    ]
+                }
+            }
+        ]
+    }
+
+虽然前面的示例明确使用了默认值，但可以根据需要进行自定义。
+
+ESP-IDF VS Code 扩展的 package.json gdbtarget 调试器贡献中记录了其他较少使用的参数。
+
 浏览代码、调用栈和线程
 ----------------------
 
