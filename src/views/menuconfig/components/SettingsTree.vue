@@ -198,7 +198,11 @@ onMounted(() => {
   font-weight: 900;
 }
 
-.tree-list .tree-list {
+.tree-item .tree-list {
   padding-left: 10px;
+}
+
+.tree-list .tree-list {
+  padding-left: 5px;
 }
 </style>
