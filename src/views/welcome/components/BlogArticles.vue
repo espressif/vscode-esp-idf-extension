@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useWelcomeStore } from "../store";
 import { IconLinkExternal } from "@iconify-prerendered/vue-codicon";
@@ -18,48 +18,36 @@ const handleImageError = (imageUrl: string) => {
   const attempts = imageAttempts.value.get(imageUrl) || 0;
   imageAttempts.value.set(imageUrl, attempts + 1);
   
-  // If this is a WebP image and we haven't tried alternatives yet
   if (imageUrl.includes('.webp') && attempts === 0) {
-    // Try JPG version
     const jpgUrl = imageUrl.replace(/\.webp$/i, '.jpg');
     console.log('Trying JPG fallback:', jpgUrl);
-    
-    // Update the image source
     const imgElement = event?.target as HTMLImageElement;
     if (imgElement) {
       imgElement.src = jpgUrl;
-      return; // Don't mark as failed yet
+      return; 
     }
   } else if (imageUrl.includes('.webp') && attempts === 1) {
-    // Try PNG version
     const pngUrl = imageUrl.replace(/\.webp$/i, '.png');
     console.log('Trying PNG fallback:', pngUrl);
     
     const imgElement = event?.target as HTMLImageElement;
     if (imgElement) {
       imgElement.src = pngUrl;
-      return; // Don't mark as failed yet
+      return;
     }
   }
   
-  // All attempts failed, mark as failed
   failedImages.value.add(imageUrl);
 };
 
 const handleImageLoad = (imageUrl: string) => {
-  console.log('Image loaded successfully:', imageUrl);
   failedImages.value.delete(imageUrl);
   imageAttempts.value.delete(imageUrl);
 };
 
 const getImageUrl = (originalUrl: string) => {
-  console.log('Processing image URL:', originalUrl);
-  return originalUrl; // Always try the original URL first
+  return originalUrl;
 };
-
-// onMounted(() => {
-//   store.fetchBlogArticles();
-// });
 </script>
 
 <template>

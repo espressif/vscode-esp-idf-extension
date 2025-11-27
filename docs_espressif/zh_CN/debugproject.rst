@@ -115,7 +115,7 @@
 - ``gdb``: 要使用的 GDB 可执行文件。默认情况下，"${command:espIdf.getToolchainGdb}" 将查询扩展以查找当前 ESP-IDF 项目的 IDF_TARGET（esp32、esp32c6 等）对应的 ESP-IDF 工具链 GDB。
 
 .. note::
-     **IDF_TARGET_CPU_WATCHPOINT_NUM** 由扩展根据当前 ESP-IDF 项目的 ``IDF_TARGET``（esp32、esp32c6 等）解析。
+     **IDF_TARGET_CPU_WATCHPOINT_NUM** 由扩展根据当前 ESP-IDF 项目的 ``IDF_TARGET`` （esp32、esp32c6 等）解析。
 
 你可能使用的其他参数包括：
 
