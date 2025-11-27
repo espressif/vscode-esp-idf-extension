@@ -82,6 +82,9 @@ window.addEventListener("message", (event) => {
         store.idfTargets = msg.idfTargets;
         store.selectedIdfTarget = msg.idfTargets[0];
       }
+      if (msg.pathSep) {
+        store.pathSep = msg.pathSep;
+      }
       break;
     case "setContainerDirectory":
       if (msg.projectDirectory) {

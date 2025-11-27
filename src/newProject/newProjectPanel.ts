@@ -195,6 +195,7 @@ export class NewProjectPanel {
               serialPortList: newProjectArgs.serialPortList,
               openOcdConfigFiles: defConfigFiles,
               templates: newProjectArgs.templates,
+              pathSep: path.sep,
             });
           }
           break;
