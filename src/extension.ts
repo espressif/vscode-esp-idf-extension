@@ -697,7 +697,7 @@ export async function activate(context: vscode.ExtensionContext) {
         notificationMode === idfConf.NotificationMode.Notifications
           ? vscode.ProgressLocation.Notification
           : vscode.ProgressLocation.Window;
-      vscode.window.withProgress(
+      await vscode.window.withProgress(
         {
           cancellable: true,
           location: ProgressLocation,
@@ -713,14 +713,21 @@ export async function activate(context: vscode.ExtensionContext) {
           cancelToken: vscode.CancellationToken
         ) => {
           try {
-            const port = await readSerialPort(this.currentWorkspace, false);
+            cancelToken.onCancellationRequested(() => {
+              TaskManager.cancelTasks();
+              TaskManager.disposeListeners();
+              EraseFlashTask.isErasing = false;
+              return;
+            });
+            const port = await readSerialPort(workspaceRoot, false);
             if (!port) {
-              return Logger.warnNotify(
+              Logger.warnNotify(
                 vscode.l10n.t(
                   "No serial port found for current IDF_TARGET: {0}",
-                  await getIdfTargetFromSdkconfig(this.currentWorkspace)
+                  await getIdfTargetFromSdkconfig(workspaceRoot)
                 )
               );
+              return;
             }
             const eraseFlashTask = new EraseFlashTask(workspaceRoot);
             await eraseFlashTask.eraseFlash(port);
@@ -730,11 +737,13 @@ export async function activate(context: vscode.ExtensionContext) {
               const msg = "Erase flash done";
               OutputChannel.appendLineAndShow(msg, "Erase flash");
               Logger.infoNotify(msg);
+              OutputChannel.appendLine("Flash memory content has been erased.");
+              Logger.infoNotify("Flash memory content has been erased.");
             }
             TaskManager.disposeListeners();
-            OutputChannel.appendLine("Flash memory content has been erased.");
-            Logger.infoNotify("Flash memory content has been erased.");
           } catch (error) {
+            EraseFlashTask.isErasing = false;
+            TaskManager.disposeListeners();
             Logger.errorNotify(error.message, error, "extension eraseFlash");
           }
         }

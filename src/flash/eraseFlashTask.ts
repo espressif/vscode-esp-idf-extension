@@ -50,7 +50,6 @@ export class EraseFlashTask {
   private flashScriptPath: string;
   private idfPathDir: string;
   private modifiedEnv: { [key: string]: string };
-  private processOptions: ProcessExecutionOptions;
 
   constructor(workspaceUri: Uri) {
     this.currentWorkspace = workspaceUri;
@@ -106,10 +105,6 @@ export class EraseFlashTask {
         : TaskRevealKind.Silent;
 
     this.modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
-    this.processOptions = {
-      cwd: process.cwd(),
-      env: this.modifiedEnv,
-    };
 
     const eraseExecution = this._eraseExecution(pythonBinPath, port);
     const erasePresentationOptions = {
@@ -119,7 +114,7 @@ export class EraseFlashTask {
       panel: TaskPanelKind.Shared,
     } as TaskPresentationOptions;
 
-    await TaskManager.addTask(
+    TaskManager.addTask(
       {
         type: "esp-idf",
         command: "ESP-IDF Erase Flash",
@@ -134,13 +129,17 @@ export class EraseFlashTask {
     return eraseExecution;
   }
 
-  private async _eraseExecution(pythonBinPath: string, port: string) {
+  private _eraseExecution(pythonBinPath: string, port: string) {
     this.erasing(true);
     const args = [this.flashScriptPath, "-p", port, "erase_flash"];
+    const processOptions = {
+      cwd: this.currentWorkspace.fsPath || process.cwd(),
+      env: this.modifiedEnv,
+    };
     return OutputCapturingExecution.create(
       pythonBinPath,
       args,
-      this.processOptions
+      processOptions
     );
   }
 }
