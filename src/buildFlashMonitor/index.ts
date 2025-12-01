@@ -57,7 +57,7 @@ export async function buildFlashAndMonitor(
       {
         cancellable: true,
         location: currentProgressLocation,
-        title: l10n.t("ESP-IDF: Building project"),
+        title: "ESP-IDF:",
       },
       async (
         progress: Progress<{ message: string; increment: number }>,
