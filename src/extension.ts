@@ -582,6 +582,9 @@ export async function activate(context: vscode.ExtensionContext) {
       openOCDManager.stop();
     }
     debugAdapterManager.stop();
+    if (IDFMonitor.terminal) {
+      IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
+    }
   });
 
   const kconfigMenusWatcher = vscode.workspace.createFileSystemWatcher(
