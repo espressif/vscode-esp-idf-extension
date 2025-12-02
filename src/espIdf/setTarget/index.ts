@@ -39,6 +39,11 @@ import { getTargetsFromEspIdf, IdfTarget } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 import { updateCurrentProfileIdfTarget } from "../../project-conf";
 import { DevkitsCommand } from "./DevkitsCommand";
+import {
+  clearAdapterSerial,
+  getStoredAdapterSerial,
+} from "../openOcd/adapterSerial";
+import { SerialPort } from "../serial/serialPort";
 
 export let isSettingIDFTarget = false;
 
@@ -170,6 +175,10 @@ export async function setIdfTarget(
         ) as { [key: string]: string };
         const customExtraVars = { ...customExtraVarsRead };
 
+        // Clear stored adapter serial and location when target changes
+        await clearAdapterSerial(workspaceFolder.uri);
+        delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
+
         if (selectedTarget.isConnected && selectedTarget.boardInfo) {
           // Directly set OpenOCD configs for connected board
           const configFiles = selectedTarget.boardInfo.config_files || [];
@@ -179,38 +188,35 @@ export async function setIdfTarget(
             configurationTarget,
             workspaceFolder.uri
           );
-          // Store USB location if available
+          // Store USB location if available (will be used as fallback if serial is not found)
           if (selectedTarget.boardInfo.location) {
             const location = selectedTarget.boardInfo.location.replace(
               "usb://",
               ""
             );
             customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"] = location;
-            await writeParameter(
-              "idf.customExtraVars",
-              customExtraVars,
-              configurationTarget,
+          }
+          
+          // Update serial port if board is connected
+          // The serial port should match the connected board
+          try {
+            const detectedPort = await SerialPort.detectDefaultPort(
               workspaceFolder.uri
             );
-          } else {
-            // Clear OPENOCD_USB_ADAPTER_LOCATION if no location is available
-            delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
-            await writeParameter(
-              "idf.customExtraVars",
-              customExtraVars,
-              configurationTarget,
-              workspaceFolder.uri
+            if (detectedPort) {
+              await SerialPort.shared().updatePortListStatus(
+                detectedPort,
+                workspaceFolder.uri,
+                false // useMonitorPort = false, update idf.port
+              );
+            }
+          } catch (error) {
+            Logger.info(
+              `Failed to detect serial port for connected board: ${error.message}`,
+              "setIdfTarget"
             );
           }
         } else {
-          // Clear OPENOCD_USB_ADAPTER_LOCATION when switching to non-connected target
-          delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
-          await writeParameter(
-            "idf.customExtraVars",
-            customExtraVars,
-            configurationTarget,
-            workspaceFolder.uri
-          );
           await selectOpenOcdConfigFiles(
             workspaceFolder.uri,
             selectedTarget.idfTarget.target

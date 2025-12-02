@@ -35,6 +35,11 @@ import {
   CommandKeys,
   createCommandDictionary,
 } from "../../cmdTreeView/cmdStore";
+import {
+  parseAdapterSerialFromLog,
+  storeAdapterSerial,
+  getStoredAdapterSerial,
+} from "./adapterSerial";
 
 export interface IOpenOCDConfig {
   workspace: vscode.Uri;
@@ -204,6 +209,12 @@ export class OpenOCDManager extends EventEmitter {
       ) as string;
       openOcdArgs.push(`-d${openOcdDebugLevel}`);
 
+      // Inject adapter serial command if we have a stored serial number
+      const storedSerial = getStoredAdapterSerial(this.workspace);
+      if (storedSerial) {
+        openOcdArgs.push("-c", `adapter serial ${storedSerial}`);
+      }
+
       openOcdConfigFilesList.forEach((configFile) => {
         const isFileAlreadyInArgs = openOcdArgs.some((arg) =>
           arg.includes(configFile)
@@ -223,6 +234,19 @@ export class OpenOCDManager extends EventEmitter {
       this.encounteredErrors = true;
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
+      
+      // Parse adapter serial number from log output
+      const serialNumber = parseAdapterSerialFromLog(data);
+      if (serialNumber && this.workspace) {
+        storeAdapterSerial(this.workspace, serialNumber).catch((error) => {
+          Logger.error(
+            "Failed to store adapter serial number",
+            error,
+            "OpenOCDManager stderr"
+          );
+        });
+      }
+      
       const regex = /Error:.*/i;
       const errStr = data.toString();
       const matchArr = errStr.match(regex);
@@ -243,6 +267,19 @@ export class OpenOCDManager extends EventEmitter {
     this.server.stdout.on("data", (data) => {
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
+      
+      // Parse adapter serial number from log output
+      const serialNumber = parseAdapterSerialFromLog(data);
+      if (serialNumber && this.workspace) {
+        storeAdapterSerial(this.workspace, serialNumber).catch((error) => {
+          Logger.error(
+            "Failed to store adapter serial number",
+            error,
+            "OpenOCDManager stdout"
+          );
+        });
+      }
+      
       this.emit("data", this.chan);
     });
     this.server.on("error", (error) => {
