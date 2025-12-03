@@ -39,9 +39,6 @@ import { TaskManager } from "../taskManager";
 import { ESP } from "../config";
 import { getVirtualEnvPythonPath } from "../pythonManager";
 import { IDFMonitor } from "../espIdf/monitor";
-import { Logger } from "../logger/logger";
-import { OutputChannel } from "../logger/outputChannel";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { OutputCapturingExecution } from "../taskManager/customExecution";
 
 export class EraseFlashTask {
