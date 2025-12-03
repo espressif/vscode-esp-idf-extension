@@ -1209,7 +1209,7 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
         curWorkspace,
         customExtraVars
       );
-      
+
       // Set OPENOCD_USB_ADAPTER_SERIAL if we have a serial number
       // Otherwise, keep OPENOCD_USB_ADAPTER_LOCATION if it exists
       if (adapterIdentifier) {
@@ -1223,7 +1223,7 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
           modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"] = adapterIdentifier;
         }
       }
-      
+
       for (const envVar in customExtraVars) {
         if (envVar) {
           // Skip OPENOCD_USB_ADAPTER_LOCATION if we're using serial number
