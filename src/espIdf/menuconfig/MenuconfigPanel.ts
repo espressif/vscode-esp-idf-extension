@@ -144,7 +144,7 @@ export class MenuConfigPanel {
           ConfserverProcess.resetElementChildren(message.children);
           break;
         case "setDefault":
-          if (ConfserverProcess.confserverVersion > 3) {
+          if (ConfserverProcess.confserverVersion >= 3) {
             ConfserverProcess.resetElementById("all");
           } else {
             const changesNotSavedMessage = vscode.l10n.t(
