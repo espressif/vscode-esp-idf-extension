@@ -44,6 +44,15 @@ export class TaskManager {
     problemMatchers: string | string[],
     presentationOptions: vscode.TaskPresentationOptions
   ): void {
+    // Check if a task with the same taskId already exists
+    const existingTaskIndex = TaskManager.tasks.findIndex(
+      (task) => task.definition.taskId === taskDefinition.taskId
+    );
+    if (existingTaskIndex !== -1) {
+      // Task with this taskId already exists, skip adding
+      return;
+    }
+
     const newTask: vscode.Task = new vscode.Task(
       taskDefinition,
       scope,
@@ -96,7 +105,16 @@ export class TaskManager {
           };
           TaskManager.taskResults.push(taskResult);
 
+          // Remove the completed task from the array (regardless of success or failure)
+          const taskIndex = TaskManager.tasks.findIndex(
+            (task) => task.definition.taskId === lastExecution.task.definition.taskId
+          );
+          if (taskIndex !== -1) {
+            TaskManager.tasks.splice(taskIndex, 1);
+          }
+
           if (e.exitCode !== 0) {
+            e.execution.terminate();
             this.cancelTasks();
             this.disposeListeners();
             return reject(
@@ -106,7 +124,6 @@ export class TaskManager {
             );
           }
           e.execution.terminate();
-          TaskManager.tasks.splice(0, 1);
           if (TaskManager.tasks.length === 0) {
             TaskManager.tasks = [];
             return resolve();

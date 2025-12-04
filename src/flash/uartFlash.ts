@@ -84,9 +84,11 @@ export async function uartFlashCommandMain(
   const flashResult = await TaskManager.runTasksWithBoolean();
 
   if (!cancelToken.isCancellationRequested) {
-    const msg = "Flash Done ⚡️";
-    OutputChannel.appendLineAndShow(msg, "Flash");
-    Logger.infoNotify(msg);
+    if (flashResult) {
+      const msg = "Flash Done ⚡️";
+      OutputChannel.appendLineAndShow(msg, "Flash");
+      Logger.infoNotify(msg);
+    }
     TaskManager.disposeListeners();
   }
   FlashTask.isFlashing = false;
