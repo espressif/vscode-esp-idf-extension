@@ -107,7 +107,8 @@ export class TaskManager {
 
           // Remove the completed task from the array (regardless of success or failure)
           const taskIndex = TaskManager.tasks.findIndex(
-            (task) => task.definition.taskId === lastExecution.task.definition.taskId
+            (task) =>
+              task.definition.taskId === lastExecution.task.definition.taskId
           );
           if (taskIndex !== -1) {
             TaskManager.tasks.splice(taskIndex, 1);
