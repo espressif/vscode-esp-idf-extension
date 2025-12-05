@@ -70,7 +70,7 @@ export class OpenOCDErrorMonitor {
     try {
         // Check OpenOCD version first
         const openOCDManager = OpenOCDManager.init();
-        const version = await openOCDManager.version();
+        const version = await openOCDManager.version(true);
 
         if (!version) {
             Logger.info(

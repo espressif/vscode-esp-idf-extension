@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 
-import { join } from "path";
+import { join, sep, basename } from "path";
+import * as fs from "fs-extra"
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
@@ -76,6 +77,277 @@ export class SerialPort {
     useMonitorPort: boolean
   ) {
     return SerialPort.shared().displayList(workspaceFolder, useMonitorPort);
+  }
+
+    /**
+   * Parse OpenOCD USB string like:
+   *   "1-6"
+   *   "3-1.1"
+   *
+   * Returns:
+   *   { bus: 1, ports: [6] }
+   *   { bus: 3, ports: [1,1] }
+   */
+  private static parseBusPortFormat(
+    usbLocation: string
+  ): { bus: number; ports: number[] } | undefined {
+    const match = usbLocation.match(/^(\d+)-([\d.]+)$/);
+    if (!match) {
+      return undefined;
+    }
+
+    const bus = parseInt(match[1], 10);
+    const ports = match[2].split(".").map((p) => parseInt(p, 10));
+
+    if (ports.some(isNaN)) {
+      return undefined;
+    }
+
+    return { bus, ports };
+  }
+
+  /**
+   * Parse Windows locationId into USB port chain.
+   *
+   * Windows format example:
+   *   "000d.0000.0000.006.000.000.000.000.000"
+   *   "0011.0000.0000.001.001.000.000.000.000"
+   *
+   * Returns:
+   *   { ports: [6] }          → for ESP32-H2 (port 6)
+   *   { ports: [1,1] }        → for ESP32-C5 (hub port 1 → port 1)
+   *
+   * NOTE: Windows does NOT expose the USB bus number, so we cannot return "bus".
+   */
+  private static parseWindowsLocationId(
+    locationId: string
+  ): { ports: number[] } | undefined {
+    if (!locationId) {
+      return undefined;
+    }
+
+    const parts = locationId.split(".");
+    if (parts.length < 4) {
+      return undefined;
+    }
+
+    // Convert to decimal ints
+    const nums = parts.map((p) => parseInt(p, 16));
+
+    // Remove trailing zeros (unused hub levels)
+    while (nums.length > 0 && nums[nums.length - 1] === 0) {
+      nums.pop();
+    }
+
+    // Starting from index 3, extract all non-zero USB port levels
+    const usbParts = nums.slice(3).filter((n) => n > 0);
+
+    if (usbParts.length === 0) {
+      return undefined;
+    }
+
+    return { ports: usbParts };
+  }
+
+  /**
+   * Extract bus and port from macOS locationId format
+   * macOS locationId format: "01100000", "00100000" (hexadecimal)
+   * 
+   * Based on observed data and macOS IOKit documentation:
+   * - "01100000" (0x01100000) → bus 1, port 1
+   * - "00100000" (0x00100000) → bus 0, port 1
+   * 
+   * macOS IOKit locationID encoding:
+   * The locationID is a 32-bit integer that encodes USB topology information.
+   * 
+   * Port encoding:
+   * - Port numbers are encoded in bits 20-23 (upper 4 bits of byte 2)
+   * - Formula: port = (locationNum >> 20) & 0xF
+   * - This supports ports 1-15 (4-bit range)
+   * - For higher port numbers, the encoding may use additional bits
+   * 
+   * Bus encoding:
+   * - Bus number is encoded directly in byte 3 (bits 24-31)
+   * - Formula: bus = (locationNum >> 24) & 0xFF
+   * - Examples:
+   *   * "01100000": upperByte = 0x01 = 1 → bus 1
+   *   * "00100000": upperByte = 0x00 = 0 → bus 0
+   * 
+   * @param locationId The macOS locationId string (hexadecimal)
+   * @returns Object with bus and port numbers, or undefined if format doesn't match
+   */
+  private static parseMacOSLocationId(locationId: string): { bus: number; port: number } | undefined {
+    if (!locationId) {
+      return undefined;
+    }
+
+    const locationNum = parseInt(locationId, 16);
+    if (isNaN(locationNum) || locationNum === 0) {
+      return undefined;
+    }
+
+    // Extract port from bits 20-23 (upper 4 bits of byte 2)
+    // This supports ports 1-15
+    const port = (locationNum >> 20) & 0xF;
+    
+    // Extract bus from byte 3 (bits 24-31)
+    // Bus encoding is direct: upperByte value = bus number
+    // Examples:
+    // - "01100000" (0x01100000): upperByte = 0x01 = 1 → bus 1
+    // - "00100000" (0x00100000): upperByte = 0x00 = 0 → bus 0
+    const bus = (locationNum >> 24) & 0xFF;
+    
+    // Validate extracted values
+    if (port > 0 && port <= 15 && bus >= 0 && bus <= 255) {
+      return { bus, port };
+    }
+    
+    // If validation failed, return undefined
+    // This handles cases where the encoding doesn't match expected patterns
+    return undefined;
+  }
+
+    /**
+   * Parse Linux sysfs path to extract bus and port chain.
+   *
+   * Given tty device path like:
+   *   /sys/class/tty/ttyACM0/device → ../../usb3/3-3/3-3:1.0
+   *
+   * We extract "3-3" = bus 3, port 3
+   *
+   * Supports hub chains too: 3-1.2.3
+   */
+  private static parseLinuxSysfsUsbPath(ttyPath: string): { bus: number; ports: number[] } | undefined {
+
+    try {
+      // Resolve symlink: /sys/class/tty/ttyACM0/device
+      const sysDevicePath = fs.realpathSync(ttyPath);
+
+      // Look for any segment matching Linux USB address format: "3-3", "3-1.2", etc
+      const segments = sysDevicePath.split(sep);
+
+      for (const seg of segments) {
+        const m = seg.match(/^(\d+)-([\d.]+)$/);
+        if (m) {
+          const bus = parseInt(m[1], 10);
+          const ports = m[2].split(".").map((p) => parseInt(p, 10));
+          return { bus, ports };
+        }
+      }
+    } catch {
+      return undefined;
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Find serial port by USB location identifier
+   * Note: The bus-port format from OpenOCD (e.g., "1-6") doesn't reliably map to
+   * Windows locationId format, so this function primarily serves as a fallback.
+   * For connected boards, detectDefaultPort() is more reliable.
+   * @param usbLocation The USB location identifier (bus-port format like "1-6", locationId on Windows/macOS, pnpId on Linux)
+   * @returns The matching port path or undefined if not found
+   */
+  public static async findPortByUsbLocation(
+    usbLocation: string
+  ): Promise<string | undefined> {
+    try {
+      const listOfSerialPorts = await SerialPortLib.SerialPort.list();
+
+      if (!listOfSerialPorts || listOfSerialPorts.length === 0) {
+        return undefined;
+      }
+
+      const isWindows = process.platform === "win32";
+      const isMacOS = process.platform === "darwin";
+      const isLinux = process.platform === "linux";
+
+      // Try to parse as bus-port format and match
+      const busPort = this.parseBusPortFormat(usbLocation);
+      if (busPort) {
+        for (const port of listOfSerialPorts) {
+          if (isWindows && port.locationId) {
+            const winPorts = this.parseWindowsLocationId(port.locationId);
+            if (winPorts) {
+              // Example:
+              // OpenOCD: ports = [1,1]
+              // Windows: ports = [1,1]
+              if (JSON.stringify(winPorts.ports) === JSON.stringify(busPort.ports)) {
+                return port.path;
+              }
+            }
+          // macOS USB Matching Logic
+          //
+          // On macOS, SerialPort.list() provides locationId in hexadecimal format (e.g., "01100000").
+          // The locationId encodes USB bus and port information:
+          // - Port: encoded in bits 20-23 (supports ports 1-15)
+          // - Bus: encoded directly in bits 24-31 (byte 3)
+          //
+          // Examples:
+          //   "01100000" (0x01100000) → bus 1, port 1
+          //   "00100000" (0x00100000) → bus 0, port 1
+          //
+          // OpenOCD reports locations in bus-port format: "usb://0-1" → bus 0, port 1
+          //
+          // Therefore, matching an OpenOCD device to a macOS serial port means:
+          //   1. Parse the macOS locationId to extract bus and port
+          //   2. Compare with OpenOCD bus-port format
+          //   3. If both match, this serial port belongs to that USB device
+          } else if (isMacOS && port.locationId) {
+            const locationBusPort = this.parseMacOSLocationId(port.locationId);
+            if (
+              locationBusPort &&
+              locationBusPort.bus === busPort.bus &&
+              locationBusPort.port === busPort.ports[0]
+            ) {
+              return this.convertMacOSPortName(port.path);
+            }
+          // Linux USB Matching Logic
+          //
+          // On Linux, SerialPort.list() does NOT provide USB topology (no locationId),
+          // but every /dev/ttyACM* or /dev/ttyUSB* device is represented in sysfs:
+          //
+          //   /sys/class/tty/<tty>/device → realpath → .../usb<bus>/<bus>-<port-chain>/...
+          //
+          // Example realpath:
+          //   /sys/devices/pci0000:00/.../usb3/3-2/3-2:1.0
+          //
+          // The key part is the directory segment:  "3-2"
+          //   → "3" = USB bus number
+          //   → "2" = physical port number
+          // Multi-hop hubs look like "3-1.4.2" → ports = [1,4,2]
+          //
+          // OpenOCD also reports locations in exactly this format: "usb://3-2"
+          //
+          // Therefore, matching an OpenOCD device to a Linux serial port means:
+          //   1. Resolve /sys/class/tty/<port>/device real symlink
+          //   2. Extract the first segment matching pattern  <bus>-<port(.subport...)>
+          //   3. Compare bus + ports[] with OpenOCD value
+          //
+          // If both match, this serial port belongs to that USB device.
+          } else if (isLinux && port.pnpId) {
+            const sysPath = `/sys/class/tty/${basename(port.path)}/device`;
+            const linuxInfo = this.parseLinuxSysfsUsbPath(sysPath);
+
+            if (linuxInfo &&
+                linuxInfo.bus === busPort.bus &&
+                JSON.stringify(linuxInfo.ports) === JSON.stringify(busPort.ports)) {
+              return port.path;
+            }
+          }
+        }
+      }
+
+      return undefined;
+    } catch (error) {
+      Logger.error(
+        "Failed to find serial port by USB location",
+        error,
+        "serialPort findPortByUsbLocation"
+      );
+      return undefined;
+    }
   }
 
   /**

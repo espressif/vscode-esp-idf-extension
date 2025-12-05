@@ -34,10 +34,16 @@ import {
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import { selectOpenOcdConfigFiles } from "../openOcd/boardConfiguration";
+import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { getTargetsFromEspIdf, IdfTarget } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 import { updateCurrentProfileIdfTarget } from "../../project-conf";
 import { DevkitsCommand } from "./DevkitsCommand";
+import {
+  clearAdapterSerial,
+  getStoredAdapterSerial,
+} from "../openOcd/adapterSerial";
+import { SerialPort } from "../serial/serialPort";
 
 export let isSettingIDFTarget = false;
 
@@ -95,11 +101,13 @@ export async function setIdfTarget(
 
         if (!isDebugging) {
           try {
+            const openOCDManager = OpenOCDManager.init();
+            const openOCDVersion = await openOCDManager.version();
             const devkitsCmd = new DevkitsCommand(workspaceFolder.uri);
-            const scriptPath = await devkitsCmd.getScriptPath();
+            const scriptPath = await devkitsCmd.getScriptPath(openOCDVersion);
 
             if (scriptPath) {
-              const devkitsOutput = await devkitsCmd.runDevkitsScript();
+              const devkitsOutput = await devkitsCmd.runDevkitsScript(openOCDVersion);
               if (devkitsOutput) {
                 const parsed = JSON.parse(devkitsOutput);
                 if (parsed && Array.isArray(parsed.boards)) {
@@ -160,6 +168,17 @@ export async function setIdfTarget(
         if (!selectedTarget) {
           return;
         }
+        // Create a plain object copy to avoid proxy issues when modifying/deleting properties
+        const customExtraVarsRead = readParameter(
+          "idf.customExtraVars",
+          workspaceFolder
+        ) as { [key: string]: string };
+        const customExtraVars = { ...customExtraVarsRead };
+
+        // Clear stored adapter serial and location when target changes
+        clearAdapterSerial(workspaceFolder.uri);
+        delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
+
         if (selectedTarget.isConnected && selectedTarget.boardInfo) {
           // Directly set OpenOCD configs for connected board
           const configFiles = selectedTarget.boardInfo.config_files || [];
@@ -169,22 +188,48 @@ export async function setIdfTarget(
             configurationTarget,
             workspaceFolder.uri
           );
-          // Store USB location if available
+          // Store USB location if available (will be used as fallback if serial is not found)
+          let usbLocation: string | undefined;
           if (selectedTarget.boardInfo.location) {
-            const customExtraVars = readParameter(
-              "idf.customExtraVars",
-              workspaceFolder
-            ) as { [key: string]: string };
-            const location = selectedTarget.boardInfo.location.replace(
+            usbLocation = selectedTarget.boardInfo.location.replace(
               "usb://",
               ""
             );
-            customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"] = location;
-            await writeParameter(
-              "idf.customExtraVars",
-              customExtraVars,
-              configurationTarget,
-              workspaceFolder.uri
+            customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"] = usbLocation;
+          }
+          
+          // Update serial port if board is connected
+          // The serial port should match the connected board
+          // Note: USB location matching is unreliable (bus-port format doesn't map to Windows locationId),
+          // so we try location-based lookup first, then fall back to detectDefaultPort which tests each port to find the correct device
+          try {
+            let detectedPort: string | undefined;
+            
+            // Try location-based lookup first (fast path, but may not work on all platforms)
+            if (usbLocation) {
+              detectedPort = await SerialPort.findPortByUsbLocation(usbLocation);
+            }
+            
+            // Fall back to detectDefaultPort
+            // It tests each port with esptool.py to find the correct ESP device
+            // Might give wrong solution if two same device target are connected, it will pick the first one
+            if (!detectedPort) {
+              detectedPort = await SerialPort.detectDefaultPort(
+                workspaceFolder.uri
+              );
+            }
+            
+            if (detectedPort) {
+              await SerialPort.shared().updatePortListStatus(
+                detectedPort,
+                workspaceFolder.uri,
+                false // useMonitorPort = false, update idf.port
+              );
+            }
+          } catch (error) {
+            Logger.info(
+              `Failed to detect serial port for connected board: ${error.message}`,
+              "setIdfTarget"
             );
           }
         } else {
@@ -195,10 +240,6 @@ export async function setIdfTarget(
         }
 
         await setTargetInIDF(workspaceFolder, selectedTarget.idfTarget);
-        const customExtraVars = readParameter(
-          "idf.customExtraVars",
-          workspaceFolder
-        ) as { [key: string]: string };
         customExtraVars["IDF_TARGET"] = selectedTarget.idfTarget.target;
         await writeParameter(
           "idf.customExtraVars",

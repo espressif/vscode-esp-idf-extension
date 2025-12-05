@@ -48,6 +48,7 @@ import {
 import { IdfToolsManager } from "./idfToolsManager";
 import { isFlashEncryptionEnabled } from "./flash/verifyFlashEncryption";
 import { configureClangSettings } from "./clang";
+import { getOpenOcdAdapterIdentifier } from "./espIdf/openOcd/adapterSerial";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
 
@@ -1203,8 +1204,35 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   ) as { [key: string]: string };
   if (customExtraVars) {
     try {
+      // Get adapter identifier (serial number preferred, fallback to location)
+      const adapterIdentifier = getOpenOcdAdapterIdentifier(
+        curWorkspace,
+        customExtraVars
+      );
+
+      // Set OPENOCD_USB_ADAPTER_SERIAL if we have a serial number
+      // Otherwise, keep OPENOCD_USB_ADAPTER_LOCATION if it exists
+      if (adapterIdentifier) {
+        // Check if it's a serial number (contains colons like MAC address)
+        if (adapterIdentifier.match(/^[0-9A-Fa-f]{2}(?::[0-9A-Fa-f]{2}){5}$/)) {
+          modifiedEnv["OPENOCD_USB_ADAPTER_SERIAL"] = adapterIdentifier;
+          // Don't set location if we have serial
+          delete modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
+        } else {
+          // It's a location, use it as fallback
+          modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"] = adapterIdentifier;
+        }
+      }
+
       for (const envVar in customExtraVars) {
         if (envVar) {
+          // Skip OPENOCD_USB_ADAPTER_LOCATION if we're using serial number
+          if (
+            envVar === "OPENOCD_USB_ADAPTER_LOCATION" &&
+            modifiedEnv["OPENOCD_USB_ADAPTER_SERIAL"]
+          ) {
+            continue;
+          }
           modifiedEnv[envVar] = customExtraVars[envVar];
         }
       }

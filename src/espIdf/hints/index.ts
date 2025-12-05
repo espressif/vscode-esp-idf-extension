@@ -203,7 +203,7 @@ export class ErrorHintProvider
     let openOcdHintsPath: string | null = null;
     try {
       const openOCDManager = OpenOCDManager.init();
-      const openOCDVersion = await openOCDManager.version();
+      const openOCDVersion = await openOCDManager.version(true);
       if (toolsPath && openOCDVersion) {
         openOcdHintsPath = await getOpenOcdHintsYmlPath(
           toolsPath,

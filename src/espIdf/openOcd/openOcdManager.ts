@@ -35,6 +35,11 @@ import {
   CommandKeys,
   createCommandDictionary,
 } from "../../cmdTreeView/cmdStore";
+import {
+  parseAdapterSerialFromLog,
+  storeAdapterSerial,
+  getStoredAdapterSerial,
+} from "./adapterSerial";
 
 export interface IOpenOCDConfig {
   workspace: vscode.Uri;
@@ -59,7 +64,7 @@ export class OpenOCDManager extends EventEmitter {
     this.configureServerWithDefaultParam();
   }
 
-  public async version(): Promise<string> {
+  public async version(silent: boolean = false): Promise<string> {
     const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
     const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
       "openocd-esp32",
@@ -70,6 +75,7 @@ export class OpenOCDManager extends EventEmitter {
     const resp = await sspawn(openOcdPath, ["--version"], {
       cwd: this.workspace.fsPath,
       env: modifiedEnv,
+      silent,
     });
     const versionString = resp.toString();
     const match = versionString.match(/v\d+\.\d+\.\d+\-\S*/gi);
@@ -203,6 +209,12 @@ export class OpenOCDManager extends EventEmitter {
       ) as string;
       openOcdArgs.push(`-d${openOcdDebugLevel}`);
 
+      // Inject adapter serial command if we have a stored serial number
+      const storedSerial = getStoredAdapterSerial(this.workspace);
+      if (storedSerial) {
+        openOcdArgs.push("-c", `adapter serial ${storedSerial}`);
+      }
+
       openOcdConfigFilesList.forEach((configFile) => {
         const isFileAlreadyInArgs = openOcdArgs.some((arg) =>
           arg.includes(configFile)
@@ -222,6 +234,13 @@ export class OpenOCDManager extends EventEmitter {
       this.encounteredErrors = true;
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
+      
+      // Parse adapter serial number from log output
+      const serialNumber = parseAdapterSerialFromLog(data);
+      if (serialNumber && this.workspace) {
+        storeAdapterSerial(this.workspace, serialNumber);
+      }
+      
       const regex = /Error:.*/i;
       const errStr = data.toString();
       const matchArr = errStr.match(regex);
@@ -242,6 +261,13 @@ export class OpenOCDManager extends EventEmitter {
     this.server.stdout.on("data", (data) => {
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
+      
+      // Parse adapter serial number from log output
+      const serialNumber = parseAdapterSerialFromLog(data);
+      if (serialNumber && this.workspace) {
+        storeAdapterSerial(this.workspace, serialNumber);
+      }
+      
       this.emit("data", this.chan);
     });
     this.server.on("error", (error) => {
