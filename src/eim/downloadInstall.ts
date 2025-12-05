@@ -31,7 +31,7 @@ import {
 import { CancellationToken, env, Progress, window } from "vscode";
 import { OutputChannel } from "../logger/outputChannel";
 import del from "del";
-import { dirExistPromise } from "../utils";
+import { dirExistPromise, isBinInPath } from "../utils";
 import * as yauzl from "yauzl";
 import { Logger } from "../logger/logger";
 import { getEimIdfJson } from "./getExistingSetups";
@@ -50,11 +50,19 @@ export async function runExistingEIM(
     increment: 0,
   });
   try {
-    const eimJSON = await getEimIdfJson();
-    if (eimJSON && eimJSON.eimPath) {
-      const doesEimPathExists = await pathExists(eimJSON.eimPath);
-      if (doesEimPathExists) {
-        eimPath = eimJSON.eimPath;
+    // 1. Check eim is in PATH and use it
+    const eimInPATH = await isBinInPath("eim", process.env);
+    if (eimInPATH) {
+      eimPath = eimInPATH;
+    }
+    // 2. Check eim_idf.json for existing EIM path
+    if (!eimPath) {
+      const eimJSON = await getEimIdfJson();
+      if (eimJSON && eimJSON.eimPath) {
+        const doesEimPathExists = await pathExists(eimJSON.eimPath);
+        if (doesEimPathExists) {
+          eimPath = eimJSON.eimPath;
+        }
       }
     }
     // 2. Check EIM_PATH env variable if not found in eim_idf.json
@@ -265,13 +273,9 @@ export async function downloadExtractAndRunEIM(
       binaryPath = `& '${join(
         eimInstallPath,
         "eim-gui-windows-x64.exe"
-      ).replace(/'/g, "''")}'${
-        argsString ? " " + argsString : ""
-      }`;
+      ).replace(/'/g, "''")}'${argsString ? " " + argsString : ""}`;
     } else if (process.platform === "linux") {
-      binaryPath = `./eim${
-        argsString ? " " + argsString : ""
-      }`;
+      binaryPath = `./eim${argsString ? " " + argsString : ""}`;
     } else if (process.platform === "darwin") {
       binaryPath = `open ${join(eimInstallPath, "eim.app")}${
         argsString ? " --args " + argsString : ""
