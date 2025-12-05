@@ -16,8 +16,9 @@
  * limitations under the License.
  */
 
+import { configureEnvVariables } from "../../common/prepareEnv";
 import { ESP } from "../../config";
-import { appendIdfAndToolsToPath, getUserShell } from "../../utils";
+import { getUserShell } from "../../utils";
 import { window, Terminal, Uri, env, debug } from "vscode";
 import { join } from "path";
 
@@ -48,9 +49,7 @@ export class IDFMonitor {
   }
 
   static async start() {
-    const modifiedEnv = await appendIdfAndToolsToPath(
-      this.config.workspaceFolder
-    );
+    const modifiedEnv = await configureEnvVariables(this.config.workspaceFolder);
     if (!IDFMonitor.terminal) {
       IDFMonitor.terminal = window.createTerminal({
         name: `ESP-IDF Monitor ${this.config.wsPort ? "(--ws enabled)" : ""}`,

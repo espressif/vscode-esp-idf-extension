@@ -129,10 +129,10 @@ export async function flashTestApp(
     );
   }
   const flashBaudRate = readParameter("idf.flashBaudRate", unitTestAppDirPath);
-  const idfPathDir = readParameter(
-    "idf.espIdfPath",
-    unitTestAppDirPath
-  ) as string;
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const idfPathDir = currentEnvVars["IDF_PATH"];
   const canFlash = await verifyCanFlash(
     flashBaudRate,
     port,

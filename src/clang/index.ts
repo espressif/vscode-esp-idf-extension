@@ -17,16 +17,17 @@
  */
 
 import { l10n, Uri, workspace } from "vscode";
-import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
+import { isBinInPath } from "../utils";
 import { pathExists, writeJSON, writeFile } from "fs-extra";
 import { readParameter } from "../idfConfiguration";
 import { join } from "path";
 import { Logger } from "../logger/logger";
 import { parse } from "jsonc-parser";
 import { EOL } from "os";
+import { configureEnvVariables } from "../common/prepareEnv";
 
 export async function validateEspClangExists(workspaceFolder: Uri) {
-  const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
+  const modifiedEnv = await configureEnvVariables(workspaceFolder);
 
   const espClangdPath = await isBinInPath("clangd", modifiedEnv, ["esp-clang"]);
   if (espClangdPath && espClangdPath.includes("esp-clang")) {
