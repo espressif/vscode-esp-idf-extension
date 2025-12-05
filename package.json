@@ -1943,6 +1943,11 @@
                 "description": "Port for Debug Adapter server. Default: 43476",
                 "default": 43476
               },
+              "buildFlashMonitor": {
+                "type": "boolean",
+                "description": "Build, Flash and Monitor the device before debugging",
+                "default": false
+              },
               "runOpenOCD": {
                 "type": "boolean",
                 "description": "Run OpenOCD Server",
@@ -2216,6 +2221,11 @@
                 "type": "number",
                 "description": "Port for Debug Adapter server. Default: 43476",
                 "default": 43476
+              },
+              "buildFlashMonitor": {
+                "type": "boolean",
+                "description": "Build, Flash and Monitor the device before debugging",
+                "default": false
               },
               "runOpenOCD": {
                 "type": "boolean",

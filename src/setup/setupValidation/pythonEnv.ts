@@ -20,7 +20,7 @@ import { pathExists } from "fs-extra";
 import { join } from "path";
 import { startPythonReqsProcess } from "../../utils";
 
-export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
+export async function checkPyVenv(pyVenvPath: string, espIdfPath: string, espIdfToolsPath: string): Promise<boolean> {
   const pyExists = await pathExists(pyVenvPath);
   if (!pyExists) {
     return false;
@@ -43,6 +43,7 @@ export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
   const reqsResults = await startPythonReqsProcess(
     pyVenvPath,
     espIdfPath,
+    espIdfToolsPath,
     requirements
   );
   if (reqsResults.indexOf("are not satisfied") > -1) {
