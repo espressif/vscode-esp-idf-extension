@@ -189,20 +189,36 @@ export async function setIdfTarget(
             workspaceFolder.uri
           );
           // Store USB location if available (will be used as fallback if serial is not found)
+          let usbLocation: string | undefined;
           if (selectedTarget.boardInfo.location) {
-            const location = selectedTarget.boardInfo.location.replace(
+            usbLocation = selectedTarget.boardInfo.location.replace(
               "usb://",
               ""
             );
-            customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"] = location;
+            customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"] = usbLocation;
           }
           
           // Update serial port if board is connected
           // The serial port should match the connected board
+          // Note: USB location matching is unreliable (bus-port format doesn't map to Windows locationId),
+          // so we try location-based lookup first, then fall back to detectDefaultPort which tests each port to find the correct device
           try {
-            const detectedPort = await SerialPort.detectDefaultPort(
-              workspaceFolder.uri
-            );
+            let detectedPort: string | undefined;
+            
+            // Try location-based lookup first (fast path, but may not work on all platforms)
+            if (usbLocation) {
+              detectedPort = await SerialPort.findPortByUsbLocation(usbLocation);
+            }
+            
+            // Fall back to detectDefaultPort
+            // It tests each port with esptool.py to find the correct ESP device
+            // Might give wrong solution if two same device target are connected, it will pick the first one
+            if (!detectedPort) {
+              detectedPort = await SerialPort.detectDefaultPort(
+                workspaceFolder.uri
+              );
+            }
+            
             if (detectedPort) {
               await SerialPort.shared().updatePortListStatus(
                 detectedPort,
