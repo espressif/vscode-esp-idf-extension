@@ -103,19 +103,6 @@ export class CDTDebugConfigurationProvider
           }
         }
       }
-      // const useMonitorWithDebug = readParameter(
-      //   "idf.launchMonitorOnDebugSession",
-      //   folder
-      // );
-      // if (config.buildFlashMonitor) {
-      //   await buildFlashAndMonitor(folder.uri, true);
-      // } else if (
-      //   config.sessionID !== "core-dump.debug.session.ws" &&
-      //   config.sessionID !== "gdbstub.debug.session.ws" &&
-      //   useMonitorWithDebug
-      // ) {
-      //   await createNewIdfMonitor(folder.uri, true);
-      // }
       if (!config.program) {
         const buildDirPath = readParameter("idf.buildPath", folder) as string;
         const projectName = await getProjectName(buildDirPath);
