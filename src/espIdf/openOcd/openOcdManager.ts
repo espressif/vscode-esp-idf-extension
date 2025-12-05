@@ -238,13 +238,7 @@ export class OpenOCDManager extends EventEmitter {
       // Parse adapter serial number from log output
       const serialNumber = parseAdapterSerialFromLog(data);
       if (serialNumber && this.workspace) {
-        storeAdapterSerial(this.workspace, serialNumber).catch((error) => {
-          Logger.error(
-            "Failed to store adapter serial number",
-            error,
-            "OpenOCDManager stderr"
-          );
-        });
+        storeAdapterSerial(this.workspace, serialNumber);
       }
       
       const regex = /Error:.*/i;
@@ -271,13 +265,7 @@ export class OpenOCDManager extends EventEmitter {
       // Parse adapter serial number from log output
       const serialNumber = parseAdapterSerialFromLog(data);
       if (serialNumber && this.workspace) {
-        storeAdapterSerial(this.workspace, serialNumber).catch((error) => {
-          Logger.error(
-            "Failed to store adapter serial number",
-            error,
-            "OpenOCDManager stdout"
-          );
-        });
+        storeAdapterSerial(this.workspace, serialNumber);
       }
       
       this.emit("data", this.chan);

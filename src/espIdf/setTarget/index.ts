@@ -176,7 +176,7 @@ export async function setIdfTarget(
         const customExtraVars = { ...customExtraVarsRead };
 
         // Clear stored adapter serial and location when target changes
-        await clearAdapterSerial(workspaceFolder.uri);
+        clearAdapterSerial(workspaceFolder.uri);
         delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
 
         if (selectedTarget.isConnected && selectedTarget.boardInfo) {

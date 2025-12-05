@@ -53,10 +53,10 @@ export function parseAdapterSerialFromLog(
  * @param workspaceFolder The workspace folder URI
  * @param serialNumber The serial number to store
  */
-export async function storeAdapterSerial(
+export function storeAdapterSerial(
   workspaceFolder: vscode.Uri,
   serialNumber: string
-): Promise<void> {
+): void {
   try {
     if (ESP.ProjectConfiguration.store) {
       ESP.ProjectConfiguration.store.set(OPENOCD_ADAPTER_SERIAL_KEY, serialNumber);
@@ -99,9 +99,9 @@ export function getStoredAdapterSerial(
  * Clears the stored OpenOCD USB adapter serial number from workspace state
  * @param workspaceFolder The workspace folder URI
  */
-export async function clearAdapterSerial(
+export function clearAdapterSerial(
   workspaceFolder: vscode.Uri
-): Promise<void> {
+): void {
   try {
     if (ESP.ProjectConfiguration.store) {
       ESP.ProjectConfiguration.store.clear(OPENOCD_ADAPTER_SERIAL_KEY);
