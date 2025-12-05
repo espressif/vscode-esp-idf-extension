@@ -138,6 +138,16 @@ export class ConfserverProcess {
     return ConfserverProcess.instance.kconfigsMenus;
   }
 
+  public static resetElementById(id: string) {
+    let resetValueRequest = `{"version": 3, "reset": [ "${id}" ]}\n`;
+    ConfserverProcess.sendUpdatedValue(resetValueRequest);
+  }
+
+  public static resetElementChildren(children: string[]) {
+    let resetValueRequest = `{"version": 3, "reset": [ "${children.join("\", \"")}" ]}\n`;
+    ConfserverProcess.sendUpdatedValue(resetValueRequest);
+  }
+
   public static setUpdatedValue(updatedValue: Menu) {
     let newValueRequest: string;
     switch (updatedValue.type) {
@@ -206,10 +216,9 @@ export class ConfserverProcess {
     progress.report({ increment: 10, message: "Deleting current values..." });
     ConfserverProcess.instance.areValuesSaved = true;
     const currWorkspace = ConfserverProcess.instance.workspaceFolder;
-    await delConfigFile(currWorkspace);
     const guiconfigEspPath =
-      idfConf.readParameter("idf.espIdfPath", currWorkspace) ||
-      process.env.IDF_PATH;
+    idfConf.readParameter("idf.espIdfPath", currWorkspace) ||
+    process.env.IDF_PATH;
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
     const modifiedEnv = await appendIdfAndToolsToPath(currWorkspace);
     const pythonBinPath = await getVirtualEnvPythonPath(currWorkspace);
@@ -223,14 +232,14 @@ export class ConfserverProcess {
     }
     reconfigureArgs.push("-C", currWorkspace.fsPath);
     const sdkconfigDefaults =
-      (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
-
+    (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
+    
     if (reconfigureArgs.indexOf("SDKCONFIG") === -1) {
       reconfigureArgs.push(
         `-DSDKCONFIG='${ConfserverProcess.instance.configFile}'`
       );
     }
-
+    
     if (
       reconfigureArgs.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
       sdkconfigDefaults &&
@@ -241,6 +250,8 @@ export class ConfserverProcess {
       );
     }
     reconfigureArgs.push("reconfigure");
+    await delConfigFile(currWorkspace);
+    
     const getSdkconfigProcess = spawn(pythonBinPath, reconfigureArgs, {
       env: modifiedEnv,
     });
@@ -294,6 +305,7 @@ export class ConfserverProcess {
       MenuConfigPanel.currentPanel.dispose();
     }
   }
+  public static confserverVersion: number = 2;
 
   private static instance: ConfserverProcess;
   private static progress: vscode.Progress<{
@@ -406,6 +418,10 @@ export class ConfserverProcess {
     for (const config of configObjects) {
       const resConfig = KconfigMenuLoader.updateValues(config, jsonValues);
       this.kconfigsMenus.push(resConfig);
+    }
+
+    if (jsonValues && jsonValues.version) {
+      ConfserverProcess.confserverVersion = jsonValues.version;
     }
 
     MenuConfigPanel.createOrShow(
