@@ -17,14 +17,11 @@
  */
 import { constants } from "fs-extra";
 import { delimiter } from "path";
-import * as vscode from "vscode";
 import { canAccessFile, isBinInPath } from "../utils";
-import { execChildProcess } from "./execChildProcess";
 import { reportObj } from "./types";
 
 export async function getConfigurationAccess(
-  reportedResult: reportObj,
-  context: vscode.ExtensionContext
+  reportedResult: reportObj
 ) {
   reportedResult.configurationAccess.toolsPath = canAccessFile(
     reportedResult.configurationSettings.toolsPath,
@@ -36,18 +33,6 @@ export async function getConfigurationAccess(
   );
   reportedResult.configurationAccess.espIdfPath = canAccessFile(
     reportedResult.configurationSettings.espIdfPath,
-    constants.R_OK
-  );
-  reportedResult.configurationAccess.espMdfPath = canAccessFile(
-    reportedResult.configurationSettings.espMdfPath,
-    constants.R_OK
-  );
-  reportedResult.configurationAccess.espMatterPath = canAccessFile(
-    reportedResult.configurationSettings.espMatterPath,
-    constants.R_OK
-  );
-  reportedResult.configurationAccess.espHomeKitPath = canAccessFile(
-    reportedResult.configurationSettings.espHomeKitPath,
     constants.R_OK
   );
   reportedResult.configurationAccess.sysPythonBinPath = canAccessFile(
