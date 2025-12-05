@@ -40,10 +40,7 @@ import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeData
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
-import {
-  showInfoNotificationWithAction,
-  showInfoNotificationWithMultipleActions,
-} from "./logger/utils";
+import { showInfoNotificationWithAction } from "./logger/utils";
 import * as utils from "./utils";
 import { PreCheck, shouldDisableMonitorReset } from "./utils";
 import {
@@ -109,14 +106,7 @@ import { writeTextReport } from "./support/writeReport";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
 import { buildCommand } from "./build/buildCmd";
-import { verifyCanFlash } from "./flash/flashCmd";
-import {
-  isFlashEncryptionEnabled,
-  FlashCheckResultType,
-  checkFlashEncryption,
-} from "./flash/verifyFlashEncryption";
-import { flashCommand } from "./flash/uartFlash";
-import { jtagFlashCommand } from "./flash/jtagCmd";
+import { isFlashEncryptionEnabled } from "./flash/verifyFlashEncryption";
 import { createNewIdfMonitor } from "./espIdf/monitor/command";
 import { KconfigLangClient } from "./kconfig";
 import { configureProjectWithGcov } from "./coverage/configureProject";
@@ -163,11 +153,7 @@ import { checkDebugAdapterRequirements } from "./espIdf/debugAdapter/checkPyReqs
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
 import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
-import {
-  ErrorHintProvider,
-  ErrorHintTreeItem,
-  HintHoverProvider,
-} from "./espIdf/hints/index";
+import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
 import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
 import { TroubleshootingPanel } from "./support/troubleshootPanel";
 import {
@@ -203,6 +189,7 @@ import {
 } from "./common/PreCheck";
 import { buildFlashAndMonitor } from "./buildFlashMonitor";
 import { selectFlashMethod, startFlashing } from "./flash/startFlashing";
+import { jtagEraseFlashCommand } from "./flash/eraseFlashJtag";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -723,34 +710,73 @@ export async function activate(context: vscode.ExtensionContext) {
           cancelToken: vscode.CancellationToken
         ) => {
           try {
-            cancelToken.onCancellationRequested(() => {
-              TaskManager.cancelTasks();
-              TaskManager.disposeListeners();
-              EraseFlashTask.isErasing = false;
-              return;
-            });
-            const port = await readSerialPort(workspaceRoot, false);
-            if (!port) {
+            let flashType = idfConf.readParameter(
+              "idf.flashType",
+              workspaceRoot
+            ) as ESP.FlashType;
+            if (!flashType) {
+              flashType = await selectFlashMethod(workspaceRoot);
+            }
+            if (IDFMonitor.terminal) {
+              IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
+              const monitorDelay = idfConf.readParameter(
+                "idf.monitorDelay",
+                workspaceRoot
+              ) as number;
+              await utils.sleep(monitorDelay);
+            }
+            const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
+
+            const secureBoot = await utils.getConfigValueFromSDKConfig(
+              "CONFIG_SECURE_BOOT",
+              workspaceRoot
+            );
+            const isSecureBootEnabled = secureBoot === "y";
+            if (isEncrypted || isSecureBootEnabled) {
               Logger.warnNotify(
                 vscode.l10n.t(
-                  "No serial port found for current IDF_TARGET: {0}",
-                  await getIdfTargetFromSdkconfig(workspaceRoot)
+                  "Flash encryption or secure boot is enabled on the sdkconfig. Erasing flash will permanently remove the encryption keys and may render the device unusable."
                 )
               );
               return;
             }
-            const eraseFlashTask = new EraseFlashTask(workspaceRoot);
-            await eraseFlashTask.eraseFlash(port);
-            await TaskManager.runTasks();
+            if (flashType === ESP.FlashType.JTAG) {
+              OutputChannel.appendLine(
+                "Erasing flash via JTAG...",
+                "Erase flash"
+              );
+              await jtagEraseFlashCommand(workspaceRoot);
+            } else {
+              cancelToken.onCancellationRequested(() => {
+                TaskManager.cancelTasks();
+                TaskManager.disposeListeners();
+                EraseFlashTask.isErasing = false;
+                return;
+              });
+              const port = await readSerialPort(workspaceRoot, false);
+              if (!port) {
+                Logger.warnNotify(
+                  vscode.l10n.t(
+                    "No serial port found for current IDF_TARGET: {0}",
+                    await getIdfTargetFromSdkconfig(workspaceRoot)
+                  )
+                );
+                return;
+              }
+              const eraseFlashTask = new EraseFlashTask(workspaceRoot);
+              await eraseFlashTask.eraseFlash(port);
+              await TaskManager.runTasks();
+              TaskManager.disposeListeners();
+            }
+
             if (!cancelToken.isCancellationRequested) {
               EraseFlashTask.isErasing = false;
-              const msg = "Erase flash done";
-              OutputChannel.appendLineAndShow(msg, "Erase flash");
+              const msg = "⚡️ Erase flash done";
+              OutputChannel.appendLine(msg, "Erase flash");
               Logger.infoNotify(msg);
               OutputChannel.appendLine("Flash memory content has been erased.");
               Logger.infoNotify("Flash memory content has been erased.");
             }
-            TaskManager.disposeListeners();
           } catch (error) {
             EraseFlashTask.isErasing = false;
             TaskManager.disposeListeners();
