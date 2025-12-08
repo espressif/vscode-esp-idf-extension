@@ -746,7 +746,8 @@ export async function activate(context: vscode.ExtensionContext) {
                 "Erase flash"
               );
               await jtagEraseFlashCommand(workspaceRoot);
-              const msg = "JTAG erase flash finished. Check Output channel to see results.";
+              const msg =
+                "JTAG erase flash finished. Check Output channel to see results.";
               OutputChannel.appendLine(msg, "Erase flash");
               Logger.infoNotify(msg);
             } else {
