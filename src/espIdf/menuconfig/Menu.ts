@@ -34,4 +34,5 @@ export class Menu {
   public value: any;
   public dependsOn: string;
   public isMenuconfig: boolean;
+  public default: any;
 }

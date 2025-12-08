@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { Menu } from "../../../espIdf/menuconfig/Menu";
-import { IconInfo } from "@iconify-prerendered/vue-codicon";
+import { IconInfo, IconDebugRestart } from "@iconify-prerendered/vue-codicon";
 import { Ref, ref } from "vue";
 
 const props = defineProps<{
   config: Menu;
+  canReset: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: "change", value: string): void;
+  (e: "resetElement", children: string[]): void;
 }>();
 
 let isHelpVisible: Ref<boolean> = ref(false);
@@ -21,6 +23,13 @@ function onChange(e: Event) {
   const target = e.target as HTMLSelectElement;
   emit("change", target.value);
 }
+
+function resetElement() {
+  emit(
+    "resetElement",
+    props.config.children.map((child) => child.id)
+  );
+}
 </script>
 
 <template>
@@ -31,6 +40,13 @@ function onChange(e: Event) {
         <div class="control">
           <div class="info-icon" @click="toggleHelp">
             <IconInfo />
+          </div>
+          <div
+            class="info-icon reset-icon"
+            @click="resetElement()"
+            v-if="props.canReset"
+          >
+            <IconDebugRestart />
           </div>
         </div>
       </div>
@@ -82,6 +98,20 @@ function onChange(e: Event) {
 
 .info-icon:hover {
   color: var(--vscode-textLink-activeForeground);
+}
+
+.control {
+  display: flex;
+  align-items: center;
+}
+
+.reset-icon {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.field:hover .reset-icon {
+  opacity: 1;
 }
 
 .select-wrapper {
