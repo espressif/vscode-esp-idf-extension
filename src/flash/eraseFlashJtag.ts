@@ -68,8 +68,8 @@ export async function eraseFlashTelnetCommand(
           .toString()
           .replace(TCLClient.DELIMITER, "")
           .trim();
-        if (response === "" && args.some((arg) => arg.includes("exit"))) {
-          resolve(response);
+        if (response === "") {
+          return resolve(response);
         }
         if (response.indexOf("erased sectors ") === -1) {
           return reject(
@@ -78,7 +78,7 @@ export async function eraseFlashTelnetCommand(
         }
 
         //Flash successful when response includes erased sectors ...
-        resolve(response);
+        return resolve(response);
       })
       .on("error", (err) => {
         reject(

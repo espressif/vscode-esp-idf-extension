@@ -746,6 +746,9 @@ export async function activate(context: vscode.ExtensionContext) {
                 "Erase flash"
               );
               await jtagEraseFlashCommand(workspaceRoot);
+              const msg = "JTAG erase flash finished. Check Output channel to see results.";
+              OutputChannel.appendLine(msg, "Erase flash");
+              Logger.infoNotify(msg);
             } else {
               cancelToken.onCancellationRequested(() => {
                 TaskManager.cancelTasks();
@@ -766,16 +769,17 @@ export async function activate(context: vscode.ExtensionContext) {
               const eraseFlashTask = new EraseFlashTask(workspaceRoot);
               await eraseFlashTask.eraseFlash(port);
               await TaskManager.runTasks();
+              if (!cancelToken.isCancellationRequested) {
+                EraseFlashTask.isErasing = false;
+                const msg = "⚡️ Erase flash done";
+                OutputChannel.appendLine(msg, "Erase flash");
+                Logger.infoNotify(msg);
+                OutputChannel.appendLine(
+                  "Flash memory content has been erased."
+                );
+                Logger.infoNotify("Flash memory content has been erased.");
+              }
               TaskManager.disposeListeners();
-            }
-
-            if (!cancelToken.isCancellationRequested) {
-              EraseFlashTask.isErasing = false;
-              const msg = "⚡️ Erase flash done";
-              OutputChannel.appendLine(msg, "Erase flash");
-              Logger.infoNotify(msg);
-              OutputChannel.appendLine("Flash memory content has been erased.");
-              Logger.infoNotify("Flash memory content has been erased.");
             }
           } catch (error) {
             EraseFlashTask.isErasing = false;
