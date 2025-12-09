@@ -321,7 +321,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
             <td></td>
         </tr>
         <tr>
-            <td rowspan=8 align="center">Additional frameworks</td>
+            <td rowspan=2 align="center">Additional frameworks</td>
             <td>Install ESP-ADF</td>
             <td>Clone ESP-ADF inside the selected directory and set <strong>idf.espAdfPath</strong> (<strong>idf.espAdfPathWin</strong> in Windows) configuration setting.</td>
             <td></td>
@@ -331,42 +331,6 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
             <td>Add Arduino ESP32 as ESP-IDF Component</td>
             <td>Add <a href="https://github.com/espressif/arduino-esp32">Arduino-ESP32</a> as a ESP-IDF component
             in your current directory (<strong>${CURRENT_DIRECTORY}/components/arduino</strong>).</a></td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Install ESP-IDF Python Packages (DEPRECATION NOTICE)</td>
-            <td>Install extension Python packages. This command is deprecated and will be removed soon. </td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Install ESP-MDF</td>
-            <td>Clone ESP-MDF inside the selected directory and set <strong>idf.espMdfPath</strong> (<strong>idf.espMdfPathWin</strong> in Windows) configuration setting.</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Install ESP-Matter</td>
-            <td>Clone ESP-Matter and set <strong>idf.espMatterPath</strong>. ESP-Matter is not supported in Windows. Make sure to install <a href="https://github.com/espressif/connectedhomeip/blob/v1.1-branch/docs/guides/BUILDING.md#prerequisites">Matter system prerequisites</a> first.</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)</td>
-            <td>The <strong>ESP-IDF: Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)</strong> is used to define the device path for ESP-Matter. ESP-Matter is not supported in Windows.</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Install ESP-Rainmaker</td>
-            <td>Clone ESP-Rainmaker and set <strong>idf.espRainmakerPath</strong> (<strong>idf.espRainmakerPathWin</strong> in Windows) configuration setting.</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Install ESP-HomeKit-SDK</td>
-            <td>Clone ESP-HomeKit-SDK inside the selected directory and set <strong>idf.espHomeKitSdkPath</strong> (<strong>idf.espHomeKitSdkPathWin</strong> in Windows) configuration setting.</td>
             <td></td>
             <td></td>
         </tr>

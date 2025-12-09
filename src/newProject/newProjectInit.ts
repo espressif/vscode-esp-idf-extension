@@ -38,10 +38,6 @@ import { join } from "path";
 export interface INewProjectArgs {
   espIdfSetup: IdfSetup;
   espAdfPath: string;
-  espMdfPath: string;
-  espMatterPath: string;
-  espHomeKitSdkPath: string;
-  espRainmakerPath: string;
   idfTargets: IdfTarget[];
   boards: IdfBoard[];
   components: IComponent[];
@@ -130,22 +126,6 @@ export async function getNewProjectArgs(
     "idf.espAdfPath",
     workspace
   ) as string;
-  const espMdfPath = idfConf.readParameter(
-    "idf.espMdfPath",
-    workspace
-  ) as string;
-  const espMatterPath = idfConf.readParameter(
-    "idf.espMatterPath",
-    workspace
-  ) as string;
-  const espHomeKitSdkPath = idfConf.readParameter(
-    "idf.espHomeKitSdkPath",
-    workspace
-  ) as string;
-  const espRainmakerPath = idfConf.readParameter(
-    "idf.espRainmakerPath",
-    workspace
-  ) as string;
   let templates: { [key: string]: IExampleCategory } = {};
   const idfExists = await dirExistPromise(idfSetup.idfPath);
   if (idfExists) {
@@ -169,26 +149,6 @@ export async function getNewProjectArgs(
     const adfTemplates = getExamplesList(espAdfPath);
     templates["ESP-ADF"] = adfTemplates;
   }
-  const rainmakerExists = await dirExistPromise(espRainmakerPath);
-  if (rainmakerExists) {
-    const rainmakerTemplates = getExamplesList(espRainmakerPath);
-    templates["ESP-RAINMAKER"] = rainmakerTemplates;
-  }
-  const matterExists = await dirExistPromise(espMatterPath);
-  if (matterExists) {
-    const matterTemplates = getExamplesList(espMatterPath);
-    templates["ESP-MATTER"] = matterTemplates;
-  }
-  const mdfExists = await dirExistPromise(espMdfPath);
-  if (mdfExists) {
-    const mdfTemplates = getExamplesList(espMdfPath);
-    templates["ESP-MDF"] = mdfTemplates;
-  }
-  const homekitSdkExists = await dirExistPromise(espHomeKitSdkPath);
-  if (homekitSdkExists) {
-    const homeKitSdkTemplates = getExamplesList(espHomeKitSdkPath);
-    templates["ESP-HOMEKIT-SDK"] = homeKitSdkTemplates;
-  }
 
   const targetsFromIdf = await getTargetsFromEspIdf(
     workspace,
@@ -201,11 +161,7 @@ export async function getNewProjectArgs(
     components,
     espIdfSetup: idfSetup,
     espAdfPath: adfExists ? espAdfPath : undefined,
-    espMdfPath: mdfExists ? espMdfPath : undefined,
     idfTargets: targetsFromIdf,
-    espMatterPath: matterExists ? espMatterPath : undefined,
-    espHomeKitSdkPath: homekitSdkExists ? espHomeKitSdkPath : undefined,
-    espRainmakerPath: rainmakerExists ? espRainmakerPath : undefined,
     serialPortList,
     templates,
     workspaceFolder: workspace,
