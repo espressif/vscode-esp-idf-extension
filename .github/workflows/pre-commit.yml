@@ -10,5 +10,41 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Fetch full history to compare branches
+    
     - uses: actions/setup-python@v3
-    - uses: pre-commit/action@v3.0.1
+    
+    - name: Get modified files
+      id: modified_files
+      run: |
+        if [ "${{ github.event_name }}" == "pull_request" ]; then
+          # For PRs, compare against the base branch
+          BASE_BRANCH="${{ github.base_ref }}"
+          git fetch origin $BASE_BRANCH --depth=1
+          MODIFIED_FILES="$(git diff --name-only origin/$BASE_BRANCH...HEAD || echo "")"
+        else
+          # For pushes, compare against the previous commit
+          MODIFIED_FILES="$(git diff --name-only HEAD~1 HEAD || echo "")"
+        fi
+        
+        if [ -n "$MODIFIED_FILES" ]; then
+          echo "Running pre-commit on changed files:"
+          echo "$MODIFIED_FILES"
+          # Convert newlines to spaces for extra_args
+          echo "files=$(echo "$MODIFIED_FILES" | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          echo "has_files=true" >> $GITHUB_OUTPUT
+        else
+          echo "No modified files to check with pre-commit."
+          echo "has_files=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Run pre-commit on modified files
+      if: steps.modified_files.outputs.has_files == 'true'
+      uses: pre-commit/action@v3.0.1
+      with:
+        extra_args: codespell --files ${{ steps.modified_files.outputs.files }}
+    
+    - name: Skip message
+      if: steps.modified_files.outputs.has_files == 'false'
+      run: echo "No modified files to check with pre-commit."
