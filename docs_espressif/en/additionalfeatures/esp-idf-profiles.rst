@@ -40,7 +40,7 @@ How to Import an ESP-IDF Profile
 
     * **Default Profile (`ESP-IDF`)**: (Uses Microsoft C/C++ Tools)
         * `Default Profile GitHub Repository <https://github.com/espressif/vscode-esp-idf-extension/blob/master/profiles/esp-idf.code-profile>`_
-        * `Defualt Profile Direct Download Link <https://raw.githubusercontent.com/espressif/vscode-esp-idf-extension/master/profiles/esp-idf.code-profile>`_
+        * `Default Profile Direct Download Link <https://raw.githubusercontent.com/espressif/vscode-esp-idf-extension/master/profiles/esp-idf.code-profile>`_
 
     * **Clangd Profile (`ESP-IDF (clangd)`)**: (Uses clangd)
         * `Clangd Profile GitHub Repository <https://github.com/espressif/vscode-esp-idf-extension/blob/master/profiles/esp-idf-clangd.code-profile>`_

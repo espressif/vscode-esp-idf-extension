@@ -71,12 +71,11 @@ ESP-IDF-Web Commands
 
 Press menu **View**, select **Command Palette...** and search for these commands:
 
-``ESP-IDF-Web Flash``: Flash binaries from selected workspace to selected serial port. If no serial port was previously selected, it will ask the user for the serial port to use othewise use previously selected serial port.
+``ESP-IDF-Web Flash``: Flash binaries from selected workspace to selected serial port. If no serial port was previously selected, it will ask the user for the serial port to use otherwise use previously selected serial port.
 
-``ESP-IDF-Web Monitor``: Start a serial monitor terminal connected to the selected serial port. If no serial port was previously selected, it will ask the user for the serial port to use othewise use previously selected serial port.
+``ESP-IDF-Web Monitor``: Start a serial monitor terminal connected to the selected serial port. If no serial port was previously selected, it will ask the user for the serial port to use otherwise use previously selected serial port.
 
-``ESP-IDF-Web Flash and Monitor``: Flash binaries from selected workspace folder to selected serial port and start a serial monitor terminal to selected serial port. If no serial port was previously selected, it will ask the user for the serial port to use othewise use previously selected serial port.
-
+``ESP-IDF-Web Flash and Monitor``: Flash binaries from selected workspace folder to selected serial port and start a serial monitor terminal to selected serial port. If no serial port was previously selected, it will ask the user for the serial port to use otherwise use previously selected serial port.
 ``ESP-IDF-Web Select serial port``: Show the list of available serial ports for previous commands. The selected serial port will saved and shown in the status bar icon and re used by this extension commands.
 
 ``ESP-IDF-Web Disconnect serial port``: Dispose of currently selected serial port. This command is executed when you click the serial port shown in the status bar.
