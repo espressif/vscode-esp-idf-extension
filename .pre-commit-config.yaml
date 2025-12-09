@@ -15,5 +15,6 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
-        files: ^.*\.(md|rst|yml)$
+        args: [--config=.codespellrc]
+        files: ^.*\.(py|md|rst|yml)$
         stages: [pre-commit]
