@@ -24,7 +24,7 @@ Development steps:
 5.  Write your code and build the project with the ``ESP-IDF: Build your Project`` command.
 6.  Use the ``ESP-IDF: Launch QEMU Server`` command or the **[QEMU Server]** link in the activity bar to launch QEMU with the binaries from the build directory.
 7.  Use the ``ESP-IDF: Monitor QEMU Device`` command to launch a terminal running IDF Monitor on QEMU.
-8.  To launch a QEMU debug session, use the ``ESP-IDF: Launch QEMU Debug Session`` commmand, which will stop any existing QEMU server and launch a new QEMU server for debugging.
+8.  To launch a QEMU debug session, use the ``ESP-IDF: Launch QEMU Debug Session`` command, which will stop any existing QEMU server and launch a new QEMU server for debugging.
 
 Set the ``idf.qemuDebugMonitor`` configuration option to start the monitor after the QEMU debug session is launched. To pass additional arguments, set the ``idf.qemuExtraArgs`` configuration option.
 
