@@ -196,26 +196,6 @@ export async function setIdfTarget(
             );
             customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"] = location;
           }
-          
-          // Update serial port if board is connected
-          // The serial port should match the connected board
-          try {
-            const detectedPort = await SerialPort.detectDefaultPort(
-              workspaceFolder.uri
-            );
-            if (detectedPort) {
-              await SerialPort.shared().updatePortListStatus(
-                detectedPort,
-                workspaceFolder.uri,
-                false // useMonitorPort = false, update idf.port
-              );
-            }
-          } catch (error) {
-            Logger.info(
-              `Failed to detect serial port for connected board: ${error.message}`,
-              "setIdfTarget"
-            );
-          }
         } else {
           await selectOpenOcdConfigFiles(
             workspaceFolder.uri,
