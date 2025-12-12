@@ -138,14 +138,10 @@ export async function createNewIdfMonitor(
   }
   IDFMonitor.start();
   if (noReset) {
-    const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
-    const idfVersion = await utils.getEspIdfFromCMake(idfPath);
-    if (idfVersion <= "5.0") {
-      const monitorDelay = readParameter(
-        "idf.monitorDelay",
-        workspaceFolder
-      ) as number;
-      await utils.sleep(monitorDelay);
-    }
+    const monitorDelay = readParameter(
+      "idf.monitorDelay",
+      workspaceFolder
+    ) as number;
+    await utils.sleep(monitorDelay);
   }
 }

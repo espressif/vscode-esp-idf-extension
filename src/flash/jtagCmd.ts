@@ -81,9 +81,6 @@ export async function jtagFlashCommandMain(workspace: Uri) {
   const msg = "⚡️ Flashed Successfully (JTAG)";
   OutputChannel.appendLineAndShow(msg, "Flash");
   Logger.infoNotify(msg);
-  const closingOpenOCDMsg = "Closing OpenOCD server connection...";
-  OutputChannel.appendLineAndShow(closingOpenOCDMsg, "Flash");
-  OpenOCDManager.init().stop();
 }
 
 export async function jtagFlashCommand(workspace: Uri) {

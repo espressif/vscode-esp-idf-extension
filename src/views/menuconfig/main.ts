@@ -35,6 +35,9 @@ window.addEventListener("message", (event) => {
       if (message.menus) {
         store.items = message.menus;
       }
+      if (typeof message.version !== "undefined") {
+        store.confserverVersion = message.version;
+      }
       break;
     case "update_values":
       if (message.updated_values) {

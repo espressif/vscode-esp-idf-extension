@@ -41,6 +41,14 @@ window.addEventListener("message", (event) => {
       if (msg.showOnInit) {
         store.showOnInit = msg.showOnInit;
       }
+      if (msg.articles && msg.articles.length > 0) {
+        // Process articles from backend
+        const processedArticles = msg.articles.map((article: any) => ({
+          ...article,
+          description: store.decodeHtmlEntities(article.description),
+        }));
+        store.blogArticles = processedArticles;
+      }
       break;
     case "blogArticlesLoaded":
       if (msg.articles && msg.articles.length > 0) {

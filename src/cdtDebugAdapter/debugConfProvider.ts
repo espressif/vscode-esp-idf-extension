@@ -35,9 +35,54 @@ import { Logger } from "../logger/logger";
 import { getConfigValueFromSDKConfig, getToolchainPath } from "../utils";
 import { createNewIdfMonitor } from "../espIdf/monitor/command";
 import { ESP } from "../config";
+import { buildFlashAndMonitor } from "../buildFlashMonitor";
 
 export class CDTDebugConfigurationProvider
   implements DebugConfigurationProvider {
+  public async resolveDebugConfigurationWithSubstitutedVariables(
+    folder: WorkspaceFolder | undefined,
+    debugConfiguration: DebugConfiguration,
+    token?: CancellationToken
+  ) {
+    if (!folder) {
+      const workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
+        ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
+      );
+      folder = workspace.getWorkspaceFolder(workspaceFolderUri);
+      if (!folder) {
+        folder = await window.showWorkspaceFolderPick({
+          placeHolder: "Pick a workspace folder to start a debug session.",
+        });
+        if (!folder) {
+          throw new Error("No folder was selected to start debug session");
+        }
+      }
+    }
+    const useMonitorWithDebug = readParameter(
+      "idf.launchMonitorOnDebugSession",
+      folder
+    );
+    if (debugConfiguration.buildFlashMonitor) {
+      await buildFlashAndMonitor(folder.uri, true);
+    } else if (
+      debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
+      debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
+      useMonitorWithDebug
+    ) {
+      await createNewIdfMonitor(folder.uri, true);
+    }
+    const openOCDManager = OpenOCDManager.init();
+      if (
+        !openOCDManager.isRunning() &&
+        debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
+        debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
+        debugConfiguration.sessionID !== "qemu.debug.session" &&
+        debugConfiguration.runOpenOCD !== false
+      ) {
+        await openOCDManager.start();
+      }
+    return debugConfiguration;
+  }
   public async resolveDebugConfiguration(
     folder: WorkspaceFolder | undefined,
     config: DebugConfiguration,
@@ -169,27 +214,6 @@ export class CDTDebugConfigurationProvider
             `Current app binary is different from your project. Flash first.`
           );
         }
-      }
-      const useMonitorWithDebug = readParameter(
-        "idf.launchMonitorOnDebugSession",
-        folder
-      );
-      if (
-        config.sessionID !== "core-dump.debug.session.ws" &&
-        config.sessionID !== "gdbstub.debug.session.ws" &&
-        useMonitorWithDebug
-      ) {
-        await createNewIdfMonitor(folder.uri, true);
-      }
-      const openOCDManager = OpenOCDManager.init();
-      if (
-        !openOCDManager.isRunning() &&
-        config.sessionID !== "core-dump.debug.session.ws" &&
-        config.sessionID !== "gdbstub.debug.session.ws" &&
-        config.sessionID !== "qemu.debug.session" &&
-        config.runOpenOCD !== false
-      ) {
-        await openOCDManager.start();
       }
     } catch (error) {
       const msg = error.message
