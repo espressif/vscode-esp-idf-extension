@@ -75,148 +75,228 @@ With the ``ESP-IDF: SDK Configuration Editor``, you can specify the build direct
 Configuring the Extension for Multiple Build Configurations
 ------------------------------------------------------------
 
-1.  Go to menu ``View`` > ``Command Palette``.
-2.  Type ``ESP-IDF: Open Project Configuration`` and select the command. 
-3.  This launches a project configuration wizard to manage the project configuration profiles, recording the following settings for each configuration:
+The extension uses the standard `CMake Presets <https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html>`_ format to manage multiple build configurations. Configuration profiles are defined in ``CMakePresets.json`` (and optionally ``CMakeUserPresets.json`` for user-specific overrides) in your project root directory.
 
-    .. list-table::
-        :header-rows: 1
-        :widths: 30 70
+With **CMakePresets.json** you can define multiple locations of the build directory with ``binaryDir``, ``SDKCONFIG`` for the SDKConfig file path and ``SDKCONFIG_DEFAULTS`` for the list of SDKConfig default files to create the SDKConfig file in the specified path.
 
-        * - Setting ID
-          - Description
-        * - **idf.cmakeCompilerArgs**
-          - Arguments for CMake compilation task
-        * - **idf.ninjaArgs**
-          - Arguments for Ninja build task
-        * - **idf.buildPath**
-          - Custom build directory name for extension commands (default: \${workspaceFolder}/build)
-        * - **idf.sdkconfigFilePath**
-          - Absolute path for sdkconfig file
-        * - **idf.sdkconfigDefaults**
-          - List of sdkconfig default values for initial build configuration
-        * - **idf.customExtraVars**
-          - Variables to be added to system environment variables, IDF_TARGET is set here
-        * - **idf.flashBaudRate**
-          - Flash baud rate
-        * - **idf.monitorBaudRate**
-          - Monitor baud rate (empty by default to use SDKConfig CONFIG_ESP_CONSOLE_UART_BAUDRATE)
-        * - **idf.openOcdDebugLevel**
-          - Set OpenOCD debug Level (0-4) Default: 2
-        * - **idf.openOcdConfigs**
-          - Configuration files for OpenOCD, relative to OPENOCD_SCRIPTS folder
-        * - **idf.openOcdLaunchArgs**
-          - Launch arguments for OpenOCD, default is []. If defined, idf.openOcdConfigs and idf.openOcdDebugLevel are ignored
-        * - **idf.preBuildTask**
-          - Command string to execute before build task
-        * - **idf.postBuildTask**
-          - Command string to execute after build task
-        * - **idf.preFlashTask**
-          - Command string to execute before flash task
-        * - **idf.postFlashTask**
-          - Command string to execute after flash task
+To create multiple build configurations:
 
-4.  After defining a profile and the settings for each profile:
+1. Create or edit ``CMakePresets.json`` in your project root directory.
+2. Define your configuration presets in the ``configurePresets`` array. Each preset can override the following extension settings:
+
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| Extension Setting                 | CMakePresets Location                                                                                            |
++===================================+==================================================================================================================+
+| **idf.cmakeCompilerArgs**         | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``compileArgs``)                                          |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.ninjaArgs**                 | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``ninjaArgs``)                                            |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.buildPath**                 | ``binaryDir``                                                                                                    |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.sdkconfigFilePath**         | ``cacheVariables.SDKCONFIG``                                                                                     |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.sdkconfigDefaults**         | ``cacheVariables.SDKCONFIG_DEFAULTS`` (semicolon-separated string)                                               |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.customExtraVars**           | ``environment`` (IDF_TARGET is in ``cacheVariables.IDF_TARGET``)                                                 |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.flashBaudRate**             | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``flashBaudRate``)                                        |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.monitorBaudRate**           | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``monitorBaudRate``)                                     |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.openOcdDebugLevel**         | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``openOCD``, field: ``debugLevel``)                      |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.openOcdConfigs**            | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``openOCD``, field: ``configs``)                          |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.openOcdLaunchArgs**         | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``openOCD``, field: ``args``)                             |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.preBuildTask**              | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``tasks``, field: ``preBuild``)                          |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.postBuildTask**             | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``tasks``, field: ``postBuild``)                         |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.preFlashTask**              | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``tasks``, field: ``preFlash``)                          |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.postFlashTask**             | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``tasks``, field: ``postFlash``)                         |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+
+3. After defining your presets, use the ``ESP-IDF: Select Project Configuration`` command to choose the configuration to use.
 
     - Go to menu ``View`` > ``Command Palette`` 
     - Type ``ESP-IDF: Select Project Configuration`` command to choose the configuration to override extension configuration settings.
 
-Multiple configuration profiles allow you to store settings together and easily switch between them.
+.. note::
+   When you select a project configuration, the extension automatically attaches vendor settings under ``espressif/vscode-esp-idf`` for the chosen preset (for example, OpenOCD configuration and ``IDF_TARGET``) based on your currently selected board configuration and target in the extension. These settings are merged with any vendor settings you've defined in your CMakePresets.json file.
 
+Project configuration profiles are saved in ``CMakePresets.json`` and ``CMakeUserPresets.json``
+------------------------------------------------------------------------------------------------------------
 
-Project Configuration Profiles
-------------------------------
+Project configurations are stored using the standard CMake Presets format in ``CMakePresets.json`` (typically committed to version control) and optionally ``CMakeUserPresets.json`` (user-specific overrides, typically gitignored).
 
-The project configuration file is a JSON file that contains the configuration settings for the extension. The file is created when you use the ``ESP-IDF: Open Project Configuration`` command, and is saved in the root directory of your ESP-IDF project.
-
-The file is a JSON object with a list of profiles. Each profile is a JSON object with the following properties:
+The ``CMakePresets.json`` file structure follows the CMake Presets schema with ESP-IDF-specific vendor settings. For JSON schema validation, you can reference the ESP-IDF CMakePresets schema at ``https://dl.espressif.com/dl/vscode-esp-idf-extension/schemas/esp-idf-cmakepresets-schema-v1.json``, which extends the official CMake Presets schema with ESP-IDF-specific vendor fields.
 
 .. code-block:: JSON
 
     {
-      "profile1": {
-         // profile1 settings
+      "$schema": "https://dl.espressif.com/dl/vscode-esp-idf-extension/schemas/esp-idf-cmakepresets-schema-v1.json",
+      "version": 3,
+      "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
       },
-      "profile2": {
-         // profile2 settings
-      }
+      "configurePresets": [
+        {
+          "name": "default",
+          "displayName": "Default Configuration",
+          "description": "Default build configuration",
+          "binaryDir": "${sourceDir}/build",
+          "cacheVariables": {
+            "IDF_TARGET": "esp32",
+            "SDKCONFIG_DEFAULTS": "sdkconfig.defaults",
+            "SDKCONFIG": "${sourceDir}/build/sdkconfig"
+          },
+          "environment": {},
+          "vendor": {
+            "espressif/vscode-esp-idf": {
+              "schemaVersion": 1,
+              "settings": [
+                {
+                  "type": "compileArgs",
+                  "value": []
+                },
+                {
+                  "type": "ninjaArgs",
+                  "value": []
+                },
+                {
+                  "type": "flashBaudRate",
+                  "value": "921600"
+                },
+                {
+                  "type": "monitorBaudRate",
+                  "value": ""
+                },
+                {
+                  "type": "openOCD",
+                  "value": {
+                    "debugLevel": 2,
+                    "configs": [],
+                    "args": []
+                  }
+                },
+                {
+                  "type": "tasks",
+                  "value": {
+                    "preBuild": "",
+                    "preFlash": "",
+                    "postBuild": "",
+                    "postFlash": ""
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
     }
 
-The profile name is the key of the JSON object, and the value is a JSON object with the configuration settings for that profile. The profile name can be any string, but it is recommended to use a descriptive name that reflects the purpose of the profile.
+The preset name (``name`` field) is used to identify the profile when using the **ESP-IDF: Select Project Configuration** command. The preset name is also used to display the current profile in the status bar. The preset name is case-sensitive.
 
-The profile name is used to identify the profile when using the ``ESP-IDF: Select Project Configuration`` command. The profile name is also used to display the current profile in the status bar.
+**CMakeUserPresets.json** follows the same structure and is used for user-specific overrides. Presets in ``CMakeUserPresets.json`` take precedence over presets with the same name in ``CMakePresets.json``. This allows you to:
 
-The profile name is not case-sensitive, so ``prod1`` and ``Prod1`` are considered the same profile.
+- Keep project-wide configurations in ``CMakePresets.json`` (committed to version control)
+- Keep personal customizations in ``CMakeUserPresets.json`` (gitignored)
 
-The profile settings are stored in a JSON object with the following properties. Notice that arrays are expected to have ``string`` elements:
+**Example: Using CMakeUserPresets.json for Personal Overrides**
+
+Suppose you have a project-wide ``CMakePresets.json`` with a ``production`` preset:
 
 .. code-block:: JSON
 
     {
-      "profileName": {
-         "build": {
-            "compileArgs": [],
-            "ninjaArgs": [],
-            "buildDirectoryPath": "",
-            "sdkconfigDefaults": [],
-            "sdkconfigFilePath": ""
-         },
-         "env": {},
-         "idfTarget": "",
-         "flashBaudRate": "",
-         "monitorBaudRate": "",
-         "openOCD": {
-            "debugLevel": 0,
-            "configs": [],
-            "args": []
-         },
-         "tasks": {
-            "preBuild": "",
-            "preFlash": "",
-            "postBuild": "",
-            "postFlash": ""
-         }
-      }
+      "version": 3,
+      "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+      },
+      "configurePresets": [
+        {
+          "name": "production",
+          "displayName": "Production",
+          "binaryDir": "${sourceDir}/build_production",
+          "cacheVariables": {
+            "SDKCONFIG_DEFAULTS": "sdkconfig.defaults",
+            "SDKCONFIG": "${sourceDir}/build_production/sdkconfig"
+          }
+        }
+      ]
     }
 
-While each field is self-explanatory, here is the mapping of the profile settings to the extension settings:
+You can create a ``CMakeUserPresets.json`` file to override specific settings for your personal use, such as flash baud rate or monitor baud rate:
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
+.. code-block:: JSON
 
-   * - Setting ID Replaced
-     - Field in Profile that Overrides This Setting
-   * - **idf.cmakeCompilerArgs**
-     - ["profileName"].build.compileArgs
-   * - **idf.ninjaArgs**
-     - ["profileName"].build.ninjaArgs
-   * - **idf.buildPath**
-     - ["profileName"].build.buildDirectoryPath
-   * - **idf.sdkconfigFilePath**
-     - ["profileName"].build.sdkconfigFilePath
-   * - **idf.sdkconfigDefaults**
-     - ["profileName"].build.sdkconfigDefaults
-   * - **idf.customExtraVars**
-     - ["profileName"].env and ["profileName"].idfTarget will replace idf.customExtraVars["IDF_TARGET"]
-   * - **idf.flashBaudRate**
-     - ["profileName"].flashBaudRate
-   * - **idf.monitorBaudRate**
-     - ["profileName"].monitorBaudRate
-   * - **idf.openOcdDebugLevel**
-     - ["profileName"].openOCD.debugLevel
-   * - **idf.openOcdConfigs**
-     - ["profileName"].openOCD.configs
-   * - **idf.openOcdLaunchArgs**
-     - ["profileName"].openOCD.args
-   * - **idf.preBuildTask**
-     - ["profileName"].tasks.preBuild
-   * - **idf.postBuildTask**
-     - ["profileName"].tasks.postBuild
-   * - **idf.preFlashTask**
-     - ["profileName"].tasks.preFlash
-   * - **idf.postFlashTask**
-     - ["profileName"].tasks.postFlash
+    {
+      "version": 3,
+      "configurePresets": [
+        {
+          "name": "production",
+          "vendor": {
+            "espressif/vscode-esp-idf": {
+              "schemaVersion": 1,
+              "settings": [
+                {
+                  "type": "flashBaudRate",
+                  "value": "115200"
+                },
+                {
+                  "type": "monitorBaudRate",
+                  "value": "115200"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+
+When you select the ``production`` preset, the extension will use the flash and monitor baud rates from ``CMakeUserPresets.json`` (115200) instead of any defaults, while still using the build directory and SDKConfig settings from ``CMakePresets.json``. This allows each team member to have their own serial port settings without modifying the shared project configuration.
+
+While each field is self-explanatory, here is the mapping of the CMakePresets structure to the extension settings:
+
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| Extension Setting                 | CMakePresets Location                                                                                            |
++===================================+==================================================================================================================+
+| **idf.cmakeCompilerArgs**         | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "compileArgs"``            |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.ninjaArgs**                 | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "ninjaArgs"``              |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.buildPath**                 | ``configurePresets[].binaryDir``                                                                                 |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.sdkconfigFilePath**         | ``configurePresets[].cacheVariables.SDKCONFIG``                                                                  |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.sdkconfigDefaults**         | ``configurePresets[].cacheVariables.SDKCONFIG_DEFAULTS`` (semicolon-separated string)                            |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.customExtraVars**           | ``configurePresets[].environment`` (IDF_TARGET is in ``cacheVariables.IDF_TARGET``)                             |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.flashBaudRate**             | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "flashBaudRate"``           |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.monitorBaudRate**           | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "monitorBaudRate"``         |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.openOcdDebugLevel**         | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "openOCD"``, field: ``debugLevel`` |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.openOcdConfigs**            | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "openOCD"``, field: ``configs`` |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.openOcdLaunchArgs**         | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "openOCD"``, field: ``args`` |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.preBuildTask**              | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "tasks"``, field: ``preBuild`` |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.postBuildTask**             | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "tasks"``, field: ``postBuild`` |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.preFlashTask**              | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "tasks"``, field: ``preFlash`` |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+| **idf.postFlashTask**             | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "tasks"``, field: ``postFlash`` |
++-----------------------------------+------------------------------------------------------------------------------------------------------------------+
 
 
 Multiple Configuration Tutorial
@@ -224,59 +304,147 @@ Multiple Configuration Tutorial
 
 Use the `ESP-IDF CMake Multiple Build Configurations Example <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_ to follow this tutorial.
 
-Use the ``ESP-IDF: Open Project Configuration`` command to create two configuration profiles: ``prod1`` and ``prod2``. Set ``sdkconfig.prod_common;sdkconfig.prod1`` and ``sdkconfig.prod_common;sdkconfig.prod2`` in the ``sdkconfig defaults`` field as shown below:
+.. note::
+   The ESP-IDF ``multi_config`` example already ships with a ready-to-use ``CMakePresets.json`` and works out of the box. When you select a project configuration in this extension, the extension will automatically attach vendor settings under ``espressif/vscode-esp-idf`` for the chosen preset (for example, OpenOCD configuration and ``IDF_TARGET``) based on your currently selected board configuration and target in the extension.
 
-.. image:: ../../../media/tutorials/project_conf/enterConfigName.png
-   :alt: Enter new profile configuration name
+To create multiple configurations manually, create or edit ``CMakePresets.json`` in your project root with two configuration presets: ``prod1`` and ``prod2``:
 
-In each profile, type ``sdkconfig.prod_common`` in the ``sdkconfig defaults`` field and press ``+`` to add another sdkconfig file. Type ``sdkconfig.prod1`` for the ``prod1`` profile and ``sdkconfig.prod2`` for the ``prod2`` profile.
+.. code-block:: JSON
 
-.. image:: ../../../media/tutorials/project_conf/prod1.png
-   :alt: Production 1
+    {
+      "$schema": "https://dl.espressif.com/dl/vscode-esp-idf-extension/schemas/esp-idf-cmakepresets-schema-v1.json",
+      "version": 3,
+      "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+      },
+      "configurePresets": [
+        {
+          "name": "default",
+          "displayName": "Default (development)",
+          "description": "Development configuration",
+          "binaryDir": "${sourceDir}/build/default",
+          "cacheVariables": {
+            "SDKCONFIG": "${sourceDir}/build/default/sdkconfig"
+          }
+        },
+        {
+          "name": "prod1",
+          "displayName": "Product 1",
+          "description": "Production configuration for product 1",
+          "binaryDir": "${sourceDir}/build/prod1",
+          "cacheVariables": {
+            "SDKCONFIG_DEFAULTS": "sdkconfig.defaults.prod_common;sdkconfig.defaults.prod1",
+            "SDKCONFIG": "${sourceDir}/build/prod1/sdkconfig"
+          }
+        },
+        {
+          "name": "prod2",
+          "displayName": "Product 2",
+          "description": "Production configuration for product 2",
+          "binaryDir": "${sourceDir}/build/prod2",
+          "cacheVariables": {
+            "SDKCONFIG_DEFAULTS": "sdkconfig.defaults.prod_common;sdkconfig.defaults.prod2",
+            "SDKCONFIG": "${sourceDir}/build/prod2/sdkconfig"
+          }
+        }
+      ]
+    }
 
-.. image:: ../../../media/tutorials/project_conf/prod1.png
-   :alt: Production 2
+In the ``SDKCONFIG_DEFAULTS`` field, multiple sdkconfig default files are specified as a semicolon-separated string. The values are loaded in order as explained in the `ESP-IDF documentation <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html?highlight=sdkconfig%20defaults#custom-sdkconfig-defaults>`_.
 
-After creating each profile and configuring the settings, click the ``Save`` button at the top. Use the ``ESP-IDF: Select Project Configuration`` command to choose the configuration to override extension settings.
+After creating your ``CMakePresets.json`` file:
 
-.. image:: ../../../media/tutorials/project_conf/selectConfig.png
-   :alt: Select configuration
+1. Use the **ESP-IDF: Select Project Configuration** command to choose the configuration to use (``default``, ``prod1``, or ``prod2``).
+2. After a configuration profile is selected, the selected profile will be shown in the status bar.
+3. Use the **ESP-IDF: Build your Project** to build the project for the selected profile. You can observe binaries generated for each profile in the path defined in each preset's ``binaryDir`` field.
+4. Use the **ESP-IDF: Select Project Configuration** command to switch between configurations at any time.
 
-Once a configuration profile is selected, it will appear in the status bar.
-
-.. image:: ../../../media/tutorials/project_conf/configInStatusBar.png
-   :alt: Configuration in status bar
-
-Use the ``ESP-IDF: Build your Project`` command to build the project for the selected profile (either ``prod1`` or ``prod2``). Binaries for each profile are generated in the path defined in each profile. Use the ``ESP-IDF: Select Project Configuration`` command to switch between configurations.
-
-Use the ``ESP-IDF: Open Project Configuration`` command to modify, add, or delete configuration profiles. To stop using these profiles, delete all configuration profiles.
-
-These profiles and their settings are saved in ``/path/to/esp-project/esp_idf_project_configuration.json``.
-
+To modify, add, or delete configuration profiles, edit the ``CMakePresets.json`` file directly. If you want to stop using these profiles, remove the presets from the file or delete the file entirely.
 
 Development and Release Profiles for ESP-IDF Project
 ----------------------------------------------------
 
 For this example we will create two profiles, **development** and **production**, to define separate build directories and sdkconfig files.
 
-1. Go to ``View`` > ``Command Palette``.
+1. Click menu **View** > **Command Palette...** 
+2. Type **ESP-IDF: Save Default SDKCONFIG file (save-defconfig)** and select the command to generate a ``sdkconfig.defaults`` file. This command is added in ESP-IDF v5.0. You can also create this ``sdkconfig.defaults`` manually.
+3. Create or edit ``CMakePresets.json`` in your project root directory with the following structure:
 
-2. Type ``ESP-IDF: Save Default SDKCONFIG file (save-defconfig)`` and select the command to generate a ``sdkconfig.defaults`` file. This command is available in ESP-IDF v5.0 or higher. You can also create this ``sdkconfig.defaults`` file manually.
+.. code-block:: JSON
 
-3. Go to ``View`` > ``Command Palette``.
+    {
+      "$schema": "https://dl.espressif.com/dl/vscode-esp-idf-extension/schemas/esp-idf-cmakepresets-schema-v1.json",
+      "version": 3,
+      "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+      },
+      "configurePresets": [
+        {
+          "name": "production",
+          "displayName": "Production",
+          "description": "Production build configuration",
+          "binaryDir": "${sourceDir}/build_production",
+          "cacheVariables": {
+            "SDKCONFIG_DEFAULTS": "sdkconfig.defaults",
+            "SDKCONFIG": "${sourceDir}/build_production/sdkconfig"
+          }
+        },
+        {
+          "name": "development",
+          "displayName": "Development",
+          "description": "Development build configuration",
+          "binaryDir": "${sourceDir}/build_dev",
+          "cacheVariables": {
+            "SDKCONFIG": "${sourceDir}/build_dev/sdkconfig"
+          }
+        }
+      ]
+    }
 
-4. Type ``ESP-IDF: Open Project Configuration`` and select the command to create a new profile named **production**. Set ``SDKConfig Defaults`` to the existing ``sdkconfig.defaults`` file. If you want to separate the build directory for this new **production** profile from the default ``/path/to/esp-project/build`` directory, specify a custom path in the ``Build Directory Path`` field (e.g., ``/path/to/esp-project/build_production``). Similarly, set the ``SDKConfig File Path`` field to a custom location (e.g., ``/path/to/esp-project/build_production/sdkconfig``).
+4. After creating your ``CMakePresets.json`` file, use the **ESP-IDF: Select Project Configuration** command to choose the desired profile.
 
-5. Create a new profile named **development**. To keep **development** and **production** files separate, set ``Build Directory Path`` to a custom location (e.g., /path/to/esp-project/build_dev) and ``SDKConfig File Path`` to ``/path/to/esp-project/build_dev/sdkconfig``.
+5. When you choose the **production** profile and use the **ESP-IDF: Build your Project** command, the ``/path/to/esp-project/build_production/sdkconfig`` will be created and the binaries will be generated in ``/path/to/esp-project/build_production``.
 
-6. After creating each profile and configuring the settings, click the ``Save`` button. Use the ``ESP-IDF: Select Project Configuration`` command to choose the desired profile.
+6. If you choose the **development** profile, the ``/path/to/esp-project/build_dev/sdkconfig`` will be created and the binaries will be generated in ``/path/to/esp-project/build_dev``.
 
-7. When you choose the **production** profile and use the ``ESP-IDF: Build your Project`` command, the ``/path/to/esp-project/build_production/sdkconfig`` file will be created, and the binaries will be generated in ``/path/to/esp-project/build_production``.
+The production profile can be split into multiple production profiles, as shown in the :ref:`Multiple configuration tutorial <Multiple configuration tutorial>`, by separating ``sdkconfig.defaults`` into common SDKConfig settings in a ``sdkconfig.prod_common`` file and product-specific settings in ``sdkconfig.prod1`` and ``sdkconfig.prod2`` files respectively. Multiple SDKConfig defaults files can be specified in the ``SDKCONFIG_DEFAULTS`` cache variable as a semicolon-separated string (e.g., ``"sdkconfig.prod_common;sdkconfig.prod1"``) where the values are loaded in order as explained in the `ESP-IDF documentation <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html?highlight=sdkconfig%20defaults#custom-sdkconfig-defaults>`_.
 
-8. If you choose the **development** profile, the ``/path/to/esp-project/build_dev/sdkconfig`` file will be created, and the binaries will be generated in ``/path/to/esp-project/build_dev``.
+Migrating from Legacy Project Configuration Format
+---------------------------------------------------
 
-9. These profiles and their settings will be saved in the ``/path/to/esp-project/esp_idf_project_configuration.json``.
+If you have an existing project using the legacy ``esp_idf_project_configuration.json`` format, the extension will automatically detect and offer to migrate it to the new ``CMakePresets.json`` format.
 
-The previous **production** profile can be divided into multiple **production** profiles, as demonstrated in the ESP-IDF CMake `multi_config <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_ example and `Multiple Configuration Tutorial <multiple_config>`_. This is achieved by splitting the ``sdkconfig.defaults`` file into a common settings file (``sdkconfig.prod_common``) and product-specific settings files (``sdkconfig.prod1`` and ``sdkconfig.prod2``). In the Project Configuration Editor, you can specify multiple ``SDKConfig Defaults`` files using a semicolon-separated format (e.g., ``sdkconfig.prod_common;sdkconfig.prod1``), and these files will be loaded in order as explained `here <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#custom-sdkconfig-defaults>`_.
+**Automatic Migration:**
+
+1. When you open a project with an existing ``esp_idf_project_configuration.json`` file, the extension will prompt you to migrate.
+2. If you accept, the extension will automatically convert all profiles from the legacy format to ``CMakePresets.json``.
+3. The legacy file will remain in your project (you can delete it after verifying the migration).
+
+**Manual Migration:**
+
+If you prefer to migrate manually or need to understand the conversion:
+
+1. The legacy ``esp_idf_project_configuration.json`` structure is converted to CMakePresets format as follows:
+
+   - Legacy profile name → CMakePresets ``name`` field
+   - ``build.buildDirectoryPath`` → ``binaryDir``
+   - ``build.sdkconfigFilePath`` → ``cacheVariables.SDKCONFIG``
+   - ``build.sdkconfigDefaults`` (array) → ``cacheVariables.SDKCONFIG_DEFAULTS`` (semicolon-separated string)
+   - ``idfTarget`` → ``cacheVariables.IDF_TARGET``
+   - ``env`` → ``environment``
+   - All other settings (compileArgs, ninjaArgs, flashBaudRate, monitorBaudRate, openOCD, tasks) → ``vendor["espressif/vscode-esp-idf"].settings`` array
+
+2. Create a ``CMakePresets.json`` file following the structure shown in the examples above.
+3. Convert each profile from the legacy format to the new format.
+4. Delete the ``esp_idf_project_configuration.json`` file after verification.
+
+.. note::
+   After migration, the extension will use ``CMakePresets.json`` for all configuration operations. The legacy file format is no longer supported for new configurations.
+
+The previous **production** profile can be divided into multiple **production** presets, as demonstrated in the ESP-IDF CMake `multi_config <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_ example. This is achieved by splitting the ``sdkconfig.defaults`` file into a common settings file (``sdkconfig.prod_common``) and product-specific settings files (``sdkconfig.prod1`` and ``sdkconfig.prod2``). In ``CMakePresets.json``, specify multiple ``SDKCONFIG_DEFAULTS`` files as a semicolon-separated string (e.g., ``sdkconfig.prod_common;sdkconfig.prod1``), and these files will be loaded in order as explained `here <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#custom-sdkconfig-defaults>`_.
 
 This is just one example of what the Project Configuration Editor can do. You can also define multiple profiles for other development scenarios, such as testing, profiling, and more.
