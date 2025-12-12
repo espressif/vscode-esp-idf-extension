@@ -1,0 +1,91 @@
+name: IDE File Uploads
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'internal/com.espressif.idf.uploads/**'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'internal/com.espressif.idf.uploads/**'
+
+jobs:
+  upload-files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Upload files to S3
+        env:
+          DL_BUCKET: ${{ secrets.DL_BUCKET }}
+          UPLOADS_DIR: "./internal/com.espressif.idf.uploads"
+        run: |
+          # Define mapping of subdirectories to S3 paths
+          # Format: "subdirectory:s3_path_prefix"
+          declare -A UPLOAD_MAPPINGS=(
+            ["cmakepresets"]="schemas"
+            # Add more mappings here as needed, for example:
+            # ["templates"]="templates"
+            # ["tools"]="tools"
+          )
+          
+          UPLOADED_COUNT=0
+          FAILED_COUNT=0
+          
+          # Process each subdirectory in the uploads folder
+          if [ -d "$UPLOADS_DIR" ]; then
+            for SUBDIR in "$UPLOADS_DIR"/*; do
+              if [ -d "$SUBDIR" ]; then
+                SUBDIR_NAME=$(basename "$SUBDIR")
+                
+                # Check if this subdirectory has a mapping
+                if [ -n "${UPLOAD_MAPPINGS[$SUBDIR_NAME]}" ]; then
+                  S3_PATH_PREFIX="${UPLOAD_MAPPINGS[$SUBDIR_NAME]}"
+                  
+                  echo "Processing subdirectory: $SUBDIR_NAME -> s3://${DL_BUCKET}/dl/vscode-esp-idf-extension/${S3_PATH_PREFIX}/"
+                  
+                  # Upload all files in this subdirectory
+                  for FILE in "$SUBDIR"/*; do
+                    if [ -f "$FILE" ]; then
+                      FILE_NAME=$(basename "$FILE")
+                      S3_PATH="s3://${DL_BUCKET}/dl/vscode-esp-idf-extension/${S3_PATH_PREFIX}/${FILE_NAME}"
+                      
+                      echo "Uploading $FILE_NAME to S3..."
+                      if aws s3 cp "$FILE" "$S3_PATH" --acl public-read; then
+                        echo "✓ Successfully uploaded $FILE_NAME to $S3_PATH"
+                        ((UPLOADED_COUNT++))
+                      else
+                        echo "✗ Failed to upload $FILE_NAME"
+                        ((FAILED_COUNT++))
+                      fi
+                    fi
+                  done
+                else
+                  echo "⚠ No mapping defined for subdirectory: $SUBDIR_NAME (skipping)"
+                fi
+              fi
+            done
+            
+            echo ""
+            echo "Upload summary:"
+            echo "  Successfully uploaded: $UPLOADED_COUNT file(s)"
+            if [ $FAILED_COUNT -gt 0 ]; then
+              echo "  Failed: $FAILED_COUNT file(s)"
+              exit 1
+            fi
+          else
+            echo "Uploads directory $UPLOADS_DIR not found, skipping..."
+          fi
+
