@@ -4552,11 +4552,13 @@ async function startFlashing(
         const scriptPath = await devkitsCmd.getScriptPath(currOpenOcdVersion);
         if (scriptPath) {
           const devkitsOutput = await devkitsCmd.runDevkitsScript(
-            currOpenOcdVersion
+            currOpenOcdVersion,
+            { silent: true }
           );
           if (devkitsOutput) {
             const parsed = JSON.parse(devkitsOutput);
-            const boards = parsed && Array.isArray(parsed.boards) ? parsed.boards : [];
+            const boards =
+              parsed && Array.isArray(parsed.boards) ? parsed.boards : [];
             if (boards.length > 1) {
               const msg = vscode.l10n.t(
                 "Multiple connected boards were detected, but no OpenOCD adapter is selected (serial/location). To avoid flashing the wrong device, set the target for the connected board and rebuild."
@@ -4564,7 +4566,8 @@ async function startFlashing(
               await showInfoNotificationWithAction(
                 msg,
                 vscode.l10n.t("Set Target"),
-                () => vscode.commands.executeCommand(CommandKeys.SetEspressifTarget)
+                () =>
+                  vscode.commands.executeCommand(CommandKeys.SetEspressifTarget)
               );
               return false;
             }
@@ -4573,7 +4576,9 @@ async function startFlashing(
       } catch (e) {
         // Best-effort only: detection failures must not block JTAG flashing.
         Logger.info(
-          `Skipping connected-board detection before JTAG flash: ${e && (e as any).message ? (e as any).message : e}`
+          `Skipping connected-board detection before JTAG flash: ${
+            e && (e as any).message ? (e as any).message : e
+          }`
         );
       }
     }

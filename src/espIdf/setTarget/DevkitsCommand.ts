@@ -34,7 +34,10 @@ export class DevkitsCommand {
     this.workspaceRoot = workspaceRoot;
   }
 
-  public async runDevkitsScript(openOCDVersion: string): Promise<string> {
+  public async runDevkitsScript(
+    openOCDVersion: string,
+    opts?: { silent?: boolean }
+  ): Promise<string> {
     try {
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(
         this.workspaceRoot
@@ -90,12 +93,26 @@ export class DevkitsCommand {
       // to allow scanning all available devices, not just the one at the configured location
       delete modifiedEnv.OPENOCD_USB_ADAPTER_LOCATION;
 
-      OutputChannel.init();
-      OutputChannel.appendLine(
-        "Running ESP Detect Config...",
-        "ESP Detect Config"
-      );
-      OutputChannel.show();
+      const isSilent = !!opts?.silent;
+      if (!isSilent) {
+        OutputChannel.init();
+        OutputChannel.appendLine(
+          "Running ESP Detect Config...",
+          "ESP Detect Config"
+        );
+        OutputChannel.show();
+      }
+
+      if (isSilent) {
+        // Silent mode: no progress UI, no output channel, no completion notification.
+        return await execChildProcess(
+          pythonBinPath,
+          [scriptPath, "--esp-config", espConfigPath],
+          this.workspaceRoot.fsPath,
+          undefined,
+          { env: modifiedEnv }
+        );
+      }
 
       return await vscode.window.withProgress(
         {
@@ -136,9 +153,14 @@ export class DevkitsCommand {
       const msg = error.message
         ? error.message
         : "Error running ESP Detect Config";
-      Logger.errorNotify(msg, error, "DevkitsCommand");
-      OutputChannel.appendLine(msg, "ESP Detect Config");
-      OutputChannel.show();
+      if (opts?.silent) {
+        Logger.error(msg, error, "DevkitsCommand");
+        throw error;
+      } else {
+        Logger.errorNotify(msg, error, "DevkitsCommand");
+        OutputChannel.appendLine(msg, "ESP Detect Config");
+        OutputChannel.show();
+      }
     }
   }
 
