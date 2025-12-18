@@ -2701,7 +2701,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand(CommandKeys.OpenOcdAdapterStatusBar, () => {
     PreCheck.perform([openFolderCheck], async () => {
-      const current = ESP.GlobalConfiguration.store.get<vscode.TreeItemCheckboxState>(
+      const current = ESP.GlobalConfiguration.store.get<
+        vscode.TreeItemCheckboxState
+      >(
         CommandKeys.OpenOcdAdapterStatusBar,
         vscode.TreeItemCheckboxState.Unchecked
       );
@@ -2710,7 +2712,10 @@ export async function activate(context: vscode.ExtensionContext) {
           ? vscode.TreeItemCheckboxState.Unchecked
           : vscode.TreeItemCheckboxState.Checked;
 
-      ESP.GlobalConfiguration.store.set(CommandKeys.OpenOcdAdapterStatusBar, next);
+      ESP.GlobalConfiguration.store.set(
+        CommandKeys.OpenOcdAdapterStatusBar,
+        next
+      );
 
       if (statusBarItems["openOcdAdapter"]) {
         if (next === vscode.TreeItemCheckboxState.Checked) {
