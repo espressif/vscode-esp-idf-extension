@@ -2711,7 +2711,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
       const cfg = vscode.workspace.getConfiguration("", workspaceRoot);
       const extraVars =
-        (cfg.get<{ [key: string]: any }>("idf.customExtraVars") ?? {});
+        cfg.get<{ [key: string]: any }>("idf.customExtraVars") ?? {};
       if (extraVars["OPENOCD_USB_ADAPTER_LOCATION"]) {
         const nextExtraVars = { ...extraVars };
         delete nextExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
