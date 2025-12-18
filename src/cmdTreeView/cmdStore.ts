@@ -50,6 +50,7 @@ export enum CommandKeys {
   CustomTask = "espIdf.customTask",
   QemuServer = "espIdf.qemuCommand",
   OpenOCD = "espIdf.openOCDCommand",
+  OpenOcdAdapterStatusBar = "espIdf.openOcdAdapterStatusBar",
 }
 
 export enum AdvancedCommandKeys {
@@ -299,6 +300,14 @@ export function createCommandDictionary(): Record<
       ),
       iconId: "server-environment",
       tooltip: l10n.t("OpenOCD Server"),
+    },
+    [CommandKeys.OpenOcdAdapterStatusBar]: {
+      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+        CommandKeys.OpenOcdAdapterStatusBar,
+        TreeItemCheckboxState.Unchecked
+      ),
+      iconId: "link",
+      tooltip: l10n.t("OpenOCD Adapter Status Bar"),
     },
     [CommandKeys.Debug]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(

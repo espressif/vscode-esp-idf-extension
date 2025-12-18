@@ -41,9 +41,9 @@ import { updateCurrentProfileIdfTarget } from "../../project-conf";
 import { DevkitsCommand } from "./DevkitsCommand";
 import {
   clearAdapterSerial,
-  getStoredAdapterSerial,
 } from "../openOcd/adapterSerial";
 import { SerialPort } from "../serial/serialPort";
+import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
 
 export let isSettingIDFTarget = false;
 
@@ -178,6 +178,7 @@ export async function setIdfTarget(
         // Clear stored adapter serial and location when target changes
         clearAdapterSerial(workspaceFolder.uri);
         delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
+        updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
 
         if (selectedTarget.isConnected && selectedTarget.boardInfo) {
           // Directly set OpenOCD configs for connected board
@@ -195,6 +196,7 @@ export async function setIdfTarget(
               ""
             );
             customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"] = location;
+            updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
           }
         } else {
           await selectOpenOcdConfigFiles(

@@ -28,6 +28,7 @@
   "Show notifications but do not focus tasks output.": "Показывать уведомления, но не фокусировать вывод задач.",
   "Do not show notifications but focus tasks output.": "Не показывать уведомления, но сосредоточить вывод задач.",
   "Show notifications and focus tasks output.": "Показывать уведомления и фокусировать вывод задач.",
+  "OpenOCD Adapter Status Bar": "Строка состояния адаптера OpenOCD",
   "Select the output and notification mode": "Выберите режим вывода и уведомления",
   "Notification mode has changed to {mode}": "Режим уведомлений изменен на {mode}",
   "No project configuration found": "Конфигурация проекта не найдена",

@@ -28,6 +28,7 @@
   "Show notifications but do not focus tasks output.": "Muestra notificaciones pero no centras el resultado de las tareas.",
   "Do not show notifications but focus tasks output.": "No muestre notificaciones, pero centre la salida de las tareas.",
   "Show notifications and focus tasks output.": "Muestra notificaciones y resultados de tareas de enfoque.",
+  "OpenOCD Adapter Status Bar": "Barra de estado del adaptador OpenOCD",
   "Select the output and notification mode": "Seleccione el modo de salida y notificación",
   "Notification mode has changed to {mode}": "El modo de notificación ha cambiado a {mode}",
   "No project configuration found": "No se encontró ninguna configuración de proyecto",

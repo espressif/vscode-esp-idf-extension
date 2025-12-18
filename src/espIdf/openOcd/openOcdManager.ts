@@ -30,7 +30,7 @@ import {
 } from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 import { ESP } from "../../config";
-import { statusBarItems } from "../../statusBar";
+import { statusBarItems, updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
 import {
   CommandKeys,
   createCommandDictionary,
@@ -239,6 +239,7 @@ export class OpenOCDManager extends EventEmitter {
       const serialNumber = parseAdapterSerialFromLog(data);
       if (serialNumber && this.workspace) {
         storeAdapterSerial(this.workspace, serialNumber);
+        updateOpenOcdAdapterStatusBarItem(this.workspace);
       }
       
       const regex = /Error:.*/i;
@@ -266,6 +267,7 @@ export class OpenOCDManager extends EventEmitter {
       const serialNumber = parseAdapterSerialFromLog(data);
       if (serialNumber && this.workspace) {
         storeAdapterSerial(this.workspace, serialNumber);
+        updateOpenOcdAdapterStatusBarItem(this.workspace);
       }
       
       this.emit("data", this.chan);

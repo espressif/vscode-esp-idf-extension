@@ -171,7 +171,11 @@ import {
 } from "./espIdf/hints/index";
 import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
 import { TroubleshootingPanel } from "./support/troubleshootPanel";
-import { createCmdsStatusBarItems, statusBarItems } from "./statusBar";
+import {
+  createCmdsStatusBarItems,
+  statusBarItems,
+  updateOpenOcdAdapterStatusBarItem,
+} from "./statusBar";
 import {
   CommandKeys,
   createCommandDictionary,
@@ -2679,6 +2683,35 @@ export async function activate(context: vscode.ExtensionContext) {
       [webIdeCheck, openFolderCheck],
       openOCDManager.commandHandler
     );
+  });
+
+  registerIDFCommand(CommandKeys.OpenOcdAdapterStatusBar, () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      const current = ESP.GlobalConfiguration.store.get<vscode.TreeItemCheckboxState>(
+        CommandKeys.OpenOcdAdapterStatusBar,
+        vscode.TreeItemCheckboxState.Unchecked
+      );
+      const next =
+        current === vscode.TreeItemCheckboxState.Checked
+          ? vscode.TreeItemCheckboxState.Unchecked
+          : vscode.TreeItemCheckboxState.Checked;
+
+      ESP.GlobalConfiguration.store.set(CommandKeys.OpenOcdAdapterStatusBar, next);
+
+      if (statusBarItems["openOcdAdapter"]) {
+        if (next === vscode.TreeItemCheckboxState.Checked) {
+          updateOpenOcdAdapterStatusBarItem(workspaceRoot);
+          statusBarItems["openOcdAdapter"].show();
+        } else {
+          statusBarItems["openOcdAdapter"].hide();
+        }
+      }
+
+      // Refresh checkbox state in ESP-IDF: Explorer (idfCommands)
+      if (commandTreeDataProvider) {
+        commandTreeDataProvider.refresh();
+      }
+    });
   });
 
   registerIDFCommand("espIdf.qemuCommand", () => {
