@@ -28,7 +28,7 @@
   "Show notifications but do not focus tasks output.": "显示通知，但不显示任务输出。",
   "Do not show notifications but focus tasks output.": "不显示通知，但显示任务输出。",
   "Show notifications and focus tasks output.": "同时显示通知和任务输出。",
-  "OpenOCD Adapter Status Bar": "OpenOCD 适配器状态栏",
+  "OpenOCD Adaptor (serial & location)": "OpenOCD 适配器（序列号与位置）",
   "Select the output and notification mode": "选择输出和通知模式",
   "Notification mode has changed to {mode}": "通知模式已改为 {mode}",
   "No project configuration found": "找不到项目配置",

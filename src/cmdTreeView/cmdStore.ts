@@ -307,7 +307,7 @@ export function createCommandDictionary(): Record<
         TreeItemCheckboxState.Unchecked
       ),
       iconId: "link",
-      tooltip: l10n.t("OpenOCD Adapter Status Bar"),
+      tooltip: l10n.t("OpenOCD Adaptor (serial & location)"),
     },
     [CommandKeys.Debug]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(

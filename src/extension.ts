@@ -100,6 +100,7 @@ import {
   getOpenOcdScripts,
   selectOpenOcdConfigFiles,
 } from "./espIdf/openOcd/boardConfiguration";
+import { clearAdapterSerial } from "./espIdf/openOcd/adapterSerial";
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
@@ -2701,35 +2702,32 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand(CommandKeys.OpenOcdAdapterStatusBar, () => {
     PreCheck.perform([openFolderCheck], async () => {
-      const current = ESP.GlobalConfiguration.store.get<
-        vscode.TreeItemCheckboxState
-      >(
-        CommandKeys.OpenOcdAdapterStatusBar,
-        vscode.TreeItemCheckboxState.Unchecked
-      );
-      const next =
-        current === vscode.TreeItemCheckboxState.Checked
-          ? vscode.TreeItemCheckboxState.Unchecked
-          : vscode.TreeItemCheckboxState.Checked;
-
-      ESP.GlobalConfiguration.store.set(
-        CommandKeys.OpenOcdAdapterStatusBar,
-        next
-      );
-
-      if (statusBarItems["openOcdAdapter"]) {
-        if (next === vscode.TreeItemCheckboxState.Checked) {
-          updateOpenOcdAdapterStatusBarItem(workspaceRoot);
-          statusBarItems["openOcdAdapter"].show();
-        } else {
-          statusBarItems["openOcdAdapter"].hide();
-        }
+      if (!workspaceRoot) {
+        return;
       }
 
-      // Refresh checkbox state in ESP-IDF: Explorer (idfCommands)
-      if (commandTreeDataProvider) {
-        commandTreeDataProvider.refresh();
+      // Clear adapter serial (extension workspace state) and adapter location (settings.json)
+      clearAdapterSerial(workspaceRoot);
+
+      const cfg = vscode.workspace.getConfiguration("", workspaceRoot);
+      const extraVars =
+        (cfg.get<{ [key: string]: any }>("idf.customExtraVars") ?? {});
+      if (extraVars["OPENOCD_USB_ADAPTER_LOCATION"]) {
+        const nextExtraVars = { ...extraVars };
+        delete nextExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
+        await cfg.update(
+          "idf.customExtraVars",
+          nextExtraVars,
+          vscode.ConfigurationTarget.WorkspaceFolder
+        );
       }
+
+      // Stop OpenOCD if it is currently running to avoid keeping the old binding alive.
+      if (openOCDManager && openOCDManager.isRunning()) {
+        openOCDManager.stop();
+      }
+
+      updateOpenOcdAdapterStatusBarItem(workspaceRoot);
     });
   });
 

@@ -70,7 +70,7 @@
   "espIdf.ninja.summary.title": "Show Ninja Build Summary",
   "espIdf.openDocUrl.title": "Open ESP-IDF Documentation...",
   "espIdf.openOCDCommand.title": "OpenOCD Manager",
-  "espIdf.openOcdAdapterStatusBar.title": "OpenOCD Adapter Status Bar",
+  "espIdf.openOcdAdapterStatusBar.title": "OpenOCD Adaptor (serial & location)",
   "espIdf.partition.table.refresh.title": "Refresh Partition Table",
   "espIdf.pickAWorkspaceFolder.title": "Pick a Workspace Folder",
   "espIdf.projectConf.title": "Select Project Configuration",
