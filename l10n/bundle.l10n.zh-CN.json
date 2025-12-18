@@ -29,6 +29,8 @@
   "Do not show notifications but focus tasks output.": "不显示通知，但显示任务输出。",
   "Show notifications and focus tasks output.": "同时显示通知和任务输出。",
   "OpenOCD Adaptor (serial & location)": "OpenOCD 适配器（序列号与位置）",
+  "Set Target": "设置目标",
+  "Multiple connected boards were detected, but no OpenOCD adapter is selected (serial/location). To avoid flashing the wrong device, set the target for the connected board and rebuild.": "检测到多个已连接的开发板，但未选择 OpenOCD 适配器（序列号/位置）。为避免烧录到错误的设备，请为已连接的开发板设置目标并重新构建项目。",
   "Select the output and notification mode": "选择输出和通知模式",
   "Notification mode has changed to {mode}": "通知模式已改为 {mode}",
   "No project configuration found": "找不到项目配置",

@@ -29,6 +29,8 @@
   "Do not show notifications but focus tasks output.": "No muestre notificaciones, pero centre la salida de las tareas.",
   "Show notifications and focus tasks output.": "Muestra notificaciones y resultados de tareas de enfoque.",
   "OpenOCD Adaptor (serial & location)": "Adaptador OpenOCD (serie y ubicación)",
+  "Set Target": "Establecer objetivo",
+  "Multiple connected boards were detected, but no OpenOCD adapter is selected (serial/location). To avoid flashing the wrong device, set the target for the connected board and rebuild.": "Se detectaron varias placas conectadas, pero no se ha seleccionado ningún adaptador OpenOCD (serie/ubicación). Para evitar flashear el dispositivo incorrecto, establezca el objetivo de la placa conectada y vuelva a compilar.",
   "Select the output and notification mode": "Seleccione el modo de salida y notificación",
   "Notification mode has changed to {mode}": "El modo de notificación ha cambiado a {mode}",
   "No project configuration found": "No se encontró ninguna configuración de proyecto",

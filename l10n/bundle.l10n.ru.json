@@ -29,6 +29,8 @@
   "Do not show notifications but focus tasks output.": "Не показывать уведомления, но сосредоточить вывод задач.",
   "Show notifications and focus tasks output.": "Показывать уведомления и фокусировать вывод задач.",
   "OpenOCD Adaptor (serial & location)": "Адаптер OpenOCD (серийный номер и расположение)",
+  "Set Target": "Задать цель",
+  "Multiple connected boards were detected, but no OpenOCD adapter is selected (serial/location). To avoid flashing the wrong device, set the target for the connected board and rebuild.": "Обнаружено несколько подключённых плат, но не выбран адаптер OpenOCD (серийный номер/расположение). Чтобы избежать прошивки неправильного устройства, задайте цель для подключённой платы и пересоберите проект.",
   "Select the output and notification mode": "Выберите режим вывода и уведомления",
   "Notification mode has changed to {mode}": "Режим уведомлений изменен на {mode}",
   "No project configuration found": "Конфигурация проекта не найдена",

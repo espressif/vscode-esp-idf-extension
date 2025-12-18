@@ -101,6 +101,8 @@ import {
   selectOpenOcdConfigFiles,
 } from "./espIdf/openOcd/boardConfiguration";
 import { clearAdapterSerial } from "./espIdf/openOcd/adapterSerial";
+import { getStoredAdapterSerial } from "./espIdf/openOcd/adapterSerial";
+import { DevkitsCommand } from "./espIdf/setTarget/DevkitsCommand";
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
@@ -4531,6 +4533,51 @@ async function startFlashing(
       );
       return;
     }
+
+    // If no adapter binding is set and multiple boards are connected, block JTAG flash to avoid
+    // flashing the wrong device. User should select a connected board via Set Target first.
+    const storedSerial = getStoredAdapterSerial(workspaceRoot);
+    const customExtraVars = idfConf.readParameter(
+      "idf.customExtraVars",
+      workspaceRoot
+    ) as { [key: string]: string };
+    const storedLocation =
+      customExtraVars && customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"]
+        ? customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"]
+        : undefined;
+
+    if (!storedSerial && !storedLocation) {
+      try {
+        const devkitsCmd = new DevkitsCommand(workspaceRoot);
+        const scriptPath = await devkitsCmd.getScriptPath(currOpenOcdVersion);
+        if (scriptPath) {
+          const devkitsOutput = await devkitsCmd.runDevkitsScript(
+            currOpenOcdVersion
+          );
+          if (devkitsOutput) {
+            const parsed = JSON.parse(devkitsOutput);
+            const boards = parsed && Array.isArray(parsed.boards) ? parsed.boards : [];
+            if (boards.length > 1) {
+              const msg = vscode.l10n.t(
+                "Multiple connected boards were detected, but no OpenOCD adapter is selected (serial/location). To avoid flashing the wrong device, set the target for the connected board and rebuild."
+              );
+              await showInfoNotificationWithAction(
+                msg,
+                vscode.l10n.t("Set Target"),
+                () => vscode.commands.executeCommand(CommandKeys.SetEspressifTarget)
+              );
+              return false;
+            }
+          }
+        }
+      } catch (e) {
+        // Best-effort only: detection failures must not block JTAG flashing.
+        Logger.info(
+          `Skipping connected-board detection before JTAG flash: ${e && (e as any).message ? (e as any).message : e}`
+        );
+      }
+    }
+
     return await jtagFlashCommand(workspaceRoot);
   } else {
     const idfPathDir = idfConf.readParameter(
