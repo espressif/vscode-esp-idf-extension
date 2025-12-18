@@ -1203,6 +1203,20 @@ export async function activate(context: vscode.ExtensionContext) {
         }
       }
     }
+
+    // Refresh OpenOCD adapter status bar item when adapter location is manually edited
+    if (
+      workspaceRoot &&
+      e.affectsConfiguration("idf.customExtraVars", workspaceRoot) &&
+      statusBarItems &&
+      statusBarItems["openOcdAdapter"] &&
+      ESP.GlobalConfiguration.store.get<vscode.TreeItemCheckboxState>(
+        CommandKeys.OpenOcdAdapterStatusBar,
+        vscode.TreeItemCheckboxState.Unchecked
+      ) === vscode.TreeItemCheckboxState.Checked
+    ) {
+      updateOpenOcdAdapterStatusBarItem(workspaceRoot);
+    }
     if (e.affectsConfiguration("idf.enableStatusBar")) {
       const enableStatusBar = idfConf.readParameter(
         "idf.enableStatusBar",
