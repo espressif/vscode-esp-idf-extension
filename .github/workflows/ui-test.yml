@@ -3,12 +3,12 @@ name: UI Test
 on:
   push:
     branches:
-    - master
-    - release/v2.0
+      - master
+      - release/v2.0
   pull_request:
     branches:
-    - master
-    - release/v2.0
+      - master
+      - release/v2.0
 
 jobs:
   ui_test:
@@ -42,46 +42,39 @@ jobs:
 
       - name: Run UI tests
         run: |
+          mkdir -p ./out
           yarn ci-test 2>&1 | tee test-output.log
-          
-          # Mocha should save results to ./out/ui-test-results.json via .mocharc-ci.js
-          # But if JSON is in the output, extract it as fallback
-          if [ ! -f "./out/ui-test-results.json" ] && grep -q '{' test-output.log; then
-            echo "Mocha results file not found, extracting JSON from output..."
-            grep -n '{' test-output.log | head -1 | cut -d: -f1 > start-line.txt
-            grep -n '}' test-output.log | tail -1 | cut -d: -f1 > end-line.txt
-            if [ -s start-line.txt ] && [ -s end-line.txt ]; then
-              start_line=$(cat start-line.txt)
-              end_line=$(cat end-line.txt)
-              sed -n "${start_line},${end_line}p" test-output.log > ./out/ui-test-results.json
-              # Clean up the JSON file
-              sed 's/}[^,]*$/}/' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              sed '/INFO:/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              sed '/Screenshots of failures can be found in:/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              sed '/\x1b\[/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              sed '/\[33m/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              sed '/\[0m/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              sed '/test-resources\/screenshots\//d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              echo "JSON results extracted and saved to ./out/ui-test-results.json"
-            else
-              echo "Could not find JSON boundaries in output"
-            fi
-            rm -f start-line.txt end-line.txt ./out/temp.json
+
+      - name: Extract UI test JSON fallback
+        run: |
+          mkdir -p ./out
+          if [ ! -f "./out/ui-test-results.json" ]; then
+            echo "Attempting fallback JSON extraction from test-output.log"
+            node -e '
+              const fs = require("fs");
+              const log = fs.readFileSync("test-output.log","utf8");
+              const match = log.match(/(\{[\s\S]*"stats"[\s\S]*\})/);
+              if (!match) {
+                console.error("No JSON found in test-output.log");
+                process.exit(0);
+              }
+              try {
+                JSON.parse(match[1]);
+                fs.writeFileSync("./out/ui-test-results.json", match[1]);
+                console.log("Fallback JSON extracted successfully.");
+              } catch (err) {
+                console.error("Failed to parse fallback JSON:", err.message);
+              }
+            '
           fi
 
       - name: Print UI Test Results
         run: |
           echo "=== UI Test Results ==="
           if [ -f "./out/ui-test-results.json" ]; then
-            echo "UI Test Results:"
             cat ./out/ui-test-results.json | jq '.' || echo "Could not parse UI test results"
-          elif [ -f "./test-results.json" ]; then
-            echo "UI Test Results:"
-            cat ./test-results.json | jq '.' || echo "Could not parse UI test results"
           else
-            echo "No UI test results file found"
-            echo "Checking for other test output files:"
-            find . -name "*test*results*" -o -name "*ui-test-results.json*" | head -10
+            echo "No UI test results file found."
           fi
 
       - name: Publish UI Test Report
@@ -103,8 +96,8 @@ jobs:
             test-output.log
 
       - name: Upload screenshots
-        uses: actions/upload-artifact@v4
         if: failure()
-        with: 
+        uses: actions/upload-artifact@v4
+        with:
           name: screenshots
-          path: /home/runner/work/vscode-esp-idf-extension/vscode-esp-idf-extension/test-resources/screenshots
+          path: ./test-resources/screenshots/
