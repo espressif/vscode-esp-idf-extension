@@ -21,7 +21,8 @@ import { ESP } from "../../config";
 import { Logger } from "../../logger/logger";
 
 /**
- * Key used to store the OpenOCD USB adapter serial number in workspace state
+ * Key used to store the OpenOCD USB adapter serial number in the extension workspace state
+ * (VS Code `context.workspaceState` via `ESP.ProjectConfiguration.store`), not in user/workspace settings.json.
  */
 const OPENOCD_ADAPTER_SERIAL_KEY = "openocd.usbAdapterSerial";
 

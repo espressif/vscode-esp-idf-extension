@@ -74,6 +74,7 @@
     "onCommand:espIdf.apptrace",
     "onCommand:espIdf.heaptrace",
     "onCommand:espIdf.openOCDCommand",
+    "onCommand:espIdf.openOcdAdapterStatusBar",
     "onCommand:espIdf.apptrace.archive.refresh",
     "onCommand:espIdf.apptrace.archive.showReport",
     "onCommand:espIdf.apptrace.customize",
@@ -1477,6 +1478,11 @@
       {
         "command": "espIdf.openOCDCommand",
         "title": "%espIdf.openOCDCommand.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.openOcdAdapterStatusBar",
+        "title": "%espIdf.openOcdAdapterStatusBar.title%",
         "category": "ESP-IDF"
       },
       {

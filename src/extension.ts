@@ -100,6 +100,9 @@ import {
   getOpenOcdScripts,
   selectOpenOcdConfigFiles,
 } from "./espIdf/openOcd/boardConfiguration";
+import { clearAdapterSerial } from "./espIdf/openOcd/adapterSerial";
+import { getStoredAdapterSerial } from "./espIdf/openOcd/adapterSerial";
+import { DevkitsCommand } from "./espIdf/setTarget/DevkitsCommand";
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
@@ -171,7 +174,11 @@ import {
 } from "./espIdf/hints/index";
 import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
 import { TroubleshootingPanel } from "./support/troubleshootPanel";
-import { createCmdsStatusBarItems, statusBarItems } from "./statusBar";
+import {
+  createCmdsStatusBarItems,
+  statusBarItems,
+  updateOpenOcdAdapterStatusBarItem,
+} from "./statusBar";
 import {
   CommandKeys,
   createCommandDictionary,
@@ -1198,6 +1205,20 @@ export async function activate(context: vscode.ExtensionContext) {
           cdtDebugAdapterFactory.dispose();
         }
       }
+    }
+
+    // Refresh OpenOCD adapter status bar item when adapter location is manually edited
+    if (
+      workspaceRoot &&
+      e.affectsConfiguration("idf.customExtraVars", workspaceRoot) &&
+      statusBarItems &&
+      statusBarItems["openOcdAdapter"] &&
+      ESP.GlobalConfiguration.store.get<vscode.TreeItemCheckboxState>(
+        CommandKeys.OpenOcdAdapterStatusBar,
+        vscode.TreeItemCheckboxState.Unchecked
+      ) === vscode.TreeItemCheckboxState.Checked
+    ) {
+      updateOpenOcdAdapterStatusBarItem(workspaceRoot);
     }
     if (e.affectsConfiguration("idf.enableStatusBar")) {
       const enableStatusBar = idfConf.readParameter(
@@ -2679,6 +2700,37 @@ export async function activate(context: vscode.ExtensionContext) {
       [webIdeCheck, openFolderCheck],
       openOCDManager.commandHandler
     );
+  });
+
+  registerIDFCommand(CommandKeys.OpenOcdAdapterStatusBar, () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      if (!workspaceRoot) {
+        return;
+      }
+
+      // Clear adapter serial (extension workspace state) and adapter location (settings.json)
+      clearAdapterSerial(workspaceRoot);
+
+      const cfg = vscode.workspace.getConfiguration("", workspaceRoot);
+      const extraVars =
+        cfg.get<{ [key: string]: any }>("idf.customExtraVars") ?? {};
+      if (extraVars["OPENOCD_USB_ADAPTER_LOCATION"]) {
+        const nextExtraVars = { ...extraVars };
+        delete nextExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
+        await cfg.update(
+          "idf.customExtraVars",
+          nextExtraVars,
+          vscode.ConfigurationTarget.WorkspaceFolder
+        );
+      }
+
+      // Stop OpenOCD if it is currently running to avoid keeping the old binding alive.
+      if (openOCDManager && openOCDManager.isRunning()) {
+        openOCDManager.stop();
+      }
+
+      updateOpenOcdAdapterStatusBarItem(workspaceRoot);
+    });
   });
 
   registerIDFCommand("espIdf.qemuCommand", () => {
@@ -4481,6 +4533,56 @@ async function startFlashing(
       );
       return;
     }
+
+    // If no adapter binding is set and multiple boards are connected, block JTAG flash to avoid
+    // flashing the wrong device. User should select a connected board via Set Target first.
+    const storedSerial = getStoredAdapterSerial(workspaceRoot);
+    const customExtraVars = idfConf.readParameter(
+      "idf.customExtraVars",
+      workspaceRoot
+    ) as { [key: string]: string };
+    const storedLocation =
+      customExtraVars && customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"]
+        ? customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"]
+        : undefined;
+
+    if (!storedSerial && !storedLocation) {
+      try {
+        const devkitsCmd = new DevkitsCommand(workspaceRoot);
+        const scriptPath = await devkitsCmd.getScriptPath(currOpenOcdVersion);
+        if (scriptPath) {
+          const devkitsOutput = await devkitsCmd.runDevkitsScript(
+            currOpenOcdVersion,
+            { silent: true }
+          );
+          if (devkitsOutput) {
+            const parsed = JSON.parse(devkitsOutput);
+            const boards =
+              parsed && Array.isArray(parsed.boards) ? parsed.boards : [];
+            if (boards.length > 1) {
+              const msg = vscode.l10n.t(
+                "Multiple connected boards were detected, but no OpenOCD adapter is selected (serial/location). To avoid flashing the wrong device, set the target for the connected board and rebuild."
+              );
+              await showInfoNotificationWithAction(
+                msg,
+                vscode.l10n.t("Set Target"),
+                () =>
+                  vscode.commands.executeCommand(CommandKeys.SetEspressifTarget)
+              );
+              return false;
+            }
+          }
+        }
+      } catch (e) {
+        // Best-effort only: detection failures must not block JTAG flashing.
+        Logger.info(
+          `Skipping connected-board detection before JTAG flash: ${
+            e && (e as any).message ? (e as any).message : e
+          }`
+        );
+      }
+    }
+
     return await jtagFlashCommand(workspaceRoot);
   } else {
     const idfPathDir = idfConf.readParameter(

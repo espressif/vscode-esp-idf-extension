@@ -41,9 +41,9 @@ import { updateCurrentProfileIdfTarget } from "../../project-conf";
 import { DevkitsCommand } from "./DevkitsCommand";
 import {
   clearAdapterSerial,
-  getStoredAdapterSerial,
 } from "../openOcd/adapterSerial";
 import { SerialPort } from "../serial/serialPort";
+import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
 
 export let isSettingIDFTarget = false;
 
@@ -211,6 +211,7 @@ export async function setIdfTarget(
           configurationTarget,
           workspaceFolder.uri
         );
+        updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
         await updateCurrentProfileIdfTarget(
           selectedTarget.idfTarget.target,
           workspaceFolder.uri

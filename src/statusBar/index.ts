@@ -35,8 +35,30 @@ import { CommandItem } from "../cmdTreeView/cmdTreeDataProvider";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { pathExists } from "fs-extra";
+import { getStoredAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
+
+export function updateOpenOcdAdapterStatusBarItem(workspaceFolder: Uri) {
+  const item = statusBarItems["openOcdAdapter"];
+  if (!item) {
+    return;
+  }
+
+  const serial = getStoredAdapterSerial(workspaceFolder);
+  const customExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as { [key: string]: string };
+  const location =
+    customExtraVars && customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"]
+      ? customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"]
+      : undefined;
+
+  const serialText = serial ? `S:${serial}` : "S:-";
+  const locationText = location ? `L:${location}` : "L:-";
+  item.text = `[Adapter] ${serialText} ${locationText}`;
+}
 
 export function updateStatusBarItemVisibility(cmdItem: CommandItem) {
   for (let statusBarItemKey of Object.keys(statusBarItems)) {
@@ -49,6 +71,16 @@ export function updateStatusBarItemVisibility(cmdItem: CommandItem) {
         cmdItem.command.command,
         cmdItem.checkboxState
       );
+
+      // Ensure OpenOCD adapter item text is refreshed when it becomes visible.
+      if (cmdItem.command.command === CommandKeys.OpenOcdAdapterStatusBar) {
+        const selectedWorkspace = ESP.GlobalConfiguration.store.get<Uri>(
+          ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
+        );
+        if (selectedWorkspace) {
+          updateOpenOcdAdapterStatusBarItem(selectedWorkspace);
+        }
+      }
     }
   }
 }
@@ -84,6 +116,16 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     104,
     commandDictionary[CommandKeys.pickWorkspace].checkboxState
   );
+
+  // OpenOCD adapter info (serial/location) - hidden by default, enabled from ESP-IDF Explorer checkbox.
+  statusBarItems["openOcdAdapter"] = createStatusBarItem(
+    "[Adapter] S:- L:-",
+    commandDictionary[CommandKeys.OpenOcdAdapterStatusBar].tooltip,
+    CommandKeys.OpenOcdAdapterStatusBar,
+    105,
+    commandDictionary[CommandKeys.OpenOcdAdapterStatusBar].checkboxState
+  );
+  updateOpenOcdAdapterStatusBarItem(workspaceFolder);
 
   statusBarItems["currentIdfVersion"] = createStatusBarItem(
     `$(${
