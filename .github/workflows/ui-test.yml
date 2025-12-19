@@ -22,7 +22,7 @@ jobs:
       - name: Install ESP-IDF
         uses: espressif/install-esp-idf-action@v1
         with:
-          version: "v5.4.2"
+          version: "v5.4.3"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
