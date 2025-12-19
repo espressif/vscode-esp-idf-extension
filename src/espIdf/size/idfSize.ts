@@ -63,7 +63,7 @@ export class IDFSize {
         utils.compareVersion(version, "5.3.0") >= 0
           ? ["--format", "json2"]
           : utils.compareVersion(version, "5.1.0") >= 0
-          ? ["--format", "json"] 
+          ? ["--format", "json"]
           : ["--json"];
       const overview = await this.idfCommandInvoker([
         "idf_size.py",
@@ -125,6 +125,7 @@ export class IDFSize {
       );
       const buffOut = await spawn(pythonBinPath, args, {
         cwd: idfPath,
+        silent: true,
       });
       const buffStr = buffOut.toString();
       const buffObj = JSON.parse(buffStr);
