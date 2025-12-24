@@ -111,7 +111,7 @@ export class DevkitsCommand {
         return await execChildProcess(
           pythonBinPath,
           [scriptPath, "--esp-config", espConfigPath],
-          this.workspaceRoot.fsPath,
+          this.workspaceFolderUri.fsPath,
           undefined,
           { env: modifiedEnv }
         );

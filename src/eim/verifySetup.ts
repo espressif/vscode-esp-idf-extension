@@ -100,7 +100,8 @@ export async function isIdfSetupValid(
     }
     const [pyEnvReqsValid, pyEnvReqsMsg] = await checkPyVenv(
       venvPythonPath,
-      envVars["IDF_PATH"]
+      envVars["IDF_PATH"],
+      envVars["IDF_TOOLS_PATH"]
     );
     if (!pyEnvReqsValid) {
       return [
@@ -122,7 +123,8 @@ export async function isIdfSetupValid(
 
 export async function checkPyVenv(
   pyVenvPath: string,
-  espIdfPath: string
+  espIdfPath: string,
+  espIdfToolsPath: string,
 ): Promise<[boolean, string]> {
   const pyExists = await pathExists(pyVenvPath);
   if (!pyExists) {
@@ -146,6 +148,7 @@ export async function checkPyVenv(
   const reqsResults = await startPythonReqsProcess(
     pyVenvPath,
     espIdfPath,
+    espIdfToolsPath,
     requirements
   );
   if (reqsResults.indexOf("are not satisfied") > -1) {
