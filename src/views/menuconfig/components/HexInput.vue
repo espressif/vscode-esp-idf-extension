@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { Menu } from "../../../espIdf/menuconfig/Menu";
-import { IconInfo } from "@iconify-prerendered/vue-codicon";
+import { IconInfo, IconDebugRestart } from "@iconify-prerendered/vue-codicon";
 import { Ref, ref } from "vue";
 import { vMaska } from "maska";
 
 const props = defineProps<{
   config: Menu;
+  canReset: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: "change", value: string): void;
+  (e: "resetElement", id: string): void;
 }>();
 
 let isHelpVisible: Ref<boolean> = ref(false);
@@ -22,6 +24,9 @@ function onChange(e: Event) {
   const target = e.target as HTMLInputElement;
   emit("change", target.value);
 }
+function resetElement(id: string) {
+  emit("resetElement", id);
+}
 </script>
 
 <template>
@@ -31,6 +36,13 @@ function onChange(e: Event) {
       <div class="control">
         <div class="info-icon" @click="toggleHelp">
           <IconInfo />
+        </div>
+        <div
+          class="info-icon reset-icon"
+          @click="resetElement(props.config.id)"
+          v-if="props.canReset"
+        >
+          <IconDebugRestart />
         </div>
       </div>
     </div>
@@ -60,12 +72,10 @@ function onChange(e: Event) {
 .form-group {
   padding-left: 30px;
   overflow: hidden;
-  margin-top: 9px;
-  margin-bottom: 9px;
 }
 
 .field {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.05rem;
 }
 
 .vscode-input {
@@ -100,6 +110,20 @@ function onChange(e: Event) {
 
 .info-icon:hover {
   color: var(--vscode-textLink-activeForeground);
+}
+
+.control {
+  display: flex;
+  align-items: center;
+}
+
+.reset-icon {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.field:hover .reset-icon {
+  opacity: 1;
 }
 
 .content {

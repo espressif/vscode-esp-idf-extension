@@ -26,7 +26,7 @@ import { Menu, menuType } from "./Menu";
 export class KconfigMenuLoader {
   public static updateValues(
     config: Menu,
-    values: { values: {}; visible: {}; ranges: {} }
+    values: { values: {}; visible: {}; ranges: {}; defaults?: {} }
   ): Menu {
     const newConfig: Menu = config;
     if (
@@ -37,6 +37,12 @@ export class KconfigMenuLoader {
         newConfig.type === menuType.hex
           ? values.values[newConfig.name].toString(16)
           : values.values[newConfig.name];
+    }
+    if (values.defaults && values.defaults.hasOwnProperty(newConfig.name)) {
+      newConfig.default =
+        newConfig.type === menuType.hex
+          ? values.defaults[newConfig.name].toString(16)
+          : values.defaults[newConfig.name];
     }
     if (values.visible.hasOwnProperty(newConfig.id)) {
       newConfig.isVisible = values.visible[newConfig.id];
@@ -95,6 +101,7 @@ export class KconfigMenuLoader {
       dependsOn: config.depends_on,
       children: [],
       value: null,
+      default: null,
     };
     for (const child of config.children) {
       const childMenu: Menu = this.mapJsonToMenuObject(child);

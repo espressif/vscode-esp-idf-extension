@@ -42,6 +42,7 @@
   "ESP-Matter Python Requirements have been installed": "Se han instalado los requisitos de ESP-Matter Python",
   "PyTest python packages are already installed.": "Los paquetes de Python de PyTest ya están instalados.",
   "ESP-IDF: Building unit test app and flashing": "ESP-IDF: aplicación de prueba unitaria de construcción y flasheo",
+  "Flash encryption or secure boot is enabled on the sdkconfig. Erasing flash will permanently remove the encryption keys and may render the device unusable.": "El cifrado de flash o el arranque seguro está habilitado en el sdkconfig. Borrar el flash eliminará permanentemente las claves de cifrado y puede inutilizar el dispositivo.",
   "ESP-IDF vscode files have been added to the project.": "Se han agregado archivos ESP-IDF vscode al proyecto.",
   "ESP-IDF container files have been added to the project.": "Se han agregado archivos contenedores ESP-IDF al proyecto.",
   "Enter ESP-IDF component name": "Ingrese el nombre del componente ESP-IDF",
@@ -267,5 +268,6 @@
   "Learn More": "Más información",
   "Not Now": "Ahora no",
   "To install the pre-release version, click the 'Switch to Pre-Release Version' button.": "Para instalar la versión preliminar, haga clic en el botón 'Cambiar a versión preliminar'.",
-  "Got it": "Entendido"
+  "Got it": "Entendido",
+  "Flash encryption or secure boot is enabled on the device. Erasing flash will permanently remove the encryption keys and may render the device unusable.": "El cifrado de flash o el arranque seguro está habilitado en el dispositivo. Borrar el flash eliminará permanentemente las claves de cifrado y puede inutilizar el dispositivo."
 }

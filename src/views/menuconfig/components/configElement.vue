@@ -7,19 +7,31 @@ import Checkbox from "./checkbox.vue";
 import NumberInput from "./NumberInput.vue";
 import StringInput from "./StringInput.vue";
 import HexInput from "./HexInput.vue";
+import { IconDebugRestart } from "@iconify-prerendered/vue-codicon";
+import { computed } from "vue";
 
 const props = defineProps<{
   config: Menu;
 }>();
 const store = useMenuconfigStore();
 
-function onChange(e) {
+const canResetMenu = computed(() => store.confserverVersion >= 3);
+
+function onChange(e: any) {
   if (props.config.type === menuType.hex) {
     props.config.value = e;
   } else if (props.config.type === "bool") {
     props.config.value = e;
   }
   store.sendNewValue(props.config);
+}
+
+function resetElement(id: string) {
+  store.resetElement(id);
+}
+
+function resetElementChildren(children: string[]) {
+  store.resetElementChildren(children);
 }
 </script>
 
@@ -31,39 +43,60 @@ function onChange(e) {
     <SelectDropdown
       v-if="props.config.type === 'choice'"
       :config="props.config"
+      :canReset="canResetMenu"
       @change="onChange"
+      @resetElement="resetElementChildren"
     />
     <Checkbox
       v-if="props.config.type === 'bool'"
       :config="props.config"
+      :canReset="canResetMenu"
       @change="onChange"
+      @resetElement="resetElement"
     />
     <NumberInput
       v-if="props.config.type === 'int'"
       :config="props.config"
+      :canReset="canResetMenu"
       @change="onChange"
+      @resetElement="resetElement"
     />
     <StringInput
       v-if="props.config.type === 'string'"
       :config="props.config"
+      :canReset="canResetMenu"
       @change="onChange"
+      @resetElement="resetElement"
     />
     <HexInput
       v-if="props.config.type === 'hex'"
       :config="props.config"
+      :canReset="canResetMenu"
       @change="onChange"
+      @resetElement="resetElement"
     />
     <div
       v-if="props.config.type === 'menu'"
       :id="props.config.id"
       class="submenu form-group"
     >
-      <h4 class="menu-title" v-text="props.config.title" />
+      <div class="menu-title-wrapper">
+        <h4 class="menu-title" v-text="props.config.title" />
+        <div
+          class="reset-icon"
+          @click="resetElement(props.config.id)"
+          v-if="canResetMenu"
+        >
+          <IconDebugRestart />
+        </div>
+      </div>
       <Checkbox
         class="menuconfig"
         v-if="props.config.isMenuconfig"
         :config="props.config"
+        :canReset="canResetMenu"
         @change="onChange"
+        @resetElement="resetElement"
       />
     </div>
 
@@ -81,9 +114,8 @@ function onChange(e) {
 .form-group {
   padding-left: 30px;
   overflow: hidden;
-  margin-top: 9px;
-  margin-bottom: 9px;
 }
+
 .config-el {
   width: 90%;
 }
@@ -93,23 +125,52 @@ function onChange(e) {
 .submenu {
   padding-left: 0px;
   overflow: hidden;
-  padding: 10px 10px 10px 15px;
 }
 .menuconfig {
   padding-left: 0px;
 }
+.menu-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .menu-title {
-  font-family: var(--vscode-font-family, "Segoe WPC", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif);
+  font-family: var(
+    --vscode-font-family,
+    "Segoe WPC",
+    "Segoe UI",
+    Tahoma,
+    Geneva,
+    Verdana,
+    sans-serif
+  );
   font-weight: 750;
-  font-size: 26px;
+  font-size: 16px;
   color: var(--vscode-settings-headerForeground, #888888);
+  margin: 0;
+}
+
+.reset-icon {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+}
+
+.reset-icon:hover {
+  color: var(--vscode-textLink-activeForeground);
+}
+
+.submenu:hover .reset-icon {
+  opacity: 1;
 }
 
 .config-children .menu-title {
-  font-size: 22px;
+  font-size: 16px;
 }
 
 .config-children .config-children .menu-title {
-  font-size: 18px;
+  font-size: 14px;
+  font-weight: 600;
 }
 </style>
