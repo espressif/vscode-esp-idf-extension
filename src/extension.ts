@@ -171,10 +171,7 @@ import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
 import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
 import { readSerialPort } from "./idfConfiguration";
-import {
-  openFolderCheck,
-  webIdeCheck,
-} from "./common/PreCheck";
+import { openFolderCheck, webIdeCheck } from "./common/PreCheck";
 import { buildFlashAndMonitor } from "./buildFlashMonitor";
 import { selectFlashMethod, startFlashing } from "./flash/startFlashing";
 import { jtagEraseFlashCommand } from "./flash/eraseFlashJtag";
