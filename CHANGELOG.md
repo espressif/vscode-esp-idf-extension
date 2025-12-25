@@ -569,7 +569,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 
 - [Send Ctrl + \] signal to exit idf monitor on flash tasks](https://github.com/espressif/vscode-esp-idf-extension/pull/382)
 - [Fix New project wizard require serial ports, add esp32s3 esp32c3, release vsix without extension dependencies](https://github.com/espressif/vscode-esp-idf-extension/pull/378)
-- [Check arduino component directory exists, remove old arduino-esp32 cloning branches](hhttps://github.com/espressif/vscode-esp-idf-extension/pull/370)
+- [Check arduino component directory exists, remove old arduino-esp32 cloning branches](https://github.com/espressif/vscode-esp-idf-extension/pull/370)
 - [Remove IDF Tools exact match on extension activation](https://github.com/espressif/vscode-esp-idf-extension/pull/359)
 - [Fix device configuration target setting](https://github.com/espressif/vscode-esp-idf-extension/pull/384)
 
@@ -722,13 +722,13 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - SEO for vscode marketplace, add keywords and update description
 - Enhance and Fix some bugs with IDF Monitor terminal
 - Update Stale CI configs
-- Project structore enhancement, remove unused files in project
+- Project structure enhancement, remove unused files in project
 - Fix xtensa toolchain issue and getProjectName
 - Update OpenOCD script checks
 
 ## [0.2.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.2.0)
 
-### Release Debug Adapter for ESP-IDF withing VSCode
+### Release Debug Adapter for ESP-IDF within VSCode
 
 - Release Debug Adapter, this would enable debugging for an IDF project from within the VSCode IDE, please refer the guide for how to use the same
 - Add support for save before IDF build, this would save all your edited files and then trigger a build.
