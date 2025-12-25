@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Monday, 19th July 2021 7:11:49 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,8 +24,9 @@ import {
   readSerialPort,
 } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { appendIdfAndToolsToPath, spawn } from "../../utils";
+import { spawn } from "../../utils";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export async function flashBinaryToPartition(
   offset: string,
@@ -49,7 +50,7 @@ export async function flashBinaryToPartition(
     },
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
-        const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
+        const modifiedEnv = await configureEnvVariables(workspaceFolder);
         const serialPort = await readSerialPort(workspaceFolder, false);
         if (!serialPort) {
           return Logger.warnNotify(
@@ -59,8 +60,8 @@ export async function flashBinaryToPartition(
             )
           );
         }
-        const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-        const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+        const idfPath = modifiedEnv["IDF_PATH"];
+        const pythonBinPath = await getVirtualEnvPythonPath();
         const esptoolPath = join(
           idfPath,
           "components",

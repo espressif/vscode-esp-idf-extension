@@ -76,7 +76,7 @@ function closeErrorDialog() {
 </template>
 
 <style lang="scss">
-@import "../commons/espCommons.scss";
+@use "../commons/espCommons.scss" as *;
 @import "~@creativebulma/bulma-tooltip/dist/bulma-tooltip.min.css";
 
 #app {

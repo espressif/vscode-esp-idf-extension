@@ -10,7 +10,7 @@ function convertToKB(byte: number) {
 }
 
 function getArchiveProp(prop1: string, prop2: string) {
-  return Object.keys(overviewData.value).indexOf(prop1) !== -1
+  return Object.keys(overviewData.value).indexOf(prop1) >= 0
     ? overviewData.value[prop1]
     : overviewData.value[prop2];
 }

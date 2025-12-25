@@ -145,5 +145,5 @@ function fetchFunctionFilePath(addr: string): string {
 </template>
 
 <style lang="scss" scoped>
-@import "table";
+@use "table" as *;
 </style>
