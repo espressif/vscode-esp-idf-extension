@@ -48,12 +48,6 @@ export class EraseFlashTask {
     EraseFlashTask.isErasing = flag;
   }
 
-  private verifyArgs(flashScriptPath: string) {
-    if (!canAccessFile(flashScriptPath, constants.R_OK)) {
-      throw new Error("SCRIPT_PERMISSION_ERROR");
-    }
-  }
-
   public async eraseFlash(port: string) {
     if (EraseFlashTask.isErasing) {
       throw new Error("ALREADY_ERASING");
@@ -90,7 +84,10 @@ export class EraseFlashTask {
       "esptool",
       "esptool.py"
     );
-    this.verifyArgs(flashScriptPath);
+
+    if (!canAccessFile(flashScriptPath, constants.R_OK)) {
+      throw new Error("SCRIPT_PERMISSION_ERROR");
+    }
 
     const pythonBinPath = await getVirtualEnvPythonPath();
     const eraseExecution = this._eraseExecution(
@@ -120,7 +117,7 @@ export class EraseFlashTask {
     return eraseExecution;
   }
 
-  private async _eraseExecution(
+  private _eraseExecution(
     pythonBinPath: string,
     port: string,
     flashScriptPath: string
@@ -128,7 +125,7 @@ export class EraseFlashTask {
     this.erasing(true);
     const args = [flashScriptPath, "-p", port, "erase_flash"];
     const processOptions = {
-      cwd: process.cwd(),
+      cwd: this.currentWorkspace.fsPath || process.cwd(),
       env: this.modifiedEnv,
     };
     return OutputCapturingExecution.create(pythonBinPath, args, processOptions);
