@@ -15,9 +15,10 @@ jobs:
     runs-on: [self-hosted, Linux, BrnoUBU0004]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          submodules: "recursive"
+          submodules: recursive
 
       - name: Install ESP-IDF
         uses: espressif/install-esp-idf-action@v1
@@ -27,7 +28,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Enable Corepack (Yarn)
         run: |
@@ -43,39 +44,17 @@ jobs:
       - name: Run UI tests
         run: |
           mkdir -p ./out
-          yarn ci-test 2>&1 | tee test-output.log
+          yarn ci-test | tee test-output.log
 
-      - name: Extract UI test JSON fallback
+      # 🔒 REQUIRED: hard guarantee that Mocha produced JSON
+      - name: Validate Mocha test report
         run: |
-          mkdir -p ./out
           if [ ! -f "./out/ui-test-results.json" ]; then
-            echo "Attempting fallback JSON extraction from test-output.log"
-            node -e '
-              const fs = require("fs");
-              const log = fs.readFileSync("test-output.log","utf8");
-              const match = log.match(/(\{[\s\S]*"stats"[\s\S]*\})/);
-              if (!match) {
-                console.error("No JSON found in test-output.log");
-                process.exit(0);
-              }
-              try {
-                JSON.parse(match[1]);
-                fs.writeFileSync("./out/ui-test-results.json", match[1]);
-                console.log("Fallback JSON extracted successfully.");
-              } catch (err) {
-                console.error("Failed to parse fallback JSON:", err.message);
-              }
-            '
+            echo "ERROR: Mocha did not generate ui-test-results.json"
+            echo "Check test-output.log for details"
+            exit 1
           fi
-
-      - name: Print UI Test Results
-        run: |
-          echo "=== UI Test Results ==="
-          if [ -f "./out/ui-test-results.json" ]; then
-            cat ./out/ui-test-results.json | jq '.' || echo "Could not parse UI test results"
-          else
-            echo "No UI test results file found."
-          fi
+          jq empty ./out/ui-test-results.json
 
       - name: Publish UI Test Report
         uses: dorny/test-reporter@v2
@@ -85,19 +64,19 @@ jobs:
           path: ./out/ui-test-results.json
           reporter: mocha-json
 
-      - name: Upload UI test results
+      - name: Upload UI test artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ui-test-results
           path: |
             ./out/ui-test-results.json
-            ./test-resources/screenshots/
             test-output.log
+            test-resources/screenshots/
 
-      - name: Upload screenshots
-        if: failure()
+      - name: Upload screenshots (on failure)
         uses: actions/upload-artifact@v4
+        if: failure()
         with:
           name: screenshots
-          path: ./test-resources/screenshots/
+          path: test-resources/screenshots/
