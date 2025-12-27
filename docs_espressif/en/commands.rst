@@ -90,6 +90,8 @@ All commands start with ``ESP-IDF:``.
      - Launch UI to create a CSV file for `ESP-IDF Non-Volatile Storage Library <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_flash.html>`_.
    * - Open ESP-IDF Terminal
      - Open a terminal with IDF_PATH and Python virtual environment activated.
+   * - OpenOCD Adaptor (serial & location)
+     - Toggle the status bar item that shows the OpenOCD adapter serial number (S) and USB adapter location (L), useful to verify which adapter will be used when multiple devices are connected.
    * - Open ESP-IDF Install Manager
      - Open the ESP-IDF Install Manager to install and manage ESP-IDF versions and tools.
    * - Partition Table Editor

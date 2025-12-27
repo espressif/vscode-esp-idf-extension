@@ -54,6 +54,8 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
     reset: "Reset",
   });
 
+  const confserverVersion = ref(2);
+
   const selectedMenu = computed({
     get: () => _selectedMenu.value,
     set: (value: string) => {
@@ -61,7 +63,7 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
     }
   });
 
-  function sendNewValue(newValue) {
+  function sendNewValue(newValue: any) {
     vscode.postMessage({
       command: "updateValue",
       updated_value: JSON.stringify(newValue),
@@ -72,6 +74,20 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
     // Save current items
     vscode.postMessage({
       command: "saveChanges",
+    });
+  }
+
+  function resetElement(id: string) {
+    vscode.postMessage({
+      command: "resetElement",
+      id: id,
+    });
+  }
+
+  function resetElementChildren(children: string[]) {
+    vscode.postMessage({
+      command: "resetElementChildren",
+      children: children,
     });
   }
 
@@ -96,6 +112,7 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
   }
 
   return {
+    confserverVersion,
     items,
     searchString,
     selectedMenu,
@@ -103,6 +120,8 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
     sendNewValue,
     setDefaultConfig,
     saveGuiConfig,
+    resetElement,
+    resetElementChildren,
     resetGuiConfig,
     requestInitValues,
   };

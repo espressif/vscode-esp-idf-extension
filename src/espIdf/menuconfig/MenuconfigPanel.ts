@@ -137,55 +137,65 @@ export class MenuConfigPanel {
             JSON.parse(message.updated_value) as Menu
           );
           break;
+        case "resetElement":
+          ConfserverProcess.resetElementById(message.id);
+          break;
+        case "resetElementChildren":
+          ConfserverProcess.resetElementChildren(message.children);
+          break;
         case "setDefault":
-          const changesNotSavedMessage = vscode.l10n.t(
-            "This action will delete your project sdkconfig. Continue?"
-          );
-          const yesMsg = vscode.l10n.t("Save");
-          const noMsg = vscode.l10n.t("Discard");
-          const isModal = process.platform !== "win32" ? true : false;
-          const selected = await vscode.window.showInformationMessage(
-            changesNotSavedMessage,
-            { modal: isModal },
-            { title: yesMsg, isCloseAffordance: false },
-            { title: noMsg, isCloseAffordance: true }
-          );
-          if (selected.title === yesMsg) {
-            const notificationMode = readParameter(
-              "idf.notificationMode",
-              this.curWorkspaceFolder
-            ) as string;
-            const ProgressLocation =
-              notificationMode === NotificationMode.All ||
-              notificationMode === NotificationMode.Notifications
-                ? vscode.ProgressLocation.Notification
-                : vscode.ProgressLocation.Window;
-            vscode.window.withProgress(
-              {
-                cancellable: true,
-                location: ProgressLocation,
-                title: "ESP-IDF: SDK Configuration editor",
-              },
-              async (
-                progress: vscode.Progress<{
-                  message: string;
-                  increment: number;
-                }>
-              ) => {
-                try {
-                  await ConfserverProcess.setDefaultValues(
-                    extensionPath,
-                    progress
-                  );
-                } catch (error) {
-                  Logger.errorNotify(
-                    error.message,
-                    error,
-                    "MenuConfigPanel setDefaultValues"
-                  );
-                }
-              }
+          if (ConfserverProcess.confserverVersion >= 3) {
+            ConfserverProcess.resetElementById("all");
+          } else {
+            const changesNotSavedMessage = vscode.l10n.t(
+              "This action will delete your project sdkconfig. Continue?"
             );
+            const yesMsg = vscode.l10n.t("Save");
+            const noMsg = vscode.l10n.t("Discard");
+            const isModal = process.platform !== "win32" ? true : false;
+            const selected = await vscode.window.showInformationMessage(
+              changesNotSavedMessage,
+              { modal: isModal },
+              { title: yesMsg, isCloseAffordance: false },
+              { title: noMsg, isCloseAffordance: true }
+            );
+            if (selected.title === yesMsg) {
+              const notificationMode = readParameter(
+                "idf.notificationMode",
+                this.curWorkspaceFolder
+              ) as string;
+              const ProgressLocation =
+                notificationMode === NotificationMode.All ||
+                notificationMode === NotificationMode.Notifications
+                  ? vscode.ProgressLocation.Notification
+                  : vscode.ProgressLocation.Window;
+              vscode.window.withProgress(
+                {
+                  cancellable: true,
+                  location: ProgressLocation,
+                  title: "ESP-IDF: SDK Configuration editor",
+                },
+                async (
+                  progress: vscode.Progress<{
+                    message: string;
+                    increment: number;
+                  }>
+                ) => {
+                  try {
+                    await ConfserverProcess.setDefaultValues(
+                      extensionPath,
+                      progress
+                    );
+                  } catch (error) {
+                    Logger.errorNotify(
+                      error.message,
+                      error,
+                      "MenuConfigPanel setDefaultValues"
+                    );
+                  }
+                }
+              );
+            }
           }
           break;
         case "saveChanges":
@@ -206,6 +216,7 @@ export class MenuConfigPanel {
           MenuConfigPanel.currentPanel.panel.webview.postMessage({
             command: "load_initial_values",
             menus: initialValues,
+            version: ConfserverProcess.confserverVersion,
           });
           break;
         default:

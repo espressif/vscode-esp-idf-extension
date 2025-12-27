@@ -94,6 +94,8 @@
      - 启动 UI，创建 `ESP-IDF 非易失性存储库 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-reference/storage/nvs_flash.html>`_ 的 CSV 文件。
    * - 打开 ESP-IDF 终端
      - 打开一个终端，并激活 IDF_PATH 和 Python 虚拟环境。
+   * - OpenOCD 适配器状态栏
+     - 切换状态栏显示 OpenOCD 适配器序列号（S）和 USB 适配器位置（L），用于在连接多个设备时确认将使用的适配器。
    * - 分区表编辑器
      - 启动 UI，如 `ESP-IDF 分区表 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/partition-tables.html>`_ 中所述，管理自定义分区表。
    * - 选择工作区文件夹

@@ -46,7 +46,9 @@ function filterItems(items: Menu[], searchString: string) {
         const filteredChildren = filterItems(item.children, searchString);
         if (filteredChildren.length > 0) {
           const newItem = Object.assign({}, item);
-          newItem.children = filteredChildren;
+          if (item.type !== "choice") {
+            newItem.children = filteredChildren;
+          }
           filteredItems.push(newItem);
         }
       }
@@ -71,7 +73,9 @@ function onScroll() {
   const configList = document.querySelector(".config-list") as HTMLElement;
   if (!configList) return;
 
-  const sections = Array.from(document.querySelectorAll(".submenu.form-group")) as HTMLElement[];
+  const sections = Array.from(
+    document.querySelectorAll(".submenu.form-group")
+  ) as HTMLElement[];
   if (sections.length === 0) return;
 
   const scrollTop = configList.scrollTop;
@@ -102,28 +106,28 @@ const handleScroll = (event) => {
 
 function handleMenuSelect(value: string) {
   store.selectedMenu = value;
-  const secNew = document.querySelector('#' + value) as HTMLElement;
+  const secNew = document.getElementById(value);
   if (secNew) {
-    secNew.scrollIntoView({ behavior: 'auto', block: 'start' });
+    secNew.scrollIntoView({ behavior: "auto", block: "start" });
   }
 }
 
 function handleMouseDown(e: MouseEvent) {
   isDragging.value = true;
-  document.body.style.cursor = 'col-resize';
-  document.body.style.userSelect = 'none';
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
   e.preventDefault();
 }
 
 function handleMouseMove(e: MouseEvent) {
   if (!isDragging.value) return;
-  
-  const mainElement = document.getElementById('main');
+
+  const mainElement = document.getElementById("main");
   if (!mainElement) return;
 
   const mainRect = mainElement.getBoundingClientRect();
   const newWidth = e.clientX - mainRect.left;
-  
+
   if (newWidth >= minTreeWidth && newWidth <= maxTreeWidth) {
     treeWidth.value = newWidth;
   }
@@ -132,8 +136,8 @@ function handleMouseMove(e: MouseEvent) {
 function handleMouseUp() {
   if (!isDragging.value) return;
   isDragging.value = false;
-  document.body.style.cursor = '';
-  document.body.style.userSelect = '';
+  document.body.style.cursor = "";
+  document.body.style.userSelect = "";
 }
 
 onMounted(() => {
@@ -142,8 +146,8 @@ onMounted(() => {
   if (scrollableDiv) {
     scrollableDiv.addEventListener("scroll", handleScroll);
   }
-  window.addEventListener('mousemove', handleMouseMove);
-  window.addEventListener('mouseup', handleMouseUp);
+  window.addEventListener("mousemove", handleMouseMove);
+  window.addEventListener("mouseup", handleMouseUp);
 });
 
 onUnmounted(() => {
@@ -151,8 +155,8 @@ onUnmounted(() => {
   if (scrollableDiv) {
     scrollableDiv.removeEventListener("scroll", handleScroll);
   }
-  window.removeEventListener('mousemove', handleMouseMove);
-  window.removeEventListener('mouseup', handleMouseUp);
+  window.removeEventListener("mousemove", handleMouseMove);
+  window.removeEventListener("mouseup", handleMouseUp);
 });
 </script>
 
@@ -160,13 +164,20 @@ onUnmounted(() => {
   <div class="container">
     <SearchBar />
     <div id="main" class="grid-container">
-      <div class="sidenav" :style="{ width: treeWidth + 'px', minWidth: treeWidth + 'px', maxWidth: treeWidth + 'px' }">
+      <div
+        class="sidenav"
+        :style="{
+          width: treeWidth + 'px',
+          minWidth: treeWidth + 'px',
+          maxWidth: treeWidth + 'px',
+        }"
+      >
         <SettingsTree :data="store.items" @select="handleMenuSelect" />
       </div>
-      <div 
-        class="resize-handle" 
+      <div
+        class="resize-handle"
         @mousedown="handleMouseDown"
-        :class="{ 'dragging': isDragging }"
+        :class="{ dragging: isDragging }"
       ></div>
       <div id="scrollable" class="config-list" @scroll="handleScroll">
         <ConfigElement
@@ -181,6 +192,10 @@ onUnmounted(() => {
 
 <style lang="scss">
 @use "../commons/espCommons.scss" as *;
+
+.field:not(:last-child) {
+  margin-bottom: 0 !important;
+}
 
 .container {
   width: 100%;
@@ -208,17 +223,17 @@ onUnmounted(() => {
   transition: background-color 0.1s;
   z-index: 1;
   position: relative;
-  
+
   &:hover {
     background-color: var(--vscode-sash-hoverBorder);
   }
-  
+
   &.dragging {
     background-color: var(--vscode-sash-activeBorder);
   }
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     left: -4px;
     top: 0;
@@ -238,7 +253,6 @@ p {
   min-width: 300px;
   max-width: 800px;
   padding: 0 0.5rem;
-  margin: 0 auto;
 }
 
 .sidenav {

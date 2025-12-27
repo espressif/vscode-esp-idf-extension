@@ -144,6 +144,7 @@ You can modify the configuration to suit your needs. Let's describe the configur
 
 Some additional arguments you might use are:
 
+- ``buildFlashMonitor``: (Default: false). Build, flash and launch IDF Monitor before starting the debug session. Use ``idf.monitorDelay`` to set a delay, in milliseconds, after starting the monitor (Default is ``1000``).
 - ``debugPort``: (Default: 43476) The port to launch the Eclipse CDT GDB Debug Adapter server. If not specified, it will use the default value of 43476.
 - ``runOpenOCD``: (Default: true). Run extension OpenOCD Server.
 - ``verifyAppBinBeforeDebug``: (Default: false) Verify that current ESP-IDF project binary is the same as binary in chip.

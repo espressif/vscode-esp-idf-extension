@@ -22,18 +22,22 @@ import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
-import {
-  isBinInPath,
-  PreCheck,
-  spawn as sspawn,
-} from "../../utils";
+import { isBinInPath, PreCheck, spawn as sspawn } from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 import { ESP } from "../../config";
-import { statusBarItems } from "../../statusBar";
+import {
+  statusBarItems,
+  updateOpenOcdAdapterStatusBarItem,
+} from "../../statusBar";
 import {
   CommandKeys,
   createCommandDictionary,
 } from "../../cmdTreeView/cmdStore";
+import {
+  parseAdapterSerialFromLog,
+  storeAdapterSerial,
+  getStoredAdapterSerial,
+} from "./adapterSerial";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
 export interface IOpenOCDConfig {
@@ -59,7 +63,7 @@ export class OpenOCDManager extends EventEmitter {
     this.configureServerWithDefaultParam();
   }
 
-  public async version(): Promise<string> {
+  public async version(silent: boolean = false): Promise<string> {
     const modifiedEnv = await configureEnvVariables(this.workspace);
     const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
       "openocd-esp32",
@@ -70,6 +74,7 @@ export class OpenOCDManager extends EventEmitter {
     const resp = await sspawn(openOcdPath, ["--version"], {
       cwd: this.workspace.fsPath,
       env: modifiedEnv,
+      silent,
     });
     const versionString = resp.toString();
     const match = versionString.match(/v\d+\.\d+\.\d+\-\S*/gi);
@@ -180,8 +185,20 @@ export class OpenOCDManager extends EventEmitter {
       this.workspace
     ) as string[];
 
+    const storedSerial = getStoredAdapterSerial(this.workspace);
+    const needsSerialDiscovery = !storedSerial;
+
     if (openOcdLaunchArgs && openOcdLaunchArgs.length > 0) {
       openOcdArgs.push(...openOcdLaunchArgs);
+
+      // If no adapter serial is stored yet, ensure OpenOCD runs at least at -d2
+      // so the usb-jtag serial line is printed and can be parsed.
+      if (
+        needsSerialDiscovery &&
+        !openOcdArgs.some((a) => typeof a === "string" && a.match(/^-d-?\d+$/))
+      ) {
+        openOcdArgs.unshift("-d2");
+      }
     } else {
       const openOcdConfigFilesList = idfConf.readParameter(
         "idf.openOcdConfigs",
@@ -197,11 +214,27 @@ export class OpenOCDManager extends EventEmitter {
         );
       }
 
-      const openOcdDebugLevel = idfConf.readParameter(
+      const openOcdDebugLevelRaw = idfConf.readParameter(
         "idf.openOcdDebugLevel",
         this.workspace
-      ) as string;
-      openOcdArgs.push(`-d${openOcdDebugLevel}`);
+      ) as unknown;
+      const parsedLevel =
+        typeof openOcdDebugLevelRaw === "number"
+          ? openOcdDebugLevelRaw
+          : parseInt(String(openOcdDebugLevelRaw), 10);
+      const hasValidLevel = Number.isFinite(parsedLevel);
+      const debugLevelToUse = needsSerialDiscovery
+        ? Math.max(hasValidLevel ? parsedLevel : 0, 2)
+        : hasValidLevel
+        ? parsedLevel
+        : 0;
+
+      openOcdArgs.push(`-d${debugLevelToUse}`);
+
+      // Inject adapter serial command if we have a stored serial number
+      if (storedSerial) {
+        openOcdArgs.push("-c", `adapter serial ${storedSerial}`);
+      }
 
       openOcdConfigFilesList.forEach((configFile) => {
         const isFileAlreadyInArgs = openOcdArgs.some((arg) =>
@@ -222,6 +255,14 @@ export class OpenOCDManager extends EventEmitter {
       this.encounteredErrors = true;
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
+
+      // Parse adapter serial number from log output
+      const serialNumber = parseAdapterSerialFromLog(data);
+      if (serialNumber && this.workspace) {
+        storeAdapterSerial(this.workspace, serialNumber);
+        updateOpenOcdAdapterStatusBarItem(this.workspace);
+      }
+
       const regex = /Error:.*/i;
       const errStr = data.toString();
       const matchArr = errStr.match(regex);
@@ -242,6 +283,14 @@ export class OpenOCDManager extends EventEmitter {
     this.server.stdout.on("data", (data) => {
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
+
+      // Parse adapter serial number from log output
+      const serialNumber = parseAdapterSerialFromLog(data);
+      if (serialNumber && this.workspace) {
+        storeAdapterSerial(this.workspace, serialNumber);
+        updateOpenOcdAdapterStatusBarItem(this.workspace);
+      }
+
       this.emit("data", this.chan);
     });
     this.server.on("error", (error) => {

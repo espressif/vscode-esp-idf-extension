@@ -59,6 +59,16 @@ const extensionConfig = {
           replace: "path.join(__dirname, 'prebuilds'",
         },
       },
+      {
+        // Fix axios navigator deprecation warning in VS Code 1.101+ (Node.js v22)
+        // Replace navigator access with undefined for Node.js environment
+        test: /node_modules\/axios\/lib\/platform\/common\/utils\.js$/,
+        loader: "string-replace-loader",
+        options: {
+          search: /const _navigator = typeof navigator === 'object' && navigator \|\| undefined;/g,
+          replace: "const _navigator = undefined; // Replaced to avoid navigator deprecation warning in Node.js v22",
+        },
+      },
     ],
   },
   plugins: [

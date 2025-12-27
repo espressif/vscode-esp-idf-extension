@@ -154,6 +154,9 @@ export class SerialPort {
             const portMatch = line.match(/Serial port\s+(\S+)/);
             if (portMatch) {
               currentPort = portMatch[1];
+              if (currentPort.endsWith(":")) {
+                currentPort = currentPort.slice(0, -1);
+              }
               testedPorts++;
               progress.report({
                 message: vscode.l10n.t(
@@ -168,7 +171,9 @@ export class SerialPort {
             }
 
             // Look for "Chip is" lines to identify successful connections
-            const chipMatch = line.match(/Chip is\s+([^(]+)/);
+            const chipMatch =
+              line.match(/Connected to\s+([^\s]+)\s+on/) ||
+              line.match(/Chip is\s+([^\s(]+)/);
             if (chipMatch && currentPort) {
               const chipType = chipMatch[1]
                 .trim()

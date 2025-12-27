@@ -7,6 +7,7 @@ import {
   Uri,
   l10n,
   commands,
+  ConfigurationTarget,
 } from "vscode";
 import {
   fileExists,
@@ -22,6 +23,9 @@ import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { Logger } from "../logger/logger";
 import { getProjectConfigurationElements } from "./index";
 import { configureClangSettings } from "../clang";
+import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
+import { clearAdapterSerial } from "../espIdf/openOcd/adapterSerial";
+import { updateOpenOcdAdapterStatusBarItem } from "../statusBar";
 
 export function clearSelectedProjectConfiguration(): void {
   if (ESP.ProjectConfiguration.store) {
@@ -339,6 +343,40 @@ export class ProjectConfigurationManager {
   }
 
   private async updateConfiguration(configName: string): Promise<void> {
+    const previousConfig = ESP.ProjectConfiguration.store.get<string>(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+    // Treat selecting a configuration after "no selection" (e.g. after VS Code restart)
+    // as a profile switch too, so adapter bindings don't leak across profiles.
+    const isSwitchingProfile = previousConfig !== configName;
+
+    if (isSwitchingProfile) {
+      // Stop OpenOCD so it can't keep using the previous profile's adapter binding.
+      const openOcd = OpenOCDManager.init();
+      if (openOcd.isRunning()) {
+        openOcd.stop();
+      }
+
+      // Clear stored adapter serial (extension workspace state).
+      clearAdapterSerial(this.workspaceUri);
+
+      // Clear adapter location from settings.json (workspace-folder scope).
+      const cfg = workspace.getConfiguration("", this.workspaceUri);
+      const extraVars =
+        (cfg.get<{ [key: string]: any }>("idf.customExtraVars") ?? {});
+      if (extraVars["OPENOCD_USB_ADAPTER_LOCATION"]) {
+        const nextExtraVars = { ...extraVars };
+        delete nextExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
+        await cfg.update(
+          "idf.customExtraVars",
+          nextExtraVars,
+          ConfigurationTarget.WorkspaceFolder
+        );
+      }
+
+      updateOpenOcdAdapterStatusBarItem(this.workspaceUri);
+    }
+
     // Update the configuration in store
     ESP.ProjectConfiguration.store.set(
       ESP.ProjectConfiguration.SELECTED_CONFIG,

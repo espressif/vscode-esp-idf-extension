@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 import {
-  ProcessExecutionOptions,
   TaskPanelKind,
   TaskPresentationOptions,
   TaskRevealKind,
@@ -39,7 +38,7 @@ import { configureEnvVariables } from "../common/prepareEnv";
 export class EraseFlashTask {
   public static isErasing: boolean;
   private currentWorkspace: Uri;
-  private processOptions: ProcessExecutionOptions;
+  private modifiedEnv: { [key: string]: string };
 
   constructor(workspaceUri: Uri) {
     this.currentWorkspace = workspaceUri;
@@ -47,12 +46,6 @@ export class EraseFlashTask {
 
   public erasing(flag: boolean) {
     EraseFlashTask.isErasing = flag;
-  }
-
-  private verifyArgs(flashScriptPath: string) {
-    if (!canAccessFile(flashScriptPath, constants.R_OK)) {
-      throw new Error("SCRIPT_PERMISSION_ERROR");
-    }
   }
 
   public async eraseFlash(port: string) {
@@ -83,19 +76,18 @@ export class EraseFlashTask {
         ? TaskRevealKind.Always
         : TaskRevealKind.Silent;
 
-    const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
+    this.modifiedEnv = await configureEnvVariables(this.currentWorkspace);
     const flashScriptPath = join(
-      modifiedEnv["IDF_PATH"],
+      this.modifiedEnv["IDF_PATH"],
       "components",
       "esptool_py",
       "esptool",
       "esptool.py"
     );
-    this.verifyArgs(flashScriptPath);
-    this.processOptions = {
-      cwd: process.cwd(),
-      env: modifiedEnv,
-    };
+
+    if (!canAccessFile(flashScriptPath, constants.R_OK)) {
+      throw new Error("SCRIPT_PERMISSION_ERROR");
+    }
 
     const pythonBinPath = await getVirtualEnvPythonPath();
     const eraseExecution = this._eraseExecution(
@@ -110,7 +102,7 @@ export class EraseFlashTask {
       panel: TaskPanelKind.Shared,
     } as TaskPresentationOptions;
 
-    await TaskManager.addTask(
+    TaskManager.addTask(
       {
         type: "esp-idf",
         command: "ESP-IDF Erase Flash",
@@ -125,17 +117,17 @@ export class EraseFlashTask {
     return eraseExecution;
   }
 
-  private async _eraseExecution(
+  private _eraseExecution(
     pythonBinPath: string,
     port: string,
     flashScriptPath: string
   ) {
     this.erasing(true);
     const args = [flashScriptPath, "-p", port, "erase_flash"];
-    return OutputCapturingExecution.create(
-      pythonBinPath,
-      args,
-      this.processOptions
-    );
+    const processOptions = {
+      cwd: this.currentWorkspace.fsPath || process.cwd(),
+      env: this.modifiedEnv,
+    };
+    return OutputCapturingExecution.create(pythonBinPath, args, processOptions);
   }
 }

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { IconFolder, IconFolderOpened } from "@iconify-prerendered/vue-codicon";
 import { computed, ref } from "vue";
+import { useNewProjectStore } from "../store";
 let folderIcon = ref("folder");
+
+const store = useNewProjectStore();
 
 const props = defineProps<{
   keyEnterMethod?: () => void;
@@ -21,8 +24,6 @@ const dataModel = computed({
     props.propMutate(newVal);
   },
 });
-
-const pathSep = navigator.platform.indexOf("Win") >= 0 ? "\\" : "/";
 function onKeyEnter() {
   if (props.keyEnterMethod) {
     props.keyEnterMethod();
@@ -43,7 +44,7 @@ function onKeyEnter() {
           :id="props.id"
         />
         <div class="folder-input-suffix" v-if="props.staticText">
-          <span class="static-text">{{ pathSep + props.staticText }}</span>
+          <span class="static-text">{{ store.pathSep + props.staticText }}</span>
         </div>
         <button
           class="folder-button"

@@ -47,6 +47,7 @@ import {
 import { IdfToolsManager } from "./idfToolsManager";
 import { isFlashEncryptionEnabled } from "./flash/verifyFlashEncryption";
 import { configureClangSettings } from "./clang";
+import { getOpenOcdAdapterIdentifier } from "./espIdf/openOcd/adapterSerial";
 import { configureEnvVariables } from "./common/prepareEnv";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
@@ -1088,6 +1089,7 @@ export async function isBinInPath(
 export async function startPythonReqsProcess(
   pythonBinPath: string,
   espIdfPath: string,
+  espIdfToolsPath: string,
   requirementsPath: string
 ) {
   const reqFilePath = path.join(
@@ -1099,9 +1101,24 @@ export async function startPythonReqsProcess(
     Object.assign({}, process.env)
   );
   modifiedEnv.IDF_PATH = espIdfPath;
+  const fullEspIdfVersion = await getEspIdfFromCMake(espIdfPath);
+  const majorMinorMatches = fullEspIdfVersion.match(/([0-9]+\.[0-9]+).*/);
+  const espIdfVersion =
+    majorMinorMatches && majorMinorMatches.length > 0
+      ? majorMinorMatches[1]
+      : "x.x";
+  const constrainsFile = path.join(
+    espIdfToolsPath,
+    `espidf.constraints.v${espIdfVersion}.txt`
+  );
+  const constrainsFileExists = await pathExists(constrainsFile);
+  let checkPyArgs = [reqFilePath, "-r", requirementsPath];
+  if (constrainsFileExists) {
+    checkPyArgs = checkPyArgs.concat(["--constraint", constrainsFile]);
+  }
   return execChildProcess(
     pythonBinPath,
-    [reqFilePath, "-r", requirementsPath],
+    checkPyArgs,
     extensionContext.extensionPath,
     OutputChannel.init(),
     { env: modifiedEnv, cwd: extensionContext.extensionPath }

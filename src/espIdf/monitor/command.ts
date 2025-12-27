@@ -141,12 +141,10 @@ export async function createNewIdfMonitor(
   }
   IDFMonitor.start();
   if (noReset) {
-    if (idfVersion <= "5.0") {
-      const monitorDelay = readParameter(
-        "idf.monitorDelay",
-        workspaceFolder
-      ) as number;
-      await utils.sleep(monitorDelay);
-    }
+    const monitorDelay = readParameter(
+      "idf.monitorDelay",
+      workspaceFolder
+    ) as number;
+    await utils.sleep(monitorDelay);
   }
 }

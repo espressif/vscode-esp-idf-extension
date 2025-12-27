@@ -120,6 +120,7 @@ export class IDFSize {
       const pythonBinPath = await getVirtualEnvPythonPath();
       const buffOut = await spawn(pythonBinPath, args, {
         cwd: path.join(idfPath, "tools"),
+        silent: true,
       });
       const buffStr = buffOut.toString();
       const buffObj = JSON.parse(buffStr);
