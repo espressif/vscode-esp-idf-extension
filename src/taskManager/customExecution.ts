@@ -18,6 +18,7 @@
 
 import * as vscode from "vscode";
 import * as childProcess from "child_process";
+import * as path from "path";
 
 export interface CustomExecutionTaskResult {
   continueFlag: boolean;
@@ -228,31 +229,53 @@ export class ShellOutputCapturingExecution extends vscode.CustomExecution {
       this.options.env.COLORTERM = "truecolor";
     }
 
-    const execOptions: any = {
-      cwd: this.options.cwd,
-      env: this.options.env,
+    const shellPath = this.options.executable || process.env.SHELL || "sh";
+    const shellBase = path.basename(shellPath).toLowerCase();
+    const args = [...(this.options.shellArgs || [])];
+
+    const ensureFlagWithCommand = (flag: string) => {
+      const idx = args.findIndex((a) => a.toLowerCase() === flag.toLowerCase());
+      if (idx === -1) {
+        args.push(flag, this.command);
+        return;
+      }
+      // Ensure the command is the argument immediately after the flag and discard extra args.
+      if (idx + 1 < args.length) {
+        args[idx + 1] = this.command;
+        args.length = idx + 2;
+      } else {
+        args.push(this.command);
+      }
     };
 
-    if (this.options.executable) {
-      execOptions.shell = this.options.executable;
-    }
-
-    if (this.options.shellArgs) {
-      execOptions.shellArgs = this.options.shellArgs;
-    }
-
-    this.childProcess = childProcess.spawn(
-      this.options.executable || process.env.SHELL || "sh",
-      this.options.shellArgs || [],
-      {
-        ...execOptions,
-        stdio: ["pipe", "pipe", "pipe"],
+    // Ensure the spawned shell executes the command and then exits; otherwise the task can hang.
+    if (shellBase === "cmd.exe" || shellBase === "cmd") {
+      // cmd.exe requires /c <command> to run and exit
+      if (!args.some((a) => a.toLowerCase() === "/c")) {
+        args.unshift("/d", "/c");
       }
-    );
+      ensureFlagWithCommand("/c");
+    } else if (
+      shellBase === "powershell.exe" ||
+      shellBase === "powershell" ||
+      shellBase === "pwsh.exe" ||
+      shellBase === "pwsh"
+    ) {
+      // PowerShell should use -Command <command> to run and exit
+      if (!args.some((a) => a.toLowerCase() === "-noprofile")) {
+        args.push("-NoProfile");
+      }
+      ensureFlagWithCommand("-Command");
+    } else {
+      // POSIX shells (sh/bash/zsh/fish): -c <command>
+      ensureFlagWithCommand("-c");
+    }
 
-    // Send the command to the shell
-    this.childProcess.stdin?.write(this.command + "\n");
-    this.childProcess.stdin?.end();
+    this.childProcess = childProcess.spawn(shellPath, args, {
+      cwd: this.options.cwd,
+      env: this.options.env,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
 
     // Stream stdout in real-time
     this.childProcess.stdout?.on("data", (data: Buffer) => {
