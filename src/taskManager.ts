@@ -76,7 +76,8 @@ export class TaskManager {
   public static cancelTasks() {
     for (const task of TaskManager.tasks) {
       const execution = vscode.tasks.taskExecutions.find((t) => {
-        return t.task.definition.taskId.indexOf(task.definition.taskId) !== -1;
+        // Match the exact taskId we use in our definitions.
+        return t.task.definition.taskId === task.definition.taskId;
       });
       if (execution) {
         execution.terminate();
@@ -94,9 +95,7 @@ export class TaskManager {
       const taskDisposable = vscode.tasks.onDidEndTaskProcess(async (e) => {
         if (
           e.execution &&
-          e.execution.task.definition.taskId.indexOf(
-            lastExecution.task.definition.taskId
-          ) !== -1
+          e.execution.task.definition.taskId === lastExecution.task.definition.taskId
         ) {
           const taskResult = {
             taskId: lastExecution.task.definition.taskId,
@@ -115,7 +114,9 @@ export class TaskManager {
           }
 
           if (e.exitCode !== 0) {
-            e.execution.terminate();
+            // Task has already ended (this handler is triggered *after* end),
+            // so terminating here is unnecessary and can produce VS Code errors
+            // like "Task to terminate not found".
             this.cancelTasks();
             this.disposeListeners();
             return reject(
@@ -124,7 +125,6 @@ export class TaskManager {
               )
             );
           }
-          e.execution.terminate();
           if (TaskManager.tasks.length === 0) {
             TaskManager.tasks = [];
             return resolve();
