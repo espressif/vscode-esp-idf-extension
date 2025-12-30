@@ -35,6 +35,9 @@ export interface CapturedTaskOutput {
 class OutputCapturingPseudoterminal implements vscode.Pseudoterminal {
   private writeEmitter = new vscode.EventEmitter<string>();
   private closeEmitter = new vscode.EventEmitter<number>();
+  private startHandler: (() => void) | undefined;
+  private isOpened = false;
+  private hasStarted = false;
 
   constructor(private outputPromise: Promise<CapturedTaskOutput>) {
     this.outputPromise
@@ -46,8 +49,15 @@ class OutputCapturingPseudoterminal implements vscode.Pseudoterminal {
       .catch((error) => {
         // Write error to terminal only if it wasn't already streamed
         this.writeEmitter.fire(`Error: ${error.message}\n`);
-        // Use the error's exit code if available, otherwise default to 1
-        const exitCode = (error as any).code || 1;
+        // VS Code expects a numeric exit code for task completion. Some Node errors
+        // use string codes (e.g. "ENOENT"). Coerce to a number safely.
+        const rawCode = (error as any).code;
+        const exitCode =
+          typeof rawCode === "number"
+            ? rawCode
+            : Number.isFinite(Number(rawCode))
+              ? Number(rawCode)
+              : 1;
         this.closeEmitter.fire(exitCode);
       });
   }
@@ -56,7 +66,10 @@ class OutputCapturingPseudoterminal implements vscode.Pseudoterminal {
   onDidClose: vscode.Event<number> = this.closeEmitter.event;
 
   open(): void {
-    // Terminal is opened, but we don't need to do anything special
+    // VS Code only hooks up the pseudoterminal events after we return the object.
+    // Starting the process here avoids dropping early stdout/close events for fast commands.
+    this.isOpened = true;
+    this.start();
   }
 
   close(): void {
@@ -71,6 +84,24 @@ class OutputCapturingPseudoterminal implements vscode.Pseudoterminal {
 
   getWriteEmitter(): vscode.EventEmitter<string> {
     return this.writeEmitter;
+  }
+
+  setStartHandler(handler: () => void) {
+    this.startHandler = handler;
+    if (this.isOpened) {
+      this.start();
+    }
+  }
+
+  private start() {
+    if (this.hasStarted) {
+      return;
+    }
+    if (!this.startHandler) {
+      return;
+    }
+    this.hasStarted = true;
+    this.startHandler();
   }
 }
 
@@ -99,7 +130,7 @@ export class OutputCapturingExecution extends vscode.CustomExecution {
       );
       this.writeEmitter = pseudoterminal.getWriteEmitter();
 
-      this.executeCommand();
+      pseudoterminal.setStartHandler(() => this.executeCommand());
       return pseudoterminal;
     });
   }
@@ -213,7 +244,7 @@ export class ShellOutputCapturingExecution extends vscode.CustomExecution {
       );
       this.writeEmitter = pseudoterminal.getWriteEmitter();
 
-      this.executeShellCommand();
+      pseudoterminal.setStartHandler(() => this.executeShellCommand());
       return pseudoterminal;
     });
   }
@@ -229,7 +260,12 @@ export class ShellOutputCapturingExecution extends vscode.CustomExecution {
       this.options.env.COLORTERM = "truecolor";
     }
 
-    const shellPath = this.options.executable || process.env.SHELL || "sh";
+    // Prefer an absolute, known shell path when none is configured. In some VS Code
+    // environments PATH can be minimal, making "sh" fail with ENOENT.
+    const shellPath =
+      this.options.executable ||
+      process.env.SHELL ||
+      (process.platform === "win32" ? "cmd.exe" : "/bin/sh");
     const shellBase = path.basename(shellPath).toLowerCase();
     const args = [...(this.options.shellArgs || [])];
 
