@@ -95,7 +95,8 @@ export class TaskManager {
       const taskDisposable = vscode.tasks.onDidEndTaskProcess(async (e) => {
         if (
           e.execution &&
-          e.execution.task.definition.taskId === lastExecution.task.definition.taskId
+          e.execution.task.definition.taskId ===
+            lastExecution.task.definition.taskId
         ) {
           const taskResult = {
             taskId: lastExecution.task.definition.taskId,
