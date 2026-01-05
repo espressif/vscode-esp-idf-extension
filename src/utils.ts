@@ -1123,6 +1123,12 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
       "packages",
       "zap"
     );
+    modifiedEnv._PW_ACTUAL_ENVIRONMENT_ROOT = path.join(
+      modifiedEnv.ESP_MATTER_PATH,
+      "connectedhomeip",
+      "connectedhomeip",
+      ".environment"
+    );
   }
   const sysPythonPath = await getPythonPath(curWorkspace);
   let pythonBinPath = "";
