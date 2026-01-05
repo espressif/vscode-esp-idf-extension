@@ -2507,7 +2507,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const doesProjectExists = await pathExists(destFolder.fsPath);
     if (doesProjectExists) {
       Logger.infoNotify(
-        vscode.l10n.t(`{destFolder} already exists.`, { destFolder })
+        vscode.l10n.t(`{destFolder} already exists.`, { destFolder: destFolder.fsPath })
       );
       return;
     }
