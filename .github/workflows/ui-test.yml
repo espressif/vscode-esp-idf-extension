@@ -38,9 +38,6 @@ jobs:
       - name: Install Yarn dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Compile
-        run: yarn compile
-
       - name: Run UI tests
         run: |
           mkdir -p ./out
