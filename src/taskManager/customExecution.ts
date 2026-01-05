@@ -18,6 +18,7 @@
 
 import * as vscode from "vscode";
 import * as childProcess from "child_process";
+import * as path from "path";
 
 export interface CustomExecutionTaskResult {
   continueFlag: boolean;
@@ -34,6 +35,9 @@ export interface CapturedTaskOutput {
 class OutputCapturingPseudoterminal implements vscode.Pseudoterminal {
   private writeEmitter = new vscode.EventEmitter<string>();
   private closeEmitter = new vscode.EventEmitter<number>();
+  private startHandler: (() => void) | undefined;
+  private isOpened = false;
+  private hasStarted = false;
 
   constructor(private outputPromise: Promise<CapturedTaskOutput>) {
     this.outputPromise
@@ -45,8 +49,15 @@ class OutputCapturingPseudoterminal implements vscode.Pseudoterminal {
       .catch((error) => {
         // Write error to terminal only if it wasn't already streamed
         this.writeEmitter.fire(`Error: ${error.message}\n`);
-        // Use the error's exit code if available, otherwise default to 1
-        const exitCode = (error as any).code || 1;
+        // VS Code expects a numeric exit code for task completion. Some Node errors
+        // use string codes (e.g. "ENOENT"). Coerce to a number safely.
+        const rawCode = (error as any).code;
+        const exitCode =
+          typeof rawCode === "number"
+            ? rawCode
+            : Number.isFinite(Number(rawCode))
+              ? Number(rawCode)
+              : 1;
         this.closeEmitter.fire(exitCode);
       });
   }
@@ -55,7 +66,10 @@ class OutputCapturingPseudoterminal implements vscode.Pseudoterminal {
   onDidClose: vscode.Event<number> = this.closeEmitter.event;
 
   open(): void {
-    // Terminal is opened, but we don't need to do anything special
+    // VS Code only hooks up the pseudoterminal events after we return the object.
+    // Starting the process here avoids dropping early stdout/close events for fast commands.
+    this.isOpened = true;
+    this.start();
   }
 
   close(): void {
@@ -70,6 +84,24 @@ class OutputCapturingPseudoterminal implements vscode.Pseudoterminal {
 
   getWriteEmitter(): vscode.EventEmitter<string> {
     return this.writeEmitter;
+  }
+
+  setStartHandler(handler: () => void) {
+    this.startHandler = handler;
+    if (this.isOpened) {
+      this.start();
+    }
+  }
+
+  private start() {
+    if (this.hasStarted) {
+      return;
+    }
+    if (!this.startHandler) {
+      return;
+    }
+    this.hasStarted = true;
+    this.startHandler();
   }
 }
 
@@ -98,7 +130,7 @@ export class OutputCapturingExecution extends vscode.CustomExecution {
       );
       this.writeEmitter = pseudoterminal.getWriteEmitter();
 
-      this.executeCommand();
+      pseudoterminal.setStartHandler(() => this.executeCommand());
       return pseudoterminal;
     });
   }
@@ -212,7 +244,7 @@ export class ShellOutputCapturingExecution extends vscode.CustomExecution {
       );
       this.writeEmitter = pseudoterminal.getWriteEmitter();
 
-      this.executeShellCommand();
+      pseudoterminal.setStartHandler(() => this.executeShellCommand());
       return pseudoterminal;
     });
   }
@@ -228,31 +260,58 @@ export class ShellOutputCapturingExecution extends vscode.CustomExecution {
       this.options.env.COLORTERM = "truecolor";
     }
 
-    const execOptions: any = {
-      cwd: this.options.cwd,
-      env: this.options.env,
+    // Prefer an absolute, known shell path when none is configured. In some VS Code
+    // environments PATH can be minimal, making "sh" fail with ENOENT.
+    const shellPath =
+      this.options.executable ||
+      process.env.SHELL ||
+      (process.platform === "win32" ? "cmd.exe" : "/bin/sh");
+    const shellBase = path.basename(shellPath).toLowerCase();
+    const args = [...(this.options.shellArgs || [])];
+
+    const ensureFlagWithCommand = (flag: string) => {
+      const idx = args.findIndex((a) => a.toLowerCase() === flag.toLowerCase());
+      if (idx === -1) {
+        args.push(flag, this.command);
+        return;
+      }
+      // Ensure the command is the argument immediately after the flag and discard extra args.
+      if (idx + 1 < args.length) {
+        args[idx + 1] = this.command;
+        args.length = idx + 2;
+      } else {
+        args.push(this.command);
+      }
     };
 
-    if (this.options.executable) {
-      execOptions.shell = this.options.executable;
-    }
-
-    if (this.options.shellArgs) {
-      execOptions.shellArgs = this.options.shellArgs;
-    }
-
-    this.childProcess = childProcess.spawn(
-      this.options.executable || process.env.SHELL || "sh",
-      this.options.shellArgs || [],
-      {
-        ...execOptions,
-        stdio: ["pipe", "pipe", "pipe"],
+    // Ensure the spawned shell executes the command and then exits; otherwise the task can hang.
+    if (shellBase === "cmd.exe" || shellBase === "cmd") {
+      // cmd.exe requires /c <command> to run and exit
+      if (!args.some((a) => a.toLowerCase() === "/c")) {
+        args.unshift("/d", "/c");
       }
-    );
+      ensureFlagWithCommand("/c");
+    } else if (
+      shellBase === "powershell.exe" ||
+      shellBase === "powershell" ||
+      shellBase === "pwsh.exe" ||
+      shellBase === "pwsh"
+    ) {
+      // PowerShell should use -Command <command> to run and exit
+      if (!args.some((a) => a.toLowerCase() === "-noprofile")) {
+        args.push("-NoProfile");
+      }
+      ensureFlagWithCommand("-Command");
+    } else {
+      // POSIX shells (sh/bash/zsh/fish): -c <command>
+      ensureFlagWithCommand("-c");
+    }
 
-    // Send the command to the shell
-    this.childProcess.stdin?.write(this.command + "\n");
-    this.childProcess.stdin?.end();
+    this.childProcess = childProcess.spawn(shellPath, args, {
+      cwd: this.options.cwd,
+      env: this.options.env,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
 
     // Stream stdout in real-time
     this.childProcess.stdout?.on("data", (data: Buffer) => {
