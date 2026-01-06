@@ -16,9 +16,7 @@
  * limitations under the License.
  */
 import {
-  l10n,
   ProcessExecution,
-  ProcessExecutionOptions,
   TaskPanelKind,
   TaskPresentationOptions,
   TaskRevealKind,
@@ -28,11 +26,7 @@ import {
 } from "vscode";
 import { join } from "path";
 import { constants } from "fs";
-import {
-  NotificationMode,
-  readParameter,
-  readSerialPort,
-} from "../idfConfiguration";
+import { NotificationMode, readParameter } from "../idfConfiguration";
 import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
 import { sleep } from "../utils";
 import { TaskManager } from "../taskManager";
@@ -70,7 +64,7 @@ export class EraseFlashTask {
     }
   }
 
-  public async eraseFlash(port: string) {
+  public async eraseFlash(port: string, captureOutput?: boolean) {
     if (EraseFlashTask.isErasing) {
       throw new Error("ALREADY_ERASING");
     }
@@ -103,7 +97,11 @@ export class EraseFlashTask {
 
     this.modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
 
-    const eraseExecution = this._eraseExecution(pythonBinPath, port);
+    const eraseExecution = this._eraseExecution(
+      pythonBinPath,
+      port,
+      captureOutput
+    );
     const erasePresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,
@@ -126,17 +124,25 @@ export class EraseFlashTask {
     return eraseExecution;
   }
 
-  private _eraseExecution(pythonBinPath: string, port: string) {
+  private _eraseExecution(
+    pythonBinPath: string,
+    port: string,
+    captureOutput?: boolean
+  ) {
     this.erasing(true);
     const args = [this.flashScriptPath, "-p", port, "erase_flash"];
     const processOptions = {
       cwd: this.currentWorkspace.fsPath || process.cwd(),
       env: this.modifiedEnv,
     };
-    return OutputCapturingExecution.create(
-      pythonBinPath,
-      args,
-      processOptions
-    );
+    if (captureOutput) {
+      return OutputCapturingExecution.create(
+        pythonBinPath,
+        args,
+        processOptions
+      );
+    } else {
+      return new ProcessExecution(pythonBinPath, args, processOptions);
+    }
   }
 }

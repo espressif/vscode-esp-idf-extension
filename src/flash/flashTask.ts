@@ -85,7 +85,7 @@ export class FlashTask {
     }
   }
 
-  public async flash(flashType: ESP.FlashType, partitionToUse?: ESP.BuildType) {
+  public async flash(flashType: ESP.FlashType, partitionToUse?: ESP.BuildType, captureOutput?: boolean) {
     if (FlashTask.isFlashing) {
       throw new Error("ALREADY_FLASHING");
     }
@@ -103,7 +103,7 @@ export class FlashTask {
       notificationMode === idfConf.NotificationMode.Output
         ? vscode.TaskRevealKind.Always
         : vscode.TaskRevealKind.Silent;
-    let flashExecution: OutputCapturingExecution;
+    let flashExecution: OutputCapturingExecution | vscode.ProcessExecution;
     this.modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
     this.processOptions = {
       cwd: this.buildDirPath,
@@ -112,32 +112,35 @@ export class FlashTask {
     switch (flashType) {
       case "UART":
         if (!partitionToUse) {
-          flashExecution = this._flashExecution(pythonBinPath);
+          flashExecution = this._flashExecution(pythonBinPath, captureOutput);
         } else {
           switch (partitionToUse) {
             case "app":
               flashExecution = this._partitionFlashExecution(
                 pythonBinPath,
-                "app"
+                "app",
+                captureOutput
               );
               break;
             case "bootloader":
               flashExecution = this._partitionFlashExecution(
                 pythonBinPath,
-                "bootloader"
+                "bootloader",
+                captureOutput
               );
               break;
             case "partition-table":
               flashExecution = this._partitionFlashExecution(
                 pythonBinPath,
-                "partitionTable"
+                "partitionTable",
+                captureOutput
               );
               break;
           }
         }
         break;
       case "DFU":
-        flashExecution = await this._dfuFlashing(pythonBinPath);
+        flashExecution = await this._dfuFlashing(pythonBinPath, captureOutput);
         break;
       default:
         break;
@@ -159,17 +162,25 @@ export class FlashTask {
     return flashExecution;
   }
 
-  public _flashExecution(pythonBinPath: string) {
+  public _flashExecution(pythonBinPath: string, captureOutput?: boolean) {
     this.flashing(true);
     const flasherArgs = this.getFlasherArgs(this.flashScriptPath);
-    return OutputCapturingExecution.create(
-      pythonBinPath,
-      flasherArgs,
-      this.processOptions
-    );
+    if (captureOutput) {
+      return OutputCapturingExecution.create(
+        pythonBinPath,
+        flasherArgs,
+        this.processOptions
+      );
+    } else {
+      return new vscode.ProcessExecution(
+        pythonBinPath,
+        flasherArgs,
+        this.processOptions
+      );
+    }
   }
 
-  public async _dfuFlashing(pythonBinPath: string) {
+  public async _dfuFlashing(pythonBinPath: string, captureOutput?: boolean) {
     this.flashing(true);
     const listDfuDevices = (await getDfuList(
       this.currentWorkspace
@@ -193,23 +204,36 @@ export class FlashTask {
         join(this.buildDirPath, "dfu.bin"),
       ];
     }
-    return OutputCapturingExecution.create(cmd, args, this.processOptions);
+    if (captureOutput) {
+      return OutputCapturingExecution.create(cmd, args, this.processOptions);
+    } else {
+      return new vscode.ProcessExecution(cmd, args, this.processOptions);
+    }
   }
 
   public _partitionFlashExecution(
     pythonBinPath: string,
-    sectionToUse: "app" | "bootloader" | "partitionTable"
+    sectionToUse: "app" | "bootloader" | "partitionTable",
+    captureOutput?: boolean
   ) {
     this.flashing(true);
     const flasherArgs = this.getSingleBinFlasherArgs(
       this.flashScriptPath,
       sectionToUse
     );
-    return OutputCapturingExecution.create(
-      pythonBinPath,
-      flasherArgs,
-      this.processOptions
-    );
+    if (captureOutput) {
+      return OutputCapturingExecution.create(
+        pythonBinPath,
+        flasherArgs,
+        this.processOptions
+      );
+    } else {
+      return new vscode.ProcessExecution(
+        pythonBinPath,
+        flasherArgs,
+        this.processOptions
+      );
+    }
   }
 
   public getSingleBinFlasherArgs(
