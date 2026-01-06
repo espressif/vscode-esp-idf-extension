@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 3rd November 2021 4:56:23 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,9 +29,10 @@ import {
 } from "vscode";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { TaskManager } from "../../taskManager";
-import { appendIdfAndToolsToPath, readProjectCMakeLists } from "../../utils";
+import { appendIdfAndToolsToPath } from "../../utils";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { OutputCapturingExecution } from "../../taskManager/customExecution";
+import { getProjectName } from "../../workspaceConfig";
 
 export class IdfSizeTask {
   private currentWorkspace: Uri;
@@ -45,15 +46,11 @@ export class IdfSizeTask {
     this.buildDirPath = readParameter("idf.buildPath", workspaceUri) as string;
   }
 
-  private mapFilePath() {
-    const projectName = readProjectCMakeLists(this.currentWorkspace.fsPath);
-    return join(this.buildDirPath, `${projectName}.map`);
-  }
-
   public async getSizeInfo(captureOutput?: boolean) {
     await ensureDir(this.buildDirPath);
     const pythonCommand = await getVirtualEnvPythonPath(this.currentWorkspace);
-    const mapFilePath = this.mapFilePath();
+    const projectName = await getProjectName(this.currentWorkspace.fsPath);
+    const mapFilePath = join(this.buildDirPath, `${projectName}.map`);
     const args = [this.idfSizePath, mapFilePath];
 
     const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
