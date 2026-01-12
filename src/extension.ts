@@ -274,7 +274,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Check if running in a VS Code fork and prompt for clangd extension installation
   if (PreCheck.isRunningInVSCodeFork()) {
-    await checkAndPromptForClangdExtension();
+    checkAndPromptForClangdExtension();
   }
 
   // Check for root CMakeLists.txt and its content before full activation
