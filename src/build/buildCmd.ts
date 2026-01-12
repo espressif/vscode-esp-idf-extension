@@ -87,23 +87,11 @@ export async function buildCommandMain(
     | vscode.ProcessExecution
     | vscode.ShellExecution
   )[] = [];
-  const [compileExecution, buildExecution] = await buildTask.build(buildType, captureOutput);
-  executions.push(compileExecution, buildExecution, preBuildExecution);
-  const enableSizeTask = (await readParameter(
-    "idf.enableSizeTaskAfterBuildTask",
-    workspace
-  )) as boolean;
-  if (enableSizeTask && typeof buildType === "undefined") {
-    const sizeTask = new IdfSizeTask(workspace);
-    let sizeInfoExecution = await sizeTask.getSizeInfo(captureOutput);
-    executions.push(sizeInfoExecution);
-  }
-
-  const postBuildExecution = await customTask.addCustomTask(
-    CustomTaskType.PostBuild,
+  const [compileExecution, buildExecution] = await buildTask.build(
+    buildType,
     captureOutput
   );
-  executions.push(postBuildExecution);
+  executions.push(preBuildExecution, compileExecution, buildExecution);
 
   if (flashType === ESP.FlashType.DFU) {
     const buildPath = readParameter("idf.buildPath", workspace) as string;
@@ -128,7 +116,22 @@ export async function buildCommandMain(
       executions.push(dfuExecution);
     }
   }
+  const postBuildExecution = await customTask.addCustomTask(
+    CustomTaskType.PostBuild,
+    captureOutput
+  );
+  executions.push(postBuildExecution);
   const buildResult = await TaskManager.runTasksWithBoolean();
+  const enableSizeTask = (await readParameter(
+    "idf.enableSizeTaskAfterBuildTask",
+    workspace
+  )) as boolean;
+  if (buildResult && enableSizeTask && typeof buildType === "undefined") {
+    const sizeTask = new IdfSizeTask(workspace);
+    let sizeInfoExecution = await sizeTask.getSizeInfo();
+    executions.push(sizeInfoExecution);
+  }
+  const sizeResult = await TaskManager.runTasksWithBoolean();
   if (!cancelToken.isCancellationRequested) {
     updateIdfComponentsTree(workspace);
     Logger.infoNotify("Build Successful");
@@ -139,7 +142,7 @@ export async function buildCommandMain(
   buildTask.building(false);
 
   return {
-    continueFlag: buildResult,
+    continueFlag: buildResult && sizeResult,
     executions,
   };
 }
@@ -161,8 +164,13 @@ export async function buildCommand(
     continueFlag = buildCmdResults.continueFlag;
     if (!continueFlag) {
       for (let i = 0; i < buildCmdResults.executions.length; i++) {
-        if (buildCmdResults.executions[i] && 'getOutput' in buildCmdResults.executions[i]) {
-          const executionOutput = await (buildCmdResults.executions[i] as OutputCapturingExecution | ShellOutputCapturingExecution).getOutput();
+        if (
+          buildCmdResults.executions[i] &&
+          "getOutput" in buildCmdResults.executions[i]
+        ) {
+          const executionOutput = await (buildCmdResults.executions[i] as
+            | OutputCapturingExecution
+            | ShellOutputCapturingExecution).getOutput();
           if (
             executionOutput &&
             !executionOutput.success &&
@@ -174,6 +182,7 @@ export async function buildCommand(
       }
     }
   } catch (error) {
+    BuildTask.isBuilding = false;
     if (error.message === "ALREADY_BUILDING") {
       Logger.errorNotify("Already a build is running!", error, "buildCommand");
     }
