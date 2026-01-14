@@ -1454,16 +1454,12 @@ export async function activate(context: vscode.ExtensionContext) {
             }
             peripheralTreeProvider.refresh();
           }
-
-          if (
-            m &&
-            m.type === "event" &&
-            m.event === "output" &&
-            m.body.output.indexOf(
-              `From client: disconnect({"restart":true})`
-            ) !== -1
-          ) {
-            isDebugRestarted = true;
+        },
+        onWillReceiveMessage(message) {
+          if (message && message.command === "disconnect") {
+            if (message.arguments.restart) {
+              isDebugRestarted = true;
+            }
           }
         },
       };
