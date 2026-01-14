@@ -37,7 +37,6 @@ import {
   OutputCapturingExecution,
   ShellOutputCapturingExecution,
 } from "../taskManager/customExecution";
-import { ProcessExecutionOptions } from "vscode";
 
 export class BuildTask {
   public static isBuilding: boolean;
@@ -63,7 +62,7 @@ export class BuildTask {
     }
   }
 
-  public async build(buildType?: ESP.BuildType) {
+  public async build(buildType?: ESP.BuildType, captureOutput?: boolean) {
     try {
       await this.saveBeforeBuild();
     } catch (error) {
@@ -86,7 +85,7 @@ export class BuildTask {
     ) as string;
     await ensureDir(this.buildDirPath);
     const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
-    const processOptions: ProcessExecutionOptions = {
+    const processOptions: vscode.ProcessExecutionOptions = {
       cwd: this.buildDirPath,
       env: modifiedEnv,
     };
@@ -114,8 +113,8 @@ export class BuildTask {
         ? vscode.TaskRevealKind.Always
         : vscode.TaskRevealKind.Silent;
 
-    let compileExecution: OutputCapturingExecution;
-    let buildExecution: OutputCapturingExecution;
+    let compileExecution: OutputCapturingExecution | vscode.ProcessExecution;
+    let buildExecution: OutputCapturingExecution | vscode.ProcessExecution;
 
     if (!cmakeCacheExists) {
       const espIdfVersion = await getEspIdfFromCMake(this.idfPathDir);
@@ -176,11 +175,19 @@ export class BuildTask {
           compilerArgs.push("-DCCACHE_ENABLE=1");
         }
       }
-      compileExecution = OutputCapturingExecution.create(
-        canAccessCMake,
-        compilerArgs,
-        processOptions
-      );
+      if (captureOutput) {
+        compileExecution = OutputCapturingExecution.create(
+          canAccessCMake,
+          compilerArgs,
+          processOptions
+        );
+      } else {
+        compileExecution = new vscode.ProcessExecution(
+          canAccessCMake,
+          compilerArgs,
+          processOptions
+        );
+      }
       const compilePresentationOptions = {
         reveal: showTaskOutput,
         showReuseMessage: false,
@@ -210,11 +217,19 @@ export class BuildTask {
       buildArgs.push(buildType);
     }
     const ninjaCommand = "ninja";
-    buildExecution = OutputCapturingExecution.create(
-      ninjaCommand,
-      buildArgs,
-      processOptions
-    );
+    if (captureOutput) {
+      buildExecution = OutputCapturingExecution.create(
+        ninjaCommand,
+        buildArgs,
+        processOptions
+      );
+    } else {
+      buildExecution = new vscode.ProcessExecution(
+        ninjaCommand,
+        buildArgs,
+        processOptions
+      ) as any;
+    }
     const buildPresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,
@@ -229,17 +244,20 @@ export class BuildTask {
       ["espIdf", "espIdfLd"],
       buildPresentationOptions
     );
-    let results: OutputCapturingExecution[] = [];
+    let results: (OutputCapturingExecution | vscode.ProcessExecution)[] = [];
     if (compileExecution) {
       results.push(compileExecution);
     }
     if (buildExecution) {
       results.push(buildExecution);
     }
-    return results;
+    return results as [
+      OutputCapturingExecution | vscode.ProcessExecution,
+      OutputCapturingExecution | vscode.ProcessExecution
+    ];
   }
 
-  public async buildDfu() {
+  public async buildDfu(captureOutput?: boolean) {
     this.building(true);
     await ensureDir(this.buildDirPath);
 
@@ -277,11 +295,9 @@ export class BuildTask {
       cwd: this.buildDirPath,
       env: modifiedEnv,
     };
-    const writeExecution = OutputCapturingExecution.create(
-      pythonBinPath,
-      args,
-      processOptions
-    );
+    const writeExecution = captureOutput
+      ? OutputCapturingExecution.create(pythonBinPath, args, processOptions)
+      : new vscode.ProcessExecution(pythonBinPath, args, processOptions);
     const buildPresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,

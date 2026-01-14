@@ -22,7 +22,12 @@ import * as path from "path";
 
 export interface CustomExecutionTaskResult {
   continueFlag: boolean;
-  executions: (OutputCapturingExecution | ShellOutputCapturingExecution)[];
+  executions: (
+    | OutputCapturingExecution
+    | ShellOutputCapturingExecution
+    | vscode.ProcessExecution
+    | vscode.ShellExecution
+  )[];
 }
 
 export interface CapturedTaskOutput {

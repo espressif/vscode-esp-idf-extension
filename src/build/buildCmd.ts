@@ -55,7 +55,8 @@ export async function buildCommandMain(
   workspace: vscode.Uri,
   cancelToken: vscode.CancellationToken,
   flashType: ESP.FlashType,
-  buildType?: ESP.BuildType
+  buildType?: ESP.BuildType,
+  captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
   const buildTask = new BuildTask(workspace);
   const customTask = new CustomTask(workspace);
@@ -77,13 +78,16 @@ export async function buildCommandMain(
     return { continueFlag: false, executions: [] };
   });
   let preBuildExecution = await customTask.addCustomTask(
-    CustomTaskType.PreBuild
+    CustomTaskType.PreBuild,
+    captureOutput
   );
   let executions: (
     | OutputCapturingExecution
     | ShellOutputCapturingExecution
+    | vscode.ProcessExecution
+    | vscode.ShellExecution
   )[] = [];
-  const [compileExecution, buildExecution] = await buildTask.build(buildType);
+  const [compileExecution, buildExecution] = await buildTask.build(buildType, captureOutput);
   executions.push(compileExecution, buildExecution, preBuildExecution);
   const enableSizeTask = (await readParameter(
     "idf.enableSizeTaskAfterBuildTask",
@@ -91,12 +95,13 @@ export async function buildCommandMain(
   )) as boolean;
   if (enableSizeTask && typeof buildType === "undefined") {
     const sizeTask = new IdfSizeTask(workspace);
-    let sizeInfoExecution = await sizeTask.getSizeInfo();
+    let sizeInfoExecution = await sizeTask.getSizeInfo(captureOutput);
     executions.push(sizeInfoExecution);
   }
 
   const postBuildExecution = await customTask.addCustomTask(
-    CustomTaskType.PostBuild
+    CustomTaskType.PostBuild,
+    captureOutput
   );
   executions.push(postBuildExecution);
 
@@ -119,7 +124,7 @@ export async function buildCommandMain(
       );
       return { continueFlag: false, executions: [] };
     } else {
-      const dfuExecution = await buildTask.buildDfu();
+      const dfuExecution = await buildTask.buildDfu(captureOutput);
       executions.push(dfuExecution);
     }
   }
@@ -156,10 +161,8 @@ export async function buildCommand(
     continueFlag = buildCmdResults.continueFlag;
     if (!continueFlag) {
       for (let i = 0; i < buildCmdResults.executions.length; i++) {
-        if (buildCmdResults.executions[i]) {
-          const executionOutput = await buildCmdResults.executions[
-            i
-          ].getOutput();
+        if (buildCmdResults.executions[i] && 'getOutput' in buildCmdResults.executions[i]) {
+          const executionOutput = await (buildCmdResults.executions[i] as OutputCapturingExecution | ShellOutputCapturingExecution).getOutput();
           if (
             executionOutput &&
             !executionOutput.success &&

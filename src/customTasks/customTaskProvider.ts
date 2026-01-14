@@ -50,12 +50,17 @@ export class CustomTask {
 
   public getProcessExecution(
     cmdString: string,
-    options: ShellExecutionOptions
-  ) {
-    return new ShellOutputCapturingExecution(cmdString, options);
+    options: ShellExecutionOptions,
+    captureOutput?: boolean
+  ): ShellOutputCapturingExecution | ShellExecution {
+    if (captureOutput) {
+      return new ShellOutputCapturingExecution(cmdString, options);
+    } else {
+      return new ShellExecution(cmdString, options);
+    }
   }
 
-  public async addCustomTask(taskType: CustomTaskType) {
+  public async addCustomTask(taskType: CustomTaskType, captureOutput?: boolean) {
     let command: string;
     let taskName: string;
     switch (taskType) {
@@ -112,7 +117,7 @@ export class CustomTask {
       notificationMode === NotificationMode.Output
         ? TaskRevealKind.Always
         : TaskRevealKind.Silent;
-    const customExecution = this.getProcessExecution(command, options);
+    const customExecution = this.getProcessExecution(command, options, captureOutput);
     const customTaskPresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,

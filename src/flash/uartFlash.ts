@@ -26,7 +26,11 @@ import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 import { OutputChannel } from "../logger/outputChannel";
-import { CustomExecutionTaskResult } from "../taskManager/customExecution";
+import {
+  CustomExecutionTaskResult,
+  OutputCapturingExecution,
+  ShellOutputCapturingExecution,
+} from "../taskManager/customExecution";
 
 export async function uartFlashCommandMain(
   cancelToken: CancellationToken,
@@ -36,7 +40,8 @@ export async function uartFlashCommandMain(
   workspace: Uri,
   flashType: ESP.FlashType,
   encryptPartitions: boolean,
-  partitionToUse?: ESP.BuildType
+  partitionToUse?: ESP.BuildType,
+  captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
   const buildPath = readParameter("idf.buildPath", workspace) as string;
   const buildFiles = await readdir(buildPath);
@@ -75,11 +80,13 @@ export async function uartFlashCommandMain(
     FlashTask.isFlashing = false;
   });
   const preFlashExecution = await customTask.addCustomTask(
-    CustomTaskType.PreFlash
+    CustomTaskType.PreFlash,
+    captureOutput
   );
-  const flashExecution = await flashTask.flash(flashType, partitionToUse);
+  const flashExecution = await flashTask.flash(flashType, partitionToUse, captureOutput);
   const postFlashExecution = await customTask.addCustomTask(
-    CustomTaskType.PostFlash
+    CustomTaskType.PostFlash,
+    captureOutput
   );
   const flashResult = await TaskManager.runTasksWithBoolean();
 
@@ -123,10 +130,8 @@ export async function flashCommand(
     continueFlag = flashCmdResult.continueFlag;
     if (!continueFlag) {
       for (let i = 0; i < flashCmdResult.executions.length; i++) {
-        if (flashCmdResult.executions[i]) {
-          const executionOutput = await flashCmdResult.executions[
-            i
-          ].getOutput();
+        if (flashCmdResult.executions[i] && 'getOutput' in flashCmdResult.executions[i]) {
+          const executionOutput = await (flashCmdResult.executions[i] as OutputCapturingExecution | ShellOutputCapturingExecution).getOutput();
           if (
             executionOutput &&
             !executionOutput.success &&

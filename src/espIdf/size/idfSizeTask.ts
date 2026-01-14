@@ -19,6 +19,7 @@
 import { ensureDir } from "fs-extra";
 import { join } from "path";
 import {
+  ProcessExecution,
   TaskPanelKind,
   TaskPresentationOptions,
   TaskRevealKind,
@@ -49,7 +50,7 @@ export class IdfSizeTask {
     return join(this.buildDirPath, `${projectName}.map`);
   }
 
-  public async getSizeInfo() {
+  public async getSizeInfo(captureOutput?: boolean) {
     await ensureDir(this.buildDirPath);
     const pythonCommand = await getVirtualEnvPythonPath(this.currentWorkspace);
     const mapFilePath = this.mapFilePath();
@@ -61,11 +62,9 @@ export class IdfSizeTask {
       env: modifiedEnv,
     };
 
-    const sizeExecution = OutputCapturingExecution.create(
-      pythonCommand,
-      args,
-      processOptions
-    );
+    const sizeExecution = captureOutput
+      ? OutputCapturingExecution.create(pythonCommand, args, processOptions)
+      : new ProcessExecution(pythonCommand, args, processOptions);
     const notificationMode = readParameter(
       "idf.notificationMode",
       this.currentWorkspace

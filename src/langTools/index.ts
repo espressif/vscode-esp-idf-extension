@@ -166,6 +166,8 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       let taskExecutions: (
         | OutputCapturingExecution
         | ShellOutputCapturingExecution
+        | vscode.ProcessExecution
+        | vscode.ShellExecution
       )[] = [];
       if (commandId) {
         let outputs: vscode.LanguageModelTextPart[] = [];
@@ -176,7 +178,8 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               workspaceURI,
               token,
               flashType,
-              partitionToUse
+              partitionToUse,
+              true // captureOutput = true for language tool
             );
             continueFlag = buildCmdResults.continueFlag;
             taskExecutions.push(...buildCmdResults.executions);
@@ -241,7 +244,8 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 workspaceURI,
                 flashType,
                 encryptPartitions,
-                partitionToUse
+                partitionToUse,
+                true // captureOutput = true for language tool
               );
               continueFlag = flashCmdResult.continueFlag;
               taskExecutions.push(...flashCmdResult.executions);
@@ -265,7 +269,8 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               workspaceURI,
               token,
               flashType,
-              partitionToUse
+              partitionToUse,
+              true // captureOutput = true for language tool
             );
             continueFlag = buildCmdResults.continueFlag;
             taskExecutions.push(...buildCmdResults.executions);
@@ -348,7 +353,8 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 workspaceURI,
                 flashType,
                 encryptPartitions,
-                partitionToUse
+                partitionToUse,
+                true // captureOutput = true for language tool
               );
               continueFlag = flashCmdResult.continueFlag;
               taskExecutions.push(...flashCmdResult.executions);
@@ -359,17 +365,17 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             const noReset = await shouldDisableMonitorReset(workspaceURI);
             await createNewIdfMonitor(workspaceURI, noReset);
           } else if (commandName === "eraseFlash") {
-            const port = await readSerialPort(this.currentWorkspace, false);
+            const port = await readSerialPort(workspaceURI, false);
             if (!port) {
               Logger.warnNotify(
                 l10n.t(
                   "No serial port found for current IDF_TARGET: {0}",
-                  await getIdfTargetFromSdkconfig(this.currentWorkspace)
+                  await getIdfTargetFromSdkconfig(workspaceURI)
                 )
               );
             }
             const eraseFlashTask = new EraseFlashTask(workspaceURI);
-            const eraseFlashExecution = await eraseFlashTask.eraseFlash(port);
+            const eraseFlashExecution = await eraseFlashTask.eraseFlash(port, true); // captureOutput = true for language tool
             const eraseFlashResult = await TaskManager.runTasksWithBoolean();
             taskExecutions.push(eraseFlashExecution);
             if (!token.isCancellationRequested) {
@@ -456,8 +462,8 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
 
           if (TASK_COMMANDS.has(commandName)) {
             for (const execution of taskExecutions) {
-              if (execution) {
-                const output = await execution.getOutput();
+              if (execution && 'getOutput' in execution) {
+                const output = await (execution as OutputCapturingExecution | ShellOutputCapturingExecution).getOutput();
                 outputs.push(new vscode.LanguageModelTextPart(output.stdout));
                 outputs.push(new vscode.LanguageModelTextPart(output.stderr));
               }
