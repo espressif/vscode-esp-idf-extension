@@ -164,6 +164,7 @@ export async function setIdfTarget(
             : defaultBoards;
         const selectedTarget = await window.showQuickPick(quickPickItems, {
           placeHolder: placeHolderMsg,
+          ignoreFocusOut: true
         });
         if (!selectedTarget) {
           return;
