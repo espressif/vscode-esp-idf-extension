@@ -43,8 +43,9 @@ jobs:
           mkdir -p ./out
           set -o pipefail
           export NODE_OPTIONS="--trace-uncaught --trace-exit --unhandled-rejections=strict"
-          yarn ci-test 2>&1 | tee test-output.log
+          yarn ci-test | tee test-output.log
           echo "EXIT CODE: $?"
+
 
       # 🔒 REQUIRED: hard guarantee that Mocha produced JSON
       - name: Validate Mocha test report

@@ -630,7 +630,9 @@
           },
           "idf.eimExecutableArgs": {
             "type": "array",
-            "default": ["gui"],
+            "default": [
+              "gui"
+            ],
             "description": "%param.eimExecutableArgs%",
             "scope": "application"
           },
@@ -2606,7 +2608,7 @@
     "genLocalizationBundle": "npx @vscode/l10n-dev export --outDir ./l10n ./src",
     "webpack": "webpack --mode production",
     "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json 'out/ui-test/*-test.js'",
-    "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m src/ui-test/.mocharc-ci.js > ./out/ui-test-results.json"
+    "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m src/ui-test/.mocharc-ci.js"
   },
   "devDependencies": {
     "@babel/types": "^7.23.0",
@@ -2648,6 +2650,7 @@
     "js-yaml": "^4.1.1",
     "jsonic": "^1.0.1",
     "mocha": "^9.2.0",
+    "mocha-json-output-reporter": "^2.1.0",
     "mocha-junit-reporter": "^1.23.3",
     "ovsx": "^0.10.2",
     "prettier": "2.0.2",
