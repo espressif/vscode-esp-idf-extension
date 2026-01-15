@@ -30,34 +30,52 @@ export async function getConfigurationSettings(
   reportedResult.workspaceFolder = scope
     ? scope.fsPath
     : "No workspace folder is open";
+  const userExtraVars = conf.get<{ [key: string]: string }>(
+    "idf.customExtraVars"
+  );
+  const envIdfPath = userExtraVars?.IDF_PATH || process.env.IDF_PATH;
+  const envIdfToolsPath =
+    userExtraVars?.IDF_TOOLS_PATH || process.env.IDF_TOOLS_PATH;
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
-    conf.get("idf.espIdfPath" + winFlag)
+    conf
+      .get<string>("idf.espIdfPath" + winFlag)
+      .replace("${env:IDF_PATH}", envIdfPath)
   );
   const extraPaths = await idfToolsManager.exportPathsInString(
-    join(conf.get("idf.toolsPath" + winFlag), "tools"),
+    join(
+      conf
+        .get<string>("idf.toolsPath" + winFlag)
+        .replace("${env:IDF_TOOLS_PATH}", envIdfToolsPath),
+      "tools"
+    ),
     ["cmake", "ninja"]
   );
   const customVars = await idfToolsManager.exportVars(
-    join(conf.get("idf.toolsPath" + winFlag), "tools")
+    join(
+      conf
+        .get<string>("idf.toolsPath" + winFlag)
+        .replace("${env:IDF_TOOLS_PATH}", envIdfToolsPath),
+      "tools"
+    )
   );
 
   const pythonVenvPath = await getPythonEnvPath(
     conf
       .get<string>("idf.espIdfPath" + winFlag)
-      .replace("${env:IDF_PATH}", process.env.IDF_PATH),
+      .replace("${env:IDF_PATH}", envIdfPath),
     conf
       .get<string>("idf.toolsPath" + winFlag)
-      .replace("${env:IDF_TOOLS_PATH}", process.env.IDF_TOOLS_PATH),
+      .replace("${env:IDF_TOOLS_PATH}", envIdfToolsPath),
     conf.get<string>("idf.pythonInstallPath")
   );
 
   const idfToolsExportVars = await getEnvVarsFromIdfTools(
     conf
       .get<string>("idf.espIdfPath" + winFlag)
-      .replace("${env:IDF_PATH}", process.env.IDF_PATH),
+      .replace("${env:IDF_PATH}", envIdfPath),
     conf
       .get<string>("idf.toolsPath" + winFlag)
-      .replace("${env:IDF_TOOLS_PATH}", process.env.IDF_TOOLS_PATH),
+      .replace("${env:IDF_TOOLS_PATH}", envIdfToolsPath),
     pythonVenvPath
   );
 
@@ -81,7 +99,7 @@ export async function getConfigurationSettings(
     flashPartitionToUse: conf.get("idf.flashPartitionToUse"),
     customExtraPaths: extraPaths,
     idfExtraVars: customVars,
-    userExtraVars: conf.get("idf.customExtraVars"),
+    userExtraVars: userExtraVars,
     notificationMode: conf.get("idf.notificationMode"),
     pythonBinPath: pythonVenvPath,
     pythonPackages: [],
