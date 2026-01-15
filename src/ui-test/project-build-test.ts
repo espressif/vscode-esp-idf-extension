@@ -36,6 +36,7 @@ describe("Build testing", async () => {
       await n.dismiss();
     }
     await openTestProject();
+    console.log("dirname is: ", __dirname);
   });
 
   it("Log Doctor command configuration", async () => {

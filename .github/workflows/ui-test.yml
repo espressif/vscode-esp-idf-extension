@@ -3,105 +3,59 @@ name: UI Test
 on:
   push:
     branches:
-    - master
+      - master
+      - release/v2.0
   pull_request:
     branches:
-    - master
+      - master
+      - release/v2.0
 
 jobs:
   ui_test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, BrnoUBU0004]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          submodules: "recursive"
+          submodules: recursive
 
       - name: Install ESP-IDF
         uses: espressif/install-esp-idf-action@v1
         with:
-          version: "v5.4.2"
+          version: "v5.4"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
+      - name: Enable Corepack (Yarn)
+        run: |
+          corepack enable
+          corepack prepare yarn@1 --activate
+
       - name: Install Yarn dependencies
-        run: |
-          yarn
-          yarn install
+        run: yarn install --frozen-lockfile
 
-      - name: Run Yarn script with xvfb
+      - name: Run UI tests
         run: |
-          xvfb-run --auto-servernum yarn ci-test 2>&1 | tee test-output.log
-          
-          # Extract JSON from the output and save to file
-          echo "Extracting JSON from test output..."
-          if grep -q "Extension 'espressif.esp-idf-extension' was successfully uninstalled!" test-output.log; then
-            sed -n '/Extension '\''espressif.esp-idf-extension'\'' was successfully uninstalled!/,$p' test-output.log > after-uninstall.log
-            grep -n '{' after-uninstall.log | head -1 | cut -d: -f1 > start-line.txt
-            grep -n '}' after-uninstall.log | tail -1 | cut -d: -f1 > end-line.txt
-            if [ -s start-line.txt ] && [ -s end-line.txt ]; then
-              start_line=$(cat start-line.txt)
-              end_line=$(cat end-line.txt)
-              sed -n "${start_line},${end_line}p" after-uninstall.log > ./out/ui-test-results.json
-              sed 's/}[^,]*$/}/' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              sed '/INFO:/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              sed '/Screenshots of failures can be found in:/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              sed '/\x1b\[/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              sed '/\[33m/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              sed '/\[0m/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              sed '/test-resources\/screenshots\//d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-              echo "JSON results extracted and saved to ./out/ui-test-results.json"
-              echo "Debug: Last 10 lines of the JSON file:"
-              tail -10 ./out/ui-test-results.json
-            else
-              echo "Could not find JSON boundaries"
-            fi
-            rm -f after-uninstall.log start-line.txt end-line.txt ./out/temp.json
-          else
-            echo "Uninstall message not found, trying to extract JSON from entire output..."
-            if grep -q '{' test-output.log; then
-              grep -n '{' test-output.log | head -1 | cut -d: -f1 > start-line.txt
-              grep -n '}' test-output.log | tail -1 | cut -d: -f1 > end-line.txt
-              if [ -s start-line.txt ] && [ -s end-line.txt ]; then
-                start_line=$(cat start-line.txt)
-                end_line=$(cat end-line.txt)
-                sed -n "${start_line},${end_line}p" test-output.log > ./out/ui-test-results.json
-                sed 's/}[^,]*$/}/' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-                sed '/INFO:/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-                sed '/Screenshots of failures can be found in:/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-                sed '/\x1b\[/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-                sed '/\[33m/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-                sed '/\[0m/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-                sed '/test-resources\/screenshots\//d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
-                echo "JSON results extracted and saved to ./out/ui-test-results.json"
-                echo "Debug: Last 10 lines of the JSON file:"
-                tail -10 ./out/ui-test-results.json
-              else
-                echo "Could not find JSON boundaries"
-              fi
-              rm -f start-line.txt end-line.txt ./out/temp.json
-            else
-              echo "No JSON found in test output"
-            fi
-          fi
+          mkdir -p ./out
+          set -o pipefail
+          export NODE_OPTIONS="--trace-uncaught --trace-exit --unhandled-rejections=strict"
+          yarn ci-test | tee test-output.log
+          echo "EXIT CODE: $?"
 
-      - name: Print UI Test Results
+
+      # 🔒 REQUIRED: hard guarantee that Mocha produced JSON
+      - name: Validate Mocha test report
         run: |
-          echo "=== UI Test Results ==="
-          if [ -f "./out/ui-test-results.json" ]; then
-            echo "UI Test Results:"
-            cat ./out/ui-test-results.json | jq '.' || echo "Could not parse UI test results"
-          elif [ -f "./test-results.json" ]; then
-            echo "UI Test Results:"
-            cat ./test-results.json | jq '.' || echo "Could not parse UI test results"
-          else
-            echo "No UI test results file found"
-            echo "Checking for other test output files:"
-            find . -name "*test*results*" -o -name "*ui-test-results.json*" | head -10
+          if [ ! -f "./out/ui-test-results.json" ]; then
+            echo "ERROR: Mocha did not generate ui-test-results.json"
+            echo "Check test-output.log for details"
+            exit 1
           fi
+          jq empty ./out/ui-test-results.json
 
       - name: Publish UI Test Report
         uses: dorny/test-reporter@v2
@@ -111,19 +65,19 @@ jobs:
           path: ./out/ui-test-results.json
           reporter: mocha-json
 
-      - name: Upload UI test results
+      - name: Upload UI test artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ui-test-results
           path: |
             ./out/ui-test-results.json
-            ./test-resources/screenshots/
             test-output.log
+            test-resources/screenshots/
 
-      - name: Upload screenshots
+      - name: Upload screenshots (on failure)
         uses: actions/upload-artifact@v4
         if: failure()
-        with: 
+        with:
           name: screenshots
-          path: /home/runner/work/vscode-esp-idf-extension/vscode-esp-idf-extension/test-resources/screenshots
+          path: test-resources/screenshots/
