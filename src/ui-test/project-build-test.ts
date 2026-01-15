@@ -36,7 +36,7 @@ describe("Build testing", async () => {
       await n.dismiss();
     }
     await openTestProject();
-    console.log("EXTENSION HOST CWD: ", process.cwd());
+    console.log("dirname is: ", __dirname);
   });
 
   it("Log Doctor command configuration", async () => {
