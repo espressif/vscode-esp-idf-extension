@@ -41,7 +41,10 @@ jobs:
       - name: Run UI tests
         run: |
           mkdir -p ./out
-          yarn ci-test | tee test-output.log
+          set -o pipefail
+          export NODE_OPTIONS="--trace-uncaught --trace-exit --unhandled-rejections=strict"
+          yarn ci-test 2>&1 | tee test-output.log
+          echo "EXIT CODE: $?"
 
       # 🔒 REQUIRED: hard guarantee that Mocha produced JSON
       - name: Validate Mocha test report
