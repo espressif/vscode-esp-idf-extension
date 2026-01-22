@@ -10,6 +10,8 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 
 ## [1.11.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.11.1)
 
+## Bug Fixes
+
 - [Use Output Capture Execution only for Copilot Chat](https://github.com/espressif/vscode-esp-idf-extension/pull/1740)
 - [Post-build always hangs in v1.11.0](https://github.com/espressif/vscode-esp-idf-extension/pull/1733)
 - [Remove await for clang check in activation](https://github.com/espressif/vscode-esp-idf-extension/pull/1745)
@@ -17,8 +19,6 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Listen to restart event request to fix debug restart button](https://github.com/espressif/vscode-esp-idf-extension/pull/1747)
 - [Fix get project name in IDF Size task](https://github.com/espressif/vscode-esp-idf-extension/pull/1741)
 - [Add menuconfig visual separator for root sections](https://github.com/espressif/vscode-esp-idf-extension/pull/1752)
-
-## Bug Fixes
 
 ## [1.11.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.11.0)
 
