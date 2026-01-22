@@ -69,37 +69,13 @@ const items = computed(() => {
   return store.items;
 });
 
-function isRootLevelUncategorized(item: Menu) {
-  // Root-level entries that are not menus have no "category" in our UI.
-  // Without a visual separator, they can look like they belong to the menu above.
-  return item?.type !== "menu";
-}
-
-function findPrevVisibleRootItem(rootItems: Menu[], index: number) {
-  for (let i = index - 1; i >= 0; i--) {
-    const prev = rootItems[i];
-    if (prev?.isVisible) return prev;
+const lastVisibleRootIndex = computed(() => {
+  const arr = items.value || [];
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (arr[i]?.isVisible) return i;
   }
-  return undefined;
-}
-
-function shouldShowSectionDivider(rootItems: Menu[], index: number) {
-  const item = rootItems?.[index];
-  if (!item?.isVisible) return false;
-
-  // Never show a divider before the first visible item (e.g. "Build type").
-  const prevVisible = findPrevVisibleRootItem(rootItems, index);
-  if (!prevVisible) return false;
-
-  // 1) Always separate visible root-level menus from whatever comes above.
-  if (item.type === "menu") return true;
-
-  // 2) For uncategorized root-level configs: add a divider only when they start
-  // after a menu, so they don't look like the last menu's children.
-  if (isRootLevelUncategorized(item) && prevVisible.type === "menu") return true;
-
-  return false;
-}
+  return -1;
+});
 
 function onScroll() {
   const configList = document.querySelector(".config-list") as HTMLElement;
@@ -213,13 +189,11 @@ onUnmounted(() => {
       ></div>
       <div id="scrollable" class="config-list" @scroll="handleScroll">
         <div v-for="(config, index) in items" :key="config.id">
-          <div
-            v-if="shouldShowSectionDivider(items, index)"
-            class="section-divider-wrapper"
-          >
-            <div class="section-divider" />
-          </div>
           <ConfigElement :config="config" />
+          <div
+            class="section-divider"
+            v-if="config.isVisible && index !== lastVisibleRootIndex"
+          />
         </div>
       </div>
     </div>
@@ -289,11 +263,6 @@ p {
   min-width: 300px;
   max-width: 800px;
   padding: 0 0.5rem;
-}
-
-.section-divider-wrapper {
-  margin-top: 10px;
-  margin-bottom: 6px;
 }
 
 .section-divider {
