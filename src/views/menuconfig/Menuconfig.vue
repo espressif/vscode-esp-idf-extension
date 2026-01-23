@@ -69,6 +69,14 @@ const items = computed(() => {
   return store.items;
 });
 
+const lastVisibleRootIndex = computed(() => {
+  const arr = items.value || [];
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (arr[i]?.isVisible) return i;
+  }
+  return -1;
+});
+
 function onScroll() {
   const configList = document.querySelector(".config-list") as HTMLElement;
   if (!configList) return;
@@ -180,11 +188,13 @@ onUnmounted(() => {
         :class="{ dragging: isDragging }"
       ></div>
       <div id="scrollable" class="config-list" @scroll="handleScroll">
-        <ConfigElement
-          :config="config"
-          v-for="config in items"
-          :key="config.id"
-        />
+        <div v-for="(config, index) in items" :key="config.id">
+          <ConfigElement :config="config" />
+          <div
+            class="section-divider"
+            v-if="config.isVisible && index !== lastVisibleRootIndex"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -253,6 +263,14 @@ p {
   min-width: 300px;
   max-width: 800px;
   padding: 0 0.5rem;
+}
+
+.section-divider {
+  height: 1px;
+  width: 100%;
+  background: var(--vscode-panel-border);
+  opacity: 0.8;
+  margin: 6px 0;
 }
 
 .sidenav {
