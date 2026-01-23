@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useNewProjectStore } from "./store";
-import { computed, onMounted, watch } from "vue";
+import { computed, watch } from "vue";
 import IdfComponents from "./components/IdfComponents.vue";
 import folderOpen from "./components/folderOpen.vue";
 const store = useNewProjectStore();
@@ -36,15 +36,6 @@ const filteredBoards = computed(() => {
       board.target === selectedIdfTarget.value.target
   );
 });
-
-
-// Only request initial values if the store is empty, to avoid resetting on navigation
-onMounted(() => {
-  if (!store.projectName && (!store.boards || store.boards.length === 0)) {
-    store.requestInitialValues();
-  }
-});
-
 
 // Only update selectedBoard if it is not already set to a valid value
 watch(selectedIdfTarget, () => {
@@ -85,7 +76,9 @@ watch(selectedIdfTarget, () => {
       />
 
       <div class="settings-item" v-if="idfTargets && idfTargets.length > 0">
-        <label for="idf-target" class="settings-label">Choose ESP-IDF Target (IDF_TARGET)</label>
+        <label for="idf-target" class="settings-label"
+          >Choose ESP-IDF Target (IDF_TARGET)</label
+        >
         <div class="settings-control">
           <div class="select-wrapper">
             <select
@@ -102,13 +95,18 @@ watch(selectedIdfTarget, () => {
         </div>
       </div>
 
-      <div class="settings-item" v-if="filteredBoards && filteredBoards.length > 0">
-        <label for="idf-board" class="settings-label">Choose ESP-IDF Board</label>
+      <div
+        class="settings-item"
+        v-if="filteredBoards && filteredBoards.length > 0"
+      >
+        <label for="idf-board" class="settings-label"
+          >Choose ESP-IDF Board</label
+        >
         <div class="settings-control">
           <div class="select-wrapper">
-            <select 
-              name="idf-board" 
-              id="idf-board" 
+            <select
+              name="idf-board"
+              id="idf-board"
               v-model="selectedBoard"
               class="vscode-select"
             >
@@ -124,9 +122,9 @@ watch(selectedIdfTarget, () => {
         <label for="idf-port" class="settings-label">Choose serial port</label>
         <div class="settings-control">
           <div class="select-wrapper">
-            <select 
-              name="idf-port" 
-              id="idf-port" 
+            <select
+              name="idf-port"
+              id="idf-port"
               v-model="selectedPort"
               class="vscode-select"
             >
@@ -144,7 +142,9 @@ watch(selectedIdfTarget, () => {
         </label>
         <div class="settings-description">
           Add files separated by comma like
-          <span>interface/ftdi/esp32_devkitj_v1.cfg,board/esp32-wrover.cfg</span>
+          <span
+            >interface/ftdi/esp32_devkitj_v1.cfg,board/esp32-wrover.cfg</span
+          >
         </div>
         <div class="settings-control">
           <textarea
@@ -160,8 +160,13 @@ watch(selectedIdfTarget, () => {
       <IdfComponents />
 
       <div class="settings-item settings-actions">
-        <router-link to="/templates" class="vscode-button" id="choose-template">
-          Choose Template
+        <router-link
+          to="/created"
+          class="vscode-button"
+          id="choose-template"
+          @click="store.createProject"
+        >
+          Create Project
         </router-link>
       </div>
     </div>
