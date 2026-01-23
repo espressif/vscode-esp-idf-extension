@@ -149,8 +149,8 @@ export async function getNewProjectArgs(
   let templates: { [key: string]: IExampleCategory } = {};
   const idfExists = await dirExistPromise(idfSetup.idfPath);
   if (idfExists) {
-    const idfTemplates = getExamplesList(idfSetup.idfPath);
-    templates["ESP-IDF"] = idfTemplates;
+    const idfTemplates = getExamplesList(idfSetup.idfPath, undefined, "ESP-IDF Examples");
+    templates["ESP-IDF Examples"] = idfTemplates;
     const idfToolsTemplateExists = await dirExistPromise(
       join(idfSetup.idfPath, "tools", "templates")
     );

@@ -102,7 +102,7 @@ function handleCreateProject() {
           v-if="selectedTemplate.name !== ''"
           v-on:click="handleCreateProject"
           class="vscode-button"
-          id="createProjectButton"
+          id="chooseTemplateButton"
         >
           Create project using template {{ selectedTemplate.name }}
         </button>

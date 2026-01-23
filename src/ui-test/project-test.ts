@@ -64,14 +64,14 @@ describe("Example Create testing", async () => {
     );
     await blinkExample.click();
     await new Promise((res) => setTimeout(res, 3000));
-    const createProjectButton = await view.findWebElement(
-      By.id("createProjectButton")
+    const chooseTemplateButton = await view.findWebElement(
+      By.id("chooseTemplateButton")
     );
-    expect(await createProjectButton.getText()).has.string(
+    expect(await chooseTemplateButton.getText()).has.string(
       "Create project using template blink"
     );
 
-    await createProjectButton.click();
+    await chooseTemplateButton.click();
     await new Promise((res) => setTimeout(res, 2000));
 
     const projectDirInput = await view.findWebElement(
@@ -83,7 +83,7 @@ describe("Example Create testing", async () => {
     await projectNameInput.clear();
     await projectNameInput.sendKeys(projectName);
 
-    const exampleSelect = await view.findWebElement(By.id("choose-template"));
+    const exampleSelect = await view.findWebElement(By.id("createProjectButton"));
     await exampleSelect.click();
 
     await new Promise((res) => setTimeout(res, 7000));

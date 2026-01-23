@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useNewProjectStore } from "./store";
-import { computed, watch } from "vue";
+import { computed, watch, ref } from "vue";
+import { useRouter } from "vue-router";
 import IdfComponents from "./components/IdfComponents.vue";
 import folderOpen from "./components/folderOpen.vue";
 const store = useNewProjectStore();
+const router = useRouter();
 
 const {
   boards,
@@ -18,8 +20,19 @@ const {
   serialPortList,
 } = storeToRefs(store);
 
+// Validation state
+const validationErrors = ref<{
+  projectName?: string;
+  containerDirectory?: string;
+  selectedIdfTarget?: string;
+}>({});
+
 function setContainerDirectory(newPath: string) {
   store.containerDirectory = newPath;
+  // Clear validation error when user updates the field
+  if (validationErrors.value.containerDirectory) {
+    validationErrors.value.containerDirectory = undefined;
+  }
 }
 
 const showCustomBoardInput = computed(() => {
@@ -46,7 +59,59 @@ watch(selectedIdfTarget, () => {
   ) {
     selectedBoard.value = filteredBoards.value[0];
   }
+  // Clear validation error when user updates the field
+  if (validationErrors.value.selectedIdfTarget) {
+    validationErrors.value.selectedIdfTarget = undefined;
+  }
 });
+
+// Watch projectName to clear validation error
+watch(projectName, () => {
+  if (validationErrors.value.projectName) {
+    validationErrors.value.projectName = undefined;
+  }
+});
+
+// Watch containerDirectory to clear validation error
+watch(containerDirectory, () => {
+  if (validationErrors.value.containerDirectory) {
+    validationErrors.value.containerDirectory = undefined;
+  }
+});
+
+function validateForm(): boolean {
+  validationErrors.value = {};
+
+  let isValid = true;
+
+  // Validate projectName
+  if (!projectName.value || projectName.value.trim() === "") {
+    validationErrors.value.projectName = "Project name is required";
+    isValid = false;
+  }
+
+  // Validate containerDirectory
+  if (!containerDirectory.value || containerDirectory.value.trim() === "") {
+    validationErrors.value.containerDirectory = "Project directory is required";
+    isValid = false;
+  }
+
+  // Validate selectedIdfTarget
+  if (!selectedIdfTarget.value || selectedIdfTarget.value === null) {
+    validationErrors.value.selectedIdfTarget = "ESP-IDF Target is required";
+    isValid = false;
+  }
+
+  return isValid;
+}
+
+function handleCreateProject() {
+  if (!validateForm()) {
+    return;
+  }
+  store.createProject();
+  router.push("/created");
+}
 </script>
 
 <template>
@@ -60,20 +125,29 @@ watch(selectedIdfTarget, () => {
             name="projectName"
             id="projectName"
             class="vscode-input"
+            :class="{ 'input-error': validationErrors.projectName }"
             v-model="projectName"
             placeholder="project-name"
           />
         </div>
+        <div v-if="validationErrors.projectName" class="validation-error">
+          {{ validationErrors.projectName }}
+        </div>
       </div>
 
-      <folderOpen
-        propLabel="Enter Project directory"
-        v-model:propModel="containerDirectory"
-        :openMethod="store.openProjectDirectory"
-        :propMutate="setContainerDirectory"
-        :staticText="projectName"
-        id="projectDirectory"
-      />
+      <div class="settings-item">
+        <folderOpen
+          propLabel="Enter Project directory"
+          v-model:propModel="containerDirectory"
+          :openMethod="store.openProjectDirectory"
+          :propMutate="setContainerDirectory"
+          :staticText="projectName"
+          id="projectDirectory"
+        />
+        <div v-if="validationErrors.containerDirectory" class="validation-error">
+          {{ validationErrors.containerDirectory }}
+        </div>
+      </div>
 
       <div class="settings-item" v-if="idfTargets && idfTargets.length > 0">
         <label for="idf-target" class="settings-label"
@@ -86,12 +160,16 @@ watch(selectedIdfTarget, () => {
               id="idf-target"
               v-model="selectedIdfTarget"
               class="vscode-select"
+              :class="{ 'input-error': validationErrors.selectedIdfTarget }"
             >
               <option v-for="b of idfTargets" :key="b.label" :value="b">
                 {{ b.label }}
               </option>
             </select>
           </div>
+        </div>
+        <div v-if="validationErrors.selectedIdfTarget" class="validation-error">
+          {{ validationErrors.selectedIdfTarget }}
         </div>
       </div>
 
@@ -160,14 +238,14 @@ watch(selectedIdfTarget, () => {
       <IdfComponents />
 
       <div class="settings-item settings-actions">
-        <router-link
-          to="/created"
+        <button
+          type="button"
           class="vscode-button"
-          id="choose-template"
-          @click="store.createProject"
+          id="createProjectButton"
+          @click="handleCreateProject"
         >
           Create Project
-        </router-link>
+        </button>
       </div>
     </div>
   </div>
@@ -318,5 +396,20 @@ watch(selectedIdfTarget, () => {
   display: flex;
   justify-content: flex-end;
   margin-top: 2rem;
+}
+
+.validation-error {
+  color: var(--vscode-errorForeground);
+  font-size: 12px;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.input-error {
+  border-color: var(--vscode-inputValidation-errorBorder) !important;
+}
+
+.input-error:focus {
+  outline-color: var(--vscode-inputValidation-errorBorder) !important;
 }
 </style>
