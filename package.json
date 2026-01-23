@@ -116,6 +116,15 @@
   "main": "./dist/extension",
   "l10n": "./l10n",
   "contributes": {
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          "CMakePresets.json",
+          "CMakeUserPresets.json"
+        ],
+        "url": "./internal/com.espressif.idf.uploads/cmakepresets/esp-idf-cmakepresets-schema-v1.json"
+      }
+    ],
     "walkthroughs": [
       {
         "id": "espIdf.walkthrough.basic-usage",
@@ -1285,6 +1294,12 @@
             "default": 60,
             "scope": "resource",
             "description": "%param.serialPortDetectionTimeout%"
+          },
+          "idf.saveLastProjectConfiguration": {
+            "type": "boolean",
+            "default": true,
+            "scope": "resource",
+            "description": "%param.saveLastProjectConfiguration%"
           }
         }
       }

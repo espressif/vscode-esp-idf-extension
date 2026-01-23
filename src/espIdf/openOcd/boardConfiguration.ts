@@ -23,6 +23,7 @@ import { commands, ConfigurationTarget, l10n, Uri, window } from "vscode";
 import { defaultBoards } from "./defaultBoards";
 import { IdfToolsManager } from "../../idfToolsManager";
 import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
+import { updateCurrentProfileOpenOcdConfigs } from "../../project-conf";
 
 export interface IdfBoard {
   name: string;
@@ -186,7 +187,7 @@ export async function selectOpenOcdConfigFiles(
         } else if (selectedBoard && selectedBoard.target) {
           if (selectedBoard.label.indexOf("Custom board") !== -1) {
             const inputBoard = await window.showInputBox({
-              placeHolder: "Enter comma-separated configuration files",
+              placeHolder: l10n.t("Enter comma-separated configuration files"),
               value: selectedBoard.target.configFiles.join(","),
             });
             if (inputBoard) {
@@ -199,6 +200,10 @@ export async function selectOpenOcdConfigFiles(
             ConfigurationTarget.WorkspaceFolder,
             workspaceFolder
           );
+          
+          // Update project configuration with OpenOCD configs if a configuration is selected
+          await updateCurrentProfileOpenOcdConfigs(selectedBoard.target.configFiles, workspaceFolder);
+          
           Logger.infoNotify(
             l10n.t(`OpenOCD Board configuration files set to {boards}.`, {
               boards: selectedBoard.target.configFiles.join(","),

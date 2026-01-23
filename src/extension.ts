@@ -264,7 +264,13 @@ export async function activate(context: vscode.ExtensionContext) {
   Logger.init(context);
   ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
-  clearSelectedProjectConfiguration();
+  
+  // Only clear selected project configuration if the setting is disabled
+  const saveLastProjectConfiguration = idfConf.readParameter("idf.saveLastProjectConfiguration");
+  if (saveLastProjectConfiguration === false) {
+    clearSelectedProjectConfiguration();
+  }
+  
   Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
   utils.setExtensionContext(context);
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
@@ -4147,6 +4153,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     });
   });
+
 }
 
 function checkAndNotifyMissingCompileCommands() {

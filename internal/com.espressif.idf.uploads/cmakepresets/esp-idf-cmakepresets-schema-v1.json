@@ -1,0 +1,122 @@
+{
+  "$id": "https://dl.espressif.com/dl/vscode-esp-idf-extension/schemas/esp-idf-cmakepresets-schema-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ESP-IDF CMakePresets Extension v1.0",
+  "description": "Extends the official CMakePresets schema (v3) with strict ESP-IDF vendor fields; requires CMake >= 3.21.",
+  "allOf": [
+    {
+      "$ref": "https://raw.githubusercontent.com/Kitware/CMake/master/Help/manual/presets/schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 3,
+          "description": "CMake Presets format version. Must be 3."
+        },
+        "cmakeMinimumRequired": {
+          "type": "object",
+          "properties": {
+            "major": { "type": "integer", "const": 3 },
+            "minor": { "type": "integer", "minimum": 21 },
+            "patch": { "type": "integer", "minimum": 0 }
+          },
+          "required": ["major", "minor"]
+        },
+        "configurePresets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "vendor": {
+                "type": "object",
+                "properties": {
+                  "espressif/vscode-esp-idf": {
+                    "type": "object",
+                    "properties": {
+                      "schemaVersion": {
+                        "type": "integer",
+                        "enum": [1],
+                        "description": "ESP-IDF vendor schema version."
+                      },
+                      "settings": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "compileArgs",
+                                "ninjaArgs",
+                                "flashBaudRate",
+                                "monitorBaudRate",
+                                "openOCD",
+                                "tasks"
+                              ]
+                            },
+                            "value": {}
+                          },
+                          "required": ["type", "value"],
+                          "additionalProperties": false,
+                          "allOf": [
+                            {
+                              "if": { "properties": { "type": { "enum": ["compileArgs", "ninjaArgs"] } } },
+                              "then": { "properties": { "value": { "type": "array", "items": { "type": "string" } } } }
+                            },
+                            {
+                              "if": { "properties": { "type": { "enum": ["flashBaudRate", "monitorBaudRate"] } } },
+                              "then": { "properties": { "value": { "type": "string" } } }
+                            },
+                            {
+                              "if": { "properties": { "type": { "const": "openOCD" } } },
+                              "then": {
+                                "properties": {
+                                  "value": {
+                                    "type": "object",
+                                    "properties": {
+                                      "debugLevel": { "type": "integer" },
+                                      "configs": { "type": "array", "items": { "type": "string" } },
+                                      "args": { "type": "array", "items": { "type": "string" } }
+                                    },
+                                    "required": ["debugLevel", "configs", "args"],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "if": { "properties": { "type": { "const": "tasks" } } },
+                              "then": {
+                                "properties": {
+                                  "value": {
+                                    "type": "object",
+                                    "properties": {
+                                      "preBuild": { "type": "string" },
+                                      "preFlash": { "type": "string" },
+                                      "postBuild": { "type": "string" },
+                                      "postFlash": { "type": "string" }
+                                    },
+                                    "additionalProperties": false
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "required": ["schemaVersion", "settings"],
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      },
+      "required": ["version", "cmakeMinimumRequired", "configurePresets"]
+    }
+  ]
+}

@@ -58,31 +58,43 @@ export class OpenOCDManager extends EventEmitter {
   private statusBar: vscode.StatusBarItem;
   private workspace: vscode.Uri;
   private encounteredErrors: boolean = false;
+  private versionPromise: Promise<string> | null = null; // coalesce concurrent lookups only
 
   private constructor() {
     super();
     this.configureServerWithDefaultParam();
   }
 
-  public async version(silent: boolean = false): Promise<string> {
-    const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
-    const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
-      "openocd-esp32",
-    ]);
-    if (!openOcdPath) {
-      return "";
+  public async version(silent: boolean = true): Promise<string> {
+    // Coalesce concurrent calls; do not cache long-term to respect version changes
+    if (this.versionPromise) {
+      return this.versionPromise;
     }
-    const resp = await sspawn(openOcdPath, ["--version"], {
-      cwd: this.workspace.fsPath,
-      env: modifiedEnv,
-      silent,
-    });
-    const versionString = resp.toString();
-    const match = versionString.match(/v\d+\.\d+\.\d+\-\S*/gi);
-    if (!match) {
-      return "failed+to+match+version";
+
+    this.versionPromise = (async () => {
+      const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
+      const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
+        "openocd-esp32",
+      ]);
+      if (!openOcdPath) {
+        return "";
+      }
+      const resp = await sspawn(openOcdPath, ["--version"], {
+        cwd: this.workspace.fsPath,
+        env: modifiedEnv,
+        silent,
+        appendMode: "append",
+      });
+      const versionString = resp.toString();
+      const match = versionString.match(/v\d+\.\d+\.\d+\-\S*/gi);
+      return match ? match[0].replace("-dirty", "") : "failed+to+match+version";
+    })();
+
+    try {
+      return await this.versionPromise;
+    } finally {
+      this.versionPromise = null;
     }
-    return match[0].replace("-dirty", "");
   }
 
   public statusBarItem(): vscode.StatusBarItem {
@@ -171,12 +183,12 @@ export class OpenOCDManager extends EventEmitter {
     ]);
     if (!openOcdPath) {
       throw new Error(
-        "Invalid OpenOCD bin path or access is denied for the user"
+          "Invalid OpenOCD bin path or access is denied for the user"
       );
     }
     if (typeof modifiedEnv.OPENOCD_SCRIPTS === "undefined") {
       throw new Error(
-        "OPENOCD_SCRIPTS environment variable is missing. Please set it in idf.customExtraVars or in your system environment variables."
+          "OPENOCD_SCRIPTS environment variable is missing. Please set it in idf.customExtraVars or in your system environment variables."
       );
     }
 
@@ -213,7 +225,7 @@ export class OpenOCDManager extends EventEmitter {
         openOcdConfigFilesList.length < 1
       ) {
         throw new Error(
-          "Invalid OpenOCD Config files. Check idf.openOcdConfigs configuration value."
+            "Invalid OpenOCD Config files. Check idf.openOcdConfigs configuration value."
         );
       }
 
@@ -322,7 +334,7 @@ export class OpenOCDManager extends EventEmitter {
       }
       this.stop();
     });
-    this.updateStatusText("❇️ OpenOCD Server (Running)");
+          this.updateStatusText("❇️ OpenOCD Server (Running)");
     OutputChannel.show();
   }
 
@@ -373,6 +385,6 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   private sendToOutputChannel(data: Buffer) {
-    this.chan = Buffer.concat([this.chan, data]);
+    this.chan = Buffer.concat([this.chan as Uint8Array, data as Uint8Array]);
   }
 }

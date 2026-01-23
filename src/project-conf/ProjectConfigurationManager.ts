@@ -21,11 +21,18 @@ import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { createStatusBarItem } from "../statusBar";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { Logger } from "../logger/logger";
-import { getProjectConfigurationElements } from "./index";
+import {
+  getProjectConfigurationElements,
+  configurePresetToProjectConfElement,
+  promptLegacyMigration,
+  migrateLegacyConfiguration,
+} from "./index";
+import { pathExists } from "fs-extra";
 import { configureClangSettings } from "../clang";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { clearAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../statusBar";
+import * as idfConf from "../idfConfiguration";
 
 export function clearSelectedProjectConfiguration(): void {
   if (ESP.ProjectConfiguration.store) {
@@ -42,13 +49,16 @@ export function clearSelectedProjectConfiguration(): void {
 }
 
 export class ProjectConfigurationManager {
-  private readonly configFilePath: string;
+  private readonly cmakePresetsFilePath: string;
+  private readonly cmakeUserPresetsFilePath: string;
   private configVersions: string[] = [];
-  private configWatcher: FileSystemWatcher;
+  private cmakePresetsWatcher: FileSystemWatcher;
+  private cmakeUserPresetsWatcher: FileSystemWatcher;
   private statusBarItems: { [key: string]: StatusBarItem };
   private workspaceUri: Uri;
   private context: ExtensionContext;
   private commandDictionary: any;
+  private initPromise: Promise<void>;
 
   constructor(
     workspaceUri: Uri,
@@ -60,61 +70,54 @@ export class ProjectConfigurationManager {
     this.statusBarItems = statusBarItems;
     this.commandDictionary = createCommandDictionary();
 
-    this.configFilePath = Uri.joinPath(
+    this.cmakePresetsFilePath = Uri.joinPath(
       workspaceUri,
       ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
     ).fsPath;
 
-    this.configWatcher = workspace.createFileSystemWatcher(
-      this.configFilePath,
+    this.cmakeUserPresetsFilePath = Uri.joinPath(
+      workspaceUri,
+      ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME
+    ).fsPath;
+
+    // Watch both CMakePresets.json and CMakeUserPresets.json
+    this.cmakePresetsWatcher = workspace.createFileSystemWatcher(
+      this.cmakePresetsFilePath,
       false,
       false,
       false
     );
 
-    this.initialize();
+    this.cmakeUserPresetsWatcher = workspace.createFileSystemWatcher(
+      this.cmakeUserPresetsFilePath,
+      false,
+      false,
+      false
+    );
+
     this.registerEventHandlers();
+    // Initialize asynchronously and store the promise to prevent race conditions
+    this.initPromise = this.initialize();
   }
 
-  private initialize(): void {
-    if (!fileExists(this.configFilePath)) {
-      // File doesn't exist - this is normal for projects without multiple configurations
-      this.configVersions = [];
+  private async initialize(): Promise<void> {
+    const cmakePresetsExists = fileExists(this.cmakePresetsFilePath);
+    const cmakeUserPresetsExists = fileExists(this.cmakeUserPresetsFilePath);
 
-      // If configuration status bar item exists, remove it
-      if (this.statusBarItems["projectConf"]) {
-        this.statusBarItems["projectConf"].dispose();
-        this.statusBarItems["projectConf"] = undefined;
-      }
-
-      // Clear any potentially stale configuration
-      const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
-        ESP.ProjectConfiguration.SELECTED_CONFIG
-      );
-      if (currentSelectedConfig) {
-        ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
-        ESP.ProjectConfiguration.store.clear(
-          ESP.ProjectConfiguration.SELECTED_CONFIG
-        );
-      }
-
+    if (!cmakePresetsExists && !cmakeUserPresetsExists) {
+      // Neither CMakePresets.json nor CMakeUserPresets.json exists - check for legacy file
+      await this.checkForLegacyFile();
       return;
     }
 
     try {
-      const configContent = readFileSync(this.configFilePath);
+      // Use the updated getProjectConfigurationElements function that handles both files
+      const projectConfElements = await getProjectConfigurationElements(
+        this.workspaceUri,
+        false // Don't resolve paths for initialization
+      );
 
-      // Handle edge case: File exists but is empty
-      if (!configContent || configContent.trim() === "") {
-        Logger.warn(
-          `Project configuration file is empty: ${this.configFilePath}`
-        );
-        this.configVersions = [];
-        return;
-      }
-
-      const configData = JSON.parse(configContent);
-      this.configVersions = Object.keys(configData);
+      this.configVersions = Object.keys(projectConfElements);
 
       // Check if the currently selected configuration is valid
       const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
@@ -136,25 +139,46 @@ export class ProjectConfigurationManager {
         this.setNoConfigurationSelectedStatus();
       } else if (this.configVersions.length > 0) {
         // No current selection but configurations exist
-        window.showInformationMessage(
-          `Loaded ${
-            this.configVersions.length
-          } project configuration(s): ${this.configVersions.join(", ")}`
-        );
-        this.setNoConfigurationSelectedStatus();
+        const fileInfo = [];
+        if (cmakePresetsExists) fileInfo.push("CMakePresets.json");
+        if (cmakeUserPresetsExists) fileInfo.push("CMakeUserPresets.json");
+
+        // Check if we should show no configuration selected status
+        const saveLastProjectConfiguration = idfConf.readParameter("idf.saveLastProjectConfiguration", this.workspaceUri);
+        
+        if (saveLastProjectConfiguration !== false) {
+          // When setting is enabled, show no configuration selected status
+          window.showInformationMessage(
+            l10n.t(
+              "Loaded {0} project configuration(s) from {1}: {2}. No configuration selected.",
+              this.configVersions.length,
+              fileInfo.join(" and "),
+              this.configVersions.join(", ")
+            )
+          );
+          this.setNoConfigurationSelectedStatus();
+        } else {
+          // Show the current behavior when auto-selection is disabled
+          window.showInformationMessage(
+            l10n.t(
+              "Loaded {0} project configuration(s) from {1}: {2}",
+              this.configVersions.length,
+              fileInfo.join(" and "),
+              this.configVersions.join(", ")
+            )
+          );
+          this.setNoConfigurationSelectedStatus();
+        }
       } else {
-        // Empty configuration file
+        // No configurations found
         Logger.info(
-          `Project configuration file loaded but contains no configurations: ${this.configFilePath}`
+          `Project configuration files loaded but contain no configurations`
         );
         this.setNoConfigurationSelectedStatus();
       }
     } catch (error) {
-      window.showErrorMessage(
-        `Error reading or parsing project configuration file (${this.configFilePath}): ${error.message}`
-      );
       Logger.errorNotify(
-        `Failed to parse project configuration file: ${this.configFilePath}`,
+        l10n.t("Failed to parse project configuration files"),
         error,
         "ProjectConfigurationManager initialize"
       );
@@ -164,32 +188,58 @@ export class ProjectConfigurationManager {
   }
 
   private registerEventHandlers(): void {
-    // Handle file changes
-    const changeDisposable = this.configWatcher.onDidChange(
+    // Handle CMakePresets.json file changes
+    const cmakePresetsChangeDisposable = this.cmakePresetsWatcher.onDidChange(
       async () => await this.handleConfigFileChange()
     );
 
-    // Handle file deletion
-    const deleteDisposable = this.configWatcher.onDidDelete(
+    // Handle CMakePresets.json file deletion
+    const cmakePresetsDeleteDisposable = this.cmakePresetsWatcher.onDidDelete(
       async () => await this.handleConfigFileDelete()
     );
 
-    // Handle file creation
-    const createDisposable = this.configWatcher.onDidCreate(
+    // Handle CMakePresets.json file creation
+    const cmakePresetsCreateDisposable = this.cmakePresetsWatcher.onDidCreate(
+      async () => await this.handleConfigFileCreate()
+    );
+
+    // Handle CMakeUserPresets.json file changes
+    const cmakeUserPresetsChangeDisposable = this.cmakeUserPresetsWatcher.onDidChange(
+      async () => await this.handleConfigFileChange()
+    );
+
+    // Handle CMakeUserPresets.json file deletion
+    const cmakeUserPresetsDeleteDisposable = this.cmakeUserPresetsWatcher.onDidDelete(
+      async () => await this.handleConfigFileDelete()
+    );
+
+    // Handle CMakeUserPresets.json file creation
+    const cmakeUserPresetsCreateDisposable = this.cmakeUserPresetsWatcher.onDidCreate(
       async () => await this.handleConfigFileCreate()
     );
 
     this.context.subscriptions.push(
-      changeDisposable,
-      deleteDisposable,
-      createDisposable
+      cmakePresetsChangeDisposable,
+      cmakePresetsDeleteDisposable,
+      cmakePresetsCreateDisposable,
+      cmakeUserPresetsChangeDisposable,
+      cmakeUserPresetsDeleteDisposable,
+      cmakeUserPresetsCreateDisposable
     );
   }
 
   private async handleConfigFileChange(): Promise<void> {
+    // Wait for initialization to complete before processing file changes
+    await this.initPromise;
+    
     try {
-      const configData = await readJson(this.configFilePath);
-      const currentVersions = Object.keys(configData);
+      // Use the updated getProjectConfigurationElements function that handles both files
+      const projectConfElements = await getProjectConfigurationElements(
+        this.workspaceUri,
+        false // Don't resolve paths for change handling
+      );
+
+      const currentVersions = Object.keys(projectConfElements);
 
       // Find added versions
       const addedVersions = currentVersions.filter(
@@ -203,13 +253,13 @@ export class ProjectConfigurationManager {
 
       if (addedVersions.length > 0) {
         window.showInformationMessage(
-          `New versions added: ${addedVersions.join(", ")}`
+          l10n.t("New configurations added: {0}", addedVersions.join(", "))
         );
       }
 
       if (removedVersions.length > 0) {
         window.showInformationMessage(
-          `Versions removed: ${removedVersions.join(", ")}`
+          l10n.t("Configurations removed: {0}", removedVersions.join(", "))
         );
       }
 
@@ -240,12 +290,19 @@ export class ProjectConfigurationManager {
         this.setNoConfigurationSelectedStatus();
       }
     } catch (error) {
-      window.showErrorMessage(`Error parsing config file: ${error.message}`);
+      Logger.errorNotify(
+        `Error parsing configuration files: ${error.message}`,
+        error,
+        "ProjectConfigurationManager handleConfigFileChange"
+      );
       this.setNoConfigurationSelectedStatus();
     }
   }
 
   private async handleConfigFileDelete(): Promise<void> {
+    // Wait for initialization to complete before processing file deletion
+    await this.initPromise;
+    
     // When the config file is deleted, clear all configurations
     this.configVersions = [];
 
@@ -266,17 +323,23 @@ export class ProjectConfigurationManager {
       this.statusBarItems["projectConf"].dispose();
       this.statusBarItems["projectConf"] = undefined;
     }
-
+  
     // Optionally notify the user
-    window.showInformationMessage(
-      "Project configuration file has been deleted."
-    );
+    Logger.infoNotify(l10n.t("Project configuration file has been deleted."));
   }
 
   private async handleConfigFileCreate(): Promise<void> {
+    // Wait for initialization to complete before processing file creation
+    await this.initPromise;
+    
     try {
-      const configData = await readJson(this.configFilePath);
-      this.configVersions = Object.keys(configData);
+      // Use the updated getProjectConfigurationElements function that handles both files
+      const projectConfElements = await getProjectConfigurationElements(
+        this.workspaceUri,
+        false // Don't resolve paths for creation handling
+      );
+
+      this.configVersions = Object.keys(projectConfElements);
 
       // If we have versions, check if current selection is valid
       if (this.configVersions.length > 0) {
@@ -302,7 +365,10 @@ export class ProjectConfigurationManager {
 
           // Notify the user about available configurations
           window.showInformationMessage(
-            `Project configuration file created with ${this.configVersions.length} configuration(s). Select one to use.`
+            l10n.t(
+              "Project configuration file created with {0} configuration(s). Select one to use.",
+              this.configVersions.length
+            )
           );
         }
       } else {
@@ -310,8 +376,10 @@ export class ProjectConfigurationManager {
         this.setNoConfigurationSelectedStatus();
       }
     } catch (error) {
-      window.showErrorMessage(
-        `Error parsing newly created config file: ${error.message}`
+      Logger.errorNotify(
+        `Error parsing newly created configuration file: ${error.message}`,
+        error,
+        "ProjectConfigurationManager handleConfigFileCreate"
       );
       this.setNoConfigurationSelectedStatus();
     }
@@ -321,9 +389,9 @@ export class ProjectConfigurationManager {
    * Sets the status bar to indicate no configuration is selected
    */
   private setNoConfigurationSelectedStatus(): void {
-    const statusBarItemName = "No Configuration Selected";
+    const statusBarItemName = l10n.t("No Configuration Selected");
     const statusBarItemTooltip =
-      "No project configuration selected. Click to select one";
+      l10n.t("No project configuration selected. Click to select one");
     const commandToUse = "espIdf.projectConf";
 
     if (this.statusBarItems["projectConf"]) {
@@ -388,7 +456,12 @@ export class ProjectConfigurationManager {
       this.workspaceUri,
       true // Resolve paths for building
     );
-    ESP.ProjectConfiguration.store.set(configName, resolvedConfig[configName]);
+
+    // Convert ConfigurePreset to ProjectConfElement for store compatibility
+    const legacyElement = configurePresetToProjectConfElement(
+      resolvedConfig[configName]
+    );
+    ESP.ProjectConfiguration.store.set(configName, legacyElement);
 
     // Update UI
     if (this.statusBarItems["projectConf"]) {
@@ -420,6 +493,9 @@ export class ProjectConfigurationManager {
    * Method to select a project configuration via command
    */
   public async selectProjectConfiguration(): Promise<void> {
+    // Wait for initialization to complete before allowing configuration selection
+    await this.initPromise;
+    
     try {
       const projectConfigurations = await getProjectConfigurationElements(
         this.workspaceUri,
@@ -430,12 +506,25 @@ export class ProjectConfigurationManager {
         !projectConfigurations ||
         Object.keys(projectConfigurations).length === 0
       ) {
-        const emptyOption = await window.showInformationMessage(
-          l10n.t("No project configuration found"),
-          "Open editor"
+        // Check if we have legacy configurations to migrate
+        const legacyFilePath = Uri.joinPath(
+          this.workspaceUri,
+          "esp_idf_project_configuration.json"
         );
 
-        if (emptyOption === "Open editor") {
+        if (await pathExists(legacyFilePath.fsPath)) {
+          // Show migration dialog
+          await this.handleLegacyMigrationDialog(legacyFilePath);
+          return;
+        }
+
+        const openEditorLabel = l10n.t("Open editor");
+        const emptyOption = await window.showInformationMessage(
+          l10n.t("No CMakePresets configure presets found"),
+          openEditorLabel
+        );
+
+        if (emptyOption === openEditorLabel) {
           commands.executeCommand("espIdf.projectConfigurationEditor");
         }
         return;
@@ -445,7 +534,7 @@ export class ProjectConfigurationManager {
       let quickPickItems = Object.keys(projectConfigurations).map((k) => {
         return {
           description: k,
-          label: `Configuration ${k}`,
+          label: l10n.t("Configuration {0}", k),
           target: k,
         };
       });
@@ -462,16 +551,230 @@ export class ProjectConfigurationManager {
 
       await this.updateConfiguration(option.target);
     } catch (error) {
-      window.showErrorMessage(
-        `Error selecting configuration: ${error.message}`
+      Logger.errorNotify(
+        `Error selecting configuration: ${error.message}`,
+        error,
+        "ProjectConfigurationManager selectProjectConfiguration"
       );
     }
   }
 
   /**
-   * Dispose of the file system watcher
+   * Checks for legacy esp_idf_project_configuration.json file and shows appropriate status
+   */
+  private async checkForLegacyFile(): Promise<void> {
+    const legacyFilePath = Uri.joinPath(
+      this.workspaceUri,
+      "esp_idf_project_configuration.json"
+    ).fsPath;
+
+    if (fileExists(legacyFilePath)) {
+      // Legacy file exists - show status bar with migration option
+      this.configVersions = [];
+
+      try {
+        const legacyContent = readFileSync(legacyFilePath);
+        if (legacyContent && legacyContent.trim() !== "") {
+          const legacyData = JSON.parse(legacyContent);
+          const legacyConfigNames = Object.keys(legacyData);
+
+          if (legacyConfigNames.length > 0) {
+            // Show status bar indicating legacy configurations are available
+            this.setLegacyConfigurationStatus(legacyConfigNames);
+
+            // Show migration notification
+            this.showLegacyMigrationNotification(legacyConfigNames);
+            return;
+          }
+        }
+      } catch (error) {
+        Logger.warn(
+          `Failed to parse legacy configuration file: ${error.message}`
+        );
+      }
+    }
+
+    // No configuration files found - clear everything
+    this.clearConfigurationState();
+  }
+
+  /**
+   * Sets status bar to indicate legacy configurations are available
+   */
+  private setLegacyConfigurationStatus(legacyConfigNames: string[]): void {
+    const statusBarItemName = l10n.t(
+      "Legacy Configs ({0})",
+      legacyConfigNames.length
+    );
+    const statusBarItemTooltip = l10n.t(
+      "Found legacy project configurations: {0}. Click to migrate to the new CMakePresets.json format.",
+      legacyConfigNames.join(", ")
+    );
+    const commandToUse = "espIdf.projectConf";
+
+    if (this.statusBarItems["projectConf"]) {
+      this.statusBarItems["projectConf"].dispose();
+    }
+
+    this.statusBarItems["projectConf"] = createStatusBarItem(
+      `$(${
+        this.commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
+      }) ${statusBarItemName}`,
+      statusBarItemTooltip,
+      commandToUse,
+      99,
+      this.commandDictionary[CommandKeys.SelectProjectConfiguration]
+        .checkboxState
+    );
+  }
+
+  /**
+   * Shows notification about legacy configurations
+   */
+  private async showLegacyMigrationNotification(
+    legacyConfigNames: string[]
+  ): Promise<void> {
+    const message = l10n.t(
+      "Found {0} legacy project configuration(s): {1}. Would you like to migrate them to the new CMakePresets.json format? Your original file will remain unchanged.",
+      legacyConfigNames.length,
+      legacyConfigNames.join(", ")
+    );
+
+    const migrateOption = l10n.t("Migrate Now");
+    const laterOption = l10n.t("Later");
+
+    const choice = await window.showInformationMessage(
+      message,
+      migrateOption,
+      laterOption
+    );
+
+    if (choice === migrateOption) {
+      // Directly perform migration without additional popup
+      const legacyFilePath = Uri.joinPath(
+        this.workspaceUri,
+        "esp_idf_project_configuration.json"
+      );
+      await this.performDirectMigration(legacyFilePath);
+    }
+  }
+
+  /**
+   * Handles the legacy migration dialog when user clicks on project configuration
+   */
+  private async handleLegacyMigrationDialog(
+    legacyFilePath: Uri
+  ): Promise<void> {
+    try {
+      const legacyContent = readFileSync(legacyFilePath.fsPath);
+      const legacyData = JSON.parse(legacyContent);
+      const legacyConfigNames = Object.keys(legacyData);
+
+      const message = l10n.t(
+        "Found {0} legacy project configuration(s): {1}. Would you like to migrate them to the new CMakePresets.json format?",
+        legacyConfigNames.length,
+        legacyConfigNames.join(", ")
+      );
+
+      const migrateOption = l10n.t("Migrate Now");
+      const cancelOption = l10n.t("Cancel");
+
+      const choice = await window.showInformationMessage(
+        message,
+        { modal: true },
+        migrateOption,
+        cancelOption
+      );
+
+      if (choice === migrateOption) {
+        await this.performMigration(legacyFilePath);
+      }
+    } catch (error) {
+      Logger.errorNotify(
+        l10n.t("Failed to handle legacy migration: {0}", error.message),
+        error,
+        "ProjectConfigurationManager handleLegacyMigrationDialog"
+      );
+    }
+  }
+
+  /**
+   * Performs the actual migration and updates UI (with confirmation dialog)
+   */
+  private async performMigration(legacyFilePath: Uri): Promise<void> {
+    try {
+      await promptLegacyMigration(this.workspaceUri, legacyFilePath);
+
+      // After migration, reinitialize to show the new configurations
+      await this.initialize();
+
+      window.showInformationMessage(
+        l10n.t(
+          "Project configurations successfully migrated to CMakePresets.json format!"
+        )
+      );
+    } catch (error) {
+      Logger.errorNotify(
+        l10n.t("Failed to migrate project configuration: {0}", error.message),
+        error,
+        "ProjectConfigurationManager performMigration"
+      );
+    }
+  }
+
+  /**
+   * Performs direct migration without additional confirmation (for notification)
+   */
+  private async performDirectMigration(legacyFilePath: Uri): Promise<void> {
+    try {
+      await migrateLegacyConfiguration(this.workspaceUri, legacyFilePath);
+
+      // After migration, reinitialize to show the new configurations
+      await this.initialize();
+
+      window.showInformationMessage(
+        l10n.t(
+          "Project configurations successfully migrated to CMakePresets.json format!"
+        )
+      );
+    } catch (error) {
+      Logger.errorNotify(
+        l10n.t("Failed to migrate project configuration: {0}", error.message),
+        error,
+        "ProjectConfigurationManager performDirectMigration"
+      );
+    }
+  }
+
+  /**
+   * Clears all configuration state
+   */
+  private clearConfigurationState(): void {
+    this.configVersions = [];
+
+    // If configuration status bar item exists, remove it
+    if (this.statusBarItems["projectConf"]) {
+      this.statusBarItems["projectConf"].dispose();
+      this.statusBarItems["projectConf"] = undefined;
+    }
+
+    // Clear any potentially stale configuration
+    const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+    if (currentSelectedConfig) {
+      ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
+      ESP.ProjectConfiguration.store.clear(
+        ESP.ProjectConfiguration.SELECTED_CONFIG
+      );
+    }
+  }
+
+  /**
+   * Dispose of the file system watchers
    */
   public dispose(): void {
-    this.configWatcher.dispose();
+    this.cmakePresetsWatcher.dispose();
+    this.cmakeUserPresetsWatcher.dispose();
   }
 }

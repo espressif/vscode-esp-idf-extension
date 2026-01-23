@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+// Legacy interface for backward compatibility
 export interface ProjectConfElement {
   build: {
     compileArgs: string[];
@@ -39,4 +40,56 @@ export interface ProjectConfElement {
     postBuild: string;
     postFlash: string;
   };
+}
+
+// New CMakePresets interfaces
+export interface CMakeVersion {
+  major: number;
+  minor: number;
+  patch: number;
+}
+
+export interface ESPIDFSettings {
+  type:
+    | "compileArgs"
+    | "ninjaArgs"
+    | "flashBaudRate"
+    | "monitorBaudRate"
+    | "openOCD"
+    | "tasks";
+  value: any;
+}
+
+export interface ESPIDFVendorSettings {
+  "espressif/vscode-esp-idf": {
+    settings: ESPIDFSettings[];
+    schemaVersion?: number
+  };
+}
+
+export interface ConfigurePreset {
+  name: string;
+  inherits?: string | string[];
+  binaryDir?: string;
+  cacheVariables?: {
+    IDF_TARGET?: string;
+    SDKCONFIG_DEFAULTS?: string;
+    SDKCONFIG?: string;
+    [key: string]: any;
+  };
+  environment?: { [key: string]: string };
+  vendor?: ESPIDFVendorSettings;
+}
+
+export interface BuildPreset {
+  name: string;
+  configurePreset: string;
+}
+
+export interface CMakePresets {
+  $schema?: string;
+  version: number;
+  cmakeMinimumRequired?: CMakeVersion;
+  configurePresets?: ConfigurePreset[];
+  buildPresets?: BuildPreset[]; // Optional - not used by ESP-IDF extension
 }

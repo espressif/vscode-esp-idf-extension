@@ -30,8 +30,8 @@ export namespace ESP {
   export namespace ProjectConfiguration {
     export let store: ProjectConfigStore;
     export const SELECTED_CONFIG = "SELECTED_PROJECT_CONFIG";
-    export const PROJECT_CONFIGURATION_FILENAME =
-      "esp_idf_project_configuration.json";
+    export const PROJECT_CONFIGURATION_FILENAME = "CMakePresets.json";
+    export const USER_CONFIGURATION_FILENAME = "CMakeUserPresets.json";
   }
 
   export enum BuildType {
@@ -152,5 +152,10 @@ export namespace ESP {
       export const ViewType = "component-manager-ui";
       export const Title = "ESP Component Registry";
     }
+  }
+  export namespace CMakePresets {
+    export const ESP_IDF_VENDOR_KEY = "espressif/vscode-esp-idf";
+    export const CMAKE_PRESET_VERSION = 3;
+    export const CMAKE_PRESET_SCHEMA_VERSION = 1;
   }
 }

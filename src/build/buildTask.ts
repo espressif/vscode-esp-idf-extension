@@ -83,6 +83,25 @@ export class BuildTask {
       "idf.buildPath",
       this.currentWorkspace
     ) as string;
+
+    // Check if CMakePresets build mode is enabled
+    const useCMakePresets = idfConf.readParameter(
+      "idf.useCMakePresets",
+      this.currentWorkspace
+    ) as boolean;
+
+    if (useCMakePresets) {
+      return await this.buildWithPresets(buildType, captureOutput);
+    }
+
+    // Continue with traditional CMake build
+    return await this.buildWithCMake(buildType, captureOutput);
+  }
+
+  private async buildWithCMake(
+    buildType?: ESP.BuildType,
+    captureOutput?: boolean
+  ) {
     await ensureDir(this.buildDirPath);
     const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
     const processOptions: vscode.ProcessExecutionOptions = {
@@ -121,7 +140,7 @@ export class BuildTask {
       let defaultCompilerArgs;
       if (espIdfVersion === "x.x") {
         Logger.warn(
-          "Could not determine ESP-IDF version. Using default compiler arguments for the latest known version."
+            "Could not determine ESP-IDF version. Using default compiler arguments for the latest known version."
         );
         defaultCompilerArgs = [
           "-G",
@@ -317,5 +336,99 @@ export class BuildTask {
       buildPresentationOptions
     );
     return writeExecution;
+  }
+
+  private async buildWithPresets(
+    buildType?: ESP.BuildType,
+    captureOutput?: boolean
+  ) {
+    await ensureDir(this.buildDirPath);
+    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+
+    // Get the selected project configuration preset name
+    const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+
+    if (!selectedConfig) {
+      throw new Error(
+        "No project configuration selected. Please select a CMakePresets configuration first."
+      );
+    }
+
+    const currentWorkspaceFolder = vscode.workspace.workspaceFolders.find(
+      (w) => w.uri === this.currentWorkspace
+    );
+
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      this.currentWorkspace
+    ) as string;
+    const showTaskOutput =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Output
+        ? vscode.TaskRevealKind.Always
+        : vscode.TaskRevealKind.Silent;
+
+    // Build idf.py command with preset
+    const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
+    const idfPy = join(this.idfPathDir, "tools", "idf.py");
+    
+    let args = [idfPy, "--preset", selectedConfig];
+    
+    // Add build type specific arguments if needed
+    if (buildType) {
+      switch (buildType) {
+        case ESP.BuildType.Bootloader:
+          args.push("bootloader");
+          break;
+        case ESP.BuildType.PartitionTable:
+          args.push("partition-table");
+          break;
+        default:
+          args.push("build");
+          break;
+      }
+    } else {
+      args.push("build");
+    }
+
+    Logger.info(`Building with CMakePresets using: ${pythonBinPath} ${args.join(" ")}`);
+
+    const processOptions = {
+      cwd: this.currentWorkspace.fsPath,
+      env: modifiedEnv,
+    };
+
+    const buildExecution = captureOutput
+      ? OutputCapturingExecution.create(pythonBinPath, args, processOptions)
+      : new vscode.ProcessExecution(pythonBinPath, args, processOptions);
+
+    const buildPresentationOptions = {
+      reveal: showTaskOutput,
+      showReuseMessage: false,
+      clear: false,
+      panel: vscode.TaskPanelKind.Shared,
+    } as vscode.TaskPresentationOptions;
+
+    TaskManager.addTask(
+      {
+        type: "esp-idf",
+        command: `ESP-IDF Build (CMakePresets: ${selectedConfig})`,
+        taskId: "idf-build-presets-task",
+      },
+      currentWorkspaceFolder || vscode.TaskScope.Workspace,
+      `ESP-IDF Build (CMakePresets: ${selectedConfig})`,
+      buildExecution,
+      ["espIdf"],
+      buildPresentationOptions
+    );
+
+    // Keep return shape compatible with existing callers that do:
+    // const [compileExecution, buildExecution] = await buildTask.build(...)
+    return [undefined as any, buildExecution] as [
+      OutputCapturingExecution | vscode.ProcessExecution,
+      OutputCapturingExecution | vscode.ProcessExecution
+    ];
   }
 }
