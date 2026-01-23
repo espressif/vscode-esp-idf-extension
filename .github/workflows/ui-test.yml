@@ -18,15 +18,9 @@ jobs:
           submodules: "recursive"
 
       - name: Install ESP-IDF
-        run: |
-          ESP_IDF_VERSION="v5.3.2"
-          sudo apt update
-          sudo apt install -y python3-pip git wget flex bison gperf python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util
-          wget https://dl.espressif.com/github_assets/espressif/esp-idf/releases/download/${ESP_IDF_VERSION}/esp-idf-${ESP_IDF_VERSION}.zip -O esp-idf.zip
-          unzip esp-idf.zip -d ~/
-          rm esp-idf.zip
-          mv ~/esp-idf-${ESP_IDF_VERSION} ~/esp-idf
-          ~/esp-idf/install.sh
+        uses: espressif/install-esp-idf-action@v1
+        with:
+          version: "v5.4.2"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -40,9 +34,92 @@ jobs:
 
       - name: Run Yarn script with xvfb
         run: |
-          export IDF_TOOLS_PATH=~/.espressif
-          export IDF_PATH=~/esp-idf
-          source ~/esp-idf/export.sh && xvfb-run --auto-servernum yarn ci-test
+          xvfb-run --auto-servernum yarn ci-test 2>&1 | tee test-output.log
+          
+          # Extract JSON from the output and save to file
+          echo "Extracting JSON from test output..."
+          if grep -q "Extension 'espressif.esp-idf-extension' was successfully uninstalled!" test-output.log; then
+            sed -n '/Extension '\''espressif.esp-idf-extension'\'' was successfully uninstalled!/,$p' test-output.log > after-uninstall.log
+            grep -n '{' after-uninstall.log | head -1 | cut -d: -f1 > start-line.txt
+            grep -n '}' after-uninstall.log | tail -1 | cut -d: -f1 > end-line.txt
+            if [ -s start-line.txt ] && [ -s end-line.txt ]; then
+              start_line=$(cat start-line.txt)
+              end_line=$(cat end-line.txt)
+              sed -n "${start_line},${end_line}p" after-uninstall.log > ./out/ui-test-results.json
+              sed 's/}[^,]*$/}/' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+              sed '/INFO:/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+              sed '/Screenshots of failures can be found in:/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+              sed '/\x1b\[/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+              sed '/\[33m/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+              sed '/\[0m/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+              sed '/test-resources\/screenshots\//d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+              echo "JSON results extracted and saved to ./out/ui-test-results.json"
+              echo "Debug: Last 10 lines of the JSON file:"
+              tail -10 ./out/ui-test-results.json
+            else
+              echo "Could not find JSON boundaries"
+            fi
+            rm -f after-uninstall.log start-line.txt end-line.txt ./out/temp.json
+          else
+            echo "Uninstall message not found, trying to extract JSON from entire output..."
+            if grep -q '{' test-output.log; then
+              grep -n '{' test-output.log | head -1 | cut -d: -f1 > start-line.txt
+              grep -n '}' test-output.log | tail -1 | cut -d: -f1 > end-line.txt
+              if [ -s start-line.txt ] && [ -s end-line.txt ]; then
+                start_line=$(cat start-line.txt)
+                end_line=$(cat end-line.txt)
+                sed -n "${start_line},${end_line}p" test-output.log > ./out/ui-test-results.json
+                sed 's/}[^,]*$/}/' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+                sed '/INFO:/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+                sed '/Screenshots of failures can be found in:/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+                sed '/\x1b\[/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+                sed '/\[33m/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+                sed '/\[0m/d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+                sed '/test-resources\/screenshots\//d' ./out/ui-test-results.json > ./out/temp.json && mv ./out/temp.json ./out/ui-test-results.json
+                echo "JSON results extracted and saved to ./out/ui-test-results.json"
+                echo "Debug: Last 10 lines of the JSON file:"
+                tail -10 ./out/ui-test-results.json
+              else
+                echo "Could not find JSON boundaries"
+              fi
+              rm -f start-line.txt end-line.txt ./out/temp.json
+            else
+              echo "No JSON found in test output"
+            fi
+          fi
+
+      - name: Print UI Test Results
+        run: |
+          echo "=== UI Test Results ==="
+          if [ -f "./out/ui-test-results.json" ]; then
+            echo "UI Test Results:"
+            cat ./out/ui-test-results.json | jq '.' || echo "Could not parse UI test results"
+          elif [ -f "./test-results.json" ]; then
+            echo "UI Test Results:"
+            cat ./test-results.json | jq '.' || echo "Could not parse UI test results"
+          else
+            echo "No UI test results file found"
+            echo "Checking for other test output files:"
+            find . -name "*test*results*" -o -name "*ui-test-results.json*" | head -10
+          fi
+
+      - name: Publish UI Test Report
+        uses: dorny/test-reporter@v2
+        if: always()
+        with:
+          name: UI Tests
+          path: ./out/ui-test-results.json
+          reporter: mocha-json
+
+      - name: Upload UI test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-test-results
+          path: |
+            ./out/ui-test-results.json
+            ./test-resources/screenshots/
+            test-output.log
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
