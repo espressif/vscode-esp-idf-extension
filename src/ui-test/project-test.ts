@@ -46,7 +46,7 @@ describe("Example Create testing", async () => {
     const resultBlinkPath = resolve(containerPath, projectName);
 
     const espIdfSection = await view.findWebElement(
-      By.xpath(`.//div[@data-node-name='ESP-IDF']`)
+      By.xpath(`.//div[@data-node-name='ESP-IDF Examples']`)
     );
     await espIdfSection.click();
 
