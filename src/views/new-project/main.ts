@@ -28,7 +28,8 @@ import { useNewProjectStore } from "./store";
 import ProjectCreated from "./ProjectCreated.vue";
 
 const routes = [
-  { path: "/", component: Configure },
+  { path: "/", component: Templates },
+  { path: "/configure", component: Configure },
   { path: "/templates", component: Templates },
   { path: "/created", component: ProjectCreated },
 ];

@@ -3,13 +3,12 @@ import { useNewProjectStore } from "./store";
 import TemplateList from "./components/templateList.vue";
 import searchBar from "./components/searchBar.vue";
 import { storeToRefs } from "pinia";
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { IconArrowLeft } from "@iconify-prerendered/vue-codicon";
 
 const store = useNewProjectStore();
 const router = useRouter();
-
 
 let {
   hasTemplateDetail,
@@ -38,28 +37,45 @@ const templates = computed(() => {
   if (!templatesRootPath.value) return [];
   if (searchString.value && searchString.value.trim() !== "") {
     // Flat list of IExample matching search
-    const allCategories = Object.values(templatesRootPath.value).filter(Boolean) as IExampleCategory[];
+    const allCategories = Object.values(templatesRootPath.value).filter(
+      Boolean
+    ) as IExampleCategory[];
     let allExamples: IExample[] = [];
     for (const cat of allCategories) {
       allExamples = allExamples.concat(flattenExamples(cat));
     }
     const search = searchString.value.trim().toLowerCase();
-    const searchExamples = allExamples.filter((ex: IExample) => ex.name.toLowerCase().includes(search));
-    return [{
-      name: "Search Results",
-      examples: searchExamples,
-      subcategories: [],
-    }] as IExampleCategory[];
+    const searchExamples = allExamples.filter((ex: IExample) =>
+      ex.name.toLowerCase().includes(search)
+    );
+    return [
+      {
+        name: "Search Results",
+        examples: searchExamples,
+        subcategories: [],
+      },
+    ] as IExampleCategory[];
   } else {
     return Object.values(templatesRootPath.value).filter(Boolean);
   }
 });
-const frameworks = computed(() => {
-  return Object.keys(templatesRootPath.value);
+
+// Only request initial values if the store is empty, to avoid resetting on navigation
+onMounted(() => {
+  if (!store.projectName && (!store.boards || store.boards.length === 0)) {
+    store.requestInitialValues();
+  }
 });
 
-function goToConfigure() {
+function goBack() {
   router.push("/");
+}
+
+function handleCreateProject() {
+  if (selectedTemplate.value && selectedTemplate.value.name) {
+    store.projectName = selectedTemplate.value.name;
+  }
+  router.push("/configure");
 }
 </script>
 
@@ -67,7 +83,7 @@ function goToConfigure() {
   <div id="templates-window">
     <div id="sidenav" class="content">
       <div class="back-btn-wrapper">
-        <button class="vscode-button back-btn" @click="goToConfigure">
+        <button class="vscode-button back-btn" @click="goBack">
           <IconArrowLeft style="vertical-align: middle; margin-right: 4px;" />
           Back
         </button>
@@ -84,9 +100,9 @@ function goToConfigure() {
       <div v-if="hasTemplateDetail" class="template-actions">
         <button
           v-if="selectedTemplate.name !== ''"
-          v-on:click="store.createProject"
+          v-on:click="handleCreateProject"
           class="vscode-button"
-          id="createProjectButton"
+          id="chooseTemplateButton"
         >
           Create project using template {{ selectedTemplate.name }}
         </button>
