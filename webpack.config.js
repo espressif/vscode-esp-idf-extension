@@ -150,6 +150,13 @@ const webViewConfig = {
       "troubleshoot",
       "main.ts"
     ),
+    imageView: path.resolve(
+      __dirname,
+      "src",
+      "views",
+      "image-view",
+      "main.ts"
+    ),
   },
   output: {
     path: path.resolve(__dirname, "dist", "views"),

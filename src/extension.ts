@@ -177,6 +177,8 @@ import {
   HexTreeItem,
   HexViewProvider,
 } from "./cdtDebugAdapter/hexViewProvider";
+
+import { ImageViewPanel } from "./cdtDebugAdapter/imageViewPanel";
 import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
@@ -1574,6 +1576,86 @@ export async function activate(context: vscode.ExtensionContext) {
       });
     }
   );
+
+  registerIDFCommand(
+    "espIdf.viewVariableAsImage",
+    (debugContext: {
+      container: {
+        expensive: boolean;
+        name: string;
+        variablesReference: number;
+      };
+      sessionId: string;
+      variable: {
+        evaluateName: string;
+        memoryReference: string;
+        name: string;
+        value: string;
+        variablesReference: number;
+        type: string;
+      };
+    }) => {
+      return PreCheck.perform([openFolderCheck], async () => {
+        if (
+          !debugContext ||
+          !debugContext.variable ||
+          !debugContext.variable.evaluateName
+        ) {
+          return;
+        }
+        if (!vscode.debug.activeDebugSession) {
+          return;
+        }
+
+        try {
+          // Show the ImageViewPanel and pass the variable information
+          ImageViewPanel.show(context.extensionPath);
+
+          // Send the variable information to the ImageViewPanel with automatic type detection
+          ImageViewPanel.handleVariableAsImage(debugContext);
+        } catch (e) {
+          const msg = e && e.message ? e.message : e;
+          Logger.errorNotify(msg, e, "extension espIdf.viewVariableAsImage");
+        }
+      });
+    }
+  );
+
+  registerIDFCommand("espIdf.openImageViewer", () => {
+    return PreCheck.perform([openFolderCheck], () => {
+      // Show the ImageViewPanel without an image
+      ImageViewPanel.show(context.extensionPath);
+    });
+  });
+
+  registerIDFCommand("espIdf.loadImageFromFile", async () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      try {
+        // Show file picker to select LVGL C file
+        const fileUri = await vscode.window.showOpenDialog({
+          canSelectMany: false,
+          openLabel: "Select LVGL C file with image data",
+          filters: {
+            "C files": ["c", "h"],
+            "All files": ["*"],
+          },
+        });
+
+        if (fileUri && fileUri[0]) {
+          const filePath = fileUri[0].fsPath;
+
+          // Load LVGL image directly (no config selection needed)
+          await ImageViewPanel.loadImageFromFile(
+            context.extensionPath,
+            filePath
+          );
+        }
+      } catch (error) {
+        const msg = error && error.message ? error.message : error;
+        Logger.errorNotify(msg, error, "extension espIdf.loadImageFromFile");
+      }
+    });
+  });
 
   registerIDFCommand("espIdf.genCoverage", () => {
     return PreCheck.perform([openFolderCheck], async () => {
