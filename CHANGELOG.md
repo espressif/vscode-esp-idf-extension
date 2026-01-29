@@ -29,7 +29,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Pre-Release branch docs](https://github.com/espressif/vscode-esp-idf-extension/pull/1599)
 - [Modify event activation for file types](https://github.com/espressif/vscode-esp-idf-extension/pull/1568)
 - [Add classic menuconfig in Editor Panel](https://github.com/espressif/vscode-esp-idf-extension/pull/1598)
-- [Update webviews to VS Code UI Style](https://github.com/espressif/vscode-esp-idf-extension/pull/1554)
+- [Update webviews to VS Code UI Style](https://github.com/espressif/vscode-esp-idf-extension/pull/1554) This Pull Request removes the `ESP-IDF: Show Examples` command in favor of `ESP-IDF: New Project` since it provide a better customization.
 - [Allow customize Pytest glob pattern and unit test services](https://github.com/espressif/vscode-esp-idf-extension/pull/1593)
 - [CLang install prompt if not installed](https://github.com/espressif/vscode-esp-idf-extension/pull/1615)
 - [Allow additional files and directories for Full Clean commands](https://github.com/espressif/vscode-esp-idf-extension/pull/1613)
