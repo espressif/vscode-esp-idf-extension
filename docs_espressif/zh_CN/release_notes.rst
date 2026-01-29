@@ -8,15 +8,15 @@
 
 `v2.0.2 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.0.2>`_
 
-功能与增强
-~~~~~~~~~~
+功能与增强 (2.0.2)
+~~~~~~~~~~~~~~~~~~
 
 - `新建项目向导中先显示模板再配置 <https://github.com/espressif/vscode-esp-idf-extension/pull/1757>`_
 - `调试图像查看器及从文件查看 C 图像数组 <https://github.com/espressif/vscode-esp-idf-extension/pull/1644>`_ — 只要提供图像 C UInt8Array 及尺寸长度，即可为 OpenCV、LVGL 及任意自定义数据类型进行配置。
 - `移除旧版调试适配器、ESP-MDF、ESP-Matter 和 ESP-HomeKit <https://github.com/espressif/vscode-esp-idf-extension/pull/1693>`_。其中多数框架已在 ESP 组件注册表中提供。我们保留 ESP-ADF。
 
-Bug 修复
-~~~~~~~~
+Bug 修复 (2.0.2)
+~~~~~~~~~~~~~~~~
 
 - `按降序显示 ESP-IDF 版本 <https://github.com/espressif/vscode-esp-idf-extension/pull/1704>`_
 
@@ -25,8 +25,8 @@ Bug 修复
 
 `v1.11.1 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.11.1>`_
 
-Bug 修复
-~~~~~~~~
+Bug 修复 (1.11.1)
+~~~~~~~~~~~~~~~~~
 
 - `仅对 Copilot Chat 使用输出捕获执行 <https://github.com/espressif/vscode-esp-idf-extension/pull/1740>`_
 - `修复 v1.11.0 中构建后始终挂起的问题 <https://github.com/espressif/vscode-esp-idf-extension/pull/1733>`_
@@ -41,8 +41,8 @@ Bug 修复
 
 `v1.11.0 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.11.0>`_
 
-功能与增强
-~~~~~~~~~~
+功能与增强 (1.11.0)
+~~~~~~~~~~~~~~~~~~
 
 - `添加 DevKits 支持 <https://github.com/espressif/vscode-esp-idf-extension/pull/1557>`_
 - `创建项目时添加 gitignore <https://github.com/espressif/vscode-esp-idf-extension/pull/1578>`_
@@ -66,8 +66,8 @@ Bug 修复
 - `添加创建空项目命令 <https://github.com/espressif/vscode-esp-idf-extension/pull/1698>`_
 - `添加 Unity 运行器与解析器，移除 Pytest <https://github.com/espressif/vscode-esp-idf-extension/pull/1681>`_
 
-Bug 修复
-~~~~~~~~
+Bug 修复 (1.11.0)
+~~~~~~~~~~~~~~~~~
 
 - `更新反汇编截图 <https://github.com/espressif/vscode-esp-idf-extension/pull/1588>`_
 - `JTAG 缩写问题 <https://github.com/espressif/vscode-esp-idf-extension/pull/1604>`_
@@ -95,16 +95,16 @@ Bug 修复
 
 `v1.10.1 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.10.1>`_
 
-功能与增强
-~~~~~~~~~~
+功能与增强 (1.10.1)
+~~~~~~~~~~~~~~~~~~
 
 - `悬停时计算变量、以十六进制查看变量、设置数据断点 <https://github.com/espressif/vscode-esp-idf-extension/pull/1521>`_
 - `Clang 项目设置配置 <https://github.com/espressif/vscode-esp-idf-extension/pull/1489>`_
 - `在选择列表中显示当前活动的 openOCD 板 <https://github.com/espressif/vscode-esp-idf-extension/pull/1527>`_
 - `添加 ESP-IDF VS Code 配置文件模板 <https://github.com/espressif/vscode-esp-idf-extension/pull/1499>`_
 
-Bug 修复
-~~~~~~~~
+Bug 修复 (1.10.1)
+~~~~~~~~~~~~~~~~~
 
 - `修复无工作区 fsPath 的启动错误 <https://github.com/espressif/vscode-esp-idf-extension/pull/1538>`_
 - `反汇编视图 DAP 请求更新 <https://github.com/espressif/vscode-esp-idf-extension/pull/1518>`_
@@ -127,8 +127,8 @@ Bug 修复
 
 `v1.10.0 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.10.0>`_
 
-功能与增强
-~~~~~~~~~~
+功能与增强 (1.10.0)
+~~~~~~~~~~~~~~~~~~
 
 - `添加删除 esp-idf 特定设置的命令 <https://github.com/espressif/vscode-esp-idf-extension/pull/1353>`_
 - `添加 idf.monitorPort 设置 <https://github.com/espressif/vscode-esp-idf-extension/pull/1429>`_
@@ -136,8 +136,8 @@ Bug 修复
 - `调试与监视使用 idf qemu 和 idf.qemuExtraArgs <https://github.com/espressif/vscode-esp-idf-extension/pull/1462>`_
 - `应用、引导加载程序、分区表构建烧录命令，从设备读取分区，按分区烧录 <https://github.com/espressif/vscode-esp-idf-extension/pull/1436>`_
 
-Bug 修复
-~~~~~~~~
+Bug 修复 (1.10.0)
+~~~~~~~~~~~~~~~~~
 
 - `俄语翻译拼写修正 <https://github.com/espressif/vscode-esp-idf-extension/pull/1409>`_ 感谢 @SinglWolf
 - `修复 esp_idf.json 配置未被识别 <https://github.com/espressif/vscode-esp-idf-extension/pull/1451>`_

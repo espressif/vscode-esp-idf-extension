@@ -8,15 +8,15 @@ All notable changes to the "Espressif IDF" extension are documented in this file
 
 `v2.0.2 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.0.2>`_
 
-Features and enhancements
-~~~~~~~~~~~~~~~~~~~~~~~~
+Features and enhancements (2.0.2)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - `Show templates before configuration in New Project Wizard <https://github.com/espressif/vscode-esp-idf-extension/pull/1757>`_
 - `Debug image viewer and also view C image array from files <https://github.com/espressif/vscode-esp-idf-extension/pull/1644>`_ — You can configure for OpenCV, LVGL and any custom data types as long as you provide an image C UInt8Array and size length.
 - `Remove old debug adapter, ESP-MDF, ESP-Matter and ESP-HomeKit <https://github.com/espressif/vscode-esp-idf-extension/pull/1693>`_. Many of these frameworks are available in the ESP Component Registry. We are keeping ESP-ADF though.
 
-Bug Fixes
-~~~~~~~~~
+Bug Fixes (2.0.2)
+~~~~~~~~~~~~~~~~~
 
 - `Show ESP-IDF versions in descending order <https://github.com/espressif/vscode-esp-idf-extension/pull/1704>`_
 
@@ -25,8 +25,8 @@ Bug Fixes
 
 `v1.11.1 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.11.1>`_
 
-Bug Fixes
-~~~~~~~~~
+Bug Fixes (1.11.1)
+~~~~~~~~~~~~~~~~~~
 
 - `Use Output Capture Execution only for Copilot Chat <https://github.com/espressif/vscode-esp-idf-extension/pull/1740>`_
 - `Post-build always hangs in v1.11.0 <https://github.com/espressif/vscode-esp-idf-extension/pull/1733>`_
@@ -41,8 +41,8 @@ Bug Fixes
 
 `v1.11.0 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.11.0>`_
 
-Features and enhancements
-~~~~~~~~~~~~~~~~~~~~~~~~
+Features and enhancements (1.11.0)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - `Add DevKits support <https://github.com/espressif/vscode-esp-idf-extension/pull/1557>`_
 - `Add gitignore on project creation <https://github.com/espressif/vscode-esp-idf-extension/pull/1578>`_
@@ -66,8 +66,8 @@ Features and enhancements
 - `Add create empty project command <https://github.com/espressif/vscode-esp-idf-extension/pull/1698>`_
 - `Add Unity Runner and Parser, Remove Pytest <https://github.com/espressif/vscode-esp-idf-extension/pull/1681>`_
 
-Bug Fixes
-~~~~~~~~~
+Bug Fixes (1.11.0)
+~~~~~~~~~~~~~~~~~~
 
 - `Update disassemble screenshot <https://github.com/espressif/vscode-esp-idf-extension/pull/1588>`_
 - `JTAG acronym issues <https://github.com/espressif/vscode-esp-idf-extension/pull/1604>`_
@@ -95,16 +95,16 @@ Bug Fixes
 
 `v1.10.1 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.10.1>`_
 
-Features and enhancements
-~~~~~~~~~~~~~~~~~~~~~~~~
+Features and enhancements (1.10.1)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - `Evaluate variables on hover, view variables as Hex, set data breakpoints <https://github.com/espressif/vscode-esp-idf-extension/pull/1521>`_
 - `Clang project settings configuration <https://github.com/espressif/vscode-esp-idf-extension/pull/1489>`_
 - `Show currently active openOCD board in selection list <https://github.com/espressif/vscode-esp-idf-extension/pull/1527>`_
 - `Add ESP-IDF vscode profile templates <https://github.com/espressif/vscode-esp-idf-extension/pull/1499>`_
 
-Bug Fixes
-~~~~~~~~~
+Bug Fixes (1.10.1)
+~~~~~~~~~~~~~~~~~~
 
 - `No workspace fsPath launch error <https://github.com/espressif/vscode-esp-idf-extension/pull/1538>`_
 - `Disassembly view DAP request updates <https://github.com/espressif/vscode-esp-idf-extension/pull/1518>`_
@@ -127,8 +127,8 @@ Bug Fixes
 
 `v1.10.0 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.10.0>`_
 
-Features and enhancements
-~~~~~~~~~~~~~~~~~~~~~~~~
+Features and enhancements (1.10.0)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - `Add command to delete esp-idf specific settings <https://github.com/espressif/vscode-esp-idf-extension/pull/1353>`_
 - `Add idf.monitorPort setting <https://github.com/espressif/vscode-esp-idf-extension/pull/1429>`_
@@ -136,8 +136,8 @@ Features and enhancements
 - `Use idf qemu and idf.qemuExtraArgs for debug and monitor <https://github.com/espressif/vscode-esp-idf-extension/pull/1462>`_
 - `App bootloader partition table build flash cmds, read Partition from device, partition specific flashing <https://github.com/espressif/vscode-esp-idf-extension/pull/1436>`_
 
-Bug Fixes
-~~~~~~~~~
+Bug Fixes (1.10.0)
+~~~~~~~~~~~~~~~~~~~
 
 - `Russian translation typos fix <https://github.com/espressif/vscode-esp-idf-extension/pull/1409>`_ Thanks @SinglWolf
 - `Fix esp_idf.json setup not recognized <https://github.com/espressif/vscode-esp-idf-extension/pull/1451>`_
