@@ -77,7 +77,7 @@ This extension provides a list of icons in the status bar (blue bar in the botto
 
 These icons will be used in the steps below showing common ESP-IDF use cases:
 
-1. Press <kbd>F1</kbd> and type **ESP-IDF: Show Example Projects** to create a new project from ESP-IDF examples. Select ESP-IDF and choose an example to create a new project from.
+1. Press <kbd>F1</kbd> and type **ESP-IDF: New Project** to create a new project from ESP-IDF examples. Select ESP-IDF and choose an example to create a new project from.
 
 2. Once the project is created and opened in VS Code, set the serial port of your device by clicking status bar icon ![serial port](./media/readme/serialport.png). Alternatively, press <kbd>F1</kbd>, type **ESP-IDF: Select Port to Use**, and choose the serial port to which your device is connected.
 

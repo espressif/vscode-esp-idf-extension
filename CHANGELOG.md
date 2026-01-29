@@ -8,6 +8,18 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.11.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.11.1)
+
+## Bug Fixes
+
+- [Use Output Capture Execution only for Copilot Chat](https://github.com/espressif/vscode-esp-idf-extension/pull/1740)
+- [Post-build always hangs in v1.11.0](https://github.com/espressif/vscode-esp-idf-extension/pull/1733)
+- [Remove await for clang check in activation](https://github.com/espressif/vscode-esp-idf-extension/pull/1745)
+- [Prevent Set target from closing on focus lost](https://github.com/espressif/vscode-esp-idf-extension/pull/1748)
+- [Listen to restart event request to fix debug restart button](https://github.com/espressif/vscode-esp-idf-extension/pull/1747)
+- [Fix get project name in IDF Size task](https://github.com/espressif/vscode-esp-idf-extension/pull/1741)
+- [Add menuconfig visual separator for root sections](https://github.com/espressif/vscode-esp-idf-extension/pull/1752)
+
 ## [1.11.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.11.0)
 
 ## Features and enhancements
@@ -17,7 +29,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Pre-Release branch docs](https://github.com/espressif/vscode-esp-idf-extension/pull/1599)
 - [Modify event activation for file types](https://github.com/espressif/vscode-esp-idf-extension/pull/1568)
 - [Add classic menuconfig in Editor Panel](https://github.com/espressif/vscode-esp-idf-extension/pull/1598)
-- [Update webviews to VS Code UI Style](https://github.com/espressif/vscode-esp-idf-extension/pull/1554)
+- [Update webviews to VS Code UI Style](https://github.com/espressif/vscode-esp-idf-extension/pull/1554) This Pull Request removes the `ESP-IDF: Show Examples` command in favor of `ESP-IDF: New Project` since it provide a better customization.
 - [Allow customize Pytest glob pattern and unit test services](https://github.com/espressif/vscode-esp-idf-extension/pull/1593)
 - [CLang install prompt if not installed](https://github.com/espressif/vscode-esp-idf-extension/pull/1615)
 - [Allow additional files and directories for Full Clean commands](https://github.com/espressif/vscode-esp-idf-extension/pull/1613)

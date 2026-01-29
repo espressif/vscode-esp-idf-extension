@@ -228,7 +228,7 @@ export class BuildTask {
         ninjaCommand,
         buildArgs,
         processOptions
-      ) as any;
+      );
     }
     const buildPresentationOptions = {
       reveal: showTaskOutput,

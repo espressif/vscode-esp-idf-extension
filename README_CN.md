@@ -6,8 +6,8 @@
 
 [英文](./README.md)
 
-[![乐鑫文档](https://img.shields.io/badge/文档中心-red)](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/)
-[![故障排除](https://img.shields.io/badge/故障排除-red)](./README.md#Troubleshooting)
+[![乐鑫文档](https://img.shields.io/badge/文档中心-red)](https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/)
+[![故障排除](https://img.shields.io/badge/故障排除-red)](./README_CN.md#故障排除)
 ![版本](https://img.shields.io/github/package-json/v/espressif/vscode-esp-idf-extension)
 [![发布](https://img.shields.io/badge/Github-发布-blue)](https://github.com/espressif/vscode-esp-idf-extension/releases)
 [![论坛](https://img.shields.io/badge/论坛-esp32.com-blue)](https://esp32.com/viewforum.php?f=40)
@@ -46,12 +46,12 @@
   <img src="./media/readme/setup.png" alt="选择 ESP-IDF" width="950">
 </p>
 
-7. 选择 **Express** 后可自行切换下载服务器：
+7. 选择 **Express** 并选择下载服务器：
 
 - Espressif：该服务器链接在中国的下载速度更快。
 - Github：使用 Github 发布链接。
 
-8. 选择要下载的 ESP-IDF 版本，或选择 `Find ESP-IDF in your system` 选项查找系统中已有的 ESP-IDF 目录。
+8. 选择要下载的 ESP-IDF 版本，或选择 `Find ESP-IDF in your system` 选项以查找现有的 ESP-IDF 目录。
 
 9. 选择 ESP-IDF 工具的存放位置（即 `IDF_TOOLS_PATH`），默认情况下在 MacOS/Linux 系统中是 `$HOME\.espressif`，Windows 系统中是 `%USERPROFILE%\.espressif`。
 
@@ -77,7 +77,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 
 以下步骤展示了这些图标的常见用例：
 
-1. 按 <kbd>F1</kbd> 并输入 **ESP-IDF：展示示例项目**，可以基于 ESP-IDF 示例创建新项目。在命令面板中选择 ESP-IDF，搜索想使用的示例并创建新项目。
+1. 按 <kbd>F1</kbd> 并输入 **ESP-IDF：新建项目**，从 ESP-IDF 示例创建新项目。选择 ESP-IDF 并选择示例以创建新项目。
 
 2. 创建好新项目并在 VS Code 中打开后，点击状态栏图标 ![串口](./media/readme/serialport.png) 设置设备的串口。也可以按 <kbd>F1</kbd> 输入 **ESP-IDF：选择要使用的端口**，选择设备连接的串口。
 
@@ -85,7 +85,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 
 4. 接下来，通过点击状态栏图标 ![sdkconfig 编辑器](./media/readme/sdkconfig.png) 或按 <kbd>F1</kbd> 输入 **ESP-IDF：SDK 配置编辑器** 命令（快捷键：<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>G</kbd>），修改 ESP-IDF 项目设置。完成所有更改后，点击 `Save` 并关闭此窗口。可以在菜单栏中的`查看` -> `输出`中选择下拉列表里的 `ESP-IDF` 来查看输出信息。
 
-5. （可选）**ESP-IDF：运行 idf.py reconfigure 任务** 命令生成 `compile_commands.json` 文件，以便启用语言支持。也可以按照 [C/C++ 配置](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/configureproject.html#c-and-c-code-navigation-and-syntax-highlight) 文档中的说明来配置 `.vscode/c_cpp_properties.json`。
+5. （可选）**ESP-IDF：运行 idf.py reconfigure 任务** 命令生成 `compile_commands.json` 文件，以便启用语言支持。也可以按照 [C/C++ 配置](https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/configureproject.html#c-and-c-code-navigation-and-syntax-highlight) 文档中的说明来配置 `.vscode/c_cpp_properties.json`。
 
 6. 请自行对代码进行必要修改。完成项目后，点击状态栏图标 ![构建](./media/readme/build.png) 或按 <kbd>F1</kbd> 输入 **ESP-IDF：构建项目** 来构建项目。
 
@@ -107,7 +107,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 
 # 拓展阅读
 
-所有的教程、命令和功能都收录在[适用于 VS Code 的 ESP-IDF 扩展文档中心](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/)。
+所有的教程、命令和功能都收录在[适用于 VS Code 的 ESP-IDF 扩展文档中心](https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/)。
 
 ## 所有可用命令
 
@@ -153,14 +153,14 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         <tr>
             <td>选择配置存储位置</td>
             <td>VS Code 中的设置可存储在三处：用户设置（全局设置）、工作区（.code-workspace 文件）或工作区文件夹（.vscode/settings.json）。
-            更多信息请参见<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/multiple-projects.html">处理多个项目</a>。</td>
+            更多信息请参见<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/multiple-projects.html">处理多个项目</a>。</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>选择工作区文件夹</td>
             <td>在使用包含多个工作区文件夹的 VS Code 工作区时，此命令会让此扩展的命令应用于指定文件夹。
-            更多信息请参见<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/multiple-projects.html">处理多个项目</a>。</td>
+            更多信息请参见<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/multiple-projects.html">处理多个项目</a>。</td>
             <td></td>
             <td></td>
         </tr>
@@ -373,32 +373,32 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         <tr>
             <td rowspan=2 align="center">eFuse</td>
             <td>获取 eFuse 摘要</td>
-            <td>从当前连接到串口的芯片中获取 eFuse 列表及其对应的数值。</td>
+            <td>从当前连接到串口的芯片中获取 eFuse 列表及其对应的数值，并在 <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/efuse.html">ESP Explorer EFUSEEXPLORER</a> 中显示。</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>清除 eFuse 摘要</td>
-            <td>从 ESP-IDF 资源管理器的 EFUSEEXPLORER 中清除 eFuse 摘要集。</td>
+            <td>从 <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/efuse.html">ESP Explorer EFUSEEXPLORER</a> 中清除 eFuse 摘要树。</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td rowspan=3 align="center">QEMU</td>
             <td>启动 QEMU 服务器</td>
-            <td>如 <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/qemu.html">QEMU 文档</a>中所述，此命令将使用项目的 Dockerfile 和二进制文件执行 ESP32 QEMU。</td>
+            <td>如 <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/qemu.html">QEMU 文档</a>中所述，此命令将使用项目的 Dockerfile 和二进制文件执行 ESP32 QEMU。</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
-            <td>启动 QEMU 调试回话</td>
-            <td>如 <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/qemu.html">QEMU 文档</a>中所述，此命令将使用项目的 Dockerfile 和二进制文件启动 ESP32 QEMU 的调试会话。</td>
+            <td>启动 QEMU 调试会话</td>
+            <td>如 <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/qemu.html">QEMU 文档</a>中所述，此命令将使用项目的 Dockerfile 和二进制文件启动 ESP32 QEMU 的调试会话。</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>监视 QEMU 设备</td>
-            <td>如 <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/qemu.html">QEMU 文档</a>中所述，此命令将启动终端，通过使用项目的 Dockerfile 和二进制文件来监视 ESP32 QEMU。</td>
+            <td>如 <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/qemu.html">QEMU 文档</a>中所述，此命令将启动终端，通过使用项目的 Dockerfile 和二进制文件来监视 ESP32 QEMU。</td>
             <td></td>
             <td></td>
         </tr>
@@ -418,7 +418,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         </tr>
         <tr>
             <td>监视 QEMU 设备</td>
-            <td>如 <a href="ttps://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/qemu.html">QEMU 文档</a>中所述，此命令将启动终端，通过使用项目的 Dockerfile 和二进制文件来监视 ESP32 QEMU。</td>
+            <td>如 <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/qemu.html">QEMU 文档</a>中所述，此命令将启动终端，通过使用项目的 Dockerfile 和二进制文件来监视 ESP32 QEMU。</td>
             <td></td>
             <td></td>
         </tr>
@@ -444,19 +444,19 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         <tr>
             <td rowspan=3 align="center">单元测试</td>
             <td>单元测试：构建单元测试应用程序</td>
-            <td>构建当前项目的单元测试应用程序。详情请参阅<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">单元测试</a>。</td>
+            <td>复制当前项目中的单元测试应用程序，构建当前项目。更多信息请参阅 <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/unit-testing.html">单元测试文档</a>。</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>单元测试：烧录单元测试应用程序</td>
-            <td>将当前项目的单元测试应用程序烧录到连接的设备上。详情请参阅<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">单元测试</a>。</td>
+            <td>将单元测试应用程序烧录到连接的设备上。更多信息请参阅 <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/unit-testing.html">单元测试文档</a>。</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>单元测试：构建并烧录单元测试应用程序</td>
-            <td>复制当前项目中的单元测试应用程序，构建当前项目并将单元测试应用程序烧录到连接的设备上。详情请参阅<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">单元测试</a>。</td>
+            <td>复制当前项目中的单元测试应用程序，构建当前项目并将单元测试应用程序烧录到连接的设备上。更多信息请参阅 <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/unit-testing.html">单元测试文档</a>。</td>
             <td></td>
             <td></td>
         </tr>
@@ -493,7 +493,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         </tr>
         <tr>
             <td>运行 ESP-IDF-SBOM 漏洞检查</td>
-            <td>为使用 ESP-IDF 开发框架生成的应用程序创建 SPDX 格式的软件物料清单（SBOM）文件。</td>
+            <td>为使用乐鑫物联网开发框架 (ESP-IDF) 生成的应用程序创建软件包数据交换 (SPDX) 格式的软件物料清单 (SBOM) 文件。</td>
             <td></td>
             <td></td>
         </tr>
@@ -553,7 +553,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 - `espIdf.getToolchainGdb`：根据 sdkconfig 或 `idf.customExtraVars`[“IDF_TARGET”] 文件中指定的 IDF_TARGET，该命令将返回相应 GDB 工具链的绝对路径。
 - `espIdf.getIDFTarget`: 根据 sdkconfig 或 `idf.customExtraVars`[“IDF_TARGET”] 该命令将返回相应 IDF_TARGET。
 
-在[调试](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/debugproject.html)文档中查看示例。
+在[调试](https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/debugproject.html)文档中查看示例。
 
 ## tasks.json 模板任务
 
@@ -589,11 +589,20 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 
 5. 在 VS Code 菜单栏中选择**查看** > **输出** > **Extension Host**。此输出信息有助于了解扩展激活期间发生的情况。如果扩展命令都不工作，您可以分享此处的输出来查看错误堆栈。
 
-6. VS Code 支持不同级别的设置，如：**全局（用户设置）**、**工作区** 和 **工作区文件夹**，请确保项目配置正确。运行 `ESP-IDF：诊断命令`得到的结果可能来自于用户设置，而非工作区文件夹。
+6. VS Code 支持在不同级别配置设置：**全局（用户设置）**、**工作区** 和 **工作区文件夹**，请确保项目使用正确的设置。运行 `ESP-IDF：诊断命令` 得到的结果可能来自用户设置而非工作区文件夹设置。
+
+    - 工作区文件夹的配置设置在 ``${workspaceFolder}/.vscode/settings.json`` 中定义
+    - 工作区的配置设置在工作区的 ``<name>.code-workspace`` 文件中定义
+    - 用户设置在 ``settings.json`` 中定义
+        - **Windows**：``%APPDATA%\Code\User\settings.json``
+        - **MacOS**：``$HOME/Library/Application Support/Code/User/settings.json``
+        - **Linux**：``$HOME/.config/Code/User/settings.json``
+
+    本扩展使用 ``idf.saveScope`` 配置设置（仅可在用户设置中定义）来指定将设置保存到何处，例如设置向导。您可以使用 ``ESP-IDF：选择配置存储位置`` 命令修改此设置。
 
 7. 查看 [OpenOCD 故障排除 FAQ](https://github.com/espressif/OpenOCD-esp32/wiki/Troubleshooting-FAQ)，可帮助进行应用追踪及调试，并解决 `OpenOCD` 输出中显示的其他相关问题。
 
-8. 有时 VS Code 中配置的默认 shell（Powershell、zsh、sh 等）可能会影响扩展的行为。请确保环境中未设置 MSYS/MinGW，且变量与终端行为不冲突。`ESP-IDF：诊断命令`会显示运行构建、烧录和监视任务时扩展检测到的 shell。详情请参考[此处](https://code.visualstudio.com/docs/terminal/profiles)。
+8. 有时 VS Code 中配置的默认 shell（Powershell、zsh、sh 等）可能会影响扩展的行为。请确保环境中未设置 MSYS/MinGW，且变量与终端行为不冲突。`ESP-IDF：诊断命令` 会显示运行构建、烧录和监视任务时扩展检测到的 shell。详情请参考[此处](https://code.visualstudio.com/docs/terminal/profiles)。
 
 如果出现 Python 包错误，请尝试使用 **ESP-IDF：安装 ESP-IDF Python 包** 命令重新安装所需的 Python 包，或通过 **ESP-IDF：配置 ESP-IDF 扩展** 命令重新设置。
 
