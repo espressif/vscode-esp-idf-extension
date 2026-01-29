@@ -21,7 +21,7 @@ import { join } from "path";
 import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { EspIdfJson, IdfSetup } from "./types";
-import { getEspIdfFromCMake } from "../utils";
+import { compareVersion, getEspIdfFromCMake } from "../utils";
 import { loadIdfSetupsFromEspIdfJson } from "./migrationTool";
 import { ESP } from "../config";
 import { Uri } from "vscode";
@@ -72,6 +72,8 @@ export async function getIdfSetups(workspaceFolder: Uri) {
         (s) => s.idfPath === setup.idfPath && s.toolsPath === setup.toolsPath
       )
   );
+
+  resultingIdfSetups.sort((a, b) => compareVersion(b.version, a.version));
 
   return resultingIdfSetups;
 }

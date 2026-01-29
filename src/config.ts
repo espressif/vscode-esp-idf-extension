@@ -93,8 +93,6 @@ export namespace ESP {
 
   export namespace URL {
     export const IDF_GITHUB_ASSETS = "https://dl.espressif.com/github_assets";
-    export const IDF_VERSIONS =
-      "https://dl.espressif.com/dl/esp-idf/idf_versions.txt";
     export namespace IDF_EMBED_GIT {
       export const VERSION = "2.39.2";
       export const IDF_EMBED_GIT_URL = `https://dl.espressif.com/dl/idf-git/idf-git-${VERSION}-win64.zip`;

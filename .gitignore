@@ -1,6 +1,5 @@
 dist
 esp_idf_docs_index_lang_*.json
-esp_idf_versions_cache.json
 local-utils
 out
 node_modules
