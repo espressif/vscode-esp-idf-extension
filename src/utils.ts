@@ -1047,32 +1047,12 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   const adfPathDir = idfConf.readParameter("idf.espAdfPath", curWorkspace);
   modifiedEnv.ADF_PATH = adfPathDir || modifiedEnv.ADF_PATH;
 
-  const mdfPathDir = idfConf.readParameter("idf.espMdfPath", curWorkspace);
-  modifiedEnv.MDF_PATH = mdfPathDir || modifiedEnv.MDF_PATH;
-
-  const homekitPathDir = idfConf.readParameter(
-    "idf.espHomeKitSdkPath",
-    curWorkspace
-  );
-  modifiedEnv.HOMEKIT_PATH = homekitPathDir || modifiedEnv.HOMEKIT_PATH;
-
-  const rainmakerPathDir = idfConf.readParameter(
-    "idf.espRainmakerPath",
-    curWorkspace
-  );
-  modifiedEnv.RMAKER_PATH = rainmakerPathDir || modifiedEnv.RMAKER_PATH;
-
   const defaultToolsPath = path.join(containerPath, ".espressif");
   const toolsPath = idfConf.readParameter(
     "idf.toolsPath",
     curWorkspace
   ) as string;
   modifiedEnv.IDF_TOOLS_PATH = toolsPath || defaultToolsPath;
-  const matterPathDir = idfConf.readParameter(
-    "idf.espMatterPath",
-    curWorkspace
-  ) as string;
-  modifiedEnv.ESP_MATTER_PATH = matterPathDir || modifiedEnv.ESP_MATTER_PATH;
 
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
     modifiedEnv.IDF_PATH
@@ -1103,27 +1083,6 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   }
 
   let pathToPigweed: string;
-
-  if (modifiedEnv.ESP_MATTER_PATH) {
-    pathToPigweed = path.join(
-      modifiedEnv.ESP_MATTER_PATH,
-      "connectedhomeip",
-      "connectedhomeip",
-      ".environment",
-      "cipd",
-      "packages",
-      "pigweed"
-    );
-    modifiedEnv.ZAP_INSTALL_PATH = path.join(
-      modifiedEnv.ESP_MATTER_PATH,
-      "connectedhomeip",
-      "connectedhomeip",
-      ".environment",
-      "cipd",
-      "packages",
-      "zap"
-    );
-  }
   const sysPythonPath = await getPythonPath(curWorkspace);
   let pythonBinPath = "";
   if (sysPythonPath) {

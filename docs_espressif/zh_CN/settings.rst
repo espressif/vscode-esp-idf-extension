@@ -70,7 +70,7 @@ ESP-IDF 相关设置
 1. **idf.customExtraVars** 用于存储自定义环境变量，例如 OPENOCD_SCRIPTS，用于指定启动 OpenOCD 服务器时所需脚本文件的目录路径。这些变量会加载到扩展命令的进程环境变量中，优先使用扩展变量，如果没有，则扩展命令会尝试使用系统 PATH 中已有的设置。**该配置项不会改变 VS Code 之外的系统环境。**
 2. **idf.espIdfPath**（Windows 系统中为 **idf.espIdfPathWin**）用于在扩展中存储 ESP-IDF 目录路径。如果该值已配置，则 VS Code 进程中原有的 IDF_PATH 会被覆盖。**该配置项不会改变 VS Code 之外的系统环境。** 此外，扩展使用 **idf.espIdfPath**，结合 **idf.toolsPath** 和 **idf.pythonInstallPath**，来确定要添加到环境变量 PATH 中的 ESP-IDF 工具路径和 Python 虚拟环境路径。
 3. **idf.pythonInstallPath** 是系统 Python 的绝对路径，基于 **idf.toolsPath** 和 **idf.espIdfPath** 来生成 ESP-IDF Python 虚拟环境路径。创建虚拟环境后，ESP-IDF 的 Python 包将在该环境中安装和使用。
-4. **idf.gitPath**（Windows 系统中为 **idf.gitPathWin**）在扩展中用于克隆 ESP-IDF master 版本及其他支持的框架，如 ESP-ADF、ESP-MDF 和 Arduino-ESP32。
+4. **idf.gitPath**（Windows 系统中为 **idf.gitPathWin**）在扩展中用于克隆 ESP-IDF master 版本及其他支持的框架，如 ESP-ADF 和 Arduino-ESP32。
 5. **idf.toolsPath**（Windows 系统中为 **idf.toolsPathWin**）用于结合 **idf.toolsPath** 和 **idf.pythonInstallPath** 来确定要添加到环境变量 PATH 中的 ESP-IDF 工具路径和 Python 虚拟环境路径。
 
 .. note::
@@ -300,16 +300,6 @@ QEMU 相关设置
       - 定位 ESP-ADF 框架的路径 (ADF_PATH)
     * - **idf.espAdfPathWin**
       - 在 Windows 系统中定位 ESP-ADF 框架的路径 (ADF_PATH)
-    * - **idf.espMdfPath**
-      - 定位 ESP-MDF 框架的路径 (MDF_PATH)
-    * - **idf.espMdfPathWin**
-      - 在 Windows 系统中定位 ESP-MDF 框架的路径 (MDF_PATH)
-    * - **idf.espMatterPath**
-      - 定位 ESP-Matter 框架的路径 (ESP_MATTER_PATH)
-    * - **idf.espRainmakerPath**
-      - 定位 ESP-Rainmaker 框架的路径 (RMAKER_PATH)
-    * - **idf.espRainmakerPathWin**
-      - 在 Windows 系统中定位 ESP-Rainmaker 框架的路径 (RMAKER_PATH)
     * - **idf.sbomFilePath**
       - 创建 ESP-IDF SBOM 报告的路径
 

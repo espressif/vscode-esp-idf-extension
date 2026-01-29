@@ -31,7 +31,6 @@ import { getConfigurationSettings } from "../support/configurationSettings";
 import { readFile, readJSON } from "fs-extra";
 import { getPipVersion } from "../support/pipVersion";
 import { checkEspIdfRequirements } from "../support/checkEspIdfRequirements";
-import { checkDebugAdapterRequirements } from "../support/checkExtensionRequirements";
 import {
   checkCCppPropertiesJson,
   checkLaunchJson,
@@ -74,7 +73,7 @@ suite("Doctor Command tests", () => {
 
   test("Wrong access to ESP-IDF path", () => {
     reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
-    getConfigurationAccess(reportObj, mockUpContext);
+    getConfigurationAccess(reportObj);
     assert.equal(reportObj.configurationAccess.espIdfPath, false);
   });
 
@@ -86,7 +85,7 @@ suite("Doctor Command tests", () => {
 
   test("Wrong access to Python path", () => {
     reportObj.configurationSettings.pythonBinPath = "/some/non-existing-path";
-    getConfigurationAccess(reportObj, mockUpContext);
+    getConfigurationAccess(reportObj);
     assert.equal(reportObj.configurationAccess.pythonBinPath, false);
   });
 
@@ -100,12 +99,6 @@ suite("Doctor Command tests", () => {
     reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
     await getPipVersion(reportObj, mockUpContext);
     assert.equal(reportObj.pipVersion.result, "Not found");
-  });
-
-  test("Wrong debug adapter py requirements", async () => {
-    reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
-    await checkDebugAdapterRequirements(reportObj, mockUpContext);
-    assert.equal(reportObj.debugAdapterRequirements.result, "Error");
   });
 
   test("Wrong esp-idf py requirements", async () => {
@@ -155,10 +148,6 @@ suite("Doctor Command tests", () => {
       settingsJsonObj["idf.espIdfPath"]
     );
     assert.equal(
-      reportObj.configurationSettings.espMdfPath,
-      settingsJsonObj["idf.espMdfPath"]
-    );
-    assert.equal(
       reportObj.configurationSettings.serialPort,
       settingsJsonObj["idf.port"]
     );
@@ -173,19 +162,6 @@ suite("Doctor Command tests", () => {
     assert.equal(
       reportObj.configurationSettings.notificationMode,
       settingsJsonObj["idf.notificationMode"]
-    );
-  });
-
-  test("Good debug adapter py requirements", async () => {
-    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
-    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
-    await checkDebugAdapterRequirements(reportObj, mockUpContext);
-    assert.equal(
-      reportObj.debugAdapterRequirements.result,
-      `Python requirements from ${join(
-        __dirname,
-        "../../esp_debug_adapter/requirements.txt"
-      )} are satisfied.`
     );
   });
 
@@ -206,7 +182,7 @@ suite("Doctor Command tests", () => {
       delimiter + process.env.OLD_PATH,
       ""
     );
-    getConfigurationAccess(reportObj, mockUpContext);
+    getConfigurationAccess(reportObj);
     assert.equal(reportObj.configurationAccess.pythonBinPath, true);
     assert.equal(reportObj.configurationAccess.espIdfPath, true);
     for (let toolPath in reportObj.configurationAccess.espIdfToolsPaths) {
@@ -277,9 +253,6 @@ suite("Doctor Command tests", () => {
     expectedOutput += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${os.EOL}`;
     expectedOutput += `ESP-ADF Path (idf.espAdfPath) ${reportObj.configurationSettings.espAdfPath}${os.EOL}`;
     expectedOutput += `ESP-IDF Path (idf.espIdfPath) ${process.env.IDF_PATH}${os.EOL}`;
-    expectedOutput += `ESP-MDF Path (idf.espMdfPath) ${reportObj.configurationSettings.espMdfPath}${os.EOL}`;
-    expectedOutput += `ESP-Matter Path (idf.espMatterPath) ${reportObj.configurationSettings.espMatterPath}${os.EOL}`;
-    expectedOutput += `ESP-HomeKit-SDK Path (idf.espHomeKitSdkPath) ${reportObj.configurationSettings.espHomeKitPath}${os.EOL}`;
     expectedOutput += `Custom extra paths ${customExtraPaths}${os.EOL}`;
     if (
       reportObj.configurationSettings.idfExtraVars &&

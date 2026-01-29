@@ -27,7 +27,6 @@ import { getPipVersion } from "./pipVersion";
 import { getPythonPackages } from "./pythonPackages";
 import { checkEspIdfTools } from "./checkEspIdfTools";
 import { checkEspIdfRequirements } from "./checkEspIdfRequirements";
-import { checkDebugAdapterRequirements } from "./checkExtensionRequirements";
 import { writeTextReport } from "./writeReport";
 import { checkSystemInfo } from "./checkSystemInfo";
 import { checkCCppPropertiesJson, checkLaunchJson } from "./checkVscodeFiles";
@@ -44,7 +43,7 @@ export async function generateConfigurationReport(
 ) {
   await getConfigurationSettings(reportedResult, currentWorkspace);
   await checkSystemInfo(reportedResult);
-  await getConfigurationAccess(reportedResult, context);
+  await getConfigurationAccess(reportedResult);
   checkSpacesInSettings(reportedResult);
   await getGitVersion(reportedResult, context);
   await getEspIdfVersion(reportedResult);
@@ -53,7 +52,6 @@ export async function generateConfigurationReport(
   await getPythonPackages(reportedResult, context);
   await checkEspIdfTools(reportedResult, context);
   await checkEspIdfRequirements(reportedResult, context);
-  await checkDebugAdapterRequirements(reportedResult, context);
   await checkLaunchJson(reportedResult, currentWorkspace);
   await checkCCppPropertiesJson(reportedResult, currentWorkspace);
   getProjectConfigurations(reportedResult);

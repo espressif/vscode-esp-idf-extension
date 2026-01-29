@@ -28,7 +28,6 @@
     "bluetooth",
     "ESP-IDF",
     "ESP-ADF",
-    "ESP-MDF",
     "ESP-matter",
     "ESP",
     "Espressif",
@@ -90,11 +89,6 @@
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
     "onCommand:espIdf.getEspAdf",
-    "onCommand:espIdf.getEspMdf",
-    "onCommand:espIdf.getEspMatter",
-    "onCommand:espIdf.getEspRainmaker",
-    "onCommand:espIdf.installEspMatterPyReqs",
-    "onCommand:espIdf.installPyReqs",
     "onCommand:esp.webview.open.partition-table",
     "onCommand:espIdf.webview.nvsPartitionEditor",
     "onCommand:espIdf.selectOpenOcdConfigFiles",
@@ -641,34 +635,10 @@
             "description": "%param.espAdfPath%",
             "scope": "resource"
           },
-          "idf.espMdfPath": {
-            "type": "string",
-            "default": "${env:MDF_PATH}",
-            "description": "%param.espMdfPath%",
-            "scope": "resource"
-          },
-          "idf.espMatterPath": {
-            "type": "string",
-            "default": "${env:ESP_MATTER_PATH}",
-            "description": "%param.espMatterPath%",
-            "scope": "resource"
-          },
-          "idf.espHomeKitSdkPath": {
-            "type": "string",
-            "default": "${env:HOMEKIT_PATH}",
-            "description": "%param.espHomeKitSdkPath%",
-            "scope": "resource"
-          },
           "idf.toolsPath": {
             "type": "string",
             "default": "${env:IDF_TOOLS_PATH}",
             "description": "%param.toolsPath%",
-            "scope": "resource"
-          },
-          "idf.espRainmakerPath": {
-            "type": "string",
-            "default": "${env:RMAKER_PATH}",
-            "description": "%param.espRainmakerPath%",
             "scope": "resource"
           },
           "idf.espIdfPathWin": {
@@ -683,28 +653,10 @@
             "description": "%param.espAdfPath%",
             "scope": "resource"
           },
-          "idf.espMdfPathWin": {
-            "type": "string",
-            "default": "${env:MDF_PATH}",
-            "description": "%param.espMdfPath%",
-            "scope": "resource"
-          },
           "idf.toolsPathWin": {
             "type": "string",
             "default": "${env:IDF_TOOLS_PATH}",
             "description": "%param.toolsPath%",
-            "scope": "resource"
-          },
-          "idf.espRainmakerPathWin": {
-            "type": "string",
-            "default": "${env:RMAKER_PATH}",
-            "description": "%param.espRainmakerPath%",
-            "scope": "resource"
-          },
-          "idf.espHomeKitSdkPathWin": {
-            "type": "string",
-            "default": "${env:HOMEKIT_PATH}",
-            "description": "%param.espHomeKitSdkPath%",
             "scope": "resource"
           },
           "idf.port": {
@@ -1615,36 +1567,6 @@
         "category": "ESP-IDF"
       },
       {
-        "command": "espIdf.getEspMdf",
-        "title": "%espIdf.getEspMdf.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.getEspMatter",
-        "title": "%espIdf.getEspMatter.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.getEspRainmaker",
-        "title": "%espIdf.getEspRainmaker.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.getEspHomeKitSdk",
-        "title": "%espIdf.getEspHomeKitSdk.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.installEspMatterPyReqs",
-        "title": "%espIdf.installEspMatterPyReqs.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.installPyReqs",
-        "title": "%espIdf.installPyReqs.title%",
-        "category": "ESP-IDF"
-      },
-      {
         "command": "esp.webview.open.partition-table",
         "title": "%esp.webview.open.partition-table.title%",
         "icon": "$(output)"
@@ -1760,11 +1682,6 @@
         "category": "ESP-IDF"
       },
       {
-        "command": "espIdf.setMatterDevicePath",
-        "title": "%espIdf.setMatterDevicePath.title%",
-        "category": "ESP-IDF"
-      },
-      {
         "command": "espIdf.projectConfigurationEditor",
         "title": "%espIdf.projectConfigurationEditor.title%",
         "category": "ESP-IDF"
@@ -1865,96 +1782,6 @@
       }
     ],
     "debuggers": [
-      {
-        "type": "espidf",
-        "label": "ESP-IDF",
-        "languages": [
-          "cpp",
-          "c"
-        ],
-        "runtime": "python",
-        "configurationAttributes": {
-          "launch": {
-            "properties": {
-              "appOffset": {
-                "type": "string",
-                "description": "%esp_idf.appOffset.description%"
-              },
-              "debugPort": {
-                "type": "number",
-                "description": "Port for ESP-IDF Debug Adapter. Default: 43474",
-                "default": 43474
-              },
-              "logLevel": {
-                "type": "number",
-                "description": "Log Level for ESP-IDF Debug Adapter",
-                "default": 2
-              },
-              "mode": {
-                "type": "string",
-                "description": "ESP-IDF Debug Session Mode",
-                "default": "auto",
-                "enum": [
-                  "auto",
-                  "manual"
-                ],
-                "enumDescriptions": [
-                  "Auto Mode will execute a OpenOCD Server and Debug Adapter in Visual Studio Code",
-                  "Manual Mode requires you to run OpenOCD and Debug Adapter separately"
-                ]
-              },
-              "env": {
-                "type": "object",
-                "description": "Environments Variables override in Visual Studio Code launched ESP-IDF Debug Adapter",
-                "default": null
-              },
-              "initGdbCommands": {
-                "type": "array",
-                "description": "%esp_idf.initGdbCommands.description%",
-                "items": {
-                  "type": "string",
-                  "description": "%esp_idf.debuggers.text.description%",
-                  "default": ""
-                },
-                "default": []
-              },
-              "gdbinitFile": {
-                "type": "string",
-                "description": "%esp_idf.gdbinitFile.description%",
-                "default": ""
-              },
-              "verifyAppBinBeforeDebug": {
-                "type": "boolean",
-                "description": "%esp_idf.verifyAppBinBeforeDebug.description%",
-                "default": false
-              },
-              "tmoScaleFactor": {
-                "type": "number",
-                "description": "%esp_idf.tmoScaleFactor.description%",
-                "default": 1
-              }
-            }
-          }
-        },
-        "initialConfigurations": [
-          {
-            "name": "%debug.initConfig.name%",
-            "type": "espidf",
-            "request": "launch"
-          }
-        ],
-        "configurationSnippets": [
-          {
-            "label": "%debug.initConfig.name%",
-            "body": {
-              "name": "%debug.initConfig.name%",
-              "type": "espidf",
-              "request": "launch"
-            },
-            "description": "%debug.initConfig.description%"
-          }
-        ]
-      },
       {
         "type": "gdbtarget",
         "label": "Eclipse GDB Target",

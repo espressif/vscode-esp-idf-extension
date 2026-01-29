@@ -321,7 +321,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td></td>
         </tr>
         <tr>
-            <td rowspan=8 align="center">可集成软件框架</td>
+            <td rowspan=2 align="center">可集成软件框架</td>
             <td>安装 ESP-ADF</td>
             <td>在所选目录中克隆 ESP-ADF，并配置 <strong>idf.espAdfPath</strong>（Windows 系统中为 <strong>idf.espAdfPathWin</strong>）。</td>
             <td></td>
@@ -331,42 +331,6 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td>添加 Arduino ESP32 为 ESP-IDF 组件</td>
             <td>将 <a href="https://github.com/espressif/arduino-esp32">Arduino-ESP32</a>
             添加为当前目录中的 ESP-IDF 组件（<strong>${CURRENT_DIRECTORY}/components/arduino</strong>）。</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>安装 ESP-IDF Python 包（已弃用）</td>
-            <td>安装扩展 Python 包。本命令已弃用，即将被移除。</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>安装 ESP-MDF</td>
-            <td>在所选目录中克隆 ESP-MDF，并配置 <strong>idf.espMdfPath</strong>（Windows 系统中为 <strong>idf.espMdfPathWin</strong>）。</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>安装 ESP-Matter</td>
-            <td>克隆 ESP-Matter 并配置 <strong>idf.espMatterPath</strong>。Windows 系统不支持 ESP-Matter。运行该命令前请确保已安装 <a href="https://github.com/espressif/connectedhomeip/blob/v1.1-branch/docs/guides/BUILDING.md#prerequisites">Matter 系统依赖项</a>。</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>设置 ESP-MATTER 设备路径 (ESP_MATTER_DEVICE_PATH)</td>
-            <td><strong>ESP-IDF：设置 ESP-MATTER 设备路径 (ESP_MATTER_DEVICE_PATH)</strong> 命令用于定义 ESP-Matter 的设备路径。Windows 系统不支持 ESP-Matter。</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>安装 ESP-Rainmaker</td>
-            <td>克隆 ESP-Rainmaker，并配置 <strong>idf.espRainmakerPath</strong>（Windows 系统中为 <strong>idf.espRainmakerPathWin</strong>）。</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>安装 ESP-HomeKit-SDK</td>
-            <td>在所选目录中克隆 ESP-HomeKit-SDK，并配置 <strong>idf.espHomeKitSdkPath</strong>（Windows 系统中为 <strong>idf.espHomeKitSdkPathWin</strong>）。</td>
             <td></td>
             <td></td>
         </tr>

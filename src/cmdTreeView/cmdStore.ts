@@ -60,12 +60,7 @@ export enum AdvancedCommandKeys {
   EraseFlash = "espIdf.eraseFlash",
   DoctorCommand = "espIdf.doctorCommand",
   GetADF = "espIdf.getEspAdf",
-  GetMDF = "espIdf.getEspMdf",
-  GetEspMatter = "espIdf.getEspMatter",
-  GetRainmaker = "espIdf.getEspRainmaker",
   ProjectConfEditor = "espIdf.projectConfigurationEditor",
-  InstallIdfPythonReqs = "espIdf.installPyReqs",
-  InstallMatterPythonReqs = "espIdf.installEspMatterPyReqs",
   CreateVscodeFolder = "espIdf.createVsCodeFolder",
   CreateDevContainerFolder = "espIdf.createDevContainer",
   CreateIdfComponent = "espIdf.createNewComponent",
@@ -111,35 +106,10 @@ export function createAdvancedCommandDictionary(): Record<
       iconId: "extensions",
       tooltip: l10n.t("Install ESP-ADF"),
     },
-    [AdvancedCommandKeys.GetMDF]: {
-      checkboxState: undefined,
-      iconId: "extensions",
-      tooltip: l10n.t("Install ESP-MDF"),
-    },
-    [AdvancedCommandKeys.GetEspMatter]: {
-      checkboxState: undefined,
-      iconId: "extensions",
-      tooltip: l10n.t("Install ESP-Matter"),
-    },
-    [AdvancedCommandKeys.GetRainmaker]: {
-      checkboxState: undefined,
-      iconId: "extensions",
-      tooltip: l10n.t("Install ESP-Rainmaker"),
-    },
     [AdvancedCommandKeys.ProjectConfEditor]: {
       checkboxState: undefined,
       iconId: "project",
       tooltip: l10n.t("Project Configuration editor"),
-    },
-    [AdvancedCommandKeys.InstallIdfPythonReqs]: {
-      checkboxState: undefined,
-      iconId: "extensions",
-      tooltip: l10n.t("Install Extension Python Requirements"),
-    },
-    [AdvancedCommandKeys.InstallMatterPythonReqs]: {
-      checkboxState: undefined,
-      iconId: "extensions",
-      tooltip: l10n.t("Install ESP-Matter Python Requirements"),
     },
     [AdvancedCommandKeys.CreateVscodeFolder]: {
       checkboxState: undefined,
