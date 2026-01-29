@@ -19,7 +19,13 @@
 import { expect } from "chai";
 import { pathExists } from "fs-extra";
 import { resolve } from "path";
-import { By, EditorView, InputBox, WebView, Workbench } from "vscode-extension-tester";
+import {
+  By,
+  EditorView,
+  InputBox,
+  WebView,
+  Workbench,
+} from "vscode-extension-tester";
 
 describe("Example Create testing", async () => {
   let view: WebView;
@@ -38,21 +44,9 @@ describe("Example Create testing", async () => {
     const containerPath = resolve(__dirname, "..", "..", "testFiles");
     const projectName = "testBlink";
     const resultBlinkPath = resolve(containerPath, projectName);
-    const projectDirInput = await view.findWebElement(
-      By.id("projectDirectory")
-    );
-    await projectDirInput.clear();
-    await projectDirInput.sendKeys(containerPath);
-    const projectNameInput = await view.findWebElement(By.id("projectName"));
-    await projectNameInput.clear();
-    await projectNameInput.sendKeys(projectName);
-
-    const exampleSelect = await view.findWebElement(By.id("choose-template"));
-    await exampleSelect.click();
-    await new Promise((res) => setTimeout(res, 2000));
 
     const espIdfSection = await view.findWebElement(
-      By.xpath(`.//div[@data-node-name='ESP-IDF']`)
+      By.xpath(`.//div[@data-node-name='ESP-IDF Examples']`)
     );
     await espIdfSection.click();
 
@@ -70,14 +64,28 @@ describe("Example Create testing", async () => {
     );
     await blinkExample.click();
     await new Promise((res) => setTimeout(res, 3000));
-    const createProjectButton = await view.findWebElement(
-      By.id("createProjectButton")
+    const chooseTemplateButton = await view.findWebElement(
+      By.id("chooseTemplateButton")
     );
-    expect(await createProjectButton.getText()).has.string(
+    expect(await chooseTemplateButton.getText()).has.string(
       "Create project using template blink"
     );
 
-    await createProjectButton.click();
+    await chooseTemplateButton.click();
+    await new Promise((res) => setTimeout(res, 2000));
+
+    const projectDirInput = await view.findWebElement(
+      By.id("projectDirectory")
+    );
+    await projectDirInput.clear();
+    await projectDirInput.sendKeys(containerPath);
+    const projectNameInput = await view.findWebElement(By.id("projectName"));
+    await projectNameInput.clear();
+    await projectNameInput.sendKeys(projectName);
+
+    const exampleSelect = await view.findWebElement(By.id("createProjectButton"));
+    await exampleSelect.click();
+
     await new Promise((res) => setTimeout(res, 7000));
     const resultBlinkPathExists = await pathExists(resultBlinkPath);
     expect(resultBlinkPathExists).to.be.true;
