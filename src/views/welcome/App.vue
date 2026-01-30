@@ -5,7 +5,6 @@ import { useWelcomeStore } from "./store";
 import Logo from "./components/logo.vue";
 import BlogArticles from "./components/BlogArticles.vue";
 import {
-  IconBeaker,
   IconComment,
   IconFolderOpened,
   IconGear,
@@ -16,7 +15,7 @@ import {
 
 const store = useWelcomeStore();
 
-const { espIdf, extensionVersion, showOnInit } = storeToRefs(store);
+const { extensionVersion } = storeToRefs(store);
 
 const whatsNewLink = computed(() => {
   return `https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v${extensionVersion.value}`;
@@ -44,7 +43,7 @@ onMounted(() => {
           <span class="version-text">Version: {{ extensionVersion }}</span>
           <a :href="whatsNewLink" class="link">See what's new</a>
         </div>
-        
+
         <div class="checkbox-container">
           <label class="checkbox">
             <input
@@ -52,12 +51,24 @@ onMounted(() => {
               v-model="store.showOnInit"
               @change="store.updateShowOnboardingOnInit"
             />
-            <span class="checkbox-label">Show Welcome on extension startup</span>
+            <span class="checkbox-label"
+              >Show Welcome on extension startup</span
+            >
           </label>
         </div>
 
         <div class="external-links">
-          <a href="https://github.com/espressif/vscode-esp-idf-extension" class="link">
+          <a
+            href="https://github.com/espressif/idf-im-ui/releases"
+            class="link"
+          >
+            <IconGithub class="icon" />
+            ESP-IDF Installation Manager
+          </a>
+          <a
+            href="https://github.com/espressif/vscode-esp-idf-extension"
+            class="link"
+          >
             <IconGithub class="icon" />
             Repository
           </a>
@@ -69,7 +80,10 @@ onMounted(() => {
             <IconGithub class="icon" />
             ESP-IDF
           </a>
-          <a href="https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose" class="link">
+          <a
+            href="https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose"
+            class="link"
+          >
             <IconGithub class="icon" />
             Open a new issue
           </a>
@@ -105,25 +119,40 @@ onMounted(() => {
       <!-- Getting Started Section -->
       <div class="section">
         <h2 class="section-title">Getting Started</h2>
-        
+
         <div class="getting-started-grid">
           <!-- Tutorials -->
           <div class="subsection">
             <h3 class="subsection-title">Tutorials</h3>
             <div class="link-group">
-              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/installation.html" class="link">
+              <a
+                href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/installation.html"
+                class="link"
+              >
                 Install
               </a>
-              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/startproject.html" class="link">
+              <a
+                href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/startproject.html"
+                class="link"
+              >
                 Start a ESP-IDF project
               </a>
-              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/configureproject.html" class="link">
+              <a
+                href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/configureproject.html"
+                class="link"
+              >
                 Configure your project
               </a>
-              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/debugproject.html" class="link">
+              <a
+                href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/debugproject.html"
+                class="link"
+              >
                 Debugging
               </a>
-              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/index.html" class="link">
+              <a
+                href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/index.html"
+                class="link"
+              >
                 Others...
               </a>
             </div>
@@ -133,19 +162,34 @@ onMounted(() => {
           <div class="subsection">
             <h3 class="subsection-title">Documentation</h3>
             <div class="link-group">
-              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/settings.html" class="link">
+              <a
+                href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/settings.html"
+                class="link"
+              >
                 Settings
               </a>
-              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/troubleshooting.html" class="link">
+              <a
+                href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/troubleshooting.html"
+                class="link"
+              >
                 Troubleshooting
               </a>
-              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/index.html" class="link">
+              <a
+                href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/index.html"
+                class="link"
+              >
                 Features
               </a>
-              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/commands.html" class="link">
+              <a
+                href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/commands.html"
+                class="link"
+              >
                 Commands
               </a>
-              <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures.html" class="link">
+              <a
+                href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures.html"
+                class="link"
+              >
                 Additional IDE features...
               </a>
             </div>
@@ -237,18 +281,18 @@ onMounted(() => {
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
-  
+
   &:hover {
     color: var(--vscode-button-background);
   }
-  
+
   input[type="checkbox"] {
     width: 16px;
     height: 16px;
     margin: 0;
     accent-color: var(--vscode-button-background);
   }
-  
+
   .checkbox-label {
     font-size: 14px;
     color: var(--vscode-foreground);
@@ -304,15 +348,15 @@ onMounted(() => {
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   &:hover {
     background-color: var(--vscode-button-hoverBackground);
   }
-  
+
   &:active {
     background-color: var(--vscode-button-activeBackground);
   }
-  
+
   &:focus {
     outline: 1px solid var(--vscode-focusBorder);
     outline-offset: 2px;
@@ -327,7 +371,7 @@ onMounted(() => {
 
 .subsection {
   margin-bottom: 0;
-  
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -357,29 +401,29 @@ onMounted(() => {
   border-radius: 4px;
   transition: all 0.2s ease;
   position: relative;
-  
+
   &:hover {
     color: var(--vscode-button-background);
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     font-weight: 500;
   }
-  
+
   &:active {
     transform: translateY(0);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     color: var(--vscode-button-activeBackground);
   }
-  
+
   &:focus {
     outline: 1px solid var(--vscode-focusBorder);
     outline-offset: 2px;
   }
-  
+
   .icon {
     transition: transform 0.2s ease;
   }
-  
+
   &:hover .icon {
     transform: scale(1.1);
     color: var(--vscode-button-background);
@@ -398,12 +442,12 @@ onMounted(() => {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .external-links {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .getting-started-grid {
     grid-template-columns: 1fr;
     gap: 20px;

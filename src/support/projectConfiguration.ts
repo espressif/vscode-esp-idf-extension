@@ -20,7 +20,7 @@ import { ESP } from "../config";
 import { ProjectConfElement } from "../project-conf/projectConfiguration";
 import { reportObj } from "./types";
 
-export async function getProjectConfigurations(reportedResult: reportObj) {
+export function getProjectConfigurations(reportedResult: reportObj) {
   const currentProjectConfKey = ESP.ProjectConfiguration.store.get<string>(
     ESP.ProjectConfiguration.SELECTED_CONFIG
   );

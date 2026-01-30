@@ -35,6 +35,7 @@ import {
   ShellOutputCapturingExecution,
 } from "../taskManager/customExecution";
 import { l10n } from "vscode";
+import { configureEnvVariables } from "../common/prepareEnv";
 
 // Map of command names to their corresponding VS Code command IDs
 const COMMAND_MAP: Record<string, string> = {
@@ -161,6 +162,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       ) {
         partitionToUse = undefined;
       }
+      const modifiedEnv = await configureEnvVariables(workspaceURI);
 
       let continueFlag = true;
       let taskExecutions: (
@@ -232,10 +234,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               }
               await jtagFlashCommandMain(workspaceURI);
             } else {
-              const idfPathDir = readParameter(
-                "idf.espIdfPath",
-                workspaceURI
-              ) as string;
+              const idfPathDir = modifiedEnv["IDF_PATH"];
               const flashCmdResult = await uartFlashCommandMain(
                 token,
                 flashBaudRate,
@@ -341,10 +340,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               }
               await jtagFlashCommandMain(workspaceURI);
             } else {
-              const idfPathDir = readParameter(
-                "idf.espIdfPath",
-                workspaceURI
-              ) as string;
+              const idfPathDir = modifiedEnv["IDF_PATH"];
               let flashCmdResult = await uartFlashCommandMain(
                 token,
                 flashBaudRate,
@@ -401,10 +397,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             );
 
             if (!selectedTarget) {
-              const espIdfPath = readParameter(
-                "idf.espIdfPath",
-                workspaceURI
-              ) as string;
+              const espIdfPath = modifiedEnv["IDF_PATH"];
               const espIdfVersion = await getEspIdfFromCMake(espIdfPath);
               return new vscode.LanguageModelToolResult([
                 new vscode.LanguageModelTextPart(

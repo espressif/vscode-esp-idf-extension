@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
-import { Progress, Uri } from "vscode";
+import { Progress } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { packageJson } from "../utils";
 import { parseStringPromise } from "xml2js";
 import { Logger } from "../logger/logger";
+import { ESP } from "../config";
 
 export interface IWelcomeArticle {
   title: string;
@@ -38,18 +39,19 @@ export interface IWelcomeArgs {
 }
 
 export async function getWelcomePageInitialValues(
-  progress: Progress<{ message: string; increment: number }>,
-  workspace?: Uri
+  progress: Progress<{ message: string; increment: number }>
 ) {
   progress.report({ increment: 20, message: "Getting extension version..." });
   const extensionVersion = packageJson.version as string;
-  const confEspIdfPath = readParameter("idf.espIdfPath", workspace) as string;
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
   const confShowOnboardingOnInit = readParameter(
     "idf.showOnboardingOnInit"
   ) as boolean;
   const articles = await loadDeveloperPortalArticles();
   const welcomePageArgs = {
-    espIdf: confEspIdfPath,
+    espIdf: currentEnvVars["IDF_PATH"],
     extensionVersion,
     showOnInit: confShowOnboardingOnInit,
     articles,

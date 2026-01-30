@@ -1,6 +1,5 @@
 dist
 esp_idf_docs_index_lang_*.json
-esp_idf_versions_cache.json
 local-utils
 out
 node_modules
@@ -11,7 +10,7 @@ testFiles/blink
 !testFiles/dist
 testFiles/tools
 testFiles/testWorkspace/build
-testFiles/testWorkspace/sdkconfig.*
+testFiles/testWorkspace/sdkconfig*
 *.log
 .DS_Store
 bandit_output.txt

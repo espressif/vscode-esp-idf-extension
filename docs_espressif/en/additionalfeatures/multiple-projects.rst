@@ -25,20 +25,19 @@ Project folders (known in VS Code as workspace folders) and workspace-level sett
 
 .. code-block:: JSON
 
-    {
-        "folders": [
-            {
-                "path": "./project1"
-            },
-            {
-                "path": "./project2"
-            }
-        ],
-        "settings": {
-            "idf.port": "/dev/ttyUSB1",
-            "idf.espIdfPath": "${env:HOME}/esp/esp-idf"
-        }
+  {
+    "folders": [
+      {
+        "path": "./project1"
+      },
+      {
+        "path": "./project2"
+      }
+    ],
+    "settings": {
+      "idf.port": "/dev/ttyUSB1",
     }
+  }
 
 Settings in the root folder's ``.code-workspace`` are used when your ``ESP-IDF: Current Project`` directory lacks a ``.vscode/settings.json`` file.
 
@@ -69,20 +68,19 @@ And ``my-ws.code-workspace``:
 
 .. code-block:: JSON
 
-    {
-        "folders": [
-            {
-                "path": "/my-projects-root/project1"
-            },
-            {
-                "path": "/my-projects-root/project2"
-            }
-        ],
-        "settings": {
-            "idf.port": "/dev/ttyUSB1",
-            "idf.espIdfPath": "${env:HOME}/esp/esp-idf"
-        }
+  {
+    "folders": [
+      {
+        "path": "/my-projects-root/project1"
+      },
+      {
+        "path": "/my-projects-root/project2"
+      }
+    ],
+    "settings": {
+      "idf.port": "/dev/ttyUSB1",
     }
+  }
 
 1.  Open Visual Studio Code, go to ``File`` > ``Open Workspace`` and open ``my-ws.code-workspace``, you will see only the folders defined in this workspace (``/my-projects-root/project1`` and ``/my-projects-root/project2``).
 

@@ -13,7 +13,7 @@ ESP-IDF 设置
 
 .. note::
 
-    请注意，配置此扩展时，``~``、``%VARNAME%`` 和 ``$VARNAME`` 都无法被识别。请使用 ``${env:VARNAME}`` 来设置路径中的环境变量，例如 ``${env:HOME}``。也可以通过 ``${config:SETTINGID}`` 来引用其他配置参数，例如 ``${config:idf.espIdfPath}``。
+    请注意，配置此扩展时，``~``、``%VARNAME%`` 和 ``$VARNAME`` 都无法被识别。请使用 ``${env:VARNAME}`` 来设置路径中的环境变量，例如 ``${env:HOME}``。也可以通过 ``${config:SETTINGID}`` 来引用其他配置参数，例如 ``${config:idf.buildPath}``。
 
 在运行 **设置乐鑫设备目标** 等命令时，**idf.saveScope** 可指定保存设置的位置。可选择将设置保存在全局（用户设置）、工作区或工作区文件夹。请使用 **选选择配置存储位置** 命令来选择保存设置的位置。
 
@@ -52,26 +52,13 @@ ESP-IDF 相关设置
       - 在构建任务中启用 CCache（确保 CCache 在 PATH 中）
     * - idf.enableIdfComponentManager
       - 在构建命令中启用 IDF 组件管理器
-    * - idf.espIdfPath
-      - ESP-IDF 框架的位置路径 (IDF_PATH)
-    * - idf.espIdfPathWin
-      - Windows 系统中 ESP-IDF 框架的位置路径 (IDF_PATH)
     * - idf.ninjaArgs
       - Ninja 构建任务的参数
-    * - idf.pythonInstallPath
-      - 用于构建 ESP-IDF Python 虚拟环境的系统 Python 绝对路径
-    * - idf.toolsPath
-      - ESP-IDF 工具的位置路径 (IDF_TOOLS_PATH)
-    * - idf.toolsPathWin
-      - Windows 系统中 ESP-IDF 工具的位置路径 (IDF_TOOLS_PATH)
 
 扩展将按照以下方式使用上述设置：
 
 1. **idf.customExtraVars** 用于存储自定义环境变量，例如 OPENOCD_SCRIPTS，用于指定启动 OpenOCD 服务器时所需脚本文件的目录路径。这些变量会加载到扩展命令的进程环境变量中，优先使用扩展变量，如果没有，则扩展命令会尝试使用系统 PATH 中已有的设置。**该配置项不会改变 VS Code 之外的系统环境。**
-2. **idf.espIdfPath**（Windows 系统中为 **idf.espIdfPathWin**）用于在扩展中存储 ESP-IDF 目录路径。如果该值已配置，则 VS Code 进程中原有的 IDF_PATH 会被覆盖。**该配置项不会改变 VS Code 之外的系统环境。** 此外，扩展使用 **idf.espIdfPath**，结合 **idf.toolsPath** 和 **idf.pythonInstallPath**，来确定要添加到环境变量 PATH 中的 ESP-IDF 工具路径和 Python 虚拟环境路径。
-3. **idf.pythonInstallPath** 是系统 Python 的绝对路径，基于 **idf.toolsPath** 和 **idf.espIdfPath** 来生成 ESP-IDF Python 虚拟环境路径。创建虚拟环境后，ESP-IDF 的 Python 包将在该环境中安装和使用。
-4. **idf.gitPath**（Windows 系统中为 **idf.gitPathWin**）在扩展中用于克隆 ESP-IDF master 版本及其他支持的框架，如 ESP-ADF 和 Arduino-ESP32。
-5. **idf.toolsPath**（Windows 系统中为 **idf.toolsPathWin**）用于结合 **idf.toolsPath** 和 **idf.pythonInstallPath** 来确定要添加到环境变量 PATH 中的 ESP-IDF 工具路径和 Python 虚拟环境路径。
+2. **idf.gitPath**（Windows 系统中为 **idf.gitPathWin**）在扩展中用于克隆 ESP-IDF master 版本及其他支持的框架，如 ESP-ADF、ESP-MDF 和 Arduino-ESP32。
 
 .. note::
 
@@ -296,10 +283,6 @@ QEMU 相关设置
 
     * - 设置 ID
       - 描述
-    * - **idf.espAdfPath**
-      - 定位 ESP-ADF 框架的路径 (ADF_PATH)
-    * - **idf.espAdfPathWin**
-      - 在 Windows 系统中定位 ESP-ADF 框架的路径 (ADF_PATH)
     * - **idf.sbomFilePath**
       - 创建 ESP-IDF SBOM 报告的路径
 
@@ -309,4 +292,4 @@ QEMU 相关设置
 
 环境变量 (env) 和其他 ESP-IDF 设置 (config) 可以在 ESP-IDF 设置中通过 ``${env:VARNAME}`` （用于环境变量）和 ``${config:ESPIDFSETTING}`` （用于设置）进行引用。
 
-例如，如果想要使用 ``"~/esp/esp-idf"``，可以将 **idf.espIdfPath** 设为 ``"${env:HOME}/esp/esp-idf"``。
+例如，如果想要使用 ``"~/esp/esp-idf"`` 设为 ``"${env:HOME}/esp/esp-idf"``。
