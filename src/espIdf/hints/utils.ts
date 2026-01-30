@@ -1,6 +1,10 @@
 import * as path from "path";
 import { pathExists } from "fs-extra";
 import { Logger } from "../../logger/logger";
+import { isBinInPath } from "../../utils";
+import { configureEnvVariables } from "../../common/prepareEnv";
+import { Uri } from "vscode";
+import { dirname, join } from "path";
 
 /**
  * Gets the path to the OpenOCD hints YAML file for the specified version.
@@ -9,20 +13,24 @@ import { Logger } from "../../logger/logger";
  * @returns The full path to the hints file, or null if not found or an error occurs.
  */
 export async function getOpenOcdHintsYmlPath(
-  toolsPath: string,
-  version: string
+  workspace: Uri
 ): Promise<string | null> {
-  if (!toolsPath || !version) {
-    Logger.warn("Missing toolsPath or OpenOCD version for getting hints path.", "getOpenOcdHintsYmlPath");
+  const modifiedEnv = await configureEnvVariables(workspace);
+  const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
+    "openocd-esp32",
+  ]);
+  if (!openOcdPath) {
+    Logger.warn(
+      "Missing OpenOCD path for getting hints path.",
+      "getOpenOcdHintsYmlPath"
+    );
     return null;
   }
+  const openOcdDir = dirname(openOcdPath);
   try {
     const hintsPath = path.join(
-      toolsPath,
-      "tools",
-      "openocd-esp32",
-      version,
-      "openocd-esp32",
+      openOcdDir,
+      "..",
       "share",
       "openocd",
       "espressif",
@@ -32,7 +40,8 @@ export async function getOpenOcdHintsYmlPath(
 
     if (!(await pathExists(hintsPath))) {
       Logger.info(
-        `OpenOCD hints file not found at expected location: ${hintsPath}. Hints may require a specific OpenOCD version or setup.`, "getOpenOcdHintsYmlPath"
+        `OpenOCD hints file not found at expected location: ${hintsPath}. Hints may require a specific OpenOCD version or setup.`,
+        "getOpenOcdHintsYmlPath"
       );
       return null;
     }

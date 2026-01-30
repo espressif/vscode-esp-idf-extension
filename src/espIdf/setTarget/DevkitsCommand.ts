@@ -23,7 +23,7 @@ import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
-import { execChildProcess } from "../../utils";
+import { execChildProcess, isBinInPath } from "../../utils";
 import { OutputChannel } from "../../logger/outputChannel";
 import { getOpenOcdScripts } from "../openOcd/boardConfiguration";
 import { configureEnvVariables } from "../../common/prepareEnv";
@@ -47,21 +47,18 @@ export class DevkitsCommand {
         throw new Error("No workspace folder found");
       }
 
-      const toolsPath = idfConf.readParameter(
-        "idf.toolsPath",
-        this.workspaceFolderUri
-      ) as string;
+      const modifiedEnv = await configureEnvVariables(this.workspaceFolderUri);
+      const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
+        "openocd-esp32",
+      ]);
 
-      if (!toolsPath || !openOCDVersion) {
+      if (!openOcdPath || !openOCDVersion) {
         throw new Error("Could not get toolsPath or OpenOCD version");
       }
 
       const scriptPath = join(
-        toolsPath,
-        "tools",
-        "openocd-esp32",
-        openOCDVersion,
-        "openocd-esp32",
+        openOcdPath,
+        "..",
         "share",
         "openocd",
         "espressif",
@@ -90,7 +87,6 @@ export class DevkitsCommand {
           : vscode.ProgressLocation.Window;
 
       const pythonBinPath = await getVirtualEnvPythonPath();
-      const modifiedEnv = await configureEnvVariables(this.workspaceFolderUri);
 
       // Remove OPENOCD_USB_ADAPTER_LOCATION from environment during device detection
       // to allow scanning all available devices, not just the one at the configured location
@@ -169,21 +165,18 @@ export class DevkitsCommand {
 
   public async getScriptPath(openOCDVersion: string): Promise<string | null> {
     try {
-      const toolsPath = idfConf.readParameter(
-        "idf.toolsPath",
-        this.workspaceFolderUri
-      ) as string;
+      const modifiedEnv = await configureEnvVariables(this.workspaceFolderUri);
+      const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
+        "openocd-esp32",
+      ]);
 
-      if (!toolsPath || !openOCDVersion) {
+      if (!openOcdPath || !openOCDVersion) {
         return null;
       }
 
       const scriptPath = join(
-        toolsPath,
-        "tools",
-        "openocd-esp32",
-        openOCDVersion,
-        "openocd-esp32",
+        openOcdPath,
+        "..",
         "share",
         "openocd",
         "espressif",

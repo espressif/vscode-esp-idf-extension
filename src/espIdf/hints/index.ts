@@ -14,13 +14,13 @@
 
 import * as yaml from "js-yaml";
 import { readFile, pathExists } from "fs-extra";
-import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import * as utils from "../../utils";
 import { getOpenOcdHintsYmlPath } from "./utils";
 import * as vscode from "vscode";
 import * as path from "path";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 /**
  * Class representing a pair of regular expression and its corresponding hint.
@@ -176,10 +176,8 @@ export class ErrorHintProvider
   ): Promise<boolean> {
     this.buildErrorData = [];
 
-    const espIdfPath = idfConf.readParameter(
-      "idf.espIdfPath",
-      workspace
-    ) as string;
+    const modifiedEnv = await configureEnvVariables(workspace);
+    const espIdfPath = modifiedEnv["IDF_PATH"];
 
     const version = await utils.getEspIdfFromCMake(espIdfPath);
 
@@ -196,19 +194,13 @@ export class ErrorHintProvider
 
     // Get paths for both hint files
     const idfHintsPath = getIdfHintsYmlPath(espIdfPath);
-    const toolsPath = idfConf.readParameter(
-      "idf.toolsPath",
-      workspace
-    ) as string;
+    const toolsPath = modifiedEnv["IDF_TOOLS_PATH"];
     let openOcdHintsPath: string | null = null;
     try {
       const openOCDManager = OpenOCDManager.init();
       const openOCDVersion = await openOCDManager.version(true);
       if (toolsPath && openOCDVersion) {
-        openOcdHintsPath = await getOpenOcdHintsYmlPath(
-          toolsPath,
-          openOCDVersion
-        );
+        openOcdHintsPath = await getOpenOcdHintsYmlPath(workspace);
       } else {
         Logger.info(
           "Could not get toolsPath or OpenOCD version, skipping OpenOCD hints lookup.",

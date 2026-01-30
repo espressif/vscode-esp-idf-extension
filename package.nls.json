@@ -193,7 +193,7 @@
   "view.idf.idfSearchResults": "Documentation Search Results",
   "viewContainer.title": "ESP-IDF: Explorer",
   "viewWelcome.idfPartitionExplorer": "Show the partition list from your device with the option to flash binaries (.bin) to the selected partition.\n\nSelect your device serial port and click Refresh Partition Table.",
-  "viewWelcome.idfSearchResults": "On any opened file editor, select some text, right click and select ESP-IDF: Search in Documentation to get matching results here.\n\nResults are based on your current VS Code language and idf.espIdfPath version (latest otherwise).",
+  "viewWelcome.idfSearchResults": "On any opened file editor, select some text, right click and select ESP-IDF: Search in Documentation to get matching results here.\n\nResults are based on your current VS Code language and IDF_PATH version (latest otherwise).",
   "viewWelcome.peripheralView": "Show peripheral registers from SVD files defined in ESP-IDF SVD file path (idf.svdFilePath) configuration setting during active debug session.",
   "view.idf.errorHints": "Error Hints",
   "command.errorHints.clearAll.title": "Clear All Error Hints",

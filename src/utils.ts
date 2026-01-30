@@ -40,14 +40,8 @@ import { getIdfTargetFromSdkconfig, getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
-import {
-  getEnvVarsFromIdfTools,
-  getVirtualEnvPythonPath,
-} from "./pythonManager";
-import { IdfToolsManager } from "./idfToolsManager";
 import { isFlashEncryptionEnabled } from "./flash/verifyFlashEncryption";
 import { configureClangSettings } from "./clang";
-import { getOpenOcdAdapterIdentifier } from "./espIdf/openOcd/adapterSerial";
 import { configureEnvVariables } from "./common/prepareEnv";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");

@@ -191,7 +191,7 @@
 	"view.idf.idfSearchResults": "Resultados de búsqueda de documentación",
 	"viewContainer.title": "ESP-IDF: Explorador",
 	"viewWelcome.idfPartitionExplorer": "Muestra la lista de particiones de su dispositivo con la opción de flashear binarios (.bin) en la partición seleccionada.\n\nSeleccione el puerto serial de su dispositivo y haga clic en Actualizar tabla de particiones.",
-	"viewWelcome.idfSearchResults": "En cualquier editor de archivos abierto, seleccione un texto y haga clic con el botón derecho y seleccione ESP-IDF: Buscar en la documentación para obtener resultados coincidentes aquí.\n\nLos resultados se basan en su idioma actual de VS Code, versión de idf.espIdfPath (si no, la última)",
+	"viewWelcome.idfSearchResults": "En cualquier editor de archivos abierto, seleccione un texto y haga clic con el botón derecho y seleccione ESP-IDF: Buscar en la documentación para obtener resultados coincidentes aquí.\n\nLos resultados se basan en su idioma actual de VS Code, versión de IDF_PATH (si no, la última)",
 	"viewWelcome.peripheralView": "Muestra los registros periféricos del archivo SVD definido en la configuración idf.svdFilePath durante la sesión de depuración activa",
 	"view.idf.errorHints": "Pistas de Error",
 	"command.errorHints.clearAll.title": "Borrar Todas las Pistas de Error",

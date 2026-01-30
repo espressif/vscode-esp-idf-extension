@@ -76,7 +76,7 @@ export class OpenOCDErrorMonitor {
             Logger.info(
               "Could not determine OpenOCD version. Hints file won't be loaded."
             );
-            return null;
+            return;
         }
 
         // Skip initialization if openOCD version is not supporting hints
@@ -85,14 +85,8 @@ export class OpenOCDErrorMonitor {
             Logger.info(`OpenOCD version ${version} doesn't support hints. Minimum required: ${minRequiredVersion}`);
             return;
         }
-
-      // Load OpenOCD hints data
-      const toolsPath = idfConf.readParameter(
-        "idf.toolsPath",
-        this.workspaceRoot
-      ) as string;
       
-      const openOcdHintsPath = await getOpenOcdHintsYmlPath(toolsPath, version);
+      const openOcdHintsPath = await getOpenOcdHintsYmlPath(this.workspaceRoot);
       
       if (openOcdHintsPath) {
         try {
