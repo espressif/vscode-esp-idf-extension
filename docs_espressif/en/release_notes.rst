@@ -42,7 +42,7 @@ Bug Fixes (1.11.1)
 `v1.11.0 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.11.0>`_
 
 Features and enhancements (1.11.0)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - `Add DevKits support <https://github.com/espressif/vscode-esp-idf-extension/pull/1557>`_
 - `Add gitignore on project creation <https://github.com/espressif/vscode-esp-idf-extension/pull/1578>`_

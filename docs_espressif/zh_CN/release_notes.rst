@@ -42,7 +42,7 @@ Bug 修复 (1.11.1)
 `v1.11.0 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.11.0>`_
 
 功能与增强 (1.11.0)
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 - `添加 DevKits 支持 <https://github.com/espressif/vscode-esp-idf-extension/pull/1557>`_
 - `创建项目时添加 gitignore <https://github.com/espressif/vscode-esp-idf-extension/pull/1578>`_
@@ -96,7 +96,7 @@ Bug 修复 (1.11.0)
 `v1.10.1 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.10.1>`_
 
 功能与增强 (1.10.1)
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 - `悬停时计算变量、以十六进制查看变量、设置数据断点 <https://github.com/espressif/vscode-esp-idf-extension/pull/1521>`_
 - `Clang 项目设置配置 <https://github.com/espressif/vscode-esp-idf-extension/pull/1489>`_
@@ -128,7 +128,7 @@ Bug 修复 (1.10.1)
 `v1.10.0 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.10.0>`_
 
 功能与增强 (1.10.0)
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 - `添加删除 esp-idf 特定设置的命令 <https://github.com/espressif/vscode-esp-idf-extension/pull/1353>`_
 - `添加 idf.monitorPort 设置 <https://github.com/espressif/vscode-esp-idf-extension/pull/1429>`_
