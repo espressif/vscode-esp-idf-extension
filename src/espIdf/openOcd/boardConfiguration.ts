@@ -22,6 +22,7 @@ import { Logger } from "../../logger/logger";
 import { commands, ConfigurationTarget, l10n, Uri, window } from "vscode";
 import { defaultBoards } from "./defaultBoards";
 import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export interface IdfBoard {
   name: string;
@@ -31,13 +32,16 @@ export interface IdfBoard {
 }
 
 export async function getOpenOcdScripts(workspace: Uri): Promise<string> {
+  const modifiedEnv = await configureEnvVariables(workspace);
   const userExtraVars = readParameter(
     "idf.customExtraVars",
     workspace
   ) as { [key: string]: string };
   let openOcdScriptsPath: string;
   try {
-    openOcdScriptsPath = userExtraVars.hasOwnProperty("OPENOCD_SCRIPTS")
+    openOcdScriptsPath = modifiedEnv.hasOwnProperty("OPENOCD_SCRIPTS")
+      ? modifiedEnv.OPENOCD_SCRIPTS
+      : userExtraVars.hasOwnProperty("OPENOCD_SCRIPTS")
       ? userExtraVars.OPENOCD_SCRIPTS
       : process.env.OPENOCD_SCRIPTS
       ? process.env.OPENOCD_SCRIPTS

@@ -59,6 +59,7 @@ export class DevkitsCommand {
       const scriptPath = join(
         openOcdPath,
         "..",
+        "..",
         "share",
         "openocd",
         "espressif",
@@ -176,6 +177,7 @@ export class DevkitsCommand {
 
       const scriptPath = join(
         openOcdPath,
+        "..",
         "..",
         "share",
         "openocd",

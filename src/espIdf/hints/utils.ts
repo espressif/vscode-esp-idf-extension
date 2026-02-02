@@ -4,7 +4,6 @@ import { Logger } from "../../logger/logger";
 import { isBinInPath } from "../../utils";
 import { configureEnvVariables } from "../../common/prepareEnv";
 import { Uri } from "vscode";
-import { dirname, join } from "path";
 
 /**
  * Gets the path to the OpenOCD hints YAML file for the specified version.
@@ -26,10 +25,10 @@ export async function getOpenOcdHintsYmlPath(
     );
     return null;
   }
-  const openOcdDir = dirname(openOcdPath);
   try {
     const hintsPath = path.join(
-      openOcdDir,
+      openOcdPath,
+      "..",
       "..",
       "share",
       "openocd",
