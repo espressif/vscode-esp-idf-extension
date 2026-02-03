@@ -56,7 +56,7 @@ onMounted(() => {
               :key="section.name"
               :name="section.name"
               :usedData="section.used"
-              :totalData="section.total"
+              :totalData="section.total ? section.total : section.used + section.free"
             />
           </div>
           <div v-else>

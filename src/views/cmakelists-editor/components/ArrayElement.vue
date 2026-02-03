@@ -159,6 +159,7 @@ function del() {
 
 .vscode-input {
   flex: 1;
+  min-width: 50%;
   height: 20px;
   padding: 4px 8px;
   background-color: var(--vscode-input-background);

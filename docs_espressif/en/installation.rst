@@ -15,18 +15,18 @@ After installing Visual Studio Code (VS Code), install the ESP-IDF extension for
 
     - Navigate to ``View`` > ``Command Palette``.
 
-    - Type ``ESP-IDF: Open ESP-IDF Install Manager`` to download and run the ESP-IDF install manager to install the ESP-IDF framework. A loading notification will appear, followed by the execution of the installer.
+    - Type ``ESP-IDF: Open ESP-IDF Installation Manager`` to download and run the ESP-IDF Installation Manager to install the ESP-IDF framework. A loading notification will appear, followed by the execution of the installer.
 
     .. note::
 
         For versions of ESP-IDF < 5.0, spaces are not supported in configured paths.
 
-2.  Alternatively, you can download the ESP-IDF Install Manager from the following link `ESP-IDF Install Manager <https://dl.espressif.com/dl/eim/index.html>`_ among the following options:
+2.  Alternatively, you can download the ESP-IDF Installation Manager from the following link `ESP-IDF Installation Manager <https://dl.espressif.com/dl/eim/index.html>`_ among the following options:
 
-    - ``Espressif``: Faster speed in China using Espressif download servers.
+    - ``Download``: Faster speed in China using Espressif download servers.
     - ``Github``: Using GitHub release links.
 
-3.  Use the ESP-IDF Install Manager to install the ESP-IDF and tools. If necessary, here is the `ESP-IDF Install Manager Documentation <https://docs.espressif.com/projects/idf-im-ui/en/latest/general_info.html>`_.
+3.  Use the ESP-IDF Installation Manager to install the ESP-IDF and tools. If necessary, here is the `ESP-IDF Installation Manager Documentation <https://docs.espressif.com/projects/idf-im-ui/en/latest/general_info.html>`_.
 
 4. In Visual Studio Code, navigate to ``View`` > ``Command Palette`` and type ``select current esp-idf version`` and select **ESP-IDF: Select Current ESP-IDF Version** from the list.
    The list of available ESP-IDF setups will be shown, select which one you want to use for the current ESP-IDF project. 

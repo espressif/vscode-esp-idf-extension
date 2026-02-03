@@ -39,15 +39,15 @@ Make sure to review our [Espressif documentation](https://docs.espressif.com/pro
   <img src="./media/readme/commandsList.png" alt="Commands list">
 </p>
 
-6. From the command list, select **ESP-IDF: Open ESP-IDF Install Manager** or press <kbd>F1</kbd> and type `Open ESP-IDF Install Manager`. After, choose the **ESP-IDF: ESP-IDF: Open ESP-IDF Install Manager** option.
+6. From the command list, select **ESP-IDF: Open ESP-IDF Installation Manager** or press <kbd>F1</kbd> and type `Open ESP-IDF Installation Manager`. After, choose the **ESP-IDF: ESP-IDF: Open ESP-IDF Installation Manager** option.
    > **NOTE:** For versions of ESP-IDF < 5.0, spaces are not supported inside configured paths.
 
-7. Alternatively, you can download the ESP-IDF Install Manager from the following link [ESP-IDF Install Manager](https://dl.espressif.com/dl/eim/index.html) among the following options::
+7. Alternatively, you can download the ESP-IDF Installation Manager from the following link [ESP-IDF Installation Manager](https://dl.espressif.com/dl/eim/index.html) among the following options::
 
 - Espressif: Faster speed in China using Espressif download servers links.
 - Github: Using github releases links.
 
-8. Use the ESP-IDF Install Manager to install the ESP-IDF and tools. If necessary, here is the [ESP-IDF Install Manager Documentation](https://docs.espressif.com/projects/idf-im-ui/en/latest/general_info.html).
+8. Use the ESP-IDF Installation Manager to install the ESP-IDF and tools. If necessary, here is the [ESP-IDF Installation Manager Documentation](https://docs.espressif.com/projects/idf-im-ui/en/latest/general_info.html).
 
 9. In Visual Studio Code, navigate to `View` > `Command Palette` and type `select current esp-idf version` and select **ESP-IDF: Select Current ESP-IDF Version** from the list. The list of available ESP-IDF setups will be shown, select which one you want to use for the current ESP-IDF project. The selected setup will save a **idf.currentSetup** with selected ESP-IDF path and the extension will configure environment variables for the current project saved as workspace folder state. You can review the setup by running the **ESP-IDF: Doctor Command** by navigate to `View` > `Command Palette` and type `doctor command` and select **ESP-IDF: ESP-IDF: Doctor Command** from the list.
 

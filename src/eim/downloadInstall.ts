@@ -17,7 +17,6 @@
  */
 
 import axios from "axios";
-import { tmpdir } from "os";
 import { basename, dirname, extname, join, resolve as pathResolve } from "path";
 import {
   createWriteStream,
@@ -106,7 +105,10 @@ export async function runExistingEIM(
   const idfEimExecutableArgs = readParameter(
     "idf.eimExecutableArgs"
   ) as string[];
-  const argsString = idfEimExecutableArgs.join(" ");
+  let argsString = idfEimExecutableArgs.join(" ");
+  if (env.remoteName === "wsl") {
+    argsString = "wizard";
+  }
 
   let binaryPath = "";
   if (process.platform === "win32") {
@@ -165,7 +167,12 @@ export async function downloadExtractAndRunEIM(
     const arch = process.arch;
     let osKey: string;
 
-    if (process.platform === "darwin") {
+    if (env.remoteName === "wsl") {
+      osKey =
+        arch === "arm64"
+          ? "eim-cli-linux-aarch64.zip"
+          : "eim-cli-linux-x64.zip";
+    } else if (process.platform === "darwin") {
       osKey =
         arch === "arm64"
           ? "eim-gui-macos-aarch64.zip"

@@ -6,11 +6,14 @@
 2.0.2
 -----
 
+**本扩展中 ESP-IDF 与 ESP-IDF 工具的安装与配置方式已调整。** ``ESP-IDF: Configure ESP-IDF extension`` 命令以及诸如 ``idf.espIdfPath`` 和 ``idf.toolsPath`` 的扩展设置已被移除，改为使用新的 `Espressif 安装管理器 (EIM) <https://docs.espressif.com/projects/idf-im-ui/en/latest/>`_。为便于过渡，原有 ESP-IDF 环境仍可继续使用，但新安装的 ESP-IDF 建议使用 EIM。更多详情请参阅新的 `安装文档 <https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/installation.html>`_。
+
 `v2.0.2 <https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.0.2>`_
 
 功能与增强 (2.0.2)
 ~~~~~~~~~~~~~~~~~~
 
+- `EIM 集成并移除 idf.espIdfPath、idf.toolsPath 等扩展设置，改为使用作为扩展全局存储状态保存的环境变量 <https://github.com/espressif/vscode-esp-idf-extension/pull/1704>`_
 - `新建项目向导中先显示模板再配置 <https://github.com/espressif/vscode-esp-idf-extension/pull/1757>`_
 - `调试图像查看器及从文件查看 C 图像数组 <https://github.com/espressif/vscode-esp-idf-extension/pull/1644>`_ — 只要提供图像 C UInt8Array 及尺寸长度，即可为 OpenCV、LVGL 及任意自定义数据类型进行配置。
 - `移除旧版调试适配器、ESP-MDF、ESP-Matter 和 ESP-HomeKit <https://github.com/espressif/vscode-esp-idf-extension/pull/1693>`_。其中多数框架已在 ESP 组件注册表中提供。我们保留 ESP-ADF。

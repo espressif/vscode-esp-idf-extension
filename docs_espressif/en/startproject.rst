@@ -23,11 +23,26 @@ In Visual Studio Code:
 
 - Type ``ESP-IDF: New Project`` and select the command to launch the New Project wizard.
 
+- A dropdown menu appears with all ESP-IDF setups detected by the extension. Select the desired ESP-IDF setup to use for the new project creation.
+
+- A menu with all examples from the ESP-IDF is displayed. You can select one of the examples as a template for your new project.
+
+    .. note::
+
+        If you want to create a blank project, choose ESP-IDF ``sample_project`` or Extension ``template-app``.
+
+    .. image:: ../../media/tutorials/new_project/new_project_templates.png
+
+- Choose your desired template and click the ``Create Project Using Template <template-name>`` button, where ``<template-name>`` is the name of the selected template.
+
+- The New Project configuration window appears. Fill in the required fields:
+
+
     .. image:: ../../media/tutorials/new_project/new_project_init.png
 
 - Choose the project name.
 - Choose the location for the new project.
-- Select the Espressif board you are using.
+- Select the Espressif IDF_TARGET and Board to use in this new project.
 - Select the serial port of the device (a list of currently connected serial devices appears in the dropdown).
 
     .. note::
@@ -40,17 +55,7 @@ In Visual Studio Code:
 
 - Optionally, you can import any ESP-IDF component directory ``component-dir`` to the new project. This will copy it to the new project's ``components`` subdirectory (``<project-dir>/components/component-dir``).
 
-- Click the ``Choose Template`` button.
-
-- Select ESP-IDF from the dropdown if you want to use a template.
-
-    .. note::
-
-        If you want to create a blank project, choose ESP-IDF ``sample_project`` or Extension ``template-app``.
-
-    .. image:: ../../media/tutorials/new_project/new_project_templates.png
-
-- Choose your desired template and click the ``Create Project Using Template <template-name>`` button, where ``<template-name>`` is the name of the selected template.
+- Click the ``Create Project`` button.
 
 - After the project is created, a notification window will appear, asking whether to open the newly created project.
 

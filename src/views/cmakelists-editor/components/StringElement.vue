@@ -78,6 +78,7 @@ function del() {
 }
 
 .vscode-input {
+  min-width: 50%;
   height: 20px;
   padding: 4px 8px;
   background-color: var(--vscode-input-background);

@@ -2242,21 +2242,6 @@ export async function activate(context: vscode.ExtensionContext) {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
-
-    let idfSetups = await getIdfSetups(workspaceRoot);
-    const currentIdfSetup = await loadIdfSetup(workspaceRoot);
-    const isCurrentSetupInList = idfSetups.findIndex((idfSetup) => {
-      return (
-        idfSetup.idfPath === currentIdfSetup.idfPath &&
-        idfSetup.toolsPath === currentIdfSetup.toolsPath
-      );
-    });
-    if (isCurrentSetupInList === -1) {
-      idfSetups.push(currentIdfSetup);
-    }
-    if (idfSetups.length === 0) {
-      return;
-    }
     vscode.window.withProgress(
       {
         cancellable: false,
@@ -2268,6 +2253,26 @@ export async function activate(context: vscode.ExtensionContext) {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
+          progress.report({ message: "Loading IDF setups...", increment: 10 });
+          let idfSetups = await getIdfSetups(workspaceRoot);
+          const currentIdfSetup = await loadIdfSetup(workspaceRoot);
+          const isCurrentSetupInList = idfSetups.findIndex((idfSetup) => {
+            return (
+              idfSetup.idfPath === currentIdfSetup.idfPath &&
+              idfSetup.toolsPath === currentIdfSetup.toolsPath
+            );
+          });
+          if (isCurrentSetupInList === -1) {
+            idfSetups.push(currentIdfSetup);
+          }
+          if (idfSetups.length === 0) {
+            return;
+          }
+
+          progress.report({
+            message: "Loading ESP-IDF examples...",
+            increment: 10,
+          });
           const newProjectArgs = await getNewProjectArgs(
             context.extensionPath,
             progress,

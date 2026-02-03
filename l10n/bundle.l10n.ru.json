@@ -145,7 +145,7 @@
   "Error encountered while adding dependency {dependency} to the component \"{component}\"": "Произошла ошибка при добавлении зависимости {dependent} к компоненту \"{comment}\"",
   "Error encountered while creating project from example \"{example}\"": "Ошибка при создании проекта из примера \"{example}\"",
   "Install ESP-ADF": "Установка ESP-ADF",
-  "Open ESP-IDF installation manager": "Откройте диспетчер установки ESP-IDF.",
+  "Open ESP-IDF Installation Manager": "Откройте диспетчер установки ESP-IDF.",
   "Choose from existing ESP-IDF setups.": "Выбирайте из существующих настроек ESP-IDF.",
   "The extension configuration is not valid. Choose an action:": "Недопустимая конфигурация расширения. Выберите действие:",
   "No ESP-IDF Setups found": "Настройки ESP-IDF не найдены",
