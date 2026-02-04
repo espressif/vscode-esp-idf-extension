@@ -32,7 +32,7 @@
 
    将显示可用的 ESP-IDF 配置列表，选择要用于当前 ESP-IDF 项目的配置。
 
-   - 所选配置将保存为 **idf.currentSetup**（包含所选 ESP-IDF 路径），扩展会为当前 ESP-IDF 项目配置所需的环境变量，并保存为工作区文件夹状态。
+   - 所选配置将保存为 idf.currentSetup（包含所选 ESP-IDF 路径），扩展会为当前 ESP-IDF 项目配置所需的环境变量，并保存为工作区文件夹状态。
 
    - 可通过运行 ``ESP-IDF: Doctor Command`` 检查配置：前往 ``查看`` > ``命令面板``，输入 ``doctor command``，在列表中选择 ``ESP-IDF: ESP-IDF: Doctor Command``。
 
