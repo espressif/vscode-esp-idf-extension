@@ -7,9 +7,9 @@ Flash Encryption secures the device's flash memory contents. Once enabled, the f
 
 Let's open an ESP-IDF project. For this tutorial, we will use the ``security/flash_encryption`` example.
 
-1. Navigate to **View** > **Command Palette** and search for the **ESP-IDF: Show Example Projects** command, then choose ``Use Current ESP-IDF (/path/to/esp-idf)``. If you don't see this option, please review the setup in the :ref:`Install ESP-IDF and Tools <installation>`.
+1. Navigate to **View** > **Command Palette** and search for the **ESP-IDF: New Project** command, then choose ``Use Current ESP-IDF (/path/to/esp-idf)``. If you don't see this option, please review the setup in the :ref:`Install ESP-IDF and Tools <installation>`.
 
-2. A window will open with a list of projects. Search for ``flash_encryption``. You will see a **Create project using example flash_encryption** button at the top and a description of the project below. Click the button, and the project will open in a new window.
+2. A window will open with a list of projects. Search for ``flash_encryption``. You will see a **Create project using example flash_encryption** button at the top and a description of the project below. Click the button, configure the project, click ``Create Project`` button, wait for the project to be created and then click on ``Open Project``.
 
 .. image:: ../../../media/tutorials/flash_encryption/flash-encryption.png
    :alt: Flash Encryption example

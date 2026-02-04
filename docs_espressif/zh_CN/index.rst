@@ -22,6 +22,7 @@
     设置 <settings>
     可用命令列表 <commands>
     常见问题 <faqs>
+    发布说明 <release_notes>
 
 功能
 ----

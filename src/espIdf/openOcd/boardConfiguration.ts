@@ -21,8 +21,8 @@ import { readJSON } from "fs-extra";
 import { Logger } from "../../logger/logger";
 import { commands, ConfigurationTarget, l10n, Uri, window } from "vscode";
 import { defaultBoards } from "./defaultBoards";
-import { IdfToolsManager } from "../../idfToolsManager";
 import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export interface IdfBoard {
   name: string;
@@ -32,21 +32,15 @@ export interface IdfBoard {
 }
 
 export async function getOpenOcdScripts(workspace: Uri): Promise<string> {
-  const idfPathDir = readParameter("idf.espIdfPath", workspace) as string;
-  const toolsPath = readParameter("idf.toolsPath", workspace) as string;
-  const userExtraVars = readParameter("idf.customExtraVars", workspace) as {
-    [key: string]: string;
-  };
-  const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
-    idfPathDir
-  );
-  const idfExtraVars = await idfToolsManager.exportVars(
-    join(toolsPath, "tools")
-  );
+  const modifiedEnv = await configureEnvVariables(workspace);
+  const userExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspace
+  ) as { [key: string]: string };
   let openOcdScriptsPath: string;
   try {
-    openOcdScriptsPath = idfExtraVars.hasOwnProperty("OPENOCD_SCRIPTS")
-      ? idfExtraVars.OPENOCD_SCRIPTS
+    openOcdScriptsPath = modifiedEnv.hasOwnProperty("OPENOCD_SCRIPTS")
+      ? modifiedEnv.OPENOCD_SCRIPTS
       : userExtraVars.hasOwnProperty("OPENOCD_SCRIPTS")
       ? userExtraVars.OPENOCD_SCRIPTS
       : process.env.OPENOCD_SCRIPTS

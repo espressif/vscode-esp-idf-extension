@@ -8,6 +8,22 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [2.0.2](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.0.2)
+
+## Features and enhancements
+
+**Replace how ESP-IDF and ESP-IDF Tools is installed and configured in the extension.** The `ESP-IDF: Configure ESP-IDF extension` and extension settings such as `idf.espIdfPath`and `idf.toolsPath` are removed in favor of using our new [Espressif Install Manager (EIM)](https://docs.espressif.com/projects/idf-im-ui/en/latest/). While old ESP-IDF setup should still work to ease the transition, new ESP-IDF setup are expected to use EIM.
+See the new [Install documentation](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/installation.html)
+
+- [EIM integration and removal of extension settings such as idf.espIdfPath and idf.toolsPath in favor of environment variables saved as extension global store state](https://github.com/espressif/vscode-esp-idf-extension/pull/1704)
+- [Show templates before configuration in New Project Wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/1757)
+- [Debug image viewer and also view C image array from files](https://github.com/espressif/vscode-esp-idf-extension/pull/1644) You can configure for OpenCV, LVGL and any custom data types as long as you provide a image C UInt8Array and size length.
+- [Remove old debug adapter, ESP-MDF, ESP-Matter and ESP-HomeKit](https://github.com/espressif/vscode-esp-idf-extension/pull/1693). Many of these framework are available in the ESP Component Registry. We are keeping ESP-ADF though.
+
+## Bug Fixes
+
+- [Show ESP-IDF versions in descending order](https://github.com/espressif/vscode-esp-idf-extension/pull/1704)
+
 ## [1.11.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.11.1)
 
 ## Bug Fixes

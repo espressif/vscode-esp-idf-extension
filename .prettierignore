@@ -1,5 +1,4 @@
 #files
-idf_versions.txt
 *.log
 .vscodeignore
 .style.yapf

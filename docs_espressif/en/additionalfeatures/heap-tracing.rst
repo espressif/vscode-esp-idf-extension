@@ -15,7 +15,7 @@ Let's open an ESP-IDF project. For this tutorial, we will use the ``system/sysvi
 
         If you don't see the option, please review the setup in :ref:`Install ESP-IDF and Tools <installation>`.
 
-3.  A window will open with settings to configure the project. You can later choose from a list of ESP-IDF examples. Go to the ``system`` section and choose ``sysview_tracing_heap_log``. You will see a ``Create Project Using Example sysview_tracing_heap_log`` button at the top and a description of the project below. Click the button, and the project will open in a new window.
+3.  A window will open with settings to configure the project. You can later choose from a list of ESP-IDF examples. Go to the ``system`` section and choose ``sysview_tracing_heap_log``. You will see a ``Create Project Using Example sysview_tracing_heap_log`` button at the top and a description of the project below. Click the ``Create Project`` button, wait for the project to be created and then click on ``Open Project``.
 
     .. image:: ../../../media/tutorials/heap_trace/sysview_tracing_heap_log.png
 

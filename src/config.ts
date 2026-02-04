@@ -30,6 +30,7 @@ export namespace ESP {
   export namespace ProjectConfiguration {
     export let store: ProjectConfigStore;
     export const SELECTED_CONFIG = "SELECTED_PROJECT_CONFIG";
+    export const CURRENT_IDF_CONFIGURATION = "CURRENT_IDF_CONFIGURATION";
     export const PROJECT_CONFIGURATION_FILENAME =
       "esp_idf_project_configuration.json";
   }
@@ -53,18 +54,15 @@ export namespace ESP {
 
   export namespace GlobalConfiguration {
     export let store: ExtensionConfigStore;
-    export const IDF_SETUPS = "IDF_SETUPS";
     export const SELECTED_WORKSPACE_FOLDER = "SELECTED_WORKSPACE_FOLDER";
   }
 
   export const platformDepConfigurations: string[] = [
-    "idf.buildPath",
     "idf.espIdfPath",
-    "idf.espAdfPath",
-    "idf.gitPath",
-    "idf.pythonBinPath",
-    "idf.port",
     "idf.toolsPath",
+    "idf.buildPath",
+    "idf.gitPath",
+    "idf.port",
   ];
 
   export namespace Rainmaker {
@@ -95,8 +93,6 @@ export namespace ESP {
 
   export namespace URL {
     export const IDF_GITHUB_ASSETS = "https://dl.espressif.com/github_assets";
-    export const IDF_VERSIONS =
-      "https://dl.espressif.com/dl/esp-idf/idf_versions.txt";
     export namespace IDF_EMBED_GIT {
       export const VERSION = "2.39.2";
       export const IDF_EMBED_GIT_URL = `https://dl.espressif.com/dl/idf-git/idf-git-${VERSION}-win64.zip`;
@@ -136,6 +132,10 @@ export namespace ESP {
         "https://dl.espressif.com/dl/esp-idf/idf_versions.js";
       export const README = ESP.URL.GithubRepository + "/blob/master/README.md";
       export const FLASH_ENCRYPTION = "/security/flash-encryption.html";
+    }
+
+    export namespace InstallManager {
+      export const Releases = "https://dl.espressif.com/dl/eim/index.html";
     }
   }
 

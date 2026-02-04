@@ -84,7 +84,6 @@
     "onCommand:espIdf.partition.table.refresh",
     "onCommand:espIdf.removeCoverage",
     "onCommand:espIdf.searchInEspIdfDocs",
-    "onCommand:espIdf.setup.start",
     "onCommand:espIdf.welcome.start",
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
@@ -128,7 +127,7 @@
           {
             "id": "extension-configuration",
             "title": "Configuring the ESP-IDF Extension",
-            "description": "❗**Linux and MacOS users:** Please install prerequisites first. The process is quick and simple - follow the steps in our [ESP-IDF install documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html#step-1-install-prerequisites).\n\nOnce ready, let's configure the ESP-IDF extension:\n\n[Configure ESP-IDF Extension](command:espIdf.setup.start)\n\n",
+            "description": "❗**Please review system prerequisites first. The process is quick and simple - follow the steps in our [ESP-IDF Installation Manager documentation](https://docs.espressif.com/projects/idf-im-ui/en/latest/prerequisites.html).\n\nOnce ready, let's install ESP-IDF:\n\n[ESP-IDF: Open ESP-IDF Installation Manager](command:espIdf.installManager)\n\n\n\nAfter that, run:\n\n[ESP-IDF: Select Current ESP-IDF Version](command:espIdf.selectCurrentIdfVersion)\n\n",
             "media": {
               "markdown": "walkthroughs/basic/configuration.md"
             }
@@ -136,7 +135,7 @@
           {
             "id": "create-example-project",
             "title": "Creating an Example Project",
-            "description": "Now, let's create a new project from ESP-IDF examples:\n\n[Show Example Projects](command:espIdf.examples.start)\n\n💡 Explore different examples to find one that suits your needs.",
+            "description": "Now, let's create a new project from ESP-IDF: New Project\n\n[ESP-IDF: New Project](command:espIdf.newProject.start)\n\n💡 Explore different examples to find one that suits your needs.",
             "media": {
               "markdown": "walkthroughs/basic/create-project.md"
             }
@@ -144,7 +143,7 @@
           {
             "id": "setup-project",
             "title": "Setting Up Your Project",
-            "description": "Before building your project, you'll need to configure some essential settings:\n\n1. Configure your target device\n\n[Set Espressif Device Target](command:espIdf.setTarget)\n2. Set up project-specific configurations (not needed in our example)\n3. Select serial port \n\n[Select Port to Use](command:espIdf.selectPort)\n4. Select flashing method \n\n[Select Flash Method](command:espIdf.selectFlashMethodAndFlash)",
+            "description": "Before building your project, you'll need to configure some essential settings:\n\n1. Configure your target device\n\n[ESP-IDF: Set Espressif Device Target](command:espIdf.setTarget)\n2. Set up project-specific configurations (not needed in our example)\n3. Select serial port \n\n[ESP-IDF: Select Port to Use](command:espIdf.selectPort)\n4. Select flashing method \n\n[ESP-IDF: Select Flash Method](command:espIdf.selectFlashMethodAndFlash)",
             "media": {
               "markdown": "walkthroughs/basic/setup-project.md"
             }
@@ -175,7 +174,7 @@
           {
             "id": "advanced-introduction",
             "title": "Introduction to Advanced Features",
-            "description": "Overview of advanced ESP-IDF development capabilities.\n\n**Prerequisites:**\n - Completed the Basic Usage Guide\n - Basic familiarity with ESP-IDF concepts\n - Have a working ESP-IDF setup\n - Have your development board ready\n - JTAG debugging hardware (for debugging features)",
+            "description": "Overview of advanced ESP-IDF development capabilities.\n\n**Prerequisites:**\n - Completed the ESP-IDF Basic Usage Guide Walkthrough\n - Basic familiarity with ESP-IDF concepts\n - Have a working ESP-IDF setup\n - Have your development board ready\n - JTAG debugging hardware (for debugging features)",
             "media": {
               "markdown": "walkthroughs/advanced/advanced-intro.md"
             }
@@ -183,7 +182,7 @@
           {
             "id": "troubleshooting",
             "title": "Troubleshooting Guide",
-            "description": "Learn about common troubleshooting techniques and how to get help when you need it.\n\nKey features:\n- Debug logging configuration\n- Environment diagnostics\n- Log file locations\n- Common issues and solutions\n\n[Run Doctor Command](command:espIdf.doctorCommand)",
+            "description": "Learn about common troubleshooting techniques and how to get help when you need it.\n\nKey features:\n- Debug logging configuration\n- Environment diagnostics\n- Log file locations\n- Common issues and solutions\n\n[ESP-IDF: Doctor Command](command:espIdf.doctorCommand)",
             "media": {
               "markdown": "walkthroughs/advanced/troubleshooting.md"
             }
@@ -207,7 +206,7 @@
           {
             "id": "component-installation",
             "title": "Installing ESP-IDF Components",
-            "description": "Learn how to enhance your project with ESP Component Registry and Arduino-ESP32 integration.\n\n- Browse and install ESP components\n- Add Arduino-ESP32 as a component\n- Create projects from component examples\n\n[Open ESP Component Registry](command:esp.component-manager.ui.show)",
+            "description": "Learn how to enhance your project with ESP Component Registry and Arduino-ESP32 integration.\n\n- Browse and install ESP components\n- Add Arduino-ESP32 as a component\n- Create projects from component examples\n\n[ESP-IDF: Open ESP Component Registry](command:esp.component-manager.ui.show)",
             "media": {
               "markdown": "walkthroughs/advanced/component-installation.md"
             }
@@ -215,7 +214,7 @@
           {
             "id": "app-size-analysis",
             "title": "Application Size Analysis",
-            "description": "ESP-IDF Extension provides powerful tools to analyze your application's memory usage, helping you optimize storage allocation. \n\n[Open Size Analysis](command:espIdf.size)",
+            "description": "ESP-IDF Extension provides powerful tools to analyze your application's memory usage, helping you optimize storage allocation. \n\n[ESP-IDF: Size Analysis of the Binaries](command:espIdf.size)",
             "media": {
               "markdown": "walkthroughs/advanced/app-size-analysis.md"
             }
@@ -223,7 +222,7 @@
           {
             "id": "partition-table",
             "title": "Partition Table Configuration",
-            "description": "The Partition Table Editor provides a user-friendly interface to define and modify your ESP32's flash memory layout.\nKey features\n- Visual partition table editing interface\n- Automatic CSV file generation and management\n- Direct integration with ESP-IDF build systemReal-time validation of partition configurations\n\n[Open Partition Editor](command:esp.webview.open.partition-table)",
+            "description": "The Partition Table Editor provides a user-friendly interface to define and modify your ESP32's flash memory layout.\nKey features\n- Visual partition table editing interface\n- Automatic CSV file generation and management\n- Direct integration with ESP-IDF build systemReal-time validation of partition configurations\n\n[ESP-IDF: Open Partition Table Editor UI](command:esp.webview.open.partition-table)",
             "media": {
               "markdown": "walkthroughs/advanced/partition-table.md"
             }
@@ -231,7 +230,7 @@
           {
             "id": "unit-testing",
             "title": "Unit Testing",
-            "description": "Set up and run unit tests for your ESP-IDF projects.\n\n- Configure test environment\n- Write and run tests\n- Analyze test results\n\n[Open Testing View](command:testing.viewExplorer)",
+            "description": "Set up and run unit tests for your ESP-IDF projects.\n\n- Configure test environment\n- Write and run tests\n- Analyze test results",
             "media": {
               "markdown": "walkthroughs/advanced/unit-testing.md"
             }
@@ -623,40 +622,22 @@
       {
         "title": "%configuration.title%",
         "properties": {
-          "idf.espIdfPath": {
+          "idf.eimIdfJsonPath": {
             "type": "string",
-            "default": "${env:IDF_PATH}",
-            "description": "%param.espIdfPath%",
-            "scope": "resource"
+            "default": "",
+            "description": "%param.eimIdfJsonPath%",
+            "scope": "application"
           },
-          "idf.espAdfPath": {
-            "type": "string",
-            "default": "${env:ADF_PATH}",
-            "description": "%param.espAdfPath%",
-            "scope": "resource"
+          "idf.eimExecutableArgs": {
+            "type": "array",
+            "default": ["gui"],
+            "description": "%param.eimExecutableArgs%",
+            "scope": "application"
           },
-          "idf.toolsPath": {
+          "idf.currentSetup": {
             "type": "string",
-            "default": "${env:IDF_TOOLS_PATH}",
-            "description": "%param.toolsPath%",
-            "scope": "resource"
-          },
-          "idf.espIdfPathWin": {
-            "type": "string",
-            "default": "${env:IDF_PATH}",
-            "description": "%param.espIdfPath%",
-            "scope": "resource"
-          },
-          "idf.espAdfPathWin": {
-            "type": "string",
-            "default": "${env:ADF_PATH}",
-            "description": "%param.espAdfPath%",
-            "scope": "resource"
-          },
-          "idf.toolsPathWin": {
-            "type": "string",
-            "default": "${env:IDF_TOOLS_PATH}",
-            "description": "%param.toolsPath%",
+            "default": "",
+            "description": "%param.currentSetup%",
             "scope": "resource"
           },
           "idf.port": {
@@ -675,12 +656,6 @@
             "type": "string",
             "default": "",
             "description": "%param.port%",
-            "scope": "resource"
-          },
-          "idf.pythonInstallPath": {
-            "type": "string",
-            "default": "python",
-            "description": "%param.pythonBinPath%",
             "scope": "resource"
           },
           "idf.flashBaudRate": {
@@ -1323,8 +1298,8 @@
         "category": "ESP-IDF"
       },
       {
-        "command": "espIdf.setup.start",
-        "title": "%espIdf.setup.title%",
+        "command": "espIdf.installManager",
+        "title": "%espIdf.installManager.title%",
         "category": "ESP-IDF"
       },
       {
@@ -1689,11 +1664,6 @@
       {
         "command": "espIdf.projectConf",
         "title": "%espIdf.projectConf.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.clearSavedIdfSetups",
-        "title": "%espIdf.clearSavedIdfSetups.title%",
         "category": "ESP-IDF"
       },
       {
@@ -2537,7 +2507,7 @@
     "genLocalizationBundle": "npx @vscode/l10n-dev export --outDir ./l10n ./src",
     "webpack": "webpack --mode production",
     "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json 'out/ui-test/*-test.js'",
-    "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG"
+    "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m src/ui-test/.mocharc-ci.js"
   },
   "devDependencies": {
     "@babel/types": "^7.23.0",
@@ -2568,9 +2538,9 @@
     "@vscode/test-electron": "^2.1.2",
     "@vscode/vsce": "^3.6.0",
     "@vue/compiler-sfc": "^3.3.4",
-    "bulma": "^0.9.3",
+    "bulma": "^1.0.4",
     "chai": "^4.3.4",
-    "css-loader": "^3.1.0",
+    "css-loader": "^6.8.1",
     "d3-scale": "^4.0.2",
     "file-loader": "^6.2.0",
     "filemanager-webpack-plugin": "^8.0.0",
@@ -2586,16 +2556,16 @@
     "process": "^0.11.10",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^5.0.7",
-    "sass": "^1.49.8",
-    "sass-loader": "^10",
+    "sass": "^1.69.0",
+    "sass-loader": "^16.0.5",
     "string-replace-loader": "^3.1.0",
     "style-loader": "^3.3.1",
-    "ts-loader": "^9.4.4",
+    "ts-loader": "^9.5.2",
     "typescript": "^5.2.2",
     "vite": "^5.4.21",
     "vscode-extension-tester": "^8.17.0",
     "vue-hot-reload-api": "^2.3.2",
-    "vue-loader": "^17.2.2",
+    "vue-loader": "^17.4.2",
     "vue-router": "^4.2.4",
     "vue-style-loader": "^4.1.3",
     "webpack": "5",

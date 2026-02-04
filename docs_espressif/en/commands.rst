@@ -26,10 +26,6 @@ All commands start with ``ESP-IDF:``.
      - Clear the eFuse Summary tree from ESP Explorer EFUSEEXPLORER.
    * - Clear ESP-IDF Search Results
      - Clear results from ESP Explorer Documentation Search Results.
-   * - Clear Saved ESP-IDF Setups
-     - Clear existing ESP-IDF setups saved by the extension.
-   * - Configure ESP-IDF Extension
-     - Open a window with a setup wizard to install ESP-IDF, IDF Tools and Python virtual environment.
    * - Configure Project SDKConfig for Coverage
      - Set required values in your project SDKConfig to enable code coverage analysis.
    * - Configure project for ESP-Clang
@@ -67,7 +63,7 @@ All commands start with ``ESP-IDF:``.
    * - Import ESP-IDF Project
      - Import an existing ESP-IDF project, add .vscode and .devcontainer files to a new location, and optionally rename the project.
    * - Install ESP-ADF
-     - Clone ESP-ADF inside the selected directory and set **idf.espAdfPath** (**idf.espAdfPathWin** in Windows) configuration setting.
+     - Clone ESP-ADF inside the selected directory and set **idf.customExtraVars["ADF_PATH"]** configuration setting.
    * - Launch IDF Monitor for Core Dump Mode/GDB Stub Mode
      - Launch ESP-IDF Monitor with WebSocket capabilities. If you have configured the panic handler to gdbstub or core dump, the monitor will launch a post-mortem debug session of the chip.
    * - Launch QEMU Server
@@ -86,6 +82,8 @@ All commands start with ``ESP-IDF:``.
      - Open a terminal with IDF_PATH and Python virtual environment activated.
    * - OpenOCD Adaptor (serial & location)
      - Toggle the status bar item that shows the OpenOCD adapter serial number (S) and USB adapter location (L), useful to verify which adapter will be used when multiple devices are connected.
+   * - Open ESP-IDF Install Manager
+     - Open the ESP-IDF Install Manager to install and manage ESP-IDF versions and tools.
    * - Partition Table Editor
      - Launch UI to manage custom partition table as described in `ESP-IDF Partition Tables <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html>`_.
    * - Pick a Workspace Folder

@@ -18,8 +18,9 @@
 
 import * as vscode from "vscode";
 import { Logger } from "../../../../logger/logger";
-import { appendIdfAndToolsToPath, getToolchainToolName, spawn } from "../../../../utils";
+import { getToolchainToolName, spawn } from "../../../../utils";
 import { getIdfTargetFromSdkconfig } from "../../../../workspaceConfig";
+import { configureEnvVariables } from "../../../../common/prepareEnv";
 
 export abstract class XtensaTools {
   protected readonly workspaceRoot: vscode.Uri;
@@ -29,7 +30,7 @@ export abstract class XtensaTools {
   }
   
   protected async call(args: string[]): Promise<Buffer> {
-    const env = await appendIdfAndToolsToPath(this.workspaceRoot);
+    const env = await configureEnvVariables(this.workspaceRoot);
     const toolName = await this.toolNameForTarget(this.toolName);
     try {
       return await spawn(toolName, args, { env });

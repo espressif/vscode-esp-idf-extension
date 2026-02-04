@@ -2,14 +2,14 @@
 
 ### 1. Set Target Device
 
-1. Click the "Set Espressif Device Target" icon from the status bar !["Set Espressif Device Target"](../../media/walkthrough/icons/device-target.png) or use the "ESP-IDF: Set Espressif Device Target" command
+1. Click the "Set Espressif Device Target" icon from the status bar !["ESP-IDF: Set Espressif Device Target"](../../media/walkthrough/icons/device-target.png) or use the "ESP-IDF: Set Espressif Device Target" command
    
 
 2. Choose your target (e.g., esp32, esp32s2, esp32c3) from the list of targets
 
 ### 2. Configure Project Settings (not needed in our example)
 
-1. Click the "SDK Configuration editor" icon from the status bar !["SDK Configuration editor"](../../media/walkthrough/icons/sdkconfig.png) or use the "ESP-IDF: SDK Configuration Editor(Menuconfig)" command
+1. Click the "SDK Configuration editor" icon from the status bar !["ESP-IDF: SDK Configuration editor"](../../media/walkthrough/icons/sdkconfig.png) or use the "ESP-IDF: SDK Configuration Editor(Menuconfig)" command
 
 
 > 💡 **Tip**: For a comprehensive list of available configuration options, check the [ESP-IDF Configuration Options Reference](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/kconfig.html#configuration-options-reference)

@@ -56,7 +56,7 @@ onMounted(() => {
               :key="section.name"
               :name="section.name"
               :usedData="section.used"
-              :totalData="section.total"
+              :totalData="section.total ? section.total : section.used + section.free"
             />
           </div>
           <div v-else>
@@ -95,7 +95,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-@import "../commons/espCommons.scss";
+@use "../commons/espCommons.scss" as *;
 
 #app {
   padding: 1rem;

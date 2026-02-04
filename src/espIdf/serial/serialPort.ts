@@ -27,6 +27,8 @@ import * as SerialPortLib from "serialport";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 import { showInfoNotificationWithAction } from "../../logger/utils";
+import { ESP } from "../../config";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export class SerialPort {
   /**
@@ -94,11 +96,9 @@ export class SerialPort {
       },
       async (progress) => {
         try {
-          const idfPath = idfConf.readParameter(
-            "idf.espIdfPath",
-            workspaceFolder
-          ) as string;
-          const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+          const modifiedEnv = await configureEnvVariables(workspaceFolder);
+          const idfPath = modifiedEnv["IDF_PATH"];
+          const pythonBinPath = await getVirtualEnvPythonPath();
           const esptoolPath = join(
             idfPath,
             "components",
@@ -370,11 +370,11 @@ export class SerialPort {
           );
         });
 
-        const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-        const idfPath = idfConf.readParameter(
-          "idf.espIdfPath",
-          workspaceFolder
-        );
+        const pythonBinPath = await getVirtualEnvPythonPath();
+        const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+          [key: string]: string;
+        }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+        const idfPath = currentEnvVars["IDF_PATH"];
         const enableSerialPortChipIdRequest = idfConf.readParameter(
           "idf.enableSerialPortChipIdRequest",
           workspaceFolder

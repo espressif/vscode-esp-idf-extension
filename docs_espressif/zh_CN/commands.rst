@@ -67,7 +67,7 @@
    * - 导入 ESP-IDF 项目
      - 导入现有的 ESP-IDF 项目，在新位置添加 .vscode 和 .devcontainer 文件，同时可以重命名项目。
    * - 安装 ESP-ADF
-     - 在所选目录中克隆 ESP-ADF，并配置 **idf.espAdfPath**（Windows 系统中为 **idf.espAdfPathWin**）。
+     - 在所选目录中克隆 ESP-ADF，并配置 **idf.customExtraVars["ADF_PATH"]**。
    * - 启动 IDF 监视器以支持 Core Dump 模式/GDB Stub 模式
      - 启动支持 WebSocket 的 ESP-IDF 监控器。如果紧急处理程序已经配置为 gdbstub 或核心转储，监控器将启动芯片的事后调试会话。
    * - 启动 QEMU 服务器

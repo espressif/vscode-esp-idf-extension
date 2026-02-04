@@ -323,7 +323,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         <tr>
             <td rowspan=2 align="center">可集成软件框架</td>
             <td>安装 ESP-ADF</td>
-            <td>在所选目录中克隆 ESP-ADF，并配置 <strong>idf.espAdfPath</strong>（Windows 系统中为 <strong>idf.espAdfPathWin</strong>）。</td>
+            <td>在所选目录中克隆 ESP-ADF，并配置 ADF_PATH 在 <strong>idf.customExtraVars</strong>。</td>
             <td></td>
             <td></td>
         </tr>

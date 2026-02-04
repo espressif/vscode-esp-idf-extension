@@ -29,19 +29,17 @@ import {
 } from "vscode";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { TaskManager } from "../../taskManager";
-import { appendIdfAndToolsToPath } from "../../utils";
+import { getProjectName } from "../../workspaceConfig";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { OutputCapturingExecution } from "../../taskManager/customExecution";
-import { getProjectName } from "../../workspaceConfig";
+import { configureEnvVariables } from "../../common/prepareEnv";
+import { ESP } from "../../config";
 
 export class IdfSizeTask {
   private currentWorkspace: Uri;
-  private idfSizePath: string;
 
   constructor(workspaceUri: Uri) {
     this.currentWorkspace = workspaceUri;
-    const idfPathDir = readParameter("idf.espIdfPath", workspaceUri) as string;
-    this.idfSizePath = join(idfPathDir, "tools", "idf_size.py");
   }
 
   public async getSizeInfo(captureOutput?: boolean) {
@@ -50,12 +48,17 @@ export class IdfSizeTask {
       this.currentWorkspace
     ) as string;
     await ensureDir(buildDirPath);
-    const pythonCommand = await getVirtualEnvPythonPath(this.currentWorkspace);
     const projectName = await getProjectName(buildDirPath);
     const mapFilePath = join(buildDirPath, `${projectName}.map`);
-    const args = [this.idfSizePath, mapFilePath];
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    const idfPath = currentEnvVars["IDF_PATH"];
+    const idfSizePath = join(idfPath, "tools", "idf_size.py");
+    const pythonCommand = await getVirtualEnvPythonPath();
+    const args = [idfSizePath, mapFilePath];
 
-    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
     const processOptions = {
       cwd: buildDirPath,
       env: modifiedEnv,

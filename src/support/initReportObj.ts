@@ -34,7 +34,6 @@ export function initializeReportObject() {
     pythonBinPath: undefined,
     pythonPackages: undefined,
     serialPort: undefined,
-    sysPythonBinPath: undefined,
     openOcdConfigs: undefined,
     openOCDDebugLevel: undefined,
     openOcdLaunchArgs: undefined,
@@ -50,7 +49,6 @@ export function initializeReportObject() {
     cmakeInEnv: undefined,
     ninjaInEnv: undefined,
     toolsPath: undefined,
-    sysPythonBinPath: undefined,
   };
   report.configurationSpacesValidation = {
     customExtraPaths: undefined,
@@ -60,12 +58,8 @@ export function initializeReportObject() {
     pythonBinPath: undefined,
     toolsPath: undefined,
     systemEnvPath: undefined,
-    sysPythonBinPath: undefined,
   };
-  report.debugAdapterRequirements = {
-    output: undefined,
-    result: undefined,
-  };
+  report.espIdfSetups = [];
   report.espIdfToolsVersions = undefined;
   report.espIdfVersion = {
     output: undefined,

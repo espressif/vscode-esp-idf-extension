@@ -38,6 +38,9 @@ import {
 import { getPythonPackages } from "../support/pythonPackages";
 import { getGitVersion } from "../support/gitVersion";
 import { writeTextReport } from "../support/writeReport";
+import { ProjectConfigStore } from "../project-conf";
+import { createMockMemento } from "./mockUtils";
+import { Logger } from "../logger/logger";
 
 suite("Doctor Command tests", () => {
   const reportObj = initializeReportObject();
@@ -45,7 +48,11 @@ suite("Doctor Command tests", () => {
   const mockUpContext: vscode.ExtensionContext = {
     extensionPath: resolve(__dirname, "..", ".."),
     asAbsolutePath: absPath,
+    workspaceState: createMockMemento(),
+    globalState: createMockMemento(),
   } as vscode.ExtensionContext;
+  Logger.init(mockUpContext);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
   setup(async () => {
     setExtensionContext(mockUpContext);
   });
@@ -71,9 +78,9 @@ suite("Doctor Command tests", () => {
     assert.equal(reportObj.systemInfo.appName, vscode.env.appName);
   });
 
-  test("Wrong access to ESP-IDF path", () => {
+  test("Wrong access to ESP-IDF path", async () => {
     reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
-    getConfigurationAccess(reportObj);
+    await getConfigurationAccess(reportObj);
     assert.equal(reportObj.configurationAccess.espIdfPath, false);
   });
 
@@ -83,9 +90,9 @@ suite("Doctor Command tests", () => {
     assert.equal(reportObj.espIdfVersion.result, "x.x");
   });
 
-  test("Wrong access to Python path", () => {
+  test("Wrong access to Python path", async () => {
     reportObj.configurationSettings.pythonBinPath = "/some/non-existing-path";
-    getConfigurationAccess(reportObj);
+    await getConfigurationAccess(reportObj);
     assert.equal(reportObj.configurationAccess.pythonBinPath, false);
   });
 
@@ -140,24 +147,12 @@ suite("Doctor Command tests", () => {
       vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
     );
     assert.equal(
-      reportObj.configurationSettings.espAdfPath,
-      settingsJsonObj["idf.espAdfPath"]
-    );
-    assert.equal(
-      reportObj.configurationSettings.espIdfPath,
-      settingsJsonObj["idf.espIdfPath"]
-    );
-    assert.equal(
       reportObj.configurationSettings.serialPort,
       settingsJsonObj["idf.port"]
     );
     assert.deepEqual(
       reportObj.configurationSettings.openOcdConfigs,
       settingsJsonObj["idf.openOcdConfigs"]
-    );
-    assert.equal(
-      reportObj.configurationSettings.toolsPath,
-      settingsJsonObj["idf.toolsPath"]
     );
     assert.equal(
       reportObj.configurationSettings.notificationMode,
@@ -171,7 +166,7 @@ suite("Doctor Command tests", () => {
     await checkEspIdfRequirements(reportObj, mockUpContext);
     assert.equal(
       reportObj.idfCheckRequirements.result,
-      `Python requirements from ${process.env.IDF_PATH}/requirements.txt are satisfied.`
+      `Python requirements are satisfied.`
     );
   });
 
@@ -182,7 +177,7 @@ suite("Doctor Command tests", () => {
       delimiter + process.env.OLD_PATH,
       ""
     );
-    getConfigurationAccess(reportObj);
+    await getConfigurationAccess(reportObj);
     assert.equal(reportObj.configurationAccess.pythonBinPath, true);
     assert.equal(reportObj.configurationAccess.espIdfPath, true);
     for (let toolPath in reportObj.configurationAccess.espIdfToolsPaths) {
@@ -228,6 +223,12 @@ suite("Doctor Command tests", () => {
     );
   });
 
+  function replaceUserPathInStr(strReport: string) {
+    const escapedHome = process.env.HOME.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(escapedHome, "g");
+    return strReport.replace(re, "<HOMEPATH>");
+  }
+
   test("Match written report", async () => {
     const customExtraPaths = process.env.PATH.replace(
       delimiter + process.env.OLD_PATH,
@@ -251,14 +252,14 @@ suite("Doctor Command tests", () => {
     expectedOutput += `ESP-IDF Extension version ${extensionObj.packageJSON.version} ${os.EOL}`;
     expectedOutput += `Workspace folder ${reportObj.workspaceFolder} ${os.EOL}`;
     expectedOutput += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${os.EOL}`;
-    expectedOutput += `ESP-ADF Path (idf.espAdfPath) ${reportObj.configurationSettings.espAdfPath}${os.EOL}`;
-    expectedOutput += `ESP-IDF Path (idf.espIdfPath) ${process.env.IDF_PATH}${os.EOL}`;
+    expectedOutput += `ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportObj.configurationSettings.espAdfPath}${os.EOL}`;
+    expectedOutput += `ESP-IDF Path (Project setup IDF_PATH) ${process.env.IDF_PATH}${os.EOL}`;
     expectedOutput += `Custom extra paths ${customExtraPaths}${os.EOL}`;
     if (
       reportObj.configurationSettings.idfExtraVars &&
       Object.keys(reportObj.configurationSettings.idfExtraVars)
     ) {
-      expectedOutput += `ESP-IDF extra vars${os.EOL}`;
+      expectedOutput += `ESP-IDF Project Setup Variables${os.EOL}`;
       for (let key in reportObj.configurationSettings.idfExtraVars) {
         expectedOutput += `    ${key}: ${reportObj.configurationSettings.idfExtraVars[key]}${os.EOL}`;
       }
@@ -272,7 +273,6 @@ suite("Doctor Command tests", () => {
         expectedOutput += `    ${key}: ${reportObj.configurationSettings.userExtraVars[key]}${os.EOL}`;
       }
     }
-    expectedOutput += `System python Path (idf.pythonInstallPath) ${reportObj.configurationSettings.sysPythonBinPath}${os.EOL}`;
     expectedOutput += `Virtual environment Python path (computed) ${
       process.env.IDF_PYTHON_ENV_PATH + "/bin/python"
     }${os.EOL}`;
@@ -280,11 +280,12 @@ suite("Doctor Command tests", () => {
     expectedOutput += `OpenOCD Configs (idf.openOcdConfigs) ${reportObj.configurationSettings.openOcdConfigs}${os.EOL}`;
     expectedOutput += `OpenOCD log level (idf.openOcdDebugLevel) ${reportObj.configurationSettings.openOCDDebugLevel}${os.EOL}`;
     expectedOutput += `OpenOCD launch arguments (idf.openOcdLaunchArgs) ${reportObj.configurationSettings.openOcdLaunchArgs}${os.EOL}`;
-    expectedOutput += `ESP-IDF Tools Path (idf.toolsPath) ${reportObj.configurationSettings.toolsPath}${os.EOL}`;
+    expectedOutput += `ESP-IDF Tools Path ${reportObj.configurationSettings.toolsPath}${os.EOL}`;
     expectedOutput += `Git Path (idf.gitPath) ${reportObj.configurationSettings.gitPath}${os.EOL}`;
     expectedOutput += `Notification Mode (idf.notificationMode) ${reportObj.configurationSettings.notificationMode}${os.EOL}`;
     expectedOutput += `Flash type (idf.flashType) ${reportObj.configurationSettings.flashType}${os.EOL}`;
     expectedOutput += `Flash partition to use (idf.flashPartitionToUse) ${reportObj.configurationSettings.flashPartitionToUse}${os.EOL}`;
+    expectedOutput = replaceUserPathInStr(expectedOutput);
     const actualReport = await writeTextReport(reportObj, mockUpContext);
     const subReport = actualReport.slice(
       0,

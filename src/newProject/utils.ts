@@ -15,40 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { readParameter } from "../idfConfiguration";
 import { readJSON } from "fs-extra";
-import { Uri } from "vscode";
-import { IdfSetup } from "../views/setup/types";
-import { getSystemPythonFromSettings } from "../pythonManager";
 import { setClangSettings } from "../clang/index";
+import { IdfSetup } from "../eim/types";
+import { Uri } from "vscode";
 
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
   idfSetup: IdfSetup,
   port: string,
   selectedIdfTarget: string,
-  openOcdConfigs?: string,
-  workspace?: Uri
+  workspace: Uri,
+  openOcdConfigs?: string
 ) {
   const settingsJson = await readJSON(settingsJsonPath);
-  const adfPathDir = readParameter("idf.espAdfPath", workspace);
   const isWin = process.platform === "win32" ? "Win" : "";
-  if (idfSetup.idfPath) {
-    settingsJson["idf.espIdfPath" + isWin] = idfSetup.idfPath;
-  }
-  if (idfSetup.python) {
-    settingsJson["idf.pythonInstallPath"] = await getSystemPythonFromSettings(
-      idfSetup.python,
-      idfSetup.idfPath,
-      idfSetup.toolsPath
-    );
-  } else {
-    settingsJson["idf.pythonInstallPath"] = idfSetup.sysPythonPath;
-  }
-  if (adfPathDir) {
-    settingsJson["idf.espAdfPath" + isWin] = adfPathDir;
-  }
   if (openOcdConfigs) {
     settingsJson["idf.openOcdConfigs"] =
       openOcdConfigs.indexOf(",") !== -1
@@ -58,11 +39,12 @@ export async function setCurrentSettingsInTemplate(
   if (port.indexOf("no port") === -1) {
     settingsJson["idf.port" + isWin] = port;
   }
-  if (idfSetup.toolsPath) {
-    settingsJson["idf.toolsPath" + isWin] = idfSetup.toolsPath;
+  if (idfSetup.idfPath) {
+    settingsJson["idf.currentSetup"] = idfSetup.idfPath;
   }
   if (selectedIdfTarget) {
-    settingsJson["idf.customExtraVars"] = settingsJson["idf.customExtraVars"] || {};
+    settingsJson["idf.customExtraVars"] =
+      settingsJson["idf.customExtraVars"] || {};
     settingsJson["idf.customExtraVars"]["IDF_TARGET"] = selectedIdfTarget;
   }
   await setClangSettings(settingsJson, workspace);

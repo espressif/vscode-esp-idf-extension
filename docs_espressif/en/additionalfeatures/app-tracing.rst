@@ -7,7 +7,7 @@ This feature allows transferring arbitrary data between the host and ESP32 via t
 
 Developers can use this library to send application-specific state of execution to the host and receive commands or other types of information in the opposite direction at runtime.
 
-Let's open an ESP-IDF project. For this tutorial, we will use the `system/app_trace_to_host <https://github.com/espressif/esp-idf/tree/master/examples/system/app_trace_to_host>`_ example.
+Let's open an ESP-IDF project. For this tutorial, we will use the `system/app_trace_to_host <https://github.com/espressif/esp-idf/tree/master/examples/system/app_trace_basic>`_ example.
 
 1.  Navigate to ``View`` > ``Command Palette``.
 
@@ -17,7 +17,7 @@ Let's open an ESP-IDF project. For this tutorial, we will use the `system/app_tr
 
         If you don't see the option, please review the setup in :ref:`Install ESP-IDF and Tools <installation>`.
 
-3.  A window will open with settings to configure the project. You can later choose from a list of ESP-IDF examples. Go to the ``system`` section and choose ``app_trace_to_host``. You will see a ``Create Project Using Example app_trace_to_host`` button at the top and a description of the project below. Click the button, and the project will open in a new window.
+3.  A window will open with settings to configure the project. You can later choose from a list of ESP-IDF examples. Go to the ``system`` section and choose ``app_trace_to_host``. You will see a ``Create Project Using Example app_trace_to_host`` button at the top and a description of the project below. Configure the project name and directory, click the ``Create Project`` button, wait for the project to be created and then click on ``Open Project``.
 
     .. image:: ../../../media/tutorials/app_trace/app_tracing.png
 

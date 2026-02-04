@@ -23,7 +23,7 @@ Let's use the ESP-IDF `GCOV Example <https://github.com/espressif/esp-idf/tree/m
 
 	    If you don't see the option, please review the current ESP-IDF setup in :ref:`Installation <installation>`.
 
-3.  A window will open with settings to configure the project. Choose from a list of ESP-IDF examples, go to the ``system`` section, and select ``gcov``. You will see a ``Create Project Using Example GCOV`` button at the top and a project description below. Click ``Create Project Using Example GCOV``.
+3.  A window will open with settings to configure the project. Choose from a list of ESP-IDF examples, go to the ``system`` section, and select ``gcov``. You will see a ``Create Project Using Example GCOV`` button at the top and a project description below. Configure the project name and directory, click ``Create Project`` button, wait for the project to be created and then click on ``Open Project``.
 
     .. image:: ../../../media/tutorials/coverage/gcov_example.png
 

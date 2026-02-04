@@ -13,9 +13,9 @@
 
     .. note::
 
-        如果未看到该选项，请检查当前的 ESP-IDF 设置，详见 :ref:`安装 ESP-IDF 和相关工具 <installation>`。
+        如果未看到该选项，请参阅 :ref:`安装 ESP-IDF 和相关工具 <installation>` 中的设置说明。
 
-3.  系统将弹出用于配置项目的窗口。从 ESP-IDF 示例列表中选择示例，在 ``system`` 部分选择 ``sysview_tracing_heap_log``。页面顶部会出现 ``Create Project Using Example sysview_tracing_heap_log`` 按钮，页面下方会出现项目描述，点击按钮，项目会在新窗口中打开。
+3.  系统将弹出用于配置项目的窗口。您可以从 ESP-IDF 示例列表中选择示例。进入 ``system`` 部分并选择 ``sysview_tracing_heap_log``。页面顶部会出现 ``Create Project Using Example sysview_tracing_heap_log`` 按钮，页面下方会显示项目描述。点击 ``Create Project`` 按钮，等待项目创建完成后点击 ``Open Project``。
 
     .. image:: ../../../media/tutorials/heap_trace/sysview_tracing_heap_log.png
 
@@ -25,14 +25,14 @@
 
         详情请参阅 `应用层跟踪库 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/app_trace.html>`_。
 
-4.  按照 :ref:`构建项目 <build the project>` 中的说明来配置、构建并烧录项目。
+4.  按照 :ref:`构建项目 <build the project>` 中的说明配置、构建并烧录项目。
 
     .. note::
     
         - OpenOCD 服务器输出会显示在菜单栏 ``查看`` > ``输出`` > ``ESP-IDF`` 中。
-        - 请确保已使用 ``ESP-IDF：选择 OpenOCD 开发板配置`` 命令设置正确的 OpenOCD 配置文件。
+        - 请确保已使用 ``ESP-IDF: Select OpenOCD Board Configuration`` 命令正确配置 OpenOCD 配置文件。
 
-5.  首先，点击 `Visual Studio Code 活动栏 <https://code.visualstudio.com/docs/getstarted/userinterface>`_ 中的 ``ESP-IDF Explorer``。其次， 在 ``ESP-IDF APP TRACER`` 分区中，点击 ``Start Heap Trace``。这将启动该扩展的 OpenOCD 服务器并发送相应的跟踪命令以生成跟踪日志。最后，可以在 ``APP TRACE ARCHIVES`` 中查看生成的日志，名称为 ``Heap Trace Log #1``。
+5.  首先，点击 `Visual Studio Code 活动栏 <https://code.visualstudio.com/docs/getstarted/userinterface>`_ 中的 ``ESP-IDF Explorer``。其次，在 ``ESP-IDF APP TRACER`` 部分，点击 ``Start Heap Trace``。这将启动该扩展的 OpenOCD 服务器并发送相应的跟踪命令以生成跟踪日志。最后，可以在 ``APP TRACE ARCHIVES`` 中查看生成的日志，名称为 ``Heap Trace Log #1``。
 
     每次执行 ``Start Heap Trace`` 时，都会生成一个新的跟踪并显示在归档列表中。也可以通过运行 ``ESP-IDF：应用程序跟踪`` 命令进行跟踪。
 

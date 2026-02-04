@@ -201,7 +201,7 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss">
-@import "../commons/espCommons.scss";
+@use "../commons/espCommons.scss" as *;
 
 .field:not(:last-child) {
   margin-bottom: 0 !important;

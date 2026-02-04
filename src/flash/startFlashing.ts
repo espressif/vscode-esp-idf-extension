@@ -41,6 +41,7 @@ import { verifyCanFlash } from "./flashCmd";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { jtagFlashCommand } from "./jtagCmd";
 import { flashCommand } from "./uartFlash";
+import { configureEnvVariables } from "../common/prepareEnv";
 
 export async function selectFlashMethod(workspaceFolderUri: Uri) {
   let curflashType = readParameter(
@@ -139,14 +140,12 @@ export async function startFlashing(
     }
     return await jtagFlashCommand(workspaceFolderUri);
   } else {
-    const idfPathDir = readParameter(
-      "idf.espIdfPath",
-      workspaceFolderUri
-    ) as string;
+    const modifiedEnv = await configureEnvVariables(workspaceFolderUri);
+    const idfPath = modifiedEnv["IDF_PATH"];
     return await flashCommand(
       cancelToken,
       flashBaudRate,
-      idfPathDir,
+      idfPath,
       port,
       workspaceFolderUri,
       flashType,
