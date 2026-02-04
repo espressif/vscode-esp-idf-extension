@@ -7,7 +7,7 @@
 
 安装 Visual Studio Code (VS Code) 后，需要安装 ESP-IDF 的 VS Code 扩展。
 
-- 前往 ``查看`` > ``扩展``，或使用快捷键 :kbd:`Ctrl+Shift+X`（Windows/Linux）或 :kbd:`Shift+⌘+X`（macOS）。
+- 前往 ``查看`` > ``扩展``，或使用快捷键 :kbd:`Ctrl+Shift+X` (Windows/Linux) 或 :kbd:`Shift+Cmd+X` (macOS)。
 
 - 在扩展列表中搜索 `ESP-IDF <https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension>`_。
 
@@ -28,12 +28,13 @@
 
 3.  使用 ESP-IDF 安装管理器安装 ESP-IDF 及工具。如需帮助，可参阅 `ESP-IDF 安装管理器文档 <https://docs.espressif.com/projects/idf-im-ui/en/latest/general_info.html>`_。
 
-4.  在 Visual Studio Code 中，前往 ``查看`` > ``命令面板``，输入 ``select current esp-idf version``，在列表中选择 **ESP-IDF: Select Current ESP-IDF Version**。
+4.  在 Visual Studio Code 中，前往 ``查看`` > ``命令面板``，输入 ``select current esp-idf version``，在列表中选择 ``ESP-IDF: Select Current ESP-IDF Version``。
+
    将显示可用的 ESP-IDF 配置列表，选择要用于当前 ESP-IDF 项目的配置。
 
-   - 所选配置将保存为 **idf.currentSetup**（包含所选 ESP-IDF 路径），扩展会为当前 ESP-IDF 项目配置所需的环境变量，并保存为工作区文件夹状态。
+   - 所选配置将保存为 ``idf.currentSetup``（包含所选 ESP-IDF 路径），扩展会为当前 ESP-IDF 项目配置所需的环境变量，并保存为工作区文件夹状态。
 
-   - 可通过运行 **ESP-IDF: Doctor Command** 检查配置：前往 ``查看`` > ``命令面板``，输入 ``doctor command``，在列表中选择 **ESP-IDF: ESP-IDF: Doctor Command**。
+   - 可通过运行 ``ESP-IDF: Doctor Command`` 检查配置：前往 ``查看`` > ``命令面板``，输入 ``doctor command``，在列表中选择 ``ESP-IDF: ESP-IDF: Doctor Command``。
 
 5.  下一步请 :ref:`创建 ESP-IDF 项目 <create_an_esp-idf_project>`。
 
@@ -49,9 +50,9 @@
 
 1.  打开命令面板（快捷键 F1），输入 ``ESP-IDF: Remove ESP-IDF Settings``，选择该命令以移除所有 ESP-IDF 设置。
 
-2.  前往 ``查看`` > ``扩展``，或使用快捷键 :kbd:`Ctrl+Shift+X`（Windows/Linux）或 :kbd:`Shift+⌘+X`（macOS）。
+2.  前往 ``查看`` > ``扩展``，或使用快捷键 :kbd:`Ctrl+Shift+X` (Windows/Linux) 或 :kbd:`Shift+Cmd+X` (macOS)。
 
-3.  搜索 `ESP-IDF` 并点击 ``Uninstall`` 按钮。
+3.  搜索 ``ESP-IDF`` 并点击 ``Uninstall`` 按钮。
 
 4.  删除以下文件夹：
 
