@@ -130,7 +130,9 @@ export async function runExistingEIM(
     cwd: dirname(eimPath),
   });
   espIdfTerminal.sendText(binaryPath, true);
-  if (env.remoteName !== "wsl") {
+  if (env.remoteName === "wsl") {
+    espIdfTerminal.show();
+  } else {
     espIdfTerminal.sendText("exit");
   }
   return true;
@@ -305,7 +307,9 @@ export async function downloadExtractAndRunEIM(
       cwd: eimInstallPath,
     });
     espIdfTerminal.sendText(binaryPath, true);
-    if (env.remoteName !== "wsl") {
+    if (env.remoteName === "wsl") {
+      espIdfTerminal.show();
+    } else {
       espIdfTerminal.sendText("exit");
     }
   } catch (error) {
