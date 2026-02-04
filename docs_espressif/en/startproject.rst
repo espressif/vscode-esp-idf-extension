@@ -57,11 +57,7 @@ In Visual Studio Code:
 
 - Click the ``Create Project`` button.
 
-- After the project is created, a notification window will appear, asking whether to open the newly created project.
-
-.. image:: ../../media/tutorials/new_project/new_project_confirm.png
-  :width: 400px
-  :align: center
+- Wait for the project to be created and then click on ``Open Project``.
 
 .. _ESP-IDF Existing ESP-IDF Project:
 

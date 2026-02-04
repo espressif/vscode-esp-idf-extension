@@ -12,6 +12,8 @@ Click the "Create project using example blink" button to proceed.
 
 After clicking the button, you'll be prompted to choose a location where the project will be created.
 
+![Configure new project](../../media/tutorials/new_project/new_project_init.png)
+
 ## Related Resources
 
 For more information, you can check our [Start a ESP-IDF Project](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/startproject.html) documentation.

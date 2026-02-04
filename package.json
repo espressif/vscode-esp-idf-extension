@@ -127,7 +127,7 @@
           {
             "id": "extension-configuration",
             "title": "Configuring the ESP-IDF Extension",
-            "description": "❗**Linux and MacOS users:** Please install prerequisites first. The process is quick and simple - follow the steps in our [ESP-IDF install documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html#step-1-install-prerequisites).\n\nOnce ready, let's install ESP-IDF:\n\n[ESP-IDF: Open ESP-IDF Install Manager](command:espIdf.installManager)\n\n\n\nAfter that, run:\n\n[ESP-IDF: Select current ESP-IDF version](command:espIdf.selectCurrentIdfVersion)\n\n",
+            "description": "❗**Please review system prerequisites first. The process is quick and simple - follow the steps in our [ESP-IDF Installation Manager documentation](https://docs.espressif.com/projects/idf-im-ui/en/latest/prerequisites.html).\n\nOnce ready, let's install ESP-IDF:\n\n[ESP-IDF: Open ESP-IDF Installation Manager](command:espIdf.installManager)\n\n\n\nAfter that, run:\n\n[ESP-IDF: Select Current ESP-IDF Version](command:espIdf.selectCurrentIdfVersion)\n\n",
             "media": {
               "markdown": "walkthroughs/basic/configuration.md"
             }
@@ -143,7 +143,7 @@
           {
             "id": "setup-project",
             "title": "Setting Up Your Project",
-            "description": "Before building your project, you'll need to configure some essential settings:\n\n1. Configure your target device\n\n[Set Espressif Device Target](command:espIdf.setTarget)\n2. Set up project-specific configurations (not needed in our example)\n3. Select serial port \n\n[Select Port to Use](command:espIdf.selectPort)\n4. Select flashing method \n\n[Select Flash Method](command:espIdf.selectFlashMethodAndFlash)",
+            "description": "Before building your project, you'll need to configure some essential settings:\n\n1. Configure your target device\n\n[ESP-IDF: Set Espressif Device Target](command:espIdf.setTarget)\n2. Set up project-specific configurations (not needed in our example)\n3. Select serial port \n\n[ESP-IDF: Select Port to Use](command:espIdf.selectPort)\n4. Select flashing method \n\n[ESP-IDF: Select Flash Method](command:espIdf.selectFlashMethodAndFlash)",
             "media": {
               "markdown": "walkthroughs/basic/setup-project.md"
             }
@@ -174,7 +174,7 @@
           {
             "id": "advanced-introduction",
             "title": "Introduction to Advanced Features",
-            "description": "Overview of advanced ESP-IDF development capabilities.\n\n**Prerequisites:**\n - Completed the Basic Usage Guide\n - Basic familiarity with ESP-IDF concepts\n - Have a working ESP-IDF setup\n - Have your development board ready\n - JTAG debugging hardware (for debugging features)",
+            "description": "Overview of advanced ESP-IDF development capabilities.\n\n**Prerequisites:**\n - Completed the ESP-IDF Basic Usage Guide Walkthrough\n - Basic familiarity with ESP-IDF concepts\n - Have a working ESP-IDF setup\n - Have your development board ready\n - JTAG debugging hardware (for debugging features)",
             "media": {
               "markdown": "walkthroughs/advanced/advanced-intro.md"
             }
@@ -182,7 +182,7 @@
           {
             "id": "troubleshooting",
             "title": "Troubleshooting Guide",
-            "description": "Learn about common troubleshooting techniques and how to get help when you need it.\n\nKey features:\n- Debug logging configuration\n- Environment diagnostics\n- Log file locations\n- Common issues and solutions\n\n[Run Doctor Command](command:espIdf.doctorCommand)",
+            "description": "Learn about common troubleshooting techniques and how to get help when you need it.\n\nKey features:\n- Debug logging configuration\n- Environment diagnostics\n- Log file locations\n- Common issues and solutions\n\n[ESP-IDF: Doctor Command](command:espIdf.doctorCommand)",
             "media": {
               "markdown": "walkthroughs/advanced/troubleshooting.md"
             }
@@ -206,7 +206,7 @@
           {
             "id": "component-installation",
             "title": "Installing ESP-IDF Components",
-            "description": "Learn how to enhance your project with ESP Component Registry and Arduino-ESP32 integration.\n\n- Browse and install ESP components\n- Add Arduino-ESP32 as a component\n- Create projects from component examples\n\n[Open ESP Component Registry](command:esp.component-manager.ui.show)",
+            "description": "Learn how to enhance your project with ESP Component Registry and Arduino-ESP32 integration.\n\n- Browse and install ESP components\n- Add Arduino-ESP32 as a component\n- Create projects from component examples\n\n[ESP-IDF: Open ESP Component Registry](command:esp.component-manager.ui.show)",
             "media": {
               "markdown": "walkthroughs/advanced/component-installation.md"
             }
@@ -214,7 +214,7 @@
           {
             "id": "app-size-analysis",
             "title": "Application Size Analysis",
-            "description": "ESP-IDF Extension provides powerful tools to analyze your application's memory usage, helping you optimize storage allocation. \n\n[Open Size Analysis](command:espIdf.size)",
+            "description": "ESP-IDF Extension provides powerful tools to analyze your application's memory usage, helping you optimize storage allocation. \n\n[ESP-IDF: Size Analysis of the Binaries](command:espIdf.size)",
             "media": {
               "markdown": "walkthroughs/advanced/app-size-analysis.md"
             }
@@ -222,7 +222,7 @@
           {
             "id": "partition-table",
             "title": "Partition Table Configuration",
-            "description": "The Partition Table Editor provides a user-friendly interface to define and modify your ESP32's flash memory layout.\nKey features\n- Visual partition table editing interface\n- Automatic CSV file generation and management\n- Direct integration with ESP-IDF build systemReal-time validation of partition configurations\n\n[Open Partition Editor](command:esp.webview.open.partition-table)",
+            "description": "The Partition Table Editor provides a user-friendly interface to define and modify your ESP32's flash memory layout.\nKey features\n- Visual partition table editing interface\n- Automatic CSV file generation and management\n- Direct integration with ESP-IDF build systemReal-time validation of partition configurations\n\n[ESP-IDF: Open Partition Table Editor UI](command:esp.webview.open.partition-table)",
             "media": {
               "markdown": "walkthroughs/advanced/partition-table.md"
             }
@@ -230,7 +230,7 @@
           {
             "id": "unit-testing",
             "title": "Unit Testing",
-            "description": "Set up and run unit tests for your ESP-IDF projects.\n\n- Configure test environment\n- Write and run tests\n- Analyze test results\n\n[Open Testing View](command:testing.viewExplorer)",
+            "description": "Set up and run unit tests for your ESP-IDF projects.\n\n- Configure test environment\n- Write and run tests\n- Analyze test results",
             "media": {
               "markdown": "walkthroughs/advanced/unit-testing.md"
             }

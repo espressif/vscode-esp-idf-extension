@@ -7,7 +7,7 @@
 
 使用 ``gcov``，配置 ESP-IDF 项目生成 ``gcda/gcno`` 覆盖率文件。请参阅 `GCOV 代码覆盖率 <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage>`_，以详细了解如何在 ESP-IDF 项目中使用 GCOV 的代码覆盖率功能。
 
-可使用 ``ESP-IDF：配置 SDKConfig 文件以启用代码覆盖率`` 命令在 SDK 配置编辑器中设置所需配置。
+可使用 ``ESP-IDF: Configure Project SDKConfig for Coverage`` 在 SDK 配置编辑器中设置所需配置。
 
 
 代码覆盖率示例
@@ -21,9 +21,9 @@
 
     .. note::
 
-	    如果未看到该选项，请检查当前的 ESP-IDF 设置，详见 :ref:`Installation <installation>`。
+	    如果未看到该选项，请参阅 :ref:`安装 <installation>` 中的当前 ESP-IDF 设置说明。
 
-3.  系统将弹出用于配置项目的窗口。从 ESP-IDF 示例列表中选择示例，在 ``system`` 部分选择 ``gcov``。页面顶部会出现 ``Create Project Using Example GCOV`` 按钮，页面下方会出现项目描述。点击 ``Create Project Using Example GCOV``。
+3.  系统将弹出用于配置项目的窗口。从 ESP-IDF 示例列表中选择示例，进入 ``system`` 部分并选择 ``gcov``。页面顶部会出现 ``Create Project Using Example GCOV`` 按钮，页面下方会显示项目描述。配置项目名称和目录，点击 ``Create Project`` 按钮，等待项目创建完成后点击 ``Open Project``。
 
     .. image:: ../../../media/tutorials/coverage/gcov_example.png
 

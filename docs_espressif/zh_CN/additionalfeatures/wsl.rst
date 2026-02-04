@@ -3,13 +3,14 @@
 
 :link_to_translation:`en:[English]`
 
-本文将展示如何基于 Visual Studio Code 中的 **ESP-IDF** 和 **Remote - WSL** 扩展，在 WSL 中开发项目。
+本教程将指导您使用 Visual Studio Code 的 **ESP-IDF 扩展** 和 **Remote - WSL** 在 WSL 中开发项目，并使用这些扩展的全部功能。
 
 在开始项目之前，请安装以下工具：
 
 1. Windows WSL（安装步骤见下文）
 2. `Visual Studio Code <https://code.visualstudio.com>`_
 3. `usbipd-win <https://github.com/dorssel/usbipd-win/releases>`_
+4. `Espressif Install Manager 必备条件 <https://docs.espressif.com/projects/idf-im-ui/en/latest/prerequisites.html>`_
 
 在 Windows 系统中安装 Ubuntu (WSL)
 ----------------------------------
@@ -70,14 +71,14 @@
 
         wsl -s Ubuntu
 
-4.  最后，使用 ``wsl --status`` 命令检查上述所有指令是否生效。
+4.  使用 ``wsl --status`` 命令确认上述设置。
 
     .. image:: ../../../media/tutorials/using_docker_container/wsl-status.png
 
 在 WSL 中添加所需的 Linux 软件包
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-安装 `在 Linux 系统中使用 ESP-IDF 所需的工具链 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/get-started/linux-macos-setup.html>`_。
+安装 `Linux 下 ESP-IDF 的必备条件 <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html#install-prerequisites>`_。
 
 .. code-block::
 
@@ -143,7 +144,7 @@
 
 .. note::
 
-    在 WSL 中运行设置程序时，默认使用 **用户设置** (User Settings)，这可能会覆盖 Windows 主机的配置，因此建议将设置保存到 **工作区** (workspace) 或 **工作区文件夹** (workspace folder)，避免影响 Windows 系统的全局配置。
+    在 WSL 中运行设置时，默认使用 **用户设置** (User Settings)，可能会覆盖 Windows 主机的配置。建议将设置保存到 **工作区** (workspace) 或 **工作区文件夹** (workspace folder)。
 
 此时，可以开始使用 ``Blink`` 示例项目进行构建、烧录、监视、调试等操作。
 
@@ -200,14 +201,14 @@ USB 转 JTAG 设备
 
 .. image:: ../../../media/tutorials/using_docker_container/extra_parameters.png
 
-接口与 `USB 转 JTAG 设备`_ 相同，即 ``ttyACMx``：
+接口与 `内部 USB 转串口设备`_ 相同，即 ``ttyACMx``：
 
 .. image:: ../../../media/tutorials/using_docker_container/container_flash_jtag.gif
 
 调试的额外步骤
 ~~~~~~~~~~~~~~
 
-在运行 OpenOCD 并开始调试会话之前，复确保将 `OpenOCD udev 规则文件 <https://github.com/espressif/openocd-esp32/blob/master/contrib/60-openocd.rules>`_ 复制到 ``/etc/udev/rules.d`` 目录中。
+在运行 OpenOCD 并开始调试会话之前，请将 `OpenOCD udev 规则文件 <https://github.com/espressif/openocd-esp32/blob/master/contrib/60-openocd.rules>`_ 复制到 ``/etc/udev/rules.d`` 目录中。
 
 调试
 ~~~~

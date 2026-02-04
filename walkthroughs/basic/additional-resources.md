@@ -1,6 +1,6 @@
 # Additional Resources and User Interface (UI) Exploration for ESP-IDF Development
 
-Now that you have completed the ESP-IDF Basic Usage Walkthrough, enhance your development skills with the ESP-IDF by using the VS Code extension. Explore the additional resources below to learn more about the extension’s features.
+Now that you have completed the ESP-IDF Basic Usage Guide Walkthrough, enhance your development skills with the ESP-IDF by using the VS Code extension. Explore the additional resources below to learn more about the extension’s features.
 
 ## ESP-IDF VS Code Extension Resources
 

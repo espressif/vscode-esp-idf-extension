@@ -40,7 +40,7 @@
 
     .. image:: ../../media/tutorials/new_project/new_project_init.png
 
-- 填写项目名称。
+- 选择项目名称。
 - 选择新项目的保存位置。
 - 选择本项目中使用的 Espressif IDF_TARGET 与开发板。
 - 选择设备串口（下拉列表中会显示当前已连接的串口设备）。
@@ -57,11 +57,7 @@
 
 - 点击 ``Create Project`` 按钮。
 
-- 项目创建完成后，将弹出通知窗口，询问是否打开新创建的项目。
-
-.. image:: ../../media/tutorials/new_project/new_project_confirm.png
-  :width: 400px
-  :align: center
+- 等待项目创建完成后，点击 ``Open Project``。
 
 .. _ESP-IDF Existing ESP-IDF Project:
 

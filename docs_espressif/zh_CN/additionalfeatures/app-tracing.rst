@@ -15,9 +15,9 @@
 
     .. note::
 
-        如果未看到该选项，请检查当前的 ESP-IDF 设置，详见 :ref:`安装 ESP-IDF 和相关工具 <installation>`。
+        如果未看到该选项，请参阅 :ref:`安装 ESP-IDF 和相关工具 <installation>` 中的设置说明。
 
-3.  系统将弹出用于配置项目的窗口。从 ESP-IDF 示例列表中选择示例，在 ``system`` 部分选择 ``app_trace_to_host``。页面顶部会出现 ``Create Project Using Example app_trace_to_host`` 按钮，页面下方会出现项目描述，点击按钮，项目会在新窗口中打开。
+3.  系统将弹出用于配置项目的窗口。您可以从 ESP-IDF 示例列表中选择示例。进入 ``system`` 部分并选择 ``app_trace_to_host``。页面顶部会出现 ``Create Project Using Example app_trace_to_host`` 按钮，页面下方会显示项目描述。配置项目名称和目录，点击 ``Create Project`` 按钮，等待项目创建完成后点击 ``Open Project``。
 
     .. image:: ../../../media/tutorials/app_trace/app_tracing.png
 
@@ -25,7 +25,7 @@
 
 4.  按照 :ref:`构建项目 <build the project>` 中的说明，配置、构建并烧录项目。
 
-5.  首先，点击 `Visual Studio Code 活动栏 <https://code.visualstudio.com/docs/getstarted/userinterface>`_ 中的 ``ESP-IDF Explorer``。其次，在 ``IDF APP TRACER`` 中，点击 ``Start App Trace``。这将启动扩展的 OpenOCD 服务器并发送相应的跟踪命令以生成跟踪日志。最后，可以在 ``APP TRACE ARCHIVES`` 中查看生成的日志，名称为 ``Trace Log #1``。
+5.  首先，点击 `Visual Studio Code 活动栏 <https://code.visualstudio.com/docs/getstarted/userinterface>`_ 中的 ``ESP-IDF Explorer``。其次，在 ``IDF APP TRACER`` 部分，点击 ``Start App Trace``。这将启动扩展的 OpenOCD 服务器并发送相应的跟踪命令以生成跟踪日志。最后，可以在 ``APP TRACE ARCHIVES`` 中查看生成的日志，名称为 ``Trace Log #1``。
 
     每次执行 ``Start App Trace`` 都会生成一个新的跟踪，显示在归档列表中。也可以通过运行 ``ESP-IDF：应用程序跟踪`` 命令启动跟踪。
 
@@ -40,4 +40,4 @@
 
     .. image:: ../../../media/tutorials/app_trace/trace_report.png
 
-更多关于本功能的信息，请参阅 `应用层跟踪库 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/app_trace.html>`_。
+更多信息请参阅 `应用层跟踪库 <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html>`_。

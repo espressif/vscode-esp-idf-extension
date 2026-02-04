@@ -10,6 +10,7 @@ Install the following tools before starting the project:
 1. Windows WSL (see installation steps below)
 2. `Visual Studio Code <https://code.visualstudio.com>`_
 3. `usbipd-win <https://github.com/dorssel/usbipd-win/releases>`_
+4. `Espressif Install Manager prerequisites <https://docs.espressif.com/projects/idf-im-ui/en/latest/prerequisites.html>`_
 
 Installing Ubuntu on Windows (WSL)
 ----------------------------------
