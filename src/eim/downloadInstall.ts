@@ -130,7 +130,9 @@ export async function runExistingEIM(
     cwd: dirname(eimPath),
   });
   espIdfTerminal.sendText(binaryPath, true);
-  espIdfTerminal.sendText("exit");
+  if (env.remoteName !== "wsl") {
+    espIdfTerminal.sendText("exit");
+  }
   return true;
 }
 
@@ -142,7 +144,9 @@ export async function downloadExtractAndRunEIM(
   const jsonUrl = "https://dl.espressif.com/dl/eim/eim_unified_release.json";
   // Determine EIM install path
   let eimInstallPath = "";
-  if (process.platform === "win32") {
+  if (env.remoteName === "wsl") {
+    eimInstallPath = join(process.env.HOME || "", ".espressif", "eim");
+  } else if (process.platform === "win32") {
     eimInstallPath = join(
       process.env.USERPROFILE || "",
       ".espressif",
@@ -273,7 +277,10 @@ export async function downloadExtractAndRunEIM(
     const idfEimExecutableArgs = readParameter(
       "idf.eimExecutableArgs"
     ) as string[];
-    const argsString = idfEimExecutableArgs.join(" ");
+    let argsString = idfEimExecutableArgs.join(" ");
+    if (env.remoteName === "wsl") {
+      argsString = "wizard";
+    }
 
     let binaryPath = "";
     if (process.platform === "win32") {
@@ -298,7 +305,9 @@ export async function downloadExtractAndRunEIM(
       cwd: eimInstallPath,
     });
     espIdfTerminal.sendText(binaryPath, true);
-    espIdfTerminal.sendText("exit");
+    if (env.remoteName !== "wsl") {
+      espIdfTerminal.sendText("exit");
+    }
   } catch (error) {
     Logger.errorNotify(
       `Error during download and extraction: ${error.message}`,
