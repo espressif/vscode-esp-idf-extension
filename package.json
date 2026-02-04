@@ -2,7 +2,7 @@
   "name": "esp-idf-extension",
   "displayName": "ESP-IDF",
   "description": "Develop and debug applications for Espressif chips with ESP-IDF",
-  "version": "1.11.1",
+  "version": "2.0.2",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "media/espressif_icon.png",
@@ -630,7 +630,9 @@
           },
           "idf.eimExecutableArgs": {
             "type": "array",
-            "default": ["gui"],
+            "default": [
+              "gui"
+            ],
             "description": "%param.eimExecutableArgs%",
             "scope": "application"
           },
