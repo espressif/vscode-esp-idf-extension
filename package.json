@@ -2491,6 +2491,28 @@
             "command"
           ]
         }
+      },
+      {
+        "name": "espIdfPortInfo",
+        "displayName": "ESP-IDF Port Information",
+        "modelDescription": "Query serial port configuration and available ESP devices. Use this tool BEFORE attempting to flash to verify that a valid ESP device is connected. Returns the currently configured port, list of available serial ports, which ports are ESP devices, and whether the configuration is valid. This helps prevent flash failures due to incorrect port configuration.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "espIdfPortInfo",
+        "tags": [
+          "esp-idf",
+          "serial port",
+          "port",
+          "device detection",
+          "usb",
+          "flash preparation",
+          "check port",
+          "list ports"
+        ],
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
       }
     ]
   },

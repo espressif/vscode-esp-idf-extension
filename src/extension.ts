@@ -163,6 +163,7 @@ import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
 import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
+import { activateContextTools, deactivateContextTools } from "./langTools/contextTools";
 import { readSerialPort } from "./idfConfiguration";
 import { openFolderCheck, webIdeCheck } from "./common/PreCheck";
 import { buildFlashAndMonitor } from "./buildFlashMonitor";
@@ -339,6 +340,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Initialize ESP-IDF Language Tool for chat commands
   activateLanguageTool(context);
+  activateContextTools(context);
 
   openOCDManager = OpenOCDManager.init();
   qemuManager = QemuManager.init();
@@ -4408,4 +4410,5 @@ export function deactivate() {
   }
   KconfigLangClient.stopKconfigLangServer();
   deactivateLanguageTool();
+  deactivateContextTools();
 }
