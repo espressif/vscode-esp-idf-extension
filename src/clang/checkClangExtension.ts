@@ -41,7 +41,7 @@ export async function restartClangLanguageServer() {
       await commands.executeCommand("clangd.restart");
     } catch (error) {
       Logger.error(
-        ("Failed to restart clangd language server"),
+        "Failed to restart clangd language server",
         error,
         "checkClangExtension restartClangLanguageServer"
       );
