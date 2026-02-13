@@ -261,6 +261,8 @@ Telemetry
     * - **idf.telemetry**
       - Enable telemetry (default: ``true``).
 
+.. _settings-esp-rainmaker:
+
 ESP Rainmaker
 -------------
 
@@ -310,6 +312,8 @@ Component Manager
       - Enable IDF Component Manager in build command (default: ``false``). Scope: Resource.
     * - **esp.component-manager.url**
       - ESP Component Registry URL (default: ``https://components.espressif.com``). Scope: Resource.
+
+.. _settings-qemu:
 
 QEMU
 ----
