@@ -261,10 +261,8 @@ Telemetry
     * - **idf.telemetry**
       - Enable telemetry (default: ``true``).
 
-.. _settings-esp-rainmaker:
-
-ESP Rainmaker
--------------
+ESP Rainmaker Settings
+----------------------
 
 .. list-table::
     :widths: 25 75
@@ -313,10 +311,8 @@ Component Manager
     * - **esp.component-manager.url**
       - ESP Component Registry URL (default: ``https://components.espressif.com``). Scope: Resource.
 
-.. _settings-qemu:
-
-QEMU
-----
+QEMU Settings
+-------------
 
 .. list-table::
     :widths: 25 75
