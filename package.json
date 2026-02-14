@@ -789,7 +789,8 @@
               "partition-table"
             ],
             "default": "all",
-            "description": "%param.flashPartitionToUse%"
+            "description": "%param.flashPartitionToUse%",
+            "scope": "resource"
           },
           "idf.jtagFlashCommandExtraArgs": {
             "type": "array",
@@ -1138,7 +1139,6 @@
         "title": "%configuration.section.telemetry%",
         "properties": {
           "idf.telemetry": {
-            "title": "Enable Telemetry",
             "type": "boolean",
             "default": true,
             "description": "%param.telemetry%"

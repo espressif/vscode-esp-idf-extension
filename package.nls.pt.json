@@ -1,5 +1,4 @@
 {
-	"configuration.title": "ESP-IDF",
 	"configuration.section.setup": "Configuração e instalação",
 	"configuration.section.serialPort": "Porta serial",
 	"configuration.section.build": "Compilação",

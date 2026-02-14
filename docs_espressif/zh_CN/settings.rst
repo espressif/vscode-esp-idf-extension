@@ -358,7 +358,7 @@ QEMU 设置
 
 在 ESP-IDF 设置中可使用 ``${env:VARNAME}`` 引用环境变量，使用 ``${config:ESPIDFSETTING}`` 引用其他 ESP-IDF 设置。
 
-也可使用 ``${config:ESPIDFSETTING:prefix}`` 在引用结果前添加前缀。例如 ``${config:idf.openOcdConfigs,-f}`` 会在 **idf.openOcdConfigs** 的每个字符串前加 ``-f``。
+也可使用 ``${config:ESPIDFSETTING,prefix}`` 在引用结果前添加前缀。例如 ``${config:idf.openOcdConfigs,-f}`` 会在 **idf.openOcdConfigs** 的每个字符串前加 ``-f``。
 若 ``"idf.openOcdConfigs": ["interface/some.cfg", "target/some.cfg"]``，则得到 ``-f interface/some.cfg -f target/some.cfg``。
 
 例如，要使用 ``"~/workspace/blink"``，可设为 ``"${env:HOME}/workspace/blink"``。

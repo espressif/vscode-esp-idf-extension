@@ -1,5 +1,4 @@
 {
-	"configuration.title": "ESP-IDF",
 	"configuration.section.setup": "设置与安装",
 	"configuration.section.serialPort": "串口",
 	"configuration.section.build": "构建",
