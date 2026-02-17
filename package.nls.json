@@ -173,6 +173,7 @@
   "param.unitTestFilePattern.title": "Glob pattern for unit test files to discover",
   "param.serialPortDetectionTimeout": "Timeout in seconds for serial port detection using esptool.py",
   "param.imageViewerConfigs.title": "Path to custom image format configurations JSON file",
+  "param.isEspIdfProject": "Explicitly mark this folder as an ESP-IDF project (useful for custom project layouts).",
   "param.eimIdfJsonPath": "Custom path for eim_idf.json to find ESP-IDF installations",
   "param.eimExecutableArgs": "Arguments to pass to the eim executable",
 	"param.currentSetup": "Current ESP-IDF setup id in eim_idf.json path",

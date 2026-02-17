@@ -177,6 +177,49 @@ export function readParameter(
   return paramValue;
 }
 
+export type ParameterOriginInspection<T = unknown> = {
+  value: T | undefined;
+  hasGlobalValue: boolean;
+  hasWorkspaceValue: boolean;
+  hasWorkspaceFolderValue: boolean;
+  isExplicitlySet: boolean;
+};
+
+/**
+ * Inspect a setting to distinguish explicitly set values from defaults.
+ *
+ * The returned `value` is the effective value for `scope` (includes fallback), while
+ * the `has*Value` flags indicate where the setting is explicitly configured.
+ *
+ * @param param - Configuration key (e.g. `"espIdf.isEspIdfProject"`).
+ * @param scope - Optional workspace folder scope for computing the effective `value`.
+ * @returns Effective value and explicit-set flags per scope level.
+ */
+export function inspectParameterOrigin<T = unknown>(
+  param: string,
+  scope?: vscode.ConfigurationScope
+): ParameterOriginInspection<T> {
+  const paramUpdated = addWinIfRequired(param);
+  const configuration = vscode.workspace.getConfiguration("", scope);
+  const inspection = configuration.inspect<T>(paramUpdated);
+  const hasGlobalValue =
+    inspection && typeof inspection.globalValue !== "undefined";
+  const hasWorkspaceValue =
+    inspection && typeof inspection.workspaceValue !== "undefined";
+  const hasWorkspaceFolderValue =
+    inspection && typeof inspection.workspaceFolderValue !== "undefined";
+  const isExplicitlySet =
+    hasGlobalValue || hasWorkspaceValue || hasWorkspaceFolderValue;
+
+  return {
+    value: configuration.get<T>(paramUpdated),
+    hasGlobalValue,
+    hasWorkspaceValue,
+    hasWorkspaceFolderValue,
+    isExplicitlySet,
+  };
+}
+
 export async function chooseConfigurationTarget() {
   const confTarget = await vscode.window.showQuickPick(
     [

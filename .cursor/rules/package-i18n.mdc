@@ -1,0 +1,20 @@
+---
+description: Localization rules for package.json contributed settings
+globs: package.json,package.nls*.json
+alwaysApply: false
+---
+
+# Contributed Settings (package.json)
+
+- Use localization tokens for setting descriptions: `"%param.paramName%"`.
+- Add the string to all `package.nls*.json` files (en, zh-CN, pt, ru, es, etc.).
+- Never hardcode raw English strings in `package.json` for contributed settings.
+
+```json
+// ❌ Avoid
+"description": "Explicitly mark this folder as an ESP-IDF project."
+
+// ✅ Prefer
+"description": "%param.extensionActivationMode%"
+```
+

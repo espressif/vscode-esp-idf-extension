@@ -1,0 +1,13 @@
+---
+description: Index of ESP-IDF extension Cursor rules
+globs: .cursor/rules/*.mdc
+alwaysApply: false
+---
+
+# ESP-IDF Extension Cursor Rules
+
+The rules have been split into smaller, more targeted files:
+
+- `typescript-standards.mdc`: TypeScript conventions for `src/**/*.ts` (config reads, control flow, comments, logging).
+- `package-i18n.mdc`: Localization conventions for `package.json` and `package.nls*.json`.
+- `docs-translation.mdc`: Documentation translation rules for `docs_espressif/**/*.rst`.

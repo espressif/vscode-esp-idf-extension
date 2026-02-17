@@ -42,6 +42,8 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 
     * - Setting ID
       - Description
+    * - espIdf.isEspIdfProject
+      - Explicitly mark this folder as an ESP-IDF project (useful for custom project layouts).
     * - idf.buildPath
       - Custom build directory name for extension commands (Default: \${workspaceFolder}/build)
     * - idf.buildPathWin

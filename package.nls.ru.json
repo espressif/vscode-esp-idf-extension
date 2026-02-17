@@ -114,6 +114,7 @@
 	"param.customTerminalExecutableArgs.title": "Список аргументов для пользовательской оболочки терминала",
 	"param.extraCleanPaths": "Дополнительные пути для очистки во время задачи полной очистки",
 	"param.deleteComponentsOnFullClean": "Удалять папку managed_components по команде 'Полная очистка проекта'",
+	"param.isEspIdfProject": "Явно пометить эту папку как проект ESP-IDF (полезно для нестандартных макетов проекта).",
 	"param.eimIdfJsonPath": "Пользовательский путь для eim_idf.json для поиска установок ESP-IDF.",
 	"param.eimExecutableArgs": "Аргументы, передаваемые исполняемому файлу eim",
 	"param.enableCCache.title": "Включить CCache в задаче сборки",

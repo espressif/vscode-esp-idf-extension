@@ -622,6 +622,12 @@
       {
         "title": "%configuration.title%",
         "properties": {
+          "espIdf.isEspIdfProject": {
+            "type": "boolean",
+            "default": false,
+            "description": "%param.isEspIdfProject%",
+            "scope": "resource"
+          },
           "idf.eimIdfJsonPath": {
             "type": "string",
             "default": "",

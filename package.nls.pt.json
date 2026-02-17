@@ -170,6 +170,7 @@
 	"param.unitTestFilePattern.title": "Padrão glob para descobrir arquivos de teste unitário",
 	"param.serialPortDetectionTimeout": "Tempo limite em segundos para detecção de porta serial usando esptool.py",
 	"param.imageViewerConfigs.title": "Caminho para arquivo JSON de configurações de formato de imagem personalizadas",
+	"param.isEspIdfProject": "Marcar explicitamente esta pasta como um projeto ESP-IDF (útil para layouts de projeto personalizados).",
   "param.eimIdfJsonPath": "Caminho personalizado do eim_idf.json para encontrar instalações do ESP-IDF",
 	"param.eimExecutableArgs": "Argumentos para passar para o executável eim",
 	"param.currentSetup": "ID de configuração do ESP-IDF atual em EIM_IDF.JSON PATH",

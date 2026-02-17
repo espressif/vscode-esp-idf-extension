@@ -32,6 +32,8 @@ ESP-IDF 相关设置
 
     * - 设置 ID
       - 描述
+    * - espIdf.isEspIdfProject
+      - 显式将此文件夹标记为 ESP-IDF 项目（适用于自定义项目结构）。
     * - idf.buildPath
       - 扩展命令的自定义构建目录名称（默认值：\${workspaceFolder}/build）
     * - idf.buildPathWin

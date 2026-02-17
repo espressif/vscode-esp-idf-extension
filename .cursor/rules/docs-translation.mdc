@@ -1,0 +1,25 @@
+---
+description: Documentation translation rules (English ↔ Chinese)
+globs: docs_espressif/**/*.rst
+alwaysApply: false
+---
+
+# Documentation Translation
+
+- **Always translate documentation 1:1 from English to Chinese**.
+- Every section, subsection, paragraph, and code example in `docs_espressif/en/*.rst` must have an equivalent in `docs_espressif/zh_CN/*.rst`.
+- Do not skip, omit, or summarize content when translating.
+- Maintain the same structure, heading levels, and formatting in both languages.
+- Translate technical terms appropriately but keep code examples, settings names, and file paths identical.
+- When creating or updating documentation, complete both English and Chinese versions before considering the task done.
+
+```rst
+// ❌ Avoid - Skipping sections in translation
+// EN: Has sections A, B, C, D
+// ZH: Only has sections A, C, D (missing B)
+
+// ✅ Prefer - Complete 1:1 translation
+// EN: Has sections A, B, C, D
+// ZH: Has sections A, B, C, D (all translated)
+```
+
