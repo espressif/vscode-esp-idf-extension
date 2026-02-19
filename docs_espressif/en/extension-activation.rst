@@ -15,34 +15,34 @@ Activation Priority Hierarchy
 
 The extension follows a strict priority hierarchy when deciding whether to activate:
 
-1. **Workspace/Global Setting = true**
+1. **Workspace/Global Setting = "always"**
    
    - **Action**: Activate immediately
    - **Skips**: All other checks (CMake detection, folder checks)
    - **Use case**: Force-enable the extension for custom project layouts
    - **Setting location**: User Settings or Workspace Settings
 
-2. **Workspace/Global Setting = false**
+2. **Workspace/Global Setting = "never"**
    
    - **Action**: Do NOT activate, exit immediately
    - **Overrides**: All folder-level settings
    - **No prompt shown**: Respects your explicit choice
    - **Use case**: Explicitly disable extension in specific workspaces
 
-3. **ANY Folder Setting = true**
+3. **ANY Folder Setting = "always"**
    
    - **Action**: Activate immediately ("true wins" strategy)
    - **Order independent**: Checks all folders, not just the first
    - **Use case**: Multi-root workspace with at least one ESP-IDF project
    - **Setting location**: Folder Settings in ``.vscode/settings.json``
 
-4. **ALL Folder Settings = false**
+4. **ALL Folder Settings = "never"**
    
    - **Action**: Do NOT activate, exit immediately
    - **No prompt shown**: Respects explicit configuration
    - **Use case**: Multi-root workspace explicitly excluding ESP-IDF
 
-5. **All Settings Unset** (Default Behavior)
+5. **All Settings = "detect"** (Default Behavior)
    
    - **Action**: Fallback to automatic CMakeLists.txt detection
    - **Detection**: Searches for ``include($ENV{IDF_PATH}/tools/cmake/project.cmake)``
@@ -57,7 +57,7 @@ The setting that controls extension activation is:
 .. code-block:: json
 
    {
-     "espIdf.isEspIdfProject": true  // or false, or leave unset
+     "idf.extensionActivationMode": "detect"  // or "always" / "never"
    }
 
 **Setting Scope:**
@@ -66,7 +66,7 @@ The setting that controls extension activation is:
 - **Workspace**: ``.vscode/settings.json`` in workspace root
 - **Folder**: ``.vscode/settings.json`` in specific folder (multi-root workspaces)
 
-**Default Value:** ``false`` (but unset = use automatic detection)
+**Default Value:** ``"detect"`` (automatic detection)
 
 Usage Examples
 --------------
@@ -81,7 +81,7 @@ If you have a custom CMake setup that doesn't use the standard ESP-IDF ``project
 .. code-block:: json
 
    {
-     "espIdf.isEspIdfProject": true
+     "idf.extensionActivationMode": "always"
    }
 
 This will activate the extension regardless of your CMakeLists.txt content.
@@ -96,7 +96,7 @@ If you want to prevent the extension from activating in a non-ESP-IDF workspace:
 .. code-block:: json
 
    {
-     "espIdf.isEspIdfProject": false
+     "idf.extensionActivationMode": "never"
    }
 
 The extension will not activate, and no prompt will be shown.
@@ -115,13 +115,13 @@ For a workspace with both ESP-IDF and non-ESP-IDF projects:
        {
          "path": "esp32-firmware",
          "settings": {
-           "espIdf.isEspIdfProject": true
+           "idf.extensionActivationMode": "always"
          }
        },
        {
          "path": "documentation",
          "settings": {
-           "espIdf.isEspIdfProject": false
+           "idf.extensionActivationMode": "never"
          }
        },
        {
@@ -153,13 +153,13 @@ Performance Optimizations
 
 The activation logic is designed for optimal performance:
 
-1. **Early Exit on Global False**: If workspace/global setting is ``false``, the extension exits immediately without checking folders or reading files.
+1. **Early Exit on Global Never**: If workspace/global setting is ``"never"``, the extension exits immediately without checking folders or reading files.
 
-2. **Early Exit on Any True**: When any folder has ``true``, the extension stops checking remaining folders.
+2. **Early Exit on Any Always**: When any folder has ``"always"``, the extension stops checking remaining folders.
 
-3. **Skip CMake Detection**: If any explicit ``true`` is found, CMake file detection is entirely skipped.
+3. **Skip CMake Detection**: If any explicit ``"always"`` is found, CMake file detection is entirely skipped.
 
-4. **Lazy File Reading**: CMakeLists.txt files are only read when all settings are unset.
+4. **Lazy File Reading**: CMakeLists.txt files are only read when all settings are ``"detect"``.
 
 Common Activation Issues
 ------------------------
@@ -171,13 +171,13 @@ Extension Not Activating
 
 **Possible causes**:
 
-1. **Explicit false setting**: Check if ``espIdf.isEspIdfProject`` is set to ``false`` in User, Workspace, or Folder settings.
+1. **Explicit "never" setting**: Check if ``idf.extensionActivationMode`` is set to ``"never"`` in User, Workspace, or Folder settings.
 
-   **Solution**: Set it to ``true`` or remove the setting.
+   **Solution**: Set it to ``"always"`` or ``"detect"``.
 
 2. **Non-standard CMakeLists.txt**: Your project doesn't include the standard ESP-IDF project.cmake line.
 
-   **Solution**: Add ``"espIdf.isEspIdfProject": true`` to workspace settings.
+   **Solution**: Add ``"idf.extensionActivationMode": "always"`` to workspace settings.
 
 3. **Prompt dismissed**: You dismissed the "Activate Anyway" dialog.
 
@@ -188,16 +188,16 @@ Extension Activating in Wrong Workspace
 
 **Symptoms**: ESP-IDF extension activated in a non-ESP-IDF project.
 
-**Solution**: Add ``"espIdf.isEspIdfProject": false`` to workspace settings to explicitly disable it.
+**Solution**: Add ``"idf.extensionActivationMode": "never"`` to workspace settings to explicitly disable it.
 
 Multi-Root Workspace Issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Symptoms**: Extension not activating even though one folder is an ESP-IDF project.
 
-**Possible cause**: A workspace-level ``false`` setting is overriding folder settings.
+**Possible cause**: A workspace-level ``"never"`` setting is overriding folder settings.
 
-**Solution**: Remove the workspace-level ``espIdf.isEspIdfProject`` setting and use folder-level settings instead.
+**Solution**: Remove the workspace-level ``idf.extensionActivationMode`` setting and use folder-level settings instead.
 
 Technical Details
 -----------------

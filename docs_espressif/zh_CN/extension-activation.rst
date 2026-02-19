@@ -15,34 +15,34 @@
 
 扩展在决定是否激活时遵循严格的优先级层次：
 
-1. **工作区/全局设置 = true**
+1. **工作区/全局设置 = "always"**
    
    - **操作**: 立即激活
    - **跳过**: 所有其他检查（CMake 检测、文件夹检查）
    - **用例**: 为自定义项目布局强制启用扩展
    - **设置位置**: 用户设置或工作区设置
 
-2. **工作区/全局设置 = false**
+2. **工作区/全局设置 = "never"**
    
    - **操作**: 不激活，立即退出
    - **覆盖**: 所有文件夹级设置
    - **不显示提示**: 尊重您的显式选择
    - **用例**: 在特定工作区中显式禁用扩展
 
-3. **任意文件夹设置 = true**
+3. **任意文件夹设置 = "always"**
    
    - **操作**: 立即激活（"true 优先"策略）
    - **顺序独立**: 检查所有文件夹，而不仅仅是第一个
    - **用例**: 至少包含一个 ESP-IDF 项目的多根工作区
    - **设置位置**: ``.vscode/settings.json`` 中的文件夹设置
 
-4. **所有文件夹设置 = false**
+4. **所有文件夹设置 = "never"**
    
    - **操作**: 不激活，立即退出
    - **不显示提示**: 尊重显式配置
    - **用例**: 显式排除 ESP-IDF 的多根工作区
 
-5. **所有设置未设置** （默认行为）
+5. **所有设置 = "detect"** （默认行为）
    
    - **操作**: 回退到自动 CMakeLists.txt 检测
    - **检测**: 搜索 ``include($ENV{IDF_PATH}/tools/cmake/project.cmake)``
@@ -57,7 +57,7 @@
 .. code-block:: json
 
    {
-     "espIdf.isEspIdfProject": true  // 或 false，或保持未设置
+     "idf.extensionActivationMode": "detect"  // 或 "always" / "never"
    }
 
 **设置范围:**
@@ -66,7 +66,7 @@
 - **工作区**: 工作区根目录中的 ``.vscode/settings.json``
 - **文件夹**: 特定文件夹中的 ``.vscode/settings.json`` （多根工作区）
 
-**默认值:** ``false`` （但未设置 = 使用自动检测）
+**默认值:** ``"detect"`` （自动检测）
 
 使用示例
 --------
@@ -81,7 +81,7 @@
 .. code-block:: json
 
    {
-     "espIdf.isEspIdfProject": true
+     "idf.extensionActivationMode": "always"
    }
 
 这将激活扩展，无论您的 CMakeLists.txt 内容如何。
@@ -96,7 +96,7 @@
 .. code-block:: json
 
    {
-     "espIdf.isEspIdfProject": false
+     "idf.extensionActivationMode": "never"
    }
 
 扩展将不会激活，也不会显示提示。
@@ -115,13 +115,13 @@
        {
          "path": "esp32-firmware",
          "settings": {
-           "espIdf.isEspIdfProject": true
+           "idf.extensionActivationMode": "always"
          }
        },
        {
          "path": "documentation",
          "settings": {
-           "espIdf.isEspIdfProject": false
+           "idf.extensionActivationMode": "never"
          }
        },
        {
@@ -153,13 +153,13 @@
 
 激活逻辑设计为最佳性能：
 
-1. **全局 False 时提前退出**: 如果工作区/全局设置为 ``false``，扩展会立即退出，而不检查文件夹或读取文件。
+1. **全局 Never 时提前退出**: 如果工作区/全局设置为 ``"never"``，扩展会立即退出，而不检查文件夹或读取文件。
 
-2. **任何 True 时提前退出**: 当任何文件夹为 ``true`` 时，扩展停止检查剩余文件夹。
+2. **任何 Always 时提前退出**: 当任何文件夹为 ``"always"`` 时，扩展停止检查剩余文件夹。
 
-3. **跳过 CMake 检测**: 如果找到任何显式 ``true``，则完全跳过 CMake 文件检测。
+3. **跳过 CMake 检测**: 如果找到任何显式 ``"always"``，则完全跳过 CMake 文件检测。
 
-4. **延迟文件读取**: 仅在所有设置未设置时读取 CMakeLists.txt 文件。
+4. **延迟文件读取**: 仅在所有设置为 ``"detect"`` 时读取 CMakeLists.txt 文件。
 
 常见激活问题
 ------------
@@ -171,13 +171,13 @@
 
 **可能原因**:
 
-1. **显式 false 设置**: 检查用户、工作区或文件夹设置中是否将 ``espIdf.isEspIdfProject`` 设置为 ``false``。
+1. **显式 "never" 设置**: 检查用户、工作区或文件夹设置中是否将 ``idf.extensionActivationMode`` 设置为 ``"never"``。
 
-   **解决方案**: 将其设置为 ``true`` 或删除该设置。
+   **解决方案**: 将其设置为 ``"always"`` 或 ``"detect"``。
 
 2. **非标准 CMakeLists.txt**: 您的项目不包含标准 ESP-IDF project.cmake 行。
 
-   **解决方案**: 在工作区设置中添加 ``"espIdf.isEspIdfProject": true``。
+   **解决方案**: 在工作区设置中添加 ``"idf.extensionActivationMode": "always"``。
 
 3. **提示被关闭**: 您关闭了"仍然激活"对话框。
 
@@ -188,16 +188,16 @@
 
 **症状**: ESP-IDF 扩展在非 ESP-IDF 项目中激活。
 
-**解决方案**: 在工作区设置中添加 ``"espIdf.isEspIdfProject": false`` 以显式禁用它。
+**解决方案**: 在工作区设置中添加 ``"idf.extensionActivationMode": "never"`` 以显式禁用它。
 
 多根工作区问题
 ~~~~~~~~~~~~~~
 
 **症状**: 即使一个文件夹是 ESP-IDF 项目，扩展也未激活。
 
-**可能原因**: 工作区级 ``false`` 设置正在覆盖文件夹设置。
+**可能原因**: 工作区级 ``"never"`` 设置正在覆盖文件夹设置。
 
-**解决方案**: 删除工作区级 ``espIdf.isEspIdfProject`` 设置，改用文件夹级设置。
+**解决方案**: 删除工作区级 ``idf.extensionActivationMode`` 设置，改用文件夹级设置。
 
 技术细节
 --------
