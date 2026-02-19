@@ -622,10 +622,20 @@
       {
         "title": "%configuration.title%",
         "properties": {
-          "espIdf.isEspIdfProject": {
-            "type": "boolean",
-            "default": false,
-            "description": "%param.isEspIdfProject%",
+          "idf.extensionActivationMode": {
+            "type": "string",
+            "default": "detect",
+            "enum": [
+              "detect",
+              "always",
+              "never"
+            ],
+            "enumDescriptions": [
+              "%param.extensionActivationMode.enum.detect%",
+              "%param.extensionActivationMode.enum.always%",
+              "%param.extensionActivationMode.enum.never%"
+            ],
+            "description": "%param.extensionActivationMode%",
             "scope": "resource"
           },
           "idf.eimIdfJsonPath": {
