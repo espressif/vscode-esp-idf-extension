@@ -38,7 +38,8 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
     if (idfEnvSetup) {
       return idfEnvSetup;
     }
-    await promptOpenEspIdfInstallationManager();
+    // Do not await here: activation must continue to register the command first.
+    void promptOpenEspIdfInstallationManager();
     return;
   }
   const currentIdfConfigurationName = readParameter(
@@ -76,7 +77,8 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
 
   if (!idfSetupToUse) {
     Logger.infoNotify("Current ESP-IDF setup is not found.");
-    await promptOpenEspIdfInstallationManager();
+    // Do not await here: activation must continue to register the command first.
+    void promptOpenEspIdfInstallationManager();
     return;
   }
 
