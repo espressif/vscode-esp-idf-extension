@@ -4149,7 +4149,7 @@ const flash = (
           )
         ) {
           OutputChannel.appendLine(
-            "Flash has finished. You can monitor your device with 'ESP-IDF: Monitor command'"
+            "Flash has finished. You can monitor your device with 'ESP-IDF: Monitor Device'"
           );
         }
       }
