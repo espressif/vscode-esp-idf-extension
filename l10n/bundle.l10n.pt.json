@@ -258,5 +258,11 @@
   "Not Now": "Agora não",
   "To install the pre-release version, click the 'Switch to Pre-Release Version' button.": "Para instalar a versão pré-lançamento, clique no botão 'Alternar para versão pré-lançamento'.",
   "Got it": "Entendi",
-  "Flash encryption or secure boot is enabled on the device. Erasing flash will permanently remove the encryption keys and may render the device unusable.": "A criptografia de flash ou inicialização segura está ativada no dispositivo. Apagar o flash removerá permanentemente as chaves de criptografia e pode tornar o dispositivo inutilizável."
+  "Flash encryption or secure boot is enabled on the device. Erasing flash will permanently remove the encryption keys and may render the device unusable.": "A criptografia de flash ou inicialização segura está ativada no dispositivo. Apagar o flash removerá permanentemente as chaves de criptografia e pode tornar o dispositivo inutilizável.",
+  "Copy EIM Path": "Copiar caminho do EIM",
+  "Download EIM": "Baixar EIM",
+  "Open Documentation": "Abrir documentação",
+  "VS Code installed via Snap cannot launch external applications due to sandbox restrictions. Please run EIM manually from a system terminal: {0}": "O VS Code instalado via Snap não pode iniciar aplicativos externos devido às restrições do sandbox. Execute o EIM manualmente a partir de um terminal do sistema: {0}",
+  "VS Code installed via Snap cannot launch external applications due to sandbox restrictions. Please download EIM from the releases page and run it manually from a system terminal.": "O VS Code instalado via Snap não pode iniciar aplicativos externos devido às restrições do sandbox. Baixe o EIM na página de versões e execute-o manualmente a partir de um terminal do sistema.",
+  "EIM path copied to clipboard. Open a system terminal and paste it to run.": "Caminho do EIM copiado para a área de transferência. Abra um terminal do sistema e cole para executar."
 }

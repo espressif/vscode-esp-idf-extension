@@ -36,11 +36,63 @@ import { Logger } from "../logger/logger";
 import { getEimIdfJson } from "./getExistingSetups";
 import { readParameter } from "../idfConfiguration";
 
+export function isVSCodeInstalledViaSnap(): boolean {
+  return (
+    process.platform === "linux" &&
+    (!!process.env.SNAP || process.execPath.includes("/snap/"))
+  );
+}
+
+export async function resolveEimPath(): Promise<string> {
+  let eimPath = "";
+
+  // 1. Check eim is in PATH and use it
+  const eimInPATH = await isBinInPath("eim", process.env);
+  if (eimInPATH) {
+    eimPath = eimInPATH;
+  }
+  // 2. Check eim_idf.json for existing EIM path
+  if (!eimPath) {
+    const eimJSON = await getEimIdfJson();
+    if (eimJSON && eimJSON.eimPath) {
+      const doesEimPathExists = await pathExists(eimJSON.eimPath);
+      if (doesEimPathExists) {
+        eimPath = eimJSON.eimPath;
+      }
+    }
+  }
+  // 3. Check EIM_PATH env variable if not found in eim_idf.json
+  if (!eimPath) {
+    eimPath = process.env.EIM_PATH || "";
+  }
+  // 4. Use default path based on platform if still not found
+  if (!eimPath) {
+    if (process.platform === "win32") {
+      eimPath = join(
+        process.env.USERPROFILE || "",
+        ".espressif",
+        "eim_gui",
+        "eim-gui-windows-x64.exe"
+      );
+    } else if (process.platform === "darwin") {
+      eimPath = "/Applications/eim.app";
+    } else if (process.platform === "linux") {
+      eimPath = join(process.env.HOME || "", ".espressif", "eim_gui", "eim");
+    }
+  }
+
+  const doesEimPathExists = await pathExists(eimPath);
+  if (!doesEimPathExists) {
+    return "";
+  }
+
+  return eimPath;
+}
+
 export async function runExistingEIM(
   progress: Progress<{ message: string; increment: number }>,
   cancelToken: CancellationToken
 ): Promise<boolean> {
-  let eimPath = "";
   if (cancelToken.isCancellationRequested) {
     return false;
   }
@@ -48,44 +100,12 @@ export async function runExistingEIM(
     message: `Checking EIM already exists...`,
     increment: 0,
   });
+
+  let eimPath: string;
   try {
-    // 1. Check eim is in PATH and use it
-    const eimInPATH = await isBinInPath("eim", process.env);
-    if (eimInPATH) {
-      eimPath = eimInPATH;
-    }
-    // 2. Check eim_idf.json for existing EIM path
+    eimPath = await resolveEimPath();
     if (!eimPath) {
-      const eimJSON = await getEimIdfJson();
-      if (eimJSON && eimJSON.eimPath) {
-        const doesEimPathExists = await pathExists(eimJSON.eimPath);
-        if (doesEimPathExists) {
-          eimPath = eimJSON.eimPath;
-        }
-      }
-    }
-    // 2. Check EIM_PATH env variable if not found in eim_idf.json
-    if (!eimPath) {
-      eimPath = process.env.EIM_PATH || "";
-    }
-    // 3. Use default path based on platform if still not found
-    if (!eimPath) {
-      if (process.platform === "win32") {
-        eimPath = join(
-          process.env.USERPROFILE || "",
-          ".espressif",
-          "eim_gui",
-          "eim-gui-windows-x64.exe"
-        );
-      } else if (process.platform === "darwin") {
-        eimPath = "/Applications/eim.app";
-      } else if (process.platform === "linux") {
-        eimPath = join(process.env.HOME || "", ".espressif", "eim_gui", "eim");
-      }
-    }
-    const doesEimPathExists = await pathExists(eimPath);
-    if (!doesEimPathExists) {
-      throw new Error(`EIM not found at ${eimPath}`);
+      throw new Error("EIM not found");
     }
   } catch (error) {
     Logger.error(
@@ -101,7 +121,10 @@ export async function runExistingEIM(
     increment: 0,
   });
 
-  // Read idf.eimExecutableArgs with utils.readParameter and use it to run EIM
+  if (isVSCodeInstalledViaSnap()) {
+    return true;
+  }
+
   const idfEimExecutableArgs = readParameter(
     "idf.eimExecutableArgs"
   ) as string[];
@@ -142,7 +165,7 @@ export async function downloadExtractAndRunEIM(
   progress: Progress<{ message: string; increment: number }>,
   cancelToken: CancellationToken,
   useMirror: boolean = false
-): Promise<void> {
+): Promise<string> {
   const jsonUrl = "https://dl.espressif.com/dl/eim/eim_unified_release.json";
   // Determine EIM install path
   let eimInstallPath = "";
@@ -276,6 +299,12 @@ export async function downloadExtractAndRunEIM(
       Logger.infoNotify(`File ${osKey} extracted to: ${eimInstallPath}`);
     }
 
+    const eimBinaryPath = getEimBinaryPath(eimInstallPath);
+
+    if (isVSCodeInstalledViaSnap()) {
+      return eimBinaryPath;
+    }
+
     const idfEimExecutableArgs = readParameter(
       "idf.eimExecutableArgs"
     ) as string[];
@@ -312,13 +341,24 @@ export async function downloadExtractAndRunEIM(
     } else {
       espIdfTerminal.sendText("exit");
     }
+    return eimBinaryPath;
   } catch (error) {
     Logger.errorNotify(
       `Error during download and extraction: ${error.message}`,
       error,
       "downloadAndExtractEIM"
     );
+    return "";
   }
+}
+
+function getEimBinaryPath(eimInstallPath: string): string {
+  if (process.platform === "win32") {
+    return join(eimInstallPath, "eim-gui-windows-x64.exe");
+  } else if (process.platform === "darwin") {
+    return join(eimInstallPath, "eim.app");
+  }
+  return join(eimInstallPath, "eim");
 }
 
 export class ZipFileError extends Error {

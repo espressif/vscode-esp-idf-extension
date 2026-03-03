@@ -258,5 +258,11 @@
   "Not Now": "Не сейчас",
   "To install the pre-release version, click the 'Switch to Pre-Release Version' button.": "Для установки предварительной версии нажмите кнопку 'Переключиться на предварительную версию'.",
   "Got it": "Понятно",
-  "Flash encryption or secure boot is enabled on the device. Erasing flash will permanently remove the encryption keys and may render the device unusable.": "На устройстве включено шифрование флэш-памяти или безопасная загрузка. Стирание флэш-памяти приведет к безвозвратному удалению ключей шифрования и может сделать устройство непригодным для использования."
+  "Flash encryption or secure boot is enabled on the device. Erasing flash will permanently remove the encryption keys and may render the device unusable.": "На устройстве включено шифрование флэш-памяти или безопасная загрузка. Стирание флэш-памяти приведет к безвозвратному удалению ключей шифрования и может сделать устройство непригодным для использования.",
+  "Copy EIM Path": "Копировать путь к EIM",
+  "Download EIM": "Скачать EIM",
+  "Open Documentation": "Открыть документацию",
+  "VS Code installed via Snap cannot launch external applications due to sandbox restrictions. Please run EIM manually from a system terminal: {0}": "VS Code, установленный через Snap, не может запускать внешние приложения из-за ограничений песочницы. Запустите EIM вручную из системного терминала: {0}",
+  "VS Code installed via Snap cannot launch external applications due to sandbox restrictions. Please download EIM from the releases page and run it manually from a system terminal.": "VS Code, установленный через Snap, не может запускать внешние приложения из-за ограничений песочницы. Загрузите EIM со страницы релизов и запустите его вручную из системного терминала.",
+  "EIM path copied to clipboard. Open a system terminal and paste it to run.": "Путь к EIM скопирован в буфер обмена. Откройте системный терминал и вставьте его для запуска."
 }

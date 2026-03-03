@@ -173,6 +173,8 @@ import { loadIdfSetup } from "./eim/loadIdfSetup";
 import { configureEnvVariables } from "./common/prepareEnv";
 import {
   downloadExtractAndRunEIM,
+  isVSCodeInstalledViaSnap,
+  resolveEimPath,
   runExistingEIM,
 } from "./eim/downloadInstall";
 import {
@@ -2240,6 +2242,11 @@ export async function activate(context: vscode.ExtensionContext) {
             useMirror = true;
           }
           await downloadExtractAndRunEIM(progress, cancelToken, useMirror);
+        }
+
+        if (isVSCodeInstalledViaSnap()) {
+          const eimPath = await resolveEimPath();
+          await showSnapEimNotification(eimPath);
         }
       }
     );
@@ -4391,6 +4398,124 @@ async function createMonitor() {
     const noReset = await shouldDisableMonitorReset(workspaceRoot);
     await createNewIdfMonitor(workspaceRoot, noReset);
   });
+}
+
+/**
+ * Checks if the clangd extension is installed and prompts the user to install it if not.
+ * This is specifically for VS Code fork users (like Cursor, VSCodium, etc.) to ensure they have the best C/C++ development experience.
+ */
+async function checkAndPromptForClangdExtension() {
+  const clangdExtensionId = "llvm-vs-code-extensions.vscode-clangd";
+  const clangdExtension = vscode.extensions.getExtension(clangdExtensionId);
+
+  if (!clangdExtension) {
+    Logger.info("clangd extension not found - prompting user to install");
+
+    const message = vscode.l10n.t(
+      "For the best C/C++ development experience in this editor, we recommend installing the clangd extension. This provides enhanced IntelliSense, code completion, and error detection."
+    );
+
+    const installAction = await vscode.window.showInformationMessage(
+      message,
+      { modal: false },
+      { title: vscode.l10n.t("Install clangd") },
+      { title: vscode.l10n.t("Not now") }
+    );
+
+    if (
+      installAction &&
+      installAction.title === vscode.l10n.t("Install clangd")
+    ) {
+      try {
+        await vscode.commands.executeCommand(
+          "workbench.extensions.installExtension",
+          clangdExtensionId
+        );
+
+        // Show success message
+        await vscode.window.showInformationMessage(
+          vscode.l10n.t(
+            "clangd extension installed successfully! Please reload the window to activate it."
+          )
+        );
+
+        // Offer to reload the window
+        const reloadAction = await vscode.window.showInformationMessage(
+          vscode.l10n.t(
+            "Would you like to reload the window to activate the clangd extension?"
+          ),
+          { modal: false },
+          { title: vscode.l10n.t("Reload") },
+          { title: vscode.l10n.t("Later") }
+        );
+
+        if (reloadAction && reloadAction.title === vscode.l10n.t("Reload")) {
+          await vscode.commands.executeCommand("workbench.action.reloadWindow");
+        }
+      } catch (error) {
+        Logger.error(
+          "Failed to install clangd extension",
+          error,
+          "checkAndPromptForClangdExtension"
+        );
+
+        await vscode.window.showErrorMessage(
+          vscode.l10n.t(
+            "Failed to install clangd extension. You can install it manually from the Extensions marketplace."
+          )
+        );
+      }
+    } else {
+      Logger.info("User chose not to install clangd extension");
+    }
+  } else {
+    Logger.info("clangd extension is already installed");
+  }
+}
+
+async function showSnapEimNotification(eimPath: string) {
+  const copyPathLabel = vscode.l10n.t("Copy EIM Path");
+  const downloadLabel = vscode.l10n.t("Download EIM");
+  const docsLabel = vscode.l10n.t("Open Documentation");
+
+  const hasEim = !!eimPath;
+  const actions = hasEim
+    ? [copyPathLabel, docsLabel]
+    : [downloadLabel, docsLabel];
+
+  const message = hasEim
+    ? vscode.l10n.t(
+        "VS Code installed via Snap cannot launch external applications due to sandbox restrictions. Please run EIM manually from a system terminal: {0}",
+        eimPath
+      )
+    : vscode.l10n.t(
+        "VS Code installed via Snap cannot launch external applications due to sandbox restrictions. Please download EIM from the releases page and run it manually from a system terminal."
+      );
+
+  const action = await vscode.window.showWarningMessage(
+    message,
+    { modal: true },
+    ...actions
+  );
+
+  if (action === copyPathLabel && eimPath) {
+    await vscode.env.clipboard.writeText(eimPath);
+    vscode.window.showInformationMessage(
+      vscode.l10n.t(
+        "EIM path copied to clipboard. Open a system terminal and paste it to run."
+      )
+    );
+  } else if (action === downloadLabel) {
+    vscode.env.openExternal(
+      vscode.Uri.parse(ESP.URL.InstallManager.Releases)
+    );
+  } else if (action === docsLabel) {
+    vscode.env.openExternal(
+      vscode.Uri.parse(
+        "https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/troubleshooting.html#vs-code-installed-via-snap-ubuntu"
+      )
+    );
+  }
 }
 
 export function deactivate() {
