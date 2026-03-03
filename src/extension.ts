@@ -283,6 +283,9 @@ export async function activate(context: vscode.ExtensionContext) {
       );
       if (workspaceValue === "always") {
         // Activate immediately; skip folder checks and CMake detection.
+        Logger.info(
+          "Extension activation forced by workspace/global idf.extensionActivationMode=always setting."
+        );
       } else if (workspaceValue === "never") {
         Logger.info(
           "Extension activation suppressed by workspace/global idf.extensionActivationMode=never setting."
@@ -299,6 +302,9 @@ export async function activate(context: vscode.ExtensionContext) {
           if (folderValue === "always") {
             hasAnyFolderAlways = true;
             allFoldersNever = false;
+            Logger.info(
+              "Extension activation forced by folder-level idf.extensionActivationMode=always setting."
+            );
             break;
           }
           if (folderValue !== "never") {
@@ -333,6 +339,9 @@ export async function activate(context: vscode.ExtensionContext) {
                 )
               ) {
                 hasCMakeIdfProject = true;
+                Logger.info(
+                  "Extension activated via CMakeLists.txt ESP-IDF project detection."
+                );
                 break;
               }
             } catch (error) {
