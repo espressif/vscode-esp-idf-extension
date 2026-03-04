@@ -15,7 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, extensions, l10n, window } from "vscode";
+import {
+  commands,
+  ExtensionContext,
+  extensions,
+  l10n,
+  RelativePattern,
+  Uri,
+  window,
+  workspace,
+} from "vscode";
 import { Logger } from "../logger/logger";
 
 export const CLANGD_EXTENSION_ID = "llvm-vs-code-extensions.vscode-clangd";
@@ -26,7 +35,7 @@ export const CLANGD_EXTENSION_ID = "llvm-vs-code-extensions.vscode-clangd";
  */
 export function isClangdExtensionInstalled(): boolean {
   const clangdExtension = extensions.getExtension(CLANGD_EXTENSION_ID);
-  return !!clangdExtension;
+  return !!clangdExtension && clangdExtension.isActive;
 }
 
 /**
@@ -71,7 +80,6 @@ export async function checkAndPromptForClangdExtension() {
       { title: l10n.t("Not now") }
     );
 
-
     if (installAction && installAction === installOption) {
       try {
         await commands.executeCommand(
@@ -97,7 +105,6 @@ export async function checkAndPromptForClangdExtension() {
           { title: l10n.t("Later") }
         );
 
-
         if (reloadAction && reloadAction === reloadOption) {
           commands.executeCommand("workbench.action.reloadWindow");
         }
@@ -120,4 +127,32 @@ export async function checkAndPromptForClangdExtension() {
   } else {
     Logger.info("clangd extension is already installed");
   }
+}
+
+/**
+ * Trigger a Clangd restart language server if compile_commands.json is updated.
+ * This ensures that the language server picks up the new compile commands and provides accurate IntelliSense and error checking.
+ * @param {vscode.Uri} uri - The URI of the updated file.
+ */
+export async function handleCompileCommandsUpdate(workspaceUri: Uri, context: ExtensionContext) {
+  const relativePattern = new RelativePattern(
+    workspaceUri,
+    "**/compile_commands.json"
+  );
+  const compileCommandsJsonWatcher = workspace.createFileSystemWatcher(
+    relativePattern,
+    false,
+    false,
+    true
+  );
+
+  const restartClangdOnUpdate = async (uri: Uri) => {
+    Logger.info(
+      "compile_commands.json updated - restarting clangd language server"
+    );
+    await restartClangdLanguageServer();
+  };
+
+  context.subscriptions.push(compileCommandsJsonWatcher.onDidCreate(restartClangdOnUpdate));
+  context.subscriptions.push(compileCommandsJsonWatcher.onDidChange(restartClangdOnUpdate));
 }

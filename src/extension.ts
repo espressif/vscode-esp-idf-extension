@@ -175,7 +175,10 @@ import {
   downloadExtractAndRunEIM,
   runExistingEIM,
 } from "./eim/downloadInstall";
-import { checkAndPromptForClangdExtension } from "./clang/checkClangExtension";
+import {
+  checkAndPromptForClangdExtension,
+  handleCompileCommandsUpdate,
+} from "./clang/checkClangExtension";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -394,6 +397,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
     const coverageOptions = getCoverageOptions(workspaceRoot);
     covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
+    handleCompileCommandsUpdate(workspaceRoot, context);
   }
   let unitTestController = new UnitTest(context);
   // Add delete or update new sources in CMakeLists.txt of same folder
@@ -502,6 +506,7 @@ export async function activate(context: vscode.ExtensionContext) {
             }
             const coverageOptions = getCoverageOptions(workspaceRoot);
             covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
+            handleCompileCommandsUpdate(workspaceRoot, context);
             break;
           }
         }
@@ -518,13 +523,8 @@ export async function activate(context: vscode.ExtensionContext) {
           );
           const coverageOptions = getCoverageOptions(workspaceRoot);
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
+          handleCompileCommandsUpdate(workspaceRoot, context);
         }
-        const buildDirPath = idfConf.readParameter(
-          "idf.buildPath",
-          workspaceRoot
-        ) as string;
-        const projectName = await getProjectName(buildDirPath);
-        const projectElfFile = `${path.join(buildDirPath, projectName)}.elf`;
         const openOCDConfig: IOpenOCDConfig = {
           workspace: workspaceRoot,
         } as IOpenOCDConfig;
@@ -1022,6 +1022,7 @@ export async function activate(context: vscode.ExtensionContext) {
         ConfserverProcess.dispose();
         const coverageOptions = getCoverageOptions(workspaceRoot);
         covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
+        handleCompileCommandsUpdate(workspaceRoot, context);
       } catch (error) {
         Logger.errorNotify(
           error.message,
