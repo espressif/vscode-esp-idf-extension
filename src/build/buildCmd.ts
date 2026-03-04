@@ -38,7 +38,7 @@ import {
   OutputCapturingExecution,
   ShellOutputCapturingExecution,
 } from "../taskManager/customExecution";
-import { restartClangLanguageServer } from "../clang/checkClangExtension";
+import { restartClangdLanguageServer } from "../clang/checkClangExtension";
 
 /**
  * Build the project with the given parameters.
@@ -139,7 +139,7 @@ export async function buildCommandMain(
     const flashCmd = await buildFinishFlashCmd(workspace);
     OutputChannel.appendLine(flashCmd, "Build");
     TaskManager.disposeListeners();
-    await restartClangLanguageServer();
+    await restartClangdLanguageServer();
   }
   buildTask.building(false);
 

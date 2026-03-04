@@ -18,14 +18,14 @@
 import { commands, extensions, l10n, window } from "vscode";
 import { Logger } from "../logger/logger";
 
-export const CLANG_EXTENSION_ID = "llvm-vs-code-extensions.vscode-clangd";
+export const CLANGD_EXTENSION_ID = "llvm-vs-code-extensions.vscode-clangd";
 
 /**
  * Check if the Clang extension is installed.
  * @returns {boolean} `true` if Clang extension is installed, `false` otherwise.
  */
-export function isClangExtensionInstalled(): boolean {
-  const clangdExtension = extensions.getExtension(CLANG_EXTENSION_ID);
+export function isClangdExtensionInstalled(): boolean {
+  const clangdExtension = extensions.getExtension(CLANGD_EXTENSION_ID);
   return !!clangdExtension;
 }
 
@@ -33,8 +33,8 @@ export function isClangExtensionInstalled(): boolean {
  * Call Clang extension's command to restart the language server.
  * This can be useful after `building` to ensure the language server picks up the new settings.
  */
-export async function restartClangLanguageServer() {
-  const isClangExtensionPresent = isClangExtensionInstalled();
+export async function restartClangdLanguageServer() {
+  const isClangExtensionPresent = isClangdExtensionInstalled();
 
   if (isClangExtensionPresent) {
     try {
@@ -54,7 +54,7 @@ export async function restartClangLanguageServer() {
  * This is specifically for VS Code fork users (like Cursor, VSCodium, etc.) to ensure they have the best C/C++ development experience.
  */
 export async function checkAndPromptForClangdExtension() {
-  const isClangExtensionPresent = isClangExtensionInstalled();
+  const isClangExtensionPresent = isClangdExtensionInstalled();
 
   if (!isClangExtensionPresent) {
     Logger.info("clangd extension not found - prompting user to install");
@@ -70,11 +70,13 @@ export async function checkAndPromptForClangdExtension() {
       { title: l10n.t("Not now") }
     );
 
-    if (installAction && installAction.title === l10n.t("Install clangd")) {
+    const installOption = { title: l10n.t("Install clangd") };
+
+    if (installAction && installAction === installOption) {
       try {
         await commands.executeCommand(
           "workbench.extensions.installExtension",
-          CLANG_EXTENSION_ID
+          CLANGD_EXTENSION_ID
         );
 
         // Show success message
@@ -94,7 +96,9 @@ export async function checkAndPromptForClangdExtension() {
           { title: l10n.t("Later") }
         );
 
-        if (reloadAction && reloadAction.title === l10n.t("Reload")) {
+        const reloadOption = { title: l10n.t("Reload") };
+
+        if (reloadAction && reloadAction === reloadOption) {
           await commands.executeCommand("workbench.action.reloadWindow");
         }
       } catch (error) {
