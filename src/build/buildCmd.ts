@@ -127,13 +127,14 @@ export async function buildCommandMain(
     "idf.enableSizeTaskAfterBuildTask",
     workspace
   )) as boolean;
+  let sizeResult = true;
   if (buildResult && enableSizeTask && typeof buildType === "undefined") {
     const sizeTask = new IdfSizeTask(workspace);
     let sizeInfoExecution = await sizeTask.getSizeInfo();
     executions.push(sizeInfoExecution);
+    sizeResult = await TaskManager.runTasksWithBoolean();
   }
-  const sizeResult = await TaskManager.runTasksWithBoolean();
-  if (!cancelToken.isCancellationRequested) {
+  if (buildResult && !cancelToken.isCancellationRequested) {
     updateIdfComponentsTree(workspace);
     Logger.infoNotify("Build Successful");
     const flashCmd = await buildFinishFlashCmd(workspace);

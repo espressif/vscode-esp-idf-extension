@@ -22,7 +22,7 @@ export const CLANGD_EXTENSION_ID = "llvm-vs-code-extensions.vscode-clangd";
 
 /**
  * Check if the Clang extension is installed.
- * @returns {boolean} `true` if Clang extension is installed, `false` otherwise.
+ * @returns {boolean} `true` if Clangd extension is installed, `false` otherwise.
  */
 export function isClangdExtensionInstalled(): boolean {
   const clangdExtension = extensions.getExtension(CLANGD_EXTENSION_ID);
@@ -43,7 +43,7 @@ export async function restartClangdLanguageServer() {
       Logger.error(
         "Failed to restart clangd language server",
         error,
-        "checkClangExtension restartClangLanguageServer"
+        "checkClangExtension restartClangdLanguageServer"
       );
     }
   }
@@ -63,14 +63,14 @@ export async function checkAndPromptForClangdExtension() {
       "For the best C/C++ development experience in this editor, we recommend installing the clangd extension. This provides enhanced IntelliSense, code completion, and error detection."
     );
 
+    const installOption = { title: l10n.t("Install clangd") };
     const installAction = await window.showInformationMessage(
       message,
       { modal: false },
-      { title: l10n.t("Install clangd") },
+      installOption,
       { title: l10n.t("Not now") }
     );
 
-    const installOption = { title: l10n.t("Install clangd") };
 
     if (installAction && installAction === installOption) {
       try {
@@ -80,26 +80,26 @@ export async function checkAndPromptForClangdExtension() {
         );
 
         // Show success message
-        await window.showInformationMessage(
+        window.showInformationMessage(
           l10n.t(
             "clangd extension installed successfully! Please reload the window to activate it."
           )
         );
 
         // Offer to reload the window
+        const reloadOption = { title: l10n.t("Reload") };
         const reloadAction = await window.showInformationMessage(
           l10n.t(
             "Would you like to reload the window to activate the clangd extension?"
           ),
           { modal: false },
-          { title: l10n.t("Reload") },
+          reloadOption,
           { title: l10n.t("Later") }
         );
 
-        const reloadOption = { title: l10n.t("Reload") };
 
         if (reloadAction && reloadAction === reloadOption) {
-          await commands.executeCommand("workbench.action.reloadWindow");
+          commands.executeCommand("workbench.action.reloadWindow");
         }
       } catch (error) {
         Logger.error(
@@ -108,7 +108,7 @@ export async function checkAndPromptForClangdExtension() {
           "checkAndPromptForClangdExtension"
         );
 
-        await window.showErrorMessage(
+        window.showErrorMessage(
           l10n.t(
             "Failed to install clangd extension. You can install it manually from the Extensions marketplace."
           )
