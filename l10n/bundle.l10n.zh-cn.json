@@ -260,9 +260,7 @@
   "Got it": "知道了",
   "Flash encryption or secure boot is enabled on the device. Erasing flash will permanently remove the encryption keys and may render the device unusable.": "设备上已启用闪存加密或安全启动。擦除闪存将永久删除加密密钥，可能导致设备无法使用。",
   "Copy EIM Path": "复制 EIM 路径",
-  "Download EIM": "下载 EIM",
   "Open Documentation": "打开文档",
   "VS Code installed via Snap cannot launch external applications due to sandbox restrictions. Please run EIM manually from a system terminal: {0}": "通过 Snap 安装的 VS Code 由于沙盒限制无法启动外部应用程序。请从系统终端手动运行 EIM：{0}",
-  "VS Code installed via Snap cannot launch external applications due to sandbox restrictions. Please download EIM from the releases page and run it manually from a system terminal.": "通过 Snap 安装的 VS Code 由于沙盒限制无法启动外部应用程序。请从发布页面下载 EIM，然后从系统终端手动运行。",
   "EIM path copied to clipboard. Open a system terminal and paste it to run.": "EIM 路径已复制到剪贴板。打开系统终端并粘贴以运行。"
 }

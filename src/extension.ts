@@ -4475,39 +4475,26 @@ async function checkAndPromptForClangdExtension() {
 
 async function showSnapEimNotification(eimPath: string) {
   const copyPathLabel = vscode.l10n.t("Copy EIM Path");
-  const downloadLabel = vscode.l10n.t("Download EIM");
   const docsLabel = vscode.l10n.t("Open Documentation");
 
-  const hasEim = !!eimPath;
-  const actions = hasEim
-    ? [copyPathLabel, docsLabel]
-    : [downloadLabel, docsLabel];
-
-  const message = hasEim
-    ? vscode.l10n.t(
-        "VS Code installed via Snap cannot launch external applications due to sandbox restrictions. Please run EIM manually from a system terminal: {0}",
-        eimPath
-      )
-    : vscode.l10n.t(
-        "VS Code installed via Snap cannot launch external applications due to sandbox restrictions. Please download EIM from the releases page and run it manually from a system terminal."
-      );
+  const message = vscode.l10n.t(
+    "VS Code installed via Snap cannot launch external applications due to sandbox restrictions. Please run EIM manually from a system terminal: {0}",
+    eimPath
+  );
 
   const action = await vscode.window.showWarningMessage(
     message,
     { modal: true },
-    ...actions
+    copyPathLabel,
+    docsLabel
   );
 
-  if (action === copyPathLabel && eimPath) {
+  if (action === copyPathLabel) {
     await vscode.env.clipboard.writeText(eimPath);
     vscode.window.showInformationMessage(
       vscode.l10n.t(
         "EIM path copied to clipboard. Open a system terminal and paste it to run."
       )
-    );
-  } else if (action === downloadLabel) {
-    vscode.env.openExternal(
-      vscode.Uri.parse(ESP.URL.InstallManager.Releases)
     );
   } else if (action === docsLabel) {
     vscode.env.openExternal(
