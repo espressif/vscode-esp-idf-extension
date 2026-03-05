@@ -27,11 +27,9 @@ import {
   workspace,
 } from "vscode";
 import { Logger } from "../logger/logger";
+import { readParameter } from "../idfConfiguration";
 
 export const CLANGD_EXTENSION_ID = "llvm-vs-code-extensions.vscode-clangd";
-
-/** Tracks the compile_commands.json watcher and its event subscriptions so they can be disposed when handleCompileCommandsUpdate is called again. */
-const compileCommandsWatcherDisposables: Disposable[] = [];
 
 /**
  * Check if the Clang extension is installed.
@@ -142,6 +140,9 @@ export async function checkAndPromptForClangdExtension() {
   }
 }
 
+/** Tracks the compile_commands.json watcher and its event subscriptions so they can be disposed when handleCompileCommandsUpdate is called again. */
+const compileCommandsWatcherDisposables: Disposable[] = [];
+
 /**
  * Trigger a Clangd restart language server if compile_commands.json is updated.
  * This ensures that the language server picks up the new compile commands and provides accurate IntelliSense and error checking.
@@ -163,9 +164,10 @@ export async function handleCompileCommandsUpdate(
       d.dispose();
     }
   }
+  const buildDirPath = readParameter("idf.buildPath", workspaceUri) as string;
 
   const relativePattern = new RelativePattern(
-    workspaceUri,
+    buildDirPath,
     "**/compile_commands.json"
   );
   const compileCommandsJsonWatcher = workspace.createFileSystemWatcher(
@@ -175,11 +177,17 @@ export async function handleCompileCommandsUpdate(
     true
   );
 
-  const restartClangdOnUpdate = async (_uri: Uri) => {
-    Logger.info(
-      "compile_commands.json updated - restarting clangd language server"
-    );
-    await restartClangdLanguageServer();
+  let restartDebounceTimer: NodeJS.Timeout | null = null;
+  const restartClangdOnUpdate = (_uri: Uri) => {
+    if (restartDebounceTimer) {
+      clearTimeout(restartDebounceTimer);
+    }
+    restartDebounceTimer = setTimeout(() => {
+      Logger.info(
+        "compile_commands.json updated - restarting clangd language server"
+      );
+      restartClangdLanguageServer();
+    }, 500);
   };
 
   compileCommandsWatcherDisposables.push(
