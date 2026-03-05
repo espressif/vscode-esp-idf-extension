@@ -156,7 +156,10 @@ export async function handleCompileCommandsUpdate(
   while (compileCommandsWatcherDisposables.length) {
     let d = compileCommandsWatcherDisposables.pop();
     if (d) {
-      context.subscriptions.splice(context.subscriptions.indexOf(d), 1);
+      const idx = context.subscriptions.indexOf(d);
+      if (idx >= 0) {
+        context.subscriptions.splice(idx, 1);
+      }
       d.dispose();
     }
   }
