@@ -17,6 +17,7 @@
  */
 import {
   commands,
+  Disposable,
   ExtensionContext,
   extensions,
   l10n,
@@ -29,11 +30,23 @@ import { Logger } from "../logger/logger";
 
 export const CLANGD_EXTENSION_ID = "llvm-vs-code-extensions.vscode-clangd";
 
+/** Tracks the compile_commands.json watcher and its event subscriptions so they can be disposed when handleCompileCommandsUpdate is called again. */
+const compileCommandsWatcherDisposables: Disposable[] = [];
+
 /**
  * Check if the Clang extension is installed.
  * @returns {boolean} `true` if Clangd extension is installed, `false` otherwise.
  */
 export function isClangdExtensionInstalled(): boolean {
+  const clangdExtension = extensions.getExtension(CLANGD_EXTENSION_ID);
+  return !!clangdExtension;
+}
+
+/**
+ * Check if the Clang extension is installed and active.
+ * @returns {boolean} `true` if Clangd extension is installed and active, `false` otherwise.
+ */
+export function isClangdExtensionActive(): boolean {
   const clangdExtension = extensions.getExtension(CLANGD_EXTENSION_ID);
   return !!clangdExtension && clangdExtension.isActive;
 }
@@ -43,7 +56,7 @@ export function isClangdExtensionInstalled(): boolean {
  * This can be useful after `building` to ensure the language server picks up the new settings.
  */
 export async function restartClangdLanguageServer() {
-  const isClangExtensionPresent = isClangdExtensionInstalled();
+  const isClangExtensionPresent = isClangdExtensionActive();
 
   if (isClangExtensionPresent) {
     try {
@@ -132,9 +145,21 @@ export async function checkAndPromptForClangdExtension() {
 /**
  * Trigger a Clangd restart language server if compile_commands.json is updated.
  * This ensures that the language server picks up the new compile commands and provides accurate IntelliSense and error checking.
- * @param {vscode.Uri} uri - The URI of the updated file.
+ * Disposes any existing watcher and event subscriptions before creating new ones (e.g. when workspace or config changes).
+ * @param {vscode.Uri} workspaceUri - The workspace URI to watch for compile_commands.json.
+ * @param {ExtensionContext} context - The extension context for registering teardown on deactivation.
  */
-export async function handleCompileCommandsUpdate(workspaceUri: Uri, context: ExtensionContext) {
+export async function handleCompileCommandsUpdate(
+  workspaceUri: Uri,
+  context: ExtensionContext
+) {
+  while (compileCommandsWatcherDisposables.length) {
+    let d = compileCommandsWatcherDisposables.pop();
+    if (d) {
+      d.dispose();
+    }
+  }
+
   const relativePattern = new RelativePattern(
     workspaceUri,
     "**/compile_commands.json"
@@ -146,13 +171,17 @@ export async function handleCompileCommandsUpdate(workspaceUri: Uri, context: Ex
     true
   );
 
-  const restartClangdOnUpdate = async (uri: Uri) => {
+  const restartClangdOnUpdate = async (_uri: Uri) => {
     Logger.info(
       "compile_commands.json updated - restarting clangd language server"
     );
     await restartClangdLanguageServer();
   };
 
-  context.subscriptions.push(compileCommandsJsonWatcher.onDidCreate(restartClangdOnUpdate));
-  context.subscriptions.push(compileCommandsJsonWatcher.onDidChange(restartClangdOnUpdate));
+  compileCommandsWatcherDisposables.push(
+    compileCommandsJsonWatcher,
+    compileCommandsJsonWatcher.onDidCreate(restartClangdOnUpdate),
+    compileCommandsJsonWatcher.onDidChange(restartClangdOnUpdate)
+  );
+  context.subscriptions.push(...compileCommandsWatcherDisposables);
 }
