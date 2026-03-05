@@ -99,25 +99,15 @@ export async function checkAndPromptForClangdExtension() {
         );
 
         // Show success message
-        window.showInformationMessage(
-          l10n.t(
-            "clangd extension installed successfully! Please reload the window to activate it."
-          )
-        );
-
-        // Offer to reload the window
         const reloadOption = { title: l10n.t("Reload") };
         const reloadAction = await window.showInformationMessage(
           l10n.t(
-            "Would you like to reload the window to activate the clangd extension?"
+            "clangd extension installed successfully! Please reload the window to activate it."
           ),
-          { modal: false },
-          reloadOption,
-          { title: l10n.t("Later") }
+          reloadOption
         );
-
         if (reloadAction && reloadAction === reloadOption) {
-          commands.executeCommand("workbench.action.reloadWindow");
+          await commands.executeCommand("workbench.action.reloadWindow");
         }
       } catch (error) {
         Logger.error(
@@ -165,6 +155,10 @@ export async function handleCompileCommandsUpdate(
     }
   }
   const buildDirPath = readParameter("idf.buildPath", workspaceUri) as string;
+
+  if (!buildDirPath) {
+    return;
+  }
 
   const relativePattern = new RelativePattern(
     buildDirPath,
