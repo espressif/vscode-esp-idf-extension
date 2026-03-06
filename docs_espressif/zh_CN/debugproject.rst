@@ -17,7 +17,7 @@
 
 .. note::
 
-    * 请确认 ESP-IDF 项目包含 Visual Studio Code 调试配置文件 (launch.json)，路径为 ``<project-dir>/.vscode/launch.json``。如未包含，可使用 ``ESP-IDF: Add VS Code Configuration Folder`` 命令（按 F1 搜索该命令）添加默认配置。
+    * 请确认 ESP-IDF 项目包含 Visual Studio Code 调试配置文件 (launch.json)，路径为 ``<project-dir>/.vscode/launch.json``。如未包含，可使用 ``ESP-IDF: Add .vscode Configuration Folder`` 命令（按 F1 搜索该命令）添加默认配置。
 
 启动调试会话
 ------------
@@ -28,13 +28,13 @@
 
 - 点击 ``查看`` > ``命令面板``
 
-- 输入 ``ESP-IDF: Select Port to Use`` 并选择该命令以指定设备的串口
+- 输入 ``ESP-IDF：选择要使用的端口``，指定设备的串口
 
 2. 确保 OpenOCD 配置文件正确
 
 - 点击 ``查看`` > ``命令面板``
 
-- 输入 ``ESP-IDF: Select OpenOCD Board Configuration`` 并选择该命令以指定扩展 OpenOCD 服务器的 OpenOCD 配置文件
+- 输入 ``ESP-IDF：选择 OpenOCD 开发板配置``，选择扩展中 OpenOCD 服务器的配置文件
 
 .. note::
 
@@ -69,7 +69,7 @@
   * 将 **idf.openOcdDebugLevel** 配置设为 4 或更大，可在 OpenOCD 服务器输出中显示调试日志。
   * 在 ``<project-directory>/.vscode/launch.json`` 中将 **verbose** 设为 true，可显示更多调试适配器输出。
 
-默认的 OpenOCD 参数为 ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``。若要修改，可设置 ``idf.openOcdLaunchArgs``（默认为空数组）以覆盖默认参数。
+默认的 OpenOCD 参数为 ``openocd -d\${idf.openOcdDebugLevel} -f \${idf.openOcdConfigs}``。若要修改，可设置 ``idf.openOcdLaunchArgs``（默认为空数组）以覆盖默认参数。
 
 例如，若要在 OpenOCD 命令中添加 ``-c "init"``，请在 ``<project-directory>/.vscode/settings.json`` 中如下设置 ``idf.openOcdLaunchArgs``：
 
