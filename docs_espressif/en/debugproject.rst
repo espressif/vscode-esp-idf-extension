@@ -10,10 +10,10 @@ Table of Contents
    :depth: 2
    :local:
 
-Open a ESP-IDF project
+Open an ESP-IDF project
 -----------------------
 
-First open a ESP-IDF project in Visual Studio Code. You can create a new ESP-IDF project by following the instructions in :ref:`Create an ESP-IDF Project <create_an_esp-idf_project>` or open an ESP-IDF existing project.
+First open an ESP-IDF project in Visual Studio Code. You can create a new ESP-IDF project by following the instructions in :ref:`Create an ESP-IDF Project <create_an_esp-idf_project>` or open an ESP-IDF existing project.
 
 .. note::
 

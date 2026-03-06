@@ -66,7 +66,7 @@
     默认情况下，OpenOCD 服务器在本地启动，端口 ``4444`` 用于 Telnet 通信，端口 ``6666`` 用于 TCL 通信，端口 ``3333`` 用于 GDB。可通过修改 ``<project-directory>/.vscode/settings.json`` 中的 ``openocd.tcl.host`` 和 ``openocd.tcl.port`` 来更改这些设置。也可通过设置 ``idf.openOcdDebugLevel`` 调整在 ESP-IDF 输出中显示的 OpenOCD 消息详细程度，取值范围为 0（仅错误消息）到 4（低级详细调试消息）。
 
 .. note::
-  * 将 **idf.openOcdDebugLevel** 配置设为 4 或更大，可在 OpenOCD 服务器输出中显示调试日志。
+  * 将 **idf.openOcdDebugLevel** 配置设为 4（最大值），可在 OpenOCD 服务器输出中显示调试日志。
   * 在 ``<project-directory>/.vscode/launch.json`` 中将 **verbose** 设为 true，可显示更多调试适配器输出。
 
 默认的 OpenOCD 参数为 ``openocd -d\${idf.openOcdDebugLevel} -f \${idf.openOcdConfigs}``。若要修改，可设置 ``idf.openOcdLaunchArgs``（默认为空数组）以覆盖默认参数。
@@ -78,7 +78,7 @@
         {
             "idf.openOcdLaunchArgs": [
                 "-d${config:idf.openOcdDebugLevel}",
-                "${config:idf.openOcdConfigs,-f}"
+                "${config:idf.openOcdConfigs,-f}",
                 "-c",
                 "init",
                 "-c",
@@ -110,7 +110,7 @@
     {
         "idf.openOcdLaunchArgs": [
             "-d${config:idf.openOcdDebugLevel}",
-            "${config:idf.openOcdConfigs,-f}"
+            "${config:idf.openOcdConfigs,-f}",
             "-c",
             "init",
             "-c",

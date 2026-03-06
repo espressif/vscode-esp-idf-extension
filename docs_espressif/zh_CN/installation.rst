@@ -24,7 +24,7 @@
 2.  或者，您可以从以下链接下载 ESP-IDF 安装管理器：`ESP-IDF 安装管理器 <https://dl.espressif.com/dl/eim/index.html>`_，并在以下选项中选择：
 
     - ``Download``：使用乐鑫下载服务器，在中国大陆下载速度更快。
-    - ``Github``：使用 GitHub 发布链接。
+    - ``GitHub``：使用 GitHub 发布链接。
 
 3.  使用 ESP-IDF 安装管理器安装 ESP-IDF 及工具。如需帮助，可参阅 `ESP-IDF 安装管理器文档 <https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest/general_info.html>`_。
 
@@ -35,7 +35,7 @@
         **eim_idf.json** 默认路径为：Windows 下 ``C:\Espressif\tools\eim_idf.json``，macOS/Linux 下 ``$HOME/.espressif/tools/eim_idf.json``。
         若 **eim_idf.json** 不在默认位置，可在 Visual Studio Code 中通过 ``Preferences: Open Settings`` 命令，使用扩展配置项 ``idf.eimIdfJsonPath`` 指定 EIM **eim_idf.json** 的路径。
 
-4. 在 Visual Studio Code 中，前往 ``查看`` > ``命令面板``，输入 ``select current esp-idf version``，在列表中选择 **ESP-IDF: Select Current ESP-IDF Version**。
+5. 在 Visual Studio Code 中，前往 ``查看`` > ``命令面板``，输入 ``select current esp-idf version``，在列表中选择 **ESP-IDF: Select Current ESP-IDF Version**。
 
    将显示可用的 ESP-IDF 配置列表，选择要用于当前 ESP-IDF 项目的配置。
 
@@ -43,7 +43,7 @@
 
    - 可通过运行 **ESP-IDF: Doctor Command** 检查配置：前往 ``查看`` > ``命令面板``，输入 ``doctor command``，在列表中选择 **ESP-IDF: Doctor Command**。
 
-5.  下一步请 :ref:`创建 ESP-IDF 项目 <create_an_esp-idf_project>`。
+6.  下一步请 :ref:`创建 ESP-IDF 项目 <create_an_esp-idf_project>`。
 
     .. warning::
 

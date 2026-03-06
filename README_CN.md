@@ -139,7 +139,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td></td>
         </tr>
         <tr>
-            <td>选择配置设置保存位置</td>
+            <td>选择配置存储位置</td>
             <td>在 Visual Studio Code 中，设置可保存在三处：用户设置（全局设置）、工作区（.code-workspace 文件）或工作区文件夹（.vscode/settings.json）。
             更多信息请参见<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/multiple-projects.html">处理多个项目</a>。</td>
             <td></td>
@@ -547,7 +547,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 
 5. 在 VS Code 菜单栏中选择**查看** > **输出** > **Extension Host**。此输出信息有助于了解扩展激活期间发生的情况。如果扩展命令都不工作，您可以分享此处的输出来查看错误堆栈。
 
-5. Visual Studio Code 支持在不同级别配置设置：**全局（用户设置）**、**工作区** 和 **工作区文件夹**，请确保项目使用正确的设置。`ESP-IDF：诊断命令` 的结果可能显示的是用户设置而非工作区文件夹设置的值。
+6. Visual Studio Code 支持在不同级别配置设置：**全局（用户设置）**、**工作区** 和 **工作区文件夹**，请确保项目使用正确的设置。`ESP-IDF：诊断命令` 的结果可能显示的是用户设置而非工作区文件夹设置的值。
 
     - 工作区文件夹的配置设置在 ``${workspaceFolder}/.vscode/settings.json`` 中定义
     - 工作区的配置设置在工作区的 ``<name>.code-workspace`` 文件中定义
@@ -556,11 +556,11 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         - **MacOS**：``$HOME/Library/Application Support/Code/User/settings.json``
         - **Linux**：``$HOME/.config/Code/User/settings.json``
 
-    本扩展使用 ``idf.saveScope`` 配置设置（仅可在用户设置中定义）来指定将设置保存到何处，例如设置向导。您可以使用 ``ESP-IDF：选择配置设置保存位置`` 命令修改此设置。
+    本扩展使用 ``idf.saveScope`` 配置设置（仅可在用户设置中定义）来指定将设置保存到何处，例如设置向导。您可以使用 ``ESP-IDF：选择配置存储位置`` 命令修改此设置。
 
-6. 查看 [OpenOCD 故障排除 FAQ](https://github.com/espressif/OpenOCD-esp32/wiki/Troubleshooting-FAQ)，可帮助进行应用追踪及调试，并解决 `OpenOCD` 输出中显示的其他相关问题。
+7. 查看 [OpenOCD 故障排除 FAQ](https://github.com/espressif/OpenOCD-esp32/wiki/Troubleshooting-FAQ)，可帮助进行应用追踪及调试，并解决 `OpenOCD` 输出中显示的其他相关问题。
 
-7. 有时 VS Code 中配置的默认 shell（Powershell、zsh、sh 等）可能会影响扩展的行为。请确保环境中未设置 MSYS/MinGW，且变量与终端行为不冲突。`ESP-IDF：诊断命令` 会显示运行构建、烧录和监视任务时扩展检测到的 shell。详情请参考[此处](https://code.visualstudio.com/docs/terminal/profiles)。
+8. 有时 VS Code 中配置的默认 shell（Powershell、zsh、sh 等）可能会影响扩展的行为。请确保环境中未设置 MSYS/MinGW，且变量与终端行为不冲突。`ESP-IDF：诊断命令` 会显示运行构建、烧录和监视任务时扩展检测到的 shell。详情请参考[此处](https://code.visualstudio.com/docs/terminal/profiles)。
 
 如果出现 Python 包错误，请尝试使用 [ESP-IDF 安装管理器](https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest/general_info.html) 重新安装所需的 Python 包。
 
