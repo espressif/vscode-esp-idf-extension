@@ -175,6 +175,7 @@ export async function handleCompileCommandsUpdate(
   const restartClangdOnUpdate = (_uri: Uri) => {
     if (restartDebounceTimer) {
       clearTimeout(restartDebounceTimer);
+      restartDebounceTimer = null;
     }
     restartDebounceTimer = setTimeout(() => {
       Logger.info(
@@ -184,10 +185,18 @@ export async function handleCompileCommandsUpdate(
     }, 500);
   };
 
+  const restartDebounceDisposable = new Disposable(() => {
+    if (restartDebounceTimer) {
+      clearTimeout(restartDebounceTimer);
+      restartDebounceTimer = null;
+    }
+  });
+
   compileCommandsWatcherDisposables.push(
     compileCommandsJsonWatcher,
     compileCommandsJsonWatcher.onDidCreate(restartClangdOnUpdate),
-    compileCommandsJsonWatcher.onDidChange(restartClangdOnUpdate)
+    compileCommandsJsonWatcher.onDidChange(restartClangdOnUpdate),
+    restartDebounceDisposable
   );
   context.subscriptions.push(...compileCommandsWatcherDisposables);
 }
