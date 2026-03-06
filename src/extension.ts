@@ -1231,6 +1231,7 @@ export async function activate(context: vscode.ExtensionContext) {
     } else if (e.affectsConfiguration("idf.buildPath" + winFlag)) {
       updateIdfComponentsTree(workspaceRoot);
       await configureClangSettings(workspaceRoot);
+      handleCompileCommandsUpdate(workspaceRoot, context);
     } else if (e.affectsConfiguration("idf.customExtraVars")) {
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
       await configureClangSettings(workspaceRoot);
