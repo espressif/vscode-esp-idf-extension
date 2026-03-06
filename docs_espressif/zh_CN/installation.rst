@@ -15,26 +15,33 @@
 
     - 前往 ``查看`` > ``命令面板``。
 
-    - 输入 ``ESP-IDF: Open ESP-IDF Install Manager``，通过该命令下载并运行 ESP-IDF 安装管理器以安装 ESP-IDF 框架。将先出现加载提示，随后启动安装程序。
+    - 输入 ``ESP-IDF: Open ESP-IDF Installation Manager``，下载并运行 ESP-IDF 安装管理器以安装 ESP-IDF 框架。将先出现加载提示，随后启动安装程序。
 
     .. note::
 
         对于 ESP-IDF 5.0 以下版本，配置路径中不支持包含空格。
 
-2.  你也可以通过以下链接在提供的选项中选择并下载 ESP-IDF 安装管理器：`ESP-IDF 安装管理器 <https://dl.espressif.com/dl/eim/index.html>`_：
+2.  或者，您可以从以下链接下载 ESP-IDF 安装管理器：`ESP-IDF 安装管理器 <https://dl.espressif.com/dl/eim/index.html>`_，并在以下选项中选择：
 
     - ``Download``：使用乐鑫下载服务器，在中国大陆下载速度更快。
     - ``Github``：使用 GitHub 发布链接。
 
-3.  使用 ESP-IDF 安装管理器安装 ESP-IDF 及工具。如需帮助，可参阅 `ESP-IDF 安装管理器文档 <https://docs.espressif.com/projects/idf-im-ui/en/latest/general_info.html>`_。
+3.  使用 ESP-IDF 安装管理器安装 ESP-IDF 及工具。如需帮助，可参阅 `ESP-IDF 安装管理器文档 <https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest/general_info.html>`_。
 
-4.  在 Visual Studio Code 中，前往 ``查看`` > ``命令面板``，输入 ``select current esp-idf version``，在列表中选择 ``ESP-IDF: Select Current ESP-IDF Version``。
+4. 通过读取 EIM 的 **eim_idf.json** 文件，使用 ESP-IDF 安装管理器安装的所有 ESP-IDF 版本都会被 ESP-IDF VS Code 扩展自动识别。
+
+    .. note::
+
+        **eim_idf.json** 默认路径为：Windows 下 ``C:\Espressif\tools\eim_idf.json``，macOS/Linux 下 ``$HOME/.espressif/tools/eim_idf.json``。
+        若 **eim_idf.json** 不在默认位置，可在 Visual Studio Code 中通过 ``Preferences: Open Settings`` 命令，使用扩展配置项 ``idf.eimIdfJsonPath`` 指定 EIM **eim_idf.json** 的路径。
+
+4. 在 Visual Studio Code 中，前往 ``查看`` > ``命令面板``，输入 ``select current esp-idf version``，在列表中选择 **ESP-IDF: Select Current ESP-IDF Version**。
 
    将显示可用的 ESP-IDF 配置列表，选择要用于当前 ESP-IDF 项目的配置。
 
    - 所选配置将保存为 idf.currentSetup（包含所选 ESP-IDF 路径），扩展会为当前 ESP-IDF 项目配置所需的环境变量，并保存为工作区文件夹状态。
 
-   - 可通过运行 ``ESP-IDF: Doctor Command`` 检查配置：前往 ``查看`` > ``命令面板``，输入 ``doctor command``，在列表中选择 ``ESP-IDF: ESP-IDF: Doctor Command``。
+   - 可通过运行 **ESP-IDF: Doctor Command** 检查配置：前往 ``查看`` > ``命令面板``，输入 ``doctor command``，在列表中选择 **ESP-IDF: Doctor Command**。
 
 5.  下一步请 :ref:`创建 ESP-IDF 项目 <create_an_esp-idf_project>`。
 

@@ -39,33 +39,21 @@
   <img src="./media/readme/commandsList.png" alt="命令列表">
 </p>
 
-6. 从命令列表中选择 **配置 ESP-IDF 扩展** 或按 <kbd>F1</kbd> 输入 `Configure ESP-IDF Extension`，然后选择 **ESP-IDF：配置 ESP-IDF 扩展** 选项。
+6. 从命令列表中选择 **ESP-IDF：打开 ESP-IDF 安装管理器**，或按 <kbd>F1</kbd> 输入 `Open ESP-IDF Installation Manager`，然后选择 **ESP-IDF：打开 ESP-IDF 安装管理器** 选项。
    > **注意：** 对于 ESP-IDF 5.0 之前的版本，配置路径中不可出现空格。
 
-<p>
-  <img src="./media/readme/setup.png" alt="选择 ESP-IDF" width="950">
-</p>
+7. 或者，您可以从以下链接下载 [ESP-IDF 安装管理器](https://dl.espressif.com/dl/eim/index.html)，并选择以下选项之一：
 
-7. 选择 **Express** 并选择下载服务器：
-
-- Espressif：该服务器链接在中国的下载速度更快。
+- Espressif：使用乐鑫下载服务器链接，在中国下载速度更快。
 - Github：使用 Github 发布链接。
 
-8. 选择要下载的 ESP-IDF 版本，或选择 `Find ESP-IDF in your system` 选项以查找现有的 ESP-IDF 目录。
+8. 使用 ESP-IDF 安装管理器安装 ESP-IDF 和工具。如有需要，请参阅 [ESP-IDF 安装管理器文档](https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest/general_info.html)。
 
-9. 选择 ESP-IDF 工具的存放位置（即 `IDF_TOOLS_PATH`），默认情况下在 MacOS/Linux 系统中是 `$HOME\.espressif`，Windows 系统中是 `%USERPROFILE%\.espressif`。
+9. 在 Visual Studio Code 中，进入 `查看` > `命令面板`，输入 `select current esp-idf version`，然后选择 **ESP-IDF：选择当前 ESP-IDF 版本**。将显示可用的 ESP-IDF 安装列表，请选择要用于当前 ESP-IDF 项目的版本。所选配置将保存为 **idf.currentSetup**（包含所选 ESP-IDF 路径），扩展会为当前项目配置环境变量并保存为工作区文件夹状态。您可以通过运行 **ESP-IDF：诊断命令** 来查看配置：进入 `查看` > `命令面板`，输入 `doctor command`，然后选择 **ESP-IDF：诊断命令**。
 
-10. 如果使用 MacOS/Linux 操作系统，请选择系统 Python 可执行文件来在 ESP-IDF 工具内创建 ESP-IDF 虚拟环境，并安装 ESP-IDF Python 包。
+10. 如果一切安装正确，您将看到所有设置已配置完成的消息。此时可以开始使用扩展。
 
-    > **注意：** Windows 用户不需要选择 Python 可执行文件，因为此设置过程会自动安装所需文件。
-
-11. 确保 `IDF_TOOLS_PATH` 中不包含空格，避免构建过程中出现问题，且 `IDF_TOOLS_PATH` 与 `IDF_PATH` 不能相同。
-
-12. 此时应出现安装界面，显示设置进度状态，包括 ESP-IDF 下载进度、ESP-IDF 工具的下载和安装进度，以及 Python 虚拟环境的创建过程。
-
-13. 如果一切正常，将收到所有设置已配置完成的消息，此时可开始使用扩展。
-
-如有问题，请参阅[故障排除](#Troubleshooting)部分。
+如有问题，请参阅[故障排除](#故障排除)部分。
 
 ##  在 VS Code 中使用 ESP-IDF 扩展
 
@@ -103,7 +91,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 
 12. 如果您想启动调试会话，只需按 <kbd>F5</kbd>（确保项目已构建、烧录，并且 OpenOCD 正确连接以便调试器正常工作）。调试会话的输出可在菜单栏中选择`查看` -> `调试控制台`进行查看。
 
-如有问题，请参阅[故障排除](#Troubleshooting)部分。
+如有问题，请参阅[故障排除](#故障排除)部分。
 
 # 拓展阅读
 
@@ -139,8 +127,8 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td></td>
         </tr>
         <tr>
-            <td>配置 ESP-IDF 扩展</td>
-            <td>打开一个带有安装向导的窗口，可以安装 ESP-IDF、IDF 工具和 Python 虚拟环境。</td>
+            <td>打开 ESP-IDF 安装管理器</td>
+            <td>打开 ESP-IDF 安装管理器 (EIM)，用于安装 ESP-IDF、IDF 工具和 Python 虚拟环境。</td>
             <td></td>
             <td></td>
         </tr>
@@ -151,15 +139,15 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td></td>
         </tr>
         <tr>
-            <td>选择配置存储位置</td>
-            <td>VS Code 中的设置可存储在三处：用户设置（全局设置）、工作区（.code-workspace 文件）或工作区文件夹（.vscode/settings.json）。
+            <td>选择配置设置保存位置</td>
+            <td>在 Visual Studio Code 中，设置可保存在三处：用户设置（全局设置）、工作区（.code-workspace 文件）或工作区文件夹（.vscode/settings.json）。
             更多信息请参见<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/multiple-projects.html">处理多个项目</a>。</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>选择工作区文件夹</td>
-            <td>在使用包含多个工作区文件夹的 VS Code 工作区时，此命令会让此扩展的命令应用于指定文件夹。
+            <td>在使用包含多个文件夹的 Visual Studio Code 工作区时，此命令用于选择要将此扩展的命令应用于哪个工作区文件夹。
             更多信息请参见<a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest/additionalfeatures/multiple-projects.html">处理多个项目</a>。</td>
             <td></td>
             <td></td>
@@ -395,7 +383,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         </tr>
         <tr>
             <td>分区表编辑器</td>
-            <td>启动 UI，如 <a href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html">ESP-IDF 分区表</a> 中所述，管理自定义分区表。</td>
+            <td>启动 UI，如 <a href="https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/partition-tables.html">ESP-IDF 分区表</a> 中所述，管理自定义分区表。</td>
             <td></td>
             <td></td>
         </tr>
@@ -498,15 +486,9 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td></td>
         </tr>
         <tr>
-            <td rowspan=2 align="center"> 清理</td>
+            <td rowspan=2 align="center">清理</td>
             <td>清除 ESP-IDF 搜索结果</td>
-            <td>清除资源管理器<strong>文档搜索结果</strong>选项卡中的所有搜索结果。</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>清除已保存的 ESP-IDF 设置</td>
-            <td>清除扩展中保留的现有 ESP-IDF 设置。</td>
+            <td>清除 ESP 资源管理器文档搜索结果中的结果。</td>
             <td></td>
             <td></td>
         </tr>
@@ -565,7 +547,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 
 5. 在 VS Code 菜单栏中选择**查看** > **输出** > **Extension Host**。此输出信息有助于了解扩展激活期间发生的情况。如果扩展命令都不工作，您可以分享此处的输出来查看错误堆栈。
 
-6. VS Code 支持在不同级别配置设置：**全局（用户设置）**、**工作区** 和 **工作区文件夹**，请确保项目使用正确的设置。运行 `ESP-IDF：诊断命令` 得到的结果可能来自用户设置而非工作区文件夹设置。
+5. Visual Studio Code 支持在不同级别配置设置：**全局（用户设置）**、**工作区** 和 **工作区文件夹**，请确保项目使用正确的设置。`ESP-IDF：诊断命令` 的结果可能显示的是用户设置而非工作区文件夹设置的值。
 
     - 工作区文件夹的配置设置在 ``${workspaceFolder}/.vscode/settings.json`` 中定义
     - 工作区的配置设置在工作区的 ``<name>.code-workspace`` 文件中定义
@@ -574,13 +556,13 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         - **MacOS**：``$HOME/Library/Application Support/Code/User/settings.json``
         - **Linux**：``$HOME/.config/Code/User/settings.json``
 
-    本扩展使用 ``idf.saveScope`` 配置设置（仅可在用户设置中定义）来指定将设置保存到何处，例如设置向导。您可以使用 ``ESP-IDF：选择配置存储位置`` 命令修改此设置。
+    本扩展使用 ``idf.saveScope`` 配置设置（仅可在用户设置中定义）来指定将设置保存到何处，例如设置向导。您可以使用 ``ESP-IDF：选择配置设置保存位置`` 命令修改此设置。
 
-7. 查看 [OpenOCD 故障排除 FAQ](https://github.com/espressif/OpenOCD-esp32/wiki/Troubleshooting-FAQ)，可帮助进行应用追踪及调试，并解决 `OpenOCD` 输出中显示的其他相关问题。
+6. 查看 [OpenOCD 故障排除 FAQ](https://github.com/espressif/OpenOCD-esp32/wiki/Troubleshooting-FAQ)，可帮助进行应用追踪及调试，并解决 `OpenOCD` 输出中显示的其他相关问题。
 
-8. 有时 VS Code 中配置的默认 shell（Powershell、zsh、sh 等）可能会影响扩展的行为。请确保环境中未设置 MSYS/MinGW，且变量与终端行为不冲突。`ESP-IDF：诊断命令` 会显示运行构建、烧录和监视任务时扩展检测到的 shell。详情请参考[此处](https://code.visualstudio.com/docs/terminal/profiles)。
+7. 有时 VS Code 中配置的默认 shell（Powershell、zsh、sh 等）可能会影响扩展的行为。请确保环境中未设置 MSYS/MinGW，且变量与终端行为不冲突。`ESP-IDF：诊断命令` 会显示运行构建、烧录和监视任务时扩展检测到的 shell。详情请参考[此处](https://code.visualstudio.com/docs/terminal/profiles)。
 
-如果出现 Python 包错误，请尝试使用 **ESP-IDF：安装 ESP-IDF Python 包** 命令重新安装所需的 Python 包，或通过 **ESP-IDF：配置 ESP-IDF 扩展** 命令重新设置。
+如果出现 Python 包错误，请尝试使用 [ESP-IDF 安装管理器](https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest/general_info.html) 重新安装所需的 Python 包。
 
 > **注意：** 在 Windows 中通过 Git 克隆 ESP-IDF 时，如果出现 "unable to create symlink" 错误，可启用`开发者模式`进行克隆，从而解决该问题。
 

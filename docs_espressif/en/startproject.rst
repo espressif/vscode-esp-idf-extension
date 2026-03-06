@@ -107,7 +107,7 @@ In Visual Studio Code, go to ``File`` > ``Open Folder`` and open a directory con
 
     - Navigate to ``View`` > ``Command Palette``.
 
-    - Type ``ESP-IDF: Add .vscode Configuration Folder`` and select the command.
+    - Type ``ESP-IDF: Add VS Code Configuration Folder`` and select the command.
 
 2.  To open the project within the ESP-IDF Docker container:
 

@@ -107,7 +107,7 @@ ESP-IDF 项目遵循以下目录结构：
 
     - 前往 ``查看`` > ``命令面板``。
 
-    - 输入 ``ESP-IDF: Add .vscode Configuration Folder`` 并选择该命令。
+    - 输入 ``ESP-IDF: Add VS Code Configuration Folder`` 并选择该命令。
 
 2.  在 ESP-IDF Docker 容器中打开项目：
 

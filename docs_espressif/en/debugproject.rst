@@ -10,6 +10,14 @@ Table of Contents
    :depth: 2
    :local:
 
+Open a ESP-IDF project
+-----------------------
+
+First open a ESP-IDF project in Visual Studio Code. You can create a new ESP-IDF project by following the instructions in :ref:`Create an ESP-IDF Project <create_an_esp-idf_project>` or open an ESP-IDF existing project.
+
+.. note::
+
+    * Please review the ESP-IDF project includes a Visual Studio Code debug configuration file (launch.json) in the ``<project-dir>/.vscode/launch.json`` file. If not, you can add the default configuration with the ``ESP-IDF: Add VS Code Configuration Folder`` command (Press F1 and search for the command).
 
 Starting a Debug Session
 ------------------------
