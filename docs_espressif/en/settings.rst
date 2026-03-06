@@ -43,7 +43,7 @@ Setup & Installation
     * - Setting ID
       - Description
     * - **idf.eimIdfJsonPath**
-      - Path to the ESP-IDF Installation Manager (EIM) idf.json file. Scope: Application.
+      - Path to the ESP-IDF Installation Manager (EIM) ``eim_idf.json`` file. Scope: Application.
     * - **idf.eimExecutableArgs**
       - Arguments for the EIM executable (default: ``["gui"]``). Scope: Application.
     * - **idf.currentSetup**

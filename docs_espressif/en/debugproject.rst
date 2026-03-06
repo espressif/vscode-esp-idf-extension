@@ -537,6 +537,7 @@ To do this, you need to configure the launch.json file in the .vscode directory 
                 "request": "launch",
                 "MIMode": "gdb",
                 "miDebuggerPath": "${command:espIdf.getToolchainGdb}",
+                "miDebuggerServerAddress": "localhost:3333",
                 "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
                 "windows": {
                     "program": "${workspaceFolder}\\build\\${command:espIdf.getProjectName}.elf"

@@ -45,7 +45,7 @@
 7. 或者，您可以从以下链接下载 [ESP-IDF 安装管理器](https://dl.espressif.com/dl/eim/index.html)，并选择以下选项之一：
 
 - Espressif：使用乐鑫下载服务器链接，在中国下载速度更快。
-- Github：使用 Github 发布链接。
+- Github：使用 GitHub 发布链接。
 
 8. 使用 ESP-IDF 安装管理器安装 ESP-IDF 和工具。如有需要，请参阅 [ESP-IDF 安装管理器文档](https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest/general_info.html)。
 
@@ -486,7 +486,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td></td>
         </tr>
         <tr>
-            <td rowspan=2 align="center">清理</td>
+            <td rowspan=1 align="center">清理</td>
             <td>清除 ESP-IDF 搜索结果</td>
             <td>清除 ESP 资源管理器文档搜索结果中的结果。</td>
             <td></td>
