@@ -358,7 +358,7 @@ Use of Environment Variables in ESP-IDF ``settings.json`` and using other ESP-ID
 
 Environment (env) variables and other ESP-IDF settings (config) can be referenced in ESP-IDF settings using the syntax ``${env:VARNAME}`` and ``${config:ESPIDFSETTING}``, respectively.
 
-You can also prepend a string to the result of the other ESP-IDF settings (config) by using the syntax ``${config:ESPIDFSETTING,prefix}``. The prefix will be added to the beginning of the variable value. For example ``${config:idf.openOcdConfigs,-f}`` will add ``-f`` to the beginning of the each string value of **idf.openOcdConfigs**.
-If ``"idf.openOcdConfigs": ["interface/some.cfg", "target/some.cfg"]`` returns ``-f interface/some.cfg -f target/some.cfg``.
+You can also prepend a string to the result of the other ESP-IDF settings (config) by using the syntax ``${config:ESPIDFSETTING,prefix}``. The prefix will be added directly to the beginning of each string value. For example ``${config:idf.openOcdConfigs,-f}`` will add ``-f`` to the beginning of each string value of **idf.openOcdConfigs**.
+If ``"idf.openOcdConfigs": ["interface/some.cfg", "target/some.cfg"]`` the expansion will be ``-finterface/some.cfg -ftarget/some.cfg``.
 
 For example, to use ``"~/workspace/blink"``, set the value to ``"${env:HOME}/workspace/blink"``.
