@@ -530,33 +530,44 @@ ESP-IDF 扩展提供了 **ESP-IDF：图像查看器** 功能，允许你在调�
 .. code-block:: JSON
 
     {
-        "configurations": [
-            {
-                "name": "GDB",
-                "type": "cppdbg",
-                "request": "launch",
-                "MIMode": "gdb",
-                "miDebuggerPath": "${command:espIdf.getToolchainGdb}",
-                "miDebuggerServerAddress": "localhost:3333",
-                "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
-                "windows": {
-                    "program": "${workspaceFolder}\\build\\${command:espIdf.getProjectName}.elf"
-                },
-                "cwd": "${workspaceFolder}",
-                "environment": [{ "name":"KEY", "value":"VALUE" }],
-                "setupCommands": [
-                        { "text": "set remotetimeout 20" }
-                    ],
-                    "postRemoteConnectCommands": [
-                        { "text": "mon reset halt" },
-                        { "text": "maintenance flush register-cache"}
-                    ],
-                "externalConsole": false,
-                "logging": {
-                    "engineLogging": true
-                }
-            }
-        ]
+      "configurations": [
+          {
+          "name": "GDB",
+          "type": "cppdbg",
+          "request": "launch",
+          "MIMode": "gdb",
+          "miDebuggerPath": "${command:espIdf.getToolchainGdb}",
+          "miDebuggerServerAddress": "localhost:3333",
+          "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
+          "windows": {
+              "program": "${workspaceFolder}\\build\\${command:espIdf.getProjectName}.elf"
+          },
+          "cwd": "${workspaceFolder}",
+          "environment": [
+              {
+              "name": "KEY",
+              "value": "VALUE"
+              }
+          ],
+          "setupCommands": [
+              {
+              "text": "set remotetimeout 20"
+              }
+          ],
+          "postRemoteConnectCommands": [
+              {
+              "text": "mon reset halt"
+              },
+              {
+              "text": "maintenance flush register-cache"
+              }
+          ],
+          "externalConsole": false,
+          "logging": {
+              "engineLogging": true
+          }
+          }
+      ]
     }
 
 另一款推荐的调试扩展是 `Native Debug <https://marketplace.visualstudio.com/items?itemName=webfreak.debug>`_。以下为 launch.json 的示例配置：

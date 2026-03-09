@@ -49,7 +49,7 @@
 
 8. 使用 ESP-IDF 安装管理器安装 ESP-IDF 和工具。如有需要，请参阅 [ESP-IDF 安装管理器文档](https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest/general_info.html)。
 
-9. 在 Visual Studio Code 中，进入 `查看` > `命令面板`，输入 `select current esp-idf version`，然后选择 **ESP-IDF：选择当前 ESP-IDF 版本**。将显示可用的 ESP-IDF 安装列表，请选择要用于当前 ESP-IDF 项目的版本。所选配置将保存为 **idf.currentSetup**（即所选安装对应的 setup 标识），扩展会为当前项目配置环境变量并保存为工作区文件夹状态。您可以通过运行 **ESP-IDF：诊断命令** 来查看配置：进入 `查看` > `命令面板`，输入 `doctor command`，然后选择 **ESP-IDF：诊断命令**。
+9. 在 Visual Studio Code 中，进入 `查看` > `命令面板`，输入 `select current esp-idf version`，然后选择 **ESP-IDF：选择当前 ESP-IDF 版本**。将显示可用的 ESP-IDF 安装列表，请选择要用于当前 ESP-IDF 项目的版本。所选配置将保存为 **idf.currentSetup**（即所选安装对应的 setup 标识），扩展会为当前项目配置环境变量并保存为工作区文件夹状态。您可以通过运行 **ESP-IDF：诊断命令** 来查看配置：进入 `查看` > `命令面板`，输入 `doctor command`，然后选择 **ESP-IDF：诊断命令**。如果未检测到已安装的 ESP-IDF，请在设置中配置 **idf.eimIdfJsonPath**，将其指向本机的 `eim_idf.json` 文件。
 
 10. 如果一切安装正确，您将看到所有设置已配置完成的消息。此时可以开始使用扩展。
 
@@ -488,7 +488,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         <tr>
             <td rowspan=1 align="center">清理</td>
             <td>清除 ESP-IDF 搜索结果</td>
-            <td>清除 ESP 资源管理器文档搜索结果中的结果。</td>
+            <td>清除 ESP 资源管理器文档搜索结果。</td>
             <td></td>
             <td></td>
         </tr>
