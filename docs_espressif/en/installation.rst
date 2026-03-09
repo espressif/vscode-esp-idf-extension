@@ -24,7 +24,7 @@ After installing Visual Studio Code (VS Code), install the ESP-IDF extension for
 2.  Alternatively, you can download the ESP-IDF Installation Manager from the following link `ESP-IDF Installation Manager <https://dl.espressif.com/dl/eim/index.html>`_ among the following options:
 
     - ``Download``: Faster speed in China using Espressif download servers.
-    - ``Github``: Using GitHub release links.
+    - ``GitHub``: Using GitHub release links.
 
 3.  Use the ESP-IDF Installation Manager to install the ESP-IDF and tools. If necessary, here is the `ESP-IDF Installation Manager Documentation <https://docs.espressif.com/projects/idf-im-ui/en/latest/general_info.html>`_.
 
@@ -40,7 +40,7 @@ After installing Visual Studio Code (VS Code), install the ESP-IDF extension for
    
    - The selected setup will save a **idf.currentSetup** with selected ESP-IDF path and the extension will configure required environment variables for the current ESP-IDF project saved as workspace folder state. 
 
-   - You can review the setup by running the **ESP-IDF: Doctor Command** by navigate to ``View`` > ``Command Palette`` and type ``doctor command`` and select **ESP-IDF: ESP-IDF: Doctor Command** from the list. 
+   - You can review the setup by running the **ESP-IDF: Doctor Command** by navigate to ``View`` > ``Command Palette`` and type ``doctor command`` and select **ESP-IDF: Doctor Command** from the list. 
 
 6.  The next step is to :ref:`Create an ESP-IDF Project <create_an_esp-idf_project>`.
 

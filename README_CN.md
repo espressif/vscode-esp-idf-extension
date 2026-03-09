@@ -45,11 +45,11 @@
 7. 或者，您可以从以下链接下载 [ESP-IDF 安装管理器](https://dl.espressif.com/dl/eim/index.html)，并选择以下选项之一：
 
 - Espressif：使用乐鑫下载服务器链接，在中国下载速度更快。
-- Github：使用 GitHub 发布链接。
+- GitHub：使用 GitHub 发布链接。
 
 8. 使用 ESP-IDF 安装管理器安装 ESP-IDF 和工具。如有需要，请参阅 [ESP-IDF 安装管理器文档](https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest/general_info.html)。
 
-9. 在 Visual Studio Code 中，进入 `查看` > `命令面板`，输入 `select current esp-idf version`，然后选择 **ESP-IDF：选择当前 ESP-IDF 版本**。将显示可用的 ESP-IDF 安装列表，请选择要用于当前 ESP-IDF 项目的版本。所选配置将保存为 **idf.currentSetup**（包含所选 ESP-IDF 路径），扩展会为当前项目配置环境变量并保存为工作区文件夹状态。您可以通过运行 **ESP-IDF：诊断命令** 来查看配置：进入 `查看` > `命令面板`，输入 `doctor command`，然后选择 **ESP-IDF：诊断命令**。
+9. 在 Visual Studio Code 中，进入 `查看` > `命令面板`，输入 `select current esp-idf version`，然后选择 **ESP-IDF：选择当前 ESP-IDF 版本**。将显示可用的 ESP-IDF 安装列表，请选择要用于当前 ESP-IDF 项目的版本。所选配置将保存为 **idf.currentSetup**（即所选安装对应的 setup 标识），扩展会为当前项目配置环境变量并保存为工作区文件夹状态。您可以通过运行 **ESP-IDF：诊断命令** 来查看配置：进入 `查看` > `命令面板`，输入 `doctor command`，然后选择 **ESP-IDF：诊断命令**。
 
 10. 如果一切安装正确，您将看到所有设置已配置完成的消息。此时可以开始使用扩展。
 
