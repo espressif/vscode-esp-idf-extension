@@ -216,7 +216,7 @@ export class AbstractCloning {
             await this.updateSubmodules(resultingPath, undefined, progress);
           }
           const target = idfConf.readParameter("idf.saveScope");
-          customExtraVars[configurationId] = installDirPath;
+          customExtraVars[configurationId] = resultingPath;
           await idfConf.writeParameter(
             "idf.customExtraVars",
             customExtraVars,
