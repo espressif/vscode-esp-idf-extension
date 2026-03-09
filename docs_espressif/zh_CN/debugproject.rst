@@ -69,7 +69,7 @@
   * 将 **idf.openOcdDebugLevel** 配置设为 4（最大值），可在 OpenOCD 服务器输出中显示调试日志。
   * 在 ``<project-directory>/.vscode/launch.json`` 中将 **verbose** 设为 true，可显示更多调试适配器输出。
 
-默认的 OpenOCD 参数为 ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``。若要修改，可设置 ``idf.openOcdLaunchArgs``（默认为空数组）以覆盖默认参数。
+默认的 OpenOCD 参数为 ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``\ 。若要修改，可设置 ``idf.openOcdLaunchArgs``\ （默认为空数组）以覆盖默认参数。
 
 例如，若要在 OpenOCD 命令中添加 ``-c "init"``，请在 ``<project-directory>/.vscode/settings.json`` 中如下设置 ``idf.openOcdLaunchArgs``：
 
