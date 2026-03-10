@@ -44,15 +44,15 @@ export async function generateConfigurationReport(
   progress: vscode.Progress<{ message: string; increment: number }>
 ) {
   progress.report({
-    message: "Generating configuration report...",
+    message: "Checking system information...",
     increment: 0,
   });
-  await getConfigurationSettings(reportedResult, currentWorkspace);
-  progress.report({
-    message: "Checking system information...",
-    increment: 7,
-  });
   await checkSystemInfo(reportedResult);
+  progress.report({
+    increment: 7,
+    message: "Generating configuration report...",
+  });
+  await getConfigurationSettings(reportedResult, currentWorkspace);
   progress.report({
     message: "Checking configuration access...",
     increment: 13,
