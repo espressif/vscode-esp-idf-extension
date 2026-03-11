@@ -17,6 +17,7 @@ Before the extension's own code can run, VS Code itself must decide to load it. 
 - ``workspaceContains:**/CMakeLists.txt`` — VS Code loads the extension automatically when any ``CMakeLists.txt`` file exists anywhere in the workspace.
 - ``onCommand:espIdf.*`` — VS Code loads the extension when you run any ESP-IDF command from the Command Palette (e.g., *ESP-IDF: Build your Project*, *ESP-IDF: Flash your Project*).
 - ``onView:idfPartitionExplorer``, ``onView:espRainmaker``, etc. — VS Code loads the extension when you open one of its registered sidebar views.
+- ``onLanguageModelTool:espIdfCommands`` — VS Code loads the extension when a language-model integration (e.g., Copilot) invokes the ESP-IDF commands tool.
 
 If **none** of these triggers fire, VS Code will never load the extension and its ``activate()`` function will never run. This means:
 
@@ -260,6 +261,7 @@ The extension's ``package.json`` declares the following activation events:
 - **workspaceContains:\*\*/CMakeLists.txt**: Fires when any folder in the workspace contains a ``CMakeLists.txt`` file at any depth. This is the most common automatic trigger.
 - **onCommand:espIdf.\***: Each ESP-IDF command is registered as an activation trigger. Running any command from the Command Palette will load the extension.
 - **onView:\***: Opening ESP-IDF sidebar panels (App Tracer, Partition Explorer, Rainmaker, Components) triggers loading.
+- **onLanguageModelTool:espIdfCommands**: Fires when a language-model integration (e.g., Copilot) invokes the ESP-IDF commands tool, enabling AI-assisted workflows.
 
 These events are defined by the `VS Code Extension API <https://code.visualstudio.com/api/references/activation-events>`_ and cannot be changed via user settings. The only way to prevent Phase 1 loading is to disable the extension entirely in VS Code's Extensions view.
 
