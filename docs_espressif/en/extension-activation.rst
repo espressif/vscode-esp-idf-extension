@@ -23,7 +23,7 @@ If **none** of these triggers fire, VS Code will never load the extension and it
 
 .. important::
 
-   The ``idf.extensionActivationMode`` setting has **no effect** unless VS Code loads the extension first. If your workspace does not contain any ``CMakeLists.txt`` file and you have not run an ESP-IDF command, the extension will not activate — even if ``idf.extensionActivationMode`` is set to ``"always"``.
+   The ``idf.extensionActivationMode`` setting has **no effect** unless VS Code loads the extension first. If none of the activation events listed above fire (no ``CMakeLists.txt`` in the workspace, no ESP-IDF command run, no sidebar view opened, no language-model tool invocation), the extension will not activate — even if ``idf.extensionActivationMode`` is set to ``"always"``.
 
 **Phase 2: Extension Decides Whether to Fully Initialize**
 
@@ -74,8 +74,9 @@ Once the extension is loaded by VS Code, it follows a strict priority hierarchy 
    - **No prompt shown**: Respects explicit configuration
    - **Use case**: Multi-root workspace explicitly excluding ESP-IDF
 
-5. **All Settings = "detect"** (Default Behavior)
+5. **Otherwise** (Default Behavior — CMake Detection)
 
+   - **Condition**: No workspace/global override (i.e., ``"detect"``), no folder set to ``"always"``, and not all folders set to ``"never"`` — this includes mixed per-folder states such as some ``"detect"`` and some ``"never"``
    - **Action**: Fallback to automatic CMakeLists.txt content detection
    - **Detection**: Searches for ``include($ENV{IDF_PATH}/tools/cmake/project.cmake)``
    - **If not found**: Prompts with "Activate Anyway" dialog
@@ -129,7 +130,7 @@ This will initialize the extension regardless of your CMakeLists.txt content.
 
 .. note::
 
-   This only works if your workspace contains at least one ``CMakeLists.txt`` file (which triggers Phase 1 loading), or if you first run an ESP-IDF command from the Command Palette.
+   This only works if at least one Phase 1 activation event fires — for example, a ``CMakeLists.txt`` file exists in the workspace, you run an ESP-IDF command from the Command Palette, or you open an ESP-IDF sidebar view.
 
 Disable Extension in Specific Workspace
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -216,7 +217,7 @@ Extension Not Activating
 
 **Possible causes**:
 
-1. **No activation trigger** (Phase 1): The workspace contains no ``CMakeLists.txt`` file and no ESP-IDF command has been run.
+1. **No activation trigger** (Phase 1): No declared activation event has fired — the workspace contains no ``CMakeLists.txt`` file, no ESP-IDF command has been run, no sidebar view has been opened, etc.
 
    **Solution**: Run any ESP-IDF command from the Command Palette to trigger loading, or create a ``CMakeLists.txt`` file. If you want automatic activation in the future, set ``"idf.extensionActivationMode": "always"`` so that once loaded, it always initializes.
 
@@ -291,7 +292,7 @@ The Phase 2 logic is designed for optimal performance:
 1. **Early Exit on Global Never**: If workspace/global setting is ``"never"``, the extension exits immediately without checking folders or reading files.
 2. **Early Exit on Any Always**: When any folder has ``"always"``, the extension stops checking remaining folders.
 3. **Skip CMake Detection**: If any explicit ``"always"`` is found, CMake file detection is entirely skipped.
-4. **Lazy File Reading**: CMakeLists.txt files are only read when all settings are ``"detect"``.
+4. **Lazy File Reading**: CMakeLists.txt files are only read when the detection fallback is reached (no explicit ``"always"`` or all-``"never"`` overrides).
 
 See Also
 --------
