@@ -99,7 +99,12 @@ The setting that controls extension initialization (Phase 2) is:
 
 **Setting Scope:**
 
-- **User (Global)**: ``~/.config/Code/User/settings.json`` (Linux/macOS) or ``%APPDATA%\Code\User\settings.json`` (Windows)
+- **User (Global)**:
+
+  - Linux: ``~/.config/Code/User/settings.json``
+  - macOS: ``~/Library/Application Support/Code/User/settings.json``
+  - Windows: ``%APPDATA%\Code\User\settings.json``
+
 - **Workspace**: ``.vscode/settings.json`` in workspace root
 - **Folder**: ``.vscode/settings.json`` in specific folder (multi-root workspaces)
 
@@ -151,22 +156,28 @@ For a workspace with both ESP-IDF and non-ESP-IDF projects:
 
    {
      "folders": [
-       {
-         "path": "esp32-firmware",
-         "settings": {
-           "idf.extensionActivationMode": "always"
-         }
-       },
-       {
-         "path": "documentation",
-         "settings": {
-           "idf.extensionActivationMode": "never"
-         }
-       },
-       {
-         "path": "web-interface"
-       }
+       { "path": "esp32-firmware" },
+       { "path": "documentation" },
+       { "path": "web-interface" }
      ]
+   }
+
+**Folder-level settings** (each folder's ``.vscode/settings.json``):
+
+``esp32-firmware/.vscode/settings.json``:
+
+.. code-block:: json
+
+   {
+     "idf.extensionActivationMode": "always"
+   }
+
+``documentation/.vscode/settings.json``:
+
+.. code-block:: json
+
+   {
+     "idf.extensionActivationMode": "never"
    }
 
 In this example, the extension will initialize because the ``esp32-firmware`` folder has ``"always"`` set (Priority #3: "true wins").

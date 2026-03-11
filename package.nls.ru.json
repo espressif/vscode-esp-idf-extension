@@ -114,7 +114,7 @@
 	"param.customTerminalExecutableArgs.title": "Список аргументов для пользовательской оболочки терминала",
 	"param.extraCleanPaths": "Дополнительные пути для очистки во время задачи полной очистки",
 	"param.deleteComponentsOnFullClean": "Удалять папку managed_components по команде 'Полная очистка проекта'",
-	"param.extensionActivationMode": "Режим активации расширения ESP-IDF для этого рабочего пространства/папки.",
+	"param.extensionActivationMode": "Режим активации расширения ESP-IDF для этого пользователя/рабочего пространства/папки.",
 	"param.extensionActivationMode.enum.detect": "Автоопределение проектов ESP-IDF (проверка CMakeLists.txt и запрос при необходимости).",
 	"param.extensionActivationMode.enum.always": "Всегда активировать расширение ESP-IDF для этого рабочего пространства/папки.",
 	"param.extensionActivationMode.enum.never": "Никогда не активировать расширение ESP-IDF для этого рабочего пространства/папки.",

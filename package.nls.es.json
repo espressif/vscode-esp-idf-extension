@@ -171,7 +171,7 @@
 	"param.unitTestFilePattern.title": "Patrón glob para descubrir archivos de prueba unitaria",
 	"param.serialPortDetectionTimeout": "Tiempo de espera en segundos para la detección del puerto serie usando esptool.py",
 	"param.imageViewerConfigs.title": "Ruta al archivo JSON de configuraciones de formato de imagen personalizadas",
-	"param.extensionActivationMode": "Modo de activación de la extensión ESP-IDF para este espacio de trabajo/carpeta.",
+	"param.extensionActivationMode": "Modo de activación de la extensión ESP-IDF para este usuario/espacio de trabajo/carpeta.",
 	"param.extensionActivationMode.enum.detect": "Detectar automáticamente proyectos ESP-IDF (comprobar CMakeLists.txt y avisar si es necesario).",
 	"param.extensionActivationMode.enum.always": "Activar siempre la extensión ESP-IDF para este espacio de trabajo/carpeta.",
 	"param.extensionActivationMode.enum.never": "No activar nunca la extensión ESP-IDF para este espacio de trabajo/carpeta.",

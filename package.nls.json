@@ -173,7 +173,7 @@
   "param.unitTestFilePattern.title": "Glob pattern for unit test files to discover",
   "param.serialPortDetectionTimeout": "Timeout in seconds for serial port detection using esptool.py",
   "param.imageViewerConfigs.title": "Path to custom image format configurations JSON file",
-  "param.extensionActivationMode": "ESP-IDF extension activation mode for this workspace/folder.",
+  "param.extensionActivationMode": "ESP-IDF extension activation mode for this user/workspace/folder.",
   "param.extensionActivationMode.enum.detect": "Auto-detect ESP-IDF projects (check CMakeLists.txt and prompt if needed).",
   "param.extensionActivationMode.enum.always": "Always activate the ESP-IDF extension for this workspace/folder.",
   "param.extensionActivationMode.enum.never": "Never activate the ESP-IDF extension for this workspace/folder.",
