@@ -622,6 +622,22 @@
       {
         "title": "%configuration.title%",
         "properties": {
+          "idf.extensionActivationMode": {
+            "type": "string",
+            "default": "detect",
+            "enum": [
+              "detect",
+              "always",
+              "never"
+            ],
+            "enumDescriptions": [
+              "%param.extensionActivationMode.enum.detect%",
+              "%param.extensionActivationMode.enum.always%",
+              "%param.extensionActivationMode.enum.never%"
+            ],
+            "description": "%param.extensionActivationMode%",
+            "scope": "resource"
+          },
           "idf.eimIdfJsonPath": {
             "type": "string",
             "default": "",

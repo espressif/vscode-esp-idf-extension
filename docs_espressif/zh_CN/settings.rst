@@ -32,6 +32,8 @@ ESP-IDF 相关设置
 
     * - 设置 ID
       - 描述
+    * - idf.extensionActivationMode
+      - 控制扩展激活模式：``"detect"``（默认）、``"always"`` 或 ``"never"``。
     * - idf.buildPath
       - 扩展命令的自定义构建目录名称（默认值：\${workspaceFolder}/build）
     * - idf.buildPathWin

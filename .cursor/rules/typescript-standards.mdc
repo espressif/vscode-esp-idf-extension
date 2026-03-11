@@ -1,0 +1,47 @@
+---
+description: TypeScript standards for the ESP-IDF extension
+globs: src/**/*.ts
+alwaysApply: true
+---
+
+# TypeScript Standards
+
+## Configuration / Settings Reading
+
+- Use `idfConf.readParameter(param, scope?)` from `idfConfiguration` instead of `vscode.workspace.getConfiguration().get()` when reading extension or ESP-IDF-related settings.
+
+
+## Comments / JSDoc
+
+- Prefer self-documenting code (names + small helpers) over comments.
+- Write comments for **intent / why / constraints / edge cases**; avoid narrating what the code already says.
+- Avoid redundant docs (e.g. type and function docs restating the same concept).
+- Keep JSDoc proportional. If it grows beyond ~8–10 lines, trim it or move narrative to `docs_espressif/` when appropriate.
+- Avoid `@example` blocks in source by default; prefer “Find References” unless the API is non-obvious and used broadly.
+
+```typescript
+// ❌ Avoid: comment restates the identifier
+// Convert bytes to kilobytes.
+const kb = bytes / 1024;
+
+// ✅ Prefer: name carries the meaning
+const kilobytes = bytes / 1024;
+
+// ❌ Avoid: property doc repeats name/type
+type Flags = {
+  /** True if enabled. */
+  enabled: boolean;
+};
+
+// ✅ Prefer: omit or explain non-obvious semantics
+type SettingOrigin = {
+  /** Explicitly set by the user (distinguishes from defaults). */
+  isExplicitlySet: boolean;
+};
+```
+
+## Error Logging
+
+- Use `Logger.error(message, error, "scope identifier")` for caught errors.
+- Include a consistent scope identifier as the third argument (e.g. `"extension activate checkFoo"`).
+

@@ -24,7 +24,18 @@ describe("SDKConfig Editor", () => {
 
   before(async function () {
     this.timeout(100000);
-    await new Workbench().executeCommand("espIdf.menuconfig.start");
+    
+    // Dismiss any notifications that might block the extension
+    const workbench = new Workbench();
+    const notifications = await workbench.getNotifications();
+    for (let n of notifications) {
+      await n.dismiss();
+    }
+    
+    // Wait a moment for extension activation to complete
+    await new Promise((res) => setTimeout(res, 3000));
+    
+    await workbench.executeCommand("espIdf.menuconfig.start");
     await new Promise((res) => setTimeout(res, 50000));
     view = new WebView();
     await view.switchToFrame(5000);

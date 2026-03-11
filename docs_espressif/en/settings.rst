@@ -42,6 +42,8 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 
     * - Setting ID
       - Description
+    * - idf.extensionActivationMode
+      - Controls extension activation mode: ``"detect"`` (default), ``"always"``, or ``"never"``.
     * - idf.buildPath
       - Custom build directory name for extension commands (Default: \${workspaceFolder}/build)
     * - idf.buildPathWin

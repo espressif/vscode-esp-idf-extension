@@ -21,6 +21,7 @@ The ESP-IDF extension for VSCode Code empowers developers to efficiently develop
     Troubleshooting <troubleshooting>
     Settings <settings>
     See all Commands <commands>
+    Extension Activation <extension-activation>
     FAQs <faqs>
     Release Notes <release_notes>
 

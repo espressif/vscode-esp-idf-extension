@@ -1,3 +1,5 @@
+.. _faqs-section:
+
 FAQs
 ====
 

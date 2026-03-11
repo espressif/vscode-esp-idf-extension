@@ -260,56 +260,126 @@ export async function activate(context: vscode.ExtensionContext) {
     checkAndPromptForClangdExtension();
   }
 
-  // Check for root CMakeLists.txt and its content before full activation
+  // Validate workspace activation eligibility
+  // See docs_espressif/en/extension-activation.rst for details
   if (PreCheck.isWorkspaceFolderOpen() && vscode.workspace.workspaceFolders) {
-    let hasValidIdfProject = false;
+    const activationModeConfigKey = "idf.extensionActivationMode";
+    try {
+      const normalizeActivationMode = (
+        value: unknown
+      ): "detect" | "always" | "never" => {
+        if (value === "always") {
+          return "always";
+        }
+        if (value === "never") {
+          return "never";
+        }
+        return "detect";
+      };
 
-    for (const workspaceFolder of vscode.workspace.workspaceFolders) {
-      const rootCMakeListsPath = path.join(
-        workspaceFolder.uri.fsPath,
-        "CMakeLists.txt"
+      // 1) Workspace/global setting: always activates; never suppresses (no prompt).
+      const workspaceValue = normalizeActivationMode(
+        idfConf.readParameter(activationModeConfigKey)
       );
-      const rootCMakeListsExists = await pathExists(rootCMakeListsPath);
-
-      if (rootCMakeListsExists) {
-        try {
-          const cmakeContent = await readFile(rootCMakeListsPath, "utf-8");
-          if (
-            cmakeContent.includes(
-              "include($ENV{IDF_PATH}/tools/cmake/project.cmake)"
-            )
-          ) {
-            hasValidIdfProject = true;
-            break; // Found a valid project, activate immediately
-          }
-        } catch (error) {
-          Logger.error(
-            `Error reading root CMakeLists.txt for activation check in ${workspaceFolder.name}.`,
-            error,
-            "extension activate checkCMakeContent"
+      if (workspaceValue === "always") {
+        // Activate immediately; skip folder checks and CMake detection.
+        Logger.info(
+          "Extension activation forced by workspace/global idf.extensionActivationMode=always setting."
+        );
+      } else if (workspaceValue === "never") {
+        Logger.info(
+          "Extension activation suppressed by workspace/global idf.extensionActivationMode=never setting."
+        );
+        return;
+      } else {
+        // 2) Folder settings: any always activates; only ALL folders never suppresses (no prompt).
+        let hasAnyFolderAlways = false;
+        let allFoldersNever = vscode.workspace.workspaceFolders.length > 0;
+        for (const folder of vscode.workspace.workspaceFolders) {
+          const folderValue = normalizeActivationMode(
+            idfConf.readParameter(activationModeConfigKey, folder.uri)
           );
+          if (folderValue === "always") {
+            hasAnyFolderAlways = true;
+            allFoldersNever = false;
+            Logger.info(
+              "Extension activation forced by folder-level idf.extensionActivationMode=always setting."
+            );
+            break;
+          }
+          if (folderValue !== "never") {
+            allFoldersNever = false;
+          }
+        }
+
+        if (!hasAnyFolderAlways) {
+          if (allFoldersNever) {
+            Logger.info(
+              "Extension activation suppressed because all workspace folders set idf.extensionActivationMode=never."
+            );
+            return;
+          }
+
+          // 3) Fallback: CMakeLists.txt detection across folders.
+          let hasCMakeIdfProject = false;
+          for (const workspaceFolder of vscode.workspace.workspaceFolders) {
+            const rootCMakeListsPath = path.join(
+              workspaceFolder.uri.fsPath,
+              "CMakeLists.txt"
+            );
+            const rootCMakeListsExists = await pathExists(rootCMakeListsPath);
+            if (!rootCMakeListsExists) {
+              continue;
+            }
+            try {
+              const cmakeContent = await readFile(rootCMakeListsPath, "utf-8");
+              if (
+                cmakeContent.includes(
+                  "include($ENV{IDF_PATH}/tools/cmake/project.cmake)"
+                )
+              ) {
+                hasCMakeIdfProject = true;
+                Logger.info(
+                  "Extension activated via CMakeLists.txt ESP-IDF project detection."
+                );
+                break;
+              }
+            } catch (error) {
+              Logger.error(
+                `Error reading root CMakeLists.txt for activation check in ${workspaceFolder.name}.`,
+                error,
+                "extension activate checkCMakeContent"
+              );
+            }
+          }
+
+          if (!hasCMakeIdfProject) {
+            // 4) Prompt only when no standard project was detected.
+            const activateAnyway = await vscode.window.showInformationMessage(
+              vscode.l10n.t(
+                "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?"
+              ),
+              { modal: false },
+              { title: vscode.l10n.t("Activate Anyway") }
+            );
+            if (
+              !activateAnyway ||
+              activateAnyway.title !== vscode.l10n.t("Activate Anyway")
+            ) {
+              Logger.info("User chose not to activate the ESP-IDF extension.");
+              return; // Exit activation early
+            }
+            Logger.info(
+              "User chose to activate the ESP-IDF extension despite no standard ESP-IDF project was found."
+            );
+          }
         }
       }
-    }
-
-    if (!hasValidIdfProject) {
-      // At least one CMakeLists.txt was found, but none are ESP-IDF projects.
-      const activateAnyway = await vscode.window.showInformationMessage(
-        vscode.l10n.t(
-          "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?"
-        ),
-        { modal: false },
-        { title: vscode.l10n.t("Activate Anyway") }
-      );
-      if (
-        !activateAnyway ||
-        activateAnyway.title !== vscode.l10n.t("Activate Anyway")
-      ) {
-        Logger.info("User chose not to activate the ESP-IDF extension.");
-        return; // Exit activation early
-      }
-      Logger.info(
-        "User chose to activate the ESP-IDF extension despite no standard ESP-IDF project was found."
+    } catch (error) {
+      Logger.error(
+        "Error checking idf.extensionActivationMode setting for activation.",
+        error,
+        "extension activate checkExtensionActivationModeSetting"
       );
     }
   }
