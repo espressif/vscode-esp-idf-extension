@@ -2199,10 +2199,30 @@ export class GDBDebugSession extends LoggingDebugSession {
   // Assume that the register name are unchanging over time, and the same across all threadsf
   private registerMap = new Map<string, number>();
   private registerMapReverse = new Map<number, string>();
+
+  /** Set hexadecimal display format for a varobj and all its descendants (so union/array elements show in hex). */
+  private async setRegisterVarObjFormatToHexRecursive(varname: string): Promise<void> {
+    try {
+      await mi.sendVarSetFormatToHex(this.gdb, varname);
+    } catch {
+      // ignore format failure for this node
+    }
+    try {
+      const childrenResult = await mi.sendVarListChildren(this.gdb, {
+        name: varname,
+        printValues: mi.MIVarPrintValues.all,
+      });
+      for (const child of childrenResult.children) {
+        await this.setRegisterVarObjFormatToHexRecursive(child.name);
+      }
+    } catch {
+      // no children or list failed
+    }
+  }
+
   protected async handleVariableRequestRegister(
     ref: RegisterVariableReference
   ): Promise<DebugProtocol.Variable[]> {
-    // initialize variables array and dereference the frame handle
     const variables: DebugProtocol.Variable[] = [];
     const frame = this.frameHandles.get(ref.frameHandle);
     if (!frame) {
@@ -2231,20 +2251,150 @@ export class GDBDebugSession extends LoggingDebugSession {
       threadId: frame.threadId,
     });
     const reg_values = result_values["register-values"];
+
+    const stackDepth = await mi.sendStackInfoDepth(this.gdb, {
+      maxDepth: 100,
+    });
+    const depth = parseInt(stackDepth.depth, 10);
+
+    const flatValuesByReg = new Map<string, string>();
     for (const n of reg_values) {
-      const id = n.number;
-      const reg = this.registerMapReverse.get(parseInt(id));
+      const reg = this.registerMapReverse.get(parseInt(n.number));
       if (reg) {
-        const val = n.value;
-        const res: DebugProtocol.Variable = {
+        flatValuesByReg.set(reg, n.value);
+      }
+    }
+
+    const varCreateResults = await Promise.allSettled(
+      reg_values.map(async (n) => {
+        const reg = this.registerMapReverse.get(parseInt(n.number));
+        if (!reg) return null;
+        const existingVar = this.gdb.varManager.getVar(
+          frame.frameId,
+          frame.threadId,
+          depth,
+          "$" + reg,
+          "registers"
+        );
+        if (existingVar) {
+          await this.setRegisterVarObjFormatToHexRecursive(existingVar.varname);
+          const updated = await this.gdb.varManager.updateVar(
+            frame.frameId,
+            frame.threadId,
+            depth,
+            existingVar
+          );
+          return { reg, response: updated, fromCache: true, hexValue: undefined };
+        }
+        try {
+          const response = await mi.sendVarCreate(this.gdb, {
+            expression: "$" + reg,
+            frameId: frame.frameId,
+            threadId: frame.threadId,
+          });
+          await this.setRegisterVarObjFormatToHexRecursive(response.name);
+          const updateResult = await mi.sendVarUpdate(this.gdb, {
+            name: response.name,
+          });
+          const hexValue =
+            updateResult.changelist?.[0]?.value ?? response.value;
+          return {
+            reg,
+            response,
+            fromCache: false,
+            hexValue,
+          };
+        } catch {
+          return { reg, response: null, fromCache: false, hexValue: undefined };
+        }
+      })
+    );
+
+    for (let i = 0; i < reg_values.length; i++) {
+      const reg = this.registerMapReverse.get(parseInt(reg_values[i].number));
+      if (!reg) {
+        throw new Error("Unable to parse response for reg. values");
+      }
+      const rawFlatVal = flatValuesByReg.get(reg) ?? reg_values[i].value;
+      const flatVal = rawFlatVal.startsWith("0x")
+        ? rawFlatVal
+        : "0x" + rawFlatVal;
+      const settled = varCreateResults[i];
+      if (settled.status === "rejected") {
+        variables.push({
           name: reg,
           evaluateName: "$" + reg,
-          value: val,
+          value: flatVal,
           variablesReference: 0,
-        };
-        variables.push(res);
+        });
+        continue;
+      }
+      const result = settled.value;
+      if (!result || !result.response) {
+        variables.push({
+          name: reg,
+          evaluateName: "$" + reg,
+          value: flatVal,
+          variablesReference: 0,
+        });
+        continue;
+      }
+      const resp = result.response as mi.MIVarCreateResponse | VarObjType;
+      const numchild =
+        "numchild" in resp ? resp.numchild : (resp as VarObjType).numchild;
+      const varobjValue =
+        result.hexValue !== undefined
+          ? result.hexValue
+          : "value" in resp
+            ? resp.value
+            : (resp as VarObjType).value;
+      const type = "type" in resp ? resp.type : (resp as VarObjType).type;
+      const name =
+        "name" in resp
+          ? (resp as mi.MIVarCreateResponse).name
+          : (resp as VarObjType).varname;
+      const num = parseInt(numchild, 10);
+      if (num > 0) {
+        if (!result.fromCache) {
+          this.gdb.varManager.addVar(
+            frame.frameId,
+            frame.threadId,
+            depth,
+            "$" + reg,
+            false,
+            false,
+            resp as mi.MIVarCreateResponse,
+            "registers"
+          );
+        }
+        variables.push({
+          name: reg,
+          evaluateName: "$" + reg,
+          value: varobjValue,
+          type,
+          variablesReference: this.variableHandles.create({
+            type: "object",
+            frameHandle: ref.frameHandle,
+            varobjName: name,
+          }),
+        });
       } else {
-        throw new Error("Unable to parse response for reg. values");
+        if (!result.fromCache && "name" in resp) {
+          try {
+            await mi.sendVarDelete(this.gdb, {
+              varname: (resp as mi.MIVarCreateResponse).name,
+            });
+          } catch {
+            // ignore cleanup failure
+          }
+        }
+        variables.push({
+          name: reg,
+          evaluateName: "$" + reg,
+          value: flatVal,
+          type,
+          variablesReference: 0,
+        });
       }
     }
 
