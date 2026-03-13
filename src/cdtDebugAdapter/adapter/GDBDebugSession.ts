@@ -2311,9 +2311,11 @@ export class GDBDebugSession extends LoggingDebugSession {
     );
 
     for (let i = 0; i < reg_values.length; i++) {
-      const reg = this.registerMapReverse.get(parseInt(reg_values[i].number));
+      const regNum = parseInt(reg_values[i].number, 10);
+      const reg = this.registerMapReverse.get(regNum);
       if (!reg) {
-        throw new Error("Unable to parse response for reg. values");
+        // Skip registers that do not have a known name mapping
+        continue;
       }
       const rawFlatVal = flatValuesByReg.get(reg) ?? reg_values[i].value;
       const flatVal = rawFlatVal.startsWith("0x")
