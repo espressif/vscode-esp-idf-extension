@@ -175,6 +175,10 @@ import {
   downloadExtractAndRunEIM,
   runExistingEIM,
 } from "./eim/downloadInstall";
+import {
+  checkAndPromptForClangdExtension,
+  handleCompileCommandsUpdate,
+} from "./clang/checkClangExtension";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -463,6 +467,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
     const coverageOptions = getCoverageOptions(workspaceRoot);
     covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
+    handleCompileCommandsUpdate(workspaceRoot, context);
   }
   let unitTestController = new UnitTest(context);
   // Add delete or update new sources in CMakeLists.txt of same folder
@@ -571,6 +576,7 @@ export async function activate(context: vscode.ExtensionContext) {
             }
             const coverageOptions = getCoverageOptions(workspaceRoot);
             covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
+            handleCompileCommandsUpdate(workspaceRoot, context);
             break;
           }
         }
@@ -587,13 +593,8 @@ export async function activate(context: vscode.ExtensionContext) {
           );
           const coverageOptions = getCoverageOptions(workspaceRoot);
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
+          handleCompileCommandsUpdate(workspaceRoot, context);
         }
-        const buildDirPath = idfConf.readParameter(
-          "idf.buildPath",
-          workspaceRoot
-        ) as string;
-        const projectName = await getProjectName(buildDirPath);
-        const projectElfFile = `${path.join(buildDirPath, projectName)}.elf`;
         const openOCDConfig: IOpenOCDConfig = {
           workspace: workspaceRoot,
         } as IOpenOCDConfig;
@@ -1091,6 +1092,7 @@ export async function activate(context: vscode.ExtensionContext) {
         ConfserverProcess.dispose();
         const coverageOptions = getCoverageOptions(workspaceRoot);
         covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
+        handleCompileCommandsUpdate(workspaceRoot, context);
       } catch (error) {
         Logger.errorNotify(
           error.message,
@@ -1299,6 +1301,7 @@ export async function activate(context: vscode.ExtensionContext) {
     } else if (e.affectsConfiguration("idf.buildPath" + winFlag)) {
       updateIdfComponentsTree(workspaceRoot);
       await configureClangSettings(workspaceRoot);
+      handleCompileCommandsUpdate(workspaceRoot, context);
     } else if (e.affectsConfiguration("idf.customExtraVars")) {
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
       await configureClangSettings(workspaceRoot);
@@ -4388,79 +4391,6 @@ async function createMonitor() {
     const noReset = await shouldDisableMonitorReset(workspaceRoot);
     await createNewIdfMonitor(workspaceRoot, noReset);
   });
-}
-
-/**
- * Checks if the clangd extension is installed and prompts the user to install it if not.
- * This is specifically for VS Code fork users (like Cursor, VSCodium, etc.) to ensure they have the best C/C++ development experience.
- */
-async function checkAndPromptForClangdExtension() {
-  const clangdExtensionId = "llvm-vs-code-extensions.vscode-clangd";
-  const clangdExtension = vscode.extensions.getExtension(clangdExtensionId);
-
-  if (!clangdExtension) {
-    Logger.info("clangd extension not found - prompting user to install");
-
-    const message = vscode.l10n.t(
-      "For the best C/C++ development experience in this editor, we recommend installing the clangd extension. This provides enhanced IntelliSense, code completion, and error detection."
-    );
-
-    const installAction = await vscode.window.showInformationMessage(
-      message,
-      { modal: false },
-      { title: vscode.l10n.t("Install clangd") },
-      { title: vscode.l10n.t("Not now") }
-    );
-
-    if (
-      installAction &&
-      installAction.title === vscode.l10n.t("Install clangd")
-    ) {
-      try {
-        await vscode.commands.executeCommand(
-          "workbench.extensions.installExtension",
-          clangdExtensionId
-        );
-
-        // Show success message
-        await vscode.window.showInformationMessage(
-          vscode.l10n.t(
-            "clangd extension installed successfully! Please reload the window to activate it."
-          )
-        );
-
-        // Offer to reload the window
-        const reloadAction = await vscode.window.showInformationMessage(
-          vscode.l10n.t(
-            "Would you like to reload the window to activate the clangd extension?"
-          ),
-          { modal: false },
-          { title: vscode.l10n.t("Reload") },
-          { title: vscode.l10n.t("Later") }
-        );
-
-        if (reloadAction && reloadAction.title === vscode.l10n.t("Reload")) {
-          await vscode.commands.executeCommand("workbench.action.reloadWindow");
-        }
-      } catch (error) {
-        Logger.error(
-          "Failed to install clangd extension",
-          error,
-          "checkAndPromptForClangdExtension"
-        );
-
-        await vscode.window.showErrorMessage(
-          vscode.l10n.t(
-            "Failed to install clangd extension. You can install it manually from the Extensions marketplace."
-          )
-        );
-      }
-    } else {
-      Logger.info("User chose not to install clangd extension");
-    }
-  } else {
-    Logger.info("clangd extension is already installed");
-  }
 }
 
 export function deactivate() {
