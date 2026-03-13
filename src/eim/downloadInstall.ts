@@ -116,14 +116,18 @@ export async function runExistingEIM(
     return false;
   }
 
+  if (isVSCodeInstalledViaSnap()) {
+    progress.report({
+      message: `EIM found at ${eimPath}. Snap environment detected, skipping launch.`,
+      increment: 0,
+    });
+    return true;
+  }
+
   progress.report({
     message: `EIM found at ${eimPath}. Launching...`,
     increment: 0,
   });
-
-  if (isVSCodeInstalledViaSnap()) {
-    return true;
-  }
 
   const idfEimExecutableArgs = readParameter(
     "idf.eimExecutableArgs"

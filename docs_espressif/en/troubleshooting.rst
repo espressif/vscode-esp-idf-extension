@@ -69,6 +69,6 @@ The extension will detect this situation and display a notification with instruc
         sudo snap remove code
         # Then install the .deb package downloaded from https://code.visualstudio.com/Download
 
-3.  **Download EIM from the releases page**: If EIM is not yet installed, the extension notification will include a **Download EIM** button that opens the `EIM releases page <https://dl.espressif.com/dl/eim/index.html>`_ where you can download it manually.
+3.  **Run EIM manually**: When snap restrictions are detected, the extension will show a modal with a **Copy EIM Path** button (to copy the path to your clipboard so you can paste it in a system terminal) and an **Open Documentation** button for further guidance.
 
 If you cannot resolve the error, please search the `GitHub Repository Issues <http://github.com/espressif/vscode-esp-idf-extension/issues>`_ for existing issues or create a new issue `here <https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose>`_.
