@@ -1244,10 +1244,13 @@ export class GDBDebugSession extends LoggingDebugSession {
         parentVarname +
         (parentVarname === "" ? "" : ".") +
         args.name.replace(/^\[(\d+)\]/, "$1");
-      const stackDepth = await mi.sendStackInfoDepth(this.gdb, {
-        maxDepth: 100,
-      });
-      const depth = parseInt(stackDepth.depth, 10);
+      const depth =
+        ref.type === "registers"
+          ? this.getRegisterVarDepth()
+          : parseInt(
+              (await mi.sendStackInfoDepth(this.gdb, { maxDepth: 100 })).depth,
+              10
+            );
       let varobj = this.gdb.varManager.getVar(
         frame.frameId,
         frame.threadId,
@@ -2206,6 +2209,11 @@ export class GDBDebugSession extends LoggingDebugSession {
   /** Cache: register name -> true if composite (has children), false if scalar. Avoids repeated var-create/delete for scalars. */
   private registerCompositeCache = new Map<string, boolean>();
 
+  /** Depth key used for register varobjs in varManager (registers are not scoped by stack frame). */
+  private getRegisterVarDepth(): number {
+    return 0;
+  }
+
   private static readonly REGISTER_VAROBJ_CONCURRENCY = 4;
 
   /** Run async tasks with a limited concurrency pool to avoid overwhelming GDB/OpenOCD. */
@@ -2300,11 +2308,7 @@ export class GDBDebugSession extends LoggingDebugSession {
     });
     const reg_values = result_values["register-values"];
 
-    // const stackDepth = await mi.sendStackInfoDepth(this.gdb, {
-    //   maxDepth: 100,
-    // });
-    // const depth = parseInt(stackDepth.depth, 10);
-    const depth = 0; // registers are not scoped by stack depth, so we can just use 0 here
+    const depth = this.getRegisterVarDepth();
 
     const flatValuesByReg = new Map<string, string>();
     for (const n of reg_values) {
