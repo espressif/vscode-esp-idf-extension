@@ -2203,7 +2203,7 @@ export class GDBDebugSession extends LoggingDebugSession {
   }
 
   // Register view
-  // Assume that the register name are unchanging over time, and the same across all threadsf
+  // Assume that the register name are unchanging over time, and the same across all threads
   private registerMap = new Map<string, number>();
   private registerMapReverse = new Map<number, string>();
   /** Cache: register name -> true if composite (has children), false if scalar. Avoids repeated var-create/delete for scalars. */
@@ -2257,7 +2257,7 @@ export class GDBDebugSession extends LoggingDebugSession {
     try {
       const childrenResult = await mi.sendVarListChildren(this.gdb, {
         name: varname,
-        printValues: mi.MIVarPrintValues.all,
+        printValues: mi.MIVarPrintValues.no,
       });
       if (
         childrenResult &&
@@ -2312,7 +2312,7 @@ export class GDBDebugSession extends LoggingDebugSession {
 
     const flatValuesByReg = new Map<string, string>();
     for (const n of reg_values) {
-      const reg = this.registerMapReverse.get(parseInt(n.number));
+      const reg = this.registerMapReverse.get(parseInt(n.number, 10));
       if (reg) {
         flatValuesByReg.set(reg, n.value);
       }
@@ -2322,7 +2322,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       reg_values,
       GDBDebugSession.REGISTER_VAROBJ_CONCURRENCY,
       async (n) => {
-        const reg = this.registerMapReverse.get(parseInt(n.number));
+        const reg = this.registerMapReverse.get(parseInt(n.number, 10));
         if (!reg) return null;
         const existingVar = this.gdb.varManager.getVar(
           frame.frameId,
@@ -2335,12 +2335,20 @@ export class GDBDebugSession extends LoggingDebugSession {
           const existingNum = parseInt(existingVar.numchild, 10);
           if (existingNum === 0) {
             this.registerCompositeCache.set(reg, false);
-            await this.gdb.varManager.removeVar(
-              frame.frameId,
-              frame.threadId,
-              depth,
-              existingVar.varname
-            );
+            try {
+              await this.gdb.varManager.removeVar(
+                frame.frameId,
+                frame.threadId,
+                depth,
+                existingVar.varname
+              );
+              this.registerCompositeCache.set(reg, false);
+            } catch (err) {
+              logger.warn(
+                `Failed to remove register varobj '${existingVar.varname}' for register '${reg}': ${err}`
+              );
+              this.registerCompositeCache.set(reg, true);
+            }
             return {
               reg,
               response: null,
@@ -2360,12 +2368,21 @@ export class GDBDebugSession extends LoggingDebugSession {
           if (updatedNum === 0) {
             this.registerCompositeCache.set(reg, false);
             if (updated?.varname) {
-              await this.gdb.varManager.removeVar(
-                frame.frameId,
-                frame.threadId,
-                depth,
-                updated.varname
-              );
+              try {
+                await this.gdb.varManager.removeVar(
+                  frame.frameId,
+                  frame.threadId,
+                  depth,
+                  updated.varname
+                );
+
+                this.registerCompositeCache.set(reg, false);
+              } catch (err) {
+                logger.warn(
+                  `Failed to remove updated register varobj '${updated.varname}' for register '${reg}': ${err}`
+                );
+                this.registerCompositeCache.set(reg, true);
+              }
             }
             return {
               reg,
