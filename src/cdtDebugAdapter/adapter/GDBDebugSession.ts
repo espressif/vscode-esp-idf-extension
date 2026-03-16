@@ -2251,11 +2251,15 @@ export class GDBDebugSession extends LoggingDebugSession {
         name: varname,
         printValues: mi.MIVarPrintValues.all,
       });
-      if (childrenResult && childrenResult.children) {
-        await Promise.all(
-          childrenResult.children.map((child) =>
-            this.setRegisterVarObjFormatToHexRecursive(child.name)
-          )
+      if (
+        childrenResult &&
+        childrenResult.children &&
+        childrenResult.children.length > 0
+      ) {
+        await this.runWithPool(
+          childrenResult.children,
+          GDBDebugSession.REGISTER_VAROBJ_CONCURRENCY,
+          (child) => this.setRegisterVarObjFormatToHexRecursive(child.name)
         );
       }
     } catch (e) {
@@ -2324,6 +2328,22 @@ export class GDBDebugSession extends LoggingDebugSession {
           "registers"
         );
         if (existingVar) {
+          const existingNum = parseInt(existingVar.numchild, 10);
+          if (existingNum === 0) {
+            this.registerCompositeCache.set(reg, false);
+            await this.gdb.varManager.removeVar(
+              frame.frameId,
+              frame.threadId,
+              depth,
+              existingVar.varname
+            );
+            return {
+              reg,
+              response: null,
+              fromCache: false,
+              hexValue: undefined,
+            };
+          }
           this.registerCompositeCache.set(reg, true);
           await this.setRegisterVarObjFormatToHexRecursive(existingVar.varname);
           const updated = await this.gdb.varManager.updateVar(
@@ -2332,6 +2352,24 @@ export class GDBDebugSession extends LoggingDebugSession {
             depth,
             existingVar
           );
+          const updatedNum = updated ? parseInt(updated.numchild, 10) : 0;
+          if (updatedNum === 0) {
+            this.registerCompositeCache.set(reg, false);
+            if (updated?.varname) {
+              await this.gdb.varManager.removeVar(
+                frame.frameId,
+                frame.threadId,
+                depth,
+                updated.varname
+              );
+            }
+            return {
+              reg,
+              response: null,
+              fromCache: false,
+              hexValue: undefined,
+            };
+          }
           if (
             updated &&
             updated.varname &&
