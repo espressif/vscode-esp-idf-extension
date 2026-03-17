@@ -14,6 +14,7 @@ import {
   DebugSession,
   Handles,
   InitializedEvent,
+  InvalidatedEvent,
   Logger,
   logger,
   LoggingDebugSession,
@@ -1322,6 +1323,16 @@ export class GDBDebugSession extends LoggingDebugSession {
           }
         }
       }
+      if (ref.type === "object" && ref.varobjName) {
+        const isRegisterVariable = await this.checkIfVariableIsARegister(
+          frame,
+          ref.frameHandle,
+          ref.varobjName
+        );
+        if (isRegisterVariable) {
+          this.sendInvalidatedEvent(["variables"], frame.threadId, frame.frameId);
+        }
+      }
       response.body = {
         value: assign.value,
         type: varobj ? varobj.type : undefined,
@@ -2212,6 +2223,42 @@ export class GDBDebugSession extends LoggingDebugSession {
   /** Depth key used for register varobjs in varManager (registers are not scoped by stack frame). */
   private getRegisterVarDepth(): number {
     return 0;
+  }
+
+  private async checkIfVariableIsARegister(
+    frame: { frameId: number; threadId: number },
+    _frameHandle: number,
+    parentVarname: string
+  ): Promise<boolean> {
+    if (!parentVarname) return false;
+    try {
+      const regDepth = this.getRegisterVarDepth();
+      const rootName = parentVarname.indexOf(".") !== -1 ? parentVarname.split(".")[0] : parentVarname;
+      const rootVar = this.gdb.varManager.getVarByName(
+        frame.frameId,
+        frame.threadId,
+        regDepth,
+        rootName
+      );
+      if (rootVar?.varType === "registers") {
+        return true;
+      }
+    } catch {
+      // ignore path/update failure
+    }
+    return false;
+  }
+
+  /**
+   * Send the DAP invalidated event so the client (e.g. VS Code) refetches variables and updates the Variables view.
+   * See https://microsoft.github.io/debug-adapter-protocol/specification#InvalidatedEvent
+   * @param areas The areas to invalidate (e.g., "variables"). Possible values: 'all' | 'stacks' | 'threads' | 'variables'.
+   * @param threadId The ID of the thread to invalidate.
+   * @param stackFrameId The ID of the stack frame to invalidate.
+   */
+  private sendInvalidatedEvent(areas: string[] = ["variables"], threadId?: number, stackFrameId?: number): void {
+    const ev = new InvalidatedEvent(areas, threadId, stackFrameId);
+    this.sendEvent(ev);
   }
 
   private static readonly REGISTER_VAROBJ_CONCURRENCY = 4;
