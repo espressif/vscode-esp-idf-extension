@@ -4,6 +4,7 @@
       "name": "ESP-IDF",
       "compilerPath": "${default}",
       "compileCommands": "${config:idf.buildPath}/compile_commands.json",
+      "intelliSenseMode": "gcc-x86",
       "includePath": [
         "${workspaceFolder}/**"
       ],

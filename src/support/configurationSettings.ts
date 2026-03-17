@@ -37,16 +37,29 @@ export async function getConfigurationSettings(
   const userExtraVars = conf.get("idf.customExtraVars") as {
     [key: string]: string;
   };
-  const idfPathDir = userExtraVars?.IDF_PATH || currentEnvVars["IDF_PATH"] || process.env.IDF_PATH;
-  const idfToolsPath = userExtraVars?.IDF_TOOLS_PATH || currentEnvVars["IDF_TOOLS_PATH"] || process.env.IDF_TOOLS_PATH;
+  const idfPathDir =
+    userExtraVars?.IDF_PATH ||
+    currentEnvVars["IDF_PATH"] ||
+    process.env.IDF_PATH ||
+    "";
+  const idfToolsPath =
+    userExtraVars?.IDF_TOOLS_PATH ||
+    currentEnvVars["IDF_TOOLS_PATH"] ||
+    process.env.IDF_TOOLS_PATH ||
+    "";
 
   const pyDir =
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
       : ["bin", "python3"];
   const idfPythonEnvPath =
-    currentEnvVars["IDF_PYTHON_ENV_PATH"] || process.env.IDF_PYTHON_ENV_PATH;
-  const venvPythonPath = join(idfPythonEnvPath, ...pyDir);
+    userExtraVars?.IDF_PYTHON_ENV_PATH ||
+    currentEnvVars["IDF_PYTHON_ENV_PATH"] ||
+    process.env.IDF_PYTHON_ENV_PATH ||
+    "";
+  const venvPythonPath = idfPythonEnvPath
+    ? join(idfPythonEnvPath, ...pyDir)
+    : "";
 
   reportedResult.configurationSettings = {
     espAdfPath: userExtraVars["ADF_PATH"],
