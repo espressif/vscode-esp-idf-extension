@@ -1959,14 +1959,18 @@ export class GDBDebugSession extends LoggingDebugSession {
             if (arrayRegex.test(varobj.type)) {
               value = await this.getAddr(varobj);
             }
+            const hasChildren = parseInt(varobj.numchild, 10) > 0;
+            const displayValue = hasChildren
+              ? this.valueForVariableWithChildren(value, varobj.type)
+              : value;
             variables.push({
               name: varobj.expression,
               evaluateName: varobj.expression,
-              value,
+              value: displayValue,
               type: varobj.type,
               memoryReference: `&(${varobj.expression})`,
               variablesReference:
-                parseInt(varobj.numchild, 10) > 0
+                hasChildren
                   ? this.variableHandles.create({
                       type: "object",
                       frameHandle: ref.frameHandle,
@@ -2032,14 +2036,18 @@ export class GDBDebugSession extends LoggingDebugSession {
         if (arrayRegex.test(varobj.type)) {
           value = await this.getAddr(varobj);
         }
+        const hasChildren = parseInt(varobj.numchild, 10) > 0;
+        const displayValue = hasChildren
+          ? this.valueForVariableWithChildren(value, varobj.type)
+          : value;
         variables.push({
           name: varobj.expression,
           evaluateName: varobj.expression,
-          value,
+          value: displayValue,
           type: varobj.type,
           memoryReference: `&(${varobj.expression})`,
           variablesReference:
-            parseInt(varobj.numchild, 10) > 0
+            hasChildren
               ? this.variableHandles.create({
                   type: "object",
                   frameHandle: ref.frameHandle,
@@ -2109,13 +2117,19 @@ export class GDBDebugSession extends LoggingDebugSession {
         const parentClassName = `${topLevelPathExpression}.${child.exp}`;
         for (const objChild of objChildren.children) {
           const childName = `${name}.${objChild.exp}`;
+          const hasChildren = parseInt(objChild.numchild, 10) > 0;
           variables.push({
             name: objChild.exp,
             evaluateName: `${parentClassName}.${objChild.exp}`,
-            value: objChild.value ? objChild.value : objChild.type,
+            value: hasChildren
+              ? this.valueForVariableWithChildren(
+                  objChild.value,
+                  objChild.type
+                )
+              : (objChild.value ?? objChild.type),
             type: objChild.type,
             variablesReference:
-              parseInt(objChild.numchild, 10) > 0
+              hasChildren
                 ? this.variableHandles.create({
                     type: "object",
                     frameHandle: ref.frameHandle,
@@ -2184,13 +2198,20 @@ export class GDBDebugSession extends LoggingDebugSession {
           isArrayParent || isArrayChild
             ? await this.getFullPathExpression(child.name)
             : `${topLevelPathExpression}.${child.exp}`;
+        const hasChildren = parseInt(child.numchild, 10) > 0;
+        const displayValue = hasChildren
+          ? this.valueForVariableWithChildren(
+              typeof value === "string" ? value : String(value),
+              child.type
+            )
+          : value;
         variables.push({
           name: variableName,
           evaluateName,
-          value,
+          value: displayValue,
           type: child.type,
           variablesReference:
-            parseInt(child.numchild, 10) > 0
+            hasChildren
               ? this.variableHandles.create({
                   type: "object",
                   frameHandle: ref.frameHandle,
@@ -2201,6 +2222,41 @@ export class GDBDebugSession extends LoggingDebugSession {
       }
     }
     return Promise.resolve(variables);
+  }
+
+  /**
+   * Display value for a variable that has children. When GDB returns a placeholder like "{...}"
+   * or "{}", show the type instead so the user sees e.g. "struct foo" or "union { ... }".
+   * For union types, when flatVal (full union expansion) is provided, extract and show the scalar
+   * member (e.g. uint128 = 0x0, int64 = 0x0) from flatVal; rawValue is often "{...}" or a scalar.
+   */
+  private valueForVariableWithChildren(
+    rawValue: string | undefined,
+    type: string,
+    flatVal?: string
+  ): string {
+    const v = (rawValue ?? "").trim();
+    const isUnion = /union\s/i.test(type);
+    const fullUnionStr = (flatVal ?? "").trim();
+    if (isUnion && fullUnionStr.length > 0 && fullUnionStr !== "{}" && fullUnionStr !== "{...}") {
+      const scalarMatch = fullUnionStr.match(
+        /\w+\s*=\s*(0x[0-9a-fA-F]+|\d+)\s*[,}]/
+      );
+      if (scalarMatch) {
+        const val = scalarMatch[1];
+        return val.startsWith("0x") ? val : "0x" + val;
+      }
+    }
+    const isPlaceholder =
+      v === "" ||
+      v === "{}" ||
+      v === "{...}" ||
+      v === "{ … }" ||
+      /^\{\s*\.\.\.\s*\}$/.test(v);
+    if (isPlaceholder) {
+      return type || "<expand to view>";
+    }
+    return v;
   }
 
   /** Query GDB using varXX name to get complete variable name */
@@ -2562,10 +2618,18 @@ export class GDBDebugSession extends LoggingDebugSession {
             "registers"
           );
         }
+        let unionFlatVal: string | undefined;
+        if (/union\s/i.test(type)) {
+          unionFlatVal = flatVal;
+        }
         variables.push({
           name: reg,
           evaluateName: "$" + reg,
-          value: varobjValue,
+          value: this.valueForVariableWithChildren(
+            varobjValue,
+            type,
+            unionFlatVal
+          ),
           type,
           variablesReference: this.variableHandles.create({
             type: "object",
