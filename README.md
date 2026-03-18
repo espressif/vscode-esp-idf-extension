@@ -127,8 +127,8 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
             <td></td>
         </tr>
         <tr>
-            <td>Configure ESP-IDF Extension</td>
-            <td>Open a window with a setup wizard to install ESP-IDF, IDF Tools and Python virtual environment.</td>
+            <td>Open ESP-IDF Installation Manager</td>
+            <td>Open ESP-IDF Installation Manager (EIM) to install ESP-IDF, IDF Tools and Python virtual environment.</td>
             <td></td>
             <td></td>
         </tr>

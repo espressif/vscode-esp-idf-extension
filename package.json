@@ -620,7 +620,7 @@
     ],
     "configuration": [
       {
-        "title": "%configuration.title%",
+        "title": "%configuration.section.setup%",
         "properties": {
           "idf.extensionActivationMode": {
             "type": "string",
@@ -658,6 +658,23 @@
             "description": "%param.currentSetup%",
             "scope": "resource"
           },
+          "idf.gitPath": {
+            "type": "string",
+            "description": "%param.gitPath.title%",
+            "scope": "application",
+            "default": "/usr/bin/git"
+          },
+          "idf.gitPathWin": {
+            "type": "string",
+            "description": "%param.gitPath.title%",
+            "scope": "application",
+            "default": "${env:programfiles}\\Git\\cmd\\git.exe"
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.serialPort%",
+        "properties": {
           "idf.port": {
             "type": "string",
             "default": "detect",
@@ -688,6 +705,59 @@
             "description": "%param.monitorBaudRate%",
             "scope": "resource"
           },
+          "idf.enableSerialPortChipIdRequest": {
+            "type": "boolean",
+            "scope": "application",
+            "default": true,
+            "description": "%param.enableSerialPortChipIdRequest.title%"
+          },
+          "idf.useSerialPortVendorProductFilter": {
+            "type": "boolean",
+            "scope": "application",
+            "default": false,
+            "description": "%param.useSerialPortVendorProductFilter.title%"
+          },
+          "idf.usbSerialPortFilters": {
+            "type": "object",
+            "scope": "application",
+            "description": "%param.usbSerialPortFilters.title%",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "vendorId": {
+                  "type": "string",
+                  "description": "%param.usbSerialPortFilters.vendorId%"
+                },
+                "productId": {
+                  "type": "string",
+                  "description": "%param.usbSerialPortFilters.productId%"
+                }
+              },
+              "additionalProperties": false
+            },
+            "default": {
+              "CP2102/CP2102N": { "vendorId": "0x10c4", "productId": "0xea60" },
+              "FT2232H": { "vendorId": "0x0403", "productId": "0x6010" },
+              "Espressif USB_SERIAL_JTAG": { "vendorId": "0x303a", "productId": "0x1001" },
+              "Espressif esp-usb-bridge firmware": { "vendorId": "0x303a", "productId": "0x1002" },
+              "ESP32-S2 USB_CDC": { "vendorId": "0x303a", "productId": "0x0002" },
+              "ESP32-S3 USB_CDC": { "vendorId": "0x303a", "productId": "0x0009" },
+              "CH9102F": { "vendorId": "0x1a86", "productId": "0x55d4" },
+              "CH340T": { "vendorId": "0x1a86", "productId": "0x7523" },
+              "FT232R": { "vendorId": "0x0403", "productId": "0x6001" }
+            }
+          },
+          "idf.serialPortDetectionTimeout": {
+            "type": "number",
+            "default": 60,
+            "scope": "resource",
+            "description": "%param.serialPortDetectionTimeout%"
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.flash%",
+        "properties": {
           "idf.openOcdConfigs": {
             "type": "array",
             "default": [
@@ -700,6 +770,59 @@
               "type": "string"
             }
           },
+          "idf.flashType": {
+            "type": "string",
+            "enum": [
+              "UART",
+              "JTAG",
+              "DFU"
+            ],
+            "description": "%idf.flashType.description%",
+            "scope": "resource"
+          },
+          "idf.flashPartitionToUse": {
+            "type": "string",
+            "enum": [
+              "all",
+              "app",
+              "bootloader",
+              "partition-table"
+            ],
+            "default": "all",
+            "description": "%param.flashPartitionToUse%",
+            "scope": "resource"
+          },
+          "idf.jtagFlashCommandExtraArgs": {
+            "type": "array",
+            "description": "%param.jtagFlashCommandExtraArgs.title%",
+            "scope": "resource",
+            "default": [
+              "verify",
+              "compress",
+              "skip_loaded",
+              "reset"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "idf.preFlashTask": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "description": "%param.preFlashTask%"
+          },
+          "idf.postFlashTask": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "description": "%param.postFlashTask%"
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.build%",
+        "properties": {
           "idf.buildPath": {
             "type": "string",
             "default": "${workspaceFolder}/build",
@@ -760,18 +883,148 @@
             "scope": "resource",
             "description": "%param.useIDFKConfigStyle%"
           },
-          "idf.showOnboardingOnInit": {
+          "idf.saveBeforeBuild": {
             "type": "boolean",
             "default": true,
-            "scope": "window",
-            "description": "%param.showOnboardingOnInit%"
+            "scope": "resource",
+            "description": "%param.saveBeforeBuildDescription%"
           },
-          "idf.hasWalkthroughBeenShown": {
+          "idf.enableCCache": {
+            "type": "boolean",
+            "description": "%param.enableCCache.title%",
+            "scope": "resource",
+            "default": false
+          },
+          "idf.extraCleanPaths": {
+            "type": "array",
+            "default": [],
+            "scope": "resource",
+            "description": "%param.extraCleanPaths%",
+            "items": {
+              "type": "string"
+            }
+          },
+          "idf.sdkconfigFilePath": {
+            "type": "string",
+            "description": "%param.sdkconfigFilePath.title%",
+            "scope": "resource",
+            "default": ""
+          },
+          "idf.enableSizeTaskAfterBuildTask": {
+            "type": "boolean",
+            "description": "%param.enableSizeTaskAfterBuildTask.title%",
+            "scope": "resource",
+            "default": true
+          },
+          "idf.preBuildTask": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "description": "%param.preBuildTask%"
+          },
+          "idf.postBuildTask": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "description": "%param.postBuildTask%"
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.debugOpenOcd%",
+        "properties": {
+          "openocd.tcl.host": {
+            "type": "string",
+            "description": "%openocd.tcl.host.description%",
+            "scope": "resource",
+            "default": "localhost"
+          },
+          "openocd.tcl.port": {
+            "type": "number",
+            "description": "%openocd.tcl.port.description%",
+            "scope": "resource",
+            "default": 6666
+          },
+          "openocd.jtag.command.force_unix_path_separator": {
+            "type": "boolean",
+            "description": "%openocd.jtag.command.force_unix_path_separator.description%",
+            "default": true
+          },
+          "idf.launchMonitorOnDebugSession": {
+            "type": "boolean",
+            "description": "%param.launchMonitorOnDebugSession.title%",
+            "scope": "resource",
+            "default": false
+          },
+          "idf.openOcdDebugLevel": {
+            "type": "number",
+            "default": 2,
+            "enum": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ],
+            "enumDescriptions": [
+              "Error",
+              "Warning",
+              "Info",
+              "Debug",
+              "Verbose"
+            ],
+            "scope": "resource",
+            "description": "%param.openOcdDebugLevel%"
+          },
+          "idf.openOcdLaunchArgs": {
+            "type": "array",
+            "default": [],
+            "description": "%param.openOcdLaunchArgs%",
+            "scope": "resource",
+            "items": {
+              "type": "string"
+            }
+          },
+          "idf.svdFilePath": {
+            "type": "string",
+            "default": "${workspaceFolder}/esp32.svd",
+            "scope": "resource",
+            "description": "%param.svdFile%"
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.monitor%",
+        "properties": {
+          "idf.monitorDelay": {
+            "type": "number",
+            "default": 1000,
+            "scope": "resource",
+            "description": "%param.monitorDelay%"
+          },
+          "idf.monitorNoReset": {
             "type": "boolean",
             "default": false,
-            "scope": "application",
-            "description": "%param.hasWalkthroughBeenShown%"
+            "scope": "resource",
+            "description": "%param.monitorNoReset%"
           },
+          "idf.monitorEnableTimestamps": {
+            "type": "boolean",
+            "default": false,
+            "scope": "resource",
+            "description": "%param.monitorEnableTimestamps%"
+          },
+          "idf.monitorCustomTimestampFormat": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "description": "%param.monitorCustomTimestampFormat%"
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.appTrace%",
+        "properties": {
           "trace.poll_period": {
             "type": "number",
             "default": 0,
@@ -793,10 +1046,7 @@
           "trace.wait4halt": {
             "type": "number",
             "default": 0,
-            "enum": [
-              0,
-              1
-            ],
+            "enum": [0, 1],
             "scope": "resource",
             "description": "%trace.wait4halt.description%"
           },
@@ -805,22 +1055,54 @@
             "default": 0,
             "scope": "resource",
             "description": "%trace.skip_size.description%"
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.tasksTerminal%",
+        "properties": {
+          "idf.customTask": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "description": "%param.customTask%"
           },
-          "idf.saveBeforeBuild": {
+          "idf.customTerminalExecutable": {
+            "type": "string",
+            "description": "%param.customTerminalExecutable.title%",
+            "scope": "resource",
+            "default": ""
+          },
+          "idf.customTerminalExecutableArgs": {
+            "type": "array",
+            "description": "%param.customTerminalExecutableArgs.title%",
+            "scope": "resource",
+            "default": [],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.uiNotifications%",
+        "properties": {
+          "idf.showOnboardingOnInit": {
             "type": "boolean",
             "default": true,
-            "scope": "resource",
-            "description": "%param.saveBeforeBuildDescription%"
+            "scope": "window",
+            "description": "%param.showOnboardingOnInit%"
+          },
+          "idf.hasWalkthroughBeenShown": {
+            "type": "boolean",
+            "default": false,
+            "scope": "application",
+            "description": "%param.hasWalkthroughBeenShown%"
           },
           "idf.notificationMode": {
             "type": "string",
             "scope": "resource",
-            "enum": [
-              "Silent",
-              "Notifications",
-              "Output",
-              "All"
-            ],
+            "enum": ["Silent", "Notifications", "Output", "All"],
             "enumDescriptions": [
               "%param.notificationMode.silent%",
               "%param.notificationMode.notification%",
@@ -833,30 +1115,39 @@
           "idf.saveScope": {
             "type": "number",
             "default": 1,
-            "enum": [
-              1,
-              2,
-              3
-            ],
-            "enumItemLabels": [
-              "Global",
-              "Workspace",
-              "WorkspaceFolder"
-            ],
-            "enumDescriptions": [
-              "Global",
-              "Workspace",
-              "WorkspaceFolder"
-            ],
+            "enum": [1, 2, 3],
+            "enumItemLabels": ["Global", "Workspace", "WorkspaceFolder"],
+            "enumDescriptions": ["Global", "Workspace", "WorkspaceFolder"],
             "description": "%param.saveScope%",
             "scope": "application"
           },
+          "idf.enableStatusBar": {
+            "type": "boolean",
+            "description": "%param.enableStatusBar.title%",
+            "scope": "resource",
+            "default": true
+          },
+          "idf.enableUpdateSrcsToCMakeListsFile": {
+            "type": "boolean",
+            "description": "%param.enableUpdateSrcsToCMakeListsFile%",
+            "scope": "window",
+            "default": true
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.telemetry%",
+        "properties": {
           "idf.telemetry": {
-            "title": "Enable Telemetry",
             "type": "boolean",
             "default": true,
             "description": "%param.telemetry%"
-          },
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.rainmaker%",
+        "properties": {
           "esp.rainmaker.api.server_url": {
             "type": "string",
             "default": "https://api.rainmaker.espressif.com/v1/",
@@ -868,7 +1159,12 @@
             "default": "https://auth.rainmaker.espressif.com/oauth2/authorize",
             "scope": "resource",
             "description": "%param.esp.rainmaker.oauth.url%"
-          },
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.coverage%",
+        "properties": {
           "idf.coveredLightTheme": {
             "type": "string",
             "default": "rgba(0,128,0,0.1)",
@@ -904,89 +1200,29 @@
             "default": "rgba(255,0,0,0.1)",
             "description": "%param.uncoveredDarkTheme%",
             "scope": "resource"
-          },
-          "idf.wssPort": {
-            "type": "number",
-            "default": 49203,
-            "description": "%idf.wssPort.description%",
-            "scope": "resource",
-            "minimum": 49152,
-            "maximum": 65535
-          },
-          "idf.flashType": {
-            "type": "string",
-            "enum": [
-              "UART",
-              "JTAG",
-              "DFU"
-            ],
-            "description": "%idf.flashType.description%",
-            "scope": "resource"
-          },
-          "idf.flashPartitionToUse": {
-            "type": "string",
-            "enum": [
-              "all",
-              "app",
-              "bootloader",
-              "partition-table"
-            ],
-            "default": "all",
-            "description": "%param.flashPartitionToUse%"
-          },
-          "openocd.tcl.host": {
-            "type": "string",
-            "description": "%openocd.tcl.host.description%",
-            "scope": "resource",
-            "default": "localhost"
-          },
-          "openocd.tcl.port": {
-            "type": "number",
-            "description": "%openocd.tcl.port.description%",
-            "scope": "resource",
-            "default": 6666
-          },
-          "openocd.jtag.command.force_unix_path_separator": {
-            "type": "boolean",
-            "description": "%openocd.jtag.command.force_unix_path_separator.description%",
-            "default": true
-          },
-          "idf.launchMonitorOnDebugSession": {
-            "type": "boolean",
-            "description": "%param.launchMonitorOnDebugSession.title%",
-            "scope": "resource",
-            "default": false
-          },
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.componentManager%",
+        "properties": {
           "idf.enableIdfComponentManager": {
             "type": "boolean",
             "description": "%param.enableIdfComponentManager.title%",
             "scope": "resource",
             "default": false
           },
-          "idf.enableCCache": {
-            "type": "boolean",
-            "description": "%param.enableCCache.title%",
+          "esp.component-manager.url": {
+            "type": "string",
+            "description": "%esp.component-manager.url.description%",
             "scope": "resource",
-            "default": false
-          },
-          "idf.gitPath": {
-            "type": "string",
-            "description": "%param.gitPath.title%",
-            "scope": "application",
-            "default": "/usr/bin/git"
-          },
-          "idf.gitPathWin": {
-            "type": "string",
-            "description": "%param.gitPath.title%",
-            "scope": "application",
-            "default": "${env:programfiles}\\Git\\cmd\\git.exe"
-          },
-          "idf.enableUpdateSrcsToCMakeListsFile": {
-            "type": "boolean",
-            "description": "%param.enableUpdateSrcsToCMakeListsFile%",
-            "scope": "window",
-            "default": true
-          },
+            "default": "https://components.espressif.com"
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.qemu%",
+        "properties": {
           "idf.qemuDebugMonitor": {
             "type": "boolean",
             "description": "%param.qemuDebugMonitor%",
@@ -998,244 +1234,36 @@
             "description": "%param.qemuExtraArgs%",
             "scope": "resource",
             "default": []
-          },
-          "esp.component-manager.url": {
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.unitTest%",
+        "properties": {
+          "idf.unitTestFilePattern": {
             "type": "string",
-            "description": "%esp.component-manager.url.description%",
+            "description": "%param.unitTestFilePattern.title%",
             "scope": "resource",
-            "default": "https://components.espressif.com"
-          },
-          "idf.openOcdDebugLevel": {
+            "default": "**/test/test_*.c"
+          }
+        }
+      },
+      {
+        "title": "%configuration.section.other%",
+        "properties": {
+          "idf.wssPort": {
             "type": "number",
-            "default": 2,
-            "enum": [
-              0,
-              1,
-              2,
-              3,
-              4
-            ],
-            "enumDescriptions": [
-              "Error",
-              "Warning",
-              "Info",
-              "Debug",
-              "Verbose"
-            ],
+            "default": 49203,
+            "description": "%idf.wssPort.description%",
             "scope": "resource",
-            "description": "%param.openOcdDebugLevel%"
-          },
-          "idf.openOcdLaunchArgs": {
-            "type": "array",
-            "default": [],
-            "description": "%param.openOcdLaunchArgs%",
-            "scope": "resource",
-            "items": {
-              "type": "string"
-            }
-          },
-          "idf.preBuildTask": {
-            "type": "string",
-            "default": "",
-            "scope": "resource",
-            "description": "%param.preBuildTask%"
-          },
-          "idf.postBuildTask": {
-            "type": "string",
-            "default": "",
-            "scope": "resource",
-            "description": "%param.postBuildTask%"
-          },
-          "idf.preFlashTask": {
-            "type": "string",
-            "default": "",
-            "scope": "resource",
-            "description": "%param.preFlashTask%"
-          },
-          "idf.postFlashTask": {
-            "type": "string",
-            "default": "",
-            "scope": "resource",
-            "description": "%param.postFlashTask%"
-          },
-          "idf.customTask": {
-            "type": "string",
-            "default": "",
-            "scope": "resource",
-            "description": "%param.customTask%"
-          },
-          "idf.svdFilePath": {
-            "type": "string",
-            "default": "${workspaceFolder}/esp32.svd",
-            "scope": "resource",
-            "description": "%param.svdFile%"
-          },
-          "idf.extraCleanPaths": {
-            "type": "array",
-            "default": [],
-            "scope": "resource",
-            "description": "%param.extraCleanPaths%",
-            "items": {
-              "type": "string"
-            }
-          },
-          "idf.monitorDelay": {
-            "type": "number",
-            "default": 1000,
-            "scope": "resource",
-            "description": "%param.monitorDelay%"
-          },
-          "idf.monitorNoReset": {
-            "type": "boolean",
-            "default": false,
-            "scope": "resource",
-            "description": "%param.monitorNoReset%"
-          },
-          "idf.monitorEnableTimestamps": {
-            "type": "boolean",
-            "default": false,
-            "scope": "resource",
-            "description": "%param.monitorEnableTimestamps%"
-          },
-          "idf.monitorCustomTimestampFormat": {
-            "type": "string",
-            "default": "",
-            "scope": "resource",
-            "description": "%param.monitorCustomTimestampFormat%"
-          },
-          "idf.enableStatusBar": {
-            "type": "boolean",
-            "description": "%param.enableStatusBar.title%",
-            "scope": "resource",
-            "default": true
-          },
-          "idf.enableSizeTaskAfterBuildTask": {
-            "type": "boolean",
-            "description": "%param.enableSizeTaskAfterBuildTask.title%",
-            "scope": "resource",
-            "default": true
-          },
-          "idf.customTerminalExecutable": {
-            "type": "string",
-            "description": "%param.customTerminalExecutable.title%",
-            "scope": "resource",
-            "default": ""
-          },
-          "idf.customTerminalExecutableArgs": {
-            "type": "array",
-            "description": "%param.customTerminalExecutableArgs.title%",
-            "scope": "resource",
-            "default": [],
-            "items": {
-              "type": "string"
-            }
-          },
-          "idf.sdkconfigFilePath": {
-            "type": "string",
-            "description": "%param.sdkconfigFilePath.title%",
-            "scope": "resource",
-            "default": ""
+            "minimum": 49152,
+            "maximum": 65535
           },
           "idf.sbomFilePath": {
             "type": "string",
             "scope": "resource",
             "default": "espidf.spdx",
             "description": "%param.sbomFilePath.title%"
-          },
-          "idf.enableSerialPortChipIdRequest": {
-            "type": "boolean",
-            "scope": "application",
-            "default": true,
-            "description": "%param.enableSerialPortChipIdRequest.title%"
-          },
-          "idf.useSerialPortVendorProductFilter": {
-            "type": "boolean",
-            "scope": "application",
-            "default": false,
-            "description": "%param.useSerialPortVendorProductFilter.title%"
-          },
-          "idf.usbSerialPortFilters": {
-            "type": "object",
-            "scope": "application",
-            "description": "%param.usbSerialPortFilters.title%",
-            "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "vendorId": {
-                  "type": "string",
-                  "description": "%param.usbSerialPortFilters.vendorId%"
-                },
-                "productId": {
-                  "type": "string",
-                  "description": "%param.usbSerialPortFilters.productId%"
-                }
-              },
-              "additionalProperties": false
-            },
-            "default": {
-              "CP2102/CP2102N": {
-                "vendorId": "0x10c4",
-                "productId": "0xea60"
-              },
-              "FT2232H": {
-                "vendorId": "0x0403",
-                "productId": "0x6010"
-              },
-              "Espressif USB_SERIAL_JTAG": {
-                "vendorId": "0x303a",
-                "productId": "0x1001"
-              },
-              "Espressif esp-usb-bridge firmware": {
-                "vendorId": "0x303a",
-                "productId": "0x1002"
-              },
-              "ESP32-S2 USB_CDC": {
-                "vendorId": "0x303a",
-                "productId": "0x0002"
-              },
-              "ESP32-S3 USB_CDC": {
-                "vendorId": "0x303a",
-                "productId": "0x0009"
-              },
-              "CH9102F": {
-                "vendorId": "0x1a86",
-                "productId": "0x55d4"
-              },
-              "CH340T": {
-                "vendorId": "0x1a86",
-                "productId": "0x7523"
-              },
-              "FT232R": {
-                "vendorId": "0x0403",
-                "productId": "0x6001"
-              }
-            }
-          },
-          "idf.jtagFlashCommandExtraArgs": {
-            "type": "array",
-            "description": "%param.jtagFlashCommandExtraArgs.title%",
-            "scope": "resource",
-            "default": [
-              "verify",
-              "compress",
-              "skip_loaded",
-              "reset"
-            ],
-            "items": {
-              "type": "string"
-            }
-          },
-          "idf.unitTestFilePattern": {
-            "type": "string",
-            "description": "%param.unitTestFilePattern.title%",
-            "scope": "resource",
-            "default": "**/test/test_*.c"
-          },
-          "idf.serialPortDetectionTimeout": {
-            "type": "number",
-            "default": 60,
-            "scope": "resource",
-            "description": "%param.serialPortDetectionTimeout%"
           },
           "idf.imageViewerConfigs": {
             "type": "string",

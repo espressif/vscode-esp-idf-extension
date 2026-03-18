@@ -31,115 +31,88 @@ This extension contributes the following settings that can be later updated in `
 
     All settings can be applied to Global (User Settings), Workspace and WorkspaceFolder unless Scope is specified.
 
-ESP-IDF Specific Settings
--------------------------
+The settings are grouped in the same categories as in the VS Code Settings UI (and in ``package.json``):
 
-These are the configuration settings that ESP-IDF extension contributes to your Visual Studio Code editor settings.
+Setup & Installation
+--------------------
 
 .. list-table::
-    :widths: 10 20
+    :widths: 25 75
     :header-rows: 1
 
     * - Setting ID
       - Description
-    * - idf.extensionActivationMode
+    * - **idf.eimIdfJsonPath**
+      - Path to the ESP-IDF Installation Manager (EIM) ``eim_idf.json`` file. Scope: Application.
+    * - **idf.eimExecutableArgs**
+      - Arguments for the EIM executable (default: ``["gui"]``). Scope: Application.
+    * - **idf.currentSetup**
+      - Current ESP-IDF setup identifier. Scope: Resource.
+    * - **idf.gitPath**
+      - Path to the Git executable (default: ``/usr/bin/git``). Scope: Application.
+    * - **idf.gitPathWin**
+      - Path to the Git executable in Windows (default: ``${env:programfiles}\\Git\\cmd\\git.exe``). Scope: Application.
+    * - **idf.extensionActivationMode**
       - Controls extension activation mode: ``"detect"`` (default), ``"always"``, or ``"never"``.
-    * - idf.buildPath
-      - Custom build directory name for extension commands (Default: \${workspaceFolder}/build)
-    * - idf.buildPathWin
-      - Custom build directory name for extension commands in Windows (Default: \${workspaceFolder}\\build)
-    * - idf.sdkconfigFilePath
-      - Absolute path for the sdkconfig file
-    * - idf.sdkconfigDefaults
-      - List of sdkconfig default values for initial build configuration
-    * - idf.cmakeCompilerArgs
-      - Arguments for CMake compilation task
-    * - idf.customExtraVars
-      - Variables to be added to system environment variables
-    * - idf.gitPath
-      - Path to the Git executable
-    * - idf.gitPathWin
-      - Path to the Git executable in Windows
-    * - idf.enableCCache
-      - Enable CCache in build task (make sure CCache is in PATH)
-    * - idf.enableIdfComponentManager
-      - Enable IDF Component manager in build command
-    * - idf.ninjaArgs
-      - Arguments for Ninja build task
 
-This is how the extension uses them:
+**idf.gitPath** (or **idf.gitPathWin** on Windows) is used by the extension to clone ESP-IDF or additional supported frameworks such as ESP-ADF, ESP-MDF and Arduino-ESP32.
 
-1. **idf.customExtraVars** stores any custom environment variable such as OPENOCD_SCRIPTS, which is the openOCD scripts directory used in OpenOCD server startup. These variables are loaded to this extension command's process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. **This doesn't modify your system environment outside Visual Studio Code.**
-2. **idf.gitPath** (or **idf.gitPathWin** in Windows) is used in the extension to clone ESP-IDF master version or the additional supported frameworks such as ESP-ADF, ESP-MDF and Arduino-ESP32.
-
-.. note::
-
-    From Visual Studio Code extension context, we can't modify your system PATH or any other environment variable. We use a modified process environment in all of this extension tasks and child processes which should not affect any other system process or extension. Please review the content of **idf.customExtraVars** in case you have issues with other extensions.
-
-Board/Chip Specific Settings
-----------------------------
-
-These settings are specific to the ESP32 Chip/Board.
+Serial Port
+-----------
 
 .. list-table::
     :widths: 25 75
     :header-rows: 1
 
-    * - Setting
+    * - Setting ID
       - Description
-    * - **idf.flashBaudRate**
-      - Flash Baud Rate
-    * - **idf.monitorBaudRate**
-      - Monitor Baud Rate (Empty by default to use SDKConfig ``CONFIG_ESP_CONSOLE_UART_BAUDRATE``)
-    * - **idf.openOcdConfigs**
-      - Configuration files for OpenOCD, relative to ``OPENOCD_SCRIPTS`` folder. If ``idf.openOcdLaunchArgs`` is defined this setting is ignored.
-    * - **idf.openOcdLaunchArgs**
-      - Custom arguments for OpenOCD. If not defined, the resulting OpenOCD launch command will be: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``.
-    * - **idf.openOcdDebugLevel**
-      - Set OpenOCD Debug Level (0-4) Default: 2. From 0 (error messages only) to 4 (Verbose low-level debug message). If ``idf.openOcdLaunchArgs`` is defined this setting is ignored.
     * - **idf.port**
-      - Path of selected device port
-    * - **idf.monitorPort**
-      - Optional Path of selected device port for monitor. If undefined, will use **idf.port** instead as monitor port.
+      - Path of selected device port (default: ``detect``). Scope: Resource.
     * - **idf.portWin**
-      - Path of selected device port in Windows
+      - Path of selected device port in Windows (default: ``detect``). Scope: Resource.
+    * - **idf.monitorPort**
+      - Optional path of selected device port for monitor. If undefined, **idf.port** is used. Scope: Resource.
+    * - **idf.flashBaudRate**
+      - Flash baud rate (default: ``460800``). Used for **ESP-IDF: Flash your Project** and debugging. Scope: Resource.
+    * - **idf.monitorBaudRate**
+      - Monitor baud rate. Empty by default to use sdkconfig ``CONFIG_ESP_CONSOLE_UART_BAUDRATE``. Scope: Resource.
     * - **idf.enableSerialPortChipIdRequest**
-      - Enable detecting the chip ID and show on serial port selection list. Scope can only be **Global (User Settings)**.
+      - Enable detecting the chip ID and show on serial port selection list. Scope: Application.
     * - **idf.useSerialPortVendorProductFilter**
-      - Enable use of ``idf.usbSerialPortFilters`` list to filter serial port devices list. Scope can only be **Global (User Settings)**.
+      - Enable use of **idf.usbSerialPortFilters** to filter serial port devices list. Scope: Application.
     * - **idf.usbSerialPortFilters**
-      - USB productID and vendorID list to filter known Espressif devices. Scope can only be **Global (User Settings)**.
+      - USB productId and vendorId map to filter known Espressif devices. Scope: Application.
     * - **idf.serialPortDetectionTimeout**
-      - Timeout in seconds for serial port detection using esptool.py (Default: 60)
-    * - **openocd.jtag.command.force_unix_path_separator**
-      - Forced to use ``/`` instead of ``\\`` as path separator for Win32 based OS
-    * - **idf.svdFilePath**
-      - SVD file absolute path to resolve chip debug peripheral tree view
+      - Timeout in seconds for serial port detection using esptool.py (default: 60). Scope: Resource.
+
+Flash
+-----
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - Setting ID
+      - Description
+    * - **idf.openOcdConfigs**
+      - Configuration files for OpenOCD, relative to ``OPENOCD_SCRIPTS`` folder. If **idf.openOcdLaunchArgs** is defined this setting is ignored. Scope: Resource.
+    * - **idf.flashType**
+      - Preferred flash method: ``UART``, ``JTAG`` or ``DFU``. Scope: Resource.
+    * - **idf.flashPartitionToUse**
+      - Partition to flash during build and flash (default: ``all``). Options: ``all``, ``app``, ``bootloader``, ``partition-table``. Scope: Resource.
     * - **idf.jtagFlashCommandExtraArgs**
-      - OpenOCD JTAG flash extra arguments. Default is ``["verify", "reset"]``.
-    * - **idf.imageViewerConfigs**
-      - Path to custom image format configurations JSON file for the Image Viewer feature. Can be relative to workspace folder or absolute path.
-
-This is how the extension uses them:
-
-1. **idf.flashBaudRate** is the baud rate value used for the **ESP-IDF: Flash your Project** command and `Debugging <https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/debugproject.html>`_.
-2. **idf.monitorBaudRate** is the ESP-IDF Monitor baud rate value and fallback from your project's sdkconfig ``CONFIG_ESPTOOLPY_MONITOR_BAUD`` (idf.py monitor' baud rate). You can override this value by setting the ``IDF_MONITOR_BAUD`` or ``MONITORBAUD`` environment variables, or by configuring it through **idf.customExtraVars** setting of the extension.
-3. **idf.openOcdConfigs** stores an string array of relative paths to OpenOCD script configuration files, which are used with OpenOCD server. (e.g.，``["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]``). More information can be found in `OpenOCD JTAG Target Configuration <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_.
-4. **idf.port** (or **idf.portWin** in Windows) is used as the serial port value for the extension commands.
-5. **idf.openOcdDebugLevel** is the log level for OpenOCD server output from 0 (error messages only) to 4 (Verbose low-level debug message).
-6. **idf.openOcdLaunchArgs** is the launch arguments string array for OpenOCD. If not defined, the resulting OpenOCD launch command looks like this: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``.
-7. **idf.jtagFlashCommandExtraArgs** is used for OpenOCD JTAG flash task. Please review `Upload application for debugging <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/index.html#upload-application-for-debugging>`.
-8. **idf.serialPortDetectionTimeout** is the timeout value in seconds used for the **ESP-IDF: Select Port** command when auto-detecting serial ports using esptool.py. This setting allows users to configure how long the extension should wait when scanning for compatible devices on available serial ports.
+      - OpenOCD JTAG flash extra arguments (default: ``["verify", "compress", "skip_loaded", "reset"]``). Scope: Resource.
+    * - **idf.preFlashTask**
+      - Command string to execute before flash task. Scope: Resource.
+    * - **idf.postFlashTask**
+      - Command string to execute after flash task. Scope: Resource.
 
 .. note::
 
-    * When using the command **ESP-IDF: Set Espressif Device Target**, it will override the current sdkconfig IDF_TARGET with selected Espressif chip, and it will also update **idf.openOcdConfigs** with its default OpenOCD configuration files.
-    * To customize the **idf.openOcdConfigs** alone, you can use the **ESP-IDF: Select OpenOCD Board Configuration** or modify your ``settings.json`` directly.
+    When using **ESP-IDF: Set Espressif Device Target**, the extension overrides the current sdkconfig ``IDF_TARGET`` and updates **idf.openOcdConfigs** with default OpenOCD config files. To customize **idf.openOcdConfigs** only, use **ESP-IDF: Select OpenOCD Board Configuration** or edit ``settings.json``.
 
-Code Coverage Specific Settings
--------------------------------
-
-These settings are used to configure the code coverage colors.
+Build
+-----
 
 .. list-table::
     :widths: 25 75
@@ -147,90 +120,99 @@ These settings are used to configure the code coverage colors.
 
     * - Setting ID
       - Description
-    * - **idf.coveredLightTheme**
-      - Background color for covered lines in light theme for gcov coverage
-    * - **idf.coveredDarkTheme**
-      - Background color for covered lines in dark theme for gcov coverage
-    * - **idf.partialLightTheme**
-      - Background color for partially covered lines in light theme for gcov coverage
-    * - **idf.partialDarkTheme**
-      - Background color for partially covered lines in dark theme for gcov coverage
-    * - **idf.uncoveredLightTheme**
-      - Background color for uncovered lines in light theme for gcov coverage
-    * - **idf.uncoveredDarkTheme**
-      - Background color for uncovered lines in dark theme for gcov coverage
-
-
-Unit test Specific Settings
------------------------------
-
-These settings are used to configure unit testing.
-
-.. list-table::
-    :widths: 25 75
-    :header-rows: 1
-
-    * - Setting ID
-      - Description
-    * - **idf.unitTestFilePattern**
-      - Glob pattern for unit test files to discover (default: ``**/test/test_*.c``)
-
-This is how the extension uses them:
-
-1. **idf.unitTestFilePattern** is used by the extension to discover unit test files in your project. The default pattern :code:`**/test/test_*.c` looks for C files names starting with "test" in any "test" directory.
-
-
-Extension Behaviour Settings
-----------------------------
-
-.. list-table::
-    :widths: 25 75
-    :header-rows: 1
-
-    * - Setting ID
-      - Description
-    * - **idf.enableUpdateSrcsToCMakeListsFile**
-      - Enable updating source files in ``CMakeLists.txt`` (default ``true``)
-    * - **idf.flashType**
-      - Preferred flash method. ``DFU``, ``UART`` or ``JTAG``
-    * - **idf.flashPartitionToUse**
-      - Specifies the partition to flash during the build and flash process. (default ``all``)
-    * - **idf.launchMonitorOnDebugSession**
-      - Launch ESP-IDF Monitor along with ESP-IDF debug session
-    * - **idf.notificationMode**
-      - ESP-IDF extension notifications and output focus mode. (default ``All``)
-    * - **idf.showOnboardingOnInit**
-      - Show ESP-IDF configuration window on extension activation
-    * - **idf.saveScope**
-      - Where to save extension settings. Scope can only be **Global (User Settings)**.
-    * - **idf.saveBeforeBuild**
-      - Save all the edited files before building (default ``true``)
+    * - **idf.buildPath**
+      - Custom build directory for extension commands (default: ``${workspaceFolder}/build``). Scope: Resource.
+    * - **idf.buildPathWin**
+      - Custom build directory in Windows (default: ``${workspaceFolder}\\build``). Scope: Resource.
+    * - **idf.cmakeCompilerArgs**
+      - Arguments for CMake configuration (default includes ``-G Ninja``, ``-DPYTHON_DEPS_CHECKED=1``, ``-DESP_PLATFORM=1``). Scope: Resource.
+    * - **idf.sdkconfigDefaults**
+      - List of sdkconfig default values for initial build configuration. Scope: Resource.
+    * - **idf.ninjaArgs**
+      - Arguments for Ninja build task. Scope: Resource.
+    * - **idf.customExtraVars**
+      - Key-value object of environment variables added to extension command processes (e.g. ``OPENOCD_SCRIPTS``). Does not modify system environment outside VS Code. Scope: Resource.
     * - **idf.useIDFKconfigStyle**
-      - Enable style validation for Kconfig files
-    * - **idf.telemetry**
-      - Enable telemetry
+      - Enable style validation for Kconfig files. Scope: Resource.
+    * - **idf.saveBeforeBuild**
+      - Save all edited files before building (default: ``true``). Scope: Resource.
+    * - **idf.enableCCache**
+      - Enable CCache in build task (ensure CCache is in PATH). Scope: Resource.
     * - **idf.extraCleanPaths**
-      - Additional paths to delete on **Full Clean Project** command (default `[]`). For example, you can set it to ``["managed_components", "dependencies.lock"]`` to delete the managed_components directory and the dependencies.lock file from the current workspace folder.
-    * - **idf.monitorNoReset**
-      - Enable no-reset flag to IDF Monitor (default ``false``)
-    * - **idf.monitorEnableTimestamps**
-      - Enable timestamps in IDF Monitor (default ``false``)
-    * - **idf.monitorCustomTimestampFormat**
-      - Custom timestamp format in IDF Monitor
-    * - **idf.monitorDelay**
-      - Delay to start debug session after IDF monitor execution or breaking monitor session (milliseconds).
-    * - **idf.enableStatusBar**
-      - Show or hide the extension status bar items
+      - Additional paths to delete on **Full Clean Project** (default: ``[]``). E.g. ``["managed_components", "dependencies.lock"]``. Scope: Resource.
+    * - **idf.sdkconfigFilePath**
+      - Absolute path for the sdkconfig file. Scope: Resource.
     * - **idf.enableSizeTaskAfterBuildTask**
-      - Enable IDF Size Task to be executed after IDF Build Task
-    * - **idf.customTerminalExecutable**
-      - Absolute path to shell terminal executable to use (default to VS Code Terminal)
-    * - **idf.customTerminalExecutableArgs**
-      - Shell arguments for idf.customTerminalExecutable
+      - Run IDF Size task after IDF Build task (default: ``true``). Scope: Resource.
+    * - **idf.preBuildTask**
+      - Command string to execute before build task. Scope: Resource.
+    * - **idf.postBuildTask**
+      - Command string to execute after build task. Scope: Resource.
 
+Debug & OpenOCD
+---------------
 
-Custom Tasks for Build and Flash Tasks
---------------------------------------
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - Setting ID
+      - Description
+    * - **openocd.tcl.host**
+      - OpenOCD TCL server host (default: ``localhost``). Scope: Resource.
+    * - **openocd.tcl.port**
+      - OpenOCD TCL server port (default: ``6666``). Scope: Resource.
+    * - **openocd.jtag.command.force_unix_path_separator**
+      - Use ``/`` instead of ``\\`` as path separator on Win32 (default: ``true``).
+    * - **idf.launchMonitorOnDebugSession**
+      - Launch ESP-IDF Monitor when starting an ESP-IDF debug session (default: ``false``). Scope: Resource.
+    * - **idf.openOcdDebugLevel**
+      - OpenOCD debug level 0–4 (default: 2). 0 = error only, 4 = verbose. Ignored if **idf.openOcdLaunchArgs** is set. Scope: Resource.
+    * - **idf.openOcdLaunchArgs**
+      - Custom arguments for OpenOCD. If set, **idf.openOcdConfigs** and **idf.openOcdDebugLevel** are ignored. Command form otherwise: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``. Scope: Resource.
+    * - **idf.svdFilePath**
+      - SVD file path for chip debug peripheral tree view (default: ``${workspaceFolder}/esp32.svd``). Scope: Resource.
+
+Monitor
+-------
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - Setting ID
+      - Description
+    * - **idf.monitorDelay**
+      - Delay in milliseconds before starting debug session after IDF Monitor or when breaking monitor (default: 1000). Scope: Resource.
+    * - **idf.monitorNoReset**
+      - Enable no-reset flag for IDF Monitor (default: ``false``). Scope: Resource.
+    * - **idf.monitorEnableTimestamps**
+      - Enable timestamps in IDF Monitor (default: ``false``). Scope: Resource.
+    * - **idf.monitorCustomTimestampFormat**
+      - Custom timestamp format for IDF Monitor. Scope: Resource.
+
+App Trace
+---------
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - Setting ID
+      - Description
+    * - **trace.poll_period**
+      - Poll period for apptrace. Scope: Resource.
+    * - **trace.trace_size**
+      - Trace size for apptrace (default: 2048). Scope: Resource.
+    * - **trace.stop_tmo**
+      - Stop timeout for apptrace (default: 3). Scope: Resource.
+    * - **trace.wait4halt**
+      - Wait for halt for apptrace (0 or 1, default: 0). Scope: Resource.
+    * - **trace.skip_size**
+      - Skip size for apptrace (default: 0). Scope: Resource.
+
+Tasks & Terminal
+----------------
 
 .. list-table::
     :widths: 25 75
@@ -239,18 +221,47 @@ Custom Tasks for Build and Flash Tasks
     * - Setting ID
       - Description
     * - **idf.customTask**
-      - Custom task to execute with **ESP-IDF: Execute Custom Task**
-    * - **idf.preBuildTask**
-      - Command string to execute before build task
-    * - **idf.postBuildTask**
-      - Command string to execute after build task
-    * - **idf.preFlashTask**
-      - Command string to execute before flash task
-    * - **idf.postFlashTask**
-      - Command string to execute after flash task
+      - Custom task command for **ESP-IDF: Execute Custom Task**. Scope: Resource.
+    * - **idf.customTerminalExecutable**
+      - Absolute path to shell executable for extension terminals (default: VS Code default). Scope: Resource.
+    * - **idf.customTerminalExecutableArgs**
+      - Arguments for **idf.customTerminalExecutable**. Scope: Resource.
 
+UI & Notifications
+------------------
 
-QEMU Specific Settings
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - Setting ID
+      - Description
+    * - **idf.showOnboardingOnInit**
+      - Show ESP-IDF configuration/onboarding window on extension activation (default: ``true``). Scope: Window.
+    * - **idf.hasWalkthroughBeenShown**
+      - Whether the walkthrough has been shown. Scope: Application.
+    * - **idf.notificationMode**
+      - Notifications and output focus mode: ``Silent``, ``Notifications``, ``Output``, ``All`` (default: ``All``). Scope: Resource.
+    * - **idf.saveScope**
+      - Where to save extension settings: Global (1), Workspace (2), WorkspaceFolder (3). Scope: Application only.
+    * - **idf.enableStatusBar**
+      - Show or hide extension status bar items (default: ``true``). Scope: Resource.
+    * - **idf.enableUpdateSrcsToCMakeListsFile**
+      - Enable updating source files in ``CMakeLists.txt`` (default: ``true``). Scope: Window.
+
+Telemetry
+---------
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - Setting ID
+      - Description
+    * - **idf.telemetry**
+      - Enable telemetry (default: ``true``).
+
+ESP Rainmaker Settings
 ----------------------
 
 .. list-table::
@@ -259,37 +270,13 @@ QEMU Specific Settings
 
     * - Setting ID
       - Description
-    * - **idf.qemuDebugMonitor**
-      - Enable QEMU Monitor on debug session
-    * - **idf.qemuExtraArgs**
-      - QEMU extra arguments
+    * - **esp.rainmaker.api.server_url**
+      - ESP Rainmaker API server URL (default: ``https://api.rainmaker.espressif.com/v1/``). Scope: Resource.
+    * - **esp.rainmaker.oauth.url**
+      - ESP Rainmaker OAuth URL (default: ``https://auth.rainmaker.espressif.com/oauth2/authorize``). Scope: Resource.
 
-
-Log Tracing Specific Settings
------------------------------
-
-.. list-table::
-    :widths: 25 75
-    :header-rows: 1
-
-    * - Setting
-      - Description
-    * - **trace.poll_period**
-      - poll_period will be set for the apptrace
-    * - **trace.trace_size**
-      - trace_size will set for the apptrace
-    * - **trace.stop_tmo**
-      - stop_tmo will be set for the apptrace
-    * - **trace.wait4halt**
-      - wait4halt will be set for the apptrace
-    * - **trace.skip_size**
-      - skip_size will be set for the apptrace
-
-
-Other Frameworks' Specific Settings
------------------------------------
-
-These settings support additional frameworks together with ESP-IDF:
+Coverage
+--------
 
 .. list-table::
     :widths: 25 75
@@ -297,16 +284,81 @@ These settings support additional frameworks together with ESP-IDF:
 
     * - Setting ID
       - Description
-    * - **idf.sbomFilePath**
-      - Path to create ESP-IDF SBOM report
+    * - **idf.coveredLightTheme**
+      - Background color for covered lines (light theme) in gcov coverage (default: ``rgba(0,128,0,0.1)``). Scope: Resource.
+    * - **idf.coveredDarkTheme**
+      - Background color for covered lines (dark theme) in gcov coverage (default: ``rgba(0,128,0,0.1)``). Scope: Resource.
+    * - **idf.partialLightTheme**
+      - Background color for partially covered lines (light theme) (default: ``rgba(250,218,94,0.1)``). Scope: Resource.
+    * - **idf.partialDarkTheme**
+      - Background color for partially covered lines (dark theme) (default: ``rgba(250,218,94,0.1)``). Scope: Resource.
+    * - **idf.uncoveredLightTheme**
+      - Background color for uncovered lines (light theme) (default: ``rgba(255,0,0,0.1)``). Scope: Resource.
+    * - **idf.uncoveredDarkTheme**
+      - Background color for uncovered lines (dark theme) (default: ``rgba(255,0,0,0.1)``). Scope: Resource.
 
+Component Manager
+------------------
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - Setting ID
+      - Description
+    * - **idf.enableIdfComponentManager**
+      - Enable IDF Component Manager in build command (default: ``false``). Scope: Resource.
+    * - **esp.component-manager.url**
+      - ESP Component Registry URL (default: ``https://components.espressif.com``). Scope: Resource.
+
+QEMU Settings
+-------------
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - Setting ID
+      - Description
+    * - **idf.qemuDebugMonitor**
+      - Enable QEMU Monitor in debug session (default: ``true``). Scope: Resource.
+    * - **idf.qemuExtraArgs**
+      - Extra arguments for QEMU. Scope: Resource.
+
+Unit Test
+---------
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - Setting ID
+      - Description
+    * - **idf.unitTestFilePattern**
+      - Glob pattern for unit test file discovery (default: ``**/test/test_*.c``). Scope: Resource.
+
+Other
+------
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - Setting ID
+      - Description
+    * - **idf.wssPort**
+      - WebSocket server port (default: 49203, range 49152–65535). Scope: Resource.
+    * - **idf.sbomFilePath**
+      - Path for ESP-IDF SBOM report (default: ``espidf.spdx``). Scope: Resource.
+    * - **idf.imageViewerConfigs**
+      - Path to custom image format configurations JSON for the Image Viewer (relative to workspace or absolute). Scope: Resource.
 
 Use of Environment Variables in ESP-IDF ``settings.json`` and using other ESP-IDF settings within ESP-IDF settings
 ----------------------------------------------------------------------------------------------------------------------
 
 Environment (env) variables and other ESP-IDF settings (config) can be referenced in ESP-IDF settings using the syntax ``${env:VARNAME}`` and ``${config:ESPIDFSETTING}``, respectively.
 
-You can also prepend a string to the result of the other ESP-IDF settings (config) by using the syntax ``${config:ESPIDFSETTING:prefix}``. The prefix will be added to the beginning of the variable value. For example ``${config:idf.openOcdConfigs,-f}`` will add ``-f`` to the beginning of the each string value of **idf.openOcdConfigs**.
-If ``"idf.openOcdConfigs": ["interface/some.cfg", "target/some.cfg"]`` returns ``-f interface/some.cfg -f target/some.cfg``.
+You can also prepend a string to the result of the other ESP-IDF settings (config) by using the syntax ``${config:ESPIDFSETTING,prefix}``. The prefix will be added directly to the beginning of each string value. For example ``${config:idf.openOcdConfigs,-f}`` will add ``-f`` to the beginning of each string value of **idf.openOcdConfigs**.
+If ``"idf.openOcdConfigs": ["interface/some.cfg", "target/some.cfg"]`` the expansion will be ``-finterface/some.cfg -ftarget/some.cfg``.
 
 For example, to use ``"~/workspace/blink"``, set the value to ``"${env:HOME}/workspace/blink"``.

@@ -10,6 +10,14 @@ Table of Contents
    :depth: 2
    :local:
 
+Open an ESP-IDF project
+-----------------------
+
+First open an ESP-IDF project in Visual Studio Code. You can create a new ESP-IDF project by following the instructions in :ref:`Create an ESP-IDF Project <create_an_esp-idf_project>` or open an existing ESP-IDF project.
+
+.. note::
+
+    * Please ensure the ESP-IDF project includes a Visual Studio Code debug configuration file (launch.json) in the ``<project-dir>/.vscode/launch.json`` file. If not, you can add the default configuration with the ``ESP-IDF: Add VS Code Configuration Folder`` command (Press F1 and search for the command).
 
 Starting a Debug Session
 ------------------------
@@ -522,32 +530,44 @@ To do this, you need to configure the launch.json file in the .vscode directory 
 .. code-block:: JSON
 
     {
-        "configurations": [
-            {
-                "name": "GDB",
-                "type": "cppdbg",
-                "request": "launch",
-                "MIMode": "gdb",
-                "miDebuggerPath": "${command:espIdf.getToolchainGdb}",
-                "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
-                "windows": {
-                    "program": "${workspaceFolder}\\build\\${command:espIdf.getProjectName}.elf"
-                },
-                "cwd": "${workspaceFolder}",
-                "environment": [{ "name":"KEY", "value":"VALUE" }],
-                "setupCommands": [
-                        { "text": "set remotetimeout 20" },
-                    ],
-                    "postRemoteConnectCommands": [
-                        { "text": "mon reset halt" },
-                        { "text": "maintenance flush register-cache"},
-                    ],
-                "externalConsole": false,
-                "logging": {
-                    "engineLogging": true
-                }
-            }
-        ]
+      "configurations": [
+          {
+          "name": "GDB",
+          "type": "cppdbg",
+          "request": "launch",
+          "MIMode": "gdb",
+          "miDebuggerPath": "${command:espIdf.getToolchainGdb}",
+          "miDebuggerServerAddress": "localhost:3333",
+          "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
+          "windows": {
+              "program": "${workspaceFolder}\\build\\${command:espIdf.getProjectName}.elf"
+          },
+          "cwd": "${workspaceFolder}",
+          "environment": [
+              {
+              "name": "KEY",
+              "value": "VALUE"
+              }
+          ],
+          "setupCommands": [
+              {
+              "text": "set remotetimeout 20"
+              }
+          ],
+          "postRemoteConnectCommands": [
+              {
+              "text": "mon reset halt"
+              },
+              {
+              "text": "maintenance flush register-cache"
+              }
+          ],
+          "externalConsole": false,
+          "logging": {
+              "engineLogging": true
+          }
+          }
+      ]
     }
 
 Another recommended debug extension is the `Native Debug <https://marketplace.visualstudio.com/items?itemName=webfreak.debug>`_ extension. Here is an example configuration for the launch.json file:

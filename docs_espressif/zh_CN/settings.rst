@@ -5,129 +5,114 @@ ESP-IDF 设置
 
 :link_to_translation:`en:[English]`
 
-此扩展提供一些设置，可在 ``settings.json`` 文件中进行更新，或按照下列步骤在 VS Code 设置首选项菜单栏中更新：
+Visual Studio Code 允许你在不同级别配置设置：**全局（用户设置）**、**工作区**和**工作区文件夹**。请确保项目使用正确的设置。
+
+1.  工作区文件夹配置定义在 ``${workspaceFolder}/.vscode/settings.json``
+2.  工作区配置定义在工作区的 ``<name>.code-workspace`` 文件中
+3.  用户设置定义在 ``settings.json`` 中
+
+    - **Windows**：``%APPDATA%\Code\User\settings.json``
+    - **MacOS**：``$HOME/Library/Application Support/Code/User/settings.json``
+    - **Linux**：``$HOME/.config/Code/User/settings.json``
+
+本扩展使用 **idf.saveScope** 配置项（仅可在用户设置中定义）来指定保存设置的位置（例如设置向导）。可使用 **ESP-IDF：选择配置存储位置** 命令进行修改。
+
+可通过以下方式在 ``settings.json`` 或 VS Code 设置首选项菜单中更新本扩展提供的设置：
 
 - 点击 **查看** > **命令面板**。
 
-- 输入 **首选项：打开设置 (UI)**，点击该命令，打开设置管理窗口。
+- 搜索 **首选项：打开用户设置 (JSON)**、**首选项：打开工作区设置 (JSON)** 或 **首选项：打开设置 (UI)**，选择相应命令打开设置窗口。
 
 .. note::
 
     请注意，配置此扩展时，``~``、``%VARNAME%`` 和 ``$VARNAME`` 都无法被识别。请使用 ``${env:VARNAME}`` 来设置路径中的环境变量，例如 ``${env:HOME}``。也可以通过 ``${config:SETTINGID}`` 来引用其他配置参数，例如 ``${config:idf.buildPath}``。
 
-在运行 **设置乐鑫设备目标** 等命令时，**idf.saveScope** 可指定保存设置的位置。可选择将设置保存在全局（用户设置）、工作区或工作区文件夹。请使用 **选选择配置存储位置** 命令来选择保存设置的位置。
-
 .. note::
 
     除非指定了作用域 (Scope)，所有设置都可以应用于全局（用户设置）、工作区或工作区文件夹。
 
-ESP-IDF 相关设置
-----------------
+设置分组与 VS Code 设置界面（及 ``package.json``）中的类别一致：
 
-下表展示了 VS Code 编辑器设置中 ESP-IDF 扩展的配置选项。
+设置与安装
+----------
 
 .. list-table::
-    :widths: 10 20
+    :widths: 25 75
     :header-rows: 1
 
     * - 设置 ID
       - 描述
-    * - idf.extensionActivationMode
+    * - **idf.eimIdfJsonPath**
+      - ESP-IDF 安装管理器 (EIM) ``eim_idf.json`` 文件路径。作用域：Application。
+    * - **idf.eimExecutableArgs**
+      - EIM 可执行文件参数（默认：``["gui"]``）。作用域：Application。
+    * - **idf.currentSetup**
+      - 当前 ESP-IDF 设置标识。作用域：Resource。
+    * - **idf.gitPath**
+      - Git 可执行文件路径（默认：``/usr/bin/git``）。作用域：Application。
+    * - **idf.gitPathWin**
+      - Windows 下 Git 可执行文件路径（默认：``${env:programfiles}\\Git\\cmd\\git.exe``）。作用域：Application。
+    * - **idf.extensionActivationMode**
       - 控制扩展激活模式：``"detect"``（默认）、``"always"`` 或 ``"never"``。
-    * - idf.buildPath
-      - 扩展命令的自定义构建目录名称（默认值：\${workspaceFolder}/build）
-    * - idf.buildPathWin
-      - Windows 系统中扩展命令的自定义构建目录名称（默认值：\${workspaceFolder}\\build）
-    * - idf.sdkconfigFilePath
-      - sdkconfig 文件的绝对路径
-    * - idf.sdkconfigDefaults
-      - 初始构建配置的 sdkconfig 默认值列表
-    * - idf.cmakeCompilerArgs
-      - CMake 编译任务的参数
-    * - idf.customExtraVars
-      - 要添加到系统环境变量中的变量
-    * - idf.gitPath
-      - git 可执行文件的路径
-    * - idf.gitPathWin
-      - Windows 系统中 git 可执行文件的路径
-    * - idf.enableCCache
-      - 在构建任务中启用 CCache（确保 CCache 在 PATH 中）
-    * - idf.enableIdfComponentManager
-      - 在构建命令中启用 IDF 组件管理器
-    * - idf.ninjaArgs
-      - Ninja 构建任务的参数
 
-扩展将按照以下方式使用上述设置：
+**idf.gitPath**（Windows 下为 **idf.gitPathWin**）在扩展中用于克隆 ESP-IDF 或 ESP-ADF、ESP-MDF、Arduino-ESP32 等支持的框架。
 
-1. **idf.customExtraVars** 用于存储自定义环境变量，例如 OPENOCD_SCRIPTS，用于指定启动 OpenOCD 服务器时所需脚本文件的目录路径。这些变量会加载到扩展命令的进程环境变量中，优先使用扩展变量，如果没有，则扩展命令会尝试使用系统 PATH 中已有的设置。**该配置项不会改变 VS Code 之外的系统环境。**
-2. **idf.gitPath**（Windows 系统中为 **idf.gitPathWin**）在扩展中用于克隆 ESP-IDF master 版本及其他支持的框架，如 ESP-ADF、ESP-MDF 和 Arduino-ESP32。
-
-.. note::
-
-    在 VS Code 扩展中，系统 PATH 及其他环境变量是无法修改的。在扩展的所有任务和子进程中，本扩展使用的是修改后的进程环境，且不应影响其他系统进程及扩展。请检查 **idf.customExtraVars** 的配置，以防与其他扩展发生冲突。
-
-开发板/芯片相关设置
---------------------
-
-以下是针对 ESP32 芯片/开发板的配置项。
+串口
+----
 
 .. list-table::
     :widths: 25 75
     :header-rows: 1
 
-    * - 设置
+    * - 设置 ID
       - 描述
-    * - **idf.flashBaudRate**
-      - 烧录速率
-    * - **idf.monitorBaudRate**
-      - 监视器速率（默认留空，通过 SDKConfig 中的 ``CONFIG_ESP_CONSOLE_UART_BAUDRATE`` 进行配置）
-    * - **idf.openOcdConfigs**
-      - OpenOCD 配置文件路径，相对路径基于 ``OPENOCD_SCRIPTS`` 文件夹
-    * - **idf.openOcdLaunchArgs**
-      - OpenOCD 启动参数，位于 ``idf.openOcdDebugLevel`` 和 ``idf.openOcdConfigs`` 之前
-    * - **idf.openOcdDebugLevel**
-      - 设置 OpenOCD 调试级别 (0-4)，默认值为 2
     * - **idf.port**
-      - 选择设备端口的路径
+      - 所选设备端口路径（默认：``detect``）。作用域：Resource。
     * - **idf.portWin**
-      - Windows 系统中选择的设备端口路径
+      - Windows 下所选设备端口路径（默认：``detect``）。作用域：Resource。
+    * - **idf.monitorPort**
+      - 监视器所用设备端口（可选）。未设置时使用 **idf.port**。作用域：Resource。
+    * - **idf.flashBaudRate**
+      - 烧录波特率（默认：``460800``）。用于 **ESP-IDF：烧录项目** 及调试。作用域：Resource。
+    * - **idf.monitorBaudRate**
+      - 监视器波特率。默认留空以使用 sdkconfig 中的 ``CONFIG_ESP_CONSOLE_UART_BAUDRATE``。作用域：Resource。
     * - **idf.enableSerialPortChipIdRequest**
-      - 启用芯片 ID 检测功能，并在串口选择列表中显示 ID
+      - 启用芯片 ID 检测并在串口选择列表中显示。作用域：Application。
     * - **idf.useSerialPortVendorProductFilter**
-      - 启用 ``idf.usbSerialPortFilters`` 列表以过滤串口设备列表
+      - 使用 **idf.usbSerialPortFilters** 过滤串口设备列表。作用域：Application。
     * - **idf.usbSerialPortFilters**
-      - 用于过滤已知乐鑫设备的 USB productID 和 vendorID 列表
+      - 用于过滤已知乐鑫设备的 USB productId 与 vendorId 映射。作用域：Application。
     * - **idf.serialPortDetectionTimeout**
-      - 使用 esptool.py 检测串口时的超时时间（秒）（默认值：60）
-    * - **openocd.jtag.command.force_unix_path_separator**
-      - 强制在 Windows 操作系统中使用 ``/`` 作为路径分隔符，而不是 ``\\``
-    * - **idf.svdFilePath**
-      - SVD 文件的绝对路径，用于解析芯片在调试器中的外设树视图
+      - 使用 esptool.py 检测串口的超时时间（秒）（默认：60）。作用域：Resource。
+
+烧录
+----
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - 设置 ID
+      - 描述
+    * - **idf.openOcdConfigs**
+      - OpenOCD 配置文件，相对于 ``OPENOCD_SCRIPTS``。若已设置 **idf.openOcdLaunchArgs** 则此项被忽略。作用域：Resource。
+    * - **idf.flashType**
+      - 首选烧录方式：``UART``、``JTAG`` 或 ``DFU``。作用域：Resource。
+    * - **idf.flashPartitionToUse**
+      - 构建与烧录时烧录的分区（默认：``all``）。可选：``all``、``app``、``bootloader``、``partition-table``。作用域：Resource。
     * - **idf.jtagFlashCommandExtraArgs**
-      - OpenOCD JTAG 闪存额外参数。默认值为 ["verify", "reset"]
-    * - **idf.imageViewerConfigs**
-      - 图像查看器功能的自定义图像格式配置 JSON 文件路径。可以是相对于工作区文件夹的相对路径或绝对路径。
-
-扩展将按照以下方式使用上述设置：
-
-1. **idf.flashBaudRate** 是用于 **ESP-IDF：烧录项目** 命令和 `Debugging <https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/debugproject.html>`_ 的烧录速率。
-2. **idf.monitorBaudRate** 是 ESP-IDF 监视器的波特率值，默认会回退到项目的 sdkconfig 配置项 ``CONFIG_ESPTOOLPY_MONITOR_BAUD``（即 idf.py monitor 命令的波特率）。也可以通过设置 ``IDF_MONITOR_BAUD`` 或 ``MONITORBAUD`` 环境变量，或者通过扩展的 **idf.customExtraVars** 配置项来覆盖此值。
-3. **idf.openOcdConfigs** 用于存储一个字符串数组，其中每个字符串都代表相对于 OpenOCD 脚本目录的配置文件路径。这些配置文件将被用来设置 OpenOCD 服务器，例如：``["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]``。详情请参阅 `OpenOCD JTAG 目标配置 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_。
-4. **idf.port** （Windows 系统中为 **idf.portWin**）用作扩展命令的串口值。
-5. **idf.openOcdDebugLevel** 是 OpenOCD 服务器输出的日志级别，范围为 0 到 4。
-6. **idf.openOcdLaunchArgs** 是用于配置 OpenOCD 启动的参数字符串数组。生成的 OpenOCD 启动命令格式如下：``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}``。
-7. **idf.jtagFlashCommandExtraArgs** 用于OpenCD JTAG闪存任务。请查看 `上传待调试的应用程序 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/jtag-debugging/index.html#jtag-upload-app-debug>`.
-8. **idf.serialPortDetectionTimeout** 是用于 **ESP-IDF：选择端口** 命令的超时值（秒），当使用 esptool.py 自动检测串口时使用。此设置允许用户配置扩展在扫描可用串口上的兼容设备时应等待多长时间。
+      - OpenOCD JTAG 烧录额外参数（默认：``["verify", "compress", "skip_loaded", "reset"]``）。作用域：Resource。
+    * - **idf.preFlashTask**
+      - 烧录前执行的命令字符串。作用域：Resource。
+    * - **idf.postFlashTask**
+      - 烧录后执行的命令字符串。作用域：Resource。
 
 .. note::
 
-    * 使用 **ESP-IDF：设置乐鑫设备目标** 命令时，当前 sdkconfig 文件中的 IDF_TARGET 配置项将被选中的芯片所覆盖，并将 **idf.openOcdConfigs** 设置为芯片默认的 OpenOCD 配置文件。
-    * 如果只想自定义 **idf.openOcdConfigs**，可以使用 **ESP-IDF：选择 OpenOCD 开发板配置** 命令，或直接修改 ``settings.json`` 文件。
+    使用 **ESP-IDF：设置乐鑫设备目标** 时，扩展会覆盖当前 sdkconfig 的 ``IDF_TARGET`` 并用默认 OpenOCD 配置更新 **idf.openOcdConfigs**。若仅需自定义 **idf.openOcdConfigs**，可使用 **ESP-IDF：选择 OpenOCD 开发板配置** 或直接编辑 ``settings.json``。
 
-代码覆盖率相关设置
-------------------
-
-以下列表展示了代码覆盖率的颜色配置。
+构建
+----
 
 .. list-table::
     :widths: 25 75
@@ -135,90 +120,99 @@ ESP-IDF 相关设置
 
     * - 设置 ID
       - 描述
-    * - **idf.coveredLightTheme**
-      - 浅色主题下 gcov 代码覆盖率报告中覆盖行的背景颜色
-    * - **idf.coveredDarkTheme**
-      - 深色主题下 gcov 代码覆盖率报告中覆盖行的背景颜色
-    * - **idf.partialLightTheme**
-      - 浅色主题下 gcov 代码覆盖率报告中部分覆盖行的背景颜色
-    * - **idf.partialDarkTheme**
-      - 深色主题下 gcov 代码覆盖率报告中部分覆盖行的背景颜色
-    * - **idf.uncoveredLightTheme**
-      - 浅色主题下 gcov 代码覆盖率报告中未覆盖行的背景颜色
-    * - **idf.uncoveredDarkTheme**
-      - 深色主题下 gcov 代码覆盖率报告中未覆盖行的背景颜色
-
-
-PyTest 相关设置
----------------
-
-以下设置用于配置 PyTest 单元测试。
-
-.. list-table::
-    :widths: 25 75
-    :header-rows: 1
-
-    * - 设置 ID
-      - 描述
-    * - **idf.unitTestFilePattern**
-      - 用于发现单元测试文件的 glob 模式（默认值：``**/test/test_*.c``）
-
-扩展将按照以下方式使用上述设置：
-
-1. **idf.unitTestFilePattern** 用于扩展在项目中发现单元测试文件。默认模式 :code:`**/test/test_*.c` 会在任何 "test" 目录中查找以 "test" 开头的 C 文件。
-
-
-扩展行为设置
-------------
-
-.. list-table::
-    :widths: 25 75
-    :header-rows: 1
-
-    * - 设置 ID
-      - 描述
-    * - **idf.enableUpdateSrcsToCMakeListsFile**
-      - 启用在 ``CMakeLists.txt`` 文件中更新源文件的功能（该选项默认启用）
-    * - **idf.flashType**
-      - 首选烧录方法：DFU、UART 或 JTAG
-    * - **idf.flashPartitionToUse**
-      - 在构建和烧录过程中指定要烧录的分区。默认值为 ``all``
-    * - **idf.launchMonitorOnDebugSession**
-      - 在 ESP-IDF 调试会话中启动 ESP-IDF 监视器
-    * - **idf.notificationMode**
-      - ESP-IDF 扩展通知和输出专注模式。（默认全部启用）
-    * - **idf.showOnboardingOnInit**
-      - 在激活扩展时显示 ESP-IDF 配置窗口
-    * - **idf.saveScope**
-      - 保存扩展设置的位置
-    * - **idf.saveBeforeBuild**
-      - 在构建之前保存所有编辑的文件（该选项默认启用）
+    * - **idf.buildPath**
+      - 扩展命令使用的构建目录（默认：``${workspaceFolder}/build``）。作用域：Resource。
+    * - **idf.buildPathWin**
+      - Windows 下构建目录（默认：``${workspaceFolder}\\build``）。作用域：Resource。
+    * - **idf.cmakeCompilerArgs**
+      - CMake 配置参数（默认含 ``-G Ninja``、``-DPYTHON_DEPS_CHECKED=1``、``-DESP_PLATFORM=1``）。作用域：Resource。
+    * - **idf.sdkconfigDefaults**
+      - 初始构建配置的 sdkconfig 默认值列表。作用域：Resource。
+    * - **idf.ninjaArgs**
+      - Ninja 构建任务参数。作用域：Resource。
+    * - **idf.customExtraVars**
+      - 键值对象，将环境变量加入扩展命令进程（如 ``OPENOCD_SCRIPTS``）。不修改 VS Code 外的系统环境。作用域：Resource。
     * - **idf.useIDFKconfigStyle**
-      - 启用 Kconfig 文件的样式验证
-    * - **idf.telemetry**
-      - 启用遥测
+      - 启用 Kconfig 文件样式验证。作用域：Resource。
+    * - **idf.saveBeforeBuild**
+      - 构建前保存所有已编辑文件（默认：``true``）。作用域：Resource。
+    * - **idf.enableCCache**
+      - 在构建任务中启用 CCache（需确保 CCache 在 PATH 中）。作用域：Resource。
     * - **idf.extraCleanPaths**
-      - 在执行 **完全清理项目** 命令时删除额外的路径（该选项默认值为 `[]`）。例如，可以设置为 ``["managed_components", "dependencies.lock"]``，以从当前工作区文件夹中删除 managed_components 目录和 dependencies.lock 文件。
-    * - **idf.monitorNoReset**
-      - 启用 IDF 监视器的不重置标志（该选项默认禁用）
-    * - **idf.monitorEnableTimestamps**
-      - 启用 IDF 监视器中的时间戳（该选项默认禁用）
-    * - **idf.monitorCustomTimestampFormat**
-      - 在 IDF 监视器中自定义时间戳格式
-    * - **idf.monitorDelay**
-      - 在执行 IDF 监视器或中断监视器会话后启动调试会话的延迟（毫秒）。
-    * - **idf.enableStatusBar**
-      - 显示或隐藏扩展状态栏项目
+      - **完全清理项目** 时额外删除的路径（默认：``[]``）。例如 ``["managed_components", "dependencies.lock"]``。作用域：Resource。
+    * - **idf.sdkconfigFilePath**
+      - sdkconfig 文件绝对路径。作用域：Resource。
     * - **idf.enableSizeTaskAfterBuildTask**
-      - 在完成 IDF 构建任务后执行 IDF 计算程序大小任务
-    * - **idf.customTerminalExecutable**
-      - 指定要使用的 shell 终端可执行文件的绝对路径（默认使用 VS Code 终端）
-    * - **idf.customTerminalExecutableArgs**
-      - idf.customTerminalExecutable 的 shell 参数
+      - 在 IDF 构建任务后执行 IDF 大小任务（默认：``true``）。作用域：Resource。
+    * - **idf.preBuildTask**
+      - 构建前执行的命令字符串。作用域：Resource。
+    * - **idf.postBuildTask**
+      - 构建后执行的命令字符串。作用域：Resource。
 
+调试与 OpenOCD
+--------------
 
-自定义构建和烧录任务
---------------------
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - 设置 ID
+      - 描述
+    * - **openocd.tcl.host**
+      - OpenOCD TCL 服务器主机（默认：``localhost``）。作用域：Resource。
+    * - **openocd.tcl.port**
+      - OpenOCD TCL 服务器端口（默认：``6666``）。作用域：Resource。
+    * - **openocd.jtag.command.force_unix_path_separator**
+      - 在 Win32 上强制使用 ``/`` 作为路径分隔符（默认：``true``）。
+    * - **idf.launchMonitorOnDebugSession**
+      - 启动 ESP-IDF 调试会话时同时启动 ESP-IDF 监视器（默认：``false``）。作用域：Resource。
+    * - **idf.openOcdDebugLevel**
+      - OpenOCD 调试级别 0–4（默认：2）。0 仅错误，4 为详细。设置 **idf.openOcdLaunchArgs** 时此项无效。作用域：Resource。
+    * - **idf.openOcdLaunchArgs**
+      - OpenOCD 自定义参数。若已设置，则 **idf.openOcdConfigs** 与 **idf.openOcdDebugLevel** 被忽略。否则命令形式为：``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``。作用域：Resource。
+    * - **idf.svdFilePath**
+      - 芯片调试外设树视图的 SVD 文件路径（默认：``${workspaceFolder}/esp32.svd``）。作用域：Resource。
+
+监视器
+------
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - 设置 ID
+      - 描述
+    * - **idf.monitorDelay**
+      - 在 IDF 监视器运行或中断监视器后，启动调试会话前的延迟（毫秒）（默认：1000）。作用域：Resource。
+    * - **idf.monitorNoReset**
+      - 为 IDF 监视器启用 no-reset 标志（默认：``false``）。作用域：Resource。
+    * - **idf.monitorEnableTimestamps**
+      - 在 IDF 监视器中启用时间戳（默认：``false``）。作用域：Resource。
+    * - **idf.monitorCustomTimestampFormat**
+      - IDF 监视器自定义时间戳格式。作用域：Resource。
+
+应用跟踪
+--------
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - 设置 ID
+      - 描述
+    * - **trace.poll_period**
+      - apptrace 的 poll_period。作用域：Resource。
+    * - **trace.trace_size**
+      - apptrace 的 trace_size（默认：2048）。作用域：Resource。
+    * - **trace.stop_tmo**
+      - apptrace 的 stop_tmo（默认：3）。作用域：Resource。
+    * - **trace.wait4halt**
+      - apptrace 的 wait4halt（0 或 1，默认：0）。作用域：Resource。
+    * - **trace.skip_size**
+      - apptrace 的 skip_size（默认：0）。作用域：Resource。
+
+任务与终端
+----------
 
 .. list-table::
     :widths: 25 75
@@ -227,19 +221,98 @@ PyTest 相关设置
     * - 设置 ID
       - 描述
     * - **idf.customTask**
-      - 通过 **ESP-IDF: Execute Custom Task** 命令执行的自定义任务
-    * - **idf.preBuildTask**
-      - 在构建任务之前执行的命令字符串
-    * - **idf.postBuildTask**
-      - 在构建任务之后执行的命令字符串
-    * - **idf.preFlashTask**
-      - 在烧录任务之前执行的命令字符串
-    * - **idf.postFlashTask**
-      - 在烧录任务之后执行的命令字符串
+      - **ESP-IDF：执行自定义任务** 使用的自定义任务命令。作用域：Resource。
+    * - **idf.customTerminalExecutable**
+      - 扩展终端使用的 shell 可执行文件绝对路径（默认使用 VS Code 默认）。作用域：Resource。
+    * - **idf.customTerminalExecutableArgs**
+      - **idf.customTerminalExecutable** 的参数。作用域：Resource。
 
+界面与通知
+----------
 
-QEMU 相关设置
--------------
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - 设置 ID
+      - 描述
+    * - **idf.showOnboardingOnInit**
+      - 扩展激活时显示 ESP-IDF 配置/入门窗口（默认：``true``）。作用域：Window。
+    * - **idf.hasWalkthroughBeenShown**
+      - 是否已显示过入门演练。作用域：Application。
+    * - **idf.notificationMode**
+      - 通知与输出焦点模式：``Silent``、``Notifications``、``Output``、``All``（默认：``All``）。作用域：Resource。
+    * - **idf.saveScope**
+      - 扩展设置保存位置：全局 (1)、工作区 (2)、工作区文件夹 (3)。仅作用域：Application。
+    * - **idf.enableStatusBar**
+      - 显示或隐藏扩展状态栏项（默认：``true``）。作用域：Resource。
+    * - **idf.enableUpdateSrcsToCMakeListsFile**
+      - 启用在 ``CMakeLists.txt`` 中更新源文件（默认：``true``）。作用域：Window。
+
+遥测
+----
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - 设置 ID
+      - 描述
+    * - **idf.telemetry**
+      - 启用遥测（默认：``true``）。
+
+ESP Rainmaker 设置
+------------------
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - 设置 ID
+      - 描述
+    * - **esp.rainmaker.api.server_url**
+      - ESP Rainmaker API 服务器 URL（默认：``https://api.rainmaker.espressif.com/v1/``）。作用域：Resource。
+    * - **esp.rainmaker.oauth.url**
+      - ESP Rainmaker OAuth URL（默认：``https://auth.rainmaker.espressif.com/oauth2/authorize``）。作用域：Resource。
+
+覆盖率
+------
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - 设置 ID
+      - 描述
+    * - **idf.coveredLightTheme**
+      - gcov 覆盖率中已覆盖行背景色（浅色主题）（默认：``rgba(0,128,0,0.1)``）。作用域：Resource。
+    * - **idf.coveredDarkTheme**
+      - gcov 覆盖率中已覆盖行背景色（深色主题）（默认：``rgba(0,128,0,0.1)``）。作用域：Resource。
+    * - **idf.partialLightTheme**
+      - 部分覆盖行背景色（浅色主题）（默认：``rgba(250,218,94,0.1)``）。作用域：Resource。
+    * - **idf.partialDarkTheme**
+      - 部分覆盖行背景色（深色主题）（默认：``rgba(250,218,94,0.1)``）。作用域：Resource。
+    * - **idf.uncoveredLightTheme**
+      - 未覆盖行背景色（浅色主题）（默认：``rgba(255,0,0,0.1)``）。作用域：Resource。
+    * - **idf.uncoveredDarkTheme**
+      - 未覆盖行背景色（深色主题）（默认：``rgba(255,0,0,0.1)``）。作用域：Resource。
+
+组件管理器
+----------
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - 设置 ID
+      - 描述
+    * - **idf.enableIdfComponentManager**
+      - 在构建命令中启用 IDF 组件管理器（默认：``false``）。作用域：Resource。
+    * - **esp.component-manager.url**
+      - ESP 组件注册表 URL（默认：``https://components.espressif.com``）。作用域：Resource。
+
+QEMU 设置
+---------
 
 .. list-table::
     :widths: 25 75
@@ -248,36 +321,12 @@ QEMU 相关设置
     * - 设置 ID
       - 描述
     * - **idf.qemuDebugMonitor**
-      - 在调试会话中启用 QEMU 显示器
+      - 在调试会话中启用 QEMU 监视器（默认：``true``）。作用域：Resource。
     * - **idf.qemuExtraArgs**
-      - QEMU 额外的论点
+      - QEMU 额外参数。作用域：Resource。
 
-
-日志追踪相关设置
-----------------
-
-.. list-table::
-    :widths: 25 75
-    :header-rows: 1
-
-    * - 设置
-      - 描述
-    * - **trace.poll_period**
-      - 设置 apptrace 的 poll_period 参数
-    * - **trace.trace_size**
-      - 设置 apptrace 的 trace_size 参数
-    * - **trace.stop_tmo**
-      - 设置 apptrace 的 stop_tmo 参数
-    * - **trace.wait4halt**
-      - 设置 apptrace 的 wait4halt 参数
-    * - **trace.skip_size**
-      - 设置 apptrace 的 skip_size 参数
-
-
-其他框架的相关设置
-------------------
-
-通过以下设置，可同时使用 ESP-IDF 及其他框架：
+单元测试
+--------
 
 .. list-table::
     :widths: 25 75
@@ -285,13 +334,31 @@ QEMU 相关设置
 
     * - 设置 ID
       - 描述
+    * - **idf.unitTestFilePattern**
+      - 发现单元测试文件的 glob 模式（默认：``**/test/test_*.c``）。作用域：Resource。
+
+其他
+----
+
+.. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - 设置 ID
+      - 描述
+    * - **idf.wssPort**
+      - WebSocket 服务器端口（默认：49203，范围 49152–65535）。作用域：Resource。
     * - **idf.sbomFilePath**
-      - 创建 ESP-IDF SBOM 报告的路径
+      - ESP-IDF SBOM 报告路径（默认：``espidf.spdx``）。作用域：Resource。
+    * - **idf.imageViewerConfigs**
+      - 图像查看器自定义图像格式配置 JSON 路径（相对工作区或绝对路径）。作用域：Resource。
 
+在 ESP-IDF ``settings.json`` 中使用环境变量及引用其他 ESP-IDF 设置
+------------------------------------------------------------------
 
-在 ESP-IDF ``settings.json`` 和 ``tasks.json`` 中使用环境变量
--------------------------------------------------------------
+在 ESP-IDF 设置中可使用 ``${env:VARNAME}`` 引用环境变量，使用 ``${config:ESPIDFSETTING}`` 引用其他 ESP-IDF 设置。
 
-环境变量 (env) 和其他 ESP-IDF 设置 (config) 可以在 ESP-IDF 设置中通过 ``${env:VARNAME}`` （用于环境变量）和 ``${config:ESPIDFSETTING}`` （用于设置）进行引用。
+也可使用 ``${config:ESPIDFSETTING,prefix}`` 在引用结果前添加前缀。例如 ``${config:idf.openOcdConfigs,-f}`` 会在 **idf.openOcdConfigs** 的每个字符串前加 ``-f``。
+若 ``"idf.openOcdConfigs": ["interface/some.cfg", "target/some.cfg"]``，则得到 ``-finterface/some.cfg -ftarget/some.cfg``。
 
-例如，如果想要使用 ``"~/esp/esp-idf"`` 设为 ``"${env:HOME}/esp/esp-idf"``。
+例如，要使用 ``"~/workspace/blink"``，可设为 ``"${env:HOME}/workspace/blink"``。
