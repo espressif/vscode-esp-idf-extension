@@ -1241,10 +1241,13 @@ export class GDBDebugSession extends LoggingDebugSession {
         return;
       }
       const parentVarname = ref.type === "object" ? ref.varobjName : "";
-      const varname =
+      let varname =
         parentVarname +
         (parentVarname === "" ? "" : ".") +
         args.name.replace(/^\[(\d+)\]/, "$1");
+        if (ref.type === "registers") {
+          varname = "$" + args.name;
+        }
       const depth =
         ref.type === "registers"
           ? this.getRegisterVarDepth()
@@ -1295,7 +1298,7 @@ export class GDBDebugSession extends LoggingDebugSession {
           }
           const children = await mi.sendVarListChildren(this.gdb, {
             name: parentVarname,
-            printValues: mi.MIVarPrintValues.no,
+            printValues: mi.MIVarPrintValues.all,
           });
           for (const child of children.children) {
             if (this.isChildOfClass(child)) {
@@ -2242,9 +2245,8 @@ export class GDBDebugSession extends LoggingDebugSession {
       const scalarMatch = fullUnionStr.match(
         /\w+\s*=\s*(0x[0-9a-fA-F]+|\d+)\s*[,}]/
       );
-      if (scalarMatch) {
-        const val = scalarMatch[1];
-        return val.startsWith("0x") ? val : "0x" + val;
+      if (scalarMatch && scalarMatch.length > 1) {
+        return scalarMatch[1];
       }
     }
     const isPlaceholder =
@@ -2450,7 +2452,6 @@ export class GDBDebugSession extends LoggingDebugSession {
               logger.warn(
                 `Failed to remove register varobj '${existingVar.varname}' for register '${reg}': ${err}`
               );
-              this.registerCompositeCache.set(reg, true);
             }
             return {
               reg,
@@ -2484,7 +2485,6 @@ export class GDBDebugSession extends LoggingDebugSession {
                 logger.warn(
                   `Failed to remove updated register varobj '${updated.varname}' for register '${reg}': ${err}`
                 );
-                this.registerCompositeCache.set(reg, true);
               }
             }
             return {
@@ -2525,6 +2525,7 @@ export class GDBDebugSession extends LoggingDebugSession {
             await this.setRegisterVarObjFormatToHexRecursive(response.name);
             const updateResult = await mi.sendVarUpdate(this.gdb, {
               name: response.name,
+              printValues: mi.MIVarPrintValues.simple,
             });
             const matchingChange = updateResult.changelist?.find(
               (change) => change.name === response.name
@@ -2567,9 +2568,8 @@ export class GDBDebugSession extends LoggingDebugSession {
         continue;
       }
       const rawFlatVal = flatValuesByReg.get(reg) ?? reg_values[i].value;
-      const flatVal = rawFlatVal.startsWith("0x")
-        ? rawFlatVal
-        : "0x" + rawFlatVal;
+      const flatVal = /^[0-9a-fA-F]+$/.test(rawFlatVal) && !rawFlatVal.startsWith("0x")
+        ? "0x" + rawFlatVal : rawFlatVal;
       const settled = varCreateResults[i];
       if (settled.status === "rejected") {
         variables.push({
