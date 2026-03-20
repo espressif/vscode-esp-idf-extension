@@ -241,7 +241,11 @@ export function spawn(
   });
 }
 
-export function canAccessFile(filePath: string, mode?: number): boolean {
+export function canAccessFile(
+  filePath: string,
+  mode?: number,
+  expectedValue?: string
+): boolean {
   try {
     // tslint:disable-next-line: no-bitwise
     mode = mode || fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK;
@@ -249,7 +253,7 @@ export function canAccessFile(filePath: string, mode?: number): boolean {
     return true;
   } catch (error) {
     Logger.error(
-      `Cannot access filePath: ${filePath}`,
+      `Cannot access filePath: ${filePath} with mode: ${mode} and expectedValue: ${expectedValue}`,
       error,
       "src utils canAccessFile",
       undefined,
@@ -1049,11 +1053,18 @@ export async function getAllBinPathInEnvPath(
   return foundBinaries;
 }
 
+/**
+ * Find the binary in the PATH environment variable and return its absolute path. If containerDir is provided, it will check if the binary path contains the containerDir path and return it only if it's true.
+ * @param {string} binaryName - The name of the binary to find in the PATH environment variable.
+ * @param {NodeJS.ProcessEnv} env - The environment variables to use for the search.
+ * @param {string[]} [containerDir] - Optional array of directory paths to check if the binary path contains any of them.
+ * @returns {Promise<string>} The absolute path of the binary if found, otherwise an empty string.
+ */
 export async function isBinInPath(
   binaryName: string,
   env: NodeJS.ProcessEnv,
   containerDir?: string[]
-) {
+): Promise<string> {
   let pathNameInEnv: string = Object.keys(process.env).find(
     (k) => k.toUpperCase() == "PATH"
   );

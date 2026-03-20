@@ -71,14 +71,15 @@ export class FlashTask {
   }
 
   private verifyArgs() {
-    if (!canAccessFile(this.flashScriptPath, constants.R_OK)) {
+    if (!canAccessFile(this.flashScriptPath, constants.R_OK, "esptool.py")) {
       throw new Error("SCRIPT_PERMISSION_ERROR");
     }
     for (const flashFile of this.model.flashSections) {
       if (
         !canAccessFile(
           join(this.buildDirPath, flashFile.binFilePath),
-          constants.R_OK
+          constants.R_OK,
+          flashFile.binFilePath
         )
       ) {
         throw new Error("SECTION_BIN_FILE_NOT_ACCESSIBLE");

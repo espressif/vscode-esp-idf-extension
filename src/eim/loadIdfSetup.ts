@@ -22,11 +22,12 @@ import { getIdfSetups } from "./getExistingSetups";
 import { IdfSetup } from "./types";
 import { getEnvVariables } from "./loadSettings";
 import { readParameter, writeParameter } from "../idfConfiguration";
-import { getEspIdfFromCMake } from "../utils";
+import { getEspIdfFromCMake, isBinInPath } from "../utils";
 import { join } from "path";
 import { isIdfSetupValid } from "./verifySetup";
 import { Logger } from "../logger/logger";
 import { createHash } from "crypto";
+import { pathExists } from "fs-extra";
 
 export async function loadIdfSetup(workspaceFolder: Uri) {
   const idfSetups = await getIdfSetups(workspaceFolder);
@@ -42,36 +43,20 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
     void promptOpenEspIdfInstallationManager();
     return;
   }
-  const currentIdfConfigurationName = readParameter(
-    "idf.currentSetup",
-    workspaceFolder
-  ) as string;
 
   let idfSetupToUse: IdfSetup;
   if (idfSetups.length > 0) {
-    if (currentIdfConfigurationName) {
+    let idfConfigurationName: string = readParameter(
+      "idf.currentSetup",
+      workspaceFolder
+    ) as string;
+    const doesIdfSetupToUseExist = await pathExists(idfConfigurationName);
+    if (doesIdfSetupToUseExist) {
       idfSetupToUse = idfSetups.find((idfSetup) => {
-        return idfSetup.idfPath === currentIdfConfigurationName;
+        return idfSetup.idfPath === idfConfigurationName;
       });
     } else {
-      const oldIdfPath = readParameter(
-        "idf.espIdfPath",
-        workspaceFolder
-      ) as string;
-      if (oldIdfPath) {
-        idfSetupToUse = idfSetups.find((idfSetup) => {
-          return idfSetup.idfPath === oldIdfPath;
-        });
-      }
-      if (!idfSetupToUse) {
-        idfSetupToUse = idfSetups[0];
-      }
-      await writeParameter(
-        "idf.currentSetup",
-        idfSetupToUse.idfPath,
-        ConfigurationTarget.WorkspaceFolder,
-        workspaceFolder
-      );
+      idfSetupToUse = idfSetups[0];
     }
   }
 
@@ -81,6 +66,13 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
     void promptOpenEspIdfInstallationManager();
     return;
   }
+
+  await writeParameter(
+    "idf.currentSetup",
+    idfSetupToUse.idfPath,
+    ConfigurationTarget.WorkspaceFolder,
+    workspaceFolder
+  );
 
   await writeParameter(
     "idf.gitPath",
@@ -112,30 +104,25 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
     [key: string]: string;
   };
 
-  const idfPath = process.env.IDF_PATH || customVars["IDF_PATH"];
-  if (!idfPath || !idfPath.trim()) {
-    Logger.info(`ESP-IDF path is not set.`);
-    return;
-  }
-
+  const idfPath = customVars["IDF_PATH"] || process.env.IDF_PATH;
+  const idfSetupId = getIdfMd5sum(idfPath);
+  const idfVersion = await getEspIdfFromCMake(idfPath);
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
   const defaultIdfToolsPath = join(containerPath, ".espressif");
   const idfToolsPath =
-    process.env.IDF_TOOLS_PATH ||
     customVars["IDF_TOOLS_PATH"] ||
+    process.env.IDF_TOOLS_PATH ||
     defaultIdfToolsPath;
-  const gitPath = "/usr/bin/git";
-  const idfSetupId = getIdfMd5sum(idfPath);
-  const idfVersion = await getEspIdfFromCMake(idfPath);
+  const gitPath = await isBinInPath("git", process.env);
   const pyDir =
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
       : ["bin", "python3"];
   let venvPythonPath = "";
-  if (process.env.IDF_PYTHON_ENV_PATH || customVars["IDF_PYTHON_ENV_PATH"]) {
+  if (customVars["IDF_PYTHON_ENV_PATH"] || process.env.IDF_PYTHON_ENV_PATH) {
     venvPythonPath = join(
-      process.env.IDF_PYTHON_ENV_PATH || customVars["IDF_PYTHON_ENV_PATH"],
+      customVars["IDF_PYTHON_ENV_PATH"] || process.env.IDF_PYTHON_ENV_PATH,
       ...pyDir
     );
   }

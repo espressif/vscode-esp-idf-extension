@@ -226,7 +226,10 @@ export class SerialPort {
     );
 
     try {
-      let portList: SerialPortDetails[] = await this.list(workspaceFolder);
+      let portList: SerialPortDetails[] = await this.list(
+        workspaceFolder,
+        false
+      );
 
       // Get the currently selected port
       const portSetting2Use = useMonitorPort ? "idf.monitorPort" : "idf.port";
@@ -329,8 +332,11 @@ export class SerialPort {
     }
   }
 
-  public async getListArray(workspaceFolder: vscode.Uri) {
-    return await this.list(workspaceFolder);
+  public async getListArray(
+    workspaceFolder: vscode.Uri,
+    skipEsptoolCall: boolean = false
+  ) {
+    return await this.list(workspaceFolder, skipEsptoolCall);
   }
 
   public async updatePortListStatus(
@@ -351,7 +357,10 @@ export class SerialPort {
     );
   }
 
-  private list(workspaceFolder: vscode.Uri): Thenable<SerialPortDetails[]> {
+  private list(
+    workspaceFolder: vscode.Uri,
+    skipEsptoolCall: boolean
+  ): Thenable<SerialPortDetails[]> {
     return new Promise(async (resolve, reject) => {
       try {
         const listOfSerialPorts = await SerialPortLib.SerialPort.list();
@@ -407,22 +416,7 @@ export class SerialPort {
         if (!enableSerialPortChipIdRequest) {
           return resolve(choices);
         }
-
-        const esptoolPath = join(
-          idfPath,
-          "components",
-          "esptool_py",
-          "esptool",
-          "esptool.py"
-        );
-        const stat = await vscode.workspace.fs.stat(
-          vscode.Uri.file(esptoolPath)
-        );
-        if (stat.type !== vscode.FileType.File) {
-          // esptool.py does not exists
-          throw new Error(`esptool.py does not exists in ${esptoolPath}`);
-        }
-        async function processPorts(serialPort: SerialPortDetails) {
+        async function processPorts(serialPort: SerialPortDetails, esptoolPath: string) {
           try {
             const chipIdBuffer = await spawn(
               pythonBinPath,
@@ -447,7 +441,25 @@ export class SerialPort {
           return serialPort;
         }
 
-        resolve(await Promise.all(choices.map((item) => processPorts(item))));
+        if (skipEsptoolCall) {
+          resolve(choices);
+        } else {
+          const esptoolPath = join(
+            idfPath,
+            "components",
+            "esptool_py",
+            "esptool",
+            "esptool.py"
+          );
+          const stat = await vscode.workspace.fs.stat(
+            vscode.Uri.file(esptoolPath)
+          );
+          if (stat.type !== vscode.FileType.File) {
+            // esptool.py does not exists
+            throw new Error(`esptool.py does not exists in ${esptoolPath}`);
+          }
+          resolve(await Promise.all(choices.map((item) => processPorts(item, esptoolPath))));
+        }
       } catch (error) {
         reject(error);
       }

@@ -25,19 +25,23 @@ export async function getConfigurationAccess(
 ) {
   reportedResult.configurationAccess.toolsPath = canAccessFile(
     reportedResult.configurationSettings.toolsPath,
-    constants.R_OK
+    constants.R_OK,
+    "IDF_TOOLS_PATH"
   );
   reportedResult.configurationAccess.espAdfPath = canAccessFile(
     reportedResult.configurationSettings.espAdfPath,
-    constants.R_OK
+    constants.R_OK,
+    "ESP_ADF_PATH"
   );
   reportedResult.configurationAccess.espIdfPath = canAccessFile(
     reportedResult.configurationSettings.espIdfPath,
-    constants.R_OK
+    constants.R_OK,
+    "IDF_PATH"
   );
   reportedResult.configurationAccess.pythonBinPath = canAccessFile(
     reportedResult.configurationSettings.pythonBinPath,
-    constants.X_OK
+    constants.X_OK,
+    "PYTHON_BIN_PATH"
   );
   reportedResult.configurationAccess.espIdfToolsPaths = {};
   if (
@@ -50,7 +54,8 @@ export async function getConfigurationAccess(
     for (const tool of toolPathsArray) {
       reportedResult.configurationAccess.espIdfToolsPaths[tool] = canAccessFile(
         tool,
-        constants.R_OK
+        constants.R_OK,
+        "CUSTOM_EXTRA_PATH"
       );
     }
   }

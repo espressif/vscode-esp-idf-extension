@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-import { EOL } from "os";
 import { spawn } from "../utils";
 import { IdfSetup } from "./types";
 import { delimiter, join } from "path";

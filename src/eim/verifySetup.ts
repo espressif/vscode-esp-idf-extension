@@ -76,13 +76,12 @@ export async function isIdfSetupValid(
         ["cmake", "ninja"]
       );
       toolsInfo = await idfToolsManager.getRequiredToolsInfo(
-        join(idfSetup.toolsPath, "tools"),
         exportedToolsPaths,
         ["cmake", "ninja"],
         logToChannel
       );
     } else {
-      toolsInfo = await idfToolsManager.getEIMToolsInfo(
+      toolsInfo = await idfToolsManager.getRequiredToolsInfo(
         envVars[pathNameInEnv],
         ["cmake", "ninja"],
         logToChannel

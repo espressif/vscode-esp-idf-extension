@@ -42,31 +42,11 @@ export interface INewProjectArgs {
 }
 
 export async function getNewProjectArgs(
-  extensionPath: string,
   progress: Progress<{ message: string; increment: number }>,
   workspace: Uri,
   idfSetups: IdfSetup[]
 ) {
-  progress.report({ increment: 10, message: "Loading ESP-IDF components..." });
   const components = [];
-  progress.report({ increment: 10, message: "Loading serial ports..." });
-  let serialPortList: Array<string> = ["detect"];
-  try {
-    const serialPortListDetails = await SerialPort.shared().getListArray(
-      workspace
-    );
-    serialPortList.push(...serialPortListDetails.map((p) => p.comName));
-  } catch (error) {
-    const msg = error.message
-      ? error.message
-      : "Error looking for serial ports.";
-    Logger.infoNotify(msg);
-    Logger.error(msg, error, "getNewProjectArgs getSerialPort");
-    serialPortList = ["no port"];
-  }
-  progress.report({ increment: 10, message: "Loading ESP-IDF Boards list..." });
-  const openOcdScriptsPath = await getOpenOcdScripts(workspace);
-  let espBoards = await getBoards(openOcdScriptsPath);
   progress.report({ increment: 10, message: "Loading ESP-IDF setups list..." });
 
   const pickItems: {
@@ -125,6 +105,26 @@ export async function getNewProjectArgs(
     workspace,
     idfSetup.idfPath
   );
+
+  progress.report({ increment: 10, message: "Loading serial ports..." });
+  let serialPortList: Array<string> = ["detect"];
+  try {
+    const serialPortListDetails = await SerialPort.shared().getListArray(
+      workspace,
+      true
+    );
+    serialPortList.push(...serialPortListDetails.map((p) => p.comName));
+  } catch (error) {
+    const msg = error.message
+      ? error.message
+      : "Error looking for serial ports.";
+    Logger.infoNotify(msg);
+    Logger.error(msg, error, "getNewProjectArgs getSerialPort");
+    serialPortList = ["no port"];
+  }
+  progress.report({ increment: 10, message: "Loading ESP-IDF Boards list..." });
+  const openOcdScriptsPath = await getOpenOcdScripts(workspace);
+  let espBoards = await getBoards(openOcdScriptsPath);
 
   progress.report({ increment: 50, message: "Initializing wizard..." });
   return {

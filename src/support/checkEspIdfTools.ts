@@ -49,7 +49,6 @@ export async function checkEspIdfTools(
     reportedResult.configurationSettings.espIdfPath
   );
   const verifiedPkgs = await idfToolsManager.getRequiredToolsInfo(
-    reportedResult.configurationSettings.toolsPath,
     reportedResult.configurationSettings.customExtraPaths
   );
   reportedResult.espIdfToolsVersions = verifiedPkgs;

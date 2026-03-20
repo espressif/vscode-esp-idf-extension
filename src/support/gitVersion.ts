@@ -23,21 +23,28 @@ const GIT_VERSION_REGEX = /(?:git\sversion\s)(\d+)(.\d+)?(.\d+)?(?:.windows.\d+)
 
 export async function getGitVersion(
   reportedResult: reportObj,
-  context: vscode.ExtensionContext,
+  context: vscode.ExtensionContext
 ) {
-  const rawGitVersion = await execChildProcess(
-    reportedResult.configurationSettings.gitPath,
-    ["--version"],
-    context.extensionPath
-  );
-  reportedResult.gitVersion.output = rawGitVersion;
-  const versionMatches = rawGitVersion.match(GIT_VERSION_REGEX);
-  if (versionMatches && versionMatches.length) {
-    reportedResult.gitVersion.result = versionMatches[0].replace(
-      /git\sversion\s/g,
-      ""
+  try {
+    const rawGitVersion = await execChildProcess(
+      reportedResult.configurationSettings.gitPath,
+      ["--version"],
+      context.extensionPath
     );
-  } else {
-    reportedResult.gitVersion.result = "Not found";
+    reportedResult.gitVersion.output = rawGitVersion;
+    const versionMatches = rawGitVersion.match(GIT_VERSION_REGEX);
+    if (versionMatches && versionMatches.length) {
+      reportedResult.gitVersion.result = versionMatches[0].replace(
+        /git\sversion\s/g,
+        ""
+      );
+    } else {
+      reportedResult.gitVersion.result = "Not found";
+    }
+  } catch (error) {
+    reportedResult.gitVersion.output =
+    error instanceof Error ? error.message : String(error);
+    reportedResult.gitVersion.result = "Error: " + reportedResult.gitVersion.output;
+    reportedResult.latestError = error;
   }
 }
