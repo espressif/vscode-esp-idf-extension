@@ -334,7 +334,7 @@ export class IdfToolsManager {
   }
 
   public async getRequiredToolsInfo(
-    pathToVerify?: string,
+    pathToVerify: string,
     onReqPkgs?: string[],
     logToChannel: boolean = true
   ) {

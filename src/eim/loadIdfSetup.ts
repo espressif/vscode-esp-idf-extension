@@ -56,7 +56,14 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
         return idfSetup.idfPath === idfConfigurationName;
       });
     } else {
-      idfSetupToUse = idfSetups.find((idfSetup) => idfSetup.isValid);
+      for (const idfSetup of idfSetups) {
+        const envVars = await getEnvVariables(idfSetup);
+        const [isValid] = await isIdfSetupValid(envVars);
+        if (isValid) {
+          idfSetupToUse = idfSetup;
+          break;
+        }
+      }
     }
   }
 
@@ -104,10 +111,7 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
     [key: string]: string;
   };
 
-  const idfPath = customVars["IDF_PATH"] || process.env.IDF_PATH;
-  if (!idfPath) {
-    return;
-  }
+  const idfPath = customVars["IDF_PATH"] || process.env.IDF_PATH || "";
   const idfPathExists = await pathExists(idfPath);
   if (!idfPathExists) {
     return;
@@ -129,9 +133,10 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
     return;
   }
 
-  const pathNameInEnv: string =
-    Object.keys(process.env).find((k) => k.toUpperCase() == "PATH") || "PATH";
-  if (!customVars[pathNameInEnv]) {
+  const pathNameInEnv: string = Object.keys(process.env).find(
+    (k) => k.toUpperCase() == "PATH"
+  );
+  if (pathNameInEnv && !customVars[pathNameInEnv]) {
     const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
       idfPath
     );

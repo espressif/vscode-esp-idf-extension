@@ -53,8 +53,9 @@ export async function checkEspIdfRequirements(
     reportedResult.idfCheckRequirements.result = result;
   } catch (error) {
     reportedResult.idfCheckRequirements.output =
-    error instanceof Error ? error.message : String(error);
-    reportedResult.idfCheckRequirements.result = "Error: " + reportedResult.idfCheckRequirements.output;
+      error instanceof Error ? error.message : String(error);
+    reportedResult.idfCheckRequirements.result =
+      "Error: " + reportedResult.idfCheckRequirements.output;
     reportedResult.latestError = error;
   }
 }

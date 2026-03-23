@@ -2322,6 +2322,13 @@ export async function activate(context: vscode.ExtensionContext) {
             })
           ).then((results) => results.filter((setup) => setup !== null));
 
+          if (!existingIdfSetups || existingIdfSetups.length === 0) {
+            vscode.window.showInformationMessage(
+              vscode.l10n.t("No ESP-IDF Setups found")
+            );
+            return;
+          }
+
           progress.report({
             message: "Loading ESP-IDF examples...",
             increment: 10,

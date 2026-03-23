@@ -43,8 +43,9 @@ export async function getGitVersion(
     }
   } catch (error) {
     reportedResult.gitVersion.output =
-    error instanceof Error ? error.message : String(error);
-    reportedResult.gitVersion.result = "Error: " + reportedResult.gitVersion.output;
+      error instanceof Error ? error.message : String(error);
+    reportedResult.gitVersion.result =
+      "Error: " + reportedResult.gitVersion.output;
     reportedResult.latestError = error;
   }
 }

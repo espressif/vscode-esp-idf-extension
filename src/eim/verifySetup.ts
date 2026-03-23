@@ -60,6 +60,10 @@ export async function isIdfSetupValid(
     const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
       envVars["IDF_PATH"]
     );
+
+    if (!envVars[pathNameInEnv]) {
+      return [false, `${pathNameInEnv} is not set in environment variables`];
+    }
     let toolsInfo: IEspIdfTool[] = await idfToolsManager.getRequiredToolsInfo(
       envVars[pathNameInEnv],
       ["cmake", "ninja"],

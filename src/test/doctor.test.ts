@@ -111,7 +111,7 @@ suite("Doctor Command tests", () => {
   test("Wrong esp-idf py requirements", async () => {
     reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
     await checkEspIdfRequirements(reportObj, mockUpContext);
-    assert.equal(reportObj.idfCheckRequirements.result, "Error");
+    assert.equal(reportObj.idfCheckRequirements.result, "Error: /some/non-existing-path/requirements.txt doesn't exist.");
   });
 
   test("launch.json", async () => {
