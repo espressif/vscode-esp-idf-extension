@@ -20,8 +20,12 @@ import { Uri } from "vscode";
 import { getIdfSetups } from "../eim/getExistingSetups";
 import { isIdfSetupValid } from "../eim/verifySetup";
 import { reportObj } from "./types";
+import { getEnvVariables } from "../eim/loadSettings";
 
-export async function checkIDFSetups(reportedResult: reportObj, workspaceFolder: Uri) {
+export async function checkIDFSetups(
+  reportedResult: reportObj,
+  workspaceFolder: Uri
+) {
   const idfSetups = await getIdfSetups(workspaceFolder);
 
   for (const idfSetup of idfSetups) {
@@ -29,8 +33,9 @@ export async function checkIDFSetups(reportedResult: reportObj, workspaceFolder:
       ...idfSetup,
       reason: "",
     };
+    let envVars: { [key: string]: string } = await getEnvVariables(idfSetup);
     [extendedIdfSetup.isValid, extendedIdfSetup.reason] = await isIdfSetupValid(
-      idfSetup,
+      envVars,
       false
     );
     reportedResult.espIdfSetups.push(extendedIdfSetup);

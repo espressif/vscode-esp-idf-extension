@@ -90,7 +90,10 @@ export async function getPythonEnvPath(
   return pyEnvPathExists ? fullIdfPyEnvPath : "";
 }
 
-export async function getEnvVariablesFromIdfSetup(idfSetup: IdfSetup) {
+export async function getEnvVariablesFromIdfSetup(
+  idfSetup: IdfSetup,
+  exportedToolsPaths = ""
+) {
   let envVars: { [key: string]: string } = {};
   envVars["IDF_PATH"] = idfSetup.idfPath;
   envVars["IDF_TOOLS_PATH"] = idfSetup.toolsPath;
@@ -98,11 +101,14 @@ export async function getEnvVariablesFromIdfSetup(idfSetup: IdfSetup) {
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
     idfSetup.idfPath
   );
-  const exportedToolsPaths = await idfToolsManager.exportPathsInString(
-    join(idfSetup.toolsPath, "tools"),
-    ["cmake", "ninja"]
-  );
+  if (!exportedToolsPaths) {
+    exportedToolsPaths = await idfToolsManager.exportPathsInString(
+      join(idfSetup.toolsPath, "tools"),
+      ["cmake", "ninja"]
+    );
+  }
   envVars["PATH"] = exportedToolsPaths;
+
   const idfToolsVars = await idfToolsManager.exportVars(idfSetup.toolsPath);
 
   for (const toolVar in idfToolsVars) {

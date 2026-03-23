@@ -30,26 +30,20 @@ import { ESP } from "../config";
 
 /**
  * Validate that given IDF Setup is valid.
- * @param {IdfSetup} idfSetup IDF Setup to validate.
+ * @param {[key: string]: string} envVars Environment variables to validate IDF Setup against.
  * @param logToChannel If output IDF Tools validation result in output channel
  * @returns {[boolean, string]} Tuple: True if IDF Setup is valid, False otherwise, and fail reason
  */
 export async function isIdfSetupValid(
-  idfSetup: IdfSetup,
+  envVars: { [key: string]: string },
   logToChannel = true
 ): Promise<[boolean, string]> {
   try {
-    let envVars: { [key: string]: string } = await getEnvVariables(idfSetup);
-    let venvPythonPath: string = "";
-    if (idfSetup.python) {
-      venvPythonPath = idfSetup.python;
-    } else {
-      const pyDir =
-        process.platform === "win32"
-          ? ["Scripts", "python.exe"]
-          : ["bin", "python3"];
-      venvPythonPath = join(envVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
-    }
+    const pyDir =
+      process.platform === "win32"
+        ? ["Scripts", "python.exe"]
+        : ["bin", "python3"];
+    const venvPythonPath = join(envVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
 
     if (!envVars["IDF_PATH"]) {
       return [false, "IDF_PATH is not set in environment variables"];
@@ -59,34 +53,18 @@ export async function isIdfSetupValid(
       return [false, `IDF_PATH does not exist: ${envVars["IDF_PATH"]}`];
     }
 
-    const pathNameInEnv: string = Object.keys(envVars).find(
+    const pathNameInEnv: string = Object.keys(process.env).find(
       (k) => k.toUpperCase() == "PATH"
     );
 
     const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
       envVars["IDF_PATH"]
     );
-    let toolsInfo: IEspIdfTool[] = [];
-    const activationScriptPathExists = await pathExists(
-      idfSetup.activationScript
+    let toolsInfo: IEspIdfTool[] = await idfToolsManager.getRequiredToolsInfo(
+      envVars[pathNameInEnv],
+      ["cmake", "ninja"],
+      logToChannel
     );
-    if (!activationScriptPathExists) {
-      const exportedToolsPaths = await idfToolsManager.exportPathsInString(
-        join(idfSetup.toolsPath, "tools"),
-        ["cmake", "ninja"]
-      );
-      toolsInfo = await idfToolsManager.getRequiredToolsInfo(
-        exportedToolsPaths,
-        ["cmake", "ninja"],
-        logToChannel
-      );
-    } else {
-      toolsInfo = await idfToolsManager.getRequiredToolsInfo(
-        envVars[pathNameInEnv],
-        ["cmake", "ninja"],
-        logToChannel
-      );
-    }
 
     const failedToolsResult = toolsInfo.filter(
       (tInfo) =>
@@ -114,7 +92,7 @@ export async function isIdfSetupValid(
     const msg =
       error && error.message
         ? error.message
-        : `Error checking EIM Idf Setup for script ${idfSetup.activationScript}`;
+        : `Error checking ESP-IDF setup validity.`;
     Logger.error(msg, error, "verifySetup isIdfSetupValid");
     return [false, msg];
   }
@@ -123,7 +101,7 @@ export async function isIdfSetupValid(
 export async function checkPyVenv(
   pyVenvPath: string,
   espIdfPath: string,
-  espIdfToolsPath: string,
+  espIdfToolsPath: string
 ): Promise<[boolean, string]> {
   const pyExists = await pathExists(pyVenvPath);
   if (!pyExists) {

@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { PyReqLog } from "./PyReqLog";
-import { CancellationToken, Uri } from "vscode";
+import { CancellationToken } from "vscode";
 import * as utils from "./utils";
-import { constants, pathExists } from "fs-extra";
+import { pathExists } from "fs-extra";
 import { Logger } from "./logger/logger";
 import { join } from "path";
 import { OutputChannel } from "./logger/outputChannel";
