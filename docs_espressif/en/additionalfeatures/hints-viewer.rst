@@ -7,7 +7,7 @@ Hints Viewer
 
 This feature enhances your development experience by providing helpful hints for errors detected in your code.
 
-The ``idf.py`` tool suggests hints for resolving errors. It uses a database of hints stored in ``$IDF_PATH/tools/idf_py_actions/hints.yml``. Hints will be printed if a match is found for the given error.
+The ``idf.py`` tool suggests hints for resolving errors. Starting from ESP-IDF v6.0, an aggregated ``hints.yml`` is generated under the project build directory (``idf.buildPath``) during CMake configuration. The extension prefers this file when present and falls back to the legacy ``$IDF_PATH/tools/idf_py_actions/hints.yml`` for older versions. Hints will be printed if a match is found for the given error.
 
 Hover Over Errors for Hints
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
