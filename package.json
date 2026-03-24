@@ -1349,6 +1349,16 @@
         "category": "ESP-IDF"
       },
       {
+        "command": "espIdf.openInstallationManagerGui",
+        "title": "%espIdf.openInstallationManagerGui.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.openInstallationManagerCli",
+        "title": "%espIdf.openInstallationManagerCli.title%",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.cmakeListsEditor.start",
         "title": "%espIdf.cmakeListsEditor.start.title%",
         "category": "ESP-IDF"

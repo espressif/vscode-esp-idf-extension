@@ -41,20 +41,40 @@ Review `OpenOCD Troubleshooting FAQ <https://github.com/espressif/openocd-esp32/
 
     If you receive errors like "unable to create symlink" while cloning ESP-IDF on Windows, enabling **Developer Mode** may help resolve the issue.
 
-VS Code Installed via Snap (Ubuntu)
-------------------------------------
+EIM Launch Modes (GUI vs CLI)
+-----------------------------
 
-If you installed VS Code via snap (the default method on Ubuntu), you may encounter the following error when running the **ESP-IDF: Open Installation Manager** command:
+When running the **ESP-IDF: Open ESP-IDF Installation Manager** command, the extension will prompt you to choose between:
+
+-  **Graphical Interface (GUI)** -- opens the EIM graphical application.
+-  **Command Line (Terminal)** -- runs EIM in CLI mode inside the VS Code integrated terminal.
+
+You can also use the dedicated commands to skip the prompt:
+
+-  **ESP-IDF: Open ESP-IDF Installation Manager (GUI)** -- always launches in GUI mode.
+-  **ESP-IDF: Open ESP-IDF Installation Manager (Terminal)** -- always launches in CLI mode.
+
+Your choice is saved to the ``idf.eimExecutableArgs`` setting.
+
+Remote and Headless Environments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In remote environments (SSH, WSL, Dev Containers, Codespaces) and browser-based VS Code, the GUI cannot be displayed. The extension automatically forces CLI (wizard) mode in these cases -- no prompt is shown.
+
+VS Code Installed via Snap (Ubuntu)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you installed VS Code via snap (the default method on Ubuntu), the EIM GUI cannot be launched due to sandbox restrictions. You may see the following error:
 
 .. code-block:: text
 
     The terminal process "/usr/bin/bash" terminated with exit code: 127.
 
-This happens because snap packages run in a sandboxed environment that prevents VS Code from launching external applications through its integrated terminal.
+When snap is detected, the extension shows a modal with two options:
 
-The extension will detect this situation and display a notification with instructions. You have several options:
+1.  **Run EIM in Terminal** -- launches EIM in CLI mode directly in the VS Code integrated terminal.
 
-1.  **Run EIM manually from a system terminal**: The extension will show you the EIM path and offer a **Copy EIM Path** button. Open a terminal application outside of VS Code and paste the copied path to launch EIM.
+2.  **Copy EIM Path** -- copies the EIM binary path to your clipboard so you can run the GUI manually from a system terminal (e.g., GNOME Terminal, Konsole).
 
     The default EIM path on Linux is:
 
@@ -62,13 +82,13 @@ The extension will detect this situation and display a notification with instruc
 
         ~/.espressif/eim_gui/eim
 
-2.  **Install VS Code via the .deb package** (recommended): This removes snap's sandbox restrictions entirely. Uninstall the snap version and install VS Code using the official ``.deb`` package from `code.visualstudio.com <https://code.visualstudio.com/Download>`_:
+Alternatively, you can **install VS Code via the .deb package** (recommended) to remove snap's sandbox restrictions entirely:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        sudo snap remove code
-        # Then install the .deb package downloaded from https://code.visualstudio.com/Download
+    sudo snap remove code
+    # Then install the .deb package downloaded from https://code.visualstudio.com/Download
 
-3.  **Run EIM manually**: When snap restrictions are detected, the extension will show a modal with a **Copy EIM Path** button (to copy the path to your clipboard so you can paste it in a system terminal) and an **Open Documentation** button for further guidance.
+You can also use the **ESP-IDF: Open ESP-IDF Installation Manager (Terminal)** command directly to skip the modal and launch EIM in CLI mode.
 
 If you cannot resolve the error, please search the `GitHub Repository Issues <http://github.com/espressif/vscode-esp-idf-extension/issues>`_ for existing issues or create a new issue `here <https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose>`_.

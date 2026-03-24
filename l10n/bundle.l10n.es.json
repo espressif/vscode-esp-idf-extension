@@ -259,7 +259,11 @@
   "Got it": "Entendido",
   "Flash encryption or secure boot is enabled on the device. Erasing flash will permanently remove the encryption keys and may render the device unusable.": "El cifrado de flash o el arranque seguro está habilitado en el dispositivo. Borrar el flash eliminará permanentemente las claves de cifrado y puede inutilizar el dispositivo.",
   "Copy EIM Path": "Copiar ruta de EIM",
-  "Open Documentation": "Abrir documentación",
-  "VS Code installed via Snap cannot launch external applications due to sandbox restrictions. Please run EIM manually from a system terminal: {0}": "VS Code instalado mediante Snap no puede ejecutar aplicaciones externas debido a las restricciones del sandbox. Ejecute EIM manualmente desde una terminal del sistema: {0}",
-  "EIM path copied to clipboard. Open a system terminal and paste it to run.": "Ruta de EIM copiada al portapapeles. Abra una terminal del sistema y péguela para ejecutar."
+  "Run EIM in Terminal": "Ejecutar EIM en la terminal",
+  "VS Code installed via Snap cannot launch EIM's GUI due to sandbox restrictions. You can run EIM in CLI mode directly from the integrated terminal, or copy the path to run the GUI manually from a system terminal.": "VS Code instalado mediante Snap no puede iniciar la interfaz gráfica de EIM debido a las restricciones del sandbox. Puede ejecutar EIM en modo CLI directamente desde la terminal integrada, o copiar la ruta para ejecutar la GUI manualmente desde una terminal del sistema.",
+  "EIM path copied to clipboard. Open a system terminal and paste it to run.": "Ruta de EIM copiada al portapapeles. Abra una terminal del sistema y péguela para ejecutar.",
+  "EIM executable not found. Please choose a download mirror.": "No se encontró el ejecutable de EIM. Por favor elija un espejo de descarga.",
+  "Graphical Interface (GUI)": "Interfaz gráfica (GUI)",
+  "Command Line (Terminal)": "Línea de comandos (Terminal)",
+  "Select how to launch EIM": "Seleccione cómo iniciar EIM"
 }

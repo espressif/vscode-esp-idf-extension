@@ -172,10 +172,11 @@ import { getIdfSetups } from "./eim/getExistingSetups";
 import { loadIdfSetup } from "./eim/loadIdfSetup";
 import { configureEnvVariables } from "./common/prepareEnv";
 import {
-  downloadExtractAndRunEIM,
+  checkEimExists,
+  downloadAndInstallEIM,
   isVSCodeInstalledViaSnap,
-  resolveEimPath,
-  runExistingEIM,
+  launchEimInTerminal,
+  shouldForceCliMode,
 } from "./eim/downloadInstall";
 import {
   checkAndPromptForClangdExtension,
@@ -2197,59 +2198,25 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.installManager", async () => {
-    const notificationMode = idfConf.readParameter(
-      "idf.notificationMode",
-      workspaceRoot
-    ) as string;
-    const ProgressLocation =
-      notificationMode === idfConf.NotificationMode.All ||
-      notificationMode === idfConf.NotificationMode.Notifications
-        ? vscode.ProgressLocation.Notification
-        : vscode.ProgressLocation.Window;
-    vscode.window.withProgress(
-      {
-        cancellable: true,
-        location: ProgressLocation,
-        title: vscode.l10n.t("ESP-IDF Install Manager"),
-      },
-      async (
-        progress: vscode.Progress<{ message: string; increment: number }>,
-        cancelToken: vscode.CancellationToken
-      ) => {
-        const doesEIMExecutableExist = await runExistingEIM(
-          progress,
-          cancelToken
-        );
-        if (!doesEIMExecutableExist) {
-          progress.report({
-            message: `EIM executable not found. Please choose a download mirror.`,
-            increment: 0,
-          });
-          const mirrorToUse = await vscode.window.showQuickPick(
-            ["Github", "Espressif (faster in China)", "Open Releases URL"],
-            {
-              placeHolder: vscode.l10n.t("Select mirror to use"),
-            }
-          );
-          if (mirrorToUse === "Open Releases URL") {
-            vscode.env.openExternal(
-              vscode.Uri.parse(ESP.URL.InstallManager.Releases)
-            );
-            return;
-          }
-          let useMirror = false;
-          if (mirrorToUse && mirrorToUse === "Espressif (faster in China)") {
-            useMirror = true;
-          }
-          await downloadExtractAndRunEIM(progress, cancelToken, useMirror);
-        }
+    await ensureEimAndLaunch(workspaceRoot);
+  });
 
-        if (isVSCodeInstalledViaSnap()) {
-          const eimPath = await resolveEimPath();
-          await showSnapEimNotification(eimPath);
-        }
-      }
+  registerIDFCommand("espIdf.openInstallationManagerGui", async () => {
+    await idfConf.writeParameter(
+      "idf.eimExecutableArgs",
+      ["gui"],
+      vscode.ConfigurationTarget.Global
     );
+    await ensureEimAndLaunch(workspaceRoot, "gui");
+  });
+
+  registerIDFCommand("espIdf.openInstallationManagerCli", async () => {
+    await idfConf.writeParameter(
+      "idf.eimExecutableArgs",
+      ["wizard"],
+      vscode.ConfigurationTarget.Global
+    );
+    await ensureEimAndLaunch(workspaceRoot, "wizard");
   });
 
   registerIDFCommand(
@@ -4400,33 +4367,134 @@ async function createMonitor() {
   });
 }
 
+async function ensureEimAndLaunch(
+  workspaceRoot: vscode.Uri,
+  skipQuickPickMode?: string
+) {
+  const notificationMode = idfConf.readParameter(
+    "idf.notificationMode",
+    workspaceRoot
+  ) as string;
+  const progressLocation =
+    notificationMode === idfConf.NotificationMode.All ||
+    notificationMode === idfConf.NotificationMode.Notifications
+      ? vscode.ProgressLocation.Notification
+      : vscode.ProgressLocation.Window;
+
+  await vscode.window.withProgress(
+    {
+      cancellable: true,
+      location: progressLocation,
+      title: vscode.l10n.t("ESP-IDF Install Manager"),
+    },
+    async (
+      progress: vscode.Progress<{ message: string; increment: number }>,
+      cancelToken: vscode.CancellationToken
+    ) => {
+      let eimPath = await checkEimExists(progress, cancelToken);
+
+      if (!eimPath) {
+        progress.report({
+          message: vscode.l10n.t(
+            "EIM executable not found. Please choose a download mirror."
+          ),
+          increment: 0,
+        });
+        const mirrorToUse = await vscode.window.showQuickPick(
+          ["Github", "Espressif (faster in China)", "Open Releases URL"],
+          {
+            placeHolder: vscode.l10n.t("Select mirror to use"),
+          }
+        );
+        if (!mirrorToUse) {
+          return;
+        }
+        if (mirrorToUse === "Open Releases URL") {
+          vscode.env.openExternal(
+            vscode.Uri.parse(ESP.URL.InstallManager.Releases)
+          );
+          return;
+        }
+        const useMirror = mirrorToUse === "Espressif (faster in China)";
+        eimPath = await downloadAndInstallEIM(
+          progress,
+          cancelToken,
+          useMirror
+        );
+        if (!eimPath) {
+          return;
+        }
+      }
+
+      if (shouldForceCliMode()) {
+        await idfConf.writeParameter(
+          "idf.eimExecutableArgs",
+          ["wizard"],
+          vscode.ConfigurationTarget.Global
+        );
+        launchEimInTerminal(eimPath);
+        return;
+      }
+
+      if (isVSCodeInstalledViaSnap()) {
+        await showSnapEimNotification(eimPath);
+        return;
+      }
+
+      if (skipQuickPickMode) {
+        launchEimInTerminal(eimPath);
+        return;
+      }
+
+      const guiLabel = vscode.l10n.t("Graphical Interface (GUI)");
+      const cliLabel = vscode.l10n.t("Command Line (Terminal)");
+      const launchMode = await vscode.window.showQuickPick(
+        [guiLabel, cliLabel],
+        {
+          placeHolder: vscode.l10n.t("Select how to launch EIM"),
+        }
+      );
+      if (!launchMode) {
+        return;
+      }
+      const argsValue = launchMode === guiLabel ? ["gui"] : ["wizard"];
+      await idfConf.writeParameter(
+        "idf.eimExecutableArgs",
+        argsValue,
+        vscode.ConfigurationTarget.Global
+      );
+      launchEimInTerminal(eimPath);
+    }
+  );
+}
+
 async function showSnapEimNotification(eimPath: string) {
+  const runCliLabel = vscode.l10n.t("Run EIM in Terminal");
   const copyPathLabel = vscode.l10n.t("Copy EIM Path");
-  const docsLabel = vscode.l10n.t("Open Documentation");
 
   const message = vscode.l10n.t(
-    "VS Code installed via Snap cannot launch external applications due to sandbox restrictions. Please run EIM manually from a system terminal: {0}",
-    eimPath
+    "VS Code installed via Snap cannot launch EIM's GUI due to sandbox restrictions. You can run EIM in CLI mode directly from the integrated terminal, or copy the path to run the GUI manually from a system terminal."
   );
 
   const action = await vscode.window.showWarningMessage(
     message,
     { modal: true },
-    copyPathLabel,
-    docsLabel
+    runCliLabel,
+    copyPathLabel
   );
 
-  if (action === copyPathLabel) {
+  if (action === runCliLabel) {
+    await idfConf.writeParameter(
+      "idf.eimExecutableArgs",
+      ["wizard"],
+      vscode.ConfigurationTarget.Global
+    );
+    launchEimInTerminal(eimPath);
+  } else if (action === copyPathLabel) {
     await vscode.env.clipboard.writeText(eimPath);
     vscode.window.showInformationMessage(
       vscode.l10n.t(
         "EIM path copied to clipboard. Open a system terminal and paste it to run."
-      )
-    );
-  } else if (action === docsLabel) {
-    vscode.env.openExternal(
-      vscode.Uri.parse(
-        "https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/troubleshooting.html#vs-code-installed-via-snap-ubuntu"
       )
     );
   }

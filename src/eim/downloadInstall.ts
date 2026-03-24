@@ -27,7 +27,7 @@ import {
   remove,
   WriteStream,
 } from "fs-extra";
-import { CancellationToken, env, Progress, window } from "vscode";
+import { CancellationToken, env, Progress, UIKind, window } from "vscode";
 import { OutputChannel } from "../logger/outputChannel";
 import del from "del";
 import { dirExistPromise, isBinInPath } from "../utils";
@@ -40,6 +40,13 @@ export function isVSCodeInstalledViaSnap(): boolean {
   return (
     process.platform === "linux" &&
     (!!process.env.SNAP || process.execPath.includes("/snap/"))
+  );
+}
+
+export function shouldForceCliMode(): boolean {
+  return (
+    typeof env.remoteName !== "undefined" ||
+    env.uiKind === UIKind.Web
   );
 }
 
@@ -89,53 +96,11 @@ export async function resolveEimPath(): Promise<string> {
   return eimPath;
 }
 
-export async function runExistingEIM(
-  progress: Progress<{ message: string; increment: number }>,
-  cancelToken: CancellationToken
-): Promise<boolean> {
-  if (cancelToken.isCancellationRequested) {
-    return false;
-  }
-  progress.report({
-    message: `Checking EIM already exists...`,
-    increment: 0,
-  });
-
-  let eimPath: string;
-  try {
-    eimPath = await resolveEimPath();
-    if (!eimPath) {
-      throw new Error("EIM not found");
-    }
-  } catch (error) {
-    Logger.error(
-      `Error while running existing EIM: ${error.message}`,
-      error,
-      "runExistingEIM"
-    );
-    return false;
-  }
-
-  if (isVSCodeInstalledViaSnap()) {
-    progress.report({
-      message: `EIM found at ${eimPath}. Snap environment detected, skipping launch.`,
-      increment: 0,
-    });
-    return true;
-  }
-
-  progress.report({
-    message: `EIM found at ${eimPath}. Launching...`,
-    increment: 0,
-  });
-
+export function launchEimInTerminal(eimPath: string) {
   const idfEimExecutableArgs = readParameter(
     "idf.eimExecutableArgs"
   ) as string[];
-  let argsString = idfEimExecutableArgs.join(" ");
-  if (env.remoteName === "wsl") {
-    argsString = "wizard";
-  }
+  const argsString = idfEimExecutableArgs.join(" ");
 
   let binaryPath = "";
   if (process.platform === "win32") {
@@ -157,23 +122,55 @@ export async function runExistingEIM(
     cwd: dirname(eimPath),
   });
   espIdfTerminal.sendText(binaryPath, true);
-  if (env.remoteName === "wsl") {
+  if (argsString.includes("wizard")) {
     espIdfTerminal.show();
   } else {
     espIdfTerminal.sendText("exit");
   }
-  return true;
 }
 
-export async function downloadExtractAndRunEIM(
+export async function checkEimExists(
+  progress: Progress<{ message: string; increment: number }>,
+  cancelToken: CancellationToken
+): Promise<string> {
+  if (cancelToken.isCancellationRequested) {
+    return "";
+  }
+  progress.report({
+    message: `Checking EIM already exists...`,
+    increment: 0,
+  });
+
+  let eimPath: string;
+  try {
+    eimPath = await resolveEimPath();
+    if (!eimPath) {
+      return "";
+    }
+  } catch (error) {
+    Logger.error(
+      `Error while checking existing EIM: ${error.message}`,
+      error,
+      "checkEimExists"
+    );
+    return "";
+  }
+
+  progress.report({
+    message: `EIM found at ${eimPath}.`,
+    increment: 0,
+  });
+  return eimPath;
+}
+
+export async function downloadAndInstallEIM(
   progress: Progress<{ message: string; increment: number }>,
   cancelToken: CancellationToken,
   useMirror: boolean = false
 ): Promise<string> {
   const jsonUrl = "https://dl.espressif.com/dl/eim/eim_unified_release.json";
-  // Determine EIM install path
   let eimInstallPath = "";
-  if (env.remoteName === "wsl") {
+  if (shouldForceCliMode()) {
     eimInstallPath = join(process.env.HOME || "", ".espressif", "eim");
   } else if (process.platform === "win32") {
     eimInstallPath = join(
@@ -200,7 +197,7 @@ export async function downloadExtractAndRunEIM(
     const arch = process.arch;
     let osKey: string;
 
-    if (env.remoteName === "wsl") {
+    if (shouldForceCliMode()) {
       osKey =
         arch === "arm64"
           ? "eim-cli-linux-aarch64.zip"
@@ -303,49 +300,7 @@ export async function downloadExtractAndRunEIM(
       Logger.infoNotify(`File ${osKey} extracted to: ${eimInstallPath}`);
     }
 
-    const eimBinaryPath = getEimBinaryPath(eimInstallPath);
-
-    if (isVSCodeInstalledViaSnap()) {
-      return eimBinaryPath;
-    }
-
-    const idfEimExecutableArgs = readParameter(
-      "idf.eimExecutableArgs"
-    ) as string[];
-    let argsString = idfEimExecutableArgs.join(" ");
-    if (env.remoteName === "wsl") {
-      argsString = "wizard";
-    }
-
-    let binaryPath = "";
-    if (process.platform === "win32") {
-      binaryPath = `& '${join(
-        eimInstallPath,
-        "eim-gui-windows-x64.exe"
-      ).replace(/'/g, "''")}'${argsString ? " " + argsString : ""}`;
-    } else if (process.platform === "linux") {
-      binaryPath = `./eim${argsString ? " " + argsString : ""}`;
-    } else if (process.platform === "darwin") {
-      binaryPath = `open ${join(eimInstallPath, "eim.app")}${
-        argsString ? " --args " + argsString : ""
-      }`;
-    }
-    const shellPath =
-      process.platform === "win32"
-        ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
-        : env.shell;
-    const espIdfTerminal = window.createTerminal({
-      name: "ESP-IDF EIM",
-      shellPath: shellPath,
-      cwd: eimInstallPath,
-    });
-    espIdfTerminal.sendText(binaryPath, true);
-    if (env.remoteName === "wsl") {
-      espIdfTerminal.show();
-    } else {
-      espIdfTerminal.sendText("exit");
-    }
-    return eimBinaryPath;
+    return getEimBinaryPath(eimInstallPath);
   } catch (error) {
     Logger.errorNotify(
       `Error during download and extraction: ${error.message}`,
