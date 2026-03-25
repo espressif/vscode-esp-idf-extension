@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create rating request comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const extensionUrl = 'https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension&ssr=false#review-details';

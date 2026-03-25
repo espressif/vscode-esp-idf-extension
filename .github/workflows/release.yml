@@ -23,14 +23,17 @@ jobs:
       - name: Install Dependencies
         run: yarn
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Determine version
+        id: version
+        run: echo "version=${GITHUB_REF:11}" >> $GITHUB_OUTPUT
+
+      - name: VSIX Package
+        run: yarn run package
+
+      - uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ESP IDF VSCode Extension Release ${{ github.ref }}
+          artifacts: "esp-idf-extension.vsix"
+          name: ESP IDF VSCode Extension Release ${{ github.ref }}
           draft: true
           body: |
             ### Release Highlights
@@ -42,24 +45,6 @@ jobs:
             ### Bug Fixes
 
             <!-- Insert The Bug Fixes below as points, also add relevant links -->
-
-      - name: Determine version
-        id: version
-        run: echo "version=${GITHUB_REF:11}" >> $GITHUB_OUTPUT
-
-      - name: VSIX Package
-        run: yarn run package
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./esp-idf-extension.vsix
-          asset_name: esp-idf-extension-${{ steps.version.outputs.version }}.vsix
-          asset_content_type: application/zip
 
       - name: Marketplace release
         run: yarn run release
