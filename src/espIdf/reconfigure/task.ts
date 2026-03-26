@@ -27,11 +27,11 @@ import {
   workspace,
 } from "vscode";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
-import { getSDKConfigFilePath } from "../../utils";
 import { join } from "path";
 import { TaskManager } from "../../taskManager";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { configureEnvVariables } from "../../common/prepareEnv";
+import { getSDKConfigFilePath } from "../../workspaceConfig";
 
 export class IdfReconfigureTask {
   private buildDirPath: string;

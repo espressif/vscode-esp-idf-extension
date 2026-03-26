@@ -23,13 +23,12 @@ import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import {
   getEspIdfFromCMake,
-  getSDKConfigFilePath,
   isBinInPath,
 } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 import { getVirtualEnvPythonPath } from "../pythonManager";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { getIdfTargetFromSdkconfig, getSDKConfigFilePath } from "../workspaceConfig";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { ESP } from "../config";
 import { OutputCapturingExecution } from "../taskManager/customExecution";

@@ -40,6 +40,7 @@ import { showInfoNotificationWithAction } from "./logger/utils";
 import * as utils from "./utils";
 import { PreCheck, shouldDisableMonitorReset } from "./utils";
 import {
+  getSDKConfigFilePath,
   getIdfTargetFromSdkconfig,
   getProjectName,
   initSelectedWorkspace,
@@ -3550,9 +3551,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!args) {
         // try to get the partition table name from sdkconfig and if not found create one
         try {
-          const sdkconfigFilePath = await utils.getSDKConfigFilePath(
-            workspaceRoot
-          );
+          const sdkconfigFilePath = await getSDKConfigFilePath(workspaceRoot);
           const sdkconfigFileExists = await pathExists(sdkconfigFilePath);
           if (!sdkconfigFileExists) {
             const buildProject = await vscode.window.showInformationMessage(
@@ -4329,7 +4328,7 @@ function createClassicMenuconfig(extensionPath: string) {
       "idf.buildPath",
       workspaceRoot
     ) as string;
-    const sdkconfigPath = await utils.getSDKConfigFilePath(workspaceRoot);
+    const sdkconfigPath = await getSDKConfigFilePath(workspaceRoot);
     const sdkconfigDefaults = idfConf.readParameter(
       "idf.sdkconfigDefaults",
       workspaceRoot
