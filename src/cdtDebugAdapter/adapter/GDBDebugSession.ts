@@ -14,6 +14,7 @@ import {
   DebugSession,
   Handles,
   InitializedEvent,
+  InvalidatedEvent,
   Logger,
   logger,
   LoggingDebugSession,
@@ -32,7 +33,10 @@ import { StoppedEvent } from "./stoppedEvent";
 import { VarObjType } from "./varManager";
 import { getGdbCwd } from "./util";
 import { calculateMemoryOffset } from "./util/calculateMemoryOffset";
-import { getInstructions, clearInsertedFunctionsCache } from "./util/disassembly";
+import {
+  getInstructions,
+  clearInsertedFunctionsCache,
+} from "./util/disassembly";
 
 export interface RequestArguments extends DebugProtocol.LaunchRequestArguments {
   gdb?: string;
@@ -1237,14 +1241,20 @@ export class GDBDebugSession extends LoggingDebugSession {
         return;
       }
       const parentVarname = ref.type === "object" ? ref.varobjName : "";
-      const varname =
+      let varname =
         parentVarname +
         (parentVarname === "" ? "" : ".") +
         args.name.replace(/^\[(\d+)\]/, "$1");
-      const stackDepth = await mi.sendStackInfoDepth(this.gdb, {
-        maxDepth: 100,
-      });
-      const depth = parseInt(stackDepth.depth, 10);
+        if (ref.type === "registers") {
+          varname = "$" + args.name;
+        }
+      const depth =
+        ref.type === "registers"
+          ? this.getRegisterVarDepth()
+          : parseInt(
+              (await mi.sendStackInfoDepth(this.gdb, { maxDepth: 100 })).depth,
+              10
+            );
       let varobj = this.gdb.varManager.getVar(
         frame.frameId,
         frame.threadId,
@@ -1314,6 +1324,16 @@ export class GDBDebugSession extends LoggingDebugSession {
           if (!assign) {
             throw err; // no recovery possible
           }
+        }
+      }
+      if (ref.type === "object" && ref.varobjName) {
+        const isRegisterVariable = await this.checkIfVariableIsARegister(
+          frame,
+          ref.frameHandle,
+          ref.varobjName
+        );
+        if (isRegisterVariable) {
+          this.sendInvalidatedEvent(["variables"], frame.threadId, frame.frameId);
         }
       }
       response.body = {
@@ -1574,7 +1594,7 @@ export class GDBDebugSession extends LoggingDebugSession {
     try {
       // Clear the inserted functions cache for each new disassembly request
       clearInsertedFunctionsCache();
-      
+
       if (!args.memoryReference) {
         throw new Error("Target memory reference is not specified!");
       }
@@ -1689,6 +1709,7 @@ export class GDBDebugSession extends LoggingDebugSession {
     _args: DebugProtocol.DisconnectArguments
   ): Promise<void> {
     try {
+      this.registerCompositeCache.clear();
       await this.gdb.sendGDBExit();
       this.sendResponse(response);
     } catch (err) {
@@ -1941,14 +1962,18 @@ export class GDBDebugSession extends LoggingDebugSession {
             if (arrayRegex.test(varobj.type)) {
               value = await this.getAddr(varobj);
             }
+            const hasChildren = parseInt(varobj.numchild, 10) > 0;
+            const displayValue = hasChildren
+              ? this.valueForVariableWithChildren(value, varobj.type)
+              : value;
             variables.push({
               name: varobj.expression,
               evaluateName: varobj.expression,
-              value,
+              value: displayValue,
               type: varobj.type,
               memoryReference: `&(${varobj.expression})`,
               variablesReference:
-                parseInt(varobj.numchild, 10) > 0
+                hasChildren
                   ? this.variableHandles.create({
                       type: "object",
                       frameHandle: ref.frameHandle,
@@ -2014,14 +2039,18 @@ export class GDBDebugSession extends LoggingDebugSession {
         if (arrayRegex.test(varobj.type)) {
           value = await this.getAddr(varobj);
         }
+        const hasChildren = parseInt(varobj.numchild, 10) > 0;
+        const displayValue = hasChildren
+          ? this.valueForVariableWithChildren(value, varobj.type)
+          : value;
         variables.push({
           name: varobj.expression,
           evaluateName: varobj.expression,
-          value,
+          value: displayValue,
           type: varobj.type,
           memoryReference: `&(${varobj.expression})`,
           variablesReference:
-            parseInt(varobj.numchild, 10) > 0
+            hasChildren
               ? this.variableHandles.create({
                   type: "object",
                   frameHandle: ref.frameHandle,
@@ -2091,13 +2120,19 @@ export class GDBDebugSession extends LoggingDebugSession {
         const parentClassName = `${topLevelPathExpression}.${child.exp}`;
         for (const objChild of objChildren.children) {
           const childName = `${name}.${objChild.exp}`;
+          const hasChildren = parseInt(objChild.numchild, 10) > 0;
           variables.push({
             name: objChild.exp,
             evaluateName: `${parentClassName}.${objChild.exp}`,
-            value: objChild.value ? objChild.value : objChild.type,
+            value: hasChildren
+              ? this.valueForVariableWithChildren(
+                  objChild.value,
+                  objChild.type
+                )
+              : (objChild.value ?? objChild.type),
             type: objChild.type,
             variablesReference:
-              parseInt(objChild.numchild, 10) > 0
+              hasChildren
                 ? this.variableHandles.create({
                     type: "object",
                     frameHandle: ref.frameHandle,
@@ -2166,13 +2201,20 @@ export class GDBDebugSession extends LoggingDebugSession {
           isArrayParent || isArrayChild
             ? await this.getFullPathExpression(child.name)
             : `${topLevelPathExpression}.${child.exp}`;
+        const hasChildren = parseInt(child.numchild, 10) > 0;
+        const displayValue = hasChildren
+          ? this.valueForVariableWithChildren(
+              typeof value === "string" ? value : String(value),
+              child.type
+            )
+          : value;
         variables.push({
           name: variableName,
           evaluateName,
-          value,
+          value: displayValue,
           type: child.type,
           variablesReference:
-            parseInt(child.numchild, 10) > 0
+            hasChildren
               ? this.variableHandles.create({
                   type: "object",
                   frameHandle: ref.frameHandle,
@@ -2183,6 +2225,40 @@ export class GDBDebugSession extends LoggingDebugSession {
       }
     }
     return Promise.resolve(variables);
+  }
+
+  /**
+   * Display value for a variable that has children. When GDB returns a placeholder like "{...}"
+   * or "{}", show the type instead so the user sees e.g. "struct foo" or "union { ... }".
+   * For union types, when flatVal (full union expansion) is provided, extract and show the scalar
+   * member (e.g. uint128 = 0x0, int64 = 0x0) from flatVal; rawValue is often "{...}" or a scalar.
+   */
+  private valueForVariableWithChildren(
+    rawValue: string | undefined,
+    type: string,
+    flatVal?: string
+  ): string {
+    const v = (rawValue ?? "").trim();
+    const isUnion = /union\s/i.test(type);
+    const fullUnionStr = (flatVal ?? "").trim();
+    if (isUnion && fullUnionStr.length > 0 && fullUnionStr !== "{}" && fullUnionStr !== "{...}") {
+      const scalarMatch = fullUnionStr.match(
+        /\w+\s*=\s*(0x[0-9a-fA-F]+|\d+)\s*[,}]/
+      );
+      if (scalarMatch && scalarMatch.length > 1) {
+        return scalarMatch[1];
+      }
+    }
+    const isPlaceholder =
+      v === "" ||
+      v === "{}" ||
+      v === "{...}" ||
+      v === "{ … }" ||
+      /^\{\s*\.\.\.\s*\}$/.test(v);
+    if (isPlaceholder) {
+      return type || "<expand to view>";
+    }
+    return v;
   }
 
   /** Query GDB using varXX name to get complete variable name */
@@ -2196,13 +2272,118 @@ export class GDBDebugSession extends LoggingDebugSession {
   }
 
   // Register view
-  // Assume that the register name are unchanging over time, and the same across all threadsf
+  // Assume that the register name are unchanging over time, and the same across all threads
   private registerMap = new Map<string, number>();
   private registerMapReverse = new Map<number, string>();
+  /** Cache: register name -> true if composite (has children), false if scalar. Avoids repeated var-create/delete for scalars. */
+  private registerCompositeCache = new Map<string, boolean>();
+
+  /** Depth key used for register varobjs in varManager (registers are not scoped by stack frame). */
+  private getRegisterVarDepth(): number {
+    return 0;
+  }
+
+  private async checkIfVariableIsARegister(
+    frame: { frameId: number; threadId: number },
+    _frameHandle: number,
+    parentVarname: string
+  ): Promise<boolean> {
+    if (!parentVarname) return false;
+    try {
+      const regDepth = this.getRegisterVarDepth();
+      const rootName = parentVarname.indexOf(".") !== -1 ? parentVarname.split(".")[0] : parentVarname;
+      const rootVar = this.gdb.varManager.getVarByName(
+        frame.frameId,
+        frame.threadId,
+        regDepth,
+        rootName
+      );
+      if (rootVar?.varType === "registers") {
+        return true;
+      }
+    } catch {
+      // ignore path/update failure
+    }
+    return false;
+  }
+
+  /**
+   * Send the DAP invalidated event so the client (e.g. VS Code) refetches variables and updates the Variables view.
+   * See https://microsoft.github.io/debug-adapter-protocol/specification#InvalidatedEvent
+   * @param areas The areas to invalidate (e.g., "variables"). Possible values: 'all' | 'stacks' | 'threads' | 'variables'.
+   * @param threadId The ID of the thread to invalidate.
+   * @param stackFrameId The ID of the stack frame to invalidate.
+   */
+  private sendInvalidatedEvent(areas: string[] = ["variables"], threadId?: number, stackFrameId?: number): void {
+    const ev = new InvalidatedEvent(areas, threadId, stackFrameId);
+    this.sendEvent(ev);
+  }
+
+  private static readonly REGISTER_VAROBJ_CONCURRENCY = 4;
+
+  /** Run async tasks with a limited concurrency pool to avoid overwhelming GDB/OpenOCD. */
+  private async runWithPool<T, R>(
+    items: T[],
+    concurrency: number,
+    fn: (item: T, index: number) => Promise<R>
+  ): Promise<PromiseSettledResult<R>[]> {
+    const results: PromiseSettledResult<R>[] = new Array(items.length);
+    let index = 0;
+    const runNext = async (): Promise<void> => {
+      if (index >= items.length) return;
+      const i = index++;
+      try {
+        results[i] = {
+          status: "fulfilled",
+          value: await fn(items[i], i),
+        };
+      } catch (reason) {
+        results[i] = { status: "rejected", reason };
+      }
+      await runNext();
+    };
+    const workers = Array.from(
+      { length: Math.min(concurrency, items.length) },
+      () => runNext()
+    );
+    await Promise.all(workers);
+    return results;
+  }
+
+  /** Set hexadecimal display format for a varobj and all its descendants (so union/array elements show in hex). */
+  private async setRegisterVarObjFormatToHexRecursive(
+    varname: string
+  ): Promise<void> {
+    try {
+      await mi.sendVarSetFormatToHex(this.gdb, varname);
+    } catch (e) {
+      logger.warn(`Failed to set hex format for varobj ${varname}: ${e}`);
+    }
+    try {
+      const childrenResult = await mi.sendVarListChildren(this.gdb, {
+        name: varname,
+        printValues: mi.MIVarPrintValues.no,
+      });
+      if (
+        childrenResult &&
+        childrenResult.children &&
+        childrenResult.children.length > 0
+      ) {
+        await this.runWithPool(
+          childrenResult.children,
+          GDBDebugSession.REGISTER_VAROBJ_CONCURRENCY,
+          (child) => this.setRegisterVarObjFormatToHexRecursive(child.name)
+        );
+      }
+    } catch (e) {
+      // no children or list failed
+      logger.warn(`Failed to list children for varobj ${varname}: ${e}`);
+    }
+  }
+
   protected async handleVariableRequestRegister(
     ref: RegisterVariableReference
   ): Promise<DebugProtocol.Variable[]> {
-    // initialize variables array and dereference the frame handle
     const variables: DebugProtocol.Variable[] = [];
     const frame = this.frameHandles.get(ref.frameHandle);
     if (!frame) {
@@ -2231,20 +2412,248 @@ export class GDBDebugSession extends LoggingDebugSession {
       threadId: frame.threadId,
     });
     const reg_values = result_values["register-values"];
+
+    const depth = this.getRegisterVarDepth();
+
+    const flatValuesByReg = new Map<string, string>();
     for (const n of reg_values) {
-      const id = n.number;
-      const reg = this.registerMapReverse.get(parseInt(id));
+      const reg = this.registerMapReverse.get(parseInt(n.number, 10));
       if (reg) {
-        const val = n.value;
-        const res: DebugProtocol.Variable = {
+        flatValuesByReg.set(reg, n.value);
+      }
+    }
+
+    const varCreateResults = await this.runWithPool(
+      reg_values,
+      GDBDebugSession.REGISTER_VAROBJ_CONCURRENCY,
+      async (n) => {
+        const reg = this.registerMapReverse.get(parseInt(n.number, 10));
+        if (!reg) return null;
+        const existingVar = this.gdb.varManager.getVar(
+          frame.frameId,
+          frame.threadId,
+          depth,
+          "$" + reg,
+          "registers"
+        );
+        if (existingVar) {
+          const existingNum = parseInt(existingVar.numchild, 10);
+          if (existingNum === 0) {
+            this.registerCompositeCache.set(reg, false);
+            try {
+              await this.gdb.varManager.removeVar(
+                frame.frameId,
+                frame.threadId,
+                depth,
+                existingVar.varname
+              );
+              this.registerCompositeCache.set(reg, false);
+            } catch (err) {
+              logger.warn(
+                `Failed to remove register varobj '${existingVar.varname}' for register '${reg}': ${err}`
+              );
+            }
+            return {
+              reg,
+              response: null,
+              fromCache: false,
+              hexValue: undefined,
+            };
+          }
+          this.registerCompositeCache.set(reg, true);
+          await this.setRegisterVarObjFormatToHexRecursive(existingVar.varname);
+          const updated = await this.gdb.varManager.updateVar(
+            frame.frameId,
+            frame.threadId,
+            depth,
+            existingVar
+          );
+          const updatedNum = updated ? parseInt(updated.numchild, 10) : 0;
+          if (updatedNum === 0) {
+            this.registerCompositeCache.set(reg, false);
+            if (updated?.varname) {
+              try {
+                await this.gdb.varManager.removeVar(
+                  frame.frameId,
+                  frame.threadId,
+                  depth,
+                  updated.varname
+                );
+
+                this.registerCompositeCache.set(reg, false);
+              } catch (err) {
+                logger.warn(
+                  `Failed to remove updated register varobj '${updated.varname}' for register '${reg}': ${err}`
+                );
+              }
+            }
+            return {
+              reg,
+              response: null,
+              fromCache: false,
+              hexValue: undefined,
+            };
+          }
+          if (
+            updated &&
+            updated.varname &&
+            updated.varname !== existingVar.varname
+          ) {
+            await this.setRegisterVarObjFormatToHexRecursive(updated.varname);
+          }
+          return {
+            reg,
+            response: updated,
+            fromCache: true,
+            hexValue: undefined,
+          };
+        }
+        if (this.registerCompositeCache.get(reg) === false) {
+          return { reg, response: null, fromCache: false, hexValue: undefined };
+        }
+        let createdVarName: string | undefined;
+        try {
+          const response = await mi.sendVarCreate(this.gdb, {
+            expression: "$" + reg,
+            frameId: frame.frameId,
+            threadId: frame.threadId,
+          });
+          createdVarName = response.name;
+          const num = parseInt(response.numchild, 10);
+          if (num > 0) {
+            this.registerCompositeCache.set(reg, true);
+            await this.setRegisterVarObjFormatToHexRecursive(response.name);
+            const updateResult = await mi.sendVarUpdate(this.gdb, {
+              name: response.name,
+              printValues: mi.MIVarPrintValues.simple,
+            });
+            const matchingChange = updateResult.changelist?.find(
+              (change) => change.name === response.name
+            );
+            const hexValue = matchingChange?.value ?? response.value;
+            return {
+              reg,
+              response,
+              fromCache: false,
+              hexValue,
+            };
+          }
+          this.registerCompositeCache.set(reg, false);
+          try {
+            await mi.sendVarDelete(this.gdb, { varname: response.name });
+          } catch (e) {
+            logger.warn(`Failed to delete varobj ${response.name}: ${e}`);
+          }
+          return { reg, response: null, fromCache: false, hexValue: undefined };
+        } catch {
+          if (createdVarName) {
+            try {
+              await mi.sendVarDelete(this.gdb, {
+                varname: createdVarName,
+              });
+            } catch (e) {
+              logger.warn(`Failed to delete varobj ${createdVarName}: ${e}`);
+            }
+          }
+          return { reg, response: null, fromCache: false, hexValue: undefined };
+        }
+      }
+    );
+
+    for (let i = 0; i < reg_values.length; i++) {
+      const regNum = parseInt(reg_values[i].number, 10);
+      const reg = this.registerMapReverse.get(regNum);
+      if (!reg) {
+        // Skip registers that do not have a known name mapping
+        continue;
+      }
+      const rawFlatVal = flatValuesByReg.get(reg) ?? reg_values[i].value;
+      const flatVal = /^[0-9a-fA-F]+$/.test(rawFlatVal) && !rawFlatVal.startsWith("0x")
+        ? "0x" + rawFlatVal : rawFlatVal;
+      const settled = varCreateResults[i];
+      if (settled.status === "rejected") {
+        variables.push({
           name: reg,
           evaluateName: "$" + reg,
-          value: val,
+          value: flatVal,
           variablesReference: 0,
-        };
-        variables.push(res);
+        });
+        continue;
+      }
+      const result = settled.value;
+      if (!result || !result.response) {
+        variables.push({
+          name: reg,
+          evaluateName: "$" + reg,
+          value: flatVal,
+          variablesReference: 0,
+        });
+        continue;
+      }
+      const resp = result.response as mi.MIVarCreateResponse | VarObjType;
+      const numchild =
+        "numchild" in resp ? resp.numchild : (resp as VarObjType).numchild;
+      const varobjValue =
+        result.hexValue !== undefined
+          ? result.hexValue
+          : "value" in resp
+          ? resp.value
+          : (resp as VarObjType).value;
+      const type = "type" in resp ? resp.type : (resp as VarObjType).type;
+      const name =
+        "name" in resp
+          ? (resp as mi.MIVarCreateResponse).name
+          : (resp as VarObjType).varname;
+      const num = parseInt(numchild, 10);
+      if (num > 0) {
+        if (!result.fromCache) {
+          this.gdb.varManager.addVar(
+            frame.frameId,
+            frame.threadId,
+            depth,
+            "$" + reg,
+            false,
+            false,
+            resp as mi.MIVarCreateResponse,
+            "registers"
+          );
+        }
+        let unionFlatVal: string | undefined;
+        if (/union\s/i.test(type)) {
+          unionFlatVal = flatVal;
+        }
+        variables.push({
+          name: reg,
+          evaluateName: "$" + reg,
+          value: this.valueForVariableWithChildren(
+            varobjValue,
+            type,
+            unionFlatVal
+          ),
+          type,
+          variablesReference: this.variableHandles.create({
+            type: "object",
+            frameHandle: ref.frameHandle,
+            varobjName: name,
+          }),
+        });
       } else {
-        throw new Error("Unable to parse response for reg. values");
+        if (!result.fromCache && "name" in resp) {
+          try {
+            await mi.sendVarDelete(this.gdb, {
+              varname: (resp as mi.MIVarCreateResponse).name,
+            });
+          } catch (e) {
+            logger.warn(`Failed to delete varobj ${resp.name}: ${e}`);
+          }
+        }
+        variables.push({
+          name: reg,
+          evaluateName: "$" + reg,
+          value: flatVal,
+          type,
+          variablesReference: 0,
+        });
       }
     }
 

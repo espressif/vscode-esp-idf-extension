@@ -77,7 +77,7 @@ onMounted(() => {
         :rowKey="row.key"
         :rowValue="row.value"
         :rowType="row.type"
-        :canDeleteRow="i !== 0"
+        :canDeleteRow="Number(i) !== 0"
         @updateRow="(prop: string, newValue: string) => updateRow(i, prop, newValue)"
         @showError="showError"
       />
