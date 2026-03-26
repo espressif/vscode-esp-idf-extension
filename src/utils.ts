@@ -36,7 +36,7 @@ import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
-import { getIdfTargetFromSdkconfig, getProjectName } from "./workspaceConfig";
+import { getProjectName, getSDKConfigFilePath } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
@@ -460,49 +460,6 @@ export function getVariableFromCMakeLists(workspacePath: string, key: string) {
   const regexExp = new RegExp(`(?:set|SET)\\(${key} (.*)\\)`);
   const match = cmakeListsContent.match(regexExp);
   return match ? match[1] : "";
-}
-
-export async function getSDKConfigFilePath(workspacePath: vscode.Uri) {
-  let sdkconfigFilePath = "";
-  try {
-    sdkconfigFilePath = getVariableFromCMakeLists(
-      workspacePath.fsPath,
-      "SDKCONFIG"
-    );
-  } catch (error) {
-    const errMsg = error.message
-      ? error.message
-      : `CMakeLists.txt file doesn't exists or can't be read`;
-    Logger.info(errMsg, error);
-  }
-  if (
-    sdkconfigFilePath &&
-    sdkconfigFilePath.indexOf("${CMAKE_BINARY_DIR}") !== -1
-  ) {
-    const buildDirPath = idfConf.readParameter(
-      "idf.buildPath",
-      workspacePath
-    ) as string;
-    sdkconfigFilePath = sdkconfigFilePath
-      .replace("${CMAKE_BINARY_DIR}", buildDirPath)
-      .replace(/"/g, "");
-  }
-  if (!sdkconfigFilePath) {
-    sdkconfigFilePath = idfConf.readParameter(
-      "idf.sdkconfigFilePath",
-      workspacePath
-    ) as string;
-  }
-  if (!workspacePath) {
-    return;
-  }
-  if (!sdkconfigFilePath) {
-    sdkconfigFilePath = path.join(workspacePath.fsPath, "sdkconfig");
-  }
-  if (!sdkconfigFilePath) {
-    sdkconfigFilePath = path.join(workspacePath.fsPath, "sdkconfig.defaults");
-  }
-  return sdkconfigFilePath;
 }
 
 export async function getConfigValueFromSDKConfig(

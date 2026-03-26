@@ -21,6 +21,42 @@ import * as utils from "./utils";
 import { readParameter } from "./idfConfiguration";
 import { showInfoNotificationWithAction } from "./logger/utils";
 import { isSettingIDFTarget } from "./espIdf/setTarget";
+import { pathExists } from "fs-extra";
+
+export interface IProjectDescription {
+  version: string;
+  projectName: string;
+  projectVersion: string;
+  projectPath: string;
+  idfPath: string;
+  buildDir: string;
+  configFile: string;
+  configDefaults: string;
+  bootloaderElf: string;
+  appElf: string;
+  appBin: string;
+  buildType: string;
+  gitRevision: string;
+  target: string;
+  rev: string;
+  minRev: string;
+  maxRev: string;
+  phyDataPartition: string;
+  monitorBaud: string;
+  monitorToolPrefix: string;
+  cCompiler: string;
+  configEnvironment: {
+    ComponentKconfigs: string;
+    ComponentKconfigsProjbuild: string;
+  };
+  commonComponentReqs: string[];
+  buildComponents: string[];
+  buildComponentPaths: string[];
+  buildComponentInfo: { [key: string]: any };
+  allComponentInfo: { [key: string]: any };
+  gdbinitFiles: { [key: string]: string };
+  debugArgumentsOpenOCD: string;
+}
 
 export function initSelectedWorkspace(status?: vscode.StatusBarItem) {
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
@@ -46,41 +82,103 @@ export function updateIdfComponentsTree(workspaceFolder: vscode.Uri) {
   idfDataProvider.refresh(workspaceFolder);
 }
 
-export function getProjectName(buildDir: string): Promise<string> {
-  const projDescJsonPath = path.join(buildDir, "project_description.json");
-  return new Promise((resolve, reject) => {
-    try {
-      if (!utils.fileExists(projDescJsonPath)) {
-        return reject(new Error(`${projDescJsonPath} doesn't exist.`));
-      }
-      fs.readFile(projDescJsonPath, (err, data) => {
-        if (err) {
-          Logger.error(
-            err.message,
-            err,
-            "workspaceConfig getProjectName readFile"
-          );
-          return reject(err);
-        }
-        const projDescJson = JSON.parse(data.toString());
-        if (
-          Object.prototype.hasOwnProperty.call(projDescJson, "project_name")
-        ) {
-          return resolve(projDescJson.project_name);
-        } else {
-          return reject(
-            new Error(
-              `project_name field doesn't exist in ${projDescJsonPath}.`
-            )
-          );
-        }
-      });
-    } catch (error) {
-      const errMsg = error && error.message ? error.message : error;
-      Logger.error(errMsg, error, "workspaceConfig getProjectName");
-      return reject(error);
+export async function getProjectDescriptionJson(
+  buildDir: string
+): Promise<IProjectDescription | undefined> {
+  try {
+    const projDescJsonPath = path.join(buildDir, "project_description.json");
+    const doesExists = await pathExists(projDescJsonPath);
+    if (!doesExists) {
+      return undefined;
     }
-  });
+    const projDescJsonContent = await fs.promises.readFile(projDescJsonPath);
+    const projDescJson = JSON.parse(projDescJsonContent.toString());
+    const projectDescriptionObj: IProjectDescription = {
+      version: projDescJson.version,
+      projectName: projDescJson.project_name,
+      projectVersion: projDescJson.project_version,
+      projectPath: projDescJson.project_path,
+      idfPath: projDescJson.idf_path,
+      buildDir: projDescJson.build_dir,
+      configFile: projDescJson.config_file,
+      configDefaults: projDescJson.config_defaults,
+      bootloaderElf: projDescJson.bootloader_elf,
+      appElf: projDescJson.app_elf,
+      appBin: projDescJson.app_bin,
+      buildType: projDescJson.build_type,
+      gitRevision: projDescJson.git_revision,
+      target: projDescJson.target,
+      rev: projDescJson.rev,
+      minRev: projDescJson.min_rev,
+      maxRev: projDescJson.max_rev,
+      phyDataPartition: projDescJson.phy_data_partition,
+      monitorBaud: projDescJson.monitor_baud,
+      monitorToolPrefix: projDescJson.monitor_tool_prefix,
+      cCompiler: projDescJson.c_compiler,
+      configEnvironment: {
+        ComponentKconfigs: projDescJson.config_environment.COMPONENT_KCONFIGS,
+        ComponentKconfigsProjbuild:
+          projDescJson.config_environment.COMPONENT_KCONFIGS_PROJBUILD,
+      },
+      commonComponentReqs: projDescJson.common_component_reqs,
+      buildComponents: projDescJson.build_components,
+      buildComponentPaths: projDescJson.build_component_paths,
+      buildComponentInfo: projDescJson.build_component_info,
+      allComponentInfo: projDescJson.all_component_info,
+      gdbinitFiles: projDescJson.gdbinit_files,
+      debugArgumentsOpenOCD: projDescJson.debug_arguments_openocd,
+    };
+    return projectDescriptionObj;
+  } catch (error) {
+    Logger.error(
+      `Error reading project description JSON from ${buildDir}`,
+      error,
+      "workspaceConfig getProjectDescriptionJson"
+    );
+    return undefined;
+  }
+}
+
+export async function getSDKConfigFilePath(
+  workspacePath: vscode.Uri
+): Promise<string | undefined> {
+  try {
+    if (!workspacePath) {
+      return;
+    }
+    const buildDir = readParameter("idf.buildPath", workspacePath) as string;
+    const projDescObj = await getProjectDescriptionJson(buildDir);
+    if (projDescObj && projDescObj.configFile) {
+      return projDescObj.configFile;
+    }
+    let sdkconfigFilePath = "";
+    if (!sdkconfigFilePath) {
+      sdkconfigFilePath = readParameter(
+        "idf.sdkconfigFilePath",
+        workspacePath
+      ) as string;
+    }
+    if (!sdkconfigFilePath) {
+      sdkconfigFilePath = path.join(workspacePath.fsPath, "sdkconfig");
+    }
+    return sdkconfigFilePath;
+  } catch (error) {
+    const errMsg = error && error.message ? error.message : error;
+    Logger.error(errMsg, error, "workspaceConfig getSdkconfigPath");
+  }
+}
+
+export async function getProjectName(buildDir: string): Promise<string> {
+  try {
+    const projectDescription = await getProjectDescriptionJson(buildDir);
+    if (projectDescription && projectDescription.projectName) {
+      return projectDescription.projectName;
+    }
+  } catch (error) {
+    const errMsg = error && error.message ? error.message : error;
+    Logger.error(errMsg, error, "workspaceConfig getProjectName");
+  }
+  return "";
 }
 
 export async function getIdfTargetFromSdkconfig(

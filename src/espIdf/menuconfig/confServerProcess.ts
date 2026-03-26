@@ -25,7 +25,6 @@ import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import {
   delConfigFile,
-  getSDKConfigFilePath,
   isStringNotEmpty,
 } from "../../utils";
 import { KconfigMenuLoader } from "./kconfigMenuLoader";
@@ -34,6 +33,7 @@ import { MenuConfigPanel } from "./MenuconfigPanel";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { configureEnvVariables } from "../../common/prepareEnv";
 import { ESP } from "../../config";
+import { getSDKConfigFilePath } from "../../workspaceConfig";
 
 export class ConfserverProcess {
   public static async initWithProgress(
