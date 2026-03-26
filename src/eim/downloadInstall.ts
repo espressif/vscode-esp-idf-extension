@@ -19,11 +19,13 @@
 import axios from "axios";
 import { basename, dirname, extname, join, resolve as pathResolve } from "path";
 import {
+  appendFile,
   createWriteStream,
   ensureDir,
   move,
   pathExists,
   ReadStream,
+  readFile,
   remove,
   WriteStream,
 } from "fs-extra";
@@ -35,6 +37,11 @@ import * as yauzl from "yauzl";
 import { Logger } from "../logger/logger";
 import { getEimIdfJson } from "./getExistingSetups";
 import { readParameter } from "../idfConfiguration";
+
+type EimShellProfileTarget = {
+  path: string;
+  shellType: "fish" | "posix";
+};
 
 export function isVSCodeInstalledViaSnap(): boolean {
   return (
@@ -96,11 +103,15 @@ export async function resolveEimPath(): Promise<string> {
   return eimPath;
 }
 
-export function launchEimInTerminal(eimPath: string) {
+export async function launchEimInTerminal(eimPath: string) {
   const idfEimExecutableArgs = readParameter(
     "idf.eimExecutableArgs"
   ) as string[];
   const argsString = idfEimExecutableArgs.join(" ");
+
+  if (argsString.includes("wizard")) {
+    await ensureEimPathInUserShell(eimPath);
+  }
 
   let binaryPath = "";
   if (process.platform === "win32") {
@@ -127,6 +138,117 @@ export function launchEimInTerminal(eimPath: string) {
   } else {
     espIdfTerminal.sendText("exit");
   }
+}
+
+async function ensureEimPathInUserShell(eimPath: string): Promise<void> {
+  if (process.platform !== "linux") {
+    return;
+  }
+
+  const homeDir = process.env.HOME;
+  if (!homeDir) {
+    return;
+  }
+
+  const eimDir = dirname(eimPath);
+  const profileTargets = getShellProfileTargets(env.shell || "", homeDir);
+
+  try {
+    for (const profileTarget of profileTargets) {
+      await ensureEimPathInProfile(profileTarget, eimDir);
+    }
+  } catch (error) {
+    Logger.error(
+      `Error while persisting EIM path: ${error.message}`,
+      error,
+      "ensureEimPathInUserShell"
+    );
+  }
+}
+
+function getShellProfileTargets(
+  shellPath: string,
+  homeDir: string
+): EimShellProfileTarget[] {
+  const shellName = basename(shellPath).toLowerCase();
+
+  if (shellName === "bash") {
+    return [
+      { path: join(homeDir, ".bashrc"), shellType: "posix" },
+      { path: join(homeDir, ".profile"), shellType: "posix" },
+    ];
+  }
+
+  if (shellName === "zsh") {
+    return [
+      { path: join(homeDir, ".zshrc"), shellType: "posix" },
+      { path: join(homeDir, ".zprofile"), shellType: "posix" },
+    ];
+  }
+
+  if (shellName === "fish") {
+    return [
+      {
+        path: join(homeDir, ".config", "fish", "config.fish"),
+        shellType: "fish",
+      },
+    ];
+  }
+
+  return [{ path: join(homeDir, ".profile"), shellType: "posix" }];
+}
+
+async function ensureEimPathInProfile(
+  profileTarget: EimShellProfileTarget,
+  eimDir: string
+): Promise<void> {
+  const profileExists = await pathExists(profileTarget.path);
+  const currentContent = profileExists
+    ? await readFile(profileTarget.path, "utf8")
+    : "";
+
+  if (currentContent.includes(eimDir)) {
+    return;
+  }
+
+  await ensureDir(dirname(profileTarget.path));
+  await appendFile(
+    profileTarget.path,
+    createEimPathProfileSnippet(profileTarget.shellType, eimDir),
+    { encoding: "utf8" }
+  );
+}
+
+function createEimPathProfileSnippet(
+  shellType: "fish" | "posix",
+  eimDir: string
+) {
+  const header = "# Added by ESP-IDF extension so the EIM CLI can be launched directly.";
+
+  if (shellType === "fish") {
+    return [
+      "",
+      "# >>> ESP-IDF EIM PATH >>>",
+      header,
+      `if not contains -- "${eimDir}" $PATH`,
+      `    set -gx PATH "${eimDir}" $PATH`,
+      "end",
+      "# <<< ESP-IDF EIM PATH <<<",
+      "",
+    ].join("\n");
+  }
+
+  return [
+    "",
+    "# >>> ESP-IDF EIM PATH >>>",
+    header,
+    'case ":$PATH:" in',
+    `  *:"${eimDir}":*) ;;`,
+    `  *) export PATH="${eimDir}:$PATH" ;;`,
+    "esac",
+    "# <<< ESP-IDF EIM PATH <<<",
+    "",
+  ].join("\n");
 }
 
 export async function checkEimExists(

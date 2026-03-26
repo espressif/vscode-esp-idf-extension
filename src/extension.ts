@@ -4432,7 +4432,7 @@ async function ensureEimAndLaunch(
           ["wizard"],
           vscode.ConfigurationTarget.Global
         );
-        launchEimInTerminal(eimPath);
+        await launchEimInTerminal(eimPath);
         return;
       }
 
@@ -4442,7 +4442,7 @@ async function ensureEimAndLaunch(
       }
 
       if (skipQuickPickMode) {
-        launchEimInTerminal(eimPath);
+        await launchEimInTerminal(eimPath);
         return;
       }
 
@@ -4463,7 +4463,7 @@ async function ensureEimAndLaunch(
         argsValue,
         vscode.ConfigurationTarget.Global
       );
-      launchEimInTerminal(eimPath);
+      await launchEimInTerminal(eimPath);
     }
   );
 }
@@ -4489,7 +4489,7 @@ async function showSnapEimNotification(eimPath: string) {
       ["wizard"],
       vscode.ConfigurationTarget.Global
     );
-    launchEimInTerminal(eimPath);
+    await launchEimInTerminal(eimPath);
   } else if (action === copyPathLabel) {
     await vscode.env.clipboard.writeText(eimPath);
     vscode.window.showInformationMessage(

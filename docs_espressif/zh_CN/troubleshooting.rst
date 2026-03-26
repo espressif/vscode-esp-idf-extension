@@ -49,6 +49,10 @@ EIM 启动模式（GUI 与 CLI）
 
 在远程环境（SSH、WSL、Dev Containers、Codespaces）和基于浏览器的 VS Code 中，无法显示 GUI。扩展会在这些情况下自动强制使用 CLI（wizard）模式 -- 不会显示提示。
 
+对于基于 Linux 的远程用户，扩展在首次启动 ``eim wizard`` 时，还会将 EIM 可执行文件所在目录追加到用户的 shell PATH 中。这样在之后的新终端里，无需复制完整二进制路径即可直接运行 ``eim``。
+
+重新打开一个终端后，你可以参考 `EIM CLI 命令文档 <https://docs.espressif.com/projects/idf-im-ui/en/latest/cli_commands.html>`_，自行运行 ``eim list``、``eim run`` 等命令。
+
 通过 Snap 安装的 VS Code（Ubuntu）
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

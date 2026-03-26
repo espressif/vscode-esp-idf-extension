@@ -61,6 +61,10 @@ Remote and Headless Environments
 
 In remote environments (SSH, WSL, Dev Containers, Codespaces) and browser-based VS Code, the GUI cannot be displayed. The extension automatically forces CLI (wizard) mode in these cases -- no prompt is shown.
 
+For Linux-based remote users, the extension also appends the EIM executable directory to the user's shell PATH the first time it launches ``eim wizard``. This allows running ``eim`` directly from future terminals without copying the full binary path.
+
+After opening a new terminal, you can use the `EIM CLI Commands <https://docs.espressif.com/projects/idf-im-ui/en/latest/cli_commands.html>`_ reference to run commands such as ``eim list`` or ``eim run`` yourself.
+
 VS Code Installed via Snap (Ubuntu)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

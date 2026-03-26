@@ -27,6 +27,9 @@
     - ``GitHub``：使用 GitHub 发布链接。
 
 3.  使用 ESP-IDF 安装管理器安装 ESP-IDF 及工具。如需帮助，可参阅 `ESP-IDF 安装管理器文档 <https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest/general_info.html>`_。
+    .. note::
+
+        在 SSH、WSL、Dev Containers、Codespaces 或基于浏览器的 VS Code 等远程或无头环境中，扩展会运行 ``eim wizard``，而不是启动 GUI。首次在 Linux 环境中启动该向导时，扩展还会将 EIM 可执行文件所在目录添加到远程用户的 shell PATH 中，以便后续可在新的终端里直接运行 ``eim``。可用命令请参考 `EIM CLI 命令文档 <https://docs.espressif.com/projects/idf-im-ui/en/latest/cli_commands.html>`_。
 
 4. 通过读取 EIM 的 **eim_idf.json** 文件，使用 ESP-IDF 安装管理器安装的所有 ESP-IDF 版本都会被 ESP-IDF VS Code 扩展自动识别。
 
