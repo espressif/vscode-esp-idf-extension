@@ -23,39 +23,44 @@ import { showInfoNotificationWithAction } from "./logger/utils";
 import { isSettingIDFTarget } from "./espIdf/setTarget";
 import { pathExists } from "fs-extra";
 
+/** Parsed subset of build/project_description.json; fields are optional for partial or evolving schemas. */
 export interface IProjectDescription {
-  version: string;
-  projectName: string;
-  projectVersion: string;
-  projectPath: string;
-  idfPath: string;
-  buildDir: string;
-  configFile: string;
-  configDefaults: string;
-  bootloaderElf: string;
-  appElf: string;
-  appBin: string;
-  buildType: string;
-  gitRevision: string;
-  target: string;
-  rev: string;
-  minRev: string;
-  maxRev: string;
-  phyDataPartition: string;
-  monitorBaud: string;
-  monitorToolPrefix: string;
-  cCompiler: string;
-  configEnvironment: {
-    ComponentKconfigs: string;
-    ComponentKconfigsProjbuild: string;
+  version?: string;
+  projectName?: string;
+  projectVersion?: string;
+  projectPath?: string;
+  idfPath?: string;
+  buildDir?: string;
+  configFile?: string;
+  configDefaults?: string;
+  bootloaderElf?: string;
+  appElf?: string;
+  appBin?: string;
+  buildType?: string;
+  gitRevision?: string;
+  target?: string;
+  rev?: string;
+  minRev?: string;
+  maxRev?: string;
+  phyDataPartition?: string;
+  monitorBaud?: string;
+  monitorToolPrefix?: string;
+  cCompiler?: string;
+  configEnvironment?: {
+    ComponentKconfigs?: string;
+    ComponentKconfigsProjbuild?: string;
   };
-  commonComponentReqs: string[];
-  buildComponents: string[];
-  buildComponentPaths: string[];
-  buildComponentInfo: { [key: string]: any };
-  allComponentInfo: { [key: string]: any };
-  gdbinitFiles: { [key: string]: string };
-  debugArgumentsOpenOCD: string;
+  commonComponentReqs?: string[];
+  buildComponents?: string[];
+  buildComponentPaths?: string[];
+  buildComponentInfo?: { [key: string]: any };
+  allComponentInfo?: { [key: string]: any };
+  gdbinitFiles?: { [key: string]: string };
+  debugArgumentsOpenOCD?: string;
+}
+
+function optString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
 }
 
 export function initSelectedWorkspace(status?: vscode.StatusBarItem) {
@@ -92,41 +97,80 @@ export async function getProjectDescriptionJson(
       return undefined;
     }
     const projDescJsonContent = await fs.promises.readFile(projDescJsonPath);
-    const projDescJson = JSON.parse(projDescJsonContent.toString());
+    const projDescJson = JSON.parse(projDescJsonContent.toString()) as Record<
+      string,
+      unknown
+    >;
+    if (
+      !projDescJson ||
+      typeof projDescJson !== "object" ||
+      Array.isArray(projDescJson)
+    ) {
+      return undefined;
+    }
+    const env = projDescJson.config_environment;
+    const envObj =
+      env !== null && typeof env === "object" && !Array.isArray(env)
+        ? (env as Record<string, unknown>)
+        : undefined;
     const projectDescriptionObj: IProjectDescription = {
-      version: projDescJson.version,
-      projectName: projDescJson.project_name,
-      projectVersion: projDescJson.project_version,
-      projectPath: projDescJson.project_path,
-      idfPath: projDescJson.idf_path,
-      buildDir: projDescJson.build_dir,
-      configFile: projDescJson.config_file,
-      configDefaults: projDescJson.config_defaults,
-      bootloaderElf: projDescJson.bootloader_elf,
-      appElf: projDescJson.app_elf,
-      appBin: projDescJson.app_bin,
-      buildType: projDescJson.build_type,
-      gitRevision: projDescJson.git_revision,
-      target: projDescJson.target,
-      rev: projDescJson.rev,
-      minRev: projDescJson.min_rev,
-      maxRev: projDescJson.max_rev,
-      phyDataPartition: projDescJson.phy_data_partition,
-      monitorBaud: projDescJson.monitor_baud,
-      monitorToolPrefix: projDescJson.monitor_tool_prefix,
-      cCompiler: projDescJson.c_compiler,
-      configEnvironment: {
-        ComponentKconfigs: projDescJson.config_environment.COMPONENT_KCONFIGS,
-        ComponentKconfigsProjbuild:
-          projDescJson.config_environment.COMPONENT_KCONFIGS_PROJBUILD,
-      },
-      commonComponentReqs: projDescJson.common_component_reqs,
-      buildComponents: projDescJson.build_components,
-      buildComponentPaths: projDescJson.build_component_paths,
-      buildComponentInfo: projDescJson.build_component_info,
-      allComponentInfo: projDescJson.all_component_info,
-      gdbinitFiles: projDescJson.gdbinit_files,
-      debugArgumentsOpenOCD: projDescJson.debug_arguments_openocd,
+      version: optString(projDescJson.version),
+      projectName: optString(projDescJson.project_name),
+      projectVersion: optString(projDescJson.project_version),
+      projectPath: optString(projDescJson.project_path),
+      idfPath: optString(projDescJson.idf_path),
+      buildDir: optString(projDescJson.build_dir),
+      configFile: optString(projDescJson.config_file),
+      configDefaults: optString(projDescJson.config_defaults),
+      bootloaderElf: optString(projDescJson.bootloader_elf),
+      appElf: optString(projDescJson.app_elf),
+      appBin: optString(projDescJson.app_bin),
+      buildType: optString(projDescJson.build_type),
+      gitRevision: optString(projDescJson.git_revision),
+      target: optString(projDescJson.target),
+      rev: optString(projDescJson.rev),
+      minRev: optString(projDescJson.min_rev),
+      maxRev: optString(projDescJson.max_rev),
+      phyDataPartition: optString(projDescJson.phy_data_partition),
+      monitorBaud: optString(projDescJson.monitor_baud),
+      monitorToolPrefix: optString(projDescJson.monitor_tool_prefix),
+      cCompiler: optString(projDescJson.c_compiler),
+      configEnvironment: envObj
+        ? {
+            ComponentKconfigs: optString(envObj.COMPONENT_KCONFIGS),
+            ComponentKconfigsProjbuild: optString(
+              envObj.COMPONENT_KCONFIGS_PROJBUILD
+            ),
+          }
+        : undefined,
+      commonComponentReqs: Array.isArray(projDescJson.common_component_reqs)
+        ? (projDescJson.common_component_reqs as string[])
+        : undefined,
+      buildComponents: Array.isArray(projDescJson.build_components)
+        ? (projDescJson.build_components as string[])
+        : undefined,
+      buildComponentPaths: Array.isArray(projDescJson.build_component_paths)
+        ? (projDescJson.build_component_paths as string[])
+        : undefined,
+      buildComponentInfo:
+        projDescJson.build_component_info !== null &&
+        typeof projDescJson.build_component_info === "object" &&
+        !Array.isArray(projDescJson.build_component_info)
+          ? (projDescJson.build_component_info as { [key: string]: any })
+          : undefined,
+      allComponentInfo:
+        projDescJson.all_component_info !== null &&
+        typeof projDescJson.all_component_info === "object" &&
+        !Array.isArray(projDescJson.all_component_info)
+          ? (projDescJson.all_component_info as { [key: string]: any })
+          : undefined,
+      gdbinitFiles:
+        projDescJson.gdbinit_files !== null &&
+        typeof projDescJson.gdbinit_files === "object" &&
+        !Array.isArray(projDescJson.gdbinit_files)
+          ? (projDescJson.gdbinit_files as { [key: string]: string })
+          : undefined,
+      debugArgumentsOpenOCD: optString(projDescJson.debug_arguments_openocd),
     };
     return projectDescriptionObj;
   } catch (error) {
@@ -141,23 +185,20 @@ export async function getProjectDescriptionJson(
 
 export async function getSDKConfigFilePath(
   workspacePath: vscode.Uri
-): Promise<string | undefined> {
+): Promise<string> {
   try {
     if (!workspacePath) {
-      return;
+      return "sdkconfig";
     }
     const buildDir = readParameter("idf.buildPath", workspacePath) as string;
     const projDescObj = await getProjectDescriptionJson(buildDir);
     if (projDescObj && projDescObj.configFile) {
       return projDescObj.configFile;
     }
-    let sdkconfigFilePath = "";
-    if (!sdkconfigFilePath) {
-      sdkconfigFilePath = readParameter(
-        "idf.sdkconfigFilePath",
-        workspacePath
-      ) as string;
-    }
+    let sdkconfigFilePath = readParameter(
+      "idf.sdkconfigFilePath",
+      workspacePath
+    ) as string;
     if (!sdkconfigFilePath) {
       sdkconfigFilePath = path.join(workspacePath.fsPath, "sdkconfig");
     }
@@ -165,18 +206,14 @@ export async function getSDKConfigFilePath(
   } catch (error) {
     const errMsg = error && error.message ? error.message : error;
     Logger.error(errMsg, error, "workspaceConfig getSdkconfigPath");
+    return path.join(workspacePath.fsPath, "sdkconfig");
   }
 }
 
 export async function getProjectName(buildDir: string): Promise<string> {
-  try {
-    const projectDescription = await getProjectDescriptionJson(buildDir);
-    if (projectDescription && projectDescription.projectName) {
-      return projectDescription.projectName;
-    }
-  } catch (error) {
-    const errMsg = error && error.message ? error.message : error;
-    Logger.error(errMsg, error, "workspaceConfig getProjectName");
+  const projectDescription = await getProjectDescriptionJson(buildDir);
+  if (projectDescription && projectDescription.projectName) {
+    return projectDescription.projectName;
   }
   return "";
 }

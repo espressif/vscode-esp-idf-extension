@@ -21,14 +21,14 @@ import { join } from "path";
 import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
-import {
-  getEspIdfFromCMake,
-  isBinInPath,
-} from "../utils";
+import { getEspIdfFromCMake, isBinInPath } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 import { getVirtualEnvPythonPath } from "../pythonManager";
-import { getIdfTargetFromSdkconfig, getSDKConfigFilePath } from "../workspaceConfig";
+import {
+  getIdfTargetFromSdkconfig,
+  getSDKConfigFilePath,
+} from "../workspaceConfig";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { ESP } from "../config";
 import { OutputCapturingExecution } from "../taskManager/customExecution";
@@ -139,7 +139,7 @@ export class BuildTask {
       }
 
       const sdkconfigFile = await getSDKConfigFilePath(this.currentWorkspace);
-      if (compilerArgs.indexOf("SDKCONFIG") === -1) {
+      if (sdkconfigFile && compilerArgs.indexOf("SDKCONFIG") === -1) {
         compilerArgs.push(`-DSDKCONFIG='${sdkconfigFile}'`);
       }
 

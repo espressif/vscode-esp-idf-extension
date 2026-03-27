@@ -72,7 +72,7 @@ export class IdfReconfigureTask {
     reconfigureArgs.push("-B", this.buildDirPath);
 
     const sdkconfigFile = await getSDKConfigFilePath(this.curWorkspace);
-    if (reconfigureArgs.indexOf("SDKCONFIG") === -1) {
+    if (sdkconfigFile && reconfigureArgs.indexOf("SDKCONFIG") === -1) {
       reconfigureArgs.push(`-DSDKCONFIG='${sdkconfigFile}'`);
     }
 
