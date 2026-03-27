@@ -3552,8 +3552,7 @@ export async function activate(context: vscode.ExtensionContext) {
         // try to get the partition table name from sdkconfig and if not found create one
         try {
           const sdkconfigFilePath = await getSDKConfigFilePath(workspaceRoot);
-          const sdkconfigFileExists = await pathExists(sdkconfigFilePath);
-          if (!sdkconfigFileExists) {
+          if (!sdkconfigFilePath || !(await pathExists(sdkconfigFilePath))) {
             const buildProject = await vscode.window.showInformationMessage(
               vscode.l10n.t(
                 `Partition table editor requires sdkconfig file. Build the project?`
