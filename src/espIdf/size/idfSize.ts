@@ -18,10 +18,9 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
-import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { fileExists, spawn } from "../../utils";
-import { getProjectName } from "../../workspaceConfig";
+import { getProjectMapFilePath } from "../../workspaceConfig";
 import * as utils from "../../utils";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { ESP } from "../../config";
@@ -95,12 +94,7 @@ export class IDFSize {
   }
 
   private async mapFilePath() {
-    const buildDirPath = idfConf.readParameter(
-      "idf.buildPath",
-      this.workspaceFolderUri
-    ) as string;
-    const projectName = await getProjectName(buildDirPath);
-    return path.join(buildDirPath, `${projectName}.map`);
+    return await getProjectMapFilePath(this.workspaceFolderUri);
   }
 
   private idfPath(): string {

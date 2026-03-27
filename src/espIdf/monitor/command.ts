@@ -27,7 +27,7 @@ import { IDFMonitor, MonitorConfig } from ".";
 import { ESP } from "../../config";
 import {
   getIdfTargetFromSdkconfig,
-  getProjectName,
+  getProjectElfFilePath,
 } from "../../workspaceConfig";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 
@@ -95,13 +95,8 @@ export async function createNewIdfMonitor(
       "createNewIdfMonitor idf_monitor not found"
     );
   }
-  const buildDirPath = readParameter(
-    "idf.buildPath",
-    workspaceFolder
-  ) as string;
   let idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder);
-  const projectName = await getProjectName(buildDirPath);
-  const elfFilePath = join(buildDirPath, `${projectName}.elf`);
+  const elfFilePath = await getProjectElfFilePath(workspaceFolder);
   const toolchainPrefix = utils.getToolchainToolName(idfTarget, "");
   const shellPath = readParameter(
     "idf.customTerminalExecutable",

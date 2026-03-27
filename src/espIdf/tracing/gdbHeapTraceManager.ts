@@ -23,7 +23,7 @@ import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import { getToolchainToolName, isBinInPath } from "../../utils";
-import { getProjectName } from "../../workspaceConfig";
+import { getProjectElfFilePath, getProjectName } from "../../workspaceConfig";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import {
@@ -76,8 +76,7 @@ export class GdbHeapTraceManager {
         if (!isGdbToolInPath) {
           throw new Error(`${gdbTool} is not available in PATH.`);
         }
-        const projectName = await getProjectName(buildDirPath);
-        const elfFilePath = join(buildDirPath, `${projectName}.elf`);
+        const elfFilePath = await getProjectElfFilePath(workspace);
         const elfFileExists = await pathExists(elfFilePath);
         if (!elfFileExists) {
           throw new Error(`${elfFilePath} doesn't exist.`);
