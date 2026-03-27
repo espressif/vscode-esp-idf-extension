@@ -701,38 +701,6 @@ export function checkSpacesInPath(pathStr: string) {
   return /\s+/g.test(pathStr);
 }
 
-export async function getElfFilePath(
-  workspaceURI: vscode.Uri
-): Promise<string> {
-  let projectName = "";
-  if (!workspaceURI) {
-    throw new Error("No Workspace open");
-  }
-
-  try {
-    const buildDir = idfConf.readParameter(
-      "idf.buildPath",
-      workspaceURI
-    ) as string;
-    if (!canAccessFile(buildDir, fs.constants.R_OK)) {
-      throw new Error("Build is required once to generate the ELF File");
-    }
-    projectName = await getProjectName(buildDir);
-    const elfFilePath = path.join(buildDir, `${projectName}.elf`);
-    if (!canAccessFile(elfFilePath, fs.constants.R_OK)) {
-      throw new Error(`Failed to access .elf file at ${elfFilePath}`);
-    }
-    return elfFilePath;
-  } catch (error) {
-    Logger.errorNotify(
-      "Failed to read project name while fetching elf file",
-      error,
-      "utils getElfFilePath"
-    );
-    return;
-  }
-}
-
 export function checkIsProjectCmakeLists(dir: string) {
   // Check if folder contain CMakeLists.txt with project(name) call.
   const cmakeListFile = path.join(dir, "CMakeLists.txt");

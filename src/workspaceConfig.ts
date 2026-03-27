@@ -22,6 +22,7 @@ import { readParameter } from "./idfConfiguration";
 import { showInfoNotificationWithAction } from "./logger/utils";
 import { isSettingIDFTarget } from "./espIdf/setTarget";
 import { pathExists } from "fs-extra";
+import { Uri } from "vscode";
 
 /** Parsed subset of build/project_description.json; fields are optional for partial or evolving schemas. */
 export interface IProjectDescription {
@@ -88,10 +89,17 @@ export function updateIdfComponentsTree(workspaceFolder: vscode.Uri) {
 }
 
 export async function getProjectDescriptionJson(
-  buildDir: string
+  workspaceFolder: vscode.Uri
 ): Promise<IProjectDescription | undefined> {
+  const buildDirPath = readParameter(
+    "idf.buildPath",
+    workspaceFolder
+  ) as string;
   try {
-    const projDescJsonPath = path.join(buildDir, "project_description.json");
+    const projDescJsonPath = path.join(
+      buildDirPath,
+      "project_description.json"
+    );
     const doesExists = await pathExists(projDescJsonPath);
     if (!doesExists) {
       return undefined;
@@ -175,7 +183,7 @@ export async function getProjectDescriptionJson(
     return projectDescriptionObj;
   } catch (error) {
     Logger.error(
-      `Error reading project description JSON from ${buildDir}`,
+      `Error reading project description JSON from ${buildDirPath}`,
       error,
       "workspaceConfig getProjectDescriptionJson"
     );
@@ -190,8 +198,7 @@ export async function getSDKConfigFilePath(
     if (!workspacePath) {
       return "sdkconfig";
     }
-    const buildDir = readParameter("idf.buildPath", workspacePath) as string;
-    const projDescObj = await getProjectDescriptionJson(buildDir);
+    const projDescObj = await getProjectDescriptionJson(workspacePath);
     if (projDescObj && projDescObj.configFile) {
       return projDescObj.configFile;
     }
@@ -210,12 +217,49 @@ export async function getSDKConfigFilePath(
   }
 }
 
-export async function getProjectName(buildDir: string): Promise<string> {
-  const projectDescription = await getProjectDescriptionJson(buildDir);
+export async function getProjectName(
+  workspacePath: vscode.Uri
+): Promise<string> {
+  const projectDescription = await getProjectDescriptionJson(workspacePath);
   if (projectDescription && projectDescription.projectName) {
     return projectDescription.projectName;
   }
-  return "";
+  throw new Error("Failed to get project name from project description.");
+}
+
+export async function getProjectElfFilePath(
+  workspacePath: vscode.Uri
+): Promise<string> {
+  const projectDescription = await getProjectDescriptionJson(workspacePath);
+  if (projectDescription && projectDescription.appElf) {
+    const buildDirPath = readParameter(
+      "idf.buildPath",
+      workspacePath
+    ) as string;
+    if (!buildDirPath) {
+      throw new Error("Failed to get build directory path for ELF file path.");
+    }
+    const elfFilePath = path.join(buildDirPath, projectDescription.appElf);
+    return elfFilePath;
+  }
+  throw new Error(
+    "Failed to get project ELF file name from project description."
+  );
+}
+
+export async function getProjectMapFilePath(
+  workspacePath: vscode.Uri
+): Promise<string> {
+  const projectName = await getProjectName(workspacePath);
+  if (!projectName) {
+    throw new Error("Failed to get project name for MAP file path.");
+  }
+  const buildDirPath = readParameter("idf.buildPath", workspacePath) as string;
+  if (!buildDirPath) {
+    throw new Error("Failed to get build directory path for MAP file path.");
+  }
+  const mapFilePath = path.join(buildDirPath, `${projectName}.map`);
+  return mapFilePath;
 }
 
 export async function getIdfTargetFromSdkconfig(
