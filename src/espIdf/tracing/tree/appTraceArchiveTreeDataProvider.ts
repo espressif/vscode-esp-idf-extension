@@ -76,8 +76,21 @@ export class AppTraceArchiveTreeDataProvider
     const storedUri = ESP.GlobalConfiguration.store.get<Uri>(
       ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
     );
-    const wsFolder = workspace.getWorkspaceFolder(storedUri);
-    const traceFolder = join(wsFolder.uri.fsPath, "trace");
+    let baseFolderPath: string | undefined;
+    if (storedUri) {
+      const wsFolder = workspace.getWorkspaceFolder(storedUri);
+      if (wsFolder) {
+        baseFolderPath = wsFolder.uri.fsPath;
+      }
+    }
+    if (!baseFolderPath && workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
+      baseFolderPath = workspace.workspaceFolders[0].uri.fsPath;
+    }
+    if (!baseFolderPath) {
+      this.refresh();
+      return;
+    }
+    const traceFolder = join(baseFolderPath, "trace");
     if (existsSync(traceFolder)) {
       const traceLists = readdirSync(traceFolder);
       let appTraceCounter = 1;

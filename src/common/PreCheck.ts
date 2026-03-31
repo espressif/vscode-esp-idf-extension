@@ -83,13 +83,17 @@ export class PreCheck {
       if (!minVersionParsed || !currentVersionParsed) {
         throw new Error("Error parsing OpenOCD versions");
       }
-      const validationResult =
-        currentVersionParsed[1] >= minVersionParsed[1]
-          ? currentVersionParsed[2] >= minVersionParsed[2]
-            ? true
-            : false
-          : false;
-      return validationResult;
+      const versionComparison = compareVersion(
+        currentVersionParsed[1],
+        minVersionParsed[1]
+      );
+      if (versionComparison !== 0) {
+        return versionComparison > 0;
+      }
+      return (
+        parseInt(currentVersionParsed[2], 10) >=
+        parseInt(minVersionParsed[2], 10)
+      );
     } catch (error) {
       Logger.error(
         `openOCDVersionValidator failed unexpectedly - min:${minVersion}, curr:${currentVersion}`,
