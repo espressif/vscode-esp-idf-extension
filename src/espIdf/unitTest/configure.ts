@@ -21,7 +21,7 @@ import { ESP } from "../../config";
 import { join } from "path";
 import { copy, pathExists, readFile, writeFile } from "fs-extra";
 import { readParameter, readSerialPort } from "../../idfConfiguration";
-import { buildCommand } from "../../build/buildCmd";
+import { buildMain } from "../../build/buildMain";
 import { verifyCanFlash } from "../../flash/flashCmd";
 import { jtagFlashCommand } from "../../flash/jtagCmd";
 import { flashCommand } from "../../flash/uartFlash";
@@ -101,12 +101,12 @@ export async function buildTestApp(
   if (!flashType) {
     flashType = ESP.FlashType.UART;
   }
-  let canContinue = await buildCommand(
+  let buildCmdResults = await buildMain(
     unitTestAppDirPath,
     cancelToken,
     flashType
   );
-  if (!canContinue) {
+  if (!buildCmdResults.continueFlag) {
     return;
   }
 }

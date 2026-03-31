@@ -18,8 +18,18 @@
 
 import { existsSync, readdirSync, statSync } from "fs";
 import { join } from "path";
-import * as vscode from "vscode";
-import { PreCheck } from "../../../utils";
+import { ESP } from "../../../config";
+import {
+  Disposable,
+  Event,
+  EventEmitter,
+  ThemeIcon,
+  TreeDataProvider,
+  TreeItem,
+  Uri,
+  window,
+  workspace,
+} from "vscode";
 
 export enum TraceType {
   AppTrace = 0,
@@ -32,7 +42,7 @@ export type AppTraceArchiveReportArgs = {
   type: TraceType;
 };
 
-export class AppTraceArchiveItems extends vscode.TreeItem {
+export class AppTraceArchiveItems extends TreeItem {
   public fileName: string;
   public filePath: string;
   public type: TraceType;
@@ -40,12 +50,12 @@ export class AppTraceArchiveItems extends vscode.TreeItem {
 
 // tslint:disable-next-line: max-classes-per-file
 export class AppTraceArchiveTreeDataProvider
-  implements vscode.TreeDataProvider<AppTraceArchiveItems> {
+  implements TreeDataProvider<AppTraceArchiveItems> {
   // tslint:disable-next-line: max-line-length
-  public OnDidChangeTreeData: vscode.EventEmitter<
+  public OnDidChangeTreeData: EventEmitter<
     AppTraceArchiveItems
-  > = new vscode.EventEmitter<AppTraceArchiveItems>();
-  public readonly onDidChangeTreeData: vscode.Event<AppTraceArchiveItems> = this
+  > = new EventEmitter<AppTraceArchiveItems>();
+  public readonly onDidChangeTreeData: Event<AppTraceArchiveItems> = this
     .OnDidChangeTreeData.event;
   public appTraceArchives: AppTraceArchiveItems[];
 
@@ -53,11 +63,11 @@ export class AppTraceArchiveTreeDataProvider
     this.populateArchiveTree();
   }
 
-  public registerDataProviderForTree(treeName: string): vscode.Disposable {
-    return vscode.window.registerTreeDataProvider(treeName, this);
+  public registerDataProviderForTree(treeName: string): Disposable {
+    return window.registerTreeDataProvider(treeName, this);
   }
 
-  public getTreeItem(element: AppTraceArchiveItems): vscode.TreeItem {
+  public getTreeItem(element: AppTraceArchiveItems): TreeItem {
     return element;
   }
   public getChildren(element?: AppTraceArchiveItems): AppTraceArchiveItems[] {
@@ -69,10 +79,11 @@ export class AppTraceArchiveTreeDataProvider
 
   public populateArchiveTree() {
     this.appTraceArchives = Array<AppTraceArchiveItems>(0);
-    const workspace = PreCheck.isWorkspaceFolderOpen()
-      ? vscode.workspace.workspaceFolders[0].uri.fsPath
-      : "";
-    const traceFolder = join(workspace, "trace");
+    const storedUri = ESP.GlobalConfiguration.store.get<Uri>(
+      ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
+    );
+    const wsFolder = workspace.getWorkspaceFolder(storedUri);
+    const traceFolder = join(wsFolder.uri.fsPath, "trace");
     if (existsSync(traceFolder)) {
       const traceLists = readdirSync(traceFolder);
       let appTraceCounter = 1;
@@ -140,15 +151,15 @@ export class AppTraceArchiveTreeDataProvider
         title: "Show Report",
         arguments: [reportArgs],
       };
-      appTraceArchiveNode.iconPath = new vscode.ThemeIcon("pulse");
+      appTraceArchiveNode.iconPath = new ThemeIcon("pulse");
     } else {
       // For App Trace, set command to open file directly
       appTraceArchiveNode.command = {
         command: "vscode.open",
         title: "Open File",
-        arguments: [vscode.Uri.file(appTraceArchiveNode.filePath)],
+        arguments: [Uri.file(appTraceArchiveNode.filePath)],
       };
-      appTraceArchiveNode.iconPath = new vscode.ThemeIcon("archive");
+      appTraceArchiveNode.iconPath = new ThemeIcon("archive");
     }
 
     const traceSize = statSync(appTraceArchiveNode.filePath);

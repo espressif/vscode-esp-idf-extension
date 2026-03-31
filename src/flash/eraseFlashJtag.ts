@@ -22,7 +22,7 @@ import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { TCLClient } from "../espIdf/openOcd/tcl/tclClient";
-import { PreCheck } from "../utils";
+import { PreCheck } from "../common/PreCheck";
 
 export async function jtagEraseFlashCommand(workspaceFolder: Uri) {
   const openOCDManager = OpenOCDManager.init();
