@@ -27,14 +27,14 @@ import {
   Uri,
   window,
 } from "vscode";
-import { openFolderCheck } from "../common/PreCheck";
+import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { NotificationMode, readParameter } from "../idfConfiguration";
-import { PreCheck, shouldDisableMonitorReset } from "../utils";
+import { shouldDisableMonitorReset } from "../utils";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { isFlashEncryptionEnabled } from "../flash/verifyFlashEncryption";
 import { ESP } from "../config";
 import { IDFMonitor } from "../espIdf/monitor";
-import { buildCommand } from "../build/buildCmd";
+import { buildMain } from "../build/buildMain";
 import { startFlashing } from "../flash/startFlashing";
 import { createNewIdfMonitor } from "../espIdf/monitor/command";
 
@@ -65,11 +65,12 @@ export async function buildFlashAndMonitor(
       ) => {
         progress.report({ message: "Building project...", increment: 20 });
         const flashType = readParameter("idf.flashType", workspaceFolderUri);
-        let canContinue = await buildCommand(
+        const buildCmdResults = await buildMain(
           workspaceFolderUri,
           cancelToken,
           flashType
         );
+        let canContinue = buildCmdResults.continueFlag;
         if (!canContinue) {
           return;
         }

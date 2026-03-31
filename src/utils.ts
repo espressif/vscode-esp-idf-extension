@@ -36,13 +36,13 @@ import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
-import { getSDKConfigFilePath } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
 import { isFlashEncryptionEnabled } from "./flash/verifyFlashEncryption";
 import { configureClangSettings } from "./clang";
 import { configureEnvVariables } from "./common/prepareEnv";
+import { getSDKConfigFilePath } from "./workspaceConfig";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
 
@@ -57,104 +57,6 @@ export function setExtensionContext(context: vscode.ExtensionContext): void {
 
 export const packageJson = vscode.extensions.getExtension(ESP.extensionID)
   .packageJSON;
-
-type PreCheckFunc = (...args: any[]) => boolean;
-export type PreCheckInput = [PreCheckFunc, string];
-export class PreCheck {
-  public static perform(
-    preCheckFunctions: PreCheckInput[],
-    proceed: () => any
-  ): any {
-    let isPassedAll: boolean = true;
-    preCheckFunctions.forEach((preCheck: PreCheckInput) => {
-      if (!preCheck[0]()) {
-        isPassedAll = false;
-        Logger.errorNotify(
-          preCheck[1],
-          new Error("PRECHECK_FAILED"),
-          "utils precheck failed",
-          undefined,
-          false
-        );
-      }
-    });
-    if (isPassedAll) {
-      return proceed();
-    }
-  }
-  public static isWorkspaceFolderOpen(): boolean {
-    return (
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders.length > 0
-    );
-  }
-  public static isNotDockerContainer(): boolean {
-    return vscode.env.remoteName !== "dev-container";
-  }
-  public static notUsingWebIde(): boolean {
-    if (vscode.env.remoteName === "codespaces") {
-      return false;
-    }
-    return process.env.WEB_IDE ? false : true;
-  }
-
-  /**
-   * Checks if the extension is running in a VS Code fork (not the original Visual Studio Code)
-   * @returns true if running in a fork like Cursor, VSCodium, etc., false if running in original VS Code
-   * @example
-   * if (PreCheck.isRunningInVSCodeFork()) {
-   *   // Fork-specific behavior
-   *   Logger.info("Running in VS Code fork");
-   * }
-   */
-  public static isRunningInVSCodeFork(): boolean {
-    return vscode.env.appName !== "Visual Studio Code";
-  }
-
-  public static openOCDVersionValidator(
-    minVersion: string,
-    currentVersion: string
-  ) {
-    try {
-      const minVersionParsed = minVersion.match(/v(\d+.?\d+.?\d)-esp32-(\d+)/);
-      const currentVersionParsed = currentVersion.match(
-        /v(\d+.?\d+.?\d)-esp32-(\d+)/
-      );
-      if (!minVersionParsed || !currentVersionParsed) {
-        throw new Error("Error parsing OpenOCD versions");
-      }
-      const validationResult =
-        currentVersionParsed[1] >= minVersionParsed[1]
-          ? currentVersionParsed[2] >= minVersionParsed[2]
-            ? true
-            : false
-          : false;
-      return validationResult;
-    } catch (error) {
-      Logger.error(
-        `openOCDVersionValidator failed unexpectedly - min:${minVersion}, curr:${currentVersion}`,
-        error,
-        "src utils openOCDVersionValidator"
-      );
-      return false;
-    }
-  }
-  public static espIdfVersionValidator(
-    minVersion: string,
-    currentVersion: string
-  ) {
-    try {
-      return compareVersion(currentVersion, minVersion) !== -1;
-    } catch (error) {
-      Logger.error(
-        `ESP-IDF version validator failed - min: ${minVersion}, current: ${currentVersion}`,
-        error,
-        "src utils espIdfVersionValidator"
-      );
-      return false;
-    }
-  }
-}
 
 export interface ISpawnOptions extends childProcess.SpawnOptions {
   /** Cancellation token to cancel the spawn */
