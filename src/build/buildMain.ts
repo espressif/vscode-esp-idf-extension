@@ -71,7 +71,7 @@ export async function buildMain(
     }
     cancelToken.onCancellationRequested(() => {
       TaskManager.cancelTasks();
-      cleanupBuildState(buildTask);
+      BuildTask.isBuilding = false;
       return { continueFlag: false, executions: [] };
     });
     const preBuildExecution = await customTask.addCustomTask(
@@ -112,7 +112,7 @@ export async function buildMain(
       sizeResult = await appendSizeExecutionIfEnabled(
         executions,
         workspace,
-        buildType
+        captureOutput
       );
     }
     if (!buildResult || !sizeResult) {
@@ -134,20 +134,18 @@ export async function buildMain(
     cleanupBuildState(buildTask);
     if (error instanceof Error && error.message === "ALREADY_BUILDING") {
       Logger.errorNotify("Already a build is running!", error, "buildCommand");
-      return;
     }
     if (error instanceof Error && error.message === "BUILD_TERMINATED") {
       Logger.warnNotify("Build is Terminated");
-      return;
+    } else {
+      Logger.errorNotify(
+        "Something went wrong while trying to build the project",
+        error instanceof Error ? error : new Error(String(error)),
+        "buildCommand",
+        undefined,
+        false
+      );
     }
-
-    Logger.errorNotify(
-      "Something went wrong while trying to build the project",
-      error instanceof Error ? error : new Error(String(error)),
-      "buildCommand",
-      undefined,
-      false
-    );
     return { continueFlag: false, executions };
   }
 }
