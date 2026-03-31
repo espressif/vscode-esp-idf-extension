@@ -647,7 +647,8 @@
           "idf.eimExecutableArgs": {
             "type": "array",
             "default": [
-              "gui"
+              "gui",
+              "--idf-features ide"
             ],
             "description": "%param.eimExecutableArgs%",
             "scope": "application"

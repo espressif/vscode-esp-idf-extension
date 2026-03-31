@@ -2204,7 +2204,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.openInstallationManagerGui", async () => {
     await idfConf.writeParameter(
       "idf.eimExecutableArgs",
-      ["gui"],
+      ["gui", "--idf-features ide"],
       vscode.ConfigurationTarget.Global
     );
     await ensureEimAndLaunch(workspaceRoot, "gui");
@@ -2213,7 +2213,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.openInstallationManagerCli", async () => {
     await idfConf.writeParameter(
       "idf.eimExecutableArgs",
-      ["wizard"],
+      ["wizard", "--idf-features ide"],
       vscode.ConfigurationTarget.Global
     );
     await ensureEimAndLaunch(workspaceRoot, "wizard");
@@ -4416,11 +4416,7 @@ async function ensureEimAndLaunch(
           return;
         }
         const useMirror = mirrorToUse === "Espressif (faster in China)";
-        eimPath = await downloadAndInstallEIM(
-          progress,
-          cancelToken,
-          useMirror
-        );
+        eimPath = await downloadAndInstallEIM(progress, cancelToken, useMirror);
         if (!eimPath) {
           return;
         }
@@ -4429,7 +4425,7 @@ async function ensureEimAndLaunch(
       if (shouldForceCliMode()) {
         await idfConf.writeParameter(
           "idf.eimExecutableArgs",
-          ["wizard"],
+          ["wizard", "--idf-features ide"],
           vscode.ConfigurationTarget.Global
         );
         await launchEimInTerminal(eimPath);
@@ -4457,7 +4453,10 @@ async function ensureEimAndLaunch(
       if (!launchMode) {
         return;
       }
-      const argsValue = launchMode === guiLabel ? ["gui"] : ["wizard"];
+      const argsValue =
+        launchMode === guiLabel
+          ? ["gui", "--idf-features ide"]
+          : ["wizard", "--idf-features ide"];
       await idfConf.writeParameter(
         "idf.eimExecutableArgs",
         argsValue,
@@ -4486,7 +4485,7 @@ async function showSnapEimNotification(eimPath: string) {
   if (action === runCliLabel) {
     await idfConf.writeParameter(
       "idf.eimExecutableArgs",
-      ["wizard"],
+      ["wizard", "--idf-features ide"],
       vscode.ConfigurationTarget.Global
     );
     await launchEimInTerminal(eimPath);
