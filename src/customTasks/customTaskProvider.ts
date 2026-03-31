@@ -20,14 +20,10 @@ import {
   ShellExecution,
   ShellExecutionOptions,
   TaskPanelKind,
-  TaskPresentationOptions,
-  TaskRevealKind,
-  TaskScope,
   Uri,
-  workspace,
 } from "vscode";
-import { NotificationMode, readParameter } from "../idfConfiguration";
-import { TaskManager } from "../taskManager";
+import { readParameter } from "../idfConfiguration";
+import { getWorkspaceFolderForTask, TaskManager } from "../taskManager";
 import { ShellOutputCapturingExecution } from "../taskManager/customExecution";
 import { configureEnvVariables } from "../common/prepareEnv";
 
@@ -48,7 +44,7 @@ export class CustomTask {
     CustomTask.isRunningCustomTask = flag;
   }
 
-  public getProcessExecution(
+  public getShellExecution(
     cmdString: string,
     options: ShellExecutionOptions,
     captureOutput?: boolean
@@ -108,36 +104,12 @@ export class CustomTask {
     if (shellExecutableArgs && shellExecutableArgs.length) {
       options.shellArgs = shellExecutableArgs;
     }
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      this.currentWorkspace
-    ) as string;
-    const showTaskOutput =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Output
-        ? TaskRevealKind.Always
-        : TaskRevealKind.Silent;
-    const customExecution = this.getProcessExecution(command, options, captureOutput);
-    const customTaskPresentationOptions = {
-      reveal: showTaskOutput,
-      showReuseMessage: false,
-      clear: false,
-      panel: TaskPanelKind.Dedicated,
-    } as TaskPresentationOptions;
-    const currentWorkspaceFolder = workspace.workspaceFolders.find(
-      (w) => w.uri === this.currentWorkspace
-    );
+    const customExecution = this.getShellExecution(command, options, captureOutput);
     TaskManager.addTask(
-      {
-        type: "esp-idf",
-        command: `ESP-IDF ${taskName}`,
-        taskId: `idf-${taskType}-task`,
-      },
-      currentWorkspaceFolder || TaskScope.Workspace,
-      `ESP-IDF ${taskName}`,
+      taskName,
+      getWorkspaceFolderForTask(this.currentWorkspace),
       customExecution,
-      ["espIdf", "espIdfLd"],
-      customTaskPresentationOptions
+      { panel: TaskPanelKind.Dedicated }
     );
     return customExecution;
   }
