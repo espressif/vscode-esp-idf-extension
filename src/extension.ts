@@ -168,7 +168,12 @@ import {
   unregisterEspressifMcpServers,
 } from "./mcp/espressifMcpServers";
 import { readSerialPort } from "./idfConfiguration";
-import { minIdfVersionCheck, openFolderCheck, PreCheck, webIdeCheck } from "./common/PreCheck";
+import {
+  minIdfVersionCheck,
+  openFolderCheck,
+  PreCheck,
+  webIdeCheck,
+} from "./common/PreCheck";
 import { buildFlashAndMonitor } from "./buildFlashMonitor";
 import { selectFlashMethod, startFlashing } from "./flash/startFlashing";
 import { jtagEraseFlashCommand } from "./flash/eraseFlashJtag";

@@ -27,14 +27,14 @@ export async function enqueueCompileTaskIfNoCache(
     "-DPYTHON_DEPS_CHECKED=1",
     "-DESP_PLATFORM=1",
   ];
-  let compilerArgs = readParameter(
+  const configCompilerArgs = readParameter(
     "idf.cmakeCompilerArgs",
     workspaceUri
-  ) as Array<string>;
-
-  if (!compilerArgs || compilerArgs.length === 0) {
-    compilerArgs = defaultCompilerArgs;
-  }
+  ) as Array<string> | undefined;
+  const compilerArgs: string[] =
+    configCompilerArgs && configCompilerArgs.length > 0
+      ? [...configCompilerArgs]
+      : [...defaultCompilerArgs];
   replaceBuildDirArg(compilerArgs, buildDirPath);
   if (compilerArgs.indexOf("-S") === -1) {
     compilerArgs.push("-S", workspaceUri.fsPath);
