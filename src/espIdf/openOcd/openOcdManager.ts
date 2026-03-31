@@ -23,11 +23,7 @@ import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
-import {
-  isBinInPath,
-  PreCheck,
-  spawn as sspawn,
-} from "../../utils";
+import { isBinInPath, spawn as sspawn } from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 import { ESP } from "../../config";
 import {
@@ -46,6 +42,7 @@ import {
   supportsSerialFromDetectConfig,
 } from "./adapterSerial";
 import { configureEnvVariables } from "../../common/prepareEnv";
+import { PreCheck } from "../../common/PreCheck";
 
 export interface IOpenOCDConfig {
   workspace: vscode.Uri;
