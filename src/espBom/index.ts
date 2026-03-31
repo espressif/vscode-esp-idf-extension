@@ -16,26 +16,14 @@
  * limitations under the License.
  */
 
-import {
-  Uri,
-  workspace,
-  TaskRevealKind,
-  TaskPanelKind,
-  TaskPresentationOptions,
-  TaskScope,
-  ProcessExecutionOptions,
-  ProcessExecution,
-} from "vscode";
-import {
-  canAccessFile,
-  execChildProcess,
-} from "../utils";
-import { NotificationMode, readParameter } from "../idfConfiguration";
+import { Uri } from "vscode";
+import { canAccessFile, execChildProcess } from "../utils";
+import { readParameter } from "../idfConfiguration";
 import { OutputChannel } from "../logger/outputChannel";
 import { join } from "path";
 import { pathExists, lstat, constants } from "fs-extra";
 import { Logger } from "../logger/logger";
-import { TaskManager } from "../taskManager";
+import { addProcessTask, TaskManager } from "../taskManager";
 import { getVirtualEnvPythonPath } from "../pythonManager";
 import { configureEnvVariables } from "../common/prepareEnv";
 
@@ -67,28 +55,6 @@ export async function createSBOM(workspaceUri: Uri) {
         );
       }
     }
-    const options: ProcessExecutionOptions = {
-      cwd: workspaceUri.fsPath,
-      env: modifiedEnv,
-    };
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      workspaceUri
-    ) as string;
-    const curWorkspaceFolder = workspace.workspaceFolders.find(
-      (w) => w.uri === workspaceUri
-    );
-    const showTaskOutput =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Output
-        ? TaskRevealKind.Always
-        : TaskRevealKind.Silent;
-    const sbomPresentationOptions = {
-      reveal: showTaskOutput,
-      showReuseMessage: false,
-      clear: false,
-      panel: TaskPanelKind.Shared,
-    } as TaskPresentationOptions;
     const command = "esp-idf-sbom";
     const argsCreating = [
       "create",
@@ -96,41 +62,23 @@ export async function createSBOM(workspaceUri: Uri) {
       "--output-file",
       sbomFilePath,
     ];
-    const sbomCreateExecution = new ProcessExecution(
+    addProcessTask(
+      "SBOM Create",
+      workspaceUri,
       command,
       argsCreating,
-      options
+      workspaceUri.fsPath,
+      modifiedEnv
     );
 
     const argsChecking = ["check", sbomFilePath];
-    const sbomCheckExecution = new ProcessExecution(
+    addProcessTask(
+      "SBOM Check",
+      workspaceUri,
       command,
       argsChecking,
-      options
-    );
-    TaskManager.addTask(
-      {
-        type: "esp-idf",
-        command: "ESP-IDF SBOM Create",
-        taskId: "idf-sbom-task",
-      },
-      curWorkspaceFolder || TaskScope.Workspace,
-      "ESP-IDF SBOM Creation",
-      sbomCreateExecution,
-      ["espIdf"],
-      sbomPresentationOptions
-    );
-    TaskManager.addTask(
-      {
-        type: "esp-idf",
-        command: "ESP-IDF SBOM Check",
-        taskId: "idf-sbom-check-task",
-      },
-      curWorkspaceFolder || TaskScope.Workspace,
-      "ESP-IDF SBOM Check",
-      sbomCheckExecution,
-      ["espIdf"],
-      sbomPresentationOptions
+      workspaceUri.fsPath,
+      modifiedEnv
     );
     await TaskManager.runTasks();
   } catch (error) {

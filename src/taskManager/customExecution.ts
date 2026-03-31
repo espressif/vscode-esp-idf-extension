@@ -24,15 +24,11 @@ import {
   ExecFileOptions,
   spawn,
 } from "child_process";
+import { IdfTaskExecution } from "../taskManager";
 
 export interface CustomExecutionTaskResult {
   continueFlag: boolean;
-  executions: (
-    | OutputCapturingExecution
-    | ShellOutputCapturingExecution
-    | vscode.ProcessExecution
-    | vscode.ShellExecution
-  )[];
+  executions: IdfTaskExecution[];
 }
 
 export interface CapturedTaskOutput {

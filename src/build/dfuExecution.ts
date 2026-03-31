@@ -1,0 +1,84 @@
+/*
+ * Project: ESP-IDF VSCode Extension
+ * File Created: Tuesday, 31st March 2026 3:40:22 pm
+ * Copyright 2026 Espressif Systems (Shanghai) CO LTD
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { Uri } from "vscode";
+import { MaybeIdfTaskExecution } from "./taskHelpers";
+import { BuildTask } from "./buildTask";
+import { readParameter } from "../idfConfiguration";
+import { join } from "path";
+import { pathExists } from "fs-extra";
+import { Logger } from "../logger/logger";
+import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { configureEnvVariables } from "../common/prepareEnv";
+import { selectedDFUAdapterId } from "../flash/dfu";
+import { getVirtualEnvPythonPath } from "../pythonManager";
+import { addProcessTask } from "../taskManager";
+
+export async function appendDfuExecution(
+  executions: Exclude<MaybeIdfTaskExecution, undefined>[],
+  workspace: Uri,
+  buildTask: BuildTask,
+  captureOutput?: boolean
+): Promise<boolean> {
+  const buildPath = readParameter("idf.buildPath", workspace) as string;
+  if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
+    Logger.warnNotify(
+      "flasher_args.json file is missing from the build directory, can't proceed, please build properly!"
+    );
+    return false;
+  }
+
+  const adapterTargetName = await getIdfTargetFromSdkconfig(workspace);
+  if (
+    adapterTargetName &&
+    adapterTargetName !== "esp32s2" &&
+    adapterTargetName !== "esp32s3"
+  ) {
+    Logger.warnNotify(
+      `The selected device target "${adapterTargetName}" is not compatible for DFU, as a result the DFU.bin was not created.`
+    );
+    return false;
+  }
+
+  buildTask.building(true);
+  const modifiedEnv = await configureEnvVariables(workspace);
+  const idfPathDir = modifiedEnv["IDF_PATH"];
+  const args = [
+    join(idfPathDir, "tools", "mkdfu.py"),
+    "write",
+    "-o",
+    join(buildPath, "dfu.bin"),
+    "--json",
+    join(buildPath, "flasher_args.json"),
+    "--pid",
+    selectedDFUAdapterId(adapterTargetName).toString(),
+  ];
+  const pythonBinPath = await getVirtualEnvPythonPath();
+  const buildDfuExecution = addProcessTask(
+    "Write DFU bin",
+    workspace,
+    pythonBinPath,
+    args,
+    buildPath,
+    modifiedEnv,
+    { captureOutput }
+  );
+
+  executions.push(buildDfuExecution);
+  return true;
+}
