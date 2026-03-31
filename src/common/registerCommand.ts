@@ -24,13 +24,18 @@ export function registerIDFCommand(
   name: string,
   callback: (...args: any[]) => any
 ): number {
-  const telemetryCallback = (...args: any[]): any => {
+  const telemetryCallback = async function (this: unknown, ...args: any[]): Promise<any> {
     const startTime = Date.now();
     Logger.info(`Command::${name}::Executed`);
-    const cbResult = callback.apply(this, args);
-    const timeSpent = Date.now() - startTime;
-    Telemetry.sendEvent("command", { commandName: name }, { timeSpent });
-    return cbResult;
+    try {
+      return await callback.apply(this, args);
+    } catch (error) {
+      Logger.error(`Command::${name}::Failed`, error, `registerIDFCommand ${name}`);
+      throw error;
+    } finally {
+      const timeSpent = Date.now() - startTime;
+      Telemetry.sendEvent("command", { commandName: name }, { timeSpent });
+    }
   };
   return context.subscriptions.push(
     commands.registerCommand(name, telemetryCallback)

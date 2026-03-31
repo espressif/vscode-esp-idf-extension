@@ -42,7 +42,7 @@ export async function buildFinishFlashCmd(workspace: Uri) {
   flashFiles += ` --flash_size ${flasherArgsModel.size}`;
   flashFiles += ` --flash_freq ${flasherArgsModel.frequency} `;
   for (const flashFile of flasherArgsModel.flashSections) {
-    flashFiles += `${flashFile.address} ${flashFile.binFilePath} `;
+    flashFiles += `${flashFile.address} "${flashFile.binFilePath}" `;
   }
 
   let flashString = "Project build complete. To flash, run:\n";
