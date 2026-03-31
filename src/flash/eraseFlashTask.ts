@@ -15,30 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  ProcessExecution,
-  TaskPanelKind,
-  TaskPresentationOptions,
-  TaskRevealKind,
-  TaskScope,
-  Uri,
-  workspace,
-} from "vscode";
+import { Uri } from "vscode";
 import { join } from "path";
 import { constants } from "fs";
-import { NotificationMode, readParameter } from "../idfConfiguration";
+import { readParameter } from "../idfConfiguration";
 import { canAccessFile, sleep } from "../utils";
-import { TaskManager } from "../taskManager";
+import { addProcessTask } from "../taskManager";
 import { ESP } from "../config";
 import { getVirtualEnvPythonPath } from "../pythonManager";
 import { IDFMonitor } from "../espIdf/monitor";
-import { OutputCapturingExecution } from "../taskManager/customExecution";
 import { configureEnvVariables } from "../common/prepareEnv";
 
 export class EraseFlashTask {
   public static isErasing: boolean;
   private currentWorkspace: Uri;
-  private modifiedEnv: { [key: string]: string };
 
   constructor(workspaceUri: Uri) {
     this.currentWorkspace = workspaceUri;
@@ -63,22 +53,9 @@ export class EraseFlashTask {
       await sleep(monitorDelay);
     }
 
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      this.currentWorkspace
-    ) as string;
-    const currentWorkspaceFolder = workspace.workspaceFolders.find(
-      (w) => w.uri === this.currentWorkspace
-    );
-    const showTaskOutput =
-      notificationMode === NotificationMode.All ||
-        notificationMode === NotificationMode.Output
-        ? TaskRevealKind.Always
-        : TaskRevealKind.Silent;
-
-    this.modifiedEnv = await configureEnvVariables(this.currentWorkspace);
+    const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
     const flashScriptPath = join(
-      this.modifiedEnv["IDF_PATH"],
+      modifiedEnv["IDF_PATH"],
       "components",
       "esptool_py",
       "esptool",
@@ -90,54 +67,16 @@ export class EraseFlashTask {
     }
 
     const pythonBinPath = await getVirtualEnvPythonPath();
-    const eraseExecution = this._eraseExecution(
-      pythonBinPath,
-      port,
-      flashScriptPath,
-      captureOutput
-    );
-    const erasePresentationOptions = {
-      reveal: showTaskOutput,
-      showReuseMessage: false,
-      clear: false,
-      panel: TaskPanelKind.Shared,
-    } as TaskPresentationOptions;
-
-    TaskManager.addTask(
-      {
-        type: "esp-idf",
-        command: "ESP-IDF Erase Flash",
-        taskId: "idf-erase-flash-task",
-      },
-      currentWorkspaceFolder || TaskScope.Workspace,
-      "ESP-IDF Erase Flash",
-      eraseExecution,
-      ["espIdf"],
-      erasePresentationOptions
-    );
-    return eraseExecution;
-  }
-
-  private _eraseExecution(
-    pythonBinPath: string,
-    port: string,
-    flashScriptPath: string,
-    captureOutput?: boolean
-  ) {
     this.erasing(true);
     const args = [flashScriptPath, "-p", port, "erase_flash"];
-    const processOptions = {
-      cwd: this.currentWorkspace.fsPath || process.cwd(),
-      env: this.modifiedEnv,
-    };
-    if (captureOutput) {
-      return OutputCapturingExecution.create(
-        pythonBinPath,
-        args,
-        processOptions
-      );
-    } else {
-      return new ProcessExecution(pythonBinPath, args, processOptions);
-    }
+    return addProcessTask(
+      "Erase Flash",
+      this.currentWorkspace,
+      pythonBinPath,
+      args,
+      this.currentWorkspace.fsPath || process.cwd(),
+      modifiedEnv,
+      { captureOutput }
+    );
   }
 }

@@ -30,7 +30,6 @@ import {
 } from "../idfConfiguration";
 import { ESP } from "../config";
 import { IDFMonitor } from "../espIdf/monitor";
-import { PreCheck, sleep } from "../utils";
 import {
   checkFlashEncryption,
   FlashCheckResultType,
@@ -42,6 +41,8 @@ import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { jtagFlashCommand } from "./jtagCmd";
 import { flashCommand } from "./uartFlash";
 import { configureEnvVariables } from "../common/prepareEnv";
+import { PreCheck } from "../common/PreCheck";
+import { sleep } from "../utils";
 
 export async function selectFlashMethod(workspaceFolderUri: Uri) {
   let curflashType = readParameter(
