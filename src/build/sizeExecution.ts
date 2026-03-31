@@ -46,7 +46,7 @@ export async function runSizeTaskIfEnabled(
   }
   const projectName = await getProjectName(workspace);
   const mapFilePath = join(buildDirPath, `${projectName}.map`);
-  const pythonCommand = await getVirtualEnvPythonPath();
+  const pythonCommand = getVirtualEnvPythonPath();
   if (!pythonCommand) {
     throw new Error("Python path not found in environment");
   }
