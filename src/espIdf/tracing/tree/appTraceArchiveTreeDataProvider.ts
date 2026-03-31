@@ -37,21 +37,23 @@ export enum TraceType {
 }
 
 export class AppTraceArchiveItems extends TreeItem {
-  public fileName: string;
-  public filePath: string;
-  public type: TraceType;
+  public fileName: string = "";
+  public filePath: string = "";
+  public type: TraceType = TraceType.AppTrace;
 }
 
 // tslint:disable-next-line: max-classes-per-file
 export class AppTraceArchiveTreeDataProvider
   implements TreeDataProvider<AppTraceArchiveItems> {
   // tslint:disable-next-line: max-line-length
-  public OnDidChangeTreeData: EventEmitter<
+  public OnDidChangeTreeData: EventEmitter<AppTraceArchiveItems | null> = new EventEmitter<
     AppTraceArchiveItems
-  > = new EventEmitter<AppTraceArchiveItems>();
-  public readonly onDidChangeTreeData: Event<AppTraceArchiveItems> = this
+  >();
+  public readonly onDidChangeTreeData: Event<AppTraceArchiveItems | null> = this
     .OnDidChangeTreeData.event;
-  public appTraceArchives: AppTraceArchiveItems[];
+  public appTraceArchives: AppTraceArchiveItems[] = Array<AppTraceArchiveItems>(
+    0
+  );
 
   constructor() {
     this.populateArchiveTree();
@@ -83,7 +85,11 @@ export class AppTraceArchiveTreeDataProvider
         baseFolderPath = wsFolder.uri.fsPath;
       }
     }
-    if (!baseFolderPath && workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
+    if (
+      !baseFolderPath &&
+      workspace.workspaceFolders &&
+      workspace.workspaceFolders.length > 0
+    ) {
       baseFolderPath = workspace.workspaceFolders[0].uri.fsPath;
     }
     if (!baseFolderPath) {
@@ -94,7 +100,7 @@ export class AppTraceArchiveTreeDataProvider
     if (existsSync(traceFolder)) {
       const traceLists = readdirSync(traceFolder);
       let appTraceCounter = 1;
-      const appTraceArchives = [];
+      const appTraceArchives = new Array<AppTraceArchiveItems>();
       traceLists
         .filter((trace) => trace.endsWith(".trace"))
         .forEach((trace) => {

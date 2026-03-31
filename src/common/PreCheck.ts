@@ -46,7 +46,10 @@ export class PreCheck {
     }
   }
   public static isWorkspaceFolderOpen(): boolean {
-    return workspace.workspaceFolders && workspace.workspaceFolders.length > 0;
+    return (
+      (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) ||
+      false
+    );
   }
   public static isNotDockerContainer(): boolean {
     return env.remoteName !== "dev-container";
@@ -89,7 +92,7 @@ export class PreCheck {
     } catch (error) {
       Logger.error(
         `openOCDVersionValidator failed unexpectedly - min:${minVersion}, curr:${currentVersion}`,
-        error,
+        error as Error,
         "src utils openOCDVersionValidator"
       );
       return false;
@@ -104,7 +107,7 @@ export class PreCheck {
     } catch (error) {
       Logger.error(
         `ESP-IDF version validator failed - min: ${minVersion}, current: ${currentVersion}`,
-        error,
+        error as Error,
         "src utils espIdfVersionValidator"
       );
       return false;
