@@ -29,7 +29,6 @@ import { enqueueCompileTaskIfNoCache } from "./cmakeConfigure";
 
 export class BuildTask {
   public static isBuilding: boolean;
-  private buildDirPath: string;
   private currentWorkspace: Uri;
 
   constructor(workspaceUri: Uri) {
@@ -49,12 +48,12 @@ export class BuildTask {
       OutputCapturingExecution | ProcessExecution
     ]
   > {
+    this.building(true);
     const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
     const buildDirPath = readParameter(
       "idf.buildPath",
       this.currentWorkspace
     ) as string;
-    this.buildDirPath = buildDirPath;
     await ensureDir(buildDirPath);
     const { cmakeBin, ninjaBin } = await runValidationBeforeBuild(
       modifiedEnv,
@@ -90,7 +89,7 @@ export class BuildTask {
       this.currentWorkspace,
       ninjaBin,
       buildArgs,
-      this.buildDirPath,
+      buildDirPath,
       modifiedEnv,
       { captureOutput }
     );

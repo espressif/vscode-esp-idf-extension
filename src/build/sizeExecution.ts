@@ -19,12 +19,10 @@
 import { TaskPanelKind, Uri } from "vscode";
 import { addProcessTask, TaskManager } from "../taskManager";
 import { MaybeIdfTaskExecution } from "./taskHelpers";
-import { ESP } from "../config";
 import { readParameter } from "../idfConfiguration";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { getVirtualEnvPythonPath } from "../pythonManager";
 import { join } from "path";
-import { ensureDir } from "fs-extra";
 import { getProjectName } from "../workspaceConfig";
 
 export async function appendSizeExecutionIfEnabled(
@@ -40,18 +38,20 @@ export async function appendSizeExecutionIfEnabled(
     return true;
   }
   const buildDirPath = readParameter("idf.buildPath", workspace) as string;
-  await ensureDir(buildDirPath);
+  if (!buildDirPath) {
+    throw new Error("Build path not found");
+  }
   const projectName = await getProjectName(buildDirPath);
   const mapFilePath = join(buildDirPath, `${projectName}.map`);
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-  const idfPath = currentEnvVars["IDF_PATH"];
-  const idfSizePath = join(idfPath, "tools", "idf_size.py");
   const pythonCommand = await getVirtualEnvPythonPath();
+  const modifiedEnv = await configureEnvVariables(workspace);
+  const idfPath = modifiedEnv["IDF_PATH"];
+  if (!idfPath) {
+    throw new Error("IDF_PATH not found in environment");
+  }
+  const idfSizePath = join(idfPath, "tools", "idf_size.py");
   const args = [idfSizePath, mapFilePath];
 
-  const modifiedEnv = await configureEnvVariables(workspace);
 
   const sizeExecution = addProcessTask(
     "Size",
