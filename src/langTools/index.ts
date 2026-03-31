@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { OutputChannel } from "../logger/outputChannel";
 import { ESP } from "../config";
-import { buildCommandMain } from "../build/buildCmd";
+import { buildMain } from "../build/buildMain";
 import {
   readParameter,
   readSerialPort,
@@ -10,7 +10,6 @@ import {
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import {
   getEspIdfFromCMake,
-  PreCheck,
   shouldDisableMonitorReset,
   sleep,
 } from "../utils";
@@ -23,7 +22,7 @@ import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { createNewIdfMonitor } from "../espIdf/monitor/command";
 import { isFlashEncryptionEnabled } from "../flash/verifyFlashEncryption";
 import { EraseFlashTask } from "../flash/eraseFlashTask";
-import { TaskManager } from "../taskManager";
+import { IdfTaskExecution, TaskManager } from "../taskManager";
 import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
 import { updateCurrentProfileIdfTarget } from "../project-conf";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
@@ -36,6 +35,7 @@ import {
 } from "../taskManager/customExecution";
 import { l10n } from "vscode";
 import { configureEnvVariables } from "../common/prepareEnv";
+import { PreCheck } from "../common/PreCheck";
 
 // Map of command names to their corresponding VS Code command IDs
 const COMMAND_MAP: Record<string, string> = {
@@ -165,18 +165,13 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       const modifiedEnv = await configureEnvVariables(workspaceURI);
 
       let continueFlag = true;
-      let taskExecutions: (
-        | OutputCapturingExecution
-        | ShellOutputCapturingExecution
-        | vscode.ProcessExecution
-        | vscode.ShellExecution
-      )[] = [];
+      let taskExecutions: IdfTaskExecution[] = [];
       if (commandId) {
         let outputs: vscode.LanguageModelTextPart[] = [];
         try {
           await focusOnAppropriateOutput(commandName);
           if (commandName === "build") {
-            let buildCmdResults = await buildCommandMain(
+            let buildCmdResults = await buildMain(
               workspaceURI,
               token,
               flashType,
@@ -264,7 +259,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             const noReset = await shouldDisableMonitorReset(workspaceURI);
             await createNewIdfMonitor(workspaceURI, noReset);
           } else if (commandName === "buildFlashMonitor") {
-            let buildCmdResults = await buildCommandMain(
+            let buildCmdResults = await buildMain(
               workspaceURI,
               token,
               flashType,
