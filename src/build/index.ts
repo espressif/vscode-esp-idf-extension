@@ -48,7 +48,7 @@ export async function registerBuildCommands(context: ExtensionContext) {
 }
 
 export async function build(
-  flashType: ESP.FlashType,
+  flashType?: ESP.FlashType,
   buildType?: ESP.BuildType
 ): Promise<void> {
   PreCheck.perform([openFolderCheck], async () => {

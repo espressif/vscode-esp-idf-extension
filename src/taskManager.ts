@@ -34,7 +34,10 @@ import {
 } from "vscode";
 import { ESP } from "./config";
 import { NotificationMode, readParameter } from "./idfConfiguration";
-import { OutputCapturingExecution, ShellOutputCapturingExecution } from "./taskManager/customExecution";
+import {
+  OutputCapturingExecution,
+  ShellOutputCapturingExecution,
+} from "./taskManager/customExecution";
 
 export interface IdfTaskDefinition extends TaskDefinition {
   command?: string;
@@ -92,7 +95,11 @@ export class TaskManager {
     }
 
     const newTask: Task = new Task(
-      { type: "esp-idf", command: `ESP-IDF ${name}`, taskId } as IdfTaskDefinition,
+      {
+        type: "esp-idf",
+        command: `ESP-IDF ${name}`,
+        taskId,
+      } as IdfTaskDefinition,
       currentWorkspaceFolder || TaskScope.Workspace,
       `ESP-IDF ${name}`,
       ESP.extensionID,

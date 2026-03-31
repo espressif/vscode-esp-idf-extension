@@ -53,7 +53,11 @@ export async function runValidationBeforeBuild(
     throw new Error("Ninja executable not found");
   }
 
-  const toolchainPath = await getToolchainToolName(envVariables["IDF_TARGET"], "gcc");
+  const idfTarget = envVariables["IDF_TARGET"];
+  if (!idfTarget) {
+    throw new Error("IDF_TARGET is not set in the environment variables.");
+  }
+  const toolchainPath = getToolchainToolName(idfTarget, "gcc");
   const canAccessGcc = await isBinInPath(toolchainPath, envVariables);
   if (canAccessGcc === "") {
     throw new Error("GCC executable not found in the toolchain path");
