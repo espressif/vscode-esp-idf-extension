@@ -19,6 +19,7 @@ import { readJSON } from "fs-extra";
 import { setClangSettings } from "../clang/index";
 import { IdfSetup } from "../eim/types";
 import { Uri } from "vscode";
+import { readParameter } from "../idfConfiguration";
 
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
@@ -47,6 +48,27 @@ export async function setCurrentSettingsInTemplate(
       settingsJson["idf.customExtraVars"] || {};
     settingsJson["idf.customExtraVars"]["IDF_TARGET"] = selectedIdfTarget;
   }
+  const customExtraVars = readParameter("idf.customExtraVars", workspace) as {
+    [key: string]: string;
+  };
+  if (customExtraVars) {
+    if (customExtraVars["IDF_PATH"] === idfSetup.idfPath) {
+      settingsJson["idf.customExtraVars"]["IDF_PATH"] = idfSetup.idfPath;
+    }
+    if (customExtraVars["IDF_TOOLS_PATH"] === idfSetup.toolsPath) {
+      settingsJson["idf.customExtraVars"]["IDF_TOOLS_PATH"] =
+        idfSetup.toolsPath;
+    }
+    if (
+      customExtraVars["IDF_PYTHON_ENV_PATH"] &&
+      idfSetup.python &&
+      idfSetup.python.indexOf(customExtraVars["IDF_PYTHON_ENV_PATH"]) !== -1
+    ) {
+      settingsJson["idf.customExtraVars"]["IDF_PYTHON_ENV_PATH"] =
+        customExtraVars["IDF_PYTHON_ENV_PATH"];
+    }
+  }
+
   await setClangSettings(settingsJson, workspace);
   return settingsJson;
 }

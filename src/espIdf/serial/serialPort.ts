@@ -29,6 +29,7 @@ import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 import { showInfoNotificationWithAction } from "../../logger/utils";
 import { ESP } from "../../config";
 import { configureEnvVariables } from "../../common/prepareEnv";
+import { pathExists } from "fs-extra";
 
 export class SerialPort {
   /**
@@ -451,12 +452,16 @@ export class SerialPort {
             "esptool",
             "esptool.py"
           );
+          const esptoolPathExists = await pathExists(esptoolPath);
+          if (!esptoolPathExists) {
+            throw new Error(`esptool.py does not exists in ${esptoolPath}`);
+          }
           const stat = await vscode.workspace.fs.stat(
             vscode.Uri.file(esptoolPath)
           );
           if (stat.type !== vscode.FileType.File) {
             // esptool.py does not exists
-            throw new Error(`esptool.py does not exists in ${esptoolPath}`);
+            throw new Error(`esptool.py in ${esptoolPath} is not a file`);
           }
           resolve(await Promise.all(choices.map((item) => processPorts(item, esptoolPath))));
         }
