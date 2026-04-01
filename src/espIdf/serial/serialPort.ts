@@ -379,12 +379,6 @@ export class SerialPort {
             item.productId
           );
         });
-
-        const pythonBinPath = await getVirtualEnvPythonPath();
-        const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-          [key: string]: string;
-        }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-        const idfPath = currentEnvVars["IDF_PATH"];
         const enableSerialPortChipIdRequest = idfConf.readParameter(
           "idf.enableSerialPortChipIdRequest",
           workspaceFolder
@@ -417,34 +411,15 @@ export class SerialPort {
         if (!enableSerialPortChipIdRequest) {
           return resolve(choices);
         }
-        async function processPorts(serialPort: SerialPortDetails, esptoolPath: string) {
-          try {
-            const chipIdBuffer = await spawn(
-              pythonBinPath,
-              [esptoolPath, "--port", serialPort.comName, "chip_id"],
-              {
-                timeout: 2000,
-                silent: true,
-                appendMode: "append",
-                sendToTelemetry: false,
-              }
-            );
-            const regexp = /Chip is(.*?)[\r]?\n/;
-            const chipIdString = chipIdBuffer.toString().match(regexp);
-
-            serialPort.chipType =
-              chipIdString && chipIdString.length > 1
-                ? chipIdString[1].trim()
-                : undefined;
-          } catch (error) {
-            serialPort.chipType = undefined;
-          }
-          return serialPort;
-        }
 
         if (skipEsptoolCall) {
           resolve(choices);
         } else {
+          const pythonBinPath = await getVirtualEnvPythonPath();
+          const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+            [key: string]: string;
+          }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+          const idfPath = currentEnvVars["IDF_PATH"];
           const esptoolPath = join(
             idfPath,
             "components",
@@ -452,18 +427,47 @@ export class SerialPort {
             "esptool",
             "esptool.py"
           );
-          const esptoolPathExists = await pathExists(esptoolPath);
-          if (!esptoolPathExists) {
-            throw new Error(`esptool.py does not exists in ${esptoolPath}`);
+          let stat: vscode.FileStat;
+          try {
+            stat = await vscode.workspace.fs.stat(vscode.Uri.file(esptoolPath));
+          } catch {
+            throw new Error(`esptool.py does not exist at ${esptoolPath}`);
           }
-          const stat = await vscode.workspace.fs.stat(
-            vscode.Uri.file(esptoolPath)
-          );
           if (stat.type !== vscode.FileType.File) {
-            // esptool.py does not exists
-            throw new Error(`esptool.py in ${esptoolPath} is not a file`);
+            throw new Error(`esptool.py at ${esptoolPath} is not a file`);
           }
-          resolve(await Promise.all(choices.map((item) => processPorts(item, esptoolPath))));
+          async function processPorts(
+            serialPort: SerialPortDetails,
+            esptoolPath: string
+          ) {
+            try {
+              const chipIdBuffer = await spawn(
+                pythonBinPath,
+                [esptoolPath, "--port", serialPort.comName, "chip_id"],
+                {
+                  timeout: 2000,
+                  silent: true,
+                  appendMode: "append",
+                  sendToTelemetry: false,
+                }
+              );
+              const regexp = /Chip is(.*?)[\r]?\n/;
+              const chipIdString = chipIdBuffer.toString().match(regexp);
+
+              serialPort.chipType =
+                chipIdString && chipIdString.length > 1
+                  ? chipIdString[1].trim()
+                  : undefined;
+            } catch (error) {
+              serialPort.chipType = undefined;
+            }
+            return serialPort;
+          }
+          resolve(
+            await Promise.all(
+              choices.map((item) => processPorts(item, esptoolPath))
+            )
+          );
         }
       } catch (error) {
         reject(error);
