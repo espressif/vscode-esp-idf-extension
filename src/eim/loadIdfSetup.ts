@@ -136,11 +136,23 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
   const pathNameInEnv: string = Object.keys(process.env).find(
     (k) => k.toUpperCase() == "PATH"
   );
-  if (pathNameInEnv && !customVars[pathNameInEnv]) {
+  const normalizedPathName = pathNameInEnv || "PATH";
+  const pathKeyVariants = Object.keys(customVars).filter(
+    (key) => key.toUpperCase() === "PATH" && key !== normalizedPathName
+  );
+  const existingPathValue = customVars[normalizedPathName];
+  const alternatePathValue = pathKeyVariants.find((key) => customVars[key]);
+  if (!existingPathValue && alternatePathValue) {
+    customVars[normalizedPathName] = customVars[alternatePathValue];
+  }
+  for (const pathKeyVariant of pathKeyVariants) {
+    delete customVars[pathKeyVariant];
+  }
+  if (!customVars[normalizedPathName]) {
     const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
       idfPath
     );
-    customVars[pathNameInEnv] = await idfToolsManager.exportPathsInString(
+    customVars[normalizedPathName] = await idfToolsManager.exportPathsInString(
       join(idfToolsPath, "tools"),
       ["cmake", "ninja"]
     );

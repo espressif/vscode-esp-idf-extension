@@ -88,7 +88,7 @@ For example, if you have ESP-IDF installed at ``/home/user/esp-idf``, and the to
         }
       }
 
-IF you are using a ESP-IDF from before ESP-IDF Installation Manager (EIM), you can use the following command to get these environment variables from your ESP-IDF setup:
+If you are using a ESP-IDF from before ESP-IDF Installation Manager (EIM), you can use the following command to get these environment variables from your ESP-IDF setup:
 
 .. code-block:: bash
 
@@ -99,7 +99,7 @@ If you installed ESP-IDF using the ESP-IDF Installation Manager (EIM), you can u
 
 .. code-block:: bash
 
-   ./home/user/.espressif/tools/activate_idf_v6.0.sh -e
+   /home/user/.espressif/tools/activate_idf_v6.0.sh -e
 
 Uninstall ESP-IDF VS Code Extension
 -----------------------------------

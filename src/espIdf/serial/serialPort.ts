@@ -29,7 +29,6 @@ import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 import { showInfoNotificationWithAction } from "../../logger/utils";
 import { ESP } from "../../config";
 import { configureEnvVariables } from "../../common/prepareEnv";
-import { pathExists } from "fs-extra";
 
 export class SerialPort {
   /**

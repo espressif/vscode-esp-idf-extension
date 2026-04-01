@@ -1079,7 +1079,7 @@ export async function isBinInPath(
       if (containerDir && containerDir.length) {
         const resultContainerPath = containerDir.join(path.sep);
         if (binaryPath.indexOf(resultContainerPath) === -1) {
-          return "";
+          continue;
         }
       }
       const pathStats = await stat(binaryPath);
