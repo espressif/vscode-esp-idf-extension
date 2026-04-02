@@ -23,10 +23,7 @@ import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
-import {
-  delConfigFile,
-  isStringNotEmpty,
-} from "../../utils";
+import { delConfigFile, isStringNotEmpty } from "../../utils";
 import { KconfigMenuLoader } from "./kconfigMenuLoader";
 import { Menu, menuType } from "./Menu";
 import { MenuConfigPanel } from "./MenuconfigPanel";
@@ -72,15 +69,11 @@ export class ConfserverProcess {
 
   public static async init(workspaceFolder: vscode.Uri, extensionPath: string) {
     return new Promise(async (resolve) => {
-      const pythonBinPath = await getVirtualEnvPythonPath();
       const modifiedEnv = await configureEnvVariables(workspaceFolder);
       if (!ConfserverProcess.instance) {
-        const configFile = await getSDKConfigFilePath(workspaceFolder);
         ConfserverProcess.instance = new ConfserverProcess(
           workspaceFolder,
           extensionPath,
-          pythonBinPath,
-          configFile,
           modifiedEnv
         );
       }
@@ -97,7 +90,7 @@ export class ConfserverProcess {
   }
 
   public static isSavedByUI() {
-    return ConfserverProcess.instance.isSavingSdkconfig;
+    return ConfserverProcess.instance?.isSavingSdkconfig;
   }
 
   public static resetSavedByUI() {
@@ -108,15 +101,20 @@ export class ConfserverProcess {
 
   public static loadExistingInstance() {
     ConfserverProcess.checkInitialized();
-    MenuConfigPanel.createOrShow(
-      ConfserverProcess.instance.extensionPath,
-      ConfserverProcess.instance.workspaceFolder,
-      ConfserverProcess.instance.kconfigsMenus
-    );
+    if (ConfserverProcess.instance) {
+      MenuConfigPanel.createOrShow(
+        ConfserverProcess.instance.extensionPath,
+        ConfserverProcess.instance.workspaceFolder,
+        ConfserverProcess.instance.kconfigsMenus
+      );
+    }
   }
 
   public static registerListener(listener: (values: string) => void) {
     ConfserverProcess.checkInitialized();
+    if (!ConfserverProcess.instance) {
+      return;
+    }
     ConfserverProcess.instance.jsonListener = listener;
   }
 
@@ -128,6 +126,9 @@ export class ConfserverProcess {
 
   public static updateValues(values: string): Menu[] {
     ConfserverProcess.checkInitialized();
+    if (!ConfserverProcess.instance) {
+      return [];
+    }
     const jsonValues = JSON.parse(values);
     const newKconfigMenus: Menu[] = [];
     for (const config of ConfserverProcess.instance.kconfigsMenus) {
@@ -145,7 +146,9 @@ export class ConfserverProcess {
   }
 
   public static resetElementChildren(children: string[]) {
-    let resetValueRequest = `{"version": 3, "reset": [ "${children.join("\", \"")}" ]}\n`;
+    let resetValueRequest = `{"version": 3, "reset": [ "${children.join(
+      '", "'
+    )}" ]}\n`;
     ConfserverProcess.sendUpdatedValue(resetValueRequest);
   }
 
@@ -181,32 +184,51 @@ export class ConfserverProcess {
 
   public static sendUpdatedValue(newValueRequest: string) {
     OutputChannel.appendLine(newValueRequest, "SDK Configuration Editor");
-    ConfserverProcess.instance.confServerProcess.stdin.write(newValueRequest);
-    ConfserverProcess.instance.areValuesSaved = false;
+    if (ConfserverProcess.instance) {
+      ConfserverProcess.instance?.confServerProcess?.stdin?.write(
+        newValueRequest
+      );
+      ConfserverProcess.instance.areValuesSaved = false;
+    } else {
+      OutputChannel.appendLine(
+        "No instance available",
+        "SDK Configuration Editor"
+      );
+    }
   }
 
-  public static saveGuiConfigValues() {
-    ConfserverProcess.instance.isSavingSdkconfig = true;
-    const saveRequest = JSON.stringify({
-      version: 2,
-      save: ConfserverProcess.instance.configFile,
-    });
-    OutputChannel.appendLine(saveRequest, "SDK Configuration Editor");
-    ConfserverProcess.instance.confServerProcess.stdin.write(saveRequest);
-    ConfserverProcess.instance.confServerProcess.stdin.write("\n");
-    ConfserverProcess.instance.areValuesSaved = true;
-  }
-
-  public static loadGuiConfigValues(isClosingWithoutSaving?: boolean) {
-    const loadRequest = JSON.stringify({
-      version: 2,
-      load: ConfserverProcess.instance.configFile,
-    });
-    OutputChannel.appendLine(loadRequest, "SDK Configuration Editor");
-    ConfserverProcess.instance.confServerProcess.stdin.write(loadRequest);
-    ConfserverProcess.instance.confServerProcess.stdin.write("\n");
-    if (isClosingWithoutSaving) {
+  public static async saveGuiConfigValues() {
+    if (ConfserverProcess.instance) {
+      ConfserverProcess.instance.isSavingSdkconfig = true;
+      const configFile = await getSDKConfigFilePath(
+        ConfserverProcess.instance.workspaceFolder
+      );
+      const saveRequest = JSON.stringify({
+        version: 2,
+        save: configFile,
+      });
+      OutputChannel.appendLine(saveRequest, "SDK Configuration Editor");
+      ConfserverProcess.instance.confServerProcess?.stdin?.write(saveRequest);
+      ConfserverProcess.instance.confServerProcess?.stdin?.write("\n");
       ConfserverProcess.instance.areValuesSaved = true;
+    }
+  }
+
+  public static async loadGuiConfigValues(isClosingWithoutSaving?: boolean) {
+    if (ConfserverProcess.instance) {
+      const configFile = await getSDKConfigFilePath(
+        ConfserverProcess.instance.workspaceFolder
+      );
+      const loadRequest = JSON.stringify({
+        version: 2,
+        load: configFile,
+      });
+      OutputChannel.appendLine(loadRequest, "SDK Configuration Editor");
+      ConfserverProcess.instance.confServerProcess?.stdin?.write(loadRequest);
+      ConfserverProcess.instance.confServerProcess?.stdin?.write("\n");
+      if (isClosingWithoutSaving) {
+        ConfserverProcess.instance.areValuesSaved = true;
+      }
     }
   }
 
@@ -214,6 +236,9 @@ export class ConfserverProcess {
     extensionPath: string,
     progress: vscode.Progress<{ message: string; increment: number }>
   ) {
+    if (!ConfserverProcess.instance) {
+      return;
+    }
     progress.report({ increment: 10, message: "Deleting current values..." });
     ConfserverProcess.instance.areValuesSaved = true;
     const currWorkspace = ConfserverProcess.instance.workspaceFolder;
@@ -225,6 +250,11 @@ export class ConfserverProcess {
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
     const modifiedEnv = await configureEnvVariables(currWorkspace);
     const pythonBinPath = await getVirtualEnvPythonPath();
+    if (!pythonBinPath) {
+      throw new Error(
+        "Python binary path not found. Please check your Python configuration."
+      );
+    }
     const enableCCache = idfConf.readParameter(
       "idf.enableCCache",
       currWorkspace
@@ -235,14 +265,22 @@ export class ConfserverProcess {
     }
     reconfigureArgs.push("-C", currWorkspace.fsPath);
     const sdkconfigDefaults =
-    (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
-    
-    if (reconfigureArgs.indexOf("SDKCONFIG") === -1) {
-      reconfigureArgs.push(
-        `-DSDKCONFIG='${ConfserverProcess.instance.configFile}'`
-      );
+      (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
+
+    const sdkconfigFile = idfConf.readParameter(
+      "idf.sdkconfigFilePath",
+      currWorkspace
+    ) as string;
+    const hasSdkconfigArg = reconfigureArgs.some(
+      (arg, index) =>
+        arg.startsWith("-DSDKCONFIG=") ||
+        (arg === "-D" && reconfigureArgs[index + 1]?.startsWith("SDKCONFIG="))
+    );
+
+    if (sdkconfigFile && !hasSdkconfigArg) {
+      reconfigureArgs.push(`-DSDKCONFIG='${sdkconfigFile}'`);
     }
-    
+
     if (
       reconfigureArgs.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
       sdkconfigDefaults &&
@@ -254,7 +292,7 @@ export class ConfserverProcess {
     }
     reconfigureArgs.push("reconfigure");
     await delConfigFile(currWorkspace);
-    
+
     const getSdkconfigProcess = spawn(pythonBinPath, reconfigureArgs, {
       env: modifiedEnv,
     });
@@ -300,7 +338,14 @@ export class ConfserverProcess {
 
   public static dispose() {
     if (ConfserverProcess.instance) {
-      ConfserverProcess.instance.confServerProcess.stdin.end();
+      const proc = ConfserverProcess.instance.confServerProcess;
+      if (proc) {
+        proc.stdout?.removeAllListeners();
+        proc.stderr?.removeAllListeners();
+        proc.removeAllListeners();
+        proc.stdin?.destroy();
+        proc.kill("SIGTERM");
+      }
       ConfserverProcess.instance.confServerProcess = null;
       ConfserverProcess.instance = null;
     }
@@ -310,7 +355,7 @@ export class ConfserverProcess {
   }
   public static confserverVersion: number = 2;
 
-  private static instance: ConfserverProcess;
+  private static instance: ConfserverProcess | null = null;
   private static progress: vscode.Progress<{
     message: string;
     increment: number;
@@ -323,22 +368,18 @@ export class ConfserverProcess {
   }
 
   private areValuesSaved: boolean = true;
-  private confServerProcess: ChildProcess;
-  private espIdfPath: string;
+  private confServerProcess: ChildProcess | null;
   private emitter: EventEmitter;
   private isSavingSdkconfig: boolean = false;
   private jsonListener: (values: string) => void;
   private receivedDataBuffer: string = "";
-  private configFile: string;
   private workspaceFolder: vscode.Uri;
   private extensionPath: string;
-  private kconfigsMenus: Menu[];
+  private kconfigsMenus: Menu[] = [];
 
   constructor(
     workspaceFolder: vscode.Uri,
     extensionPath: string,
-    pythonBinPath: string,
-    configFile: string,
     modifiedEnv: { [key: string]: string }
   ) {
     this.workspaceFolder = workspaceFolder;
@@ -347,10 +388,10 @@ export class ConfserverProcess {
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
     }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-    this.espIdfPath = currentEnvVars["IDF_PATH"];
+    const espIdfPath = currentEnvVars["IDF_PATH"];
+
     modifiedEnv.PYTHONUNBUFFERED = "0";
-    this.configFile = configFile;
-    const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
+    const idfPath = path.join(espIdfPath, "tools", "idf.py");
     const enableCCache = idfConf.readParameter(
       "idf.enableCCache",
       workspaceFolder
@@ -367,8 +408,18 @@ export class ConfserverProcess {
     const sdkconfigDefaults =
       (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
 
-    if (confServerArgs.indexOf("SDKCONFIG") === -1) {
-      confServerArgs.push(`-DSDKCONFIG='${this.configFile}'`);
+    const sdkconfigFile = idfConf.readParameter(
+      "idf.sdkconfigFilePath",
+      workspaceFolder
+    ) as string;
+    const hasSdkconfigArg = confServerArgs.some(
+      (arg, index) =>
+        arg.startsWith("-DSDKCONFIG=") ||
+        (arg === "-D" && confServerArgs[index + 1]?.startsWith("SDKCONFIG="))
+    );
+
+    if (sdkconfigFile && !hasSdkconfigArg) {
+      confServerArgs.push(`-DSDKCONFIG='${sdkconfigFile}'`);
     }
 
     if (
@@ -381,6 +432,13 @@ export class ConfserverProcess {
       );
     }
     confServerArgs.push("-C", workspaceFolder.fsPath, "confserver");
+
+    const pythonBinPath = getVirtualEnvPythonPath();
+    if (!pythonBinPath) {
+      throw new Error(
+        "Python binary path not found. Please check your Python configuration."
+      );
+    }
     this.confServerProcess = spawn(pythonBinPath, confServerArgs, {
       env: modifiedEnv,
     });
@@ -401,7 +459,7 @@ export class ConfserverProcess {
     if (newValuesJsonReceived !== null && newValuesJsonReceived.length > 0) {
       const lastIndex = newValuesJsonReceived.length - 1;
       if (this.jsonListener) {
-        ConfserverProcess.instance.emitter.emit("valuesLoaded");
+        ConfserverProcess.instance?.emitter.emit("valuesLoaded");
         this.jsonListener(newValuesJsonReceived[lastIndex]);
       } else {
         this.printError(
@@ -436,7 +494,7 @@ export class ConfserverProcess {
   }
 
   private setupConfigServer() {
-    this.confServerProcess.stdout.on("data", (data) => {
+    this.confServerProcess?.stdout?.on("data", (data) => {
       this.receivedDataBuffer += data;
       if (ConfserverProcess.progress) {
         ConfserverProcess.progress.report({
@@ -448,7 +506,7 @@ export class ConfserverProcess {
       OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
       this.checkIfJsonIsReceived();
     });
-    this.confServerProcess.stderr.on("data", (data) => {
+    this.confServerProcess?.stderr?.on("data", (data) => {
       const dataStr = data.toString();
       const ignoreList = [
         "Server running, waiting for requests on stdin..",
@@ -468,12 +526,12 @@ export class ConfserverProcess {
         }
       }
     });
-    this.confServerProcess.on("error", (err) => {
-      err.stack === null
-        ? this.printError(err.message)
-        : this.printError(err.stack);
+    this.confServerProcess?.on("error", (err) => {
+      err.stack
+        ? this.printError(err.message + "\n" + err.stack)
+        : this.printError(err.message);
     });
-    this.confServerProcess.on("exit", (code, signal) => {
+    this.confServerProcess?.on("exit", (code, signal) => {
       if (code !== 0) {
         this.printError(
           `SDK Configuration editor confserver process exited with code: ${code}`

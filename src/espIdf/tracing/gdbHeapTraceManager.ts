@@ -23,7 +23,7 @@ import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import { getToolchainToolName, isBinInPath } from "../../utils";
-import { getProjectElfFilePath, getProjectName } from "../../workspaceConfig";
+import { getProjectElfFilePath } from "../../workspaceConfig";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import {

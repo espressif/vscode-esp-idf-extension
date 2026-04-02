@@ -21,14 +21,11 @@ import { join } from "path";
 import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
-import { getEspIdfFromCMake, isBinInPath } from "../utils";
+import { isBinInPath } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 import { getVirtualEnvPythonPath } from "../pythonManager";
-import {
-  getIdfTargetFromSdkconfig,
-  getSDKConfigFilePath,
-} from "../workspaceConfig";
+import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { ESP } from "../config";
 import { OutputCapturingExecution } from "../taskManager/customExecution";
@@ -114,10 +111,7 @@ export class BuildTask {
       | OutputCapturingExecution
       | vscode.ProcessExecution
       | undefined = undefined;
-    let buildExecution:
-      | OutputCapturingExecution
-      | vscode.ProcessExecution
-      | undefined = undefined;
+    let buildExecution: OutputCapturingExecution | vscode.ProcessExecution;
 
     if (!cmakeCacheExists) {
       let defaultCompilerArgs = [
@@ -144,7 +138,10 @@ export class BuildTask {
         compilerArgs.push("-S", this.currentWorkspace.fsPath);
       }
 
-      const sdkconfigFile = await getSDKConfigFilePath(this.currentWorkspace);
+      const sdkconfigFile = idfConf.readParameter(
+        "idf.sdkconfigFilePath",
+        this.currentWorkspace
+      ) as string;
       const hasSdkconfigArg = compilerArgs.some(
         (arg, index) =>
           arg.startsWith("-DSDKCONFIG=") ||
@@ -155,7 +152,10 @@ export class BuildTask {
       }
 
       const sdkconfigDefaults =
-        (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
+        (idfConf.readParameter(
+          "idf.sdkconfigDefaults",
+          this.currentWorkspace
+        ) as string[]) || [];
 
       if (
         compilerArgs.indexOf("SDKCONFIG_DEFAULTS") === -1 &&

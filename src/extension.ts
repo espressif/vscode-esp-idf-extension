@@ -650,7 +650,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   const updateGuiValues = async (e: vscode.Uri) => {
     if (ConfserverProcess.exists() && !ConfserverProcess.isSavedByUI()) {
-      ConfserverProcess.loadGuiConfigValues();
+      await ConfserverProcess.loadGuiConfigValues();
     }
     ConfserverProcess.resetSavedByUI();
     await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
@@ -1580,14 +1580,14 @@ export async function activate(context: vscode.ExtensionContext) {
       try {
         await covRenderer.renderCoverage();
       } catch (e) {
-        const msg = e && e.message ? e.message : e;
+        const errMsg = e instanceof Error ? e.message : String(e);
         Logger.errorNotify(
           "Error building gcov data from gcda files.\nCheck the ESP-IDF output for more details.",
-          e,
+          e as Error,
           "extension genCoverage"
         );
         OutputChannel.appendLine(
-          msg +
+          errMsg +
             "\nError building gcov data from gcda files.\n\n" +
             "Review the code coverage tutorial https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/coverage.html \n" +
             "or ESP-IDF documentation: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage \n"
@@ -1613,7 +1613,8 @@ export async function activate(context: vscode.ExtensionContext) {
       try {
         return await getProjectName(workspaceRoot);
       } catch (error) {
-        Logger.errorNotify(error.message, error, "extension getProjectName");
+        const errMsg = error instanceof Error ? error.message : String(error);
+        Logger.errorNotify(errMsg, error as Error, "extension getProjectName");
       }
     });
   });
@@ -4356,7 +4357,10 @@ function createClassicMenuconfig(extensionPath: string) {
       "idf.buildPath",
       workspaceRoot
     ) as string;
-    const sdkconfigPath = await getSDKConfigFilePath(workspaceRoot);
+    const sdkconfigFilePath = idfConf.readParameter(
+      "idf.sdkconfigFilePath",
+      workspaceRoot
+    ) as string;
     const sdkconfigDefaults = idfConf.readParameter(
       "idf.sdkconfigDefaults",
       workspaceRoot
@@ -4367,8 +4371,8 @@ function createClassicMenuconfig(extensionPath: string) {
     if (buildDirPath) {
       menuconfigCommand += ` -B "${buildDirPath}"`;
     }
-    if (sdkconfigPath) {
-      menuconfigCommand += ` -DSDKCONFIG='${sdkconfigPath}'`;
+    if (sdkconfigFilePath) {
+      menuconfigCommand += ` -DSDKCONFIG='${sdkconfigFilePath}'`;
     }
     if (sdkconfigDefaults && sdkconfigDefaults.length > 0) {
       menuconfigCommand += ` -DSDKCONFIG_DEFAULTS="${sdkconfigDefaults.join(
