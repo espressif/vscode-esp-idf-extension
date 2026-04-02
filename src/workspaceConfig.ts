@@ -22,7 +22,6 @@ import { readParameter } from "./idfConfiguration";
 import { showInfoNotificationWithAction } from "./logger/utils";
 import { isSettingIDFTarget } from "./espIdf/setTarget";
 import { pathExists } from "fs-extra";
-import { Uri } from "vscode";
 
 /** Parsed subset of build/project_description.json; fields are optional for partial or evolving schemas. */
 export interface IProjectDescription {
@@ -65,18 +64,25 @@ function optString(value: unknown): string | undefined {
 }
 
 export function initSelectedWorkspace(status?: vscode.StatusBarItem) {
-  const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
-  updateIdfComponentsTree(workspaceRoot);
+  const workspaceRoot =
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders.length
+      ? vscode.workspace.workspaceFolders[0]
+      : undefined;
+  if (!workspaceRoot) {
+    return;
+  }
+  updateIdfComponentsTree(workspaceRoot.uri);
   const workspaceFolderInfo = {
     clickCommand: "espIdf.pickAWorkspaceFolder",
-    currentWorkSpace: vscode.workspace.workspaceFolders[0].name,
-    tooltip: vscode.workspace.workspaceFolders[0].uri.fsPath,
+    currentWorkSpace: workspaceRoot.name,
+    tooltip: workspaceRoot.uri.fsPath,
     text: "${file-directory}",
   };
   if (status) {
     utils.updateStatus(status, workspaceFolderInfo);
   }
-  return workspaceRoot;
+  return workspaceRoot.uri;
 }
 
 let idfDataProvider: IdfTreeDataProvider;
@@ -184,7 +190,7 @@ export async function getProjectDescriptionJson(
   } catch (error) {
     Logger.error(
       `Error reading project description JSON from ${buildDirPath}`,
-      error,
+      error as Error,
       "workspaceConfig getProjectDescriptionJson"
     );
     return undefined;
@@ -195,12 +201,14 @@ export async function getSDKConfigFilePath(
   workspacePath: vscode.Uri
 ): Promise<string> {
   try {
-    if (!workspacePath) {
-      return "sdkconfig";
-    }
     const projDescObj = await getProjectDescriptionJson(workspacePath);
-    if (projDescObj && projDescObj.configFile) {
-      return projDescObj.configFile;
+    if (projDescObj?.configFile) {
+      const configFilePath = path.isAbsolute(projDescObj.configFile)
+        ? projDescObj.configFile
+        : path.join(workspacePath.fsPath, projDescObj.configFile);
+      if (await pathExists(configFilePath)) {
+        return configFilePath;
+      }
     }
     let sdkconfigFilePath = readParameter(
       "idf.sdkconfigFilePath",
@@ -211,8 +219,11 @@ export async function getSDKConfigFilePath(
     }
     return sdkconfigFilePath;
   } catch (error) {
-    const errMsg = error && error.message ? error.message : error;
-    Logger.error(errMsg, error, "workspaceConfig getSdkconfigPath");
+    const errMsg =
+      error && typeof error === "object" && "message" in error
+        ? (error as Error).message
+        : String(error);
+    Logger.error(errMsg, error as Error, "workspaceConfig getSdkconfigPath");
     return path.join(workspacePath.fsPath, "sdkconfig");
   }
 }
