@@ -98,7 +98,7 @@
 
 .. code-block:: bash
 
-   ./home/user/.espressif/tools/activate_idf_v6.0.sh -e
+   /home/user/.espressif/tools/activate_idf_v6.0.sh -e
 
 卸载 ESP-IDF VS Code 扩展
 -------------------------
