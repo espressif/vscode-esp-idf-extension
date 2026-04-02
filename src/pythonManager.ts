@@ -112,7 +112,7 @@ export async function getEnvVarsFromIdfTools(
   }
 }
 
-export async function getVirtualEnvPythonPath() {
+export function getVirtualEnvPythonPath() {
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
   }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});

@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 17th July 2019 3:58:48 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,7 +21,7 @@ import AnsiToHtml from "ansi-to-html";
 import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../../logger/logger";
-import { getWebViewFavicon, PreCheck } from "../../utils";
+import { getWebViewFavicon } from "../../utils";
 import { LogTraceProc } from "./tools/logTraceProc";
 import { SysviewTraceProc } from "./tools/sysviewTraceProc";
 import { Addr2Line } from "./tools/xtensa/addr2line";
@@ -184,18 +184,21 @@ export class AppTracePanel {
       });
       // editor.revealRange(selectionRange, vscode.TextEditorRevealType.InCenter);
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        error.message,
-        error,
+        errMsg,
+        error as Error,
         "AppTracePanel openFileAtLineNumber"
       );
     }
   }
   private async readElf(): Promise<string[][]> {
-    const emptyURI: vscode.Uri = undefined;
-    const workspaceRoot = PreCheck.isWorkspaceFolderOpen()
+    const workspaceRoot = vscode.workspace.workspaceFolders?.length
       ? vscode.workspace.workspaceFolders[0].uri
-      : emptyURI;
+      : undefined;
+    if (!workspaceRoot) {
+      throw new Error("Workspace folder is not open");
+    }
     const elfFile = await getProjectElfFilePath(workspaceRoot);
     if (!elfFile) {
       throw new Error("Select Elf file to process the addresses");
@@ -233,14 +236,20 @@ export class AppTracePanel {
 
     return funcName;
   }
-  private resolveAddresses({ addresses }) {
-    const emptyURI: vscode.Uri = undefined;
-    const workspaceRoot = PreCheck.isWorkspaceFolderOpen()
+  private resolveAddresses({
+    addresses,
+  }: {
+    addresses: { [key: string]: any };
+  }) {
+    const workspaceRoot = vscode.workspace.workspaceFolders?.length
       ? vscode.workspace.workspaceFolders[0].uri
-      : emptyURI;
+      : undefined;
+    if (!workspaceRoot) {
+      throw new Error("Workspace folder is not open");
+    }
     if (addresses) {
       const promises = Object.keys(addresses).map((add) => {
-        const fn = async (address) => {
+        const fn = async (address: string) => {
           const addr2line = new Addr2Line(
             workspaceRoot,
             await getProjectElfFilePath(workspaceRoot),
@@ -268,10 +277,12 @@ export class AppTracePanel {
     }
   }
   private async parseTraceLogData(): Promise<string> {
-    const emptyURI: vscode.Uri = undefined;
-    const workspaceRoot = PreCheck.isWorkspaceFolderOpen()
+    const workspaceRoot = vscode.workspace.workspaceFolders?.length
       ? vscode.workspace.workspaceFolders[0].uri
-      : emptyURI;
+      : undefined;
+    if (!workspaceRoot) {
+      throw new Error("Workspace folder is not open");
+    }
     const logTraceProc = new LogTraceProc(
       workspaceRoot,
       this._traceData.trace.filePath,
@@ -281,10 +292,12 @@ export class AppTracePanel {
     return resp.toString();
   }
   private async parseHeapTraceData(): Promise<any> {
-    const emptyURI: vscode.Uri = undefined;
-    const workspaceRoot = PreCheck.isWorkspaceFolderOpen()
+    const workspaceRoot = vscode.workspace.workspaceFolders?.length
       ? vscode.workspace.workspaceFolders[0].uri
-      : emptyURI;
+      : undefined;
+    if (!workspaceRoot) {
+      throw new Error("Workspace folder is not open");
+    }
     const sysviewTraceProc = new SysviewTraceProc(
       workspaceRoot,
       this._traceData.trace.filePath

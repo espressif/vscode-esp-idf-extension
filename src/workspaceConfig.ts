@@ -102,6 +102,10 @@ export async function getProjectDescriptionJson(
     workspaceFolder
   ) as string;
   try {
+    const doesBuildPathExists = await pathExists(buildDirPath);
+    if (!doesBuildPathExists) {
+      return undefined;
+    }
     const projDescJsonPath = path.join(
       buildDirPath,
       "project_description.json"

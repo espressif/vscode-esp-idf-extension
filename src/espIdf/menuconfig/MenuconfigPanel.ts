@@ -112,15 +112,17 @@ export class MenuConfigPanel {
               { title: returnToGuiconfigMsg, isCloseAffordance: false },
               { title: discardMsg, isCloseAffordance: true }
             )
-            .then((selected) => {
+            .then(async (selected) => {
+              if (!selected || selected.title === discardMsg) {
+                await ConfserverProcess.loadGuiConfigValues(true);
+                return;
+              }
               if (selected.title === saveMsg) {
-                ConfserverProcess.saveGuiConfigValues();
+                await ConfserverProcess.saveGuiConfigValues();
               } else if (selected.title === returnToGuiconfigMsg) {
                 this.dispose();
                 vscode.commands.executeCommand("espIdf.menuconfig.start");
                 return;
-              } else {
-                ConfserverProcess.loadGuiConfigValues(true);
               }
             });
         }
@@ -159,7 +161,7 @@ export class MenuConfigPanel {
               { title: yesMsg, isCloseAffordance: false },
               { title: noMsg, isCloseAffordance: true }
             );
-            if (selected.title === yesMsg) {
+            if ( selected && selected.title === yesMsg) {
               const notificationMode = readParameter(
                 "idf.notificationMode",
                 this.curWorkspaceFolder
@@ -187,9 +189,13 @@ export class MenuConfigPanel {
                       progress
                     );
                   } catch (error) {
+                    const errMsg =
+                      error && typeof error === "object" && "message" in error
+                        ? (error as Error).message
+                        : String(error);
                     Logger.errorNotify(
-                      error.message,
-                      error,
+                      errMsg,
+                      error as Error,
                       "MenuConfigPanel setDefaultValues"
                     );
                   }
@@ -199,21 +205,21 @@ export class MenuConfigPanel {
           }
           break;
         case "saveChanges":
-          ConfserverProcess.saveGuiConfigValues();
+          await ConfserverProcess.saveGuiConfigValues();
           const saveMessage = vscode.l10n.t(
             "Saved changes in SDK Configuration editor"
           );
           Logger.infoNotify(saveMessage);
           break;
         case "discardChanges":
-          ConfserverProcess.loadGuiConfigValues();
+          await ConfserverProcess.loadGuiConfigValues();
           const discardMessage = vscode.l10n.t(
             "Discarded changes in SDK Configuration editor"
           );
           Logger.infoNotify(discardMessage);
           break;
         case "requestInitValues":
-          MenuConfigPanel.currentPanel.panel.webview.postMessage({
+          MenuConfigPanel.currentPanel?.panel.webview.postMessage({
             command: "load_initial_values",
             menus: initialValues,
             version: ConfserverProcess.confserverVersion,
@@ -252,7 +258,7 @@ export class MenuConfigPanel {
       return;
     }
     const updatedMenus = ConfserverProcess.updateValues(values);
-    MenuConfigPanel.currentPanel.panel.webview.postMessage({
+    MenuConfigPanel.currentPanel?.panel.webview.postMessage({
       command: "update_values",
       updated_values: updatedMenus,
     });
