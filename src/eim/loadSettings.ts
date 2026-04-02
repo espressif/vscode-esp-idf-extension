@@ -34,6 +34,7 @@ export async function getEnvVariables(idfSetup: IdfSetup) {
 export async function getEnvVariablesFromActivationScript(
   activationScriptPath: string
 ) {
+  let envDict: { [key: string]: string } = {};
   try {
     const args =
       process.platform === "win32"
@@ -55,7 +56,6 @@ export async function getEnvVariablesFromActivationScript(
       shell: shellPath,
     });
     const envVarsArray = envVarsOutput.toString().trim().split(/\r?\n/g);
-    let envDict: { [key: string]: string } = {};
     for (const envVar of envVarsArray) {
       let keyIndex = envVar.indexOf("=");
       if (keyIndex === -1) {
@@ -66,11 +66,10 @@ export async function getEnvVariablesFromActivationScript(
       envDict[varKey] = varValue;
     }
 
-    let pathNameInEnv: string = Object.keys(process.env).find(
-      (k) => k.toUpperCase() == "PATH"
-    );
+    let pathNameInEnv: string =
+      Object.keys(process.env).find((k) => k.toUpperCase() == "PATH") || "PATH";
 
-    if (envDict[pathNameInEnv]) {
+    if (envDict[pathNameInEnv] && process.env[pathNameInEnv]) {
       envDict[pathNameInEnv] = envDict[pathNameInEnv]
         .replace(process.env[pathNameInEnv], "")
         .replace(new RegExp(`(^${delimiter}|${delimiter}$)`, "g"), "");
@@ -85,15 +84,19 @@ export async function getEnvVariablesFromActivationScript(
     return envDict;
   } catch (error) {
     const errMsg =
-      error && error.message
+      error &&
+      typeof error === "object" &&
+      "message" in error &&
+      typeof error.message === "string"
         ? error.message
         : "Error getting Env variables from EIM activation script";
     Logger.error(
       errMsg,
-      error,
+      error as Error, 
       "loadSettings getEnvVariablesFromActivationScript",
       undefined,
       false
     );
+    return envDict;
   }
 }

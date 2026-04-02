@@ -28,6 +28,19 @@ import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { getEnvVariables } from "./loadSettings";
 import { ESP } from "../config";
 
+export function pathVarFromEnvVars(envVars: {
+  [key: string]: string;
+}): {
+  key: string;
+  value: string | undefined;
+} {
+  const key = Object.keys(envVars).find((k) => k.toUpperCase() === "PATH");
+  if (key !== undefined) {
+    return { key, value: envVars[key] };
+  }
+  return { key: "PATH", value: undefined };
+}
+
 /**
  * Validate that given IDF Setup is valid.
  * @param {[key: string]: string} envVars Environment variables to validate IDF Setup against.
@@ -39,12 +52,6 @@ export async function isIdfSetupValid(
   logToChannel = true
 ): Promise<[boolean, string]> {
   try {
-    const pyDir =
-      process.platform === "win32"
-        ? ["Scripts", "python.exe"]
-        : ["bin", "python3"];
-    const venvPythonPath = join(envVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
-
     if (!envVars["IDF_PATH"]) {
       return [false, "IDF_PATH is not set in environment variables"];
     }
@@ -53,19 +60,18 @@ export async function isIdfSetupValid(
       return [false, `IDF_PATH does not exist: ${envVars["IDF_PATH"]}`];
     }
 
-    const pathNameInEnv: string = Object.keys(process.env).find(
-      (k) => k.toUpperCase() == "PATH"
-    );
-
     const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
       envVars["IDF_PATH"]
     );
 
-    if (!envVars[pathNameInEnv]) {
-      return [false, `${pathNameInEnv} is not set in environment variables`];
+    const { key: pathEnvKey, value: pathEnvValue } = pathVarFromEnvVars(
+      envVars
+    );
+    if (!pathEnvValue) {
+      return [false, `${pathEnvKey} is not set in environment variables`];
     }
     let toolsInfo: IEspIdfTool[] = await idfToolsManager.getRequiredToolsInfo(
-      envVars[pathNameInEnv],
+      pathEnvValue,
       ["cmake", "ninja"],
       logToChannel
     );
@@ -79,6 +85,15 @@ export async function isIdfSetupValid(
       const missingTools = failedToolsResult.map((t) => t.name).join(", ");
       return [false, `Missing required tools: ${missingTools}`];
     }
+
+    if (!envVars["IDF_PYTHON_ENV_PATH"]) {
+      return [false, "IDF_PYTHON_ENV_PATH is not set in environment variables"];
+    }
+    const pyDir =
+      process.platform === "win32"
+        ? ["Scripts", "python.exe"]
+        : ["bin", "python3"];
+    const venvPythonPath = join(envVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
     const [pyEnvReqsValid, pyEnvReqsMsg] = await checkPyVenv(
       venvPythonPath,
       envVars["IDF_PATH"],
@@ -94,10 +109,13 @@ export async function isIdfSetupValid(
     return [true, ""];
   } catch (error) {
     const msg =
-      error && error.message
+      error &&
+      typeof error === "object" &&
+      "message" in error &&
+      typeof error.message === "string"
         ? error.message
         : `Error checking ESP-IDF setup validity.`;
-    Logger.error(msg, error, "verifySetup isIdfSetupValid");
+    Logger.error(msg, error as Error, "verifySetup isIdfSetupValid");
     return [false, msg];
   }
 }

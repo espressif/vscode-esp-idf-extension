@@ -107,9 +107,16 @@ function getIdfMd5sum(idfPath: string) {
 }
 
 export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
-  const customVars = readParameter("idf.customExtraVars", workspaceFolder) as {
-    [key: string]: string;
-  };
+  const customVarsSetting = readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as { [key: string]: string };
+  const customVars =
+    customVarsSetting !== null &&
+    typeof customVarsSetting === "object" &&
+    !Array.isArray(customVarsSetting)
+      ? { ...customVarsSetting }
+      : {};
 
   const idfPath = customVars["IDF_PATH"] || process.env.IDF_PATH || "";
   const idfPathExists = await pathExists(idfPath);
@@ -133,10 +140,9 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
     return;
   }
 
-  const pathNameInEnv: string = Object.keys(process.env).find(
+  const normalizedPathName: string = Object.keys(process.env).find(
     (k) => k.toUpperCase() == "PATH"
-  );
-  const normalizedPathName = pathNameInEnv || "PATH";
+  ) || "PATH";
   const pathKeyVariants = Object.keys(customVars).filter(
     (key) => key.toUpperCase() === "PATH" && key !== normalizedPathName
   );
@@ -152,28 +158,31 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
     const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
       idfPath
     );
-    customVars[normalizedPathName] = await idfToolsManager.exportPathsInString(
-      join(idfToolsPath, "tools"),
-      ["cmake", "ninja"]
-    );
+    customVars[
+      normalizedPathName
+    ] = await idfToolsManager.exportPathsInString(join(idfToolsPath, "tools"), [
+      "cmake",
+      "ninja",
+    ]);
   }
-  const [isValid, reason] = await isIdfSetupValid(customVars);
-
-  if (!isValid) {
-    Logger.infoNotify(
-      l10n.t(
-        "ESP-IDF Setup from environment variables is not valid: {0}",
-        reason
-      ),
-      {
-        category: "espIdf.installManager",
-        reason,
-      }
-    );
-    return;
+  const envVarsForValidation: { [key: string]: string } = {
+    ...customVars,
+  };
+  // Always include the resolved IDF paths used above
+  envVarsForValidation["IDF_PATH"] = idfPath;
+  envVarsForValidation["IDF_TOOLS_PATH"] = idfToolsPath;
+  // Ensure the normalized PATH key is present
+  if (customVars[normalizedPathName]) {
+    envVarsForValidation[normalizedPathName] = customVars[normalizedPathName];
+  }
+  // Optionally include the Python environment path if defined anywhere
+  const pythonEnvPath =
+    customVars["IDF_PYTHON_ENV_PATH"] || process.env.IDF_PYTHON_ENV_PATH;
+  if (pythonEnvPath) {
+    envVarsForValidation["IDF_PYTHON_ENV_PATH"] = pythonEnvPath;
   }
 
-  const gitPath = await isBinInPath("git", process.env);
+  const gitPath = await isBinInPath("git", envVarsForValidation);
   if (!gitPath) {
     Logger.infoNotify(
       l10n.t(
@@ -192,11 +201,27 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
       ? ["Scripts", "python.exe"]
       : ["bin", "python3"];
   let venvPythonPath = "";
-  if (customVars["IDF_PYTHON_ENV_PATH"] || process.env.IDF_PYTHON_ENV_PATH) {
+  if (envVarsForValidation["IDF_PYTHON_ENV_PATH"]) {
     venvPythonPath = join(
-      customVars["IDF_PYTHON_ENV_PATH"] || process.env.IDF_PYTHON_ENV_PATH,
+      envVarsForValidation["IDF_PYTHON_ENV_PATH"],
       ...pyDir
     );
+  }
+
+  const [isValid, reason] = await isIdfSetupValid(envVarsForValidation);
+
+  if (!isValid) {
+    Logger.infoNotify(
+      l10n.t(
+        "ESP-IDF Setup from environment variables is not valid: {0}",
+        reason
+      ),
+      {
+        category: "espIdf.installManager",
+        reason,
+      }
+    );
+    return;
   }
   const envDefinedIdfSetup: IdfSetup = {
     id: idfSetupId,
@@ -205,7 +230,7 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
     gitPath,
     toolsPath: idfToolsPath,
     sysPythonPath: "",
-    version: customVars["ESP_IDF_VERSION"],
+    version: envVarsForValidation["ESP_IDF_VERSION"],
     python: venvPythonPath,
     isValid,
   };
@@ -213,7 +238,7 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
   if (isValid) {
     ESP.ProjectConfiguration.store.set(
       ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
-      customVars
+      envVarsForValidation
     );
     await writeParameter(
       "idf.currentSetup",

@@ -60,9 +60,12 @@ export class CustomTask {
     }
   }
 
-  public async addCustomTask(taskType: CustomTaskType, captureOutput?: boolean) {
-    let command: string;
-    let taskName: string;
+  public async addCustomTask(
+    taskType: CustomTaskType,
+    captureOutput?: boolean
+  ) {
+    let command: string = "";
+    let taskName: string = "";
     switch (taskType) {
       case CustomTaskType.PreBuild:
         command = readParameter("idf.preBuildTask", this.currentWorkspace);
@@ -117,16 +120,20 @@ export class CustomTask {
       notificationMode === NotificationMode.Output
         ? TaskRevealKind.Always
         : TaskRevealKind.Silent;
-    const customExecution = this.getProcessExecution(command, options, captureOutput);
+    const customExecution = this.getProcessExecution(
+      command,
+      options,
+      captureOutput
+    );
     const customTaskPresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,
       clear: false,
       panel: TaskPanelKind.Dedicated,
     } as TaskPresentationOptions;
-    const currentWorkspaceFolder = workspace.workspaceFolders.find(
-      (w) => w.uri === this.currentWorkspace
-    );
+    const currentWorkspaceFolder = workspace.workspaceFolders?.length
+      ? workspace.workspaceFolders.find((w) => w.uri === this.currentWorkspace)
+      : undefined;
     TaskManager.addTask(
       {
         type: "esp-idf",
@@ -143,7 +150,7 @@ export class CustomTask {
   }
 
   public async runTasks(taskType: CustomTaskType) {
-    let command: string;
+    let command: string = "";
     switch (taskType) {
       case CustomTaskType.PreBuild:
         command = readParameter(

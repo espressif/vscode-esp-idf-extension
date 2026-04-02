@@ -88,14 +88,14 @@ For example, if you have ESP-IDF installed at ``/home/user/esp-idf``, and the to
         }
       }
 
-If you are using a ESP-IDF from before ESP-IDF Installation Manager (EIM), you can use the following command to get these environment variables from your ESP-IDF setup:
+If you are using an ESP-IDF setup not installed using ESP-IDF Installation Manager (EIM), you can use the following command to get these environment variables from your ESP-IDF setup:
 
 .. code-block:: bash
 
    source /home/user/esp-idf/export.sh
    python /home/user/esp-idf/tools/idf_tools.py export --format key-value
 
-If you installed ESP-IDF using the ESP-IDF Installation Manager (EIM), you can use the ESP-IDF activation script to get required environment variables:
+If you installed ESP-IDF using the ESP-IDF Installation Manager (EIM) and you want to use the ESP-IDF activation script to get required environment variables, you can use the following command:
 
 .. code-block:: bash
 
