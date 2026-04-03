@@ -140,9 +140,8 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
     return;
   }
 
-  const normalizedPathName: string = Object.keys(process.env).find(
-    (k) => k.toUpperCase() == "PATH"
-  ) || "PATH";
+  const normalizedPathName: string =
+    Object.keys(process.env).find((k) => k.toUpperCase() == "PATH") || "PATH";
   const pathKeyVariants = Object.keys(customVars).filter(
     (key) => key.toUpperCase() === "PATH" && key !== normalizedPathName
   );
@@ -182,7 +181,10 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
     envVarsForValidation["IDF_PYTHON_ENV_PATH"] = pythonEnvPath;
   }
 
-  const gitPath = await isBinInPath("git", envVarsForValidation);
+  let gitPath = await isBinInPath("git", envVarsForValidation);
+  if (!gitPath) {
+    gitPath = await isBinInPath("git", process.env);
+  }
   if (!gitPath) {
     Logger.infoNotify(
       l10n.t(
