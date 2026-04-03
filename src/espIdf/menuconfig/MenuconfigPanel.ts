@@ -114,11 +114,11 @@ export class MenuConfigPanel {
             )
             .then(async (selected) => {
               if (!selected || selected.title === discardMsg) {
-                await ConfserverProcess.loadGuiConfigValues(true);
+                ConfserverProcess.loadGuiConfigValues(true);
                 return;
               }
               if (selected.title === saveMsg) {
-                await ConfserverProcess.saveGuiConfigValues();
+                ConfserverProcess.saveGuiConfigValues();
               } else if (selected.title === returnToGuiconfigMsg) {
                 this.dispose();
                 vscode.commands.executeCommand("espIdf.menuconfig.start");
@@ -161,7 +161,7 @@ export class MenuConfigPanel {
               { title: yesMsg, isCloseAffordance: false },
               { title: noMsg, isCloseAffordance: true }
             );
-            if ( selected && selected.title === yesMsg) {
+            if (selected && selected.title === yesMsg) {
               const notificationMode = readParameter(
                 "idf.notificationMode",
                 this.curWorkspaceFolder
@@ -204,20 +204,22 @@ export class MenuConfigPanel {
             }
           }
           break;
-        case "saveChanges":
-          await ConfserverProcess.saveGuiConfigValues();
+        case "saveChanges": {
+          ConfserverProcess.saveGuiConfigValues();
           const saveMessage = vscode.l10n.t(
             "Saved changes in SDK Configuration editor"
           );
           Logger.infoNotify(saveMessage);
           break;
-        case "discardChanges":
-          await ConfserverProcess.loadGuiConfigValues();
+        }
+        case "discardChanges": {
+          ConfserverProcess.loadGuiConfigValues();
           const discardMessage = vscode.l10n.t(
             "Discarded changes in SDK Configuration editor"
           );
           Logger.infoNotify(discardMessage);
           break;
+        }
         case "requestInitValues":
           MenuConfigPanel.currentPanel?.panel.webview.postMessage({
             command: "load_initial_values",

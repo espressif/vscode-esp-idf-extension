@@ -124,7 +124,7 @@ export async function configureProjectWithGcov(workspacePath: Uri) {
   }
   const gcovEnableRequest = `{"version": 2, "set": { "APPTRACE_DEST_TRAX": true, "APPTRACE_GCOV_ENABLE": true }}\n`;
   ConfserverProcess.sendUpdatedValue(gcovEnableRequest);
-  await ConfserverProcess.saveGuiConfigValues();
+  ConfserverProcess.saveGuiConfigValues();
   await openCoverageUrl(workspacePath);
 }
 
