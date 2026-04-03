@@ -650,7 +650,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   const updateGuiValues = async (e: vscode.Uri) => {
     if (ConfserverProcess.exists() && !ConfserverProcess.isSavedByUI()) {
-      await ConfserverProcess.loadGuiConfigValues();
+      ConfserverProcess.loadGuiConfigValues();
     }
     ConfserverProcess.resetSavedByUI();
     await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);

@@ -68,17 +68,19 @@ export class ConfserverProcess {
   }
 
   public static async init(workspaceFolder: vscode.Uri, extensionPath: string) {
-    return new Promise(async (resolve) => {
-      const modifiedEnv = await configureEnvVariables(workspaceFolder);
-      if (!ConfserverProcess.instance) {
-        ConfserverProcess.instance = new ConfserverProcess(
-          workspaceFolder,
-          extensionPath,
-          modifiedEnv
-        );
-      }
-      ConfserverProcess.instance.emitter.once("valuesLoaded", resolve);
+    const modifiedEnv = await configureEnvVariables(workspaceFolder);
+    if (!ConfserverProcess.instance) {
+      ConfserverProcess.instance = new ConfserverProcess(
+        workspaceFolder,
+        extensionPath,
+        modifiedEnv
+      );
+    }
+    await new Promise<void>((resolve) => {
+      ConfserverProcess.instance!.emitter.once("valuesLoaded", () => resolve());
     });
+    ConfserverProcess.instance.sdkconfigResolvedPath =
+      await getSDKConfigFilePath(workspaceFolder);
   }
 
   public static exists() {
@@ -197,38 +199,36 @@ export class ConfserverProcess {
     }
   }
 
-  public static async saveGuiConfigValues() {
-    if (ConfserverProcess.instance) {
-      ConfserverProcess.instance.isSavingSdkconfig = true;
-      const configFile = await getSDKConfigFilePath(
-        ConfserverProcess.instance.workspaceFolder
-      );
-      const saveRequest = JSON.stringify({
-        version: 2,
-        save: configFile,
-      });
-      OutputChannel.appendLine(saveRequest, "SDK Configuration Editor");
-      ConfserverProcess.instance.confServerProcess?.stdin?.write(saveRequest);
-      ConfserverProcess.instance.confServerProcess?.stdin?.write("\n");
-      ConfserverProcess.instance.areValuesSaved = true;
+  public static saveGuiConfigValues() {
+    if (!ConfserverProcess.instance) {
+      return;
     }
+    ConfserverProcess.instance.isSavingSdkconfig = true;
+    const configFile = ConfserverProcess.instance.readSdkconfigFilePath();
+    const saveRequest = JSON.stringify({
+      version: 2,
+      save: configFile,
+    });
+    OutputChannel.appendLine(saveRequest, "SDK Configuration Editor");
+    ConfserverProcess.instance.confServerProcess?.stdin?.write(saveRequest);
+    ConfserverProcess.instance.confServerProcess?.stdin?.write("\n");
+    ConfserverProcess.instance.areValuesSaved = true;
   }
 
-  public static async loadGuiConfigValues(isClosingWithoutSaving?: boolean) {
-    if (ConfserverProcess.instance) {
-      const configFile = await getSDKConfigFilePath(
-        ConfserverProcess.instance.workspaceFolder
-      );
-      const loadRequest = JSON.stringify({
-        version: 2,
-        load: configFile,
-      });
-      OutputChannel.appendLine(loadRequest, "SDK Configuration Editor");
-      ConfserverProcess.instance.confServerProcess?.stdin?.write(loadRequest);
-      ConfserverProcess.instance.confServerProcess?.stdin?.write("\n");
-      if (isClosingWithoutSaving) {
-        ConfserverProcess.instance.areValuesSaved = true;
-      }
+  public static loadGuiConfigValues(isClosingWithoutSaving?: boolean) {
+    if (!ConfserverProcess.instance) {
+      return;
+    }
+    const configFile = ConfserverProcess.instance.readSdkconfigFilePath();
+    const loadRequest = JSON.stringify({
+      version: 2,
+      load: configFile,
+    });
+    OutputChannel.appendLine(loadRequest, "SDK Configuration Editor");
+    ConfserverProcess.instance.confServerProcess?.stdin?.write(loadRequest);
+    ConfserverProcess.instance.confServerProcess?.stdin?.write("\n");
+    if (isClosingWithoutSaving) {
+      ConfserverProcess.instance.areValuesSaved = true;
     }
   }
 
@@ -368,6 +368,8 @@ export class ConfserverProcess {
   }
 
   private areValuesSaved: boolean = true;
+  /** Set in `init` after first `valuesLoaded` and `getSDKConfigFilePath`. */
+  private sdkconfigResolvedPath: string | undefined;
   private confServerProcess: ChildProcess | null;
   private emitter: EventEmitter;
   private isSavingSdkconfig: boolean = false;
@@ -450,6 +452,17 @@ export class ConfserverProcess {
     }
     this.setupConfigServer();
     this.jsonListener = this.initMenuConfigPanel;
+  }
+
+  private readSdkconfigFilePath(): string {
+    if (this.sdkconfigResolvedPath) {
+      return this.sdkconfigResolvedPath;
+    }
+    const fromSettings = idfConf.readParameter(
+      "idf.sdkconfigFilePath",
+      this.workspaceFolder
+    ) as string;
+    return fromSettings || path.join(this.workspaceFolder.fsPath, "sdkconfig");
   }
 
   private checkIfJsonIsReceived() {
