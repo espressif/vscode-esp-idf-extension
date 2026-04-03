@@ -79,8 +79,9 @@ export class ConfserverProcess {
     await new Promise<void>((resolve) => {
       ConfserverProcess.instance!.emitter.once("valuesLoaded", () => resolve());
     });
-    ConfserverProcess.instance.sdkconfigResolvedPath =
-      await getSDKConfigFilePath(workspaceFolder);
+    ConfserverProcess.instance.sdkconfigResolvedPath = await getSDKConfigFilePath(
+      workspaceFolder
+    );
   }
 
   public static exists() {
@@ -265,7 +266,10 @@ export class ConfserverProcess {
     }
     reconfigureArgs.push("-C", currWorkspace.fsPath);
     const sdkconfigDefaults =
-      (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
+      (idfConf.readParameter(
+        "idf.sdkconfigDefaults",
+        currWorkspace
+      ) as string[]) || [];
 
     const sdkconfigFile = idfConf.readParameter(
       "idf.sdkconfigFilePath",
@@ -408,7 +412,10 @@ export class ConfserverProcess {
     ) as string;
     confServerArgs.push("-B", buildDirPath);
     const sdkconfigDefaults =
-      (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
+      (idfConf.readParameter(
+        "idf.sdkconfigDefaults",
+        workspaceFolder
+      ) as string[]) || [];
 
     const sdkconfigFile = idfConf.readParameter(
       "idf.sdkconfigFilePath",
