@@ -7,7 +7,7 @@ alwaysApply: false
 # Contributed Settings (package.json)
 
 - Use localization tokens for setting descriptions: `"%param.paramName%"`.
-- Add the string to all `package.nls*.json` files (en, zh-CN, pt, ru, es, etc.).
+- Add the string to all `package.nls*.json` files (en, zh-cn, pt, ru, es, etc.).
 - Never hardcode raw English strings in `package.json` for contributed settings.
 
 ```json
