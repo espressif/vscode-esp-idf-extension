@@ -27,7 +27,7 @@ export async function buildFinishFlashCmd(workspace: Uri) {
   const flasherArgsPath = join(buildPath, "flasher_args.json");
   const flasherArgsExists = await pathExists(flasherArgsPath);
   if (!flasherArgsExists) {
-    return;
+    return "";
   }
   const port = readParameter("idf.port", workspace) as string;
   const flashBaudRate = readParameter("idf.flashBaudRate", workspace);

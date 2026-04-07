@@ -122,7 +122,9 @@ export async function buildMain(
       updateIdfComponentsTree(workspace);
       Logger.infoNotify("Build Successful");
       const flashCmd = await buildFinishFlashCmd(workspace);
-      OutputChannel.appendLine(flashCmd, "Build");
+      if (flashCmd) {
+        OutputChannel.appendLine(flashCmd, "Build");
+      }
     }
     cleanupBuildState(buildTask);
 
