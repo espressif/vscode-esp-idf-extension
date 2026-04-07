@@ -44,6 +44,9 @@ export async function appendSizeExecutionIfEnabled(
   const projectName = await getProjectName(workspace);
   const mapFilePath = join(buildDirPath, `${projectName}.map`);
   const pythonCommand = await getVirtualEnvPythonPath();
+  if (!pythonCommand) {
+    throw new Error("Python path not found in environment");
+  }
   const modifiedEnv = await configureEnvVariables(workspace);
   const idfPath = modifiedEnv["IDF_PATH"];
   if (!idfPath) {
