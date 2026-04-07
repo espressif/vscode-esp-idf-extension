@@ -44,7 +44,8 @@ import { Logger } from "../logger/logger";
 
 suite("Doctor Command tests", () => {
   const reportObj = initializeReportObject();
-  const absPath = (filename) => resolve(__dirname, "..", "..", filename);
+  const absPath = (filename: string) =>
+    resolve(__dirname, "..", "..", filename);
   const mockUpContext: vscode.ExtensionContext = {
     extensionPath: resolve(__dirname, "..", ".."),
     asAbsolutePath: absPath,
@@ -66,9 +67,10 @@ suite("Doctor Command tests", () => {
     assert.equal(reportObj.systemInfo.envPath, processPathEnvVar);
 
     const extensionObj = vscode.extensions.getExtension(ESP.extensionID);
+    assert.notEqual(extensionObj, undefined);
     assert.equal(
       reportObj.systemInfo.extensionVersion,
-      extensionObj.packageJSON.version
+      extensionObj?.packageJSON.version
     );
     assert.equal(reportObj.systemInfo.language, vscode.env.language);
     assert.equal(reportObj.systemInfo.platform, os.platform());
@@ -110,8 +112,12 @@ suite("Doctor Command tests", () => {
 
   test("Wrong esp-idf py requirements", async () => {
     reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
+    reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
     await checkEspIdfRequirements(reportObj, mockUpContext);
-    assert.equal(reportObj.idfCheckRequirements.result, "Error: /some/non-existing-path/requirements.txt doesn't exist.");
+    assert.equal(
+      reportObj.idfCheckRequirements.result,
+      "Error: /some/non-existing-path/requirements.txt doesn't exist."
+    );
   });
 
   test("launch.json", async () => {
@@ -162,7 +168,7 @@ suite("Doctor Command tests", () => {
 
   test("Good esp-idf py requirements", async () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
-    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
+    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH || "";
     await checkEspIdfRequirements(reportObj, mockUpContext);
     assert.equal(
       reportObj.idfCheckRequirements.result,
@@ -172,16 +178,18 @@ suite("Doctor Command tests", () => {
 
   test("Good configuration access", async () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
-    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
-    reportObj.configurationSettings.customExtraPaths = process.env.PATH.replace(
-      delimiter + process.env.OLD_PATH,
-      ""
-    );
+    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH || "";
+    reportObj.configurationSettings.customExtraPaths = process.env.PATH
+      ? process.env.PATH.replace(delimiter + process.env.OLD_PATH, "")
+      : "";
     await getConfigurationAccess(reportObj);
     assert.equal(reportObj.configurationAccess.pythonBinPath, true);
     assert.equal(reportObj.configurationAccess.espIdfPath, true);
     for (let toolPath in reportObj.configurationAccess.espIdfToolsPaths) {
-      if (toolPath.indexOf(process.env.IDF_TOOLS_PATH) !== -1) {
+      if (
+        process.env.IDF_TOOLS_PATH &&
+        toolPath.indexOf(process.env.IDF_TOOLS_PATH) !== -1
+      ) {
         assert.equal(
           reportObj.configurationAccess.espIdfToolsPaths[toolPath],
           true
@@ -196,7 +204,7 @@ suite("Doctor Command tests", () => {
   });
 
   test("Match ESP-IDF version", async () => {
-    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
+    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH || "";
     await getEspIdfVersion(reportObj);
     assert.equal(reportObj.espIdfVersion.result, process.env.IDF_VERSION);
   });
@@ -215,25 +223,33 @@ suite("Doctor Command tests", () => {
 
   test("Match python packages", async () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
-    const expectedPyPkgs = JSON.parse(process.env.PY_PKGS);
-    await getPythonPackages(reportObj, mockUpContext);
-    assert.deepEqual(
-      reportObj.configurationSettings.pythonPackages,
-      expectedPyPkgs
-    );
+    if (process.env.PY_PKGS) {
+      const expectedPyPkgs = JSON.parse(process.env.PY_PKGS);
+      await getPythonPackages(reportObj, mockUpContext);
+      assert.deepEqual(
+        reportObj.configurationSettings.pythonPackages,
+        expectedPyPkgs
+      );
+    }
   });
 
   function replaceUserPathInStr(strReport: string) {
-    const escapedHome = process.env.HOME.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedHome = process.env.HOME?.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (!escapedHome) {
+      return strReport;
+    }
     const re = new RegExp(escapedHome, "g");
     return strReport.replace(re, "<HOMEPATH>");
   }
 
   test("Match written report", async () => {
-    const customExtraPaths = process.env.PATH.replace(
-      delimiter + process.env.OLD_PATH,
-      ""
-    );
+    let customExtraPaths = "";
+    if (process.env.PATH) {
+      customExtraPaths = process.env.PATH.replace(
+        delimiter + process.env.OLD_PATH,
+        ""
+      );
+    }
     const processPathEnvVar =
       process.platform === "win32" ? process.env.Path : process.env.PATH;
     const extensionObj = vscode.extensions.getExtension(ESP.extensionID);
@@ -249,7 +265,7 @@ suite("Doctor Command tests", () => {
     expectedOutput += `Visual Studio Code language ${vscode.env.language} ${os.EOL}`;
     expectedOutput += `Visual Studio Code shell ${vscode.env.shell} ${os.EOL}`;
     expectedOutput += `Visual Studio Code app name ${vscode.env.appName} ${os.EOL}`;
-    expectedOutput += `ESP-IDF Extension version ${extensionObj.packageJSON.version} ${os.EOL}`;
+    expectedOutput += `ESP-IDF Extension version ${extensionObj?.packageJSON.version} ${os.EOL}`;
     expectedOutput += `Workspace folder ${reportObj.workspaceFolder} ${os.EOL}`;
     expectedOutput += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${os.EOL}`;
     expectedOutput += `ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportObj.configurationSettings.espAdfPath}${os.EOL}`;

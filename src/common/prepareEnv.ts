@@ -163,6 +163,8 @@ export async function configureEnvVariables(
     );
     if (
       pathToPigweed &&
+      modifiedEnv[pathNameInEnv] &&
+      typeof modifiedEnv[pathNameInEnv] === "string" &&
       !modifiedEnv[pathNameInEnv].split(delimiter).includes(pathToPigweed)
     ) {
       modifiedEnv[pathNameInEnv] += delimiter + pathToPigweed;

@@ -53,7 +53,10 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
       "idf.currentSetup",
       workspaceFolder
     ) as string;
-    const doesIdfSetupToUseExist = await pathExists(idfConfigurationName);
+    let doesIdfSetupToUseExist = false;
+    if (idfConfigurationName) {
+      doesIdfSetupToUseExist = await pathExists(idfConfigurationName);
+    }
     if (doesIdfSetupToUseExist) {
       idfSetupToUse = idfSetups.find((idfSetup) => {
         return idfSetup.idfPath === idfConfigurationName;

@@ -48,8 +48,10 @@ export async function checkEspIdfTools(
     OutputChannel.init(),
     reportedResult.configurationSettings.espIdfPath
   );
-  const verifiedPkgs = await idfToolsManager.getRequiredToolsInfo(
-    reportedResult.configurationSettings.customExtraPaths
-  );
-  reportedResult.espIdfToolsVersions = verifiedPkgs;
+  if (reportedResult.configurationSettings.customExtraPaths) {
+    const verifiedPkgs = await idfToolsManager.getRequiredToolsInfo(
+      reportedResult.configurationSettings.customExtraPaths
+    );
+    reportedResult.espIdfToolsVersions = verifiedPkgs;
+  }
 }
