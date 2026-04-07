@@ -31,6 +31,9 @@ import { pathExists } from "fs-extra";
 import { IdfToolsManager } from "../idfToolsManager";
 
 export async function loadIdfSetup(workspaceFolder: Uri) {
+  ESP.ProjectConfiguration.store.clear(
+    ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
+  );
   const idfEnvSetup = await loadEnvVarsAsIdfSetup(workspaceFolder);
   if (idfEnvSetup) {
     Logger.info("Using environment variables to configure extension");
