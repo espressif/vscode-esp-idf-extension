@@ -22,6 +22,13 @@ import { getToolchainToolName, isBinInPath } from "../utils";
 import { readParameter } from "../idfConfiguration";
 import { Uri, workspace } from "vscode";
 
+/** Must run synchronously before any await in `BuildTask.build`. */
+export function reserveBuildSlotOrThrow(): void {
+  if (!BuildTask.tryReserveBuild()) {
+    throw new Error("ALREADY_BUILDING");
+  }
+}
+
 export async function runValidationBeforeBuild(
   envVariables: NodeJS.ProcessEnv,
   currentWorkspace: Uri
@@ -39,9 +46,6 @@ export async function runValidationBeforeBuild(
       "Failed to save unsaved files, ignoring and continuing with the build";
     Logger.error(errorMessage, error as Error, "build saveBeforeBuild");
     Logger.warnNotify(errorMessage);
-  }
-  if (BuildTask.isBuilding) {
-    throw new Error("ALREADY_BUILDING");
   }
   const canAccessCMake = await isBinInPath("cmake", envVariables);
   if (canAccessCMake === "") {
