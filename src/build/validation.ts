@@ -37,7 +37,7 @@ export async function runValidationBeforeBuild(
   } catch (error) {
     const errorMessage =
       "Failed to save unsaved files, ignoring and continuing with the build";
-    Logger.error(errorMessage, error, "build saveBeforeBuild");
+    Logger.error(errorMessage, error as Error, "build saveBeforeBuild");
     Logger.warnNotify(errorMessage);
   }
   if (BuildTask.isBuilding) {
