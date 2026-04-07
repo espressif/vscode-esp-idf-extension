@@ -58,6 +58,9 @@ export async function appendDfuExecution(
   buildTask.building(true);
   const modifiedEnv = await configureEnvVariables(workspace);
   const idfPathDir = modifiedEnv["IDF_PATH"];
+  if (!idfPathDir) {
+    throw new Error("IDF_PATH not found in environment");
+  }
   const args = [
     join(idfPathDir, "tools", "mkdfu.py"),
     "write",
@@ -69,6 +72,9 @@ export async function appendDfuExecution(
     selectedDFUAdapterId(adapterTargetName).toString(),
   ];
   const pythonBinPath = await getVirtualEnvPythonPath();
+  if (!pythonBinPath) {
+    throw new Error("Python path not found in environment");
+  }
   const buildDfuExecution = addProcessTask(
     "Write DFU bin",
     workspace,
