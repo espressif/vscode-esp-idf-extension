@@ -52,7 +52,6 @@ export class BuildTask {
       OutputCapturingExecution | ProcessExecution
     ]
   > {
-    this.building(true);
     const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
     const buildDirPath = readParameter(
       "idf.buildPath",
@@ -63,6 +62,7 @@ export class BuildTask {
       modifiedEnv,
       this.currentWorkspace
     );
+    this.building(true);
 
     const cmakeCachePath = join(buildDirPath, "CMakeCache.txt");
     const cmakeCacheExists = await pathExists(cmakeCachePath);
