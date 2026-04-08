@@ -17,8 +17,11 @@
  */
 
 import { TaskPanelKind, Uri } from "vscode";
-import { addProcessTask, TaskManager } from "../taskManager";
-import { MaybeIdfTaskExecution } from "./taskHelpers";
+import {
+  addProcessTask,
+  type MaybeIdfTaskExecution,
+  TaskManager,
+} from "../taskManager";
 import { readParameter } from "../idfConfiguration";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { getVirtualEnvPythonPath } from "../pythonManager";

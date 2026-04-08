@@ -17,7 +17,6 @@
  */
 
 import { Uri } from "vscode";
-import { MaybeIdfTaskExecution } from "./taskHelpers";
 import { BuildTask } from "./buildTask";
 import { readParameter } from "../idfConfiguration";
 import { join } from "path";
@@ -27,7 +26,7 @@ import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { selectedDFUAdapterId } from "../flash/dfu";
 import { getVirtualEnvPythonPath } from "../pythonManager";
-import { addProcessTask } from "../taskManager";
+import { addProcessTask, type MaybeIdfTaskExecution } from "../taskManager";
 
 export async function appendDfuExecution(
   executions: Exclude<MaybeIdfTaskExecution, undefined>[],
