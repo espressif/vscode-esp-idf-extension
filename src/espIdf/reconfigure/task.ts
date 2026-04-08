@@ -25,7 +25,7 @@ import { configureEnvVariables } from "../../common/prepareEnv";
 import {
   appendSdkconfigDefaultsAndCcache,
   replaceBuildDirArg,
-} from "../../build/projectConfigureArgs";
+} from "../../build/buildHelpers";
 
 export async function addIdfReconfigureTask(workspace: Uri) {
   const modifiedEnv = await configureEnvVariables(workspace);
