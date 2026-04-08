@@ -19,18 +19,18 @@
 import { BuildTask } from "./buildTask";
 import { FlashTask } from "../flash/flashTask";
 import { Logger } from "../logger/logger";
-import { TaskManager } from "../taskManager";
+import {
+  collectExecutions,
+  TaskManager,
+  throwCapturedTaskFailure,
+} from "../taskManager";
 import { updateIdfComponentsTree } from "../workspaceConfig";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { ESP } from "../config";
 import { OutputChannel } from "../logger/outputChannel";
 import { CustomExecutionTaskResult } from "../taskManager/customExecution";
 import { buildFinishFlashCmd } from "./buildFinishFlashCmd";
-import {
-  cleanupBuildState,
-  collectExecutions,
-  throwCapturedTaskFailure,
-} from "./taskHelpers";
+import { cleanupBuildState } from "./buildHelpers";
 import { appendDfuExecution } from "./dfuExecution";
 import { runSizeTaskIfEnabled } from "./sizeExecution";
 import { CancellationToken, l10n, Uri } from "vscode";
