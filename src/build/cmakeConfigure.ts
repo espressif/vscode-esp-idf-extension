@@ -11,7 +11,7 @@ import { addProcessTask } from "../taskManager";
 import {
   appendSdkconfigDefaultsAndCcache,
   replaceBuildDirArg,
-} from "./projectConfigureArgs";
+} from "./buildHelpers";
 import { readParameter } from "../idfConfiguration";
 
 export async function enqueueCompileTaskIfNoCache(
