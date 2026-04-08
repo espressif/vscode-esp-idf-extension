@@ -63,6 +63,39 @@ export type IdfTaskExecution =
   | CustomExecution
   | OutputCapturingExecution;
 
+export type MaybeIdfTaskExecution = IdfTaskExecution | undefined;
+
+export function collectExecutions(
+  ...executions: MaybeIdfTaskExecution[]
+): IdfTaskExecution[] {
+  return executions.filter(
+    (execution): execution is IdfTaskExecution => execution !== undefined
+  );
+}
+
+export async function throwCapturedTaskFailure(
+  executions: MaybeIdfTaskExecution[]
+) {
+  for (const execution of executions) {
+    if (!execution || !("getOutput" in execution)) {
+      continue;
+    }
+
+    const executionOutput = await (execution as
+      | OutputCapturingExecution
+      | ShellOutputCapturingExecution).getOutput();
+    if (executionOutput && !executionOutput.success) {
+      if (executionOutput.stderr?.trim()) {
+        throw executionOutput.stderr;
+      }
+      if (executionOutput.stdout?.trim()) {
+        throw executionOutput.stdout;
+      }
+      throw new Error(`Task exited with code ${executionOutput.exitCode}`);
+    }
+  }
+}
+
 export function getWorkspaceFolderForTask(
   workspaceUri: Uri
 ): WorkspaceFolder | undefined {
