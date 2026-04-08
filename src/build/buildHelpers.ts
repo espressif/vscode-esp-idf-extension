@@ -7,7 +7,9 @@
  */
 
 import { Uri } from "vscode";
+import type { BuildTask } from "./buildTask";
 import { readParameter } from "../idfConfiguration";
+import { TaskManager } from "../taskManager";
 import { getSDKConfigFilePath } from "../utils";
 
 export function replaceBuildDirArg(
@@ -21,17 +23,16 @@ export function replaceBuildDirArg(
   args.push("-B", buildDirPath);
 }
 
-export async function appendSdkconfigDefaultsAndCcache(
+export function applySdkconfigDefaultsAndCcacheArgs(
   args: string[],
-  workspaceUri: Uri
-): Promise<void> {
-  const sdkconfigFile = await getSDKConfigFilePath(workspaceUri);
+  sdkconfigFile: string,
+  sdkconfigDefaults: string[],
+  enableCCache: boolean
+): void {
   if (args.indexOf("SDKCONFIG") === -1) {
     args.push(`-DSDKCONFIG='${sdkconfigFile}'`);
   }
 
-  const sdkconfigDefaults =
-    (readParameter("idf.sdkconfigDefaults", workspaceUri) as string[]) || [];
   if (
     args.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
     sdkconfigDefaults &&
@@ -40,14 +41,39 @@ export async function appendSdkconfigDefaultsAndCcache(
     args.push(`-DSDKCONFIG_DEFAULTS='${sdkconfigDefaults.join(";")}'`);
   }
 
-  const enableCCache = readParameter(
-    "idf.enableCCache",
-    workspaceUri
-  ) as boolean;
   if (enableCCache && args.length) {
     const indexOfCCache = args.indexOf("-DCCACHE_ENABLE=1");
     if (indexOfCCache === -1) {
       args.push("-DCCACHE_ENABLE=1");
     }
   }
+}
+
+export async function appendSdkconfigDefaultsAndCcache(
+  args: string[],
+  workspaceUri: Uri
+): Promise<void> {
+  const sdkconfigFile = await getSDKConfigFilePath(workspaceUri);
+  const sdkconfigDefaults =
+    (readParameter("idf.sdkconfigDefaults", workspaceUri) as string[]) || [];
+  const enableCCache = readParameter(
+    "idf.enableCCache",
+    workspaceUri
+  ) as boolean;
+  applySdkconfigDefaultsAndCcacheArgs(
+    args,
+    sdkconfigFile,
+    sdkconfigDefaults,
+    enableCCache
+  );
+}
+
+export function cleanupBuildState(buildTask: BuildTask): void {
+  TaskManager.disposeListeners();
+  buildTask.building(false);
+  // Defer loading buildTask so cmakeConfigure can import this module without a cycle.
+  const { BuildTask: BuildTaskCtor } = require("./buildTask") as {
+    BuildTask: { isBuilding: boolean };
+  };
+  BuildTaskCtor.isBuilding = false;
 }
