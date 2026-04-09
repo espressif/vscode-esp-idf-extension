@@ -2,6 +2,7 @@ import * as path from "path";
 import { pathExists } from "fs-extra";
 import { Logger } from "../../logger/logger";
 import { isBinInPath } from "../../utils";
+import { readParameter } from "../../idfConfiguration";
 import { configureEnvVariables } from "../../common/prepareEnv";
 import { Uri } from "vscode";
 
@@ -54,4 +55,30 @@ export async function getOpenOcdHintsYmlPath(
     );
     return null;
   }
+}
+
+export async function resolveIdfHintsYmlPath(
+  espIdfPath: string,
+  workspace: Uri
+): Promise<string> {
+  const legacy = path.join(
+    espIdfPath,
+    "tools",
+    "idf_py_actions",
+    "hints.yml"
+  );
+  let buildDir = readParameter("idf.buildPath", workspace) as string;
+  if (!buildDir) {
+    buildDir = path.join(workspace.fsPath, "build");
+  } else if (!path.isAbsolute(buildDir)) {
+    buildDir = path.join(workspace.fsPath, buildDir);
+  }
+  const aggregated = path.join(buildDir, "hints.yml");
+  if (await pathExists(aggregated)) {
+    return aggregated;
+  }
+  if (await pathExists(legacy)) {
+    return legacy;
+  }
+  return aggregated;
 }

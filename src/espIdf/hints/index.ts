@@ -16,9 +16,8 @@ import * as yaml from "js-yaml";
 import { readFile, pathExists } from "fs-extra";
 import { Logger } from "../../logger/logger";
 import * as utils from "../../utils";
-import { getOpenOcdHintsYmlPath } from "./utils";
+import { getOpenOcdHintsYmlPath, resolveIdfHintsYmlPath } from "./utils";
 import * as vscode from "vscode";
-import * as path from "path";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
@@ -193,7 +192,7 @@ export class ErrorHintProvider
     }
 
     // Get paths for both hint files
-    const idfHintsPath = getIdfHintsYmlPath(espIdfPath);
+    const idfHintsPath = await resolveIdfHintsYmlPath(espIdfPath, workspace);
     const toolsPath = modifiedEnv["IDF_TOOLS_PATH"];
     let openOcdHintsPath: string | null = null;
     try {
@@ -675,7 +674,4 @@ export class HintHoverProvider implements vscode.HoverProvider {
     // No matching diagnostics found at this position
     return null;
   }
-}
-function getIdfHintsYmlPath(espIdfPath: string): string {
-  return path.join(espIdfPath, "tools", "idf_py_actions", "hints.yml");
 }
