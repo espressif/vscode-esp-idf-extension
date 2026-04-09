@@ -29,12 +29,21 @@ export function applySdkconfigDefaultsAndCcacheArgs(
   sdkconfigDefaults: string[],
   enableCCache: boolean
 ): void {
-  if (args.indexOf("SDKCONFIG") === -1) {
+  const hasSdkconfigArg = args.some(
+    (a) =>
+      a.startsWith("-DSDKCONFIG=") || a.startsWith("-DSDKCONFIG='")
+  );
+  if (!hasSdkconfigArg) {
     args.push(`-DSDKCONFIG='${sdkconfigFile}'`);
   }
 
+  const hasSdkconfigDefaultsArg = args.some(
+    (a) =>
+      a.startsWith("-DSDKCONFIG_DEFAULTS=") ||
+      a.startsWith("-DSDKCONFIG_DEFAULTS='")
+  );
   if (
-    args.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
+    !hasSdkconfigDefaultsArg &&
     sdkconfigDefaults &&
     sdkconfigDefaults.length
   ) {
