@@ -23,7 +23,7 @@ import { startPythonReqsProcess } from "../utils";
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import { join } from "path";
 import { ConfigurationTarget, StatusBarItem, Uri } from "vscode";
-import { writeParameter } from "../idfConfiguration";
+import { readParameter, writeParameter } from "../idfConfiguration";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { getEnvVariables } from "./loadSettings";
 import { ESP } from "../config";
@@ -161,6 +161,27 @@ export async function saveSettings(
   workspaceFolderUri: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
+  const rawCustomVars = readParameter(
+    "idf.customExtraVars",
+    workspaceFolderUri
+  );
+  const customVars: { [key: string]: string } =
+    rawCustomVars &&
+    typeof rawCustomVars === "object" &&
+    !Array.isArray(rawCustomVars)
+      ? { ...(rawCustomVars as { [key: string]: string }) }
+      : {};
+  delete customVars["IDF_PATH"];
+  delete customVars["IDF_TOOLS_PATH"];
+  delete customVars["IDF_PYTHON_ENV_PATH"];
+
+  await writeParameter(
+    "idf.customExtraVars",
+    customVars,
+    ConfigurationTarget.WorkspaceFolder,
+    workspaceFolderUri
+  );
+
   await writeParameter(
     "idf.currentSetup",
     setupConf.idfPath,
