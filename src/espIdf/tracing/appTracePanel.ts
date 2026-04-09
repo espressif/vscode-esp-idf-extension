@@ -149,7 +149,9 @@ export class AppTracePanel {
               });
             break;
           case "resolveAddresses":
-            this.resolveAddresses({ addresses: JSON.parse(msg.addresses) });
+            this.resolveAddresses({
+              addresses: JSON.parse(msg.addresses),
+            });
             break;
           case "openFileAtLine":
             this.openFileAtLineNumber(msg.filePath, msg.lineNumber);
@@ -236,18 +238,21 @@ export class AppTracePanel {
 
     return funcName;
   }
-  private resolveAddresses({
+  private async resolveAddresses({
     addresses,
   }: {
     addresses: { [key: string]: any };
   }) {
-    const workspaceRoot = vscode.workspace.workspaceFolders?.length
-      ? vscode.workspace.workspaceFolders[0].uri
-      : undefined;
-    if (!workspaceRoot) {
-      throw new Error("Workspace folder is not open");
-    }
-    if (addresses) {
+    try {
+      const workspaceRoot = vscode.workspace.workspaceFolders?.length
+        ? vscode.workspace.workspaceFolders[0].uri
+        : undefined;
+      if (!workspaceRoot) {
+        throw new Error("Workspace folder is not open");
+      }
+      if (!addresses) {
+        return;
+      }
       const promises = Object.keys(addresses).map((add) => {
         const fn = async (address: string) => {
           const addr2line = new Addr2Line(
@@ -271,9 +276,15 @@ export class AppTracePanel {
         };
         return fn(add);
       });
-      Promise.all(promises).then((resp) => {
-        this.sendCommandToWebview("addressesResolved", addresses);
-      });
+      await Promise.all(promises);
+      this.sendCommandToWebview("addressesResolved", addresses);
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      Logger.errorNotify(
+        errMsg,
+        error as Error,
+        "AppTracePanel resolveAddresses"
+      );
     }
   }
   private async parseTraceLogData(): Promise<string> {
