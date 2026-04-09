@@ -130,6 +130,9 @@ export async function configureProjectWithGcov(workspacePath: Uri) {
 
 export async function openCoverageUrl(workspacePath: Uri) {
   const docsVersions = await getDocsVersion();
+  if (!docsVersions) {
+    return;
+  }
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
   }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
@@ -142,18 +145,19 @@ export async function openCoverageUrl(workspacePath: Uri) {
     docVersion = docsVersions.find((docVer) => docVer.name === "latest");
   }
   if (
+    docVersion &&
     docVersion.supportedTargets &&
     docVersion.supportedTargets.indexOf(idfTarget) !== -1
   ) {
     targetToUse = idfTarget;
-  }
-  const localeLang = getDocsLocaleLang();
-  const coverageDocUrl = `https://docs.espressif.com/projects/esp-idf/${localeLang}/${docVersion.name}/${targetToUse}/api-guides/app_trace.html#compiler-option`;
-  const option = await window.showInformationMessage(
-    "Your project sdkconfig has been configured. Make sure to compile the source file with the --coverage option.",
-    "See the docs"
-  );
-  if (option === "See the docs") {
-    env.openExternal(Uri.parse(coverageDocUrl));
+    const localeLang = getDocsLocaleLang();
+    const coverageDocUrl = `https://docs.espressif.com/projects/esp-idf/${localeLang}/${docVersion.name}/${targetToUse}/api-guides/app_trace.html#compiler-option`;
+    const option = await window.showInformationMessage(
+      "Your project sdkconfig has been configured. Make sure to compile the source file with the --coverage option.",
+      "See the docs"
+    );
+    if (option && option === "See the docs") {
+      env.openExternal(Uri.parse(coverageDocUrl));
+    }
   }
 }

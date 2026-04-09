@@ -36,7 +36,7 @@ import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
-import { getIdfTargetFromSdkconfig, getProjectName } from "./workspaceConfig";
+import { getSDKConfigFilePath } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
@@ -462,49 +462,6 @@ export function getVariableFromCMakeLists(workspacePath: string, key: string) {
   return match ? match[1] : "";
 }
 
-export async function getSDKConfigFilePath(workspacePath: vscode.Uri) {
-  let sdkconfigFilePath = "";
-  try {
-    sdkconfigFilePath = getVariableFromCMakeLists(
-      workspacePath.fsPath,
-      "SDKCONFIG"
-    );
-  } catch (error) {
-    const errMsg = error.message
-      ? error.message
-      : `CMakeLists.txt file doesn't exists or can't be read`;
-    Logger.info(errMsg, error);
-  }
-  if (
-    sdkconfigFilePath &&
-    sdkconfigFilePath.indexOf("${CMAKE_BINARY_DIR}") !== -1
-  ) {
-    const buildDirPath = idfConf.readParameter(
-      "idf.buildPath",
-      workspacePath
-    ) as string;
-    sdkconfigFilePath = sdkconfigFilePath
-      .replace("${CMAKE_BINARY_DIR}", buildDirPath)
-      .replace(/"/g, "");
-  }
-  if (!sdkconfigFilePath) {
-    sdkconfigFilePath = idfConf.readParameter(
-      "idf.sdkconfigFilePath",
-      workspacePath
-    ) as string;
-  }
-  if (!workspacePath) {
-    return;
-  }
-  if (!sdkconfigFilePath) {
-    sdkconfigFilePath = path.join(workspacePath.fsPath, "sdkconfig");
-  }
-  if (!sdkconfigFilePath) {
-    sdkconfigFilePath = path.join(workspacePath.fsPath, "sdkconfig.defaults");
-  }
-  return sdkconfigFilePath;
-}
-
 export async function getConfigValueFromSDKConfig(
   key: string,
   workspacePath: vscode.Uri
@@ -742,38 +699,6 @@ export function isStringNotEmpty(str: string) {
 
 export function checkSpacesInPath(pathStr: string) {
   return /\s+/g.test(pathStr);
-}
-
-export async function getElfFilePath(
-  workspaceURI: vscode.Uri
-): Promise<string> {
-  let projectName = "";
-  if (!workspaceURI) {
-    throw new Error("No Workspace open");
-  }
-
-  try {
-    const buildDir = idfConf.readParameter(
-      "idf.buildPath",
-      workspaceURI
-    ) as string;
-    if (!canAccessFile(buildDir, fs.constants.R_OK)) {
-      throw new Error("Build is required once to generate the ELF File");
-    }
-    projectName = await getProjectName(buildDir);
-    const elfFilePath = path.join(buildDir, `${projectName}.elf`);
-    if (!canAccessFile(elfFilePath, fs.constants.R_OK)) {
-      throw new Error(`Failed to access .elf file at ${elfFilePath}`);
-    }
-    return elfFilePath;
-  } catch (error) {
-    Logger.errorNotify(
-      "Failed to read project name while fetching elf file",
-      error,
-      "utils getElfFilePath"
-    );
-    return;
-  }
 }
 
 export function checkIsProjectCmakeLists(dir: string) {
