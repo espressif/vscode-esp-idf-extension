@@ -81,15 +81,15 @@ suite("Build", () => {
         assert.deepStrictEqual(args, ["-DSDKCONFIG='/ws/sdkconfig'"]);
       });
 
-      test("skips SDKCONFIG when args contain literal SDKCONFIG entry", () => {
-        const args = ["SDKCONFIG"];
+      test("skips SDKCONFIG when args already pass -DSDKCONFIG=...", () => {
+        const args = ["-DSDKCONFIG=/existing"];
         applySdkconfigDefaultsAndCcacheArgs(
           args,
           "/ws/sdkconfig",
           [],
           false
         );
-        assert.deepStrictEqual(args, ["SDKCONFIG"]);
+        assert.deepStrictEqual(args, ["-DSDKCONFIG=/existing"]);
       });
 
       test("appends SDKCONFIG_DEFAULTS joined with semicolons", () => {
@@ -107,10 +107,10 @@ suite("Build", () => {
         assert.deepStrictEqual(args, ["-DSDKCONFIG='/cfg'"]);
       });
 
-      test("skips SDKCONFIG_DEFAULTS when args contain literal SDKCONFIG_DEFAULTS", () => {
-        const args = ["SDKCONFIG_DEFAULTS"];
+      test("skips SDKCONFIG_DEFAULTS when args already pass -DSDKCONFIG_DEFAULTS=...", () => {
+        const args = ["-DSDKCONFIG_DEFAULTS=/existing"];
         applySdkconfigDefaultsAndCcacheArgs(args, "/cfg", ["x"], false);
-        assert.deepStrictEqual(args, ["SDKCONFIG_DEFAULTS"]);
+        assert.deepStrictEqual(args, ["-DSDKCONFIG_DEFAULTS=/existing"]);
       });
 
       test("appends CCACHE flag when enabled and args are non-empty", () => {
