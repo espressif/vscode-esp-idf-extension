@@ -7,6 +7,9 @@ on:
 jobs:
   request-rating:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Create rating request comment
         uses: actions/github-script@v8

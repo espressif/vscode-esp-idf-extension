@@ -10,11 +10,8 @@ run-name: >
 on:
   issues: {types: [opened]}
   issue_comment: {types: [created, edited, deleted]}
-  schedule: [cron: '0 * * * *']
-  workflow_dispatch:
-    inputs:
-      action: {description: 'Action to be performed', required: true, default: 'mirror-issues'}
-      issue-numbers: {description: 'Issue numbers to sync (comma-separated)', required: true}
+  schedule:
+    - cron: '0 * * * *'
 
 jobs:
   sync-to-jira:

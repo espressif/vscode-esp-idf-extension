@@ -34,6 +34,7 @@ jobs:
 
       - uses: ncipollo/release-action@v1
         with:
+          artifactErrorsFailBuild: true
           artifacts: "esp-idf-extension.vsix"
           name: ESP IDF VSCode Extension Release ${{ github.ref }}
           draft: true
