@@ -258,5 +258,13 @@
   "Not Now": "Agora não",
   "To install the pre-release version, click the 'Switch to Pre-Release Version' button.": "Para instalar a versão pré-lançamento, clique no botão 'Alternar para versão pré-lançamento'.",
   "Got it": "Entendi",
-  "Flash encryption or secure boot is enabled on the device. Erasing flash will permanently remove the encryption keys and may render the device unusable.": "A criptografia de flash ou inicialização segura está ativada no dispositivo. Apagar o flash removerá permanentemente as chaves de criptografia e pode tornar o dispositivo inutilizável."
+  "Flash encryption or secure boot is enabled on the device. Erasing flash will permanently remove the encryption keys and may render the device unusable.": "A criptografia de flash ou inicialização segura está ativada no dispositivo. Apagar o flash removerá permanentemente as chaves de criptografia e pode tornar o dispositivo inutilizável.",
+  "Copy EIM Path": "Copiar caminho do EIM",
+  "Run EIM in Terminal": "Executar EIM no terminal",
+  "VS Code installed via Snap cannot launch EIM's GUI due to sandbox restrictions. You can run EIM in CLI mode directly from the integrated terminal, or copy the path to run the GUI manually from a system terminal.": "O VS Code instalado via Snap não pode iniciar a interface gráfica do EIM devido às restrições do sandbox. Você pode executar o EIM no modo CLI diretamente do terminal integrado ou copiar o caminho para executar a GUI manualmente de um terminal do sistema.",
+  "EIM path copied to clipboard. Open a system terminal and paste it to run.": "Caminho do EIM copiado para a área de transferência. Abra um terminal do sistema e cole para executar.",
+  "EIM executable not found. Please choose a download mirror.": "Executável EIM não encontrado. Por favor, escolha um espelho de download.",
+  "Graphical Interface (GUI)": "Interface gráfica (GUI)",
+  "Command Line (Terminal)": "Linha de comando (Terminal)",
+  "Select how to launch EIM": "Selecione como iniciar o EIM"
 }

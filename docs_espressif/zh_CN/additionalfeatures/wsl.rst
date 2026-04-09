@@ -146,6 +146,10 @@
 
     在 WSL 中运行设置时，默认使用 **用户设置** (User Settings)，可能会覆盖 Windows 主机的配置。建议将设置保存到 **工作区** (workspace) 或 **工作区文件夹** (workspace folder)。
 
+.. note::
+
+    当在 WSL 中以 CLI 向导模式启动 EIM 时，扩展还会将 EIM 可执行文件所在目录添加到 WSL 用户的 shell PATH 中。之后请重新打开一个 WSL 终端，即可直接运行 ``eim``；支持的命令可参考 `EIM CLI 命令文档 <https://docs.espressif.com/projects/idf-im-ui/en/latest/cli_commands.html>`_。
+
 此时，可以开始使用 ``Blink`` 示例项目进行构建、烧录、监视、调试等操作。
 
 构建你的项目

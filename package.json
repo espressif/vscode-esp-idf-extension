@@ -647,7 +647,8 @@
           "idf.eimExecutableArgs": {
             "type": "array",
             "default": [
-              "gui"
+              "gui",
+              "--idf-features ide"
             ],
             "description": "%param.eimExecutableArgs%",
             "scope": "application"
@@ -1346,6 +1347,16 @@
       {
         "command": "espIdf.installManager",
         "title": "%espIdf.installManager.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.openInstallationManagerGui",
+        "title": "%espIdf.openInstallationManagerGui.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.openInstallationManagerCli",
+        "title": "%espIdf.openInstallationManagerCli.title%",
         "category": "ESP-IDF"
       },
       {

@@ -28,6 +28,10 @@ After installing Visual Studio Code (VS Code), install the ESP-IDF extension for
 
 3.  Use the ESP-IDF Installation Manager to install the ESP-IDF and tools. If necessary, here is the `ESP-IDF Installation Manager Documentation <https://docs.espressif.com/projects/idf-im-ui/en/latest/general_info.html>`_.
 
+    .. note::
+
+        In remote or headless environments such as SSH, WSL, Dev Containers, Codespaces, or browser-based VS Code, the extension runs ``eim wizard`` instead of the GUI. When launching the wizard on Linux, the extension also adds the EIM executable directory to the remote user's shell PATH so ``eim`` can be run directly in future terminals. See the `EIM CLI Commands <https://docs.espressif.com/projects/idf-im-ui/en/latest/cli_commands.html>`_ reference for the available commands.
+        
 4. All ESP-IDF versions installed using the ESP-IDF Installation Manager will be automatically detected by the ESP-IDF VS Code extension by reading EIM's **eim_idf.json** file.
 
     .. note::
@@ -36,6 +40,7 @@ After installing Visual Studio Code (VS Code), install the ESP-IDF extension for
         If your **eim_idf.json** is not in the default location, you can define the path to the EIM **eim_idf.json** file using the ``idf.eimIdfJsonPath`` extension configuration setting in Visual Studio Code ``Preferences: Open Settings (UI)`` command.
 
 5. In Visual Studio Code, navigate to ``View`` > ``Command Palette`` and type ``select current esp-idf version`` and select **ESP-IDF: Select Current ESP-IDF Version** from the list.
+
    The list of available ESP-IDF setups will be shown, select which one you want to use for the current ESP-IDF project. 
    
    - The selected setup will save a **idf.currentSetup** with selected ESP-IDF path and the extension will configure required environment variables for the current ESP-IDF project saved as workspace folder state. 

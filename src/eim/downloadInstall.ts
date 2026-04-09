@@ -19,15 +19,17 @@
 import axios from "axios";
 import { basename, dirname, extname, join, resolve as pathResolve } from "path";
 import {
+  appendFile,
   createWriteStream,
   ensureDir,
   move,
   pathExists,
   ReadStream,
+  readFile,
   remove,
   WriteStream,
 } from "fs-extra";
-import { CancellationToken, env, Progress, window } from "vscode";
+import { CancellationToken, env, Progress, UIKind, window } from "vscode";
 import { OutputChannel } from "../logger/outputChannel";
 import del from "del";
 import { dirExistPromise, isBinInPath } from "../utils";
@@ -36,78 +38,79 @@ import { Logger } from "../logger/logger";
 import { getEimIdfJson } from "./getExistingSetups";
 import { readParameter } from "../idfConfiguration";
 
-export async function runExistingEIM(
-  progress: Progress<{ message: string; increment: number }>,
-  cancelToken: CancellationToken
-): Promise<boolean> {
+type EimShellProfileTarget = {
+  path: string;
+  shellType: "fish" | "posix";
+};
+
+export function isVSCodeInstalledViaSnap(): boolean {
+  return (
+    process.platform === "linux" &&
+    (!!process.env.SNAP || process.execPath.includes("/snap/"))
+  );
+}
+
+export function shouldForceCliMode(): boolean {
+  return (
+    typeof env.remoteName !== "undefined" ||
+    env.uiKind === UIKind.Web
+  );
+}
+
+export async function resolveEimPath(): Promise<string> {
   let eimPath = "";
-  if (cancelToken.isCancellationRequested) {
-    return false;
+
+  // 1. Check eim is in PATH and use it
+  const eimInPATH = await isBinInPath("eim", process.env);
+  if (eimInPATH) {
+    eimPath = eimInPATH;
   }
-  progress.report({
-    message: `Checking EIM already exists...`,
-    increment: 0,
-  });
-  try {
-    // 1. Check eim is in PATH and use it
-    const eimInPATH = await isBinInPath("eim", process.env);
-    if (eimInPATH) {
-      eimPath = eimInPATH;
-    }
-    // 2. Check eim_idf.json for existing EIM path
-    if (!eimPath) {
-      const eimJSON = await getEimIdfJson();
-      if (eimJSON && eimJSON.eimPath) {
-        const doesEimPathExists = await pathExists(eimJSON.eimPath);
-        if (doesEimPathExists) {
-          eimPath = eimJSON.eimPath;
-        }
+  // 2. Check eim_idf.json for existing EIM path
+  if (!eimPath) {
+    const eimJSON = await getEimIdfJson();
+    if (eimJSON && eimJSON.eimPath) {
+      const doesEimPathExists = await pathExists(eimJSON.eimPath);
+      if (doesEimPathExists) {
+        eimPath = eimJSON.eimPath;
       }
     }
-    // 2. Check EIM_PATH env variable if not found in eim_idf.json
-    if (!eimPath) {
-      eimPath = process.env.EIM_PATH || "";
+  }
+  // 3. Check EIM_PATH env variable if not found in eim_idf.json
+  if (!eimPath) {
+    eimPath = process.env.EIM_PATH || "";
+  }
+  // 4. Use default path based on platform if still not found
+  if (!eimPath) {
+    if (process.platform === "win32") {
+      eimPath = join(
+        process.env.USERPROFILE || "",
+        ".espressif",
+        "eim_gui",
+        "eim-gui-windows-x64.exe"
+      );
+    } else if (process.platform === "darwin") {
+      eimPath = "/Applications/eim.app";
+    } else if (process.platform === "linux") {
+      eimPath = join(process.env.HOME || "", ".espressif", "eim_gui", "eim");
     }
-    // 3. Use default path based on platform if still not found
-    if (!eimPath) {
-      if (process.platform === "win32") {
-        eimPath = join(
-          process.env.USERPROFILE || "",
-          ".espressif",
-          "eim_gui",
-          "eim-gui-windows-x64.exe"
-        );
-      } else if (process.platform === "darwin") {
-        eimPath = "/Applications/eim.app";
-      } else if (process.platform === "linux") {
-        eimPath = join(process.env.HOME || "", ".espressif", "eim_gui", "eim");
-      }
-    }
-    const doesEimPathExists = await pathExists(eimPath);
-    if (!doesEimPathExists) {
-      throw new Error(`EIM not found at ${eimPath}`);
-    }
-  } catch (error) {
-    Logger.error(
-      `Error while running existing EIM: ${error.message}`,
-      error,
-      "runExistingEIM"
-    );
-    return false;
   }
 
-  progress.report({
-    message: `EIM found at ${eimPath}. Launching...`,
-    increment: 0,
-  });
+  const doesEimPathExists = await pathExists(eimPath);
+  if (!doesEimPathExists) {
+    return "";
+  }
 
-  // Read idf.eimExecutableArgs with utils.readParameter and use it to run EIM
+  return eimPath;
+}
+
+export async function launchEimInTerminal(eimPath: string) {
   const idfEimExecutableArgs = readParameter(
     "idf.eimExecutableArgs"
   ) as string[];
-  let argsString = idfEimExecutableArgs.join(" ");
-  if (env.remoteName === "wsl") {
-    argsString = "wizard";
+  const argsString = idfEimExecutableArgs.join(" ");
+
+  if (argsString.includes("wizard")) {
+    await ensureEimPathInUserShell(eimPath);
   }
 
   let binaryPath = "";
@@ -130,23 +133,166 @@ export async function runExistingEIM(
     cwd: dirname(eimPath),
   });
   espIdfTerminal.sendText(binaryPath, true);
-  if (env.remoteName === "wsl") {
+  if (argsString.includes("wizard")) {
     espIdfTerminal.show();
   } else {
     espIdfTerminal.sendText("exit");
   }
-  return true;
 }
 
-export async function downloadExtractAndRunEIM(
+async function ensureEimPathInUserShell(eimPath: string): Promise<void> {
+  if (process.platform !== "linux") {
+    return;
+  }
+
+  const homeDir = process.env.HOME;
+  if (!homeDir) {
+    return;
+  }
+
+  const eimDir = dirname(eimPath);
+  const profileTargets = getShellProfileTargets(env.shell || "", homeDir);
+
+  try {
+    for (const profileTarget of profileTargets) {
+      await ensureEimPathInProfile(profileTarget, eimDir);
+    }
+  } catch (error) {
+    Logger.error(
+      `Error while persisting EIM path: ${error.message}`,
+      error,
+      "ensureEimPathInUserShell"
+    );
+  }
+}
+
+function getShellProfileTargets(
+  shellPath: string,
+  homeDir: string
+): EimShellProfileTarget[] {
+  const shellName = basename(shellPath).toLowerCase();
+
+  if (shellName === "bash") {
+    return [
+      { path: join(homeDir, ".bashrc"), shellType: "posix" },
+      { path: join(homeDir, ".profile"), shellType: "posix" },
+    ];
+  }
+
+  if (shellName === "zsh") {
+    return [
+      { path: join(homeDir, ".zshrc"), shellType: "posix" },
+      { path: join(homeDir, ".zprofile"), shellType: "posix" },
+    ];
+  }
+
+  if (shellName === "fish") {
+    return [
+      {
+        path: join(homeDir, ".config", "fish", "config.fish"),
+        shellType: "fish",
+      },
+    ];
+  }
+
+  return [{ path: join(homeDir, ".profile"), shellType: "posix" }];
+}
+
+async function ensureEimPathInProfile(
+  profileTarget: EimShellProfileTarget,
+  eimDir: string
+): Promise<void> {
+  const profileExists = await pathExists(profileTarget.path);
+  const currentContent = profileExists
+    ? await readFile(profileTarget.path, "utf8")
+    : "";
+
+  if (currentContent.includes(eimDir)) {
+    return;
+  }
+
+  await ensureDir(dirname(profileTarget.path));
+  await appendFile(
+    profileTarget.path,
+    createEimPathProfileSnippet(profileTarget.shellType, eimDir),
+    { encoding: "utf8" }
+  );
+}
+
+function createEimPathProfileSnippet(
+  shellType: "fish" | "posix",
+  eimDir: string
+) {
+  const header = "# Added by ESP-IDF extension so the EIM CLI can be launched directly.";
+
+  if (shellType === "fish") {
+    return [
+      "",
+      "# >>> ESP-IDF EIM PATH >>>",
+      header,
+      `if not contains -- "${eimDir}" $PATH`,
+      `    set -gx PATH "${eimDir}" $PATH`,
+      "end",
+      "# <<< ESP-IDF EIM PATH <<<",
+      "",
+    ].join("\n");
+  }
+
+  return [
+    "",
+    "# >>> ESP-IDF EIM PATH >>>",
+    header,
+    'case ":$PATH:" in',
+    `  *:"${eimDir}":*) ;;`,
+    `  *) export PATH="${eimDir}:$PATH" ;;`,
+    "esac",
+    "# <<< ESP-IDF EIM PATH <<<",
+    "",
+  ].join("\n");
+}
+
+export async function checkEimExists(
+  progress: Progress<{ message: string; increment: number }>,
+  cancelToken: CancellationToken
+): Promise<string> {
+  if (cancelToken.isCancellationRequested) {
+    return "";
+  }
+  progress.report({
+    message: `Checking EIM already exists...`,
+    increment: 0,
+  });
+
+  let eimPath: string;
+  try {
+    eimPath = await resolveEimPath();
+    if (!eimPath) {
+      return "";
+    }
+  } catch (error) {
+    Logger.error(
+      `Error while checking existing EIM: ${error.message}`,
+      error,
+      "checkEimExists"
+    );
+    return "";
+  }
+
+  progress.report({
+    message: `EIM found at ${eimPath}.`,
+    increment: 0,
+  });
+  return eimPath;
+}
+
+export async function downloadAndInstallEIM(
   progress: Progress<{ message: string; increment: number }>,
   cancelToken: CancellationToken,
   useMirror: boolean = false
-): Promise<void> {
+): Promise<string> {
   const jsonUrl = "https://dl.espressif.com/dl/eim/eim_unified_release.json";
-  // Determine EIM install path
   let eimInstallPath = "";
-  if (env.remoteName === "wsl") {
+  if (shouldForceCliMode()) {
     eimInstallPath = join(process.env.HOME || "", ".espressif", "eim");
   } else if (process.platform === "win32") {
     eimInstallPath = join(
@@ -173,7 +319,7 @@ export async function downloadExtractAndRunEIM(
     const arch = process.arch;
     let osKey: string;
 
-    if (env.remoteName === "wsl") {
+    if (shouldForceCliMode()) {
       osKey =
         arch === "arm64"
           ? "eim-cli-linux-aarch64.zip"
@@ -276,49 +422,24 @@ export async function downloadExtractAndRunEIM(
       Logger.infoNotify(`File ${osKey} extracted to: ${eimInstallPath}`);
     }
 
-    const idfEimExecutableArgs = readParameter(
-      "idf.eimExecutableArgs"
-    ) as string[];
-    let argsString = idfEimExecutableArgs.join(" ");
-    if (env.remoteName === "wsl") {
-      argsString = "wizard";
-    }
-
-    let binaryPath = "";
-    if (process.platform === "win32") {
-      binaryPath = `& '${join(
-        eimInstallPath,
-        "eim-gui-windows-x64.exe"
-      ).replace(/'/g, "''")}'${argsString ? " " + argsString : ""}`;
-    } else if (process.platform === "linux") {
-      binaryPath = `./eim${argsString ? " " + argsString : ""}`;
-    } else if (process.platform === "darwin") {
-      binaryPath = `open ${join(eimInstallPath, "eim.app")}${
-        argsString ? " --args " + argsString : ""
-      }`;
-    }
-    const shellPath =
-      process.platform === "win32"
-        ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
-        : env.shell;
-    const espIdfTerminal = window.createTerminal({
-      name: "ESP-IDF EIM",
-      shellPath: shellPath,
-      cwd: eimInstallPath,
-    });
-    espIdfTerminal.sendText(binaryPath, true);
-    if (env.remoteName === "wsl") {
-      espIdfTerminal.show();
-    } else {
-      espIdfTerminal.sendText("exit");
-    }
+    return getEimBinaryPath(eimInstallPath);
   } catch (error) {
     Logger.errorNotify(
       `Error during download and extraction: ${error.message}`,
       error,
       "downloadAndExtractEIM"
     );
+    return "";
   }
+}
+
+function getEimBinaryPath(eimInstallPath: string): string {
+  if (process.platform === "win32") {
+    return join(eimInstallPath, "eim-gui-windows-x64.exe");
+  } else if (process.platform === "darwin") {
+    return join(eimInstallPath, "eim.app");
+  }
+  return join(eimInstallPath, "eim");
 }
 
 export class ZipFileError extends Error {

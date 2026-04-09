@@ -41,4 +41,58 @@ Review `OpenOCD Troubleshooting FAQ <https://github.com/espressif/openocd-esp32/
 
     If you receive errors like "unable to create symlink" while cloning ESP-IDF on Windows, enabling **Developer Mode** may help resolve the issue.
 
+EIM Launch Modes (GUI vs CLI)
+-----------------------------
+
+When running the **ESP-IDF: Open ESP-IDF Installation Manager** command, the extension will prompt you to choose between:
+
+-  **Graphical Interface (GUI)** -- opens the EIM graphical application.
+-  **Command Line (Terminal)** -- runs EIM in CLI mode inside the VS Code integrated terminal.
+
+You can also use the dedicated commands to skip the prompt:
+
+-  **ESP-IDF: Open ESP-IDF Installation Manager (GUI)** -- always launches in GUI mode.
+-  **ESP-IDF: Open ESP-IDF Installation Manager (Terminal)** -- always launches in CLI mode.
+
+Your choice is saved to the ``idf.eimExecutableArgs`` setting.
+
+Remote and Headless Environments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In remote environments (SSH, WSL, Dev Containers, Codespaces) and browser-based VS Code, the GUI cannot be displayed. The extension automatically forces CLI (wizard) mode in these cases -- no prompt is shown.
+
+For Linux-based remote users, the extension also appends the EIM executable directory to the user's shell PATH the first time it launches ``eim wizard``. This allows running ``eim`` directly from future terminals without copying the full binary path.
+
+After opening a new terminal, you can use the `EIM CLI Commands <https://docs.espressif.com/projects/idf-im-ui/en/latest/cli_commands.html>`_ reference to run commands such as ``eim list`` or ``eim run`` yourself.
+
+VS Code Installed via Snap (Ubuntu)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you installed VS Code via snap (the default method on Ubuntu), the EIM GUI cannot be launched due to sandbox restrictions. You may see the following error:
+
+.. code-block:: text
+
+    The terminal process "/usr/bin/bash" terminated with exit code: 127.
+
+When snap is detected, the extension shows a modal with two options:
+
+1.  **Run EIM in Terminal** -- launches EIM in CLI mode directly in the VS Code integrated terminal.
+
+2.  **Copy EIM Path** -- copies the EIM binary path to your clipboard so you can run the GUI manually from a system terminal (e.g., GNOME Terminal, Konsole).
+
+    The default EIM path on Linux is:
+
+    .. code-block:: text
+
+        ~/.espressif/eim_gui/eim
+
+Alternatively, you can **install VS Code via the .deb package** (recommended) to remove snap's sandbox restrictions entirely:
+
+.. code-block:: bash
+
+    sudo snap remove code
+    # Then install the .deb package downloaded from https://code.visualstudio.com/Download
+
+You can also use the **ESP-IDF: Open ESP-IDF Installation Manager (Terminal)** command directly to skip the modal and launch EIM in CLI mode.
+
 If you cannot resolve the error, please search the `GitHub Repository Issues <http://github.com/espressif/vscode-esp-idf-extension/issues>`_ for existing issues or create a new issue `here <https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose>`_.

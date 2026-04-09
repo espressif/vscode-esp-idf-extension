@@ -146,6 +146,10 @@ Configure the ESP-IDF extension inside WSL as described in :ref:`Install ESP-IDF
 
     Running the setup from WSL could override the Windows host machine configuration settings since it uses **User Settings** by default. Consider saving settings to a **workspace** or **workspace folder**.
 
+.. note::
+
+    When EIM is launched in WSL using CLI wizard mode, the extension also adds the EIM executable directory to the WSL user's shell PATH. Open a new WSL terminal afterwards to run ``eim`` directly, and refer to the `EIM CLI Commands <https://docs.espressif.com/projects/idf-im-ui/en/latest/cli_commands.html>`_ page for supported commands.
+
 You can now use the ``Blink`` example project for building, flashing, monitoring, debugging, etc.
 
 Building Your Project

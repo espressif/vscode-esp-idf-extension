@@ -38,6 +38,9 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
     if (idfEnvSetup) {
       return idfEnvSetup;
     }
+    // Do not await here: activation must continue to register the command first.
+    void promptOpenEspIdfInstallationManager();
+    return;
   }
   const currentIdfConfigurationName = readParameter(
     "idf.currentSetup",
@@ -74,22 +77,9 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
 
   if (!idfSetupToUse) {
     Logger.infoNotify("Current ESP-IDF setup is not found.");
-
-    const openESPIDFManager = l10n.t(
-      "Open ESP-IDF Installation Manager"
-    ) as string;
-    const action = await window.showInformationMessage(
-      l10n.t("The extension configuration is not valid. Choose an action:"),
-      openESPIDFManager
-    );
-    if (!action) {
-      return;
-    }
-
-    if (action === openESPIDFManager) {
-      commands.executeCommand("espIdf.installManager");
-      return;
-    }
+    // Do not await here: activation must continue to register the command first.
+    void promptOpenEspIdfInstallationManager();
+    return;
   }
 
   await writeParameter(
@@ -123,6 +113,11 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
   };
 
   const idfPath = process.env.IDF_PATH || customVars["IDF_PATH"];
+  if (!idfPath || !idfPath.trim()) {
+    Logger.info(`ESP-IDF path is not set.`);
+    return;
+  }
+
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
   const defaultIdfToolsPath = join(containerPath, ".espressif");
@@ -175,5 +170,16 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
       envVars
     );
     return envDefinedIdfSetup;
+  }
+}
+
+async function promptOpenEspIdfInstallationManager(): Promise<void> {
+  const openESPIDFManager = l10n.t("Open ESP-IDF Installation Manager") as string;
+  const action = await window.showInformationMessage(
+    l10n.t("The extension configuration is not valid. Choose an action:"),
+    openESPIDFManager
+  );
+  if (action === openESPIDFManager) {
+    await commands.executeCommand("espIdf.installManager");
   }
 }

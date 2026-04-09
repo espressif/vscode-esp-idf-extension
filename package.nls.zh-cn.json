@@ -68,6 +68,8 @@
 	"espIdf.idfReconfigureTask.title": "ESP-IDF: 运行 idf.py reconfigure 任务",
 	"espIdf.importProject.title": "导入 ESP-IDF 项目",
   "espIdf.installManager.title": "打开 ESP-IDF 安装管理器",
+  "espIdf.openInstallationManagerGui.title": "打开 ESP-IDF 安装管理器 (GUI)",
+  "espIdf.openInstallationManagerCli.title": "打开 ESP-IDF 安装管理器 (终端)",
 	"espIdf.jtag_flash.title": "通过 JTAG 接口烧录项目",
 	"espIdf.launchQemu.title": "启动 QEMU 服务器",
 	"espIdf.launchWSServerAndMonitor.title": "启动 IDF 监视器以支持核心转储模式/GDB 存根模式",
