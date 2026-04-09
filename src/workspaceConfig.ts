@@ -94,6 +94,14 @@ export function updateIdfComponentsTree(workspaceFolder: vscode.Uri) {
   idfDataProvider.refresh(workspaceFolder);
 }
 
+/**
+ * Reads and maps `${idf.buildPath}/project_description.json` into a typed object.
+ *
+ * Returns `undefined` when the build directory or file is missing, content is invalid,
+ * or parsing/reading fails.
+ * @param {vscode.Uri} workspaceFolder - Workspace URI to read the project description JSON from its build directory.
+ * @returns {Promise<IProjectDescription | undefined>}
+ */
 export async function getProjectDescriptionJson(
   workspaceFolder: vscode.Uri
 ): Promise<IProjectDescription | undefined> {
@@ -201,6 +209,16 @@ export async function getProjectDescriptionJson(
   }
 }
 
+/**
+ * Resolves the sdkconfig file path for a workspace.
+ *
+ * Lookup order:
+ * 1) `configFile` from `project_description.json` (if present and exists),
+ * 2) `idf.sdkconfigFilePath` setting for the workspace,
+ * 3) `${workspace}/sdkconfig` fallback.
+ * @param {vscode.Uri} workspacePath - Workspace URI to resolve the sdkconfig file path for.
+ * @returns {Promise<string>}
+ */
 export async function getSDKConfigFilePath(
   workspacePath: vscode.Uri
 ): Promise<string> {
@@ -232,6 +250,12 @@ export async function getSDKConfigFilePath(
   }
 }
 
+/**
+ * Returns `projectName` from `project_description.json`.
+ * Throws if the file cannot be read or `projectName` is missing.
+ * @param {vscode.Uri} workspacePath - Workspace URI to get the project name from its project description.
+ * @returns {Promise<string>}
+ */
 export async function getProjectName(
   workspacePath: vscode.Uri
 ): Promise<string> {
@@ -242,6 +266,12 @@ export async function getProjectName(
   throw new Error("Failed to get project name from project description.");
 }
 
+/**
+ * Returns the full path to the app ELF file using `idf.buildPath` and `appElf` from `project_description.json`.
+ * Throws if `project_description.json` is missing `appElf` or `idf.buildPath` is missing.
+ * @param {vscode.Uri} workspacePath - Workspace URI to get the project ELF file path from its project description json.
+ * @returns {Promise<string>}
+ */
 export async function getProjectElfFilePath(
   workspacePath: vscode.Uri
 ): Promise<string> {
@@ -262,6 +292,13 @@ export async function getProjectElfFilePath(
   );
 }
 
+/**
+ * Returns the full path to `${projectName}.map` using `idf.buildPath`.
+ * Throws if `projectName` cannot be read from `project_description.json`
+ * or if `idf.buildPath` is missing.
+ * @param {vscode.Uri} workspacePath - Workspace URI to get the project MAP file path from its project description json.
+ * @returns {Promise<string>}
+ */
 export async function getProjectMapFilePath(
   workspacePath: vscode.Uri
 ): Promise<string> {
@@ -277,6 +314,14 @@ export async function getProjectMapFilePath(
   return mapFilePath;
 }
 
+/**
+ * Returns the IDF target from `sdkconfig` (`CONFIG_IDF_TARGET`) if available.
+ * If not available, uses `idf.customExtraVars.IDF_TARGET`; if still missing, returns `"esp32"`.
+ * Updates `statusItem.text` with the resolved IDF target when `statusItem` is provided.
+ * @param {vscode.Uri} workspacePath - Workspace URI to get the IDF target from its SDK configuration.
+ * @param {vscode.StatusBarItem} [statusItem] - Optional status bar item to update with the resolved IDF target.
+ * @returns {Promise<string>} - The resolved IDF target.
+ */
 export async function getIdfTargetFromSdkconfig(
   workspacePath: vscode.Uri,
   statusItem?: vscode.StatusBarItem
