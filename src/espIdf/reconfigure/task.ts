@@ -16,116 +16,36 @@
  * limitations under the License.
  */
 
-import {
-  ProcessExecution,
-  ProcessExecutionOptions,
-  TaskPanelKind,
-  TaskPresentationOptions,
-  TaskRevealKind,
-  TaskScope,
-  Uri,
-  workspace,
-} from "vscode";
-import { NotificationMode, readParameter } from "../../idfConfiguration";
-import { getSDKConfigFilePath } from "../../utils";
+import { Uri } from "vscode";
+import { readParameter } from "../../idfConfiguration";
 import { join } from "path";
-import { TaskManager } from "../../taskManager";
+import { addProcessTask } from "../../taskManager";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { configureEnvVariables } from "../../common/prepareEnv";
+import {
+  appendSdkconfigDefaultsAndCcache,
+  replaceBuildDirArg,
+} from "../../build/buildHelpers";
 
-export class IdfReconfigureTask {
-  private buildDirPath: string;
-  private curWorkspace: Uri;
+export async function addIdfReconfigureTask(workspace: Uri) {
+  const modifiedEnv = await configureEnvVariables(workspace);
+  const buildDirPath = readParameter("idf.buildPath", workspace) as string;
+  const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
+  const reconfigureArgs = [idfPy];
 
-  constructor(workspace: Uri) {
-    this.curWorkspace = workspace;
-    this.buildDirPath = readParameter("idf.buildPath", workspace) as string;
-  }
+  replaceBuildDirArg(reconfigureArgs, buildDirPath);
+  await appendSdkconfigDefaultsAndCcache(reconfigureArgs, workspace);
 
-  public async reconfigure() {
-    const modifiedEnv = await configureEnvVariables(this.curWorkspace);
-    const options: ProcessExecutionOptions = {
-      cwd: this.curWorkspace.fsPath,
-      env: modifiedEnv,
-    };
-    const currentWorkspaceFolder = workspace.workspaceFolders.find(
-      (w) => w.uri === this.curWorkspace
-    );
+  reconfigureArgs.push("reconfigure");
 
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      currentWorkspaceFolder
-    ) as string;
-    const showTaskOutput =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Output
-        ? TaskRevealKind.Always
-        : TaskRevealKind.Silent;
+  const pythonBinPath = await getVirtualEnvPythonPath();
 
-    const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
-    const reconfigureArgs = [idfPy];
-
-    let buildPathArgsIndex = reconfigureArgs.indexOf("-B");
-    if (buildPathArgsIndex !== -1) {
-      reconfigureArgs.splice(buildPathArgsIndex, 2);
-    }
-    reconfigureArgs.push("-B", this.buildDirPath);
-
-    const sdkconfigFile = await getSDKConfigFilePath(this.curWorkspace);
-    if (reconfigureArgs.indexOf("SDKCONFIG") === -1) {
-      reconfigureArgs.push(`-DSDKCONFIG='${sdkconfigFile}'`);
-    }
-
-    const sdkconfigDefaults =
-      (readParameter("idf.sdkconfigDefaults") as string[]) || [];
-    if (
-      reconfigureArgs.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
-      sdkconfigDefaults &&
-      sdkconfigDefaults.length
-    ) {
-      reconfigureArgs.push(
-        `-DSDKCONFIG_DEFAULTS='${sdkconfigDefaults.join(";")}'`
-      );
-    }
-
-    const enableCCache = readParameter(
-      "idf.enableCCache",
-      this.curWorkspace
-    ) as boolean;
-    if (enableCCache && reconfigureArgs && reconfigureArgs.length) {
-      const indexOfCCache = reconfigureArgs.indexOf("-DCCACHE_ENABLE=1");
-      if (indexOfCCache === -1) {
-        reconfigureArgs.push("-DCCACHE_ENABLE=1");
-      }
-    }
-
-    reconfigureArgs.push("reconfigure");
-
-    const pythonBinPath = await getVirtualEnvPythonPath();
-
-    const reconfigureExecution = new ProcessExecution(
-      pythonBinPath,
-      reconfigureArgs,
-      options
-    );
-    const presentationOptions = {
-      reveal: showTaskOutput,
-      showReuseMessage: false,
-      clear: false,
-      panel: TaskPanelKind.Shared,
-    } as TaskPresentationOptions;
-
-    TaskManager.addTask(
-      {
-        type: "esp-idf",
-        command: "ESP-IDF Reconfigure",
-        taskId: "idf-reconfigure-task",
-      },
-      currentWorkspaceFolder || TaskScope.Workspace,
-      "ESP-IDF Reconfigure",
-      reconfigureExecution,
-      ["espIdf"],
-      presentationOptions
-    );
-  }
+  addProcessTask(
+    "Reconfigure",
+    workspace,
+    pythonBinPath,
+    reconfigureArgs,
+    workspace.fsPath,
+    modifiedEnv
+  );
 }
