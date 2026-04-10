@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { PyReqLog } from "./PyReqLog";
-import { CancellationToken, Uri } from "vscode";
+import { CancellationToken } from "vscode";
 import * as utils from "./utils";
-import { constants } from "fs-extra";
+import { pathExists } from "fs-extra";
 import { Logger } from "./logger/logger";
 import { join } from "path";
 import { OutputChannel } from "./logger/outputChannel";
@@ -72,6 +71,14 @@ export async function getEnvVarsFromIdfTools(
   modifiedEnv.IDF_PATH = espIdfPath;
   let idfToolsDict: { [key: string]: string } = {};
   try {
+    const doesIdfPathExist = await pathExists(espIdfPath);
+    if (!doesIdfPathExist) {
+      return idfToolsDict;
+    }
+    const doesIdfToolsPyExist = await pathExists(idfToolsPyPath);
+    if (!doesIdfToolsPyExist) {
+      return idfToolsDict;
+    }
     const processResult = await utils.execChildProcess(
       pythonBinPath,
       args,
@@ -97,7 +104,7 @@ export async function getEnvVarsFromIdfTools(
       error && error.message
         ? error.message
         : "Error at idf_tools.py export --format key-value";
-    Logger.errorNotify(msg, error, "getEnvVarsFromIdfTools");
+    Logger.error(msg, error, "getEnvVarsFromIdfTools");
     return idfToolsDict;
   }
 }

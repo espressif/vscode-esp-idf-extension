@@ -98,11 +98,13 @@ export async function getEnvVariablesFromIdfSetup(idfSetup: IdfSetup) {
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
     idfSetup.idfPath
   );
-  const exportedToolsPaths = await idfToolsManager.exportPathsInString(
+  const normalizedPathName: string =
+    Object.keys(process.env).find((k) => k.toUpperCase() == "PATH") || "PATH";
+  envVars[normalizedPathName] = await idfToolsManager.exportPathsInString(
     join(idfSetup.toolsPath, "tools"),
     ["cmake", "ninja"]
   );
-  envVars["PATH"] = exportedToolsPaths;
+
   const idfToolsVars = await idfToolsManager.exportVars(idfSetup.toolsPath);
 
   for (const toolVar in idfToolsVars) {

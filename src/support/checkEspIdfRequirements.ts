@@ -41,7 +41,7 @@ export async function checkEspIdfRequirements(
       );
       const requirementsExists = await pathExists(requirementsPath);
       if (!requirementsExists) {
-        throw new Error("Requirements doesn't exists.");
+        throw new Error(`${requirementsPath} doesn't exist.`);
       }
     }
     const result = await checkRequirements(
@@ -52,7 +52,10 @@ export async function checkEspIdfRequirements(
     reportedResult.idfCheckRequirements.output = result;
     reportedResult.idfCheckRequirements.result = result;
   } catch (error) {
-    reportedResult.idfCheckRequirements.result = "Error";
+    reportedResult.idfCheckRequirements.output =
+      error instanceof Error ? error.message : String(error);
+    reportedResult.idfCheckRequirements.result =
+      "Error: " + reportedResult.idfCheckRequirements.output;
     reportedResult.latestError = error;
   }
 }
@@ -71,7 +74,9 @@ export async function checkRequirements(
     Object.assign({}, process.env)
   );
   modifiedEnv.IDF_PATH = reportedResult.configurationSettings.espIdfPath;
-  const majorMinorMatches = reportedResult.espIdfVersion.result.match(/([0-9]+\.[0-9]+).*/);
+  const majorMinorMatches = reportedResult.espIdfVersion.result.match(
+    /([0-9]+\.[0-9]+).*/
+  );
   const espIdfVersion =
     majorMinorMatches && majorMinorMatches.length > 0
       ? majorMinorMatches[1]

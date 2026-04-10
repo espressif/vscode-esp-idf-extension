@@ -53,6 +53,54 @@ After installing Visual Studio Code (VS Code), install the ESP-IDF extension for
 
         Check the :ref:`Troubleshooting <troubleshooting-section>` section if you encounter any issues during installation.
 
+Manual configuration of ESP-IDF and Tools in the ESP-IDF extension for VS Code
+-------------------------------------------------------------------------------
+
+.. note::
+
+     If you configure the extension using environment variables, the extension will use it over any selected ESP-IDF setup in ``idf.currentSetup``. So make sure to clear the environment variables if you want to use the selected ESP-IDF setup.
+     If you use the ``ESP-IDF: Select Current ESP-IDF Version`` command to select an ESP-IDF setup, the extension will use the environment variables from the selected IDF setup and delete manually configured environment variables IDF_PATH, IDF_TOOLS_PATH and IDF_PYTHON_ENV_PATH.
+
+You can manually configure the ESP-IDF extension for VS Code to use your existing ESP-IDF setup by setting required environment variables for the ESP-IDF extension in Visual Studio Code settings. You would need the ESP-IDF path (IDF_PATH), the set of ESP-IDF Tools to be appended in PATH or the ESP-IDF tools path (IDF_TOOLS_PATH), and Python environment path (IDF_PYTHON_ENV_PATH) to configure the extension.
+
+For example, if you have ESP-IDF installed at ``/home/user/esp-idf``, and the tools are located at ``/home/user/.espressif/``, and your Python virtual environment is located at ``/home/user/.espressif/python_env/idf6.1_py3.13_env``, you can configure the extension as follows:
+
+1. Open Command Palette (press shortcut F1) and type ``Preferences: Open Settings (JSON)`` and select the command.
+2. Add the following configuration to the settings.json file, replacing the paths with the actual paths to your ESP-IDF and tools:
+
+   .. code-block:: json
+
+      {
+        "idf.customExtraVars": {
+          "IDF_PATH": "/home/user/esp-idf",
+          "IDF_TOOLS_PATH": "/home/user/.espressif",
+          "IDF_PYTHON_ENV_PATH": "/home/user/.espressif/python_env/idf6.1_py3.13_env"
+        }
+      }
+3. Or alternatively you can use PATH (or Path in Windows) with list of tools to be appended to PATH:
+
+   .. code-block:: json
+
+      {
+        "idf.customExtraVars": {
+          "IDF_PATH": "/home/user/esp-idf",
+          "PATH": "/home/user/.espressif/tools/xtensa-esp-elf-gdb/16.3_20250913/xtensa-esp-elf-gdb/bin:/home/user/.espressif/tools/riscv32-esp-elf-gdb/16.3_20250913/riscv32-esp-elf-gdb/bin:/home/user/.espressif/tools/xtensa-esp-elf/esp-15.2.0_20251204/xtensa-esp-elf/bin:/home/user/.espressif/tools/riscv32-esp-elf/esp-15.2.0_20251204/riscv32-esp-elf/bin:/home/user/.espressif/tools/esp32ulp-elf/2.38_20240113/esp32ulp-elf/bin:/home/user/.espressif/tools/cmake/4.0.3/CMake.app/Contents/bin:/home/user/.espressif/tools/openocd-esp32/v0.12.0-esp32-20260304/openocd-esp32/bin:/home/user/.espressif/tools/ninja/1.12.1:/home/user/.espressif/tools/esp-rom-elfs/20241011",
+          "IDF_PYTHON_ENV_PATH": "/home/user/.espressif/python_env/idf6.1_py3.13_env"
+        }
+      }
+
+If you are using an ESP-IDF setup not installed using ESP-IDF Installation Manager (EIM), you can use the following command to get these environment variables from your ESP-IDF setup:
+
+.. code-block:: bash
+
+   source /home/user/esp-idf/export.sh
+   python /home/user/esp-idf/tools/idf_tools.py export --format key-value
+
+If you installed ESP-IDF using the ESP-IDF Installation Manager (EIM) and you want to use the ESP-IDF activation script to get required environment variables, you can use the following command:
+
+.. code-block:: bash
+
+   /home/user/.espressif/tools/activate_idf_v6.0.sh -e
 
 Uninstall ESP-IDF VS Code Extension
 -----------------------------------

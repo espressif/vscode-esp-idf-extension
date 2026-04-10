@@ -85,7 +85,7 @@ export class EraseFlashTask {
       "esptool.py"
     );
 
-    if (!canAccessFile(flashScriptPath, constants.R_OK)) {
+    if (!canAccessFile(flashScriptPath, constants.R_OK, "esptool.py")) {
       throw new Error("SCRIPT_PERMISSION_ERROR");
     }
 

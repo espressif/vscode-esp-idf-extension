@@ -51,9 +51,8 @@ export async function configureEnvVariables(
     Object.assign({}, process.env)
   );
 
-  let pathNameInEnv: string = Object.keys(process.env).find(
-    (k) => k.toUpperCase() == "PATH"
-  );
+  let pathNameInEnv: string =
+    Object.keys(process.env).find((k) => k.toUpperCase() == "PATH") || "PATH";
 
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
@@ -73,7 +72,7 @@ export async function configureEnvVariables(
     } catch (error) {
       Logger.errorNotify(
         "Invalid project configuration environment variables format",
-        error,
+        error as Error,
         "configureEnvVariables ProjectConfiguration.CURRENT_IDF_CONFIGURATION"
       );
     }
@@ -93,7 +92,7 @@ export async function configureEnvVariables(
     } catch (error) {
       Logger.errorNotify(
         "Invalid user environment variables format",
-        error,
+        error as Error,
         "configureEnvVariables idf.customExtraVars"
       );
     }
@@ -119,8 +118,15 @@ export async function configureEnvVariables(
     }
   } catch (error) {
     Logger.error(
-      `Error processing OPENOCD_SCRIPTS path: ${error.message}`,
-      error,
+      `Error processing OPENOCD_SCRIPTS path: ${
+        error &&
+        typeof error === "object" &&
+        "message" in error &&
+        typeof error.message === "string"
+          ? error.message
+          : "Unknown error"
+      }`,
+      error as Error,
       "configureEnvVariables OPENOCD_SCRIPTS"
     );
   }
@@ -155,6 +161,14 @@ export async function configureEnvVariables(
       "packages",
       "zap"
     );
+    if (
+      pathToPigweed &&
+      modifiedEnv[pathNameInEnv] &&
+      typeof modifiedEnv[pathNameInEnv] === "string" &&
+      !modifiedEnv[pathNameInEnv].split(delimiter).includes(pathToPigweed)
+    ) {
+      modifiedEnv[pathNameInEnv] += delimiter + pathToPigweed;
+    }
   }
 
   const gitPath = readParameter("idf.gitPath", curWorkspace) as string;
@@ -169,12 +183,7 @@ export async function configureEnvVariables(
   ) {
     modifiedEnv[pathNameInEnv] += delimiter + pathToGitDir;
   }
-  if (
-    pathToPigweed &&
-    !modifiedEnv[pathNameInEnv].split(delimiter).includes(pathToPigweed)
-  ) {
-    modifiedEnv[pathNameInEnv] += delimiter + pathToPigweed;
-  }
+
   if (currentEnvVars["IDF_PYTHON_ENV_PATH"]) {
     const pyDir = process.platform === "win32" ? "Scripts" : "bin";
     const venvPyContainer = join(currentEnvVars["IDF_PYTHON_ENV_PATH"], pyDir);
@@ -229,8 +238,7 @@ export async function configureEnvVariables(
 
   let idfTarget = await getIdfTargetFromSdkconfig(curWorkspace);
   if (idfTarget) {
-    modifiedEnv.IDF_TARGET =
-      modifiedEnv.IDF_TARGET || idfTarget || process.env.IDF_TARGET;
+    modifiedEnv.IDF_TARGET = idfTarget;
   }
 
   let enableComponentManager = readParameter(
