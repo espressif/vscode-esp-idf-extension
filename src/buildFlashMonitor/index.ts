@@ -16,19 +16,9 @@
  * limitations under the License.
  */
 
-import {
-  CancellationToken,
-  commands,
-  env,
-  l10n,
-  Progress,
-  ProgressLocation,
-  UIKind,
-  Uri,
-  window,
-} from "vscode";
-import { openFolderCheck, PreCheck } from "../common/PreCheck";
-import { NotificationMode, readParameter } from "../idfConfiguration";
+import { commands, env, Uri, UIKind, workspace } from "vscode";
+import { openFolderCheck } from "../common/PreCheck";
+import { withProgressWrapper } from "../common/withProgressWrapper";
 import { shouldDisableMonitorReset } from "../utils";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { isFlashEncryptionEnabled } from "../flash/verifyFlashEncryption";
@@ -37,92 +27,72 @@ import { IDFMonitor } from "../espIdf/monitor";
 import { buildMain } from "../build/buildMain";
 import { startFlashing } from "../flash/startFlashing";
 import { createNewIdfMonitor } from "../espIdf/monitor/command";
+import {
+  resolveFlashTypeForTask,
+  resolvePartitionToUseForTask,
+} from "../flash/resolveFlashContext";
 
 export async function buildFlashAndMonitor(
   workspaceFolderUri: Uri,
   noResetMonitor?: boolean
 ) {
-  await PreCheck.perform([openFolderCheck], async () => {
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      workspaceFolderUri
-    ) as string;
-    const currentProgressLocation =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Notifications
-        ? ProgressLocation.Notification
-        : ProgressLocation.Window;
+  const wsFolder =
+    workspace.getWorkspaceFolder(workspaceFolderUri) ??
+    ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
 
-    await window.withProgress(
-      {
-        cancellable: true,
-        location: currentProgressLocation,
-        title: "ESP-IDF:",
-      },
-      async (
-        progress: Progress<{ message: string; increment: number }>,
-        cancelToken: CancellationToken
-      ) => {
-        progress.report({ message: "Building project...", increment: 20 });
-        const flashType = readParameter("idf.flashType", workspaceFolderUri);
-        const buildCmdResults = await buildMain(
-          workspaceFolderUri,
-          cancelToken,
-          flashType
-        );
-        let canContinue = buildCmdResults.continueFlag;
-        if (!canContinue) {
-          return;
-        }
-        // Re route to ESP-IDF Web extension if using Codespaces or Browser
-        if (env.uiKind === UIKind.Web) {
-          commands.executeCommand(IDFWebCommandKeys.FlashAndMonitor);
-          return;
-        }
-        progress.report({
-          message: "Flashing project into device...",
-          increment: 60,
-        });
-
-        let encryptPartitions = await isFlashEncryptionEnabled(
-          workspaceFolderUri
-        );
-
-        let partitionToUse = readParameter(
-          "idf.flashPartitionToUse",
-          workspaceFolderUri
-        ) as ESP.BuildType;
-
-        if (
-          partitionToUse &&
-          !["app", "bootloader", "partition-table"].includes(partitionToUse)
-        ) {
-          partitionToUse = undefined;
-        }
-
-        canContinue = await startFlashing(
-          workspaceFolderUri,
-          cancelToken,
-          flashType,
-          encryptPartitions,
-          partitionToUse
-        );
-        if (!canContinue) {
-          return;
-        }
-        progress.report({
-          message: "Launching monitor...",
-          increment: 10,
-        });
-        if (IDFMonitor.terminal) {
-          IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-        }
-        const noReset =
-          typeof noResetMonitor !== "undefined"
-            ? noResetMonitor
-            : await shouldDisableMonitorReset(workspaceFolderUri);
-        await createNewIdfMonitor(workspaceFolderUri, noReset);
+  await withProgressWrapper(
+    [openFolderCheck],
+    "ESP-IDF:",
+    async (progress, cancelToken, taskWsFolder) => {
+      const folderUri = taskWsFolder!.uri;
+      progress.report({ message: "Building project...", increment: 20 });
+      const flashType = resolveFlashTypeForTask(taskWsFolder, undefined);
+      const buildCmdResults = await buildMain(
+        folderUri,
+        cancelToken,
+        flashType
+      );
+      if (!buildCmdResults.continueFlag) {
+        return;
       }
-    );
-  });
+      if (env.uiKind === UIKind.Web) {
+        commands.executeCommand(IDFWebCommandKeys.FlashAndMonitor);
+        return;
+      }
+      progress.report({
+        message: "Flashing project into device...",
+        increment: 60,
+      });
+
+      const encryptPartitions = await isFlashEncryptionEnabled(folderUri);
+      const partitionToUse = resolvePartitionToUseForTask(
+        taskWsFolder,
+        undefined
+      );
+
+      const canContinue = await startFlashing(
+        folderUri,
+        cancelToken,
+        flashType,
+        encryptPartitions,
+        partitionToUse
+      );
+      if (!canContinue) {
+        return;
+      }
+      progress.report({
+        message: "Launching monitor...",
+        increment: 10,
+      });
+      if (IDFMonitor.terminal) {
+        IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
+      }
+      const noReset =
+        typeof noResetMonitor !== "undefined"
+          ? noResetMonitor
+          : await shouldDisableMonitorReset(folderUri);
+      await createNewIdfMonitor(folderUri, noReset);
+    },
+    { workspaceFolder: wsFolder }
+  );
 }

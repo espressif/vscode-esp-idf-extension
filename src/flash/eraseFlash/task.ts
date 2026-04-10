@@ -18,13 +18,13 @@
 import { Uri } from "vscode";
 import { join } from "path";
 import { constants } from "fs";
-import { readParameter } from "../idfConfiguration";
-import { canAccessFile, sleep } from "../utils";
-import { addProcessTask } from "../taskManager";
-import { ESP } from "../config";
-import { getVirtualEnvPythonPath } from "../pythonManager";
-import { IDFMonitor } from "../espIdf/monitor";
-import { configureEnvVariables } from "../common/prepareEnv";
+import { readParameter } from "../../idfConfiguration";
+import { canAccessFile, sleep } from "../../utils";
+import { addProcessTask } from "../../taskManager";
+import { ESP } from "../../config";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { IDFMonitor } from "../../espIdf/monitor";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export class EraseFlashTask {
   public static isErasing: boolean;
@@ -43,16 +43,6 @@ export class EraseFlashTask {
       throw new Error("ALREADY_ERASING");
     }
 
-    // Stop monitor if running
-    if (IDFMonitor.terminal) {
-      IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-      const monitorDelay = readParameter(
-        "idf.monitorDelay",
-        this.currentWorkspace
-      ) as number;
-      await sleep(monitorDelay);
-    }
-
     const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
     const flashScriptPath = join(
       modifiedEnv["IDF_PATH"],
@@ -67,6 +57,9 @@ export class EraseFlashTask {
     }
 
     const pythonBinPath = await getVirtualEnvPythonPath();
+    if (!pythonBinPath) {
+      throw new Error("Python path not found in environment");
+    }
     this.erasing(true);
     const args = [flashScriptPath, "-p", port, "erase_flash"];
     return addProcessTask(
