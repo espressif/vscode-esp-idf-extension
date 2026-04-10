@@ -17,7 +17,7 @@
  */
 
 import { readJSON } from "fs-extra";
-import { FlashModel, FlashSection } from "./flashModel";
+import { FlashModel, FlashSection } from "./types/flashModel";
 
 export async function createFlashModel(
   modelJsonPath: string,
@@ -44,7 +44,7 @@ export async function createFlashModel(
         ? flashArgsJson.bootloader.encrypted.indexOf("true") !== -1
         : undefined,
     } as FlashSection,
-    partitionTable: {
+    "partition-table": {
       address: flashArgsJson["partition-table"]
         ? flashArgsJson["partition-table"].offset
         : undefined,
@@ -65,6 +65,7 @@ export async function createFlashModel(
     port,
     size: flashArgsJson.flash_settings.flash_size,
     stub: flashArgsJson.extra_esptool_args.stub,
+    writeFlashArgs: flashArgsJson.write_flash_args,
   };
   addFlashSectionToModel(flashArgsJson, flashModel);
   Object.keys(flashArgsJson.flash_files).forEach((fileKey) => {
@@ -84,7 +85,7 @@ export async function createFlashModel(
   return flashModel;
 }
 
-function addFlashSectionToModel(flashArgsJson, model: FlashModel) {
+function addFlashSectionToModel(flashArgsJson: any, model: FlashModel) {
   for (let modelKey of Object.keys(flashArgsJson)) {
     if (
       flashArgsJson[modelKey] &&

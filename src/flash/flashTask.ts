@@ -20,17 +20,12 @@ import { constants } from "fs";
 import { join } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
-import { FlashModel } from "./flashModel";
+import { FlashModel } from "./types/flashModel";
 import { canAccessFile } from "../utils";
-import {
-  getTaskProcessExecution,
-  getWorkspaceFolderForTask,
-  TaskManager,
-} from "../taskManager";
+import { addProcessTask } from "../taskManager";
 import { getDfuList, selectDfuDevice, selectedDFUAdapterId } from "./dfu";
 import { ESP } from "../config";
 import { getVirtualEnvPythonPath } from "../pythonManager";
-import { OutputCapturingExecution } from "../taskManager/customExecution";
 import { configureEnvVariables } from "../common/prepareEnv";
 
 export class FlashTask {
@@ -40,8 +35,6 @@ export class FlashTask {
   private model: FlashModel;
   private buildDirPath: string;
   private encryptPartitions: boolean;
-  private idfPathDir: string;
-  private modifiedEnv: { [key: string]: string };
 
   constructor(
     workspaceUri: vscode.Uri,
@@ -63,10 +56,6 @@ export class FlashTask {
       workspaceUri
     ) as string;
     this.encryptPartitions = encryptPartitions;
-    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-      [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-    this.idfPathDir = currentEnvVars["IDF_PATH"];
   }
 
   public flashing(flag: boolean) {
@@ -99,61 +88,51 @@ export class FlashTask {
     }
     this.verifyArgs();
     const pythonBinPath = await getVirtualEnvPythonPath();
-    let flashExecution: OutputCapturingExecution | vscode.ProcessExecution;
-    this.modifiedEnv = await configureEnvVariables(this.currentWorkspace);
+    if (!pythonBinPath) {
+      throw new Error("Python path not found in environment");
+    }
+    let processCmd = pythonBinPath;
+    const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
+    let flasherArgs: string[] = [];
+    this.flashing(true);
     switch (flashType) {
       case "UART":
-        if (!partitionToUse) {
-          this.flashing(true);
-          const flasherArgs = this.getFlasherArgs(this.flashScriptPath);
-          flashExecution =  getTaskProcessExecution(
-            pythonBinPath,
-            flasherArgs,
-            this.buildDirPath,
-            this.modifiedEnv,
-            captureOutput
+        if (partitionToUse) {
+          flasherArgs = this.getSingleBinFlasherArgs(
+            this.flashScriptPath,
+            partitionToUse
           );
         } else {
-          switch (partitionToUse) {
-            case "app":
-              flashExecution = this._partitionFlashExecution(
-                pythonBinPath,
-                "app",
-                captureOutput
-              );
-              break;
-            case "bootloader":
-              flashExecution = this._partitionFlashExecution(
-                pythonBinPath,
-                "bootloader",
-                captureOutput
-              );
-              break;
-            case "partition-table":
-              flashExecution = this._partitionFlashExecution(
-                pythonBinPath,
-                "partitionTable",
-                captureOutput
-              );
-              break;
-          }
+          flasherArgs = this.getFlasherArgs(this.flashScriptPath);
         }
         break;
       case "DFU":
-        flashExecution = await this._dfuFlashing(pythonBinPath, captureOutput);
+        const dfuResult = await this.dfuFlashingArgs(
+          pythonBinPath,
+          modifiedEnv["IDF_PATH"]
+        );
+        if (!dfuResult) {
+          throw new Error("DFU device selection failed");
+        }
+        processCmd = dfuResult.cmdToUse;
+        flasherArgs = dfuResult.args;
         break;
       default:
         break;
     }
-    TaskManager.addTask(
+    const flashExecution = addProcessTask(
       "Flash",
-      getWorkspaceFolderForTask(this.currentWorkspace),
-      flashExecution
+      this.currentWorkspace,
+      processCmd,
+      flasherArgs,
+      this.buildDirPath,
+      modifiedEnv,
+      { captureOutput }
     );
     return flashExecution;
   }
 
-  public async _dfuFlashing(pythonBinPath: string, captureOutput?: boolean) {
+  public async dfuFlashingArgs(pythonBinPath: string, idfPath: string) {
     this.flashing(true);
     const listDfuDevices = (await getDfuList(
       this.currentWorkspace
@@ -162,11 +141,11 @@ export class FlashTask {
     let args: string[] = [];
     if (listDfuDevices.length > 0) {
       const selectedDfuPath = await selectDfuDevice(listDfuDevices);
-      if (!selectDfuDevice) {
+      if (!selectedDfuPath) {
         return;
       }
       cmd = pythonBinPath;
-      const idfPy = path.join(this.idfPathDir, "tools", "idf.py");
+      const idfPy = path.join(idfPath, "tools", "idf.py");
       args = [idfPy, "dfu-flash", "--path", selectedDfuPath];
     } else {
       cmd = "dfu-util";
@@ -177,37 +156,12 @@ export class FlashTask {
         join(this.buildDirPath, "dfu.bin"),
       ];
     }
-    return getTaskProcessExecution(
-      cmd,
-      args,
-      this.buildDirPath,
-      this.modifiedEnv,
-      captureOutput
-    );
-  }
-
-  public _partitionFlashExecution(
-    pythonBinPath: string,
-    sectionToUse: "app" | "bootloader" | "partitionTable",
-    captureOutput?: boolean
-  ) {
-    this.flashing(true);
-    const flasherArgs = this.getSingleBinFlasherArgs(
-      this.flashScriptPath,
-      sectionToUse
-    );
-    return getTaskProcessExecution(
-      pythonBinPath,
-      flasherArgs,
-      this.buildDirPath,
-      this.modifiedEnv,
-      captureOutput
-    );
+    return { cmdToUse: cmd, args };
   }
 
   public getSingleBinFlasherArgs(
     toolPath: string,
-    sectionToUse: "app" | "bootloader" | "partitionTable",
+    sectionToUse: ESP.BuildType,
     replacePathSep: boolean = false
   ) {
     const flasherArgs = [
@@ -227,15 +181,7 @@ export class FlashTask {
     if (typeof this.model.stub !== undefined && !this.model.stub) {
       flasherArgs.push("--no-stub");
     }
-    flasherArgs.push(
-      "write_flash",
-      "--flash_mode",
-      this.model.mode,
-      "--flash_freq",
-      this.model.frequency,
-      "--flash_size",
-      this.model.size
-    );
+    flasherArgs.push("write_flash", ...this.model.writeFlashArgs);
 
     if (this.model[sectionToUse].encrypted) {
       flasherArgs.push("--encrypt-files");
@@ -266,15 +212,7 @@ export class FlashTask {
     if (typeof this.model.stub !== undefined && !this.model.stub) {
       flasherArgs.push("--no-stub");
     }
-    flasherArgs.push(
-      "write_flash",
-      "--flash_mode",
-      this.model.mode,
-      "--flash_freq",
-      this.model.frequency,
-      "--flash_size",
-      this.model.size
-    );
+    flasherArgs.push("write_flash", ...this.model.writeFlashArgs);
     const encryptedFlashSections = this.model.flashSections.filter(
       (flashSection) => flashSection.encrypted
     );

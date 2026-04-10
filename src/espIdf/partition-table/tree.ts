@@ -110,7 +110,7 @@ export class PartitionTreeDataProvider
         serialPort,
         flashBaudRate
       );
-      let partitionTableOffset = flasherArgsModel.partitionTable.address;
+      let partitionTableOffset = flasherArgsModel["partition-table"].address;
 
       const partitionTableItem: PartitionItem = {
         name: "partition_table",

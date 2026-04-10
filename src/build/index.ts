@@ -16,18 +16,11 @@
  * limitations under the License.
  */
 
-import { openFolderCheck, PreCheck } from "../common/PreCheck";
+import { openFolderCheck } from "../common/PreCheck";
+import { withProgressWrapper } from "../common/withProgressWrapper";
 import { ESP } from "../config";
-import { NotificationMode, readParameter } from "../idfConfiguration";
-import {
-  CancellationToken,
-  ExtensionContext,
-  Progress,
-  ProgressLocation,
-  Uri,
-  window,
-  workspace,
-} from "vscode";
+import { readParameter } from "../idfConfiguration";
+import { ExtensionContext } from "vscode";
 import { buildMain } from "./buildMain";
 import { registerIDFCommand } from "../common/registerCommand";
 
@@ -51,35 +44,18 @@ export async function build(
   flashType?: ESP.FlashType,
   buildType?: ESP.BuildType
 ): Promise<void> {
-  PreCheck.perform([openFolderCheck], async () => {
-    const storedUri = ESP.GlobalConfiguration.store.get<Uri>(
-      ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
-    );
-    const wsFolder = workspace.getWorkspaceFolder(storedUri);
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      wsFolder
-    ) as string;
-    const progressLocation =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Notifications
-        ? ProgressLocation.Notification
-        : ProgressLocation.Window;
-    await window.withProgress(
-      {
-        cancellable: true,
-        location: progressLocation,
-        title: "ESP-IDF: Building project",
-      },
-      async (
-        progress: Progress<{ message: string; increment: number }>,
-        cancelToken: CancellationToken
-      ) => {
-        if (!flashType) {
-          flashType = readParameter("idf.flashType", wsFolder) as ESP.FlashType;
-        }
-        await buildMain(wsFolder.uri, cancelToken, flashType, buildType);
+  await withProgressWrapper(
+    [openFolderCheck],
+    "ESP-IDF: Building project",
+    async (_progress, cancelToken, wsFolder) => {
+      let resolvedFlashType = flashType;
+      if (!resolvedFlashType) {
+        resolvedFlashType = readParameter(
+          "idf.flashType",
+          wsFolder
+        ) as ESP.FlashType;
       }
-    );
-  });
+      await buildMain(wsFolder!.uri, cancelToken, resolvedFlashType, buildType);
+    }
+  );
 }
