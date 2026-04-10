@@ -24,28 +24,29 @@ import { ESP } from "../../config";
 export async function getFileList(): Promise<Uri[]> {
   let files: Uri[] = [];
   try {
-    let workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
-      ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
-    );
-    if (!workspaceFolderUri) {
-      workspaceFolderUri = workspace.workspaceFolders
-        ? workspace.workspaceFolders[0].uri
+    let workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+    if (!workspaceFolder) {
+      workspaceFolder = workspace.workspaceFolders
+        ? workspace.workspaceFolders[0]
         : undefined;
     }
-    const filePattern =
-      readParameter("idf.unitTestFilePattern", workspaceFolderUri) ||
-      "**/test/test_*.c";
-    const workspaceFolder = workspace.getWorkspaceFolder(workspaceFolderUri);
     if (!workspaceFolder) {
       window.showErrorMessage(
         "Cannot find workspace folder for the selected path!"
       );
       return [];
     }
+    const filePattern =
+      readParameter("idf.unitTestFilePattern", workspaceFolder?.uri) ||
+      "**/test/test_*.c";
     const relativePattern = new RelativePattern(workspaceFolder, filePattern);
     files = await workspace.findFiles(relativePattern);
   } catch (err) {
-    window.showErrorMessage("Cannot find test result path!", err);
+    const errMsg =
+      err instanceof Error
+        ? err.message
+        : "An error occurred while searching for test files.";
+    window.showErrorMessage("Cannot find test result path!", errMsg);
     return [];
   }
   return files;

@@ -8,11 +8,7 @@ import {
   writeParameter,
 } from "../idfConfiguration";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
-import {
-  getEspIdfFromCMake,
-  shouldDisableMonitorReset,
-  sleep,
-} from "../utils";
+import { getEspIdfFromCMake, shouldDisableMonitorReset, sleep } from "../utils";
 import { Logger } from "../logger/logger";
 import { jtagFlashCommandMain } from "../flash/jtagCmd";
 import { verifyCanFlash } from "../flash/flashCmd";
@@ -21,7 +17,7 @@ import { IDFMonitor } from "../espIdf/monitor";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { createNewIdfMonitor } from "../espIdf/monitor/command";
 import { isFlashEncryptionEnabled } from "../flash/verifyFlashEncryption";
-import { EraseFlashTask } from "../flash/eraseFlashTask";
+import { EraseFlashTask } from "../flash/eraseFlash/task";
 import { IdfTaskExecution, TaskManager } from "../taskManager";
 import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
 import { updateCurrentProfileIdfTarget } from "../project-conf";
@@ -102,12 +98,8 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       const target = options.input.target;
       const commandId = COMMAND_MAP[commandName];
 
-      const defaultWorkspace = vscode.workspace.workspaceFolders?.[0];
-
-      const workspaceURI = ESP.GlobalConfiguration.store.get<vscode.Uri>(
-        ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER,
-        defaultWorkspace?.uri
-      );
+      const workspaceURI = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder()
+        ?.uri;
 
       // Check if we have a valid workspace
       if (!workspaceURI) {
@@ -405,9 +397,6 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 ),
               ]);
             }
-            const workspaceFolder = vscode.workspace.getWorkspaceFolder(
-              workspaceURI
-            );
             if (isSettingIDFTarget) {
               return new vscode.LanguageModelToolResult([
                 new vscode.LanguageModelTextPart(
@@ -417,7 +406,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             }
             setIsSettingIDFTarget(true);
             const setTargetResult = await setTargetInIDF(
-              workspaceFolder,
+              workspaceURI,
               selectedTarget
             );
 
@@ -433,15 +422,15 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               "idf.customExtraVars",
               customExtraVars,
               configurationTarget,
-              workspaceFolder.uri
+              workspaceURI
             );
             await updateCurrentProfileIdfTarget(
               selectedTarget.target,
-              workspaceFolder.uri
+              workspaceURI
             );
 
             await getIdfTargetFromSdkconfig(
-              workspaceFolder.uri,
+              workspaceURI,
               statusBarItems["target"]
             );
 
@@ -476,41 +465,43 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             new vscode.LanguageModelTextPart(feedback),
           ]);
         } catch (error) {
-          if (error.message === "ALREADY_BUILDING") {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          if (errorMessage === "ALREADY_BUILDING") {
             return new vscode.LanguageModelToolResult([
               new vscode.LanguageModelTextPart("Already a build is running!"),
             ]);
           }
-          if (error.message === "BUILD_TERMINATED") {
+          if (errorMessage === "BUILD_TERMINATED") {
             return new vscode.LanguageModelToolResult([
               new vscode.LanguageModelTextPart("Build is Terminated"),
             ]);
           }
-          if (error.message === "ALREADY_FLASHING") {
+          if (errorMessage === "ALREADY_FLASHING") {
             return new vscode.LanguageModelToolResult([
               new vscode.LanguageModelTextPart(
                 "Already one flash process is running!"
               ),
             ]);
           }
-          if (error.message === "NO_DFU_DEVICE_SELECTED") {
+          if (errorMessage === "NO_DFU_DEVICE_SELECTED") {
             return new vscode.LanguageModelToolResult([
               new vscode.LanguageModelTextPart("No DFU was selected"),
             ]);
           }
-          if (error.message === "Task ESP-IDF Flash exited with code 74") {
+          if (errorMessage === "Task ESP-IDF Flash exited with code 74") {
             return new vscode.LanguageModelToolResult([
               new vscode.LanguageModelTextPart(
                 "No DFU capable USB device available found"
               ),
             ]);
           }
-          if (error.message === "FLASH_TERMINATED") {
+          if (errorMessage === "FLASH_TERMINATED") {
             return new vscode.LanguageModelToolResult([
               new vscode.LanguageModelTextPart("Flashing has been stopped!"),
             ]);
           }
-          if (error.message === "SECTION_BIN_FILE_NOT_ACCESSIBLE") {
+          if (errorMessage === "SECTION_BIN_FILE_NOT_ACCESSIBLE") {
             return new vscode.LanguageModelToolResult([
               new vscode.LanguageModelTextPart(
                 "Flash (.bin) files don't exists or can't be accessed!"
@@ -518,8 +509,10 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             ]);
           }
           if (
-            error.code === "ENOENT" ||
-            error.message === "SCRIPT_PERMISSION_ERROR"
+            (error instanceof Error &&
+              "code" in error &&
+              error.code === "ENOENT") ||
+            errorMessage === "SCRIPT_PERMISSION_ERROR"
           ) {
             return new vscode.LanguageModelToolResult([
               new vscode.LanguageModelTextPart(
@@ -527,10 +520,12 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               ),
             ]);
           }
-          const errorMessage = `Failed to execute command "${commandName}": ${error.message}\n${error.stack}`;
+          const errorMessageResult = `Failed to execute command "${commandName}": ${errorMessage}\n${
+            error instanceof Error && error.stack ? error.stack : ""
+          }`;
           return new vscode.LanguageModelToolResult([
             ...outputs,
-            new vscode.LanguageModelTextPart(errorMessage),
+            new vscode.LanguageModelTextPart(errorMessageResult),
           ]);
         }
       } else {

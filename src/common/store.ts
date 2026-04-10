@@ -16,15 +16,17 @@
  * limitations under the License.
  */
 
-import { ExtensionContext } from "vscode";
+import { ExtensionContext, Uri, workspace } from "vscode";
+import { ESP } from "../config";
 
 export class ExtensionConfigStore {
   private static self: ExtensionConfigStore;
+  private static readonly SELECTED_WORKSPACE_FOLDER = "SELECTED_WORKSPACE_FOLDER";
   private ctx: ExtensionContext;
 
   public static init(context: ExtensionContext): ExtensionConfigStore {
     if (!this.self) {
-      return new ExtensionConfigStore(context);
+      this.self = new ExtensionConfigStore(context);
     }
     return this.self;
   }
@@ -39,5 +41,18 @@ export class ExtensionConfigStore {
   }
   public clear(key: string) {
     return this.set(key, undefined);
+  }
+  public getSelectedWorkspaceFolder() {
+    const storedUri = this.get<Uri>(
+      ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
+      workspace.workspaceFolders ? workspace.workspaceFolders?.[0].uri : undefined
+    );
+    if (!storedUri) {
+      return;
+    }
+    return workspace.getWorkspaceFolder(storedUri);
+  }
+  public setSelectedWorkspaceFolder(selectedFolder: Uri) {
+    this.set(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER, selectedFolder);
   }
 }

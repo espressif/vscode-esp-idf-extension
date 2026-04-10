@@ -22,7 +22,6 @@ import * as fs from "fs";
 import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { ESP } from "../config";
-import { workspace } from "vscode";
 
 export interface ImageElement {
   name: string;
@@ -253,12 +252,11 @@ export class ImageViewPanel {
       }
 
       // Resolve relative paths relative to workspace folder
-      let workspaceFolderUri = ESP.GlobalConfiguration.store.get<vscode.Uri>(
-        ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
-      );
+      let wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      let workspaceFolderUri = wsFolder ? wsFolder.uri : undefined;
       if (!workspaceFolderUri) {
-        workspaceFolderUri = vscode.workspace.workspaceFolders
-          ? workspace.workspaceFolders[0].uri
+        workspaceFolderUri = vscode.workspace.workspaceFolders?.length
+          ? vscode.workspace.workspaceFolders[0].uri
           : undefined;
       }
       const resolvedPath = workspaceFolderUri
