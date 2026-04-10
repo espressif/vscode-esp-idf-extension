@@ -16,20 +16,9 @@
  * limitations under the License.
  */
 
-import {
-  CancellationToken,
-  ConfigurationTarget,
-  l10n,
-  Uri,
-  window,
-} from "vscode";
-import {
-  readParameter,
-  readSerialPort,
-  writeParameter,
-} from "../idfConfiguration";
+import { CancellationToken, l10n, Uri } from "vscode";
+import { readParameter, readSerialPort } from "../idfConfiguration";
 import { ESP } from "../config";
-import { IDFMonitor } from "../espIdf/monitor";
 import {
   checkFlashEncryption,
   FlashCheckResultType,
@@ -42,31 +31,10 @@ import { jtagFlashCommand } from "./jtagCmd";
 import { flashCommand } from "./uartFlash";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { PreCheck } from "../common/PreCheck";
-import { sleep } from "../utils";
+import { selectFlashMethod } from "./selectFlashMethod";
+import { interruptMonitorForFlashOperation } from "./interruptMonitorForFlashOperation";
 
-export async function selectFlashMethod(workspaceFolderUri: Uri) {
-  let curflashType = readParameter(
-    "idf.flashType",
-    workspaceFolderUri
-  ) as ESP.FlashType;
-  let newFlashType = (await window.showQuickPick(Object.keys(ESP.FlashType), {
-    ignoreFocusOut: true,
-    placeHolder: l10n.t(
-      "Select flash method, you can modify the choice later from 'settings.json' (idf.flashType)"
-    ),
-  })) as ESP.FlashType;
-  if (!newFlashType) {
-    return curflashType;
-  }
-  await writeParameter(
-    "idf.flashType",
-    newFlashType,
-    ConfigurationTarget.WorkspaceFolder,
-    workspaceFolderUri
-  );
-  window.showInformationMessage(`Flash method changed to ${newFlashType}.`);
-  return newFlashType;
-}
+export { selectFlashMethod } from "./selectFlashMethod";
 
 export async function startFlashing(
   workspaceFolderUri: Uri,
@@ -79,14 +47,7 @@ export async function startFlashing(
     flashType = await selectFlashMethod(workspaceFolderUri);
   }
 
-  if (IDFMonitor.terminal) {
-    IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-    const monitorDelay = readParameter(
-      "idf.monitorDelay",
-      workspaceFolderUri
-    ) as number;
-    await sleep(monitorDelay);
-  }
+  await interruptMonitorForFlashOperation(workspaceFolderUri);
 
   if (encryptPartitions) {
     const encryptionValidationResult = await checkFlashEncryption(
@@ -137,7 +98,7 @@ export async function startFlashing(
       Logger.infoNotify(
         `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currOpenOcdVersion} version installed`
       );
-      return;
+      return false;
     }
     return await jtagFlashCommand(workspaceFolderUri);
   } else {
