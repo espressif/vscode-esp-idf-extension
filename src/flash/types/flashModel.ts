@@ -21,7 +21,7 @@ export interface FlashModel {
   after: string;
   app: FlashSection;
   bootloader: FlashSection;
-  partitionTable: FlashSection;
+  "partition-table": FlashSection;
   baudRate: string;
   before: string;
   chip: string;
@@ -31,6 +31,7 @@ export interface FlashModel {
   port: string;
   size: string;
   stub: boolean;
+  writeFlashArgs: string[];
 }
 export interface FlashSection {
   address: string;

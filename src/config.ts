@@ -54,7 +54,6 @@ export namespace ESP {
 
   export namespace GlobalConfiguration {
     export let store: ExtensionConfigStore;
-    export const SELECTED_WORKSPACE_FOLDER = "SELECTED_WORKSPACE_FOLDER";
   }
 
   export const platformDepConfigurations: string[] = [

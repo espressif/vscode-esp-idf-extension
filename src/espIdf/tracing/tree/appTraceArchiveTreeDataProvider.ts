@@ -75,15 +75,10 @@ export class AppTraceArchiveTreeDataProvider
 
   public populateArchiveTree() {
     this.appTraceArchives = Array<AppTraceArchiveItems>(0);
-    const storedUri = ESP.GlobalConfiguration.store.get<Uri>(
-      ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
-    );
+    const storedWorkspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
     let baseFolderPath: string | undefined;
-    if (storedUri) {
-      const wsFolder = workspace.getWorkspaceFolder(storedUri);
-      if (wsFolder) {
-        baseFolderPath = wsFolder.uri.fsPath;
-      }
+    if (storedWorkspaceFolder) {
+      baseFolderPath = storedWorkspaceFolder.uri.fsPath;
     }
     if (
       !baseFolderPath &&

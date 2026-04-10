@@ -81,6 +81,7 @@ export async function jtagFlashCommandMain(workspace: Uri) {
   const msg = "⚡️ Flashed Successfully (JTAG)";
   OutputChannel.appendLineAndShow(msg, "Flash");
   Logger.infoNotify(msg);
+  return true;
 }
 
 export async function jtagFlashCommand(workspace: Uri) {
