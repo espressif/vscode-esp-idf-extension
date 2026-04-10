@@ -74,11 +74,9 @@ export function updateStatusBarItemVisibility(cmdItem: CommandItem) {
 
       // Ensure OpenOCD adapter item text is refreshed when it becomes visible.
       if (cmdItem.command.command === CommandKeys.OpenOcdAdapterStatusBar) {
-        const selectedWorkspace = ESP.GlobalConfiguration.store.get<Uri>(
-          ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
-        );
+        const selectedWorkspace = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
         if (selectedWorkspace) {
-          updateOpenOcdAdapterStatusBarItem(selectedWorkspace);
+          updateOpenOcdAdapterStatusBarItem(selectedWorkspace.uri);
         }
       }
     }

@@ -44,7 +44,6 @@ import {
   storeAdapterSerial,
   supportsSerialFromDetectConfig,
 } from "../openOcd/adapterSerial";
-import { SerialPort } from "../serial/serialPort";
 import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
@@ -52,7 +51,7 @@ export let isSettingIDFTarget = false;
 
 export interface ISetTargetQuickPickItems {
   label: string;
-  idfTarget?: IdfTarget;
+  idfTarget: IdfTarget;
   boardInfo?: {
     location: string;
     config_files: string[];
@@ -109,7 +108,9 @@ export async function setIdfTarget(
             const openOCDManager = OpenOCDManager.init();
             openOCDVersion = await openOCDManager.version();
             const devkitsCmd = new DevkitsCommand(workspaceFolder.uri);
-            const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
+            const modifiedEnv = await configureEnvVariables(
+              workspaceFolder.uri
+            );
             const openOcdPath = await OpenOCDManager.getOpenOcdPath(
               workspaceFolder.uri,
               modifiedEnv
@@ -117,7 +118,9 @@ export async function setIdfTarget(
             const scriptPath = await devkitsCmd.getScriptPath(openOcdPath);
 
             if (scriptPath) {
-              const devkitsOutput = await devkitsCmd.runDevkitsScript(openOCDVersion);
+              const devkitsOutput = await devkitsCmd.runDevkitsScript(
+                openOCDVersion
+              );
               if (devkitsOutput) {
                 const parsed = JSON.parse(devkitsOutput);
                 if (parsed && Array.isArray(parsed.boards)) {
@@ -143,9 +146,10 @@ export async function setIdfTarget(
               );
             }
           } catch (e) {
+            const errMSg = e instanceof Error ? e.message : String(e);
             Logger.info(
               "No connected boards detected or error running DevkitsCommand: " +
-                (e && e.message ? e.message : e)
+                errMSg
             );
           }
         } else {
@@ -167,13 +171,17 @@ export async function setIdfTarget(
           connectedBoards.length > 0
             ? [
                 ...connectedBoards,
-                { kind: QuickPickItemKind.Separator, label: l10n.t("Default Boards") },
+                {
+                  kind: QuickPickItemKind.Separator,
+                  label: l10n.t("Default Boards"),
+                  idfTarget: { label: "", target: "", isPreview: false },
+                },
                 ...defaultBoards,
               ]
             : defaultBoards;
         const selectedTarget = await window.showQuickPick(quickPickItems, {
           placeHolder: placeHolderMsg,
-          ignoreFocusOut: true
+          ignoreFocusOut: true,
         });
         if (!selectedTarget) {
           return;
@@ -195,7 +203,10 @@ export async function setIdfTarget(
           openOCDVersion &&
           supportsSerialFromDetectConfig(openOCDVersion)
         ) {
-          storeAdapterSerial(workspaceFolder.uri, selectedTarget.boardInfo.serial_number);
+          storeAdapterSerial(
+            workspaceFolder.uri,
+            selectedTarget.boardInfo.serial_number
+          );
           updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
         }
 
@@ -223,7 +234,7 @@ export async function setIdfTarget(
           );
         }
 
-        await setTargetInIDF(workspaceFolder, selectedTarget.idfTarget);
+        await setTargetInIDF(workspaceFolder.uri, selectedTarget.idfTarget);
         customExtraVars["IDF_TARGET"] = selectedTarget.idfTarget.target;
         await writeParameter(
           "idf.customExtraVars",
@@ -246,7 +257,7 @@ export async function setIdfTarget(
           Logger.info(errMsg);
           OutputChannel.appendLine(errMsg);
         } else {
-          Logger.errorNotify(errMsg, err, "setIdfTarget");
+          Logger.errorNotify(errMsg, err as Error, "setIdfTarget");
           OutputChannel.appendLine(errMsg);
         }
       } finally {
