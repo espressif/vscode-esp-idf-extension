@@ -1268,6 +1268,19 @@ export async function activate(context: vscode.ExtensionContext) {
         }
       }
     } else if (e.affectsConfiguration("idf.customExtraVars")) {
+      const customExtraVars = idfConf.readParameter(
+        "idf.customExtraVars",
+        workspaceRoot
+      ) as { [key: string]: string };
+      for (const envVar in customExtraVars) {
+        if (envVar.toUpperCase() !== "PATH") {
+          context.environmentVariableCollection.replace(
+            envVar,
+            customExtraVars[envVar],
+            { applyAtProcessCreation: true }
+          );
+        }
+      }
       ESP.URL.Docs.IDF_INDEX = undefined;
     } else if (e.affectsConfiguration("idf.port" + winFlag)) {
       if (statusBarItems && statusBarItems["port"]) {
