@@ -16,15 +16,15 @@
  * limitations under the License.
  */
 
-import { FlashTask } from "./flashTask";
+import { FlashTask } from "../flashTask";
 import { JTAGFlash } from "./jtag";
-import { TCLClient } from "../espIdf/openOcd/tcl/tclClient";
-import { readParameter } from "../idfConfiguration";
-import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
-import { Logger } from "../logger/logger";
-import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
+import { TCLClient } from "../../espIdf/openOcd/tcl/tclClient";
+import { readParameter } from "../../idfConfiguration";
+import { OpenOCDManager } from "../../espIdf/openOcd/openOcdManager";
+import { Logger } from "../../logger/logger";
+import { CustomTask, CustomTaskType } from "../../customTasks/customTaskProvider";
 import { Uri } from "vscode";
-import { OutputChannel } from "../logger/outputChannel";
+import { OutputChannel } from "../../logger/outputChannel";
 
 export async function jtagFlashCommandMain(workspace: Uri) {
   const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
@@ -88,10 +88,12 @@ export async function jtagFlashCommand(workspace: Uri) {
   let continueFlag = true;
   try {
     await jtagFlashCommandMain(workspace);
-  } catch (msg) {
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    const msg = "JTAG Flash Failed ⚡️";
     OpenOCDManager.init().showOutputChannel(true);
-    OutputChannel.appendLine(msg, "Flash");
-    Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"), "jtagFlashCommand");
+    OutputChannel.appendLine(errorMsg, "Flash");
+    Logger.errorNotify(msg, err as Error, "jtagFlashCommand");
     continueFlag = false;
   }
   FlashTask.isFlashing = false;

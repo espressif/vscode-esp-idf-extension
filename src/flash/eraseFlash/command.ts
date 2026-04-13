@@ -17,10 +17,10 @@ import { OutputChannel } from "../../logger/outputChannel";
 import { TaskManager } from "../../taskManager";
 import * as utils from "../../utils";
 import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
-import { isFlashEncryptionEnabled } from "../verifyFlashEncryption";
+import { isFlashEncryptionEnabled } from "../verify/flashEncryption";
 import { EraseFlashTask } from "./task";
 import { jtagEraseFlashCommand } from "./jtag";
-import { interruptMonitorForFlashOperation } from "../interruptMonitorForFlashOperation";
+import { interruptMonitorWithDelay } from "../../espIdf/monitor/interruptMonitorWithDelay";
 import { selectFlashMethod } from "../selectFlashMethod";
 
 export function registerEraseFlashCommand(context: ExtensionContext) {
@@ -38,7 +38,7 @@ export function registerEraseFlashCommand(context: ExtensionContext) {
           if (!flashType) {
             flashType = await selectFlashMethod(workspaceFolderUri);
           }
-          await interruptMonitorForFlashOperation(workspaceFolderUri);
+          await interruptMonitorWithDelay(workspaceFolderUri);
           const isEncrypted = await isFlashEncryptionEnabled(workspaceFolderUri);
 
           const secureBoot = await utils.getConfigValueFromSDKConfig(

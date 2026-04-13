@@ -8,15 +8,14 @@ import {
   writeParameter,
 } from "../idfConfiguration";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
-import { getEspIdfFromCMake, shouldDisableMonitorReset, sleep } from "../utils";
+import { getEspIdfFromCMake, shouldDisableMonitorReset } from "../utils";
 import { Logger } from "../logger/logger";
-import { jtagFlashCommandMain } from "../flash/jtagCmd";
-import { verifyCanFlash } from "../flash/flashCmd";
-import { uartFlashCommandMain } from "../flash/uartFlash";
-import { IDFMonitor } from "../espIdf/monitor";
+import { jtagFlashCommandMain } from "../flash/jtag/jtagCmd";
+import { verifyCanFlash } from "../flash/verify/canFlash";
+import { uartFlashCommandMain } from "../flash/uart/uartFlash";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { createNewIdfMonitor } from "../espIdf/monitor/command";
-import { isFlashEncryptionEnabled } from "../flash/verifyFlashEncryption";
+import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
 import { EraseFlashTask } from "../flash/eraseFlash/task";
 import { IdfTaskExecution, TaskManager } from "../taskManager";
 import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
@@ -32,6 +31,7 @@ import {
 import { l10n } from "vscode";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { PreCheck } from "../common/PreCheck";
+import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 
 // Map of command names to their corresponding VS Code command IDs
 const COMMAND_MAP: Record<string, string> = {
@@ -175,14 +175,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             continueFlag = buildCmdResults.continueFlag;
             taskExecutions.push(...buildCmdResults.executions);
           } else if (commandName === "flash") {
-            if (IDFMonitor.terminal) {
-              IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-              const monitorDelay = readParameter(
-                "idf.monitorDelay",
-                workspaceURI
-              ) as number;
-              await sleep(monitorDelay);
-            }
+            await interruptMonitorWithDelay(workspaceURI);
             const port = await readSerialPort(workspaceURI, false);
             if (!port) {
               return new vscode.LanguageModelToolResult([
@@ -239,9 +232,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               taskExecutions.push(...flashCmdResult.executions);
             }
           } else if (commandName === "monitor") {
-            if (IDFMonitor.terminal) {
-              IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-            }
+            await interruptMonitorWithDelay(workspaceURI);
             if (vscode.env.uiKind === vscode.UIKind.Web) {
               vscode.commands.executeCommand(IDFWebCommandKeys.Monitor);
               return new vscode.LanguageModelToolResult([
@@ -277,14 +268,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 ),
               ]);
             }
-            if (IDFMonitor.terminal) {
-              IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-              const monitorDelay = readParameter(
-                "idf.monitorDelay",
-                workspaceURI
-              ) as number;
-              await sleep(monitorDelay);
-            }
+            await interruptMonitorWithDelay(workspaceURI);
             const port = await readSerialPort(workspaceURI, false);
             if (!port) {
               return new vscode.LanguageModelToolResult([
@@ -344,9 +328,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               continueFlag = flashCmdResult.continueFlag;
               taskExecutions.push(...flashCmdResult.executions);
             }
-            if (IDFMonitor.terminal) {
-              IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-            }
+            await interruptMonitorWithDelay(workspaceURI);
             const noReset = await shouldDisableMonitorReset(workspaceURI);
             await createNewIdfMonitor(workspaceURI, noReset);
           } else if (commandName === "eraseFlash") {
