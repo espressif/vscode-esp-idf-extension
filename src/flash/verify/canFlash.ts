@@ -16,27 +16,27 @@
  * limitations under the License.
  */
 
+import { ESP } from "../../config";
+import { commands, l10n, Uri } from "vscode";
+import { BuildTask } from "../../build/buildTask";
+import { FlashTask } from "../flashTask";
+import { Logger } from "../../logger/logger";
+import { OutputChannel } from "../../logger/outputChannel";
+import { readParameter } from "../../idfConfiguration";
 import { pathExists } from "fs-extra";
 import { join } from "path";
-import * as idfConf from "../idfConfiguration";
-import * as vscode from "vscode";
-import { FlashTask } from "./flashTask";
-import { BuildTask } from "../build/buildTask";
-import { Logger } from "../logger/logger";
-import { getProjectElfFilePath } from "../workspaceConfig";
-import { getDfuList } from "./dfu";
-import { ESP } from "../config";
-import { OutputChannel } from "../logger/outputChannel";
+import { getDfuList } from "../dfu";
+import { getProjectElfFilePath } from "../../workspaceConfig";
 
 export async function verifyCanFlash(
   flashBaudRate: string,
   port: string,
   flashType: ESP.FlashType,
-  workspace: vscode.Uri
+  workspace: Uri
 ) {
   let continueFlag = true;
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
-    const waitProcessIsFinishedMsg = vscode.l10n.t(
+    const waitProcessIsFinishedMsg = l10n.t(
       "Wait for ESP-IDF task to finish"
     );
     OutputChannel.show();
@@ -48,7 +48,7 @@ export async function verifyCanFlash(
     );
   }
 
-  const buildPath = idfConf.readParameter("idf.buildPath", workspace) as string;
+  const buildPath = readParameter("idf.buildPath", workspace) as string;
   if (!(await pathExists(buildPath))) {
     const errStr = `Build is required before Flashing, ${buildPath} can't be accessed`;
     OutputChannel.show();
@@ -70,7 +70,7 @@ export async function verifyCanFlash(
     const errStr = "Failed to get project ELF file path";
     OutputChannel.show();
     OutputChannel.appendLineAndShow(errStr, "Flash");
-    return Logger.errorNotify(errStr, error, "flashCmd verifyCanFlash getProjectElfFilePath");
+    return Logger.errorNotify(errStr, error as Error, "flashCmd verifyCanFlash getProjectElfFilePath");
   }
   if (!(await pathExists(elfFilePath))) {
     const errStr = `Can't proceed with flashing, since project elf file (${elfFilePath}) is missing from the build dir. (${buildPath})`;
@@ -81,12 +81,12 @@ export async function verifyCanFlash(
   if(flashType !== "JTAG") {
     if (!port) {
       try {
-        await vscode.commands.executeCommand("espIdf.selectPort");
+        await commands.executeCommand("espIdf.selectPort");
       } catch (error) {
         const errStr = "Unable to execute the command: espIdf.selectPort";
         OutputChannel.show();
         OutputChannel.appendLineAndShow(errStr, "Flash");
-        Logger.error(errStr, error, "verifyCanFlash selectPort");
+        Logger.error(errStr, error as Error, "verifyCanFlash selectPort");
       }
       const errStr = "Select a port before flashing";
       OutputChannel.show();
@@ -102,7 +102,7 @@ export async function verifyCanFlash(
     return Logger.errorNotify(errStr, new Error("NOT_SELECTED_BAUD_RATE"),
     "flashCmd verifyCanFlash no flashbaudrate");
   }
-  const selectedFlashType = idfConf.readParameter(
+  const selectedFlashType = readParameter(
     "idf.flashType",
     workspace
   ) as ESP.FlashType;
