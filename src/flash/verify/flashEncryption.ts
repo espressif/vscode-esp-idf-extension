@@ -1,17 +1,17 @@
-import * as idfConf from "../idfConfiguration";
-import { Logger } from "../logger/logger";
-import { OutputChannel } from "../logger/outputChannel";
-import { ESP } from "../config";
+import * as idfConf from "../../idfConfiguration";
+import { Logger } from "../../logger/logger";
+import { OutputChannel } from "../../logger/outputChannel";
+import { ESP } from "../../config";
 import {
   showInfoNotificationWithLink,
   showQuickPickWithCustomActions,
-} from "../logger/utils";
-import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
-import { ESPEFuseManager } from "../efuse";
-import { getDocsUrl } from "../espIdf/documentation/getDocsVersion";
-import * as utils from "../utils";
+} from "../../logger/utils";
+import { ConfserverProcess } from "../../espIdf/menuconfig/confServerProcess";
+import { ESPEFuseManager } from "../../efuse";
+import { getDocsUrl } from "../../espIdf/documentation/getDocsVersion";
+import * as utils from "../../utils";
 import * as vscode from "vscode";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 
 export enum FlashCheckResultType {
   Success,

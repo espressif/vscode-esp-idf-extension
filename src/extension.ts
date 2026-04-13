@@ -186,6 +186,7 @@ import {
 } from "./clang/checkClangExtension";
 import { registerBuildCommands } from "./build";
 import { registerFlashCommands } from "./flash";
+import { interruptMonitorWithDelay } from "./espIdf/monitor/interruptMonitorWithDelay";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3247,10 +3248,7 @@ export async function activate(context: vscode.ExtensionContext) {
         wsServer.start();
         wsServer
           .on("started", async () => {
-            if (IDFMonitor.terminal) {
-              IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-              await utils.sleep(500);
-            }
+            await interruptMonitorWithDelay(workspaceRoot);
             IDFMonitor.start();
           })
           .on("core-dump-detected", async (resp) => {
