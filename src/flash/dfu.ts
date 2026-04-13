@@ -22,9 +22,9 @@ import { configureEnvVariables } from "../common/prepareEnv";
 
 function deviceLabel(selectedDevice: string) {
   const regex = new RegExp(/:\d+\]/g);
-  const pid = selectedDevice.match(regex)[0].slice(4, -1);
+  const pid = selectedDevice.match(regex)?[0].slice(4, -1) : [];
 
-  if (pid[0] === "2") {
+  if (pid && pid[0] === 2) {
     return "ESP32-S2";
   }
   return "ESP32-S3";
@@ -72,14 +72,12 @@ export function listAvailableDfuDevices(text: string) {
 }
 
 export async function selectDfuDevice(arrDfuDevices: string[]) {
-  let options = [];
+  let options: { label: string; detail: string }[] = [];
   for (let i = 0; i < arrDfuDevices.length; i++) {
-    options.push(
-      new Object({
-        label: deviceLabel(arrDfuDevices[i]),
-        detail: arrDfuDevices[i],
-      })
-    );
+    options.push({
+      label: deviceLabel(arrDfuDevices[i]),
+      detail: arrDfuDevices[i],
+    });
   }
 
   let selectedDfuDevice = await vscode.window.showQuickPick(options, {
@@ -90,7 +88,8 @@ export async function selectDfuDevice(arrDfuDevices: string[]) {
 
   if (selectedDfuDevice) {
     const regex = new RegExp(/path="[0-9.]+-[0-9.]+"/g);
-    const pathValue = selectedDfuDevice.detail.match(regex)[0].slice(6, -1);
+    const pathValue =
+      selectedDfuDevice.detail.match(regex)?.[0]?.slice(6, -1) ?? "";
     return pathValue;
   } else {
     throw new Error("NO_DFU_DEVICE_SELECTED");
