@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { TCLClient } from "../espIdf/openOcd/tcl/tclClient";
+import { TCLClient } from "../../espIdf/openOcd/tcl/tclClient";
 
 export class JTAGFlash {
   constructor(private readonly client: TCLClient) {}

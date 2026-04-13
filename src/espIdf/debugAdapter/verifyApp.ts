@@ -18,7 +18,7 @@
 
 import { join } from "path";
 import { l10n, Uri } from "vscode";
-import { createFlashModel } from "../../flash/flashModelBuilder";
+import { createFlashModel } from "../../flash/uart/flashModelBuilder";
 import { readParameter, readSerialPort } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { spawn } from "../../utils";

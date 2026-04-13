@@ -27,22 +27,22 @@ import { getDfuList, selectDfuDevice, selectedDFUAdapterId } from "./dfu";
 import { ESP } from "../config";
 import { getVirtualEnvPythonPath } from "../pythonManager";
 import { configureEnvVariables } from "../common/prepareEnv";
+import {
+  getFlasherArgs,
+  getSingleBinFlasherArgs,
+} from "./uart/flashArgsBuilder";
 
 export class FlashTask {
   public static isFlashing: boolean;
-  private currentWorkspace: vscode.Uri;
   private flashScriptPath: string;
-  private model: FlashModel;
   private buildDirPath: string;
-  private encryptPartitions: boolean;
 
   constructor(
-    workspaceUri: vscode.Uri,
+    private currentWorkspace: vscode.Uri,
     idfPath: string,
-    model: FlashModel,
-    encryptPartitions: boolean
+    private model: FlashModel,
+    private encryptPartitions: boolean
   ) {
-    this.currentWorkspace = workspaceUri;
     this.flashScriptPath = join(
       idfPath,
       "components",
@@ -50,12 +50,10 @@ export class FlashTask {
       "esptool",
       "esptool.py"
     );
-    this.model = model;
     this.buildDirPath = idfConf.readParameter(
       "idf.buildPath",
-      workspaceUri
+      currentWorkspace
     ) as string;
-    this.encryptPartitions = encryptPartitions;
   }
 
   public flashing(flag: boolean) {
@@ -99,12 +97,17 @@ export class FlashTask {
     switch (flashType) {
       case "UART":
         if (partitionToUse) {
-          flasherArgs = this.getSingleBinFlasherArgs(
+          flasherArgs = getSingleBinFlasherArgs(
+            this.model,
             this.flashScriptPath,
             partitionToUse
           );
         } else {
-          flasherArgs = this.getFlasherArgs(this.flashScriptPath);
+          flasherArgs = getFlasherArgs(
+            this.model,
+            this.flashScriptPath,
+            this.encryptPartitions
+          );
         }
         break;
       case "DFU":
@@ -158,114 +161,5 @@ export class FlashTask {
       ];
     }
     return { cmdToUse: cmd, args };
-  }
-
-  public getSingleBinFlasherArgs(
-    toolPath: string,
-    sectionToUse: ESP.BuildType,
-    replacePathSep: boolean = false
-  ) {
-    const flasherArgs = [
-      toolPath,
-      "-p",
-      this.model.port,
-      "-b",
-      this.model.baudRate,
-      "--before",
-      this.model.before,
-      "--after",
-      this.model.after,
-    ];
-    if (this.model.chip) {
-      flasherArgs.push("--chip", this.model.chip);
-    }
-    if (typeof this.model.stub !== undefined && !this.model.stub) {
-      flasherArgs.push("--no-stub");
-    }
-    flasherArgs.push("write_flash", ...this.model.writeFlashArgs);
-
-    if (this.model[sectionToUse].encrypted) {
-      flasherArgs.push("--encrypt-files");
-    }
-
-    let binPath = replacePathSep
-      ? this.model[sectionToUse].binFilePath.replace(/\//g, "\\")
-      : this.model[sectionToUse].binFilePath;
-    flasherArgs.push(this.model[sectionToUse].address, binPath);
-    return flasherArgs;
-  }
-
-  public getFlasherArgs(toolPath: string, replacePathSep: boolean = false) {
-    const flasherArgs = [
-      toolPath,
-      "-p",
-      this.model.port,
-      "-b",
-      this.model.baudRate,
-      "--before",
-      this.model.before,
-      "--after",
-      this.model.after,
-    ];
-    if (this.model.chip) {
-      flasherArgs.push("--chip", this.model.chip);
-    }
-    if (typeof this.model.stub !== undefined && !this.model.stub) {
-      flasherArgs.push("--no-stub");
-    }
-    flasherArgs.push("write_flash", ...this.model.writeFlashArgs);
-    const encryptedFlashSections = this.model.flashSections.filter(
-      (flashSection) => flashSection.encrypted
-    );
-    if (
-      this.encryptPartitions &&
-      encryptedFlashSections &&
-      encryptedFlashSections.length
-    ) {
-      if (
-        this.model.flashSections &&
-        this.model.flashSections.length === encryptedFlashSections.length
-      ) {
-        // If all files need encryption, then use --encrypt flag
-        flasherArgs.push("--encrypt");
-        // Add all files
-        for (const flashFile of this.model.flashSections) {
-          let binPath = replacePathSep
-            ? flashFile.binFilePath.replace(/\//g, "\\")
-            : flashFile.binFilePath;
-          flasherArgs.push(flashFile.address, binPath);
-        }
-      } else {
-        // If only some files need encryption, handle them separately
-        // First add all unencrypted files normally
-        const unencryptedSections = this.model.flashSections.filter(
-          (section) => !section.encrypted
-        );
-        for (const flashFile of unencryptedSections) {
-          let binPath = replacePathSep
-            ? flashFile.binFilePath.replace(/\//g, "\\")
-            : flashFile.binFilePath;
-          flasherArgs.push(flashFile.address, binPath);
-        }
-        // Then add encrypted files after the --encrypt-files flag
-        flasherArgs.push("--encrypt-files");
-        for (const flashFile of encryptedFlashSections) {
-          let binPath = replacePathSep
-            ? flashFile.binFilePath.replace(/\//g, "\\")
-            : flashFile.binFilePath;
-          flasherArgs.push(flashFile.address, binPath);
-        }
-      }
-    } else {
-      // No encryption needed, just add all files.
-      for (const flashFile of this.model.flashSections) {
-        let binPath = replacePathSep
-          ? flashFile.binFilePath.replace(/\//g, "\\")
-          : flashFile.binFilePath;
-        flasherArgs.push(flashFile.address, binPath);
-      }
-    }
-
-    return flasherArgs;
   }
 }

@@ -10,7 +10,7 @@ import { ExtensionContext } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../common/PreCheck";
 import { ESP } from "../config";
-import { isFlashEncryptionEnabled } from "./verifyFlashEncryption";
+import { isFlashEncryptionEnabled } from "./verify/flashEncryption";
 import { flash } from "./flashProject";
 import { selectFlashMethod } from "./selectFlashMethod";
 import { registerEraseFlashCommand } from "./eraseFlash/command";
