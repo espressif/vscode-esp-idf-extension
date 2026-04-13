@@ -22,17 +22,17 @@ import { ESP } from "../config";
 import {
   checkFlashEncryption,
   FlashCheckResultType,
-} from "./verifyFlashEncryption";
+} from "./verify/flashEncryption";
 import { Logger } from "../logger/logger";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
-import { verifyCanFlash } from "./flashCmd";
+import { verifyCanFlash } from "./verify/canFlash";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
-import { jtagFlashCommand } from "./jtagCmd";
-import { flashCommand } from "./uartFlash";
+import { jtagFlashCommand } from "./jtag/jtagCmd";
+import { flashCommand } from "./uart/uartFlash";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { PreCheck } from "../common/PreCheck";
 import { selectFlashMethod } from "./selectFlashMethod";
-import { interruptMonitorForFlashOperation } from "./interruptMonitorForFlashOperation";
+import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 
 export { selectFlashMethod } from "./selectFlashMethod";
 
@@ -47,7 +47,7 @@ export async function startFlashing(
     flashType = await selectFlashMethod(workspaceFolderUri);
   }
 
-  await interruptMonitorForFlashOperation(workspaceFolderUri);
+  await interruptMonitorWithDelay(workspaceFolderUri);
 
   if (encryptPartitions) {
     const encryptionValidationResult = await checkFlashEncryption(
@@ -61,7 +61,7 @@ export async function startFlashing(
       ) {
         encryptPartitions = false;
       } else {
-        return;
+        return false;
       }
     }
   }
