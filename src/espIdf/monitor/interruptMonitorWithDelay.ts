@@ -7,12 +7,12 @@
  */
 
 import { Uri } from "vscode";
-import { ESP } from "../config";
-import { readParameter } from "../idfConfiguration";
-import { IDFMonitor } from "../espIdf/monitor";
-import { sleep } from "../utils";
+import { IDFMonitor } from ".";
+import { readParameter } from "../../idfConfiguration";
+import { sleep } from "../../utils";
+import { ESP } from "../../config";
 
-export async function interruptMonitorForFlashOperation(
+export async function interruptMonitorWithDelay(
   workspaceFolderUri: Uri
 ): Promise<void> {
   if (IDFMonitor.terminal) {

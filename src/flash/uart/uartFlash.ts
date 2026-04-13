@@ -18,19 +18,19 @@
 import { readdir } from "fs-extra";
 import { join } from "path";
 import { CancellationToken, Uri } from "vscode";
-import { Logger } from "../logger/logger";
-import { TaskManager } from "../taskManager";
-import { FlashTask } from "./flashTask";
+import { Logger } from "../../logger/logger";
+import { TaskManager } from "../../taskManager";
+import { FlashTask } from "../flashTask";
 import { createFlashModel } from "./flashModelBuilder";
-import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
-import { readParameter } from "../idfConfiguration";
-import { ESP } from "../config";
-import { OutputChannel } from "../logger/outputChannel";
+import { CustomTask, CustomTaskType } from "../../customTasks/customTaskProvider";
+import { readParameter } from "../../idfConfiguration";
+import { ESP } from "../../config";
+import { OutputChannel } from "../../logger/outputChannel";
 import {
   CustomExecutionTaskResult,
   OutputCapturingExecution,
   ShellOutputCapturingExecution,
-} from "../taskManager/customExecution";
+} from "../../taskManager/customExecution";
 
 export async function uartFlashCommandMain(
   cancelToken: CancellationToken,

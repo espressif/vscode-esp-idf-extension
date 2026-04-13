@@ -40,7 +40,7 @@ import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
-import { isFlashEncryptionEnabled } from "./flash/verifyFlashEncryption";
+import { isFlashEncryptionEnabled } from "./flash/verify/flashEncryption";
 import { configureClangSettings } from "./clang";
 import { configureEnvVariables } from "./common/prepareEnv";
 import { updateJsonPreservingComments } from "./jsonc/updateJsonPreservingComments";

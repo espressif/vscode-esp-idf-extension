@@ -32,7 +32,7 @@ import { NotificationMode, readParameter } from "../idfConfiguration";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { shouldDisableMonitorReset } from "../utils";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
-import { isFlashEncryptionEnabled } from "../flash/verifyFlashEncryption";
+import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
 import { ESP } from "../config";
 import { IDFMonitor } from "../espIdf/monitor";
 import { buildMain } from "../build/buildMain";
@@ -42,6 +42,7 @@ import {
   resolveFlashTypeForTask,
   resolvePartitionToUseForTask,
 } from "../flash/resolveFlashContext";
+import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 
 export async function buildFlashAndMonitor(
   workspaceFolderUri: Uri,
@@ -97,9 +98,7 @@ export async function buildFlashAndMonitor(
         message: "Launching monitor...",
         increment: 10,
       });
-      if (IDFMonitor.terminal) {
-        IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-      }
+      await interruptMonitorWithDelay(workspaceFolderUri);
       const noReset =
         typeof noResetMonitor !== "undefined"
           ? noResetMonitor

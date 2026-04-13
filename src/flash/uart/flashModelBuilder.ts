@@ -17,7 +17,7 @@
  */
 
 import { readJSON } from "fs-extra";
-import { FlashModel, FlashSection } from "./types/flashModel";
+import { FlashModel, FlashSection } from "../types/flashModel";
 
 export async function createFlashModel(
   modelJsonPath: string,
@@ -67,7 +67,21 @@ export async function createFlashModel(
     stub: flashArgsJson.extra_esptool_args.stub,
     writeFlashArgs: flashArgsJson.write_flash_args,
   };
-  addFlashSectionToModel(flashArgsJson, flashModel);
+  for (let modelKey of Object.keys(flashArgsJson)) {
+    if (
+      flashArgsJson[modelKey] &&
+      flashArgsJson[modelKey].offset &&
+      flashArgsJson[modelKey].file &&
+      flashArgsJson[modelKey].encrypted
+    ) {
+      const newFlashSection = {
+        address: flashArgsJson[modelKey].offset,
+        binFilePath: flashArgsJson[modelKey].file,
+        encrypted: flashArgsJson[modelKey].encrypted.indexOf("true") !== -1,
+      } as FlashSection;
+      flashModel.flashSections.push(newFlashSection);
+    }
+  }
   Object.keys(flashArgsJson.flash_files).forEach((fileKey) => {
     const existingFlashSection = flashModel.flashSections.length
       ? flashModel.flashSections.filter(
@@ -83,22 +97,4 @@ export async function createFlashModel(
     }
   });
   return flashModel;
-}
-
-function addFlashSectionToModel(flashArgsJson: any, model: FlashModel) {
-  for (let modelKey of Object.keys(flashArgsJson)) {
-    if (
-      flashArgsJson[modelKey] &&
-      flashArgsJson[modelKey].offset &&
-      flashArgsJson[modelKey].file &&
-      flashArgsJson[modelKey].encrypted
-    ) {
-      const newFlashSection = {
-        address: flashArgsJson[modelKey].offset,
-        binFilePath: flashArgsJson[modelKey].file,
-        encrypted: flashArgsJson[modelKey].encrypted.indexOf("true") !== -1,
-      } as FlashSection;
-      model.flashSections.push(newFlashSection);
-    }
-  }
-}
+}   
