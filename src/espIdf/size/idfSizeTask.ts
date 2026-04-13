@@ -29,7 +29,7 @@ import {
 } from "vscode";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { TaskManager } from "../../taskManager";
-import { getProjectName } from "../../workspaceConfig";
+import { getProjectMapFilePath } from "../../workspaceConfig";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { OutputCapturingExecution } from "../../taskManager/customExecution";
 import { configureEnvVariables } from "../../common/prepareEnv";
@@ -48,8 +48,7 @@ export class IdfSizeTask {
       this.currentWorkspace
     ) as string;
     await ensureDir(buildDirPath);
-    const projectName = await getProjectName(buildDirPath);
-    const mapFilePath = join(buildDirPath, `${projectName}.map`);
+    const mapFilePath = await getProjectMapFilePath(this.currentWorkspace);
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
     }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});

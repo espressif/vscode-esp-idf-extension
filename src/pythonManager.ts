@@ -101,15 +101,18 @@ export async function getEnvVarsFromIdfTools(
     return idfToolsDict;
   } catch (error) {
     const msg =
-      error && error.message
+      error &&
+      typeof error === "object" &&
+      "message" in error &&
+      typeof error.message === "string"
         ? error.message
         : "Error at idf_tools.py export --format key-value";
-    Logger.error(msg, error, "getEnvVarsFromIdfTools");
+    Logger.errorNotify(msg, error as Error, "getEnvVarsFromIdfTools");
     return idfToolsDict;
   }
 }
 
-export async function getVirtualEnvPythonPath() {
+export function getVirtualEnvPythonPath() {
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
   }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
@@ -140,14 +143,19 @@ export async function checkPythonExists(pythonBin: string, workingDir: string) {
       }
     }
   } catch (error) {
-    if (error && error.message) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "message" in error &&
+      typeof error.message === "string"
+    ) {
       const match = error.message.match(/Python\s\d+.\d+.\d+/g);
       if (match && match.length > 0) {
         return true;
       }
     }
     const newErr =
-      error && error.message
+      error && error instanceof Error
         ? error
         : new Error("Python is not found in current environment");
     Logger.errorNotify(
@@ -200,7 +208,7 @@ export async function getUnixPythonList(workingDir: string) {
   } catch (error) {
     Logger.errorNotify(
       "Error looking for python in system",
-      error,
+      error as Error,
       "pythonManager getUnixPythonList"
     );
     return ["Not found"];
@@ -221,7 +229,7 @@ export async function checkIfNotVirtualEnv(
   } catch (error) {
     Logger.errorNotify(
       "Error checking Python is virtualenv",
-      error,
+      error as Error,
       "pythonManager checkIfNotVirtualEnv"
     );
     return false;

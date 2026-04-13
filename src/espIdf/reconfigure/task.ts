@@ -27,7 +27,6 @@ import {
   workspace,
 } from "vscode";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
-import { getSDKConfigFilePath } from "../../utils";
 import { join } from "path";
 import { TaskManager } from "../../taskManager";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
@@ -48,13 +47,13 @@ export class IdfReconfigureTask {
       cwd: this.curWorkspace.fsPath,
       env: modifiedEnv,
     };
-    const currentWorkspaceFolder = workspace.workspaceFolders.find(
-      (w) => w.uri === this.curWorkspace
-    );
+    const currentWorkspaceFolder = workspace.workspaceFolders?.length
+      ? workspace.workspaceFolders.find((w) => w.uri === this.curWorkspace)
+      : undefined;
 
     const notificationMode = readParameter(
       "idf.notificationMode",
-      currentWorkspaceFolder
+      this.curWorkspace
     ) as string;
     const showTaskOutput =
       notificationMode === NotificationMode.All ||
@@ -71,13 +70,22 @@ export class IdfReconfigureTask {
     }
     reconfigureArgs.push("-B", this.buildDirPath);
 
-    const sdkconfigFile = await getSDKConfigFilePath(this.curWorkspace);
-    if (reconfigureArgs.indexOf("SDKCONFIG") === -1) {
+    const sdkconfigFile = readParameter(
+      "idf.sdkconfigFilePath",
+      this.curWorkspace
+    ) as string;
+    const hasSdkconfigArg = reconfigureArgs.some(
+      (arg, index) =>
+        arg.startsWith("-DSDKCONFIG=") ||
+        (arg === "-D" && reconfigureArgs[index + 1]?.startsWith("SDKCONFIG="))
+    );
+    if (sdkconfigFile && !hasSdkconfigArg) {
       reconfigureArgs.push(`-DSDKCONFIG='${sdkconfigFile}'`);
     }
 
     const sdkconfigDefaults =
-      (readParameter("idf.sdkconfigDefaults") as string[]) || [];
+      (readParameter("idf.sdkconfigDefaults", this.curWorkspace) as string[]) ||
+      [];
     if (
       reconfigureArgs.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
       sdkconfigDefaults &&
@@ -102,6 +110,12 @@ export class IdfReconfigureTask {
     reconfigureArgs.push("reconfigure");
 
     const pythonBinPath = await getVirtualEnvPythonPath();
+
+    if (!pythonBinPath) {
+      throw new Error(
+        "Python binary path not found. Please check your Python configuration."
+      );
+    }
 
     const reconfigureExecution = new ProcessExecution(
       pythonBinPath,

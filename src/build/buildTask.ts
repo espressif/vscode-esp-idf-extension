@@ -21,11 +21,7 @@ import { join } from "path";
 import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
-import {
-  getEspIdfFromCMake,
-  getSDKConfigFilePath,
-  isBinInPath,
-} from "../utils";
+import { isBinInPath } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 import { getVirtualEnvPythonPath } from "../pythonManager";
@@ -41,6 +37,10 @@ export class BuildTask {
 
   constructor(workspaceUri: vscode.Uri) {
     this.currentWorkspace = workspaceUri;
+    this.buildDirPath = idfConf.readParameter(
+      "idf.buildPath",
+      workspaceUri
+    ) as string;
   }
 
   public building(flag: boolean) {
@@ -63,7 +63,7 @@ export class BuildTask {
     } catch (error) {
       const errorMessage =
         "Failed to save unsaved files, ignoring and continuing with the build";
-      Logger.error(errorMessage, error, "build saveBeforeBuild");
+      Logger.error(errorMessage, error as Error, "build saveBeforeBuild");
       Logger.warnNotify(errorMessage);
     }
     if (BuildTask.isBuilding) {
@@ -91,9 +91,11 @@ export class BuildTask {
       throw new Error("CMake or Ninja executables not found");
     }
 
-    const currentWorkspaceFolder = vscode.workspace.workspaceFolders.find(
-      (w) => w.uri === this.currentWorkspace
-    );
+    const currentWorkspaceFolder = vscode.workspace.workspaceFolders?.length
+      ? vscode.workspace.workspaceFolders.find(
+          (w) => w.uri === this.currentWorkspace
+        )
+      : undefined;
 
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode",
@@ -105,27 +107,24 @@ export class BuildTask {
         ? vscode.TaskRevealKind.Always
         : vscode.TaskRevealKind.Silent;
 
-    let compileExecution: OutputCapturingExecution | vscode.ProcessExecution;
+    let compileExecution:
+      | OutputCapturingExecution
+      | vscode.ProcessExecution
+      | undefined = undefined;
     let buildExecution: OutputCapturingExecution | vscode.ProcessExecution;
 
     if (!cmakeCacheExists) {
-      const espIdfVersion = await getEspIdfFromCMake(idfPathDir);
-      let defaultCompilerArgs;
-      if (espIdfVersion === "x.x") {
-        Logger.warn(
-          "Could not determine ESP-IDF version. Using default compiler arguments for the latest known version."
-        );
-        defaultCompilerArgs = [
-          "-G",
-          "Ninja",
-          "-DPYTHON_DEPS_CHECKED=1",
-          "-DESP_PLATFORM=1",
-        ];
-      }
-      let compilerArgs = idfConf.readParameter(
-        "idf.cmakeCompilerArgs",
-        this.currentWorkspace
-      ) as Array<string>;
+      let defaultCompilerArgs = [
+        "-G",
+        "Ninja",
+        "-DPYTHON_DEPS_CHECKED=1",
+        "-DESP_PLATFORM=1",
+      ];
+      let compilerArgs =
+        (idfConf.readParameter(
+          "idf.cmakeCompilerArgs",
+          this.currentWorkspace
+        ) as Array<string>) || [];
 
       if (!compilerArgs || compilerArgs.length === 0) {
         compilerArgs = defaultCompilerArgs;
@@ -139,13 +138,24 @@ export class BuildTask {
         compilerArgs.push("-S", this.currentWorkspace.fsPath);
       }
 
-      const sdkconfigFile = await getSDKConfigFilePath(this.currentWorkspace);
-      if (compilerArgs.indexOf("SDKCONFIG") === -1) {
+      const sdkconfigFile = idfConf.readParameter(
+        "idf.sdkconfigFilePath",
+        this.currentWorkspace
+      ) as string;
+      const hasSdkconfigArg = compilerArgs.some(
+        (arg, index) =>
+          arg.startsWith("-DSDKCONFIG=") ||
+          (arg === "-D" && compilerArgs[index + 1]?.startsWith("SDKCONFIG="))
+      );
+      if (sdkconfigFile && !hasSdkconfigArg) {
         compilerArgs.push(`-DSDKCONFIG='${sdkconfigFile}'`);
       }
 
       const sdkconfigDefaults =
-        (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
+        (idfConf.readParameter(
+          "idf.sdkconfigDefaults",
+          this.currentWorkspace
+        ) as string[]) || [];
 
       if (
         compilerArgs.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
@@ -253,9 +263,11 @@ export class BuildTask {
     this.building(true);
     await ensureDir(this.buildDirPath);
 
-    const currentWorkspaceFolder = vscode.workspace.workspaceFolders.find(
-      (w) => w.uri === this.currentWorkspace
-    );
+    const currentWorkspaceFolder = vscode.workspace.workspaceFolders?.length
+      ? vscode.workspace.workspaceFolders.find(
+          (w) => w.uri === this.currentWorkspace
+        )
+      : undefined;
 
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode",
@@ -283,6 +295,9 @@ export class BuildTask {
       selectedDFUAdapterId(adapterTargetName).toString(),
     ];
     const pythonBinPath = await getVirtualEnvPythonPath();
+    if (!pythonBinPath) {
+      throw new Error("Python virtual environment not found");
+    }
     const processOptions = {
       cwd: this.buildDirPath,
       env: modifiedEnv,

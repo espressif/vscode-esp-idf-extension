@@ -40,10 +40,12 @@ import { showInfoNotificationWithAction } from "./logger/utils";
 import * as utils from "./utils";
 import { PreCheck, shouldDisableMonitorReset } from "./utils";
 import {
+  getSDKConfigFilePath,
   getIdfTargetFromSdkconfig,
   getProjectName,
   initSelectedWorkspace,
   updateIdfComponentsTree,
+  getProjectElfFilePath,
 } from "./workspaceConfig";
 import { SystemViewResultParser } from "./espIdf/tracing/system-view";
 import { Telemetry } from "./telemetry";
@@ -1581,14 +1583,14 @@ export async function activate(context: vscode.ExtensionContext) {
       try {
         await covRenderer.renderCoverage();
       } catch (e) {
-        const msg = e && e.message ? e.message : e;
+        const errMsg = e instanceof Error ? e.message : String(e);
         Logger.errorNotify(
           "Error building gcov data from gcda files.\nCheck the ESP-IDF output for more details.",
-          e,
+          e as Error,
           "extension genCoverage"
         );
         OutputChannel.appendLine(
-          msg +
+          errMsg +
             "\nError building gcov data from gcda files.\n\n" +
             "Review the code coverage tutorial https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/coverage.html \n" +
             "or ESP-IDF documentation: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage \n"
@@ -1611,11 +1613,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getProjectName", () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      const buildDirPath = idfConf.readParameter(
-        "idf.buildPath",
-        workspaceRoot
-      ) as string;
-      return await getProjectName(buildDirPath);
+      try {
+        return await getProjectName(workspaceRoot);
+      } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        Logger.errorNotify(errMsg, error as Error, "extension getProjectName");
+      }
     });
   });
 
@@ -3329,20 +3332,34 @@ export async function activate(context: vscode.ExtensionContext) {
             "extension launchWSServerAndMonitor idf_monitor no access"
           );
         }
-        await installWebsocketClient(workspaceRoot);
-        const buildDirPath = idfConf.readParameter(
-          "idf.buildPath",
-          workspaceRoot
-        ) as string;
+        try {
+          await installWebsocketClient(workspaceRoot);
+        } catch (error) {
+          Logger.errorNotify(
+            "Failed to install websocket client dependencies",
+            error,
+            "extension launchWSServerAndMonitor install websocket client"
+          );
+          return;
+        }
         let idfTarget = await getIdfTargetFromSdkconfig(workspaceRoot);
         if (!idfTarget) {
           Logger.infoNotify("IDF_TARGET is not defined.");
           return;
         }
         const toolchainPrefix = utils.getToolchainToolName(idfTarget, "");
-        const projectName = await getProjectName(buildDirPath);
         const gdbPath = await utils.getToolchainPath(workspaceRoot, "gdb");
-        const elfFilePath = path.join(buildDirPath, `${projectName}.elf`);
+        let elfFilePath: string;
+        try {
+          elfFilePath = await getProjectElfFilePath(workspaceRoot);
+        } catch (error) {
+          Logger.errorNotify(
+            vscode.l10n.t("Failed to get project ELF file path"),
+            error,
+            "extension launchWSServerAndMonitor getProjectElfFilePath"
+          );
+          return;
+        }
         const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
         const idfVersion = await utils.getEspIdfFromCMake(idfPath);
         let sdkMonitorBaudRate: string = await utils.getMonitorBaudRate(
@@ -3417,32 +3434,32 @@ export async function activate(context: vscode.ExtensionContext) {
                 ),
               },
               async (progress) => {
-                const espCoreDumpPyTool = new ESPCoreDumpPyTool(idfPath);
-                const buildDirPath = idfConf.readParameter(
-                  "idf.buildPath",
-                  workspaceRoot
-                ) as string;
-                const projectName = await getProjectName(buildDirPath);
-                const coreElfFilePath = path.join(
-                  buildDirPath,
-                  `${projectName}.coredump.elf`
-                );
-                if (
-                  (await espCoreDumpPyTool.generateCoreELFFile({
-                    coreElfFilePath,
-                    coreInfoFilePath: resp.file,
-                    infoCoreFileFormat: InfoCoreFileFormat.Base64,
-                    progELFFilePath: resp.prog,
-                    pythonBinPath,
-                    workspaceUri: workspaceRoot,
-                  })) === true
-                ) {
-                  progress.report({
-                    message: vscode.l10n.t(
-                      "Successfully created ELF file from the info received (espcoredump.py)"
-                    ),
-                  });
-                  try {
+                try {
+                  const espCoreDumpPyTool = new ESPCoreDumpPyTool(idfPath);
+                  const buildDirPath = idfConf.readParameter(
+                    "idf.buildPath",
+                    workspaceRoot
+                  ) as string;
+                  const projectName = await getProjectName(workspaceRoot);
+                  const coreElfFilePath = path.join(
+                    buildDirPath,
+                    `${projectName}.coredump.elf`
+                  );
+                  if (
+                    (await espCoreDumpPyTool.generateCoreELFFile({
+                      coreElfFilePath,
+                      coreInfoFilePath: resp.file,
+                      infoCoreFileFormat: InfoCoreFileFormat.Base64,
+                      progELFFilePath: resp.prog,
+                      pythonBinPath,
+                      workspaceUri: workspaceRoot,
+                    })) === true
+                  ) {
+                    progress.report({
+                      message: vscode.l10n.t(
+                        "Successfully created ELF file from the info received (espcoredump.py)"
+                      ),
+                    });
                     const workspaceFolder = vscode.workspace.getWorkspaceFolder(
                       workspaceRoot
                     );
@@ -3471,18 +3488,18 @@ export async function activate(context: vscode.ExtensionContext) {
                         wsServer.close();
                       }
                     });
-                  } catch (error) {
-                    Logger.errorNotify(
-                      vscode.l10n.t("Failed to launch debugger for postmortem"),
-                      error,
-                      "extension launchWSServerAndMonitor coredump"
+                  } else {
+                    Logger.warnNotify(
+                      vscode.l10n.t(
+                        "Failed to generate the ELF file from the info received, please close the core-dump monitor terminal manually"
+                      )
                     );
                   }
-                } else {
-                  Logger.warnNotify(
-                    vscode.l10n.t(
-                      "Failed to generate the ELF file from the info received, please close the core-dump monitor terminal manually"
-                    )
+                } catch (error) {
+                  Logger.errorNotify(
+                    vscode.l10n.t("Failed to launch debugger for postmortem"),
+                    error,
+                    "extension launchWSServerAndMonitor coredump"
                   );
                 }
               }
@@ -3550,11 +3567,8 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!args) {
         // try to get the partition table name from sdkconfig and if not found create one
         try {
-          const sdkconfigFilePath = await utils.getSDKConfigFilePath(
-            workspaceRoot
-          );
-          const sdkconfigFileExists = await pathExists(sdkconfigFilePath);
-          if (!sdkconfigFileExists) {
+          const sdkconfigFilePath = await getSDKConfigFilePath(workspaceRoot);
+          if (!sdkconfigFilePath || !(await pathExists(sdkconfigFilePath))) {
             const buildProject = await vscode.window.showInformationMessage(
               vscode.l10n.t(
                 `Partition table editor requires sdkconfig file. Build the project?`
@@ -4329,7 +4343,10 @@ function createClassicMenuconfig(extensionPath: string) {
       "idf.buildPath",
       workspaceRoot
     ) as string;
-    const sdkconfigPath = await utils.getSDKConfigFilePath(workspaceRoot);
+    const sdkconfigFilePath = idfConf.readParameter(
+      "idf.sdkconfigFilePath",
+      workspaceRoot
+    ) as string;
     const sdkconfigDefaults = idfConf.readParameter(
       "idf.sdkconfigDefaults",
       workspaceRoot
@@ -4340,8 +4357,8 @@ function createClassicMenuconfig(extensionPath: string) {
     if (buildDirPath) {
       menuconfigCommand += ` -B "${buildDirPath}"`;
     }
-    if (sdkconfigPath) {
-      menuconfigCommand += ` -DSDKCONFIG='${sdkconfigPath}'`;
+    if (sdkconfigFilePath) {
+      menuconfigCommand += ` -DSDKCONFIG='${sdkconfigFilePath}'`;
     }
     if (sdkconfigDefaults && sdkconfigDefaults.length > 0) {
       menuconfigCommand += ` -DSDKCONFIG_DEFAULTS="${sdkconfigDefaults.join(

@@ -26,7 +26,7 @@ import {
   workspace,
 } from "vscode";
 import { readParameter } from "../idfConfiguration";
-import { getIdfTargetFromSdkconfig, getProjectName } from "../workspaceConfig";
+import { getIdfTargetFromSdkconfig, getProjectElfFilePath } from "../workspaceConfig";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { verifyAppBinary } from "../espIdf/debugAdapter/verifyApp";
@@ -104,9 +104,7 @@ export class CDTDebugConfigurationProvider
         }
       }
       if (!config.program) {
-        const buildDirPath = readParameter("idf.buildPath", folder) as string;
-        const projectName = await getProjectName(buildDirPath);
-        const elfFilePath = join(buildDirPath, `${projectName}.elf`);
+        const elfFilePath = await getProjectElfFilePath(folder.uri);
         const elfFileExists = await pathExists(elfFilePath);
         if (!elfFileExists) {
           throw new Error(
@@ -134,6 +132,9 @@ export class CDTDebugConfigurationProvider
         );
         if (isAppReproducibleBuildEnabled === "y") {
           const buildDirPath = readParameter("idf.buildPath", folder) as string;
+          if (!buildDirPath) {
+            throw new Error("Failed to get build directory path.");
+          }
           const gdbinitPrefixMap = join(buildDirPath, "gdbinit", "prefix_map");
           const gdbinitPrefixMapExists = await pathExists(gdbinitPrefixMap);
           if (gdbinitPrefixMapExists) {

@@ -23,7 +23,7 @@ import * as vscode from "vscode";
 import { FlashTask } from "./flashTask";
 import { BuildTask } from "../build/buildTask";
 import { Logger } from "../logger/logger";
-import { getProjectName } from "../workspaceConfig";
+import { getProjectElfFilePath } from "../workspaceConfig";
 import { getDfuList } from "./dfu";
 import { ESP } from "../config";
 import { OutputChannel } from "../logger/outputChannel";
@@ -63,9 +63,17 @@ export async function verifyCanFlash(
     OutputChannel.appendLineAndShow(errStr, "Flash");
     return Logger.warnNotify(errStr);
   }
-  const projectName = await getProjectName(buildPath);
-  if (!(await pathExists(join(buildPath, `${projectName}.elf`)))) {
-    const errStr = `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildPath})`;
+  let elfFilePath: string;
+  try {
+    elfFilePath = await getProjectElfFilePath(workspace);
+  } catch (error) {
+    const errStr = "Failed to get project ELF file path";
+    OutputChannel.show();
+    OutputChannel.appendLineAndShow(errStr, "Flash");
+    return Logger.errorNotify(errStr, error, "flashCmd verifyCanFlash getProjectElfFilePath");
+  }
+  if (!(await pathExists(elfFilePath))) {
+    const errStr = `Can't proceed with flashing, since project elf file (${elfFilePath}) is missing from the build dir. (${buildPath})`;
     OutputChannel.show();
     OutputChannel.appendLineAndShow(errStr, "Flash");
     return Logger.warnNotify(errStr);
