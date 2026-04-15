@@ -107,7 +107,11 @@ export class CustomTask {
     if (shellExecutableArgs && shellExecutableArgs.length) {
       options.shellArgs = shellExecutableArgs;
     }
-    const customExecution = this.getShellExecution(command, options, captureOutput);
+    const customExecution = this.getShellExecution(
+      command,
+      options,
+      captureOutput
+    );
     TaskManager.addTask(
       taskName,
       getWorkspaceFolderForTask(this.currentWorkspace),
@@ -115,45 +119,5 @@ export class CustomTask {
       { panel: TaskPanelKind.Dedicated }
     );
     return customExecution;
-  }
-
-  public async runTasks(taskType: CustomTaskType) {
-    let command: string = "";
-    switch (taskType) {
-      case CustomTaskType.PreBuild:
-        command = readParameter(
-          "idf.preBuildTask",
-          this.currentWorkspace
-        ) as string;
-        break;
-      case CustomTaskType.PostBuild:
-        command = readParameter(
-          "idf.postBuildTask",
-          this.currentWorkspace
-        ) as string;
-        break;
-      case CustomTaskType.PreFlash:
-        command = readParameter(
-          "idf.preFlashTask",
-          this.currentWorkspace
-        ) as string;
-        break;
-      case CustomTaskType.PostFlash:
-        command = readParameter(
-          "idf.postFlashTask",
-          this.currentWorkspace
-        ) as string;
-        break;
-      case CustomTaskType.Custom:
-        command = readParameter(
-          "idf.customTask",
-          this.currentWorkspace
-        ) as string;
-      default:
-        break;
-    }
-    if (command) {
-      await TaskManager.runTasks();
-    }
   }
 }

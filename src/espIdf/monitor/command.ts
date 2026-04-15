@@ -17,7 +17,7 @@
  */
 import { join } from "path";
 import { commands, l10n, Uri } from "vscode";
-import { FlashTask } from "../../flash/flashTask";
+import { FlashSession } from "../../flash/shared/flashSession";
 import { readParameter, readSerialPort } from "../../idfConfiguration";
 import * as utils from "../../utils";
 import { BuildTask } from "../../build/buildTask";
@@ -37,7 +37,7 @@ export async function createNewIdfMonitor(
   noReset: boolean = false,
   givenSerialPort?: string
 ) {
-  if (BuildTask.isBuilding || FlashTask.isFlashing) {
+  if (BuildTask.isBuilding || FlashSession.isFlashing) {
     const waitProcessIsFinishedMsg = l10n.t("Wait for ESP-IDF task to finish");
     Logger.errorNotify(
       waitProcessIsFinishedMsg,
