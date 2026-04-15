@@ -17,7 +17,7 @@
  */
 
 import { readJSON } from "fs-extra";
-import { FlashModel, FlashSection } from "../types/flashModel";
+import { FlashModel, FlashSection } from "./types/flashModel";
 
 export async function createFlashModel(
   modelJsonPath: string,

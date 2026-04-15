@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-import { ESP } from "../../config";
-import { FlashModel } from "../types/flashModel";
+import { ESP } from "../../../config";
+import { FlashModel } from "./types/flashModel";
 
 export function buildBaseWriteFlashArgs(
   model: FlashModel,
