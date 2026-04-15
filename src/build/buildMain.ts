@@ -17,7 +17,7 @@
  */
 
 import { BuildTask } from "./buildTask";
-import { FlashTask } from "../flash/flashTask";
+import { FlashSession } from "../flash/shared/flashSession";
 import { Logger } from "../logger/logger";
 import {
   collectExecutions,
@@ -58,7 +58,7 @@ export async function buildMain(
   let executions = collectExecutions();
 
   try {
-    if (BuildTask.isBuilding || FlashTask.isFlashing) {
+    if (BuildTask.isBuilding || FlashSession.isFlashing) {
       const waitProcessIsFinishedMsg = l10n.t(
         "Wait for ESP-IDF build or flash to finish"
       );

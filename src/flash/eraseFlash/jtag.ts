@@ -22,21 +22,13 @@ import { OpenOCDManager } from "../../espIdf/openOcd/openOcdManager";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { TCLClient } from "../../espIdf/openOcd/tcl/tclClient";
-import { PreCheck } from "../../common/PreCheck";
+import { assertMinimumOpenOcdVersionForJtag } from "../transports/jtag/assertMinimumOpenOcdVersionForJtag";
 
 export async function jtagEraseFlashCommand(workspaceFolder: Uri) {
-  const openOCDManager = OpenOCDManager.init();
-  const currOpenOcdVersion = await openOCDManager.version();
-  const openOCDVersionIsValid = PreCheck.openOCDVersionValidator(
-    "v0.10.0-esp32-20201125",
-    currOpenOcdVersion
-  );
-  if (!openOCDVersionIsValid) {
-    Logger.infoNotify(
-      `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currOpenOcdVersion} version installed`
-    );
+  if (!(await assertMinimumOpenOcdVersionForJtag())) {
     return;
   }
+  const openOCDManager = OpenOCDManager.init();
   const isOpenOCDLaunched = await openOCDManager.promptUserToLaunchOpenOCDServer();
   if (!isOpenOCDLaunched) {
     const errStr =

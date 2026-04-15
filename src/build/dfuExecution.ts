@@ -24,7 +24,7 @@ import { pathExists } from "fs-extra";
 import { Logger } from "../logger/logger";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { configureEnvVariables } from "../common/prepareEnv";
-import { selectedDFUAdapterId } from "../flash/dfu";
+import { selectedDFUAdapterId } from "../flash/transports/dfu/helpers";
 import { getVirtualEnvPythonPath } from "../pythonManager";
 import { addProcessTask, type MaybeIdfTaskExecution } from "../taskManager";
 

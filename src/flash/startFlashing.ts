@@ -26,13 +26,12 @@ import {
 import { Logger } from "../logger/logger";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { verifyCanFlash } from "./verify/canFlash";
-import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
-import { jtagFlashCommand } from "./jtag/jtagCmd";
-import { flashCommand } from "./uart/uartFlash";
-import { configureEnvVariables } from "../common/prepareEnv";
-import { PreCheck } from "../common/PreCheck";
+import { jtagFlashCommand } from "./transports/jtag/jtagCmd";
+import { assertMinimumOpenOcdVersionForJtag } from "./transports/jtag/assertMinimumOpenOcdVersionForJtag";
+import { flashCommand } from "./transports/uart/uartFlashCmd";
 import { selectFlashMethod } from "./selectFlashMethod";
 import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
+import { configureEnvVariables } from "../common/prepareEnv";
 
 export { selectFlashMethod } from "./selectFlashMethod";
 
@@ -66,50 +65,45 @@ export async function startFlashing(
     }
   }
 
-  const port = await readSerialPort(workspaceFolderUri, false);
-  if (!port) {
-    Logger.warnNotify(
-      l10n.t(
-        "No serial port found for current IDF_TARGET: {0}",
-        await getIdfTargetFromSdkconfig(workspaceFolderUri)
-      )
-    );
-    return false;
+  let port = "";
+  if (flashType === ESP.FlashType.UART) {
+    const uartPort = await readSerialPort(workspaceFolderUri, false);
+    if (!uartPort) {
+      Logger.warnNotify(
+        l10n.t(
+          "No serial port found for current IDF_TARGET: {0}",
+          await getIdfTargetFromSdkconfig(workspaceFolderUri)
+        )
+      );
+      return false;
+    }
+    port = uartPort;
   }
   const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolderUri);
+  const modifiedEnv = await configureEnvVariables(workspaceFolderUri);
   const canFlash = await verifyCanFlash(
     flashBaudRate,
     port,
     flashType,
-    workspaceFolderUri
+    workspaceFolderUri,
+    modifiedEnv
   );
   if (!canFlash) {
     return false;
   }
 
   if (flashType === ESP.FlashType.JTAG) {
-    const openOCDManager = OpenOCDManager.init();
-    const currOpenOcdVersion = await openOCDManager.version();
-    const openOCDVersionIsValid = PreCheck.openOCDVersionValidator(
-      "v0.10.0-esp32-20201125",
-      currOpenOcdVersion
-    );
-    if (!openOCDVersionIsValid) {
-      Logger.infoNotify(
-        `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currOpenOcdVersion} version installed`
-      );
+    if (!(await assertMinimumOpenOcdVersionForJtag())) {
       return false;
     }
     return await jtagFlashCommand(workspaceFolderUri);
   } else {
-    const modifiedEnv = await configureEnvVariables(workspaceFolderUri);
-    const idfPath = modifiedEnv["IDF_PATH"];
     return await flashCommand(
       cancelToken,
       flashBaudRate,
-      idfPath,
       port,
-      workspaceFolderUri,
+      workspaceFolderUri, 
+      modifiedEnv,
       flashType,
       encryptPartitions,
       partitionToUse
