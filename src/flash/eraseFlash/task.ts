@@ -16,15 +16,9 @@
  * limitations under the License.
  */
 import { Uri } from "vscode";
-import { join } from "path";
-import { constants } from "fs";
-import { readParameter } from "../../idfConfiguration";
-import { canAccessFile, sleep } from "../../utils";
 import { addProcessTask } from "../../taskManager";
-import { ESP } from "../../config";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
-import { IDFMonitor } from "../../espIdf/monitor";
 import { configureEnvVariables } from "../../common/prepareEnv";
+import { resolveEsptoolInvocation } from "../shared/esptool/resolveEsptoolInvocation";
 
 export class EraseFlashTask {
   public static isErasing: boolean;
@@ -44,24 +38,12 @@ export class EraseFlashTask {
     }
 
     const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
-    const flashScriptPath = join(
-      modifiedEnv["IDF_PATH"],
-      "components",
-      "esptool_py",
-      "esptool",
-      "esptool.py"
-    );
-
-    if (!canAccessFile(flashScriptPath, constants.R_OK, "esptool.py")) {
-      throw new Error("SCRIPT_PERMISSION_ERROR");
-    }
-
-    const pythonBinPath = await getVirtualEnvPythonPath();
-    if (!pythonBinPath) {
-      throw new Error("Python path not found in environment");
-    }
+    const {
+      pythonPath: pythonBinPath,
+      esptoolScriptPath,
+    } = await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]);
     this.erasing(true);
-    const args = [flashScriptPath, "-p", port, "erase_flash"];
+    const args = [esptoolScriptPath, "-p", port, "erase_flash"];
     return addProcessTask(
       "Erase Flash",
       this.currentWorkspace,

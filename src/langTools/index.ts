@@ -7,12 +7,11 @@ import {
   readSerialPort,
   writeParameter,
 } from "../idfConfiguration";
-import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { getEspIdfFromCMake, shouldDisableMonitorReset } from "../utils";
 import { Logger } from "../logger/logger";
-import { jtagFlashCommandMain } from "../flash/jtag/jtagCmd";
+import { jtagFlashCommandMain } from "../flash/transports/jtag/jtagCmd";
 import { verifyCanFlash } from "../flash/verify/canFlash";
-import { uartFlashCommandMain } from "../flash/uart/uartFlash";
+import { uartFlashCommandMain } from "../flash/transports/uart/uartFlashCmd";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { createNewIdfMonitor } from "../espIdf/monitor/command";
 import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
@@ -30,7 +29,10 @@ import {
 } from "../taskManager/customExecution";
 import { l10n } from "vscode";
 import { configureEnvVariables } from "../common/prepareEnv";
-import { PreCheck } from "../common/PreCheck";
+import {
+  assertMinimumOpenOcdVersionForJtag,
+  MIN_OPENOCD_VERSION_FOR_JTAG,
+} from "../flash/transports/jtag/assertMinimumOpenOcdVersionForJtag";
 import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 
 // Map of command names to their corresponding VS Code command IDs
@@ -193,34 +195,28 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               flashBaudRate,
               port,
               flashType,
-              workspaceURI
+              workspaceURI,
+              modifiedEnv
             );
             if (!canFlash) {
               return;
             }
             if (flashType === ESP.FlashType.JTAG) {
-              const openOCDManager = OpenOCDManager.init();
-              const currOpenOcdVersion = await openOCDManager.version();
-              const openOCDVersionIsValid = PreCheck.openOCDVersionValidator(
-                "v0.10.0-esp32-20201125",
-                currOpenOcdVersion
-              );
-              if (!openOCDVersionIsValid) {
+              if (!(await assertMinimumOpenOcdVersionForJtag())) {
                 return new vscode.LanguageModelToolResult([
                   new vscode.LanguageModelTextPart(
-                    `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currOpenOcdVersion} version installed`
+                    `Minimum OpenOCD version ${MIN_OPENOCD_VERSION_FOR_JTAG} is required for JTAG flashing.`
                   ),
                 ]);
               }
               await jtagFlashCommandMain(workspaceURI);
             } else {
-              const idfPathDir = modifiedEnv["IDF_PATH"];
               const flashCmdResult = await uartFlashCommandMain(
                 token,
                 flashBaudRate,
-                idfPathDir,
                 port,
                 workspaceURI,
+                modifiedEnv,
                 flashType,
                 encryptPartitions,
                 partitionToUse,
@@ -286,7 +282,8 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               flashBaudRate,
               port,
               flashType,
-              workspaceURI
+              workspaceURI,
+              modifiedEnv
             );
             if (!canFlash) {
               return new vscode.LanguageModelToolResult([
@@ -296,28 +293,21 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               ]);
             }
             if (flashType === ESP.FlashType.JTAG) {
-              const openOCDManager = OpenOCDManager.init();
-              const currOpenOcdVersion = await openOCDManager.version();
-              const openOCDVersionIsValid = PreCheck.openOCDVersionValidator(
-                "v0.10.0-esp32-20201125",
-                currOpenOcdVersion
-              );
-              if (!openOCDVersionIsValid) {
+              if (!(await assertMinimumOpenOcdVersionForJtag())) {
                 return new vscode.LanguageModelToolResult([
                   new vscode.LanguageModelTextPart(
-                    `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currOpenOcdVersion} version installed`
+                    `Minimum OpenOCD version ${MIN_OPENOCD_VERSION_FOR_JTAG} is required for JTAG flashing.`
                   ),
                 ]);
               }
               await jtagFlashCommandMain(workspaceURI);
             } else {
-              const idfPathDir = modifiedEnv["IDF_PATH"];
               let flashCmdResult = await uartFlashCommandMain(
                 token,
                 flashBaudRate,
-                idfPathDir,
                 port,
                 workspaceURI,
+                modifiedEnv,
                 flashType,
                 encryptPartitions,
                 partitionToUse,

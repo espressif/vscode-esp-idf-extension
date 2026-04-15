@@ -16,15 +16,23 @@
  * limitations under the License.
  */
 
-import { FlashTask } from "../flashTask";
-import { JTAGFlash } from "./jtag";
-import { TCLClient } from "../../espIdf/openOcd/tcl/tclClient";
-import { readParameter } from "../../idfConfiguration";
-import { OpenOCDManager } from "../../espIdf/openOcd/openOcdManager";
-import { Logger } from "../../logger/logger";
-import { CustomTask, CustomTaskType } from "../../customTasks/customTaskProvider";
+import { FlashSession } from "../../shared/flashSession";
+import { JTAGFlash } from "./flashTclClient";
+import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
+import { readParameter } from "../../../idfConfiguration";
+import { OpenOCDManager } from "../../../espIdf/openOcd/openOcdManager";
+import { Logger } from "../../../logger/logger";
+import {
+  CustomTask,
+  CustomTaskType,
+} from "../../../customTasks/customTaskProvider";
 import { Uri } from "vscode";
-import { OutputChannel } from "../../logger/outputChannel";
+import { OutputChannel } from "../../../logger/outputChannel";
+import {
+  collectExecutions,
+  TaskManager,
+  throwCapturedTaskFailure,
+} from "../../../taskManager";
 
 export async function jtagFlashCommandMain(workspace: Uri) {
   const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
@@ -33,7 +41,7 @@ export async function jtagFlashCommandMain(workspace: Uri) {
       "Can't perform JTAG flash, because OpenOCD server is not running!";
     OutputChannel.appendLineAndShow(errStr, "Flash");
     Logger.warnNotify(errStr);
-    return false;
+    return { continueFlag: false, executions: [] };
   }
   const host = readParameter("openocd.tcl.host", workspace);
   const port = readParameter("openocd.tcl.port", workspace);
@@ -50,10 +58,10 @@ export async function jtagFlashCommandMain(workspace: Uri) {
     const errStr = "OpenOCD is not ready to accept commands. Please try again.";
     OutputChannel.appendLineAndShow(errStr, "JTAG Flash");
     Logger.warnNotify(errStr);
-    return false;
+    return { continueFlag: false, executions: [] };
   }
 
-  FlashTask.isFlashing = true;
+  FlashSession.isFlashing = true;
   const jtag = new JTAGFlash(client);
   const forceUNIXPathSeparator = readParameter(
     "openocd.jtag.command.force_unix_path_separator",
@@ -68,26 +76,37 @@ export async function jtagFlashCommandMain(workspace: Uri) {
   if (forceUNIXPathSeparator === true) {
     buildPath = buildPath.replace(/\\/g, "/");
   }
-  await customTask.addCustomTask(CustomTaskType.PreFlash);
-  await customTask.runTasks(CustomTaskType.PreFlash);
+  const preFlashExecution = await customTask.addCustomTask(
+    CustomTaskType.PreFlash
+  );
+  await TaskManager.runTasks();
   await jtag.flash(
     "program_esp_bins",
     buildPath,
     "flasher_args.json",
     ...openOCDJTagFlashArguments
   );
-  await customTask.addCustomTask(CustomTaskType.PostFlash);
-  await customTask.runTasks(CustomTaskType.PostFlash);
+  const postFlashExecution = await customTask.addCustomTask(
+    CustomTaskType.PostFlash
+  );
+  await TaskManager.runTasks();
   const msg = "⚡️ Flashed Successfully (JTAG)";
   OutputChannel.appendLineAndShow(msg, "Flash");
   Logger.infoNotify(msg);
-  return true;
+  return {
+    continueFlag: true,
+    executions: collectExecutions(preFlashExecution, postFlashExecution),
+  };
 }
 
 export async function jtagFlashCommand(workspace: Uri) {
   let continueFlag = true;
   try {
-    await jtagFlashCommandMain(workspace);
+    const flashCmdResult = await jtagFlashCommandMain(workspace);
+    continueFlag = flashCmdResult.continueFlag;
+    if (!continueFlag) {
+      await throwCapturedTaskFailure(flashCmdResult.executions);
+    }
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     const msg = "JTAG Flash Failed ⚡️";
@@ -96,6 +115,6 @@ export async function jtagFlashCommand(workspace: Uri) {
     Logger.errorNotify(msg, err as Error, "jtagFlashCommand");
     continueFlag = false;
   }
-  FlashTask.isFlashing = false;
+  FlashSession.isFlashing = false;
   return continueFlag;
 }
