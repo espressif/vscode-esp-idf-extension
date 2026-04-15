@@ -16,19 +16,16 @@
  * limitations under the License.
  */
 
-import { CancellationToken, Uri, extensions, l10n } from "vscode";
+import { CancellationToken, Uri, extensions } from "vscode";
 import { ESP } from "../../config";
 import { join } from "path";
 import { copy, pathExists, readFile, writeFile } from "fs-extra";
-import { readParameter, readSerialPort } from "../../idfConfiguration";
+import { readParameter } from "../../idfConfiguration";
 import { buildMain } from "../../build/buildMain";
-import { verifyCanFlash } from "../../flash/verify/canFlash";
-import { jtagFlashCommand } from "../../flash/jtag/jtagCmd";
-import { flashCommand } from "../../flash/uart/uartFlash";
+import { startFlashing } from "../../flash/startFlashing";
 import { OutputChannel } from "../../logger/outputChannel";
 import { Logger } from "../../logger/logger";
 import { getFileList, getTestComponents } from "./utils";
-import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 
 export async function configureUnityApp(
   workspaceFolder: Uri,
@@ -119,46 +116,15 @@ export async function flashTestApp(
     "idf.flashType",
     unitTestAppDirPath
   ) as ESP.FlashType;
-  const port = await readSerialPort(unitTestAppDirPath, false);
-  if (!port) {
-    return Logger.warnNotify(
-      l10n.t(
-        "No serial port found for current IDF_TARGET: {0}",
-        await getIdfTargetFromSdkconfig(unitTestAppDirPath)
-      )
-    );
+  if (!flashType) {
+    flashType = ESP.FlashType.UART;
   }
-  const flashBaudRate = readParameter("idf.flashBaudRate", unitTestAppDirPath);
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-  const idfPathDir = currentEnvVars["IDF_PATH"];
-  const canFlash = await verifyCanFlash(
-    flashBaudRate,
-    port,
+  await startFlashing(
+    unitTestAppDirPath,
+    cancelToken,
     flashType,
-    unitTestAppDirPath
+    false
   );
-  if (!canFlash) {
-    return;
-  }
-  let canContinue = true;
-  if (flashType === ESP.FlashType.JTAG) {
-    canContinue = await jtagFlashCommand(unitTestAppDirPath);
-  } else {
-    canContinue = await flashCommand(
-      cancelToken,
-      flashBaudRate,
-      idfPathDir,
-      port,
-      unitTestAppDirPath,
-      flashType,
-      false
-    );
-  }
-  if (!canContinue) {
-    return;
-  }
 }
 
 export async function buildFlashTestApp(

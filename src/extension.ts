@@ -63,7 +63,7 @@ import { previewReport } from "./coverage/coverageService";
 import { WSServer } from "./espIdf/communications/ws";
 import { IDFMonitor } from "./espIdf/monitor";
 import { BuildTask } from "./build/buildTask";
-import { FlashTask } from "./flash/flashTask";
+import { FlashSession } from "./flash/shared/flashSession";
 import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "./espIdf/core-dump";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
 import { PartitionTableEditorPanel } from "./espIdf/partition-table";
@@ -687,7 +687,7 @@ export async function activate(context: vscode.ExtensionContext) {
         OutputChannel.appendLineAndShow(errStr);
         return Logger.warnNotify(errStr);
       }
-      if (BuildTask.isBuilding || FlashTask.isFlashing) {
+      if (BuildTask.isBuilding || FlashSession.isFlashing) {
         const errStr = vscode.l10n.t(
           `There is a build or flash task running. Wait for it to finish or cancel them before clean.`
         );

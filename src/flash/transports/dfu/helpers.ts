@@ -16,13 +16,12 @@
  * limitations under the License.
  */
 import * as vscode from "vscode";
-import { execChildProcess } from "../utils";
-import { OutputChannel } from "../logger/outputChannel";
-import { configureEnvVariables } from "../common/prepareEnv";
+import { execChildProcess } from "../../../utils";
+import { OutputChannel } from "../../../logger/outputChannel";
 
 function deviceLabel(selectedDevice: string) {
   const regex = new RegExp(/:\d+\]/g);
-  const pid = selectedDevice.match(regex)?[0].slice(4, -1) : [];
+  const pid = selectedDevice.match(regex) ? [0].slice(4, -1) : [];
 
   if (pid && pid[0] === 2) {
     return "ESP32-S2";
@@ -30,15 +29,14 @@ function deviceLabel(selectedDevice: string) {
   return "ESP32-S3";
 }
 
-export async function getDfuList(workspaceUri: vscode.Uri) {
-  const modifiedEnv = await configureEnvVariables(workspaceUri);
-  const dfuListStr =  await execChildProcess(
+export async function getDfuList(env: { [key: string]: string }) {
+  const dfuListStr = await execChildProcess(
     "dfu-util",
     ["--list"],
     process.cwd(),
     OutputChannel.init(),
     {
-      env: modifiedEnv,
+      env,
       maxBuffer: 500 * 1024,
       cwd: process.cwd(),
     }
@@ -60,7 +58,7 @@ export function listAvailableDfuDevices(text: string) {
  * @param {string} chip - String to identify the chip (IDF_TARGET)
  * @returns {number} PID Number for DFU
  */
- export function selectedDFUAdapterId(chip: string): number {
+export function selectedDFUAdapterId(chip: string): number {
   switch (chip) {
     case "esp32s2":
       return 2;
