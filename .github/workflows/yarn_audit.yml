@@ -7,18 +7,13 @@ on:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [12.x]
 
     steps:
       - name: Clone Repository
-        uses: actions/checkout@v1
-
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '24'
 
       - name: Check Node Packages Vulnerabilities
         run: yarn audit
