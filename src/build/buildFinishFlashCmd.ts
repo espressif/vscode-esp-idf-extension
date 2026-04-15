@@ -20,7 +20,7 @@ import { Uri } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { join } from "path";
 import { pathExists } from "fs-extra";
-import { createFlashModel } from "../flash/uart/flashModelBuilder";
+import { createFlashModel } from "../flash/transports/uart/flashModelBuilder";
 
 export async function buildFinishFlashCmd(workspace: Uri) {
   const buildPath = readParameter("idf.buildPath", workspace) as string;

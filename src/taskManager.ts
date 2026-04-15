@@ -65,6 +65,11 @@ export type IdfTaskExecution =
 
 export type MaybeIdfTaskExecution = IdfTaskExecution | undefined;
 
+/**
+ * Filter out undefined executions and return only defined executions.
+ * @param executions List of executions that could be undefined
+ * @returns {IdfTaskExecution[]} List of executions that are defined
+ */
 export function collectExecutions(
   ...executions: MaybeIdfTaskExecution[]
 ): IdfTaskExecution[] {

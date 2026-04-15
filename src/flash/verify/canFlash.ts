@@ -19,26 +19,25 @@
 import { ESP } from "../../config";
 import { commands, l10n, Uri } from "vscode";
 import { BuildTask } from "../../build/buildTask";
-import { FlashTask } from "../flashTask";
+import { FlashSession } from "../shared/flashSession";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import { readParameter } from "../../idfConfiguration";
 import { pathExists } from "fs-extra";
 import { join } from "path";
-import { getDfuList } from "../dfu";
 import { getProjectElfFilePath } from "../../workspaceConfig";
+import { getDfuList } from "../transports/dfu/helpers";
 
 export async function verifyCanFlash(
   flashBaudRate: string,
   port: string,
   flashType: ESP.FlashType,
-  workspace: Uri
+  workspace: Uri,
+  modifiedEnv: { [key: string]: string }
 ) {
   let continueFlag = true;
-  if (BuildTask.isBuilding || FlashTask.isFlashing) {
-    const waitProcessIsFinishedMsg = l10n.t(
-      "Wait for ESP-IDF task to finish"
-    );
+  if (BuildTask.isBuilding || FlashSession.isFlashing) {
+    const waitProcessIsFinishedMsg = l10n.t("Wait for ESP-IDF task to finish");
     OutputChannel.show();
     OutputChannel.appendLineAndShow(waitProcessIsFinishedMsg, "Flash");
     return Logger.errorNotify(
@@ -53,8 +52,11 @@ export async function verifyCanFlash(
     const errStr = `Build is required before Flashing, ${buildPath} can't be accessed`;
     OutputChannel.show();
     OutputChannel.appendLineAndShow(errStr, "Flash");
-    return Logger.errorNotify(errStr, new Error("BUILD_PATH_ACCESS_ERROR"),
-    "flashCmd verifyCanFlash build path doesnt exist");
+    return Logger.errorNotify(
+      errStr,
+      new Error("BUILD_PATH_ACCESS_ERROR"),
+      "flashCmd verifyCanFlash build path doesnt exist"
+    );
   }
   if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
     const errStr =
@@ -70,7 +72,11 @@ export async function verifyCanFlash(
     const errStr = "Failed to get project ELF file path";
     OutputChannel.show();
     OutputChannel.appendLineAndShow(errStr, "Flash");
-    return Logger.errorNotify(errStr, error as Error, "flashCmd verifyCanFlash getProjectElfFilePath");
+    return Logger.errorNotify(
+      errStr,
+      error as Error,
+      "flashCmd verifyCanFlash getProjectElfFilePath"
+    );
   }
   if (!(await pathExists(elfFilePath))) {
     const errStr = `Can't proceed with flashing, since project elf file (${elfFilePath}) is missing from the build dir. (${buildPath})`;
@@ -78,7 +84,7 @@ export async function verifyCanFlash(
     OutputChannel.appendLineAndShow(errStr, "Flash");
     return Logger.warnNotify(errStr);
   }
-  if(flashType !== "JTAG") {
+  if (flashType === ESP.FlashType.UART) {
     if (!port) {
       try {
         await commands.executeCommand("espIdf.selectPort");
@@ -91,29 +97,34 @@ export async function verifyCanFlash(
       const errStr = "Select a port before flashing";
       OutputChannel.show();
       OutputChannel.appendLineAndShow(errStr, "Flash");
-      return Logger.errorNotify(errStr, new Error("NOT_SELECTED_PORT"),
-      "flashCmd verifyCanFlash select port");
+      return Logger.errorNotify(
+        errStr,
+        new Error("NOT_SELECTED_PORT"),
+        "flashCmd verifyCanFlash select port"
+      );
     }
   }
-  if (!flashBaudRate) {
+  if (flashType === ESP.FlashType.UART && !flashBaudRate) {
     const errStr = "Select a baud rate before flashing";
     OutputChannel.show();
     OutputChannel.appendLineAndShow(errStr, "Flash");
-    return Logger.errorNotify(errStr, new Error("NOT_SELECTED_BAUD_RATE"),
-    "flashCmd verifyCanFlash no flashbaudrate");
+    return Logger.errorNotify(
+      errStr,
+      new Error("NOT_SELECTED_BAUD_RATE"),
+      "flashCmd verifyCanFlash no flashbaudrate"
+    );
   }
-  const selectedFlashType = readParameter(
-    "idf.flashType",
-    workspace
-  ) as ESP.FlashType;
-  if (selectedFlashType === ESP.FlashType.DFU) {
-    const listDfu = await getDfuList(workspace);
+  if (flashType === ESP.FlashType.DFU) {
+    const listDfu = await getDfuList(modifiedEnv);
     if (!listDfu) {
       const errStr = "No DFU capable USB device available found";
       OutputChannel.show();
       OutputChannel.appendLineAndShow(errStr, "Flash");
-      return Logger.errorNotify(errStr, new Error("NO_DFU_DEVICES_FOUND"),
-      "flashCmd verifyCanFlash no dfu device found");
+      return Logger.errorNotify(
+        errStr,
+        new Error("NO_DFU_DEVICES_FOUND"),
+        "flashCmd verifyCanFlash no dfu device found"
+      );
     }
   }
   return continueFlag;
