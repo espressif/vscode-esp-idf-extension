@@ -30,12 +30,10 @@ import {
   CustomTask,
   CustomTaskType,
 } from "../../../customTasks/customTaskProvider";
-import { readParameter } from "../../../idfConfiguration";
 import { ESP } from "../../../config";
 import { OutputChannel } from "../../../logger/outputChannel";
 import { CustomExecutionTaskResult } from "../../../taskManager/customExecution";
 import { FlashSession } from "../../shared/flashSession";
-import { handleFlashCommandCatch } from "./errHandling";
 
 export async function uartFlashCommandMain(
   cancelToken: CancellationToken,
@@ -43,13 +41,13 @@ export async function uartFlashCommandMain(
   port: string,
   workspace: Uri,
   modifiedEnv: { [key: string]: string },
+  buildDirPath: string,
   flashType: ESP.FlashType,
   encryptPartitions: boolean,
   partitionToUse?: ESP.BuildType,
   captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
-  const buildPath = readParameter("idf.buildPath", workspace) as string;
-  const flasherArgsJsonPath = join(buildPath, "flasher_args.json");
+  const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
   cancelToken.onCancellationRequested(() => {
     TaskManager.cancelTasks();
     TaskManager.disposeListeners();
@@ -71,6 +69,7 @@ export async function uartFlashCommandMain(
     flashType === ESP.FlashType.DFU
       ? await createDfuFlashProcessTask(
           workspace,
+          buildDirPath,
           model,
           modifiedEnv,
           captureOutput
@@ -79,6 +78,7 @@ export async function uartFlashCommandMain(
           workspace,
           model,
           modifiedEnv,
+          buildDirPath,
           encryptPartitions,
           partitionToUse,
           captureOutput
@@ -106,41 +106,4 @@ export async function uartFlashCommandMain(
       postFlashExecution
     ),
   };
-}
-
-export async function flashCommand(
-  cancelToken: CancellationToken,
-  flashBaudRate: string,
-  port: string,
-  workspace: Uri,
-  modifiedEnv: { [key: string]: string },
-  flashType: ESP.FlashType,
-  encryptPartitions: boolean,
-  partitionToUse?: ESP.BuildType
-) {
-  let continueFlag = true;
-  try {
-    let flashCmdResult = await uartFlashCommandMain(
-      cancelToken,
-      flashBaudRate,
-      port,
-      workspace,
-      modifiedEnv,
-      flashType,
-      encryptPartitions,
-      partitionToUse
-    );
-    continueFlag = flashCmdResult.continueFlag;
-    if (!continueFlag) {
-      await throwCapturedTaskFailure(flashCmdResult.executions);
-    }
-  } catch (error) {
-    const earlyReturn = handleFlashCommandCatch(error);
-    if (earlyReturn === false) {
-      return false;
-    }
-    continueFlag = false;
-  }
-  FlashSession.isFlashing = false;
-  return continueFlag;
 }

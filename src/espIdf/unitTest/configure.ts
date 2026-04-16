@@ -22,7 +22,7 @@ import { join } from "path";
 import { copy, pathExists, readFile, writeFile } from "fs-extra";
 import { readParameter } from "../../idfConfiguration";
 import { buildMain } from "../../build/buildMain";
-import { startFlashing } from "../../flash/startFlashing";
+import { flashMain } from "../../flash/main";
 import { OutputChannel } from "../../logger/outputChannel";
 import { Logger } from "../../logger/logger";
 import { getFileList, getTestComponents } from "./utils";
@@ -119,7 +119,7 @@ export async function flashTestApp(
   if (!flashType) {
     flashType = ESP.FlashType.UART;
   }
-  await startFlashing(
+  await flashMain(
     unitTestAppDirPath,
     cancelToken,
     flashType,
