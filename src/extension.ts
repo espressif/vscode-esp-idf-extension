@@ -186,6 +186,7 @@ import {
 import { registerBuildCommands } from "./build";
 import { registerFlashCommands } from "./flash";
 import { interruptMonitorWithDelay } from "./espIdf/monitor/interruptMonitorWithDelay";
+import { registerEraseFlashCommand } from "./eraseFlash";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1778,6 +1779,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   registerBuildCommands(context);
   registerFlashCommands(context);
+  registerEraseFlashCommand(context);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
   registerIDFCommand("espIdf.buildFlashMonitor", () =>
     buildFlashAndMonitor(workspaceRoot)

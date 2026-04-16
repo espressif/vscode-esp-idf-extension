@@ -23,7 +23,6 @@ import { ESP } from "../config";
 import { isFlashEncryptionEnabled } from "./verify/flashEncryption";
 import { flash } from "./flashProject";
 import { selectFlashMethod } from "./selectFlashMethod";
-import { registerEraseFlashCommand } from "./eraseFlash/command";
 
 async function flashWithEncryptionResolution(options: {
   explicitFlashType?: ESP.FlashType;
@@ -78,6 +77,4 @@ export function registerFlashCommands(context: ExtensionContext) {
       await selectFlashMethod(ws!.uri);
     });
   });
-
-  registerEraseFlashCommand(context);
 }
