@@ -36,7 +36,7 @@ import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
 import { ESP } from "../config";
 import { IDFMonitor } from "../espIdf/monitor";
 import { buildMain } from "../build/buildMain";
-import { startFlashing } from "../flash/startFlashing";
+import { flashMain } from "../flash/main";
 import { createNewIdfMonitor } from "../espIdf/monitor/command";
 import {
   resolveFlashTypeForTask,
@@ -84,7 +84,7 @@ export async function buildFlashAndMonitor(
 
       const encryptPartitions = await isFlashEncryptionEnabled(folderUri);
 
-      const canContinue = await startFlashing(
+      const canContinue = await flashMain(
         folderUri,
         cancelToken,
         flashType,
