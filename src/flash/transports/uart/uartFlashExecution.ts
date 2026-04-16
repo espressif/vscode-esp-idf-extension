@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 import { Uri } from "vscode";
-import * as idfConf from "../../../idfConfiguration";
 import { FlashModel } from "./types/flashModel";
 import { addProcessTask } from "../../../taskManager";
 import { ESP } from "../../../config";
@@ -32,6 +31,7 @@ export async function createUartFlashProcessTask(
   workspace: Uri,
   model: FlashModel,
   modifiedEnv: { [key: string]: string },
+  buildDirPath: string,
   encryptPartitions: boolean,
   partitionToUse?: ESP.BuildType,
   captureOutput?: boolean
@@ -39,10 +39,6 @@ export async function createUartFlashProcessTask(
   if (FlashSession.isFlashing) {
     throw new Error("ALREADY_FLASHING");
   }
-  const buildDirPath = idfConf.readParameter(
-    "idf.buildPath",
-    workspace
-  ) as string;
   assertFlashSectionsReadable(buildDirPath, model);
   const { pythonPath: pythonBinPath, esptoolScriptPath } =
     await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);

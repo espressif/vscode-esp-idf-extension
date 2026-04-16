@@ -1,7 +1,7 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Tuesday, 29th September 2020 11:05:15 pm
- * Copyright 2020 Espressif Systems (Shanghai) CO LTD
+ * File Created: Thursday, 16th April 2026 5:29:45 pm
+ * Copyright 2026 Espressif Systems (Shanghai) CO LTD
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,20 @@
  */
 
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
-import { IdfTaskExecution } from "../../../taskManager";
+import { createCapturedExecution } from "../../../flash/transports/jtag/flashTclClient";
 import {
   CapturedTaskOutput,
   CustomExecutionTaskResult,
 } from "../../../taskManager/customExecution";
 
-export function createCapturedExecution(
-  output: CapturedTaskOutput
-): IdfTaskExecution {
-  return ({
-    getOutput: async () => output,
-  } as unknown) as IdfTaskExecution;
+function eraseSuccess(response: string): boolean {
+  if (response === "") {
+    return true;
+  }
+  return response.indexOf("erased sectors ") !== -1;
 }
-export async function jtagFlash(
+
+export async function eraseFlashTelnetCommand(
   client: TCLClient,
   command: string,
   ...args: string[]
@@ -39,15 +39,15 @@ export async function jtagFlash(
 
   return new Promise<CustomExecutionTaskResult>((resolve) => {
     client
-      .on("response", (data) => {
+      .on("response", (data: Buffer) => {
         const response = data
           .toString()
           .replace(TCLClient.DELIMITER, "")
           .trim();
-        const success = response === "0";
+        const success = eraseSuccess(response);
         const stderr = success
           ? ""
-          : `Failed to flash the device (JTAG), please try again [got response: '${response}', expecting: '0']`;
+          : `Failed to erase flash from the device (JTAG), please try again [got response: '${response}', expecting: 'erased sectors ']`;
         const output: CapturedTaskOutput = {
           stdout: response,
           stderr,
@@ -63,7 +63,7 @@ export async function jtagFlash(
         const stderr =
           err instanceof Error
             ? err.message
-            : "Failed to flash (via JTAG), due to some unknown error in tcl, please try to relaunch open-ocd";
+            : "Failed to erase flash (via JTAG), due to some unknown error in tcl, please try to relaunch open-ocd";
         const output: CapturedTaskOutput = {
           stdout: "",
           stderr,
