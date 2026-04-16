@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Logger } from "../../../logger/logger";
-import { OutputChannel } from "../../../logger/outputChannel";
+import { ESP } from "../../config";
+import { Logger } from "../../logger/logger";
+import { OutputChannel } from "../../logger/outputChannel";
 
 type FlashCommandErrorPresentation = {
   userMessage: string;
@@ -78,18 +79,21 @@ function presentMappedFlashCommandError(
 }
 
 // Returns false only for ALREADY_FLASHING (caller returns before clearing session flag).
-export function handleFlashCommandCatch(error: unknown): boolean | void {
+export function handleFlashCommandCatch(
+  error: unknown,
+  flashType: ESP.FlashType
+) {
   const errMsg = error instanceof Error ? error.message : String(error);
+  const category =
+    flashType && flashType === ESP.FlashType.UART
+      ? "uartFlashCommand"
+      : "jtagFlashCommand";
 
   if (errMsg === "ALREADY_FLASHING") {
     const errStr = "Already one flash process is running!";
     OutputChannel.appendLineAndShow(errStr, "Flash");
-    Logger.errorNotify(
-      errStr,
-      error as Error,
-      "flashCommand already flashing"
-    );
-    return false;
+    Logger.errorNotify(errStr, error as Error, "flashCommand already flashing");
+    return;
   }
 
   const mapped = FLASH_COMMAND_ERRORS_BY_MESSAGE.get(errMsg);
@@ -108,7 +112,7 @@ export function handleFlashCommandCatch(error: unknown): boolean | void {
     Logger.errorNotify(
       errStr,
       error as Error,
-      "flashCommand esptool.py access error"
+      "uartFlashCommand esptool.py access error"
     );
     return;
   }
@@ -118,7 +122,7 @@ export function handleFlashCommandCatch(error: unknown): boolean | void {
   Logger.errorNotify(
     errStr,
     error as Error,
-    "flashCommand unknown error",
+    `${category} unknown error`,
     undefined,
     false
   );

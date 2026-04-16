@@ -26,6 +26,7 @@ import { assertFlashSectionsReadable } from "../../shared/verifyFlashBins";
 
 export async function createDfuFlashProcessTask(
   workspace: Uri,
+  buildDirPath: string,
   model: FlashModel,
   modifiedEnv: { [key: string]: string },
   captureOutput?: boolean
@@ -33,10 +34,6 @@ export async function createDfuFlashProcessTask(
   if (FlashSession.isFlashing) {
     throw new Error("ALREADY_FLASHING");
   }
-  const buildDirPath = idfConf.readParameter(
-    "idf.buildPath",
-    workspace
-  ) as string;
   assertFlashSectionsReadable(buildDirPath, model);
   const { pythonPath: pythonBinPath } =
     await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);

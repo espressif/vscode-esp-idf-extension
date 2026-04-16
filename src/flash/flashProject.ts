@@ -16,7 +16,7 @@ import {
   resolveFlashTypeForTask,
   resolvePartitionToUseForTask,
 } from "./resolveFlashContext";
-import { startFlashing } from "./startFlashing";
+import { flashMain } from "./main";
 
 export async function flash(
   encryptPartitions: boolean = false,
@@ -33,7 +33,7 @@ export async function flash(
         partitionToUse
       );
       if (
-        await startFlashing(
+        await flashMain(
           wsFolder!.uri,
           cancelToken,
           resolvedFlashType,

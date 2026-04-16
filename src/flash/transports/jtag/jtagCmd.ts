@@ -17,7 +17,6 @@
  */
 
 import { FlashSession } from "../../shared/flashSession";
-import { JTAGFlash } from "./flashTclClient";
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
 import { readParameter } from "../../../idfConfiguration";
 import { OpenOCDManager } from "../../../espIdf/openOcd/openOcdManager";
@@ -33,8 +32,12 @@ import {
   TaskManager,
   throwCapturedTaskFailure,
 } from "../../../taskManager";
+import { jtagFlash } from "./flashTclClient";
 
-export async function jtagFlashCommandMain(workspace: Uri) {
+export async function jtagFlashCommandMain(
+  workspace: Uri,
+  buildDirPath: string
+) {
   const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
   if (!isOpenOCDLaunched) {
     const errStr =
@@ -62,30 +65,33 @@ export async function jtagFlashCommandMain(workspace: Uri) {
   }
 
   FlashSession.isFlashing = true;
-  const jtag = new JTAGFlash(client);
   const forceUNIXPathSeparator = readParameter(
     "openocd.jtag.command.force_unix_path_separator",
     workspace
   );
-  let buildPath = readParameter("idf.buildPath", workspace) as string;
   let openOCDJTagFlashArguments = readParameter(
     "idf.jtagFlashCommandExtraArgs",
     workspace
   ) as string[];
   const customTask = new CustomTask(workspace);
   if (forceUNIXPathSeparator === true) {
-    buildPath = buildPath.replace(/\\/g, "/");
+    buildDirPath = buildDirPath.replace(/\\/g, "/");
   }
   const preFlashExecution = await customTask.addCustomTask(
     CustomTaskType.PreFlash
   );
   await TaskManager.runTasks();
-  await jtag.flash(
+  const flashExecution = await jtagFlash(
+    client,
     "program_esp_bins",
-    buildPath,
+    buildDirPath,
     "flasher_args.json",
     ...openOCDJTagFlashArguments
   );
+  if (!flashExecution.continueFlag) {
+    FlashSession.isFlashing = false;
+    await throwCapturedTaskFailure(flashExecution.executions);
+  }
   const postFlashExecution = await customTask.addCustomTask(
     CustomTaskType.PostFlash
   );
@@ -95,26 +101,10 @@ export async function jtagFlashCommandMain(workspace: Uri) {
   Logger.infoNotify(msg);
   return {
     continueFlag: true,
-    executions: collectExecutions(preFlashExecution, postFlashExecution),
+    executions: collectExecutions(
+      preFlashExecution,
+      ...flashExecution.executions,
+      postFlashExecution
+    ),
   };
-}
-
-export async function jtagFlashCommand(workspace: Uri) {
-  let continueFlag = true;
-  try {
-    const flashCmdResult = await jtagFlashCommandMain(workspace);
-    continueFlag = flashCmdResult.continueFlag;
-    if (!continueFlag) {
-      await throwCapturedTaskFailure(flashCmdResult.executions);
-    }
-  } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    const msg = "JTAG Flash Failed ⚡️";
-    OpenOCDManager.init().showOutputChannel(true);
-    OutputChannel.appendLine(errorMsg, "Flash");
-    Logger.errorNotify(msg, err as Error, "jtagFlashCommand");
-    continueFlag = false;
-  }
-  FlashSession.isFlashing = false;
-  return continueFlag;
 }
