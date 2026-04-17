@@ -86,10 +86,10 @@ export async function throwCapturedTaskFailure(
       | ShellOutputCapturingExecution).getOutput();
     if (executionOutput && !executionOutput.success) {
       if (executionOutput.stderr?.trim()) {
-        throw executionOutput.stderr;
+        throw new Error(executionOutput.stderr);
       }
       if (executionOutput.stdout?.trim()) {
-        throw executionOutput.stdout;
+        throw new Error(executionOutput.stdout);
       }
       throw new Error(`Task exited with code ${executionOutput.exitCode}`);
     }

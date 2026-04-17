@@ -79,9 +79,4 @@ export async function appendSdkconfigDefaultsAndCcache(
 export function cleanupBuildState(buildTask: BuildTask): void {
   TaskManager.disposeListeners();
   buildTask.building(false);
-  // Defer loading buildTask so cmakeConfigure can import this module without a cycle.
-  const { BuildTask: BuildTaskCtor } = require("./buildTask") as {
-    BuildTask: { isBuilding: boolean };
-  };
-  BuildTaskCtor.isBuilding = false;
 }
