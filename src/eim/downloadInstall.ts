@@ -60,6 +60,15 @@ export function shouldForceCliMode(): boolean {
 export async function resolveEimPath(): Promise<string> {
   let eimPath = "";
 
+  // On macOS, prefer the GUI-capable .app bundle before checking PATH,
+  // because PATH may contain a Homebrew CLI-only binary with no "gui" subcommand.
+  if (process.platform === "darwin") {
+    const appPath = "/Applications/eim.app";
+    if (await pathExists(appPath)) {
+      return appPath;
+    }
+  }
+
   // 1. Check eim is in PATH and use it
   const eimInPATH = await isBinInPath("eim", process.env);
   if (eimInPATH) {
@@ -88,8 +97,6 @@ export async function resolveEimPath(): Promise<string> {
         "eim_gui",
         "eim-gui-windows-x64.exe"
       );
-    } else if (process.platform === "darwin") {
-      eimPath = "/Applications/eim.app";
     } else if (process.platform === "linux") {
       eimPath = join(process.env.HOME || "", ".espressif", "eim_gui", "eim");
     }
@@ -121,7 +128,14 @@ export async function launchEimInTerminal(eimPath: string) {
   } else if (process.platform === "linux") {
     binaryPath = `./${basename(eimPath)}${argsString ? " " + argsString : ""}`;
   } else if (process.platform === "darwin") {
-    binaryPath = `open ${eimPath}${argsString ? " --args " + argsString : ""}`;
+    if (eimPath.endsWith(".app")) {
+      binaryPath = `open ${eimPath}${argsString ? " --args " + argsString : ""}`;
+    } else {
+      // Plain CLI binary (e.g. Homebrew): run directly.
+      // Homebrew eim has no "gui" subcommand — use "wizard" instead.
+      const cliArgs = argsString.replace(/\bgui\b/, "wizard");
+      binaryPath = `${eimPath}${cliArgs ? " " + cliArgs : ""}`;
+    }
   }
   const shellPath =
     process.platform === "win32"
