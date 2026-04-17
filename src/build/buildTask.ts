@@ -33,10 +33,6 @@ export class BuildTask {
 
   constructor(workspaceUri: Uri) {
     this.currentWorkspace = workspaceUri;
-    this.buildDirPath = readParameter(
-      "idf.buildPath",
-      workspaceUri
-    ) as string;
   }
 
   /** Synchronous mutual exclusion for the build pipeline; false if a build is already active. */
