@@ -91,7 +91,7 @@ export async function getEnvVariablesFromActivationScript(
         : "Error getting Env variables from EIM activation script";
     Logger.error(
       errMsg,
-      error as Error, 
+      error as Error,
       "loadSettings getEnvVariablesFromActivationScript",
       undefined,
       false
