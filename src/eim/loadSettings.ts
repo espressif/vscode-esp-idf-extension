@@ -21,7 +21,6 @@ import { IdfSetup } from "./types";
 import { delimiter, join } from "path";
 import { getEnvVariablesFromIdfSetup } from "./migrationTool";
 import { Logger } from "../logger/logger";
-import { env } from "vscode";
 
 export async function getEnvVariables(idfSetup: IdfSetup) {
   if (idfSetup.activationScript) {
@@ -49,7 +48,7 @@ export async function getEnvVariablesFromActivationScript(
     const shellPath =
       process.platform === "win32"
         ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
-        : env.shell;
+        : "/bin/sh";
     const envVarsOutput = await spawn(shellPath, args, {
       maxBuffer: 500 * 1024,
       cwd: process.cwd(),
