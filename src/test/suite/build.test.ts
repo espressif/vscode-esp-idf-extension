@@ -72,19 +72,19 @@ suite("Build", () => {
     suite("applySdkconfigDefaultsAndCcacheArgs", () => {
       test("appends SDKCONFIG path when not already present", () => {
         const args: string[] = [];
-        applySdkconfigDefaultsAndCcacheArgs(args, "/ws/sdkconfig", [], false);
+        applySdkconfigDefaultsAndCcacheArgs(args,false, "/ws/sdkconfig", []);
         assert.deepStrictEqual(args, ["-DSDKCONFIG='/ws/sdkconfig'"]);
       });
 
       test("skips SDKCONFIG when args already pass -DSDKCONFIG=...", () => {
         const args = ["-DSDKCONFIG=/existing"];
-        applySdkconfigDefaultsAndCcacheArgs(args, "/ws/sdkconfig", [], false);
+        applySdkconfigDefaultsAndCcacheArgs(args,false, "/ws/sdkconfig", []);
         assert.deepStrictEqual(args, ["-DSDKCONFIG=/existing"]);
       });
 
       test("appends SDKCONFIG_DEFAULTS joined with semicolons", () => {
         const args: string[] = [];
-        applySdkconfigDefaultsAndCcacheArgs(args, "/cfg", ["a", "b"], false);
+        applySdkconfigDefaultsAndCcacheArgs(args,false, "/cfg", ["a", "b"]);
         assert.deepStrictEqual(args, [
           "-DSDKCONFIG='/cfg'",
           "-DSDKCONFIG_DEFAULTS='a;b'",
@@ -93,13 +93,13 @@ suite("Build", () => {
 
       test("omits SDKCONFIG_DEFAULTS when list is empty", () => {
         const args: string[] = [];
-        applySdkconfigDefaultsAndCcacheArgs(args, "/cfg", [], false);
+        applySdkconfigDefaultsAndCcacheArgs(args,false, "/cfg", []);
         assert.deepStrictEqual(args, ["-DSDKCONFIG='/cfg'"]);
       });
 
       test("skips SDKCONFIG_DEFAULTS when args already pass -DSDKCONFIG_DEFAULTS=...", () => {
         const args = ["-DSDKCONFIG_DEFAULTS=/existing"];
-        applySdkconfigDefaultsAndCcacheArgs(args, "/cfg", ["x"], false);
+        applySdkconfigDefaultsAndCcacheArgs(args,false, "/cfg", ["x"]);
         assert.deepStrictEqual(args, [
           "-DSDKCONFIG_DEFAULTS=/existing",
           "-DSDKCONFIG='/cfg'",
@@ -108,26 +108,26 @@ suite("Build", () => {
 
       test("appends CCACHE flag when enabled and args are non-empty", () => {
         const args = ["-G", "Ninja"];
-        applySdkconfigDefaultsAndCcacheArgs(args, "/cfg", [], true);
+        applySdkconfigDefaultsAndCcacheArgs(args,true, "/cfg", []);
         assert.ok(args.includes("-DCCACHE_ENABLE=1"));
       });
 
       test("appends CCACHE after SDKCONFIG when enabled and args started empty", () => {
         const args: string[] = [];
-        applySdkconfigDefaultsAndCcacheArgs(args, "/cfg", [], true);
+        applySdkconfigDefaultsAndCcacheArgs(args, true, "/cfg", []);
         assert.ok(args.includes("-DCCACHE_ENABLE=1"));
         assert.ok(args.includes("-DSDKCONFIG='/cfg'"));
       });
 
       test("does not append CCACHE when disabled", () => {
         const args = ["-G", "Ninja"];
-        applySdkconfigDefaultsAndCcacheArgs(args, "/cfg", [], false);
+        applySdkconfigDefaultsAndCcacheArgs(args, false, "/cfg", []);
         assert.strictEqual(args.indexOf("-DCCACHE_ENABLE=1"), -1);
       });
 
       test("does not duplicate CCACHE flag", () => {
         const args = ["-DCCACHE_ENABLE=1"];
-        applySdkconfigDefaultsAndCcacheArgs(args, "/cfg", [], true);
+        applySdkconfigDefaultsAndCcacheArgs(args, true, "/cfg", []);
         assert.strictEqual(
           args.filter((a) => a === "-DCCACHE_ENABLE=1").length,
           1
