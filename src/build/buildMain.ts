@@ -32,7 +32,7 @@ import { CustomExecutionTaskResult } from "../taskManager/customExecution";
 import { buildFinishFlashCmd } from "./buildFinishFlashCmd";
 import { cleanupBuildState } from "./buildHelpers";
 import { appendDfuExecution } from "./dfuExecution";
-import { appendSizeExecutionIfEnabled } from "./sizeExecution";
+import { runSizeTaskIfEnabled } from "./sizeExecution";
 import { CancellationToken, l10n, Uri } from "vscode";
 
 /**
@@ -72,7 +72,6 @@ export async function buildMain(
     cancelToken.onCancellationRequested(() => {
       TaskManager.cancelTasks();
       BuildTask.isBuilding = false;
-      return { continueFlag: false, executions: [] };
     });
     const preBuildExecution = await customTask.addCustomTask(
       CustomTaskType.PreBuild,
@@ -109,7 +108,7 @@ export async function buildMain(
     const buildResult = await TaskManager.runTasksWithBoolean();
     let sizeResult = true;
     if (buildResult && typeof buildType === "undefined") {
-      sizeResult = await appendSizeExecutionIfEnabled(
+      sizeResult = await runSizeTaskIfEnabled(
         executions,
         workspace,
         captureOutput

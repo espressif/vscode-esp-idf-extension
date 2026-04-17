@@ -30,6 +30,7 @@ import {
 } from "vscode";
 import { buildMain } from "./buildMain";
 import { registerIDFCommand } from "../common/registerCommand";
+import { Logger } from "../logger/logger";
 
 export async function registerBuildCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.buildDevice", build);
@@ -55,7 +56,11 @@ export async function build(
     const storedUri = ESP.GlobalConfiguration.store.get<Uri>(
       ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
     );
-    const wsFolder = workspace.getWorkspaceFolder(storedUri);
+    const wsFolder = (storedUri && workspace.getWorkspaceFolder(storedUri)) || workspace.workspaceFolders?.[0];
+    if (!wsFolder) {
+      Logger.infoNotify("No workspace folder found. Please open a folder to try to build again.");
+      return;
+    }
     const notificationMode = readParameter(
       "idf.notificationMode",
       wsFolder
