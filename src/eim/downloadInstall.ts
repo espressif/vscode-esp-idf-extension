@@ -393,8 +393,7 @@ export async function downloadAndInstallEIM(
         url: downloadUrl,
         responseType: "stream",
       });
-      const { headers } = await axios.head(downloadUrl);
-      const totalSize = parseInt(headers["content-length"], 10);
+      const totalSize = parseInt(fileResponseStream.headers["content-length"], 10);
 
       let downloadedSize = 0;
       fileResponseStream.data.on("data", (chunk: Buffer) => {
@@ -417,7 +416,8 @@ export async function downloadAndInstallEIM(
       fileResponseStream.data.pipe(writeStream);
 
       await new Promise((resolve, reject) => {
-        fileResponseStream.data.on("end", resolve);
+        writeStream.on("finish", () => resolve(undefined));
+        writeStream.on("error", reject);
         fileResponseStream.data.on("error", reject);
       });
       OutputChannel.appendLine(
