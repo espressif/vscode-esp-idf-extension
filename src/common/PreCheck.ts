@@ -58,15 +58,7 @@ export class PreCheck {
     return process.env.WEB_IDE ? false : true;
   }
 
-  /**
-   * Checks if the extension is running in a VS Code fork (not the original Visual Studio Code)
-   * @returns true if running in a fork like Cursor, VSCodium, etc., false if running in original VS Code
-   * @example
-   * if (PreCheck.isRunningInVSCodeFork()) {
-   *   // Fork-specific behavior
-   *   Logger.info("Running in VS Code fork");
-   * }
-   */
+  /** Returns true if running in a VS Code fork (Cursor, VSCodium, etc.) */
   public static isRunningInVSCodeFork(): boolean {
     return env.appName !== "Visual Studio Code";
   }
@@ -129,6 +121,11 @@ const cmdNotDockerContainerMsg = l10n.t(
   "Selected command is not available in {envName}",
   { envName: "Docker container" }
 );
+const cmdNeedToolVersionOrHigher = (minVersion: string, tool: string) =>
+  l10n.t("Selected command needs {tool} {minVersion} or higher", {
+    minVersion,
+    tool,
+  });
 export const openFolderCheck = [
   PreCheck.isWorkspaceFolderOpen,
   openFolderFirstMsg,
@@ -148,10 +145,9 @@ export async function minIdfVersionCheck(minVersion: string) {
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
   }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-  let currentVersion = "";
-  currentVersion = await getEspIdfFromCMake(currentEnvVars["IDF_PATH"]);
+  const currentVersion = await getEspIdfFromCMake(currentEnvVars["IDF_PATH"]);
   return [
     () => PreCheck.espIdfVersionValidator(minVersion, currentVersion),
-    `Selected command needs ESP-IDF v${minVersion} or higher`,
+    cmdNeedToolVersionOrHigher("v" + minVersion, "ESP-IDF"),
   ] as PreCheckInput;
 }

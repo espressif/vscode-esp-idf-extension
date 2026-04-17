@@ -28,7 +28,7 @@ import { getVirtualEnvPythonPath } from "../pythonManager";
 import { join } from "path";
 import { getProjectName } from "../workspaceConfig";
 
-export async function appendSizeExecutionIfEnabled(
+export async function runSizeTaskIfEnabled(
   executions: Exclude<MaybeIdfTaskExecution, undefined>[],
   workspace: Uri,
   captureOutput?: boolean
