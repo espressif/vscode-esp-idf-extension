@@ -44,12 +44,13 @@ export async function appendDfuExecution(
 
   const adapterTargetName = await getIdfTargetFromSdkconfig(workspace);
   if (
-    adapterTargetName &&
     adapterTargetName !== "esp32s2" &&
     adapterTargetName !== "esp32s3"
   ) {
     Logger.warnNotify(
-      `The selected device target "${adapterTargetName}" is not compatible for DFU, as a result the DFU.bin was not created.`
+      adapterTargetName
+        ? `The selected device target "${adapterTargetName}" is not compatible for DFU, as a result the dfu.bin was not created.`
+        : "Could not determine the selected device target, so dfu.bin was not created."
     );
     return false;
   }
