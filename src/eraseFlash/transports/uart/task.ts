@@ -20,6 +20,7 @@ import { EraseFlashSession } from "../../eraseFlashSession";
 import { configureEnvVariables } from "../../../common/prepareEnv";
 import { resolveEsptoolInvocation } from "../../../flash/shared/esptool/resolveEsptoolInvocation";
 import { addProcessTask } from "../../../taskManager";
+import { buildUartEraseFlashArgs } from "./eraseFlashUartArgs";
 
 export async function createEraseFlashProcessTask(
   workspace: Uri,
@@ -35,7 +36,7 @@ export async function createEraseFlashProcessTask(
     esptoolScriptPath,
   } = await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]);
   EraseFlashSession.isErasing = true;
-  const args = [esptoolScriptPath, "-p", port, "erase_flash"];
+  const args = buildUartEraseFlashArgs(esptoolScriptPath, port);
   return addProcessTask(
     "Erase Flash",
     workspace,
