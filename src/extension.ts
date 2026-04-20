@@ -1281,6 +1281,8 @@ export async function activate(context: vscode.ExtensionContext) {
           );
         }
       }
+      await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
+      await configureClangSettings(workspaceRoot);
       ESP.URL.Docs.IDF_INDEX = undefined;
     } else if (e.affectsConfiguration("idf.port" + winFlag)) {
       if (statusBarItems && statusBarItems["port"]) {
@@ -1318,9 +1320,6 @@ export async function activate(context: vscode.ExtensionContext) {
       updateIdfComponentsTree(workspaceRoot);
       await configureClangSettings(workspaceRoot);
       handleCompileCommandsUpdate(workspaceRoot, context);
-    } else if (e.affectsConfiguration("idf.customExtraVars")) {
-      await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
-      await configureClangSettings(workspaceRoot);
     } else if (e.affectsConfiguration("idf.unitTestFilePattern")) {
       const cancelTokenSource = new vscode.CancellationTokenSource();
       try {
