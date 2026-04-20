@@ -22,13 +22,7 @@ import {
   CapturedTaskOutput,
   CustomExecutionTaskResult,
 } from "../../../taskManager/customExecution";
-
-function eraseSuccess(response: string): boolean {
-  if (response === "") {
-    return true;
-  }
-  return response.indexOf("erased sectors ") !== -1;
-}
+import { isJtagEraseFlashResponseSuccess } from "./eraseFlashJtagResponse";
 
 export async function eraseFlashTelnetCommand(
   client: TCLClient,
@@ -44,7 +38,7 @@ export async function eraseFlashTelnetCommand(
           .toString()
           .replace(TCLClient.DELIMITER, "")
           .trim();
-        const success = eraseSuccess(response);
+        const success = isJtagEraseFlashResponseSuccess(response);
         const stderr = success
           ? ""
           : `Failed to erase flash from the device (JTAG), please try again [got response: '${response}', expecting: 'erased sectors ']`;
