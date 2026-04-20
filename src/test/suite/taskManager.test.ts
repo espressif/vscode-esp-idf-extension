@@ -62,7 +62,8 @@ suite("taskManager helpers", () => {
             }),
           } as unknown as IdfTaskExecution,
         ]),
-        (e: unknown) => e === "  cmake error  "
+        (e: unknown) =>
+          e instanceof Error && e.message === "  cmake error  "
       );
     });
 
@@ -77,7 +78,7 @@ suite("taskManager helpers", () => {
             }),
           } as unknown as IdfTaskExecution,
         ]),
-        (e: unknown) => e === "ninja failed"
+        (e: unknown) => e instanceof Error && e.message === "ninja failed"
       );
     });
 
