@@ -274,7 +274,9 @@ suite("Flash", () => {
       assert.strictEqual(model.bootloader.encrypted, false);
       assert.strictEqual(model["partition-table"].encrypted, false);
       assert.strictEqual(model.flashSections.length, 3);
-      const addresses = model.flashSections.map((s) => s.address).sort();
+      const addresses = model.flashSections
+        .map((s) => s.address)
+        .sort((a, b) => parseInt(a, 16) - parseInt(b, 16));
       assert.deepStrictEqual(addresses, ["0x1000", "0x8000", "0x10000"]);
     });
 
