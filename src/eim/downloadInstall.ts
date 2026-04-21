@@ -518,10 +518,11 @@ export async function downloadAndInstallEIM(
           fileResponseStream.data.destroy(cancellationError);
           writeStream.destroy(cancellationError);
         });
+        // Guard against cancellation that occurred before the listener was registered
+        // (race window during the axios await above).
         if (cancelToken.isCancellationRequested) {
-          isCanceled = true;
-          fileResponseStream.data.destroy(cancellationError);
-          writeStream.destroy(cancellationError);
+          cancellationListener.dispose();
+          throw cancellationError;
         }
 
         let downloadedSize = 0;
