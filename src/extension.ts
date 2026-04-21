@@ -4400,8 +4400,9 @@ async function ensureEimAndLaunch(workspaceRoot: vscode.Uri) {
       progress: vscode.Progress<{ message: string; increment: number }>,
       cancelToken: vscode.CancellationToken
     ) => {
-      const shouldUseCliMode =
-        shouldForceCliMode() || isVSCodeInstalledViaSnap();
+      const forceCliMode = shouldForceCliMode();
+      const isSnapInstall = isVSCodeInstalledViaSnap();
+      const shouldUseCliMode = forceCliMode || isSnapInstall;
       let eimPath = await checkEimExists(progress, cancelToken);
       let canLaunchGui = false;
 
@@ -4439,13 +4440,15 @@ async function ensureEimAndLaunch(workspaceRoot: vscode.Uri) {
         }
         canLaunchGui = !shouldUseCliMode;
       } else {
-        canLaunchGui =
-          !shouldUseCliMode && (await isEimGuiCapable(eimPath));
+        const eimSupportsGui =
+          !forceCliMode && (await isEimGuiCapable(eimPath));
 
-        if (isVSCodeInstalledViaSnap() && canLaunchGui) {
+        if (isSnapInstall && eimSupportsGui) {
           await showSnapEimNotification(eimPath);
           return;
         }
+
+        canLaunchGui = !shouldUseCliMode && eimSupportsGui;
       }
 
       const argsValue = canLaunchGui
