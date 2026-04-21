@@ -226,11 +226,7 @@ export async function launchEimInTerminal(eimPath: string) {
     cwd: dirname(eimPath),
   });
   espIdfTerminal.sendText(binaryPath, true);
-  if (argsString.includes("wizard")) {
-    espIdfTerminal.show();
-  } else {
-    espIdfTerminal.sendText("exit");
-  }
+  espIdfTerminal.show();
 }
 
 async function ensureEimPathInUserShell(eimPath: string): Promise<void> {
