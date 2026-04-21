@@ -191,7 +191,7 @@ export async function launchEimInTerminal(eimPath: string) {
       argsString ? " " + argsString : ""
     }`;
   } else if (process.platform === "linux") {
-    binaryPath = `./${basename(eimPath)}${argsString ? " " + argsString : ""}`;
+    binaryPath = `${escapedEimPath}${argsString ? " " + argsString : ""}`;
   } else if (process.platform === "darwin") {
     binaryPath = eimPath.endsWith(".app")
       ? `open ${escapedEimPath}${argsString ? " --args " + argsString : ""}`
