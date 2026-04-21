@@ -17,6 +17,7 @@
  */
 
 import axios from "axios";
+import os from "os";
 import { basename, dirname, extname, join, resolve as pathResolve } from "path";
 import { pipeline } from "stream/promises";
 import {
@@ -65,7 +66,17 @@ export function shouldForceCliMode(): boolean {
 }
 
 function getEimHomeDir(): string {
-  return process.env.USERPROFILE || process.env.HOME || "";
+  const homeDir =
+    os.homedir() ||
+    (process.platform === "win32"
+      ? process.env.USERPROFILE || process.env.HOME
+      : process.env.HOME || process.env.USERPROFILE);
+
+  if (!homeDir) {
+    throw new Error("Unable to resolve the user home directory.");
+  }
+
+  return homeDir;
 }
 
 function getCliInstallDir(): string {
