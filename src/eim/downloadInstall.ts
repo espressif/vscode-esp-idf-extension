@@ -32,7 +32,7 @@ import {
 import { CancellationToken, env, Progress, UIKind, window } from "vscode";
 import { OutputChannel } from "../logger/outputChannel";
 import del from "del";
-import { dirExistPromise, isBinInPath } from "../utils";
+import { dirExistPromise, isBinInPath, spawn } from "../utils";
 import * as yauzl from "yauzl";
 import { Logger } from "../logger/logger";
 import { getEimIdfJson } from "./getExistingSetups";
@@ -41,6 +41,12 @@ import { readParameter } from "../idfConfiguration";
 type EimShellProfileTarget = {
   path: string;
   shellType: "fish" | "posix";
+};
+
+type EimHelpJson = {
+  subcommands?: Array<{
+    name?: string;
+  }>;
 };
 
 export function isVSCodeInstalledViaSnap(): boolean {
@@ -108,6 +114,7 @@ export async function launchEimInTerminal(eimPath: string) {
     "idf.eimExecutableArgs"
   ) as string[];
   const argsString = idfEimExecutableArgs.join(" ");
+  const escapedEimPath = `"${eimPath.replace(/(["\\$`])/g, "\\$1")}"`;
 
   if (argsString.includes("wizard")) {
     await ensureEimPathInUserShell(eimPath);
@@ -121,7 +128,9 @@ export async function launchEimInTerminal(eimPath: string) {
   } else if (process.platform === "linux") {
     binaryPath = `./${basename(eimPath)}${argsString ? " " + argsString : ""}`;
   } else if (process.platform === "darwin") {
-    binaryPath = `open ${eimPath}${argsString ? " --args " + argsString : ""}`;
+    binaryPath = eimPath.endsWith(".app")
+      ? `open ${escapedEimPath}${argsString ? " --args " + argsString : ""}`
+      : `${escapedEimPath}${argsString ? " " + argsString : ""}`;
   }
   const shellPath =
     process.platform === "win32"
@@ -285,14 +294,47 @@ export async function checkEimExists(
   return eimPath;
 }
 
+function getEimCommandPath(eimPath: string): string {
+  if (process.platform === "darwin" && eimPath.endsWith(".app")) {
+    return join(eimPath, "Contents", "MacOS", "eim");
+  }
+
+  return eimPath;
+}
+
+export async function isEimGuiCapable(eimPath: string): Promise<boolean> {
+  try {
+    const commandPath = getEimCommandPath(eimPath);
+    const output = await spawn(commandPath, ["help-json"], {
+      silent: true,
+      sendToTelemetry: false,
+      timeout: 10000,
+    });
+    const helpJson = JSON.parse(output.toString()) as EimHelpJson;
+
+    return (
+      Array.isArray(helpJson.subcommands) &&
+      helpJson.subcommands.some((subcommand) => subcommand.name === "gui")
+    );
+  } catch (error) {
+    Logger.error(
+      `Error while checking EIM GUI support: ${error.message}`,
+      error,
+      "isEimGuiCapable"
+    );
+    return false;
+  }
+}
+
 export async function downloadAndInstallEIM(
   progress: Progress<{ message: string; increment: number }>,
   cancelToken: CancellationToken,
-  useMirror: boolean = false
+  useMirror: boolean = false,
+  installCliMode: boolean = shouldForceCliMode()
 ): Promise<string> {
   const jsonUrl = "https://dl.espressif.com/dl/eim/eim_unified_release.json";
   let eimInstallPath = "";
-  if (shouldForceCliMode()) {
+  if (installCliMode) {
     eimInstallPath = join(process.env.HOME || "", ".espressif", "eim");
   } else if (process.platform === "win32") {
     eimInstallPath = join(
@@ -319,7 +361,7 @@ export async function downloadAndInstallEIM(
     const arch = process.arch;
     let osKey: string;
 
-    if (shouldForceCliMode()) {
+    if (installCliMode) {
       osKey =
         arch === "arm64"
           ? "eim-cli-linux-aarch64.zip"
@@ -379,8 +421,10 @@ export async function downloadAndInstallEIM(
         url: downloadUrl,
         responseType: "stream",
       });
-      const { headers } = await axios.head(downloadUrl);
-      const totalSize = parseInt(headers["content-length"], 10);
+      const totalSize = Number.parseInt(
+        fileResponseStream.headers["content-length"] || "0",
+        10
+      );
 
       let downloadedSize = 0;
       fileResponseStream.data.on("data", (chunk: Buffer) => {

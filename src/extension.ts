@@ -176,6 +176,7 @@ import { configureEnvVariables } from "./common/prepareEnv";
 import {
   checkEimExists,
   downloadAndInstallEIM,
+  isEimGuiCapable,
   isVSCodeInstalledViaSnap,
   launchEimInTerminal,
   shouldForceCliMode,
@@ -2202,24 +2203,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.installManager", async () => {
     await ensureEimAndLaunch(workspaceRoot);
-  });
-
-  registerIDFCommand("espIdf.openInstallationManagerGui", async () => {
-    await idfConf.writeParameter(
-      "idf.eimExecutableArgs",
-      ["gui", "--idf-features ide"],
-      vscode.ConfigurationTarget.Global
-    );
-    await ensureEimAndLaunch(workspaceRoot, "gui");
-  });
-
-  registerIDFCommand("espIdf.openInstallationManagerCli", async () => {
-    await idfConf.writeParameter(
-      "idf.eimExecutableArgs",
-      ["wizard", "--idf-features ide"],
-      vscode.ConfigurationTarget.Global
-    );
-    await ensureEimAndLaunch(workspaceRoot, "wizard");
   });
 
   registerIDFCommand(
@@ -4396,10 +4379,7 @@ async function createMonitor() {
   });
 }
 
-async function ensureEimAndLaunch(
-  workspaceRoot: vscode.Uri,
-  skipQuickPickMode?: string
-) {
+async function ensureEimAndLaunch(workspaceRoot: vscode.Uri) {
   const notificationMode = idfConf.readParameter(
     "idf.notificationMode",
     workspaceRoot
@@ -4420,7 +4400,10 @@ async function ensureEimAndLaunch(
       progress: vscode.Progress<{ message: string; increment: number }>,
       cancelToken: vscode.CancellationToken
     ) => {
+      const shouldUseCliMode =
+        shouldForceCliMode() || isVSCodeInstalledViaSnap();
       let eimPath = await checkEimExists(progress, cancelToken);
+      let canLaunchGui = false;
 
       if (!eimPath) {
         progress.report({
@@ -4445,47 +4428,29 @@ async function ensureEimAndLaunch(
           return;
         }
         const useMirror = mirrorToUse === "Espressif (faster in China)";
-        eimPath = await downloadAndInstallEIM(progress, cancelToken, useMirror);
+        eimPath = await downloadAndInstallEIM(
+          progress,
+          cancelToken,
+          useMirror,
+          shouldUseCliMode
+        );
         if (!eimPath) {
+          return;
+        }
+        canLaunchGui = !shouldUseCliMode;
+      } else {
+        canLaunchGui =
+          !shouldUseCliMode && (await isEimGuiCapable(eimPath));
+
+        if (isVSCodeInstalledViaSnap() && canLaunchGui) {
+          await showSnapEimNotification(eimPath);
           return;
         }
       }
 
-      if (shouldForceCliMode()) {
-        await idfConf.writeParameter(
-          "idf.eimExecutableArgs",
-          ["wizard", "--idf-features ide"],
-          vscode.ConfigurationTarget.Global
-        );
-        await launchEimInTerminal(eimPath);
-        return;
-      }
-
-      if (isVSCodeInstalledViaSnap()) {
-        await showSnapEimNotification(eimPath);
-        return;
-      }
-
-      if (skipQuickPickMode) {
-        await launchEimInTerminal(eimPath);
-        return;
-      }
-
-      const guiLabel = vscode.l10n.t("Graphical Interface (GUI)");
-      const cliLabel = vscode.l10n.t("Command Line (Terminal)");
-      const launchMode = await vscode.window.showQuickPick(
-        [guiLabel, cliLabel],
-        {
-          placeHolder: vscode.l10n.t("Select how to launch EIM"),
-        }
-      );
-      if (!launchMode) {
-        return;
-      }
-      const argsValue =
-        launchMode === guiLabel
-          ? ["gui", "--idf-features ide"]
-          : ["wizard", "--idf-features ide"];
+      const argsValue = canLaunchGui
+        ? ["gui", "--idf-features ide"]
+        : ["wizard", "--idf-features ide"];
       await idfConf.writeParameter(
         "idf.eimExecutableArgs",
         argsValue,
