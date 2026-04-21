@@ -108,31 +108,27 @@ function getCliBinaryPath(): string {
 }
 
 function getGuiAssetArch(arch: string): "aarch64" | "x64" {
-  if (arch === "arm64") {
-    return "aarch64";
+  switch (arch) {
+    case "arm64":
+      return "aarch64";
+    case "x64":
+      return "x64";
+    default:
+      throw new Error(`Unsupported architecture: ${arch}`);
   }
-
-  if (arch === "x64") {
-    return "x64";
-  }
-
-  throw new Error(`Unsupported architecture: ${arch}`);
 }
 
 function getLinuxCliAssetArch(arch: string): "aarch64" | "armv7" | "x64" {
-  if (arch === "arm64") {
-    return "aarch64";
+  switch (arch) {
+    case "arm64":
+      return "aarch64";
+    case "arm":
+      return "armv7";
+    case "x64":
+      return "x64";
+    default:
+      throw new Error(`Unsupported architecture: ${arch}`);
   }
-
-  if (arch === "arm") {
-    return "armv7";
-  }
-
-  if (arch === "x64") {
-    return "x64";
-  }
-
-  throw new Error(`Unsupported architecture: ${arch}`);
 }
 
 function getEimAssetName(mode: "cli" | "gui", arch: string): string {
