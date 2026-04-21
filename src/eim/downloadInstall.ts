@@ -156,14 +156,18 @@ export async function resolveEimPath(): Promise<string> {
   let eimPath = "";
 
   // 1. Check eim is in PATH and use it
+  Logger.info("[resolveEimPath] Step 1: checking eim in PATH");
   const eimInPATH = await isBinInPath("eim", process.env);
   if (eimInPATH) {
+    Logger.info(`[resolveEimPath] Found eim in PATH: ${eimInPATH}`);
     eimPath = eimInPATH;
   }
   // 2. Check eim_idf.json for existing EIM path
   if (!eimPath) {
+    Logger.info("[resolveEimPath] Step 2: checking eim_idf.json for existing EIM path");
     const eimJSON = await getEimIdfJson();
     if (eimJSON && eimJSON.eimPath) {
+      Logger.info(`[resolveEimPath] eim_idf.json eimPath: ${eimJSON.eimPath}`);
       const doesEimPathExists = await pathExists(eimJSON.eimPath);
       if (doesEimPathExists) {
         eimPath = eimJSON.eimPath;
@@ -172,24 +176,34 @@ export async function resolveEimPath(): Promise<string> {
   }
   // 3. Check EIM_PATH env variable if not found in eim_idf.json
   if (!eimPath) {
-    eimPath = process.env.EIM_PATH || "";
+    const envEimPath = process.env.EIM_PATH;
+    Logger.info(
+      `[resolveEimPath] Step 3: checking EIM_PATH env variable${envEimPath ? `: ${envEimPath}` : " (not set)"}`
+    );
+    eimPath = envEimPath || "";
   }
   // 4. Check managed install locations — GUI first unless headless/snap/remote/web
   const forceCliMode = shouldForceCliMode() || isVSCodeInstalledViaSnap();
   const guiPath = getEimBinaryPath(getEimInstallDir("gui"), false);
   const cliPath = getCliBinaryPath();
   const orderedPaths = forceCliMode ? [cliPath, guiPath] : [guiPath, cliPath];
+  Logger.info(
+    `[resolveEimPath] Step 4: checking managed install locations (order: ${orderedPaths.join(", ")})`
+  );
 
   for (const candidate of orderedPaths) {
+    Logger.info(`[resolveEimPath] Checking candidate: ${candidate}`);
     if (!eimPath && (await pathExists(candidate))) {
       eimPath = candidate;
     }
   }
 
   if (!eimPath || !(await pathExists(eimPath))) {
+    Logger.info("[resolveEimPath] No eim binary found");
     return "";
   }
 
+  Logger.info(`[resolveEimPath] Resolved eim path: ${eimPath}`);
   return eimPath;
 }
 

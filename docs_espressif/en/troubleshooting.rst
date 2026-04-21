@@ -90,3 +90,19 @@ Alternatively, you can **install VS Code via the .deb package** (recommended) to
     # Then install the .deb package downloaded from https://code.visualstudio.com/Download
 
 If you cannot resolve the error, please search the `GitHub Repository Issues <http://github.com/espressif/vscode-esp-idf-extension/issues>`_ for existing issues or create a new issue `here <https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose>`_.
+
+EIM Path Resolution Order
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When the extension needs to locate the EIM binary, it checks the following locations in order, stopping at the first match:
+
+1. **System PATH** -- runs ``which eim`` / ``where eim`` to find an EIM already on the PATH.
+2. **eim_idf.json** -- reads the ``eimPath`` field from the JSON file at the path configured by ``idf.eimIdfJsonPath``. Default locations:
+
+   - **Windows**: ``C:\Espressif\tools\eim_idf.json``
+   - **macOS/Linux**: ``$HOME/.espressif/tools/eim_idf.json``
+
+3. **EIM_PATH environment variable** -- reads the ``EIM_PATH`` environment variable.
+4. **Managed install directory** -- checks the extension-managed install folders. In normal desktop environments the GUI build is preferred; in headless, remote, or snap environments the CLI build is checked first.
+
+If the extension fails to find or launch EIM, run the **ESP-IDF: Doctor Command** and inspect the ``esp_idf_vsc_ext.log`` file. Each step above is logged with the path being checked, so you can identify exactly which location is missing or incorrect.

@@ -78,3 +78,19 @@ EIM 启动模式（GUI 与 CLI）
     # Then install the .deb package downloaded from https://code.visualstudio.com/Download
 
 如果遇到无法解决的问题，请在 `GitHub 仓库问题 <http://github.com/espressif/vscode-esp-idf-extension/issues>`_ 中搜索现有问题或点击 `此处 <https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose>`_ 创建新问题。
+
+EIM 路径解析顺序
+^^^^^^^^^^^^^^^^
+
+当扩展需要定位 EIM 可执行文件时，它会按以下顺序检查以下位置，找到第一个匹配项即停止：
+
+1. **系统 PATH** -- 运行 ``which eim`` / ``where eim`` 查找已在 PATH 中的 EIM。
+2. **eim_idf.json** -- 读取 ``idf.eimIdfJsonPath`` 配置的 JSON 文件中的 ``eimPath`` 字段。默认路径：
+
+   - **Windows**：``C:\Espressif\tools\eim_idf.json``
+   - **macOS/Linux**：``$HOME/.espressif/tools/eim_idf.json``
+
+3. **EIM_PATH 环境变量** -- 读取 ``EIM_PATH`` 环境变量的值。
+4. **扩展管理的安装目录** -- 检查扩展管理的安装文件夹。在普通桌面环境中，优先使用 GUI 构建版本；在无头、远程或 snap 环境中，优先检查 CLI 构建版本。
+
+如果扩展无法找到或启动 EIM，请运行 **ESP-IDF: 诊断命令** 并检查 ``esp_idf_vsc_ext.log`` 文件。上述每个步骤都会记录正在检查的路径，方便你确定哪个位置缺失或不正确。
