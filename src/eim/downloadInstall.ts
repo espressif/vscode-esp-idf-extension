@@ -79,21 +79,49 @@ function getCliBinaryPath(): string {
   return join(getCliInstallDir(), "eim");
 }
 
+function getGuiAssetArch(arch: string): "aarch64" | "x64" {
+  if (arch === "arm64") {
+    return "aarch64";
+  }
+
+  if (arch === "x64") {
+    return "x64";
+  }
+
+  throw new Error(`Unsupported architecture: ${arch}`);
+}
+
+function getLinuxCliAssetArch(arch: string): "aarch64" | "armv7" | "x64" {
+  if (arch === "arm64") {
+    return "aarch64";
+  }
+
+  if (arch === "arm") {
+    return "armv7";
+  }
+
+  if (arch === "x64") {
+    return "x64";
+  }
+
+  throw new Error(`Unsupported architecture: ${arch}`);
+}
+
 function getCliAssetName(arch: string): string {
   if (process.platform === "win32") {
+    if (arch !== "x64") {
+      throw new Error(`Unsupported architecture: ${arch}`);
+    }
+
     return "eim-cli-windows-x64.exe";
   }
 
   if (process.platform === "darwin") {
-    return arch === "arm64"
-      ? "eim-cli-macos-aarch64.zip"
-      : "eim-cli-macos-x64.zip";
+    return `eim-cli-macos-${getGuiAssetArch(arch)}.zip`;
   }
 
   if (process.platform === "linux") {
-    return arch === "arm64"
-      ? "eim-cli-linux-aarch64.zip"
-      : "eim-cli-linux-x64.zip";
+    return `eim-cli-linux-${getLinuxCliAssetArch(arch)}.zip`;
   }
 
   throw new Error(`Unsupported platform: ${process.platform}`);
@@ -117,19 +145,19 @@ function getGuiInstallDir(): string {
 
 function getGuiAssetName(arch: string): string {
   if (process.platform === "darwin") {
-    return arch === "arm64"
-      ? "eim-gui-macos-aarch64.zip"
-      : "eim-gui-macos-x64.zip";
+    return `eim-gui-macos-${getGuiAssetArch(arch)}.zip`;
   }
 
   if (process.platform === "win32") {
+    if (arch !== "x64") {
+      throw new Error(`Unsupported architecture: ${arch}`);
+    }
+
     return "eim-gui-windows-x64.exe";
   }
 
   if (process.platform === "linux") {
-    return arch === "arm64"
-      ? "eim-gui-linux-aarch64.zip"
-      : "eim-gui-linux-x64.zip";
+    return `eim-gui-linux-${getGuiAssetArch(arch)}.zip`;
   }
 
   throw new Error(`Unsupported platform: ${process.platform}`);
