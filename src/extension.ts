@@ -38,7 +38,7 @@ import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
 import { showInfoNotificationWithAction } from "./logger/utils";
 import * as utils from "./utils";
-import { PreCheck, shouldDisableMonitorReset } from "./utils";
+import { shouldDisableMonitorReset } from "./utils";
 import {
   getSDKConfigFilePath,
   getIdfTargetFromSdkconfig,
@@ -93,7 +93,6 @@ import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
-import { buildCommand } from "./build/buildCmd";
 import { isFlashEncryptionEnabled } from "./flash/verifyFlashEncryption";
 import { createNewIdfMonitor } from "./espIdf/monitor/command";
 import { KconfigLangClient } from "./kconfig";
@@ -134,7 +133,7 @@ import { createSBOM, installEspSBOM } from "./espBom";
 import { selectIdfSetup } from "./versionSwitcher";
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
-import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
+import { addIdfReconfigureTask } from "./espIdf/reconfigure/task";
 import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
 import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
 import { TroubleshootingPanel } from "./support/troubleshootPanel";
@@ -166,7 +165,12 @@ import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
 import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
 import { readSerialPort } from "./idfConfiguration";
-import { openFolderCheck, webIdeCheck } from "./common/PreCheck";
+import {
+  minIdfVersionCheck,
+  openFolderCheck,
+  PreCheck,
+  webIdeCheck,
+} from "./common/PreCheck";
 import { buildFlashAndMonitor } from "./buildFlashMonitor";
 import { selectFlashMethod, startFlashing } from "./flash/startFlashing";
 import { jtagEraseFlashCommand } from "./flash/eraseFlashJtag";
@@ -184,6 +188,7 @@ import {
   checkAndPromptForClangdExtension,
   handleCompileCommandsUpdate,
 } from "./clang/checkClangExtension";
+import { registerBuildCommands } from "./build";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -231,21 +236,6 @@ let peripheralTreeView: vscode.TreeView<PeripheralBaseNode>;
 let wsServer: WSServer;
 
 // Precheck methods and their messages
-
-const minIdfVersionCheck = async function (
-  minVersion: string,
-  workspace: vscode.Uri
-) {
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-  let currentVersion = "";
-  currentVersion = await utils.getEspIdfFromCMake(currentEnvVars["IDF_PATH"]);
-  return [
-    () => PreCheck.espIdfVersionValidator(minVersion, currentVersion),
-    `Selected command needs ESP-IDF v${minVersion} or higher`,
-  ] as utils.PreCheckInput;
-};
 
 let projectConfigManager: ProjectConfigurationManager | undefined;
 
@@ -981,8 +971,7 @@ export async function activate(context: vscode.ExtensionContext) {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
-          const reconfigureTask = new IdfReconfigureTask(workspaceRoot);
-          await reconfigureTask.reconfigure();
+          await addIdfReconfigureTask(workspaceRoot);
           await TaskManager.runTasks();
           if (!cancelToken.isCancellationRequested) {
             Logger.infoNotify("ESP-IDF Reconfigure Successfully");
@@ -1995,36 +1984,26 @@ export async function activate(context: vscode.ExtensionContext) {
     const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
     return flash(isEncrypted, ESP.FlashType.UART);
   });
-  registerIDFCommand("espIdf.buildDFU", () => build(ESP.FlashType.DFU));
+  registerBuildCommands(context);
   registerIDFCommand("espIdf.flashDevice", async () => {
     const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
     return flash(isEncrypted);
   });
   registerIDFCommand("espIdf.flashAndEncryptDevice", () => flash(true));
-  registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
   registerIDFCommand("espIdf.buildFlashMonitor", () =>
     buildFlashAndMonitor(workspaceRoot)
   );
   registerIDFCommand("espIdf.monitorQemu", createQemuMonitor);
 
-  registerIDFCommand("espIdf.buildApp", () =>
-    build(undefined, ESP.BuildType.App)
-  );
   registerIDFCommand("espIdf.flashAppUart", async () => {
     const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
     return flash(isEncrypted, ESP.FlashType.UART, ESP.BuildType.App);
   });
-  registerIDFCommand("espIdf.buildBootloader", () =>
-    build(undefined, ESP.BuildType.Bootloader)
-  );
   registerIDFCommand("espIdf.flashBootloaderUart", async () => {
     const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
     return flash(isEncrypted, ESP.FlashType.UART, ESP.BuildType.Bootloader);
   });
-  registerIDFCommand("espIdf.buildPartitionTable", () =>
-    build(undefined, ESP.BuildType.PartitionTable)
-  );
   registerIDFCommand("espIdf.flashPartitionTableUart", async () => {
     const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
     return flash(isEncrypted, ESP.FlashType.UART, ESP.BuildType.PartitionTable);
@@ -2094,7 +2073,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   registerIDFCommand("espIdf.saveDefSdkconfig", async () => {
-    const idfVersionCheck = await minIdfVersionCheck("5.0", workspaceRoot);
+    const idfVersionCheck = await minIdfVersionCheck("5.0");
     PreCheck.perform([idfVersionCheck, openFolderCheck], () => {
       vscode.window.withProgress(
         {
@@ -2588,7 +2567,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.heaptrace", async () => {
-    const idfVersionCheck = await minIdfVersionCheck("4.2", workspaceRoot);
+    const idfVersionCheck = await minIdfVersionCheck("4.2");
     PreCheck.perform(
       [idfVersionCheck, webIdeCheck, openFolderCheck],
       async () => {
@@ -3292,7 +3271,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
   registerIDFCommand("espIdf.launchWSServerAndMonitor", async () => {
-    const idfVersionCheck = await minIdfVersionCheck("4.3", workspaceRoot);
+    const idfVersionCheck = await minIdfVersionCheck("4.3");
     PreCheck.perform(
       [idfVersionCheck, webIdeCheck, openFolderCheck],
       async () => {
@@ -4143,38 +4122,6 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   );
 }
 
-const build = (flashType?: ESP.FlashType, buildType?: ESP.BuildType) => {
-  PreCheck.perform([openFolderCheck], async () => {
-    const notificationMode = idfConf.readParameter(
-      "idf.notificationMode",
-      workspaceRoot
-    ) as string;
-    const ProgressLocation =
-      notificationMode === idfConf.NotificationMode.All ||
-      notificationMode === idfConf.NotificationMode.Notifications
-        ? vscode.ProgressLocation.Notification
-        : vscode.ProgressLocation.Window;
-    await vscode.window.withProgress(
-      {
-        cancellable: true,
-        location: ProgressLocation,
-        title: "ESP-IDF: Building project",
-      },
-      async (
-        progress: vscode.Progress<{ message: string; increment: number }>,
-        cancelToken: vscode.CancellationToken
-      ) => {
-        if (!flashType) {
-          flashType = idfConf.readParameter(
-            "idf.flashType",
-            workspaceRoot
-          ) as ESP.FlashType;
-        }
-        await buildCommand(workspaceRoot, cancelToken, flashType, buildType);
-      }
-    );
-  });
-};
 const flash = (
   encryptPartitions: boolean = false,
   flashType?: ESP.FlashType,

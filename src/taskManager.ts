@@ -16,17 +16,95 @@
  * limitations under the License.
  */
 
-import * as vscode from "vscode";
+import {
+  CustomExecution,
+  Disposable,
+  ProcessExecution,
+  ShellExecution,
+  Task,
+  TaskDefinition,
+  TaskPanelKind,
+  TaskPresentationOptions,
+  TaskRevealKind,
+  tasks,
+  TaskScope,
+  Uri,
+  workspace,
+  WorkspaceFolder,
+} from "vscode";
 import { ESP } from "./config";
+import { NotificationMode, readParameter } from "./idfConfiguration";
+import {
+  OutputCapturingExecution,
+  ShellOutputCapturingExecution,
+} from "./taskManager/customExecution";
 
-export interface IdfTaskDefinition extends vscode.TaskDefinition {
+export interface IdfTaskDefinition extends TaskDefinition {
   command?: string;
   taskId: string;
 }
 
+export function getTaskProcessExecution(
+  cmdString: string,
+  args: string[],
+  cwd: string,
+  env: { [key: string]: string },
+  captureOutput?: boolean
+): OutputCapturingExecution | ProcessExecution {
+  return captureOutput
+    ? OutputCapturingExecution.create(cmdString, args, { cwd, env })
+    : new ProcessExecution(cmdString, args, { cwd, env });
+}
+
+export type IdfTaskExecution =
+  | ShellOutputCapturingExecution
+  | ShellExecution
+  | ProcessExecution
+  | CustomExecution
+  | OutputCapturingExecution;
+
+export type MaybeIdfTaskExecution = IdfTaskExecution | undefined;
+
+export function collectExecutions(
+  ...executions: MaybeIdfTaskExecution[]
+): IdfTaskExecution[] {
+  return executions.filter(
+    (execution): execution is IdfTaskExecution => execution !== undefined
+  );
+}
+
+export async function throwCapturedTaskFailure(
+  executions: MaybeIdfTaskExecution[]
+) {
+  for (const execution of executions) {
+    if (!execution || !("getOutput" in execution)) {
+      continue;
+    }
+
+    const executionOutput = await (execution as
+      | OutputCapturingExecution
+      | ShellOutputCapturingExecution).getOutput();
+    if (executionOutput && !executionOutput.success) {
+      if (executionOutput.stderr?.trim()) {
+        throw new Error(executionOutput.stderr);
+      }
+      if (executionOutput.stdout?.trim()) {
+        throw new Error(executionOutput.stdout);
+      }
+      throw new Error(`Task exited with code ${executionOutput.exitCode}`);
+    }
+  }
+}
+
+export function getWorkspaceFolderForTask(
+  workspaceUri: Uri
+): WorkspaceFolder | undefined {
+  return workspace.getWorkspaceFolder(workspaceUri);
+}
+
 export class TaskManager {
-  private static tasks: vscode.Task[] = [];
-  private static disposables: vscode.Disposable[] = [];
+  private static tasks: Task[] = [];
+  private static disposables: Disposable[] = [];
   private static taskResults: Array<{
     taskId: string;
     output?: any;
@@ -34,34 +112,48 @@ export class TaskManager {
   }> = [];
 
   public static addTask(
-    taskDefinition: IdfTaskDefinition,
-    scope: vscode.WorkspaceFolder | vscode.TaskScope,
     name: string,
-    execution:
-      | vscode.ShellExecution
-      | vscode.ProcessExecution
-      | vscode.CustomExecution,
-    problemMatchers: string | string[],
-    presentationOptions: vscode.TaskPresentationOptions
+    currentWorkspaceFolder: WorkspaceFolder | undefined,
+    execution: IdfTaskExecution,
+    presentationOptions?: TaskPresentationOptions
   ): void {
     // Check if a task with the same taskId already exists
+    const taskId = `idf-${name.toLowerCase().replace(/\s+/g, "-")}-task`;
     const existingTaskIndex = TaskManager.tasks.findIndex(
-      (task) => task.definition.taskId === taskDefinition.taskId
+      (task) => task.definition.taskId === taskId
     );
     if (existingTaskIndex !== -1) {
       // Task with this taskId already exists, skip adding
       return;
     }
 
-    const newTask: vscode.Task = new vscode.Task(
-      taskDefinition,
-      scope,
-      name,
+    const newTask: Task = new Task(
+      {
+        type: "esp-idf",
+        command: `ESP-IDF ${name}`,
+        taskId,
+      } as IdfTaskDefinition,
+      currentWorkspaceFolder || TaskScope.Workspace,
+      `ESP-IDF ${name}`,
       ESP.extensionID,
       execution,
-      problemMatchers
+      ["espIdf", "espIdfLd"]
     );
-    newTask.presentationOptions = presentationOptions;
+    const notificationMode = readParameter(
+      "idf.notificationMode",
+      currentWorkspaceFolder
+    ) as string;
+    const showTaskOutput =
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Output
+        ? TaskRevealKind.Always
+        : TaskRevealKind.Silent;
+    newTask.presentationOptions = {
+      reveal: showTaskOutput,
+      showReuseMessage: presentationOptions?.showReuseMessage || false,
+      clear: presentationOptions?.clear || false,
+      panel: presentationOptions?.panel || TaskPanelKind.Shared,
+    } as TaskPresentationOptions;
     TaskManager.tasks.push(newTask);
   }
 
@@ -75,7 +167,7 @@ export class TaskManager {
 
   public static cancelTasks() {
     for (const task of TaskManager.tasks) {
-      const execution = vscode.tasks.taskExecutions.find((t) => {
+      const execution = tasks.taskExecutions.find((t) => {
         // Match the exact taskId we use in our definitions.
         return t.task.definition.taskId === task.definition.taskId;
       });
@@ -91,8 +183,8 @@ export class TaskManager {
       if (TaskManager.tasks.length === 0) {
         return resolve();
       }
-      let lastExecution = await vscode.tasks.executeTask(TaskManager.tasks[0]);
-      const taskDisposable = vscode.tasks.onDidEndTaskProcess(async (e) => {
+      let lastExecution = await tasks.executeTask(TaskManager.tasks[0]);
+      const taskDisposable = tasks.onDidEndTaskProcess(async (e) => {
         if (
           e.execution &&
           e.execution.task.definition.taskId ===
@@ -130,9 +222,7 @@ export class TaskManager {
             TaskManager.tasks = [];
             return resolve();
           } else {
-            lastExecution = await vscode.tasks.executeTask(
-              TaskManager.tasks[0]
-            );
+            lastExecution = await tasks.executeTask(TaskManager.tasks[0]);
           }
         }
       });
@@ -156,4 +246,32 @@ export class TaskManager {
       return false;
     }
   }
+}
+
+export function addProcessTask(
+  name: string,
+  workspaceUri: Uri,
+  command: string,
+  args: string[],
+  cwd: string,
+  env: { [key: string]: string },
+  options?: {
+    captureOutput?: boolean;
+    presentation?: TaskPresentationOptions;
+  }
+): OutputCapturingExecution | ProcessExecution {
+  const execution = getTaskProcessExecution(
+    command,
+    args,
+    cwd,
+    env,
+    options?.captureOutput
+  );
+  TaskManager.addTask(
+    name,
+    getWorkspaceFolderForTask(workspaceUri),
+    execution,
+    options?.presentation
+  );
+  return execution;
 }
