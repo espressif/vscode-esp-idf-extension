@@ -63,6 +63,78 @@ export function shouldForceCliMode(): boolean {
   );
 }
 
+function getEimHomeDir(): string {
+  return process.env.USERPROFILE || process.env.HOME || "";
+}
+
+function getCliInstallDir(): string {
+  return join(getEimHomeDir(), ".espressif", "eim");
+}
+
+function getCliBinaryPath(): string {
+  if (process.platform === "win32") {
+    return join(getCliInstallDir(), "eim-cli-windows-x64.exe");
+  }
+
+  return join(getCliInstallDir(), "eim");
+}
+
+function getCliAssetName(arch: string): string {
+  if (process.platform === "win32") {
+    return "eim-cli-windows-x64.exe";
+  }
+
+  if (process.platform === "darwin") {
+    return arch === "arm64"
+      ? "eim-cli-macos-aarch64.zip"
+      : "eim-cli-macos-x64.zip";
+  }
+
+  if (process.platform === "linux") {
+    return arch === "arm64"
+      ? "eim-cli-linux-aarch64.zip"
+      : "eim-cli-linux-x64.zip";
+  }
+
+  throw new Error(`Unsupported platform: ${process.platform}`);
+}
+
+function getGuiInstallDir(): string {
+  if (process.platform === "win32") {
+    return join(getEimHomeDir(), ".espressif", "eim_gui");
+  }
+
+  if (process.platform === "darwin") {
+    return "/Applications";
+  }
+
+  if (process.platform === "linux") {
+    return join(process.env.HOME || "", ".espressif", "eim_gui");
+  }
+
+  throw new Error(`Unsupported platform: ${process.platform}`);
+}
+
+function getGuiAssetName(arch: string): string {
+  if (process.platform === "darwin") {
+    return arch === "arm64"
+      ? "eim-gui-macos-aarch64.zip"
+      : "eim-gui-macos-x64.zip";
+  }
+
+  if (process.platform === "win32") {
+    return "eim-gui-windows-x64.exe";
+  }
+
+  if (process.platform === "linux") {
+    return arch === "arm64"
+      ? "eim-gui-linux-aarch64.zip"
+      : "eim-gui-linux-x64.zip";
+  }
+
+  throw new Error(`Unsupported platform: ${process.platform}`);
+}
+
 export async function resolveEimPath(): Promise<string> {
   let eimPath = "";
 
@@ -85,20 +157,13 @@ export async function resolveEimPath(): Promise<string> {
   if (!eimPath) {
     eimPath = process.env.EIM_PATH || "";
   }
-  // 4. Use default path based on platform if still not found
+  // 4. Check the managed CLI install location if still not found
   if (!eimPath) {
-    if (process.platform === "win32") {
-      eimPath = join(
-        process.env.USERPROFILE || "",
-        ".espressif",
-        "eim_gui",
-        "eim-gui-windows-x64.exe"
-      );
-    } else if (process.platform === "darwin") {
-      eimPath = "/Applications/eim.app";
-    } else if (process.platform === "linux") {
-      eimPath = join(process.env.HOME || "", ".espressif", "eim_gui", "eim");
-    }
+    eimPath = getCliBinaryPath();
+  }
+  // 5. Use default GUI path based on platform if still not found
+  if (!eimPath) {
+    eimPath = getEimBinaryPath(getGuiInstallDir(), false);
   }
 
   const doesEimPathExists = await pathExists(eimPath);
@@ -333,20 +398,7 @@ export async function downloadAndInstallEIM(
   installCliMode: boolean = shouldForceCliMode()
 ): Promise<string> {
   const jsonUrl = "https://dl.espressif.com/dl/eim/eim_unified_release.json";
-  let eimInstallPath = "";
-  if (installCliMode) {
-    eimInstallPath = join(process.env.HOME || "", ".espressif", "eim");
-  } else if (process.platform === "win32") {
-    eimInstallPath = join(
-      process.env.USERPROFILE || "",
-      ".espressif",
-      "eim_gui"
-    );
-  } else if (process.platform === "darwin") {
-    eimInstallPath = "/Applications";
-  } else if (process.platform === "linux") {
-    eimInstallPath = join(process.env.HOME || "", ".espressif", "eim_gui");
-  }
+  const eimInstallPath = installCliMode ? getCliInstallDir() : getGuiInstallDir();
 
   try {
     progress.report({
@@ -359,28 +411,7 @@ export async function downloadAndInstallEIM(
     const data = response.data;
 
     const arch = process.arch;
-    let osKey: string;
-
-    if (installCliMode) {
-      osKey =
-        arch === "arm64"
-          ? "eim-cli-linux-aarch64.zip"
-          : "eim-cli-linux-x64.zip";
-    } else if (process.platform === "darwin") {
-      osKey =
-        arch === "arm64"
-          ? "eim-gui-macos-aarch64.zip"
-          : "eim-gui-macos-x64.zip";
-    } else if (process.platform === "win32") {
-      osKey = "eim-gui-windows-x64.exe";
-    } else if (process.platform === "linux") {
-      osKey =
-        arch === "arm64"
-          ? "eim-gui-linux-aarch64.zip"
-          : "eim-gui-linux-x64.zip";
-    } else {
-      throw new Error(`Unsupported platform: ${process.platform}`);
-    }
+    const osKey = installCliMode ? getCliAssetName(arch) : getGuiAssetName(arch);
     const fileInfo = data.assets.find((asset: any) => asset.name === osKey);
     if (!fileInfo) {
       throw new Error(`No file found for OS and architecture: ${osKey}`);
@@ -461,12 +492,12 @@ export async function downloadAndInstallEIM(
       });
     }
 
-    if (process.platform !== "win32") {
+    if (extname(downloadPath) === ".zip") {
       await installZipFile(downloadPath, eimInstallPath, cancelToken);
       Logger.infoNotify(`File ${osKey} extracted to: ${eimInstallPath}`);
     }
 
-    return getEimBinaryPath(eimInstallPath);
+    return getEimBinaryPath(eimInstallPath, installCliMode);
   } catch (error) {
     Logger.errorNotify(
       `Error during download and extraction: ${error.message}`,
@@ -477,7 +508,14 @@ export async function downloadAndInstallEIM(
   }
 }
 
-function getEimBinaryPath(eimInstallPath: string): string {
+function getEimBinaryPath(
+  eimInstallPath: string,
+  installCliMode: boolean
+): string {
+  if (installCliMode) {
+    return getCliBinaryPath();
+  }
+
   if (process.platform === "win32") {
     return join(eimInstallPath, "eim-gui-windows-x64.exe");
   } else if (process.platform === "darwin") {
