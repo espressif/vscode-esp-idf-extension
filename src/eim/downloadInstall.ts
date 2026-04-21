@@ -135,42 +135,22 @@ function getLinuxCliAssetArch(arch: string): "aarch64" | "armv7" | "x64" {
   throw new Error(`Unsupported architecture: ${arch}`);
 }
 
-function getCliAssetName(arch: string): string {
+function getEimAssetName(mode: "cli" | "gui", arch: string): string {
   if (process.platform === "win32") {
     if (arch !== "x64") {
       throw new Error(`Unsupported architecture: ${arch}`);
     }
 
-    return "eim-cli-windows-x64.exe";
+    return `eim-${mode}-windows-x64.exe`;
   }
 
   if (process.platform === "darwin") {
-    return `eim-cli-macos-${getGuiAssetArch(arch)}.zip`;
+    return `eim-${mode}-macos-${getGuiAssetArch(arch)}.zip`;
   }
 
   if (process.platform === "linux") {
-    return `eim-cli-linux-${getLinuxCliAssetArch(arch)}.zip`;
-  }
-
-  throw new Error(`Unsupported platform: ${process.platform}`);
-}
-
-
-function getGuiAssetName(arch: string): string {
-  if (process.platform === "darwin") {
-    return `eim-gui-macos-${getGuiAssetArch(arch)}.zip`;
-  }
-
-  if (process.platform === "win32") {
-    if (arch !== "x64") {
-      throw new Error(`Unsupported architecture: ${arch}`);
-    }
-
-    return "eim-gui-windows-x64.exe";
-  }
-
-  if (process.platform === "linux") {
-    return `eim-gui-linux-${getGuiAssetArch(arch)}.zip`;
+    const linuxArch = mode === "cli" ? getLinuxCliAssetArch(arch) : getGuiAssetArch(arch);
+    return `eim-${mode}-linux-${linuxArch}.zip`;
   }
 
   throw new Error(`Unsupported platform: ${process.platform}`);
@@ -457,7 +437,7 @@ export async function downloadAndInstallEIM(
     const data = response.data;
 
     const arch = process.arch;
-    const osKey = installCliMode ? getCliAssetName(arch) : getGuiAssetName(arch);
+    const osKey = getEimAssetName(installCliMode ? "cli" : "gui", arch);
     const fileInfo = data.assets.find((asset: any) => asset.name === osKey);
     if (!fileInfo) {
       throw new Error(`No file found for OS and architecture: ${osKey}`);
