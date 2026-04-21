@@ -174,18 +174,15 @@ export async function resolveEimPath(): Promise<string> {
   if (!eimPath) {
     eimPath = process.env.EIM_PATH || "";
   }
-  // 4. Check the managed CLI install location if still not found
-  if (!eimPath) {
-    const cliPath = getCliBinaryPath();
-    if (await pathExists(cliPath)) {
-      eimPath = cliPath;
-    }
-  }
-  // 5. Use default GUI path based on platform if still not found
-  if (!eimPath) {
-    const guiPath = getEimBinaryPath(getEimInstallDir("gui"), false);
-    if (await pathExists(guiPath)) {
-      eimPath = guiPath;
+  // 4. Check managed install locations — GUI first unless headless/snap/remote/web
+  const forceCliMode = shouldForceCliMode() || isVSCodeInstalledViaSnap();
+  const guiPath = getEimBinaryPath(getEimInstallDir("gui"), false);
+  const cliPath = getCliBinaryPath();
+  const orderedPaths = forceCliMode ? [cliPath, guiPath] : [guiPath, cliPath];
+
+  for (const candidate of orderedPaths) {
+    if (!eimPath && (await pathExists(candidate))) {
+      eimPath = candidate;
     }
   }
 
