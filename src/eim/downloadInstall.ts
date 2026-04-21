@@ -79,16 +79,32 @@ function getEimHomeDir(): string {
   return homeDir;
 }
 
-function getCliInstallDir(): string {
-  return join(getEimHomeDir(), ".espressif", "eim");
+function getEimInstallDir(mode: "cli" | "gui"): string {
+  if (mode === "cli") {
+    return join(getEimHomeDir(), ".espressif", "eim");
+  }
+
+  if (process.platform === "win32") {
+    return join(getEimHomeDir(), ".espressif", "eim_gui");
+  }
+
+  if (process.platform === "darwin") {
+    return "/Applications";
+  }
+
+  if (process.platform === "linux") {
+    return join(process.env.HOME || "", ".espressif", "eim_gui");
+  }
+
+  throw new Error(`Unsupported platform: ${process.platform}`);
 }
 
 function getCliBinaryPath(): string {
   if (process.platform === "win32") {
-    return join(getCliInstallDir(), "eim-cli-windows-x64.exe");
+    return join(getEimInstallDir("cli"), "eim-cli-windows-x64.exe");
   }
 
-  return join(getCliInstallDir(), "eim");
+  return join(getEimInstallDir("cli"), "eim");
 }
 
 function getGuiAssetArch(arch: string): "aarch64" | "x64" {
@@ -139,21 +155,6 @@ function getCliAssetName(arch: string): string {
   throw new Error(`Unsupported platform: ${process.platform}`);
 }
 
-function getGuiInstallDir(): string {
-  if (process.platform === "win32") {
-    return join(getEimHomeDir(), ".espressif", "eim_gui");
-  }
-
-  if (process.platform === "darwin") {
-    return "/Applications";
-  }
-
-  if (process.platform === "linux") {
-    return join(process.env.HOME || "", ".espressif", "eim_gui");
-  }
-
-  throw new Error(`Unsupported platform: ${process.platform}`);
-}
 
 function getGuiAssetName(arch: string): string {
   if (process.platform === "darwin") {
@@ -206,7 +207,7 @@ export async function resolveEimPath(): Promise<string> {
   }
   // 5. Use default GUI path based on platform if still not found
   if (!eimPath) {
-    const guiPath = getEimBinaryPath(getGuiInstallDir(), false);
+    const guiPath = getEimBinaryPath(getEimInstallDir("gui"), false);
     if (await pathExists(guiPath)) {
       eimPath = guiPath;
     }
@@ -443,7 +444,7 @@ export async function downloadAndInstallEIM(
   installCliMode: boolean = shouldForceCliMode()
 ): Promise<string> {
   const jsonUrl = "https://dl.espressif.com/dl/eim/eim_unified_release.json";
-  const eimInstallPath = installCliMode ? getCliInstallDir() : getGuiInstallDir();
+  const eimInstallPath = getEimInstallDir(installCliMode ? "cli" : "gui");
 
   try {
     progress.report({
