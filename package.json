@@ -800,7 +800,6 @@
             "default": [
               "verify",
               "compress",
-              "skip_loaded",
               "reset"
             ],
             "items": {
