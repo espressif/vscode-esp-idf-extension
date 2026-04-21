@@ -18,6 +18,7 @@
 
 import axios from "axios";
 import { basename, dirname, extname, join, resolve as pathResolve } from "path";
+import { pipeline } from "stream/promises";
 import {
   appendFile,
   createWriteStream,
@@ -477,43 +478,68 @@ export async function downloadAndInstallEIM(
         await ensureDir(eimInstallPath);
       }
 
-      const writeStream: WriteStream = createWriteStream(downloadPath, {
+      const tempDownloadPath = `${downloadPath}.tmp`;
+      await remove(tempDownloadPath);
+      if (cancelToken.isCancellationRequested) {
+        throw new Error("Download canceled by user.");
+      }
+
+      const writeStream: WriteStream = createWriteStream(tempDownloadPath, {
         mode: 0o755,
       });
-      const fileResponseStream = await axios({
-        method: "get",
-        url: downloadUrl,
-        responseType: "stream",
-      });
-      const totalSize = Number.parseInt(
-        fileResponseStream.headers["content-length"] || "0",
-        10
-      );
+      let isCanceled = false;
+      let cancellationListener: { dispose(): void } | undefined;
 
-      let downloadedSize = 0;
-      fileResponseStream.data.on("data", (chunk: Buffer) => {
+      try {
+        const fileResponseStream = await axios({
+          method: "get",
+          url: downloadUrl,
+          responseType: "stream",
+        });
+        const totalSize = Number.parseInt(
+          fileResponseStream.headers["content-length"] || "0",
+          10
+        );
+
+        const cancellationError = new Error("Download canceled by user.");
+        cancellationListener = cancelToken.onCancellationRequested(() => {
+          isCanceled = true;
+          fileResponseStream.data.destroy(cancellationError);
+          writeStream.destroy(cancellationError);
+        });
         if (cancelToken.isCancellationRequested) {
-          fileResponseStream.data.destroy();
+          isCanceled = true;
+          fileResponseStream.data.destroy(cancellationError);
+          writeStream.destroy(cancellationError);
+        }
+
+        let downloadedSize = 0;
+        fileResponseStream.data.on("data", (chunk: Buffer) => {
+          downloadedSize += chunk.length;
+          if (totalSize) {
+            const percentCompleted = Math.round(
+              (downloadedSize * 100) / totalSize
+            );
+            const increment = Math.round((chunk.length * 100) / totalSize);
+            progress.report({
+              message: `Downloading EIM... ${percentCompleted}%`,
+              increment,
+            });
+          }
+        });
+
+        await pipeline(fileResponseStream.data, writeStream);
+        await move(tempDownloadPath, downloadPath, { overwrite: true });
+      } catch (error) {
+        await remove(tempDownloadPath);
+        if (isCanceled) {
           throw new Error("Download canceled by user.");
         }
-        downloadedSize += chunk.length;
-        if (totalSize) {
-          const percentCompleted = Math.round(
-            (downloadedSize * 100) / totalSize
-          );
-          const increment = Math.round((chunk.length * 100) / totalSize);
-          progress.report({
-            message: `Downloading EIM... ${percentCompleted}%`,
-            increment,
-          });
-        }
-      });
-      fileResponseStream.data.pipe(writeStream);
+        throw error;
+      } finally {
+        cancellationListener?.dispose();
+      }
 
-      await new Promise((resolve, reject) => {
-        fileResponseStream.data.on("end", resolve);
-        fileResponseStream.data.on("error", reject);
-      });
       OutputChannel.appendLine(
         `File downloaded and extracted to: ${downloadPath}`
       );
