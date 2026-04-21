@@ -159,15 +159,20 @@ export async function resolveEimPath(): Promise<string> {
   }
   // 4. Check the managed CLI install location if still not found
   if (!eimPath) {
-    eimPath = getCliBinaryPath();
+    const cliPath = getCliBinaryPath();
+    if (await pathExists(cliPath)) {
+      eimPath = cliPath;
+    }
   }
   // 5. Use default GUI path based on platform if still not found
   if (!eimPath) {
-    eimPath = getEimBinaryPath(getGuiInstallDir(), false);
+    const guiPath = getEimBinaryPath(getGuiInstallDir(), false);
+    if (await pathExists(guiPath)) {
+      eimPath = guiPath;
+    }
   }
 
-  const doesEimPathExists = await pathExists(eimPath);
-  if (!doesEimPathExists) {
+  if (!eimPath || !(await pathExists(eimPath))) {
     return "";
   }
 
