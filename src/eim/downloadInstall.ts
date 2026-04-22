@@ -74,23 +74,20 @@ function getEimHomeDir(): string {
 }
 
 function getEimInstallDir(mode: "cli" | "gui"): string {
-  if (mode === "cli") {
-    return join(getEimHomeDir(), ".espressif", "eim");
-  }
-
-  if (process.platform === "win32") {
-    return join(getEimHomeDir(), ".espressif", "eim_gui");
-  }
-
-  if (process.platform === "darwin") {
+  if (process.platform === "darwin" && mode === "gui") {
     return "/Applications";
   }
 
-  if (process.platform === "linux") {
-    return join(process.env.HOME || "", ".espressif", "eim_gui");
+  if (
+    process.platform !== "win32" &&
+    process.platform !== "linux" &&
+    process.platform !== "darwin"
+  ) {
+    throw new Error(`Unsupported platform: ${process.platform}`);
   }
 
-  throw new Error(`Unsupported platform: ${process.platform}`);
+  const subdir = mode === "cli" ? "eim" : "eim_gui";
+  return join(getEimHomeDir(), ".espressif", subdir);
 }
 
 function getCliBinaryPath(): string {
