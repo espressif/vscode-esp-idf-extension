@@ -38,14 +38,12 @@ import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
 import { showInfoNotificationWithAction } from "./logger/utils";
 import * as utils from "./utils";
-import { shouldDisableMonitorReset } from "./utils";
 import {
   getSDKConfigFilePath,
   getIdfTargetFromSdkconfig,
   getProjectName,
   initSelectedWorkspace,
   updateIdfComponentsTree,
-  getProjectElfFilePath,
 } from "./workspaceConfig";
 import { SystemViewResultParser } from "./espIdf/tracing/system-view";
 import { Telemetry } from "./telemetry";
@@ -60,11 +58,9 @@ import { RainmakerDeviceParamStructure } from "./rainmaker/client/model";
 import { RainmakerOAuthManager } from "./rainmaker/oauth";
 import { CoverageRenderer, getCoverageOptions } from "./coverage/renderer";
 import { previewReport } from "./coverage/coverageService";
-import { WSServer } from "./espIdf/communications/ws";
-import { IDFMonitor } from "./espIdf/monitor";
+import { registerMonitorCommands } from "./espIdf/monitor";
 import { BuildTask } from "./build/buildTask";
 import { FlashSession } from "./flash/shared/flashSession";
-import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "./espIdf/core-dump";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
 import { PartitionTableEditorPanel } from "./espIdf/partition-table";
 import { ESPEFuseTreeDataProvider } from "./efuse/view";
@@ -92,7 +88,6 @@ import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
-import { createNewIdfMonitor } from "./espIdf/monitor/command";
 import { KconfigLangClient } from "./kconfig";
 import { configureProjectWithGcov } from "./coverage/configureProject";
 import { ComponentManagerUIPanel } from "./component-manager/panel";
@@ -133,7 +128,6 @@ import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvid
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
 import { addIdfReconfigureTask } from "./espIdf/reconfigure/task";
 import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
-import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
 import { TroubleshootingPanel } from "./support/troubleshootPanel";
 import {
   createCmdsStatusBarItems,
@@ -188,6 +182,7 @@ import { registerBuildCommands } from "./build";
 import { registerFlashCommands } from "./flash";
 import { interruptMonitorWithDelay } from "./espIdf/monitor/interruptMonitorWithDelay";
 import { registerEraseFlashCommand } from "./eraseFlash";
+import { IDFMonitor } from "./espIdf/monitor/terminal";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -230,9 +225,6 @@ let eFuseExplorer: ESPEFuseTreeDataProvider;
 // Peripheral Tree Data Provider
 let peripheralTreeProvider: PeripheralTreeView;
 let peripheralTreeView: vscode.TreeView<PeripheralBaseNode>;
-
-// Websocket Server
-let wsServer: WSServer;
 
 // Precheck methods and their messages
 
@@ -1849,7 +1841,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerBuildCommands(context);
   registerFlashCommands(context);
   registerEraseFlashCommand(context);
-  registerIDFCommand("espIdf.monitorDevice", createMonitor);
+  registerMonitorCommands(context);
   registerIDFCommand("espIdf.buildFlashMonitor", () =>
     buildFlashAndMonitor(workspaceRoot)
   );
@@ -2796,7 +2788,7 @@ export async function activate(context: vscode.ExtensionContext) {
           }
         }
       }
-      await vscode.window.showInformationMessage(
+      vscode.window.showInformationMessage(
         vscode.l10n.t(
           `No gdbtarget configuration found in launch.json.\nDelete launch.json and use the 'ESP-IDF: Add vscode Configuration Folder' command.`
         )
@@ -3128,284 +3120,7 @@ export async function activate(context: vscode.ExtensionContext) {
       );
     }
   );
-  registerIDFCommand("espIdf.launchWSServerAndMonitor", async () => {
-    const idfVersionCheck = await minIdfVersionCheck("4.3");
-    PreCheck.perform(
-      [idfVersionCheck, webIdeCheck, openFolderCheck],
-      async () => {
-        const monitorPort = idfConf.readParameter(
-          "idf.monitorPort",
-          workspaceRoot
-        ) as string;
-        const port = monitorPort
-          ? monitorPort
-          : await idfConf.readSerialPort(workspaceRoot, false);
-        if (!port) {
-          try {
-            await vscode.commands.executeCommand("espIdf.selectPort");
-          } catch (error) {
-            Logger.error(
-              vscode.l10n.t("Unable to execute the command: espIdf.selectPort"),
-              error,
-              "extension launchWSServerAndMonitor selectPort"
-            );
-          }
-          return Logger.errorNotify(
-            vscode.l10n.t("Select a serial port before flashing"),
-            new Error("NOT_SELECTED_PORT"),
-            "extension launchWSServerAndMonitor select port"
-          );
-        }
 
-        const pythonBinPath = await getVirtualEnvPythonPath();
-        if (!utils.canAccessFile(pythonBinPath, constants.R_OK)) {
-          Logger.errorNotify(
-            vscode.l10n.t("Python binary path is not defined"),
-            new Error("The Python Binary Path is not defined"),
-            "extension launchWSServerAndMonitor python path not set"
-          );
-        }
-        const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-          [key: string]: string;
-        }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-        let idfPath = currentEnvVars["IDF_PATH"];
-        const idfMonitorToolPath = path.join(
-          idfPath,
-          "tools",
-          "idf_monitor.py"
-        );
-        if (!utils.canAccessFile(idfMonitorToolPath, constants.R_OK)) {
-          Logger.errorNotify(
-            idfMonitorToolPath + vscode.l10n.t(" is not defined"),
-            new Error(idfMonitorToolPath + " is not defined"),
-            "extension launchWSServerAndMonitor idf_monitor no access"
-          );
-        }
-        try {
-          await installWebsocketClient(workspaceRoot);
-        } catch (error) {
-          Logger.errorNotify(
-            "Failed to install websocket client dependencies",
-            error,
-            "extension launchWSServerAndMonitor install websocket client"
-          );
-          return;
-        }
-        let idfTarget = await getIdfTargetFromSdkconfig(workspaceRoot);
-        if (!idfTarget) {
-          Logger.infoNotify("IDF_TARGET is not defined.");
-          return;
-        }
-        const toolchainPrefix = utils.getToolchainToolName(idfTarget, "");
-        const gdbPath = await utils.getToolchainPath(workspaceRoot, "gdb");
-        let elfFilePath: string;
-        try {
-          elfFilePath = await getProjectElfFilePath(workspaceRoot);
-        } catch (error) {
-          Logger.errorNotify(
-            vscode.l10n.t("Failed to get project ELF file path"),
-            error,
-            "extension launchWSServerAndMonitor getProjectElfFilePath"
-          );
-          return;
-        }
-        const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
-        const idfVersion = await utils.getEspIdfFromCMake(idfPath);
-        let sdkMonitorBaudRate: string = await utils.getMonitorBaudRate(
-          workspaceRoot
-        );
-        const noReset = idfConf.readParameter(
-          "idf.monitorNoReset",
-          workspaceRoot
-        ) as boolean;
-        const enableTimestamps = idfConf.readParameter(
-          "idf.monitorEnableTimestamps",
-          workspaceRoot
-        ) as boolean;
-        const customTimestampFormat = idfConf.readParameter(
-          "idf.monitorCustomTimestampFormat",
-          workspaceRoot
-        ) as string;
-        const shellPath = idfConf.readParameter(
-          "idf.customTerminalExecutable",
-          workspaceRoot
-        ) as string;
-        const shellExecutableArgs = idfConf.readParameter(
-          "idf.customTerminalExecutableArgs",
-          workspaceRoot
-        ) as string[];
-        IDFMonitor.updateConfiguration({
-          port,
-          baudRate: sdkMonitorBaudRate,
-          pythonBinPath,
-          idfTarget,
-          toolchainPrefix,
-          idfMonitorToolPath,
-          idfVersion,
-          noReset,
-          enableTimestamps,
-          customTimestampFormat,
-          elfFilePath,
-          wsPort,
-          workspaceFolder: workspaceRoot,
-          shellPath,
-          shellExecutableArgs,
-        });
-        if (wsServer) {
-          wsServer.close();
-        }
-        wsServer = new WSServer(wsPort);
-        wsServer.start();
-        wsServer
-          .on("started", async () => {
-            await interruptMonitorWithDelay(workspaceRoot);
-            IDFMonitor.start();
-          })
-          .on("core-dump-detected", async (resp) => {
-            const notificationMode = idfConf.readParameter(
-              "idf.notificationMode",
-              workspaceRoot
-            ) as string;
-            const ProgressLocation =
-              notificationMode === idfConf.NotificationMode.All ||
-              notificationMode === idfConf.NotificationMode.Notifications
-                ? vscode.ProgressLocation.Notification
-                : vscode.ProgressLocation.Window;
-            vscode.window.withProgress(
-              {
-                location: ProgressLocation,
-                cancellable: false,
-                title: vscode.l10n.t(
-                  "ESP-IDF: Core-dump detected, please wait while we parse the data received"
-                ),
-              },
-              async (progress) => {
-                try {
-                  const espCoreDumpPyTool = new ESPCoreDumpPyTool(idfPath);
-                  const buildDirPath = idfConf.readParameter(
-                    "idf.buildPath",
-                    workspaceRoot
-                  ) as string;
-                  const projectName = await getProjectName(workspaceRoot);
-                  const coreElfFilePath = path.join(
-                    buildDirPath,
-                    `${projectName}.coredump.elf`
-                  );
-                  if (
-                    (await espCoreDumpPyTool.generateCoreELFFile({
-                      coreElfFilePath,
-                      coreInfoFilePath: resp.file,
-                      infoCoreFileFormat: InfoCoreFileFormat.Base64,
-                      progELFFilePath: resp.prog,
-                      pythonBinPath,
-                      workspaceUri: workspaceRoot,
-                    })) === true
-                  ) {
-                    progress.report({
-                      message: vscode.l10n.t(
-                        "Successfully created ELF file from the info received (espcoredump.py)"
-                      ),
-                    });
-                    const workspaceFolder = vscode.workspace.getWorkspaceFolder(
-                      workspaceRoot
-                    );
-                    await vscode.debug.startDebugging(workspaceFolder, {
-                      name: "Core Dump Debug",
-                      sessionID: "core-dump.debug.session.ws",
-                      type: "gdbtarget",
-                      request: "attach",
-                      gdb: gdbPath,
-                      program: resp.prog,
-                      logFile: `${path.join(
-                        workspaceRoot.fsPath,
-                        "coredump.log"
-                      )}`,
-                      target: {
-                        connectCommands: [`core ${coreElfFilePath}`],
-                      },
-                    });
-                    vscode.debug.onDidTerminateDebugSession((session) => {
-                      if (
-                        session.configuration.sessionID ===
-                        "core-dump.debug.session.ws"
-                      ) {
-                        wsServer.done();
-                        IDFMonitor.dispose();
-                        wsServer.close();
-                      }
-                    });
-                  } else {
-                    Logger.warnNotify(
-                      vscode.l10n.t(
-                        "Failed to generate the ELF file from the info received, please close the core-dump monitor terminal manually"
-                      )
-                    );
-                  }
-                } catch (error) {
-                  Logger.errorNotify(
-                    vscode.l10n.t("Failed to launch debugger for postmortem"),
-                    error,
-                    "extension launchWSServerAndMonitor coredump"
-                  );
-                }
-              }
-            );
-          })
-          .on("gdb-stub-detected", async (resp) => {
-            try {
-              const workspaceFolder = vscode.workspace.getWorkspaceFolder(
-                workspaceRoot
-              );
-              await vscode.debug.startDebugging(workspaceFolder, {
-                name: "GDB Stub Debug",
-                type: "gdbtarget",
-                request: "attach",
-                sessionID: "gdbstub.debug.session.ws",
-                gdb: gdbPath,
-                program: resp.prog,
-                logFile: `${path.join(workspaceRoot.fsPath, "gdbstub.log")}`,
-                target: {
-                  connectCommands: [`target remote ${resp.port}`],
-                },
-              });
-              vscode.debug.onDidTerminateDebugSession((session) => {
-                if (
-                  session.configuration.sessionID === "gdbstub.debug.session.ws"
-                ) {
-                  wsServer.done();
-                  IDFMonitor.dispose();
-                  wsServer.close();
-                }
-              });
-            } catch (error) {
-              Logger.errorNotify(
-                "Failed to launch debugger for postmortem",
-                error,
-                "extension launchWSServerAndMonitor gdbstub"
-              );
-            }
-          })
-          .on("close", (resp) => {
-            wsServer.close();
-          })
-          .on("error", (err) => {
-            let message = err.message;
-            if (err && err.message.includes("EADDRINUSE")) {
-              message = vscode.l10n.t(
-                `Your port {wsPort} is not available, use (idf.wssPort) to change to different port`,
-                { wsPort }
-              );
-            }
-            Logger.errorNotify(
-              message,
-              err,
-              "extension launchWSServerAndMonitor error event"
-            );
-            wsServer.close();
-          });
-      }
-    );
-  });
   registerIDFCommand(
     "esp.webview.open.partition-table",
     async (args?: vscode.Uri) => {
@@ -4122,18 +3837,6 @@ function createClassicMenuconfig(extensionPath: string) {
       menuconfigCommand,
       vscode.TerminalLocation.Editor
     );
-  });
-}
-
-async function createMonitor() {
-  PreCheck.perform([openFolderCheck], async () => {
-    // Re route to ESP-IDF Web extension if using Codespaces or Browser
-    if (vscode.env.uiKind === vscode.UIKind.Web) {
-      vscode.commands.executeCommand(IDFWebCommandKeys.Monitor);
-      return;
-    }
-    const noReset = await shouldDisableMonitorReset(workspaceRoot);
-    await createNewIdfMonitor(workspaceRoot, noReset);
   });
 }
 

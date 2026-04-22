@@ -34,9 +34,9 @@ import { verifyAppBinary } from "../espIdf/debugAdapter/verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
 import { getConfigValueFromSDKConfig, getToolchainPath } from "../utils";
-import { createNewIdfMonitor } from "../espIdf/monitor/command";
 import { ESP } from "../config";
 import { buildFlashAndMonitor } from "../buildFlashMonitor";
+import { monitorMain } from "../espIdf/monitor/main";
 
 async function getOrPickWorkspaceFolder(
   folder: WorkspaceFolder | undefined
@@ -74,7 +74,7 @@ export class CDTDebugConfigurationProvider
       debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
       useMonitorWithDebug
     ) {
-      await createNewIdfMonitor(folder.uri, true);
+      await monitorMain(folder, true);
     }
     const openOCDManager = OpenOCDManager.init();
     if (

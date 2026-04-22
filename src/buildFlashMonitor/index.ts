@@ -23,22 +23,21 @@ import {
   Uri,
   UIKind,
   workspace,
+  WorkspaceFolder,
 } from "vscode";
 import { openFolderCheck } from "../common/PreCheck";
 import { withProgressWrapper } from "../common/withProgressWrapper";
-import { shouldDisableMonitorReset } from "../utils";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
 import { ESP } from "../config";
 import { buildMain } from "../build/buildMain";
 import { flashMain } from "../flash/main";
-import { createNewIdfMonitor } from "../espIdf/monitor/command";
 import {
   resolveFlashTypeForTask,
   resolvePartitionToUseForTask,
 } from "../flash/resolveFlashContext";
-import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 import { CustomExecutionTaskResult } from "../taskManager/customExecution";
+import { monitorMain } from "../espIdf/monitor/main";
 
 /**
  * Build, then flash, then open the serial monitor — same ordering as
@@ -47,7 +46,7 @@ import { CustomExecutionTaskResult } from "../taskManager/customExecution";
  * `readParameter` / tool-input resolution in language tools).
  */
 export async function buildFlashAndMonitorCapture(
-  workspaceFolderUri: Uri,
+  workspaceFolder: WorkspaceFolder,
   token: CancellationToken,
   captureOutput: boolean,
   flashType: ESP.FlashType,
@@ -59,7 +58,7 @@ export async function buildFlashAndMonitorCapture(
   const executions: CustomExecutionTaskResult["executions"] = [];
 
   const buildCmdResults = await buildMain(
-    workspaceFolderUri,
+    workspaceFolder.uri,
     token,
     flashType,
     partitionToUse,
@@ -77,10 +76,10 @@ export async function buildFlashAndMonitorCapture(
 
   onBeforeFlash?.();
 
-  const encryptPartitions = await isFlashEncryptionEnabled(workspaceFolderUri);
+  const encryptPartitions = await isFlashEncryptionEnabled(workspaceFolder.uri);
 
   const flashResult = await flashMain(
-    workspaceFolderUri,
+    workspaceFolder.uri,
     token,
     flashType,
     encryptPartitions,
@@ -94,12 +93,7 @@ export async function buildFlashAndMonitorCapture(
 
   onBeforeMonitor?.();
 
-  await interruptMonitorWithDelay(workspaceFolderUri);
-  const noReset =
-    typeof monitorNoReset !== "undefined"
-      ? monitorNoReset
-      : await shouldDisableMonitorReset(workspaceFolderUri);
-  await createNewIdfMonitor(workspaceFolderUri, noReset);
+  await monitorMain(workspaceFolder);
 
   return { continueFlag: true, executions };
 }
@@ -116,7 +110,6 @@ export async function buildFlashAndMonitor(
     [openFolderCheck],
     "ESP-IDF: Build, Flash & Monitor",
     async (progress, cancelToken, taskWsFolder) => {
-      const folderUri = taskWsFolder.uri;
       progress.report({ message: "Building project...", increment: 20 });
       const flashType =
         resolveFlashTypeForTask(taskWsFolder, undefined) ?? ESP.FlashType.UART;
@@ -126,7 +119,7 @@ export async function buildFlashAndMonitor(
       );
 
       const result = await buildFlashAndMonitorCapture(
-        folderUri,
+        taskWsFolder,
         cancelToken,
         false,
         flashType,
