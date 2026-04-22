@@ -17,7 +17,9 @@
  */
 
 import axios from "axios";
+import os from "os";
 import { basename, dirname, extname, join, resolve as pathResolve } from "path";
+import { pipeline } from "stream/promises";
 import {
   appendFile,
   createWriteStream,
@@ -32,7 +34,7 @@ import {
 import { CancellationToken, env, Progress, UIKind, window } from "vscode";
 import { OutputChannel } from "../logger/outputChannel";
 import del from "del";
-import { dirExistPromise, isBinInPath } from "../utils";
+import { dirExistPromise, isBinInPath, spawn } from "../utils";
 import * as yauzl from "yauzl";
 import { Logger } from "../logger/logger";
 import { getEimIdfJson } from "./getExistingSetups";
@@ -57,18 +59,106 @@ export function shouldForceCliMode(): boolean {
   );
 }
 
+function getEimHomeDir(): string {
+  const homeDir =
+    os.homedir() ||
+    (process.platform === "win32"
+      ? process.env.USERPROFILE || process.env.HOME
+      : process.env.HOME || process.env.USERPROFILE);
+
+  if (!homeDir) {
+    throw new Error("Unable to resolve the user home directory.");
+  }
+
+  return homeDir;
+}
+
+function getEimInstallDir(mode: "cli" | "gui"): string {
+  if (process.platform === "darwin" && mode === "gui") {
+    return "/Applications";
+  }
+
+  if (
+    process.platform !== "win32" &&
+    process.platform !== "linux" &&
+    process.platform !== "darwin"
+  ) {
+    throw new Error(`Unsupported platform: ${process.platform}`);
+  }
+
+  const subdir = mode === "cli" ? "eim" : "eim_gui";
+  return join(getEimHomeDir(), ".espressif", subdir);
+}
+
+function getCliBinaryPath(): string {
+  if (process.platform === "win32") {
+    return join(getEimInstallDir("cli"), "eim-cli-windows-x64.exe");
+  }
+
+  return join(getEimInstallDir("cli"), "eim");
+}
+
+function getGuiAssetArch(arch: string): "aarch64" | "x64" {
+  switch (arch) {
+    case "arm64":
+      return "aarch64";
+    case "x64":
+      return "x64";
+    default:
+      throw new Error(`Unsupported architecture: ${arch}`);
+  }
+}
+
+function getLinuxCliAssetArch(arch: string): "aarch64" | "armv7" | "x64" {
+  switch (arch) {
+    case "arm64":
+      return "aarch64";
+    case "arm":
+      return "armv7";
+    case "x64":
+      return "x64";
+    default:
+      throw new Error(`Unsupported architecture: ${arch}`);
+  }
+}
+
+function getEimAssetName(mode: "cli" | "gui", arch: string): string {
+  if (process.platform === "win32") {
+    if (arch !== "x64") {
+      throw new Error(`Unsupported architecture: ${arch}`);
+    }
+
+    return `eim-${mode}-windows-x64.exe`;
+  }
+
+  if (process.platform === "darwin") {
+    return `eim-${mode}-macos-${getGuiAssetArch(arch)}.zip`;
+  }
+
+  if (process.platform === "linux") {
+    const linuxArch = mode === "cli" ? getLinuxCliAssetArch(arch) : getGuiAssetArch(arch);
+    return `eim-${mode}-linux-${linuxArch}.zip`;
+  }
+
+  throw new Error(`Unsupported platform: ${process.platform}`);
+}
+
 export async function resolveEimPath(): Promise<string> {
   let eimPath = "";
 
   // 1. Check eim is in PATH and use it
+  Logger.info("[resolveEimPath] Step 1: checking eim in PATH");
   const eimInPATH = await isBinInPath("eim", process.env);
   if (eimInPATH) {
+    Logger.info(`[resolveEimPath] Found eim in PATH: ${eimInPATH}`);
     eimPath = eimInPATH;
   }
   // 2. Check eim_idf.json for existing EIM path
   if (!eimPath) {
+    Logger.info("[resolveEimPath] Step 2: checking eim_idf.json for existing EIM path");
     const eimJSON = await getEimIdfJson();
     if (eimJSON && eimJSON.eimPath) {
+      Logger.info(`[resolveEimPath] eim_idf.json eimPath: ${eimJSON.eimPath}`);
       const doesEimPathExists = await pathExists(eimJSON.eimPath);
       if (doesEimPathExists) {
         eimPath = eimJSON.eimPath;
@@ -77,29 +167,34 @@ export async function resolveEimPath(): Promise<string> {
   }
   // 3. Check EIM_PATH env variable if not found in eim_idf.json
   if (!eimPath) {
-    eimPath = process.env.EIM_PATH || "";
+    const envEimPath = process.env.EIM_PATH;
+    Logger.info(
+      `[resolveEimPath] Step 3: checking EIM_PATH env variable${envEimPath ? `: ${envEimPath}` : " (not set)"}`
+    );
+    eimPath = envEimPath || "";
   }
-  // 4. Use default path based on platform if still not found
-  if (!eimPath) {
-    if (process.platform === "win32") {
-      eimPath = join(
-        process.env.USERPROFILE || "",
-        ".espressif",
-        "eim_gui",
-        "eim-gui-windows-x64.exe"
-      );
-    } else if (process.platform === "darwin") {
-      eimPath = "/Applications/eim.app";
-    } else if (process.platform === "linux") {
-      eimPath = join(process.env.HOME || "", ".espressif", "eim_gui", "eim");
+  // 4. Check managed install locations — GUI first unless headless/snap/remote/web
+  const forceCliMode = shouldForceCliMode() || isVSCodeInstalledViaSnap();
+  const guiPath = getEimBinaryPath(getEimInstallDir("gui"), false);
+  const cliPath = getCliBinaryPath();
+  const orderedPaths = forceCliMode ? [cliPath, guiPath] : [guiPath, cliPath];
+  Logger.info(
+    `[resolveEimPath] Step 4: checking managed install locations (order: ${orderedPaths.join(", ")})`
+  );
+
+  for (const candidate of orderedPaths) {
+    Logger.info(`[resolveEimPath] Checking candidate: ${candidate}`);
+    if (!eimPath && (await pathExists(candidate))) {
+      eimPath = candidate;
     }
   }
 
-  const doesEimPathExists = await pathExists(eimPath);
-  if (!doesEimPathExists) {
+  if (!eimPath || !(await pathExists(eimPath))) {
+    Logger.info("[resolveEimPath] No eim binary found");
     return "";
   }
 
+  Logger.info(`[resolveEimPath] Resolved eim path: ${eimPath}`);
   return eimPath;
 }
 
@@ -108,6 +203,7 @@ export async function launchEimInTerminal(eimPath: string) {
     "idf.eimExecutableArgs"
   ) as string[];
   const argsString = idfEimExecutableArgs.join(" ");
+  const escapedEimPath = `"${eimPath.replace(/(["\\$`])/g, "\\$1")}"`;
 
   if (argsString.includes("wizard")) {
     await ensureEimPathInUserShell(eimPath);
@@ -119,9 +215,11 @@ export async function launchEimInTerminal(eimPath: string) {
       argsString ? " " + argsString : ""
     }`;
   } else if (process.platform === "linux") {
-    binaryPath = `./${basename(eimPath)}${argsString ? " " + argsString : ""}`;
+    binaryPath = `${escapedEimPath}${argsString ? " " + argsString : ""}`;
   } else if (process.platform === "darwin") {
-    binaryPath = `open ${eimPath}${argsString ? " --args " + argsString : ""}`;
+    binaryPath = eimPath.endsWith(".app")
+      ? `open ${escapedEimPath}${argsString ? " --args " + argsString : ""}`
+      : `${escapedEimPath}${argsString ? " " + argsString : ""}`;
   }
   const shellPath =
     process.platform === "win32"
@@ -133,11 +231,7 @@ export async function launchEimInTerminal(eimPath: string) {
     cwd: dirname(eimPath),
   });
   espIdfTerminal.sendText(binaryPath, true);
-  if (argsString.includes("wizard")) {
-    espIdfTerminal.show();
-  } else {
-    espIdfTerminal.sendText("exit");
-  }
+  espIdfTerminal.show();
 }
 
 async function ensureEimPathInUserShell(eimPath: string): Promise<void> {
@@ -285,26 +379,40 @@ export async function checkEimExists(
   return eimPath;
 }
 
+function getEimCommandPath(eimPath: string): string {
+  if (process.platform === "darwin" && eimPath.endsWith(".app")) {
+    return join(eimPath, "Contents", "MacOS", "eim");
+  }
+
+  return eimPath;
+}
+
+export async function isEimGuiCapable(eimPath: string): Promise<boolean> {
+  try {
+    const commandPath = getEimCommandPath(eimPath);
+    await spawn(commandPath, ["gui", "--help"], {
+      silent: true,
+      sendToTelemetry: false,
+      timeout: 5000,
+    });
+    return true;
+  } catch {
+    Logger.info(
+      "EIM does not support the gui subcommand, falling back to CLI wizard mode.",
+      "isEimGuiCapable"
+    );
+    return false;
+  }
+}
+
 export async function downloadAndInstallEIM(
   progress: Progress<{ message: string; increment: number }>,
   cancelToken: CancellationToken,
-  useMirror: boolean = false
+  useMirror: boolean = false,
+  installCliMode: boolean = shouldForceCliMode()
 ): Promise<string> {
   const jsonUrl = "https://dl.espressif.com/dl/eim/eim_unified_release.json";
-  let eimInstallPath = "";
-  if (shouldForceCliMode()) {
-    eimInstallPath = join(process.env.HOME || "", ".espressif", "eim");
-  } else if (process.platform === "win32") {
-    eimInstallPath = join(
-      process.env.USERPROFILE || "",
-      ".espressif",
-      "eim_gui"
-    );
-  } else if (process.platform === "darwin") {
-    eimInstallPath = "/Applications";
-  } else if (process.platform === "linux") {
-    eimInstallPath = join(process.env.HOME || "", ".espressif", "eim_gui");
-  }
+  const eimInstallPath = getEimInstallDir(installCliMode ? "cli" : "gui");
 
   try {
     progress.report({
@@ -317,28 +425,7 @@ export async function downloadAndInstallEIM(
     const data = response.data;
 
     const arch = process.arch;
-    let osKey: string;
-
-    if (shouldForceCliMode()) {
-      osKey =
-        arch === "arm64"
-          ? "eim-cli-linux-aarch64.zip"
-          : "eim-cli-linux-x64.zip";
-    } else if (process.platform === "darwin") {
-      osKey =
-        arch === "arm64"
-          ? "eim-gui-macos-aarch64.zip"
-          : "eim-gui-macos-x64.zip";
-    } else if (process.platform === "win32") {
-      osKey = "eim-gui-windows-x64.exe";
-    } else if (process.platform === "linux") {
-      osKey =
-        arch === "arm64"
-          ? "eim-gui-linux-aarch64.zip"
-          : "eim-gui-linux-x64.zip";
-    } else {
-      throw new Error(`Unsupported platform: ${process.platform}`);
-    }
+    const osKey = getEimAssetName(installCliMode ? "cli" : "gui", arch);
     const fileInfo = data.assets.find((asset: any) => asset.name === osKey);
     if (!fileInfo) {
       throw new Error(`No file found for OS and architecture: ${osKey}`);
@@ -371,41 +458,69 @@ export async function downloadAndInstallEIM(
         await ensureDir(eimInstallPath);
       }
 
-      const writeStream: WriteStream = createWriteStream(downloadPath, {
+      const tempDownloadPath = `${downloadPath}.tmp`;
+      await remove(tempDownloadPath);
+      if (cancelToken.isCancellationRequested) {
+        throw new Error("Download canceled by user.");
+      }
+
+      const writeStream: WriteStream = createWriteStream(tempDownloadPath, {
         mode: 0o755,
       });
-      const fileResponseStream = await axios({
-        method: "get",
-        url: downloadUrl,
-        responseType: "stream",
-      });
-      const { headers } = await axios.head(downloadUrl);
-      const totalSize = parseInt(headers["content-length"], 10);
+      let isCanceled = false;
+      let cancellationListener: { dispose(): void } | undefined;
 
-      let downloadedSize = 0;
-      fileResponseStream.data.on("data", (chunk: Buffer) => {
+      try {
+        const fileResponseStream = await axios({
+          method: "get",
+          url: downloadUrl,
+          responseType: "stream",
+        });
+        const totalSize = Number.parseInt(
+          fileResponseStream.headers["content-length"] || "0",
+          10
+        );
+
+        const cancellationError = new Error("Download canceled by user.");
+        cancellationListener = cancelToken.onCancellationRequested(() => {
+          isCanceled = true;
+          fileResponseStream.data.destroy(cancellationError);
+          writeStream.destroy(cancellationError);
+        });
+        // Guard against cancellation that occurred before the listener was registered
+        // (race window during the axios await above).
         if (cancelToken.isCancellationRequested) {
-          fileResponseStream.data.destroy();
+          cancellationListener.dispose();
+          throw cancellationError;
+        }
+
+        let downloadedSize = 0;
+        fileResponseStream.data.on("data", (chunk: Buffer) => {
+          downloadedSize += chunk.length;
+          if (totalSize) {
+            const percentCompleted = Math.round(
+              (downloadedSize * 100) / totalSize
+            );
+            const increment = Math.round((chunk.length * 100) / totalSize);
+            progress.report({
+              message: `Downloading EIM... ${percentCompleted}%`,
+              increment,
+            });
+          }
+        });
+
+        await pipeline(fileResponseStream.data, writeStream);
+        await move(tempDownloadPath, downloadPath, { overwrite: true });
+      } catch (error) {
+        await remove(tempDownloadPath);
+        if (isCanceled) {
           throw new Error("Download canceled by user.");
         }
-        downloadedSize += chunk.length;
-        if (totalSize) {
-          const percentCompleted = Math.round(
-            (downloadedSize * 100) / totalSize
-          );
-          const increment = Math.round((chunk.length * 100) / totalSize);
-          progress.report({
-            message: `Downloading EIM... ${percentCompleted}%`,
-            increment,
-          });
-        }
-      });
-      fileResponseStream.data.pipe(writeStream);
+        throw error;
+      } finally {
+        cancellationListener?.dispose();
+      }
 
-      await new Promise((resolve, reject) => {
-        fileResponseStream.data.on("end", resolve);
-        fileResponseStream.data.on("error", reject);
-      });
       OutputChannel.appendLine(
         `File downloaded and extracted to: ${downloadPath}`
       );
@@ -417,12 +532,12 @@ export async function downloadAndInstallEIM(
       });
     }
 
-    if (process.platform !== "win32") {
+    if (extname(downloadPath) === ".zip") {
       await installZipFile(downloadPath, eimInstallPath, cancelToken);
       Logger.infoNotify(`File ${osKey} extracted to: ${eimInstallPath}`);
     }
 
-    return getEimBinaryPath(eimInstallPath);
+    return getEimBinaryPath(eimInstallPath, installCliMode);
   } catch (error) {
     Logger.errorNotify(
       `Error during download and extraction: ${error.message}`,
@@ -433,7 +548,14 @@ export async function downloadAndInstallEIM(
   }
 }
 
-function getEimBinaryPath(eimInstallPath: string): string {
+function getEimBinaryPath(
+  eimInstallPath: string,
+  installCliMode: boolean
+): string {
+  if (installCliMode) {
+    return getCliBinaryPath();
+  }
+
   if (process.platform === "win32") {
     return join(eimInstallPath, "eim-gui-windows-x64.exe");
   } else if (process.platform === "darwin") {

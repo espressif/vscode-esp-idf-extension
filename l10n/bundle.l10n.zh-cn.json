@@ -263,8 +263,5 @@
   "Run EIM in Terminal": "在终端中运行 EIM",
   "VS Code installed via Snap cannot launch EIM's GUI due to sandbox restrictions. You can run EIM in CLI mode directly from the integrated terminal, or copy the path to run the GUI manually from a system terminal.": "通过 Snap 安装的 VS Code 由于沙盒限制无法启动 EIM 的图形界面。您可以直接从集成终端以 CLI 模式运行 EIM，或复制路径以从系统终端手动运行 GUI。",
   "EIM path copied to clipboard. Open a system terminal and paste it to run.": "EIM 路径已复制到剪贴板。打开系统终端并粘贴以运行。",
-  "EIM executable not found. Please choose a download mirror.": "未找到 EIM 可执行文件。请选择下载镜像。",
-  "Graphical Interface (GUI)": "图形界面 (GUI)",
-  "Command Line (Terminal)": "命令行 (终端)",
-  "Select how to launch EIM": "选择 EIM 启动方式"
+  "EIM executable not found. Please choose a download mirror.": "未找到 EIM 可执行文件。请选择下载镜像。"
 }
