@@ -7,10 +7,10 @@
  */
 
 import { Uri } from "vscode";
-import { IDFMonitor } from ".";
 import { readParameter } from "../../idfConfiguration";
 import { sleep } from "../../utils";
 import { ESP } from "../../config";
+import { IDFMonitor } from "./terminal";
 
 export async function interruptMonitorWithDelay(
   workspaceFolderUri: Uri

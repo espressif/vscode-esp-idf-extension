@@ -17,13 +17,19 @@
  */
 
 import { Uri } from "vscode";
-import { OutputChannel } from "../../logger/outputChannel";
-import { execChildProcess } from "../../utils";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { OutputChannel } from "../../../logger/outputChannel";
+import { execChildProcess } from "../../../utils";
+import { getVirtualEnvPythonPath } from "../../../pythonManager";
+import { configureEnvVariables } from "../../../common/prepareEnv";
 
 export async function installWebsocketClient(workspace: Uri) {
-  const pythonBinPath = await getVirtualEnvPythonPath();
+  const pythonBinPath = getVirtualEnvPythonPath();
+  if (!pythonBinPath) {
+    OutputChannel.appendLine(
+      "Python environment not found. Please set up Python to use the websocket monitor features."
+    );
+    return;
+  }
   const modifiedEnv = await configureEnvVariables(workspace);
   try {
     const showResult = await execChildProcess(
