@@ -45,12 +45,6 @@ type EimShellProfileTarget = {
   shellType: "fish" | "posix";
 };
 
-type EimHelpJson = {
-  subcommands?: Array<{
-    name?: string;
-  }>;
-};
-
 export function isVSCodeInstalledViaSnap(): boolean {
   return (
     process.platform === "linux" &&
@@ -399,21 +393,15 @@ function getEimCommandPath(eimPath: string): string {
 export async function isEimGuiCapable(eimPath: string): Promise<boolean> {
   try {
     const commandPath = getEimCommandPath(eimPath);
-    const output = await spawn(commandPath, ["help-json"], {
+    await spawn(commandPath, ["gui", "--help"], {
       silent: true,
       sendToTelemetry: false,
-      timeout: 10000,
+      timeout: 5000,
     });
-    const helpJson = JSON.parse(output.toString()) as EimHelpJson;
-
-    return (
-      Array.isArray(helpJson.subcommands) &&
-      helpJson.subcommands.some((subcommand) => subcommand.name === "gui")
-    );
-  } catch (error) {
-    Logger.error(
-      `Error while checking EIM GUI support: ${error.message}`,
-      error,
+    return true;
+  } catch {
+    Logger.info(
+      "EIM does not support the gui subcommand, falling back to CLI wizard mode.",
       "isEimGuiCapable"
     );
     return false;
