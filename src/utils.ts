@@ -385,28 +385,6 @@ export async function getConfigValueFromSDKConfig(
   return match ? match[1] : "";
 }
 
-export async function getMonitorBaudRate(workspacePath: vscode.Uri) {
-  let sdkMonitorBaudRate = "";
-  try {
-    sdkMonitorBaudRate = idfConf.readParameter(
-      "idf.monitorBaudRate",
-      workspacePath
-    ) as string;
-    if (!sdkMonitorBaudRate) {
-      sdkMonitorBaudRate = await getConfigValueFromSDKConfig(
-        "CONFIG_ESP_CONSOLE_UART_BAUDRATE",
-        workspacePath
-      );
-    }
-  } catch (error) {
-    const errMsg = error.message
-      ? error.message
-      : "ERROR reading CONFIG_ESP_CONSOLE_UART_BAUDRATE from sdkconfig";
-    Logger.error(errMsg, error, "src utils getMonitorBaudRate");
-  }
-  return sdkMonitorBaudRate;
-}
-
 export async function delConfigFile(workspaceRoot: vscode.Uri) {
   const sdkconfigFile = await getSDKConfigFilePath(workspaceRoot);
   fs.unlinkSync(sdkconfigFile);

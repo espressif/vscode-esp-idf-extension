@@ -4,11 +4,10 @@ import { OutputChannel } from "../logger/outputChannel";
 import { ESP } from "../config";
 import { buildMain } from "../build/buildMain";
 import { readParameter, writeParameter } from "../idfConfiguration";
-import { getEspIdfFromCMake, shouldDisableMonitorReset } from "../utils";
+import { getEspIdfFromCMake } from "../utils";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
-import { createNewIdfMonitor } from "../espIdf/monitor/command";
 import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
-import { IdfTaskExecution, TaskManager } from "../taskManager";
+import { IdfTaskExecution } from "../taskManager";
 import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
 import { updateCurrentProfileIdfTarget } from "../project-conf";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
@@ -20,11 +19,11 @@ import {
   ShellOutputCapturingExecution,
 } from "../taskManager/customExecution";
 import { configureEnvVariables } from "../common/prepareEnv";
-import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 import { flashMain } from "../flash/main";
 import { isFlashRelatedTaskExitCode74 } from "../flash/shared/errHandling";
 import { eraseFlashMain } from "../eraseFlash/main";
 import { buildFlashAndMonitorCapture } from "../buildFlashMonitor";
+import { monitorMain } from "../espIdf/monitor/main";
 
 // Map of command names to their corresponding VS Code command IDs
 const COMMAND_MAP: Record<string, string> = {
@@ -91,11 +90,11 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       const target = options.input.target;
       const commandId = COMMAND_MAP[commandName];
 
-      const workspaceURI = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder()
-        ?.uri;
+      const workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      const workspaceUri = workspaceFolder?.uri;
 
       // Check if we have a valid workspace
-      if (!workspaceURI) {
+      if (!workspaceUri) {
         return new vscode.LanguageModelToolResult([
           new vscode.LanguageModelTextPart(
             "No ESP-IDF workspace found. Please open an ESP-IDF project folder first."
@@ -107,7 +106,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       if (!flashType) {
         flashType = readParameter(
           "idf.flashType",
-          workspaceURI
+          workspaceFolder
         ) as ESP.FlashType;
         if (!flashType) {
           flashType = ESP.FlashType.UART;
@@ -125,7 +124,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
 
       let encryptPartitions: boolean = false;
       if (commandName === "flash" || commandName === "buildFlashMonitor") {
-        encryptPartitions = await isFlashEncryptionEnabled(workspaceURI);
+        encryptPartitions = await isFlashEncryptionEnabled(workspaceUri);
       }
 
       let partitionToUse = options.input.partitionToUse as
@@ -137,7 +136,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       if (options.input.partitionToUse === undefined) {
         partitionToUse = readParameter(
           "idf.flashPartitionToUse",
-          workspaceURI
+          workspaceUri
         ) as ESP.BuildType;
       }
 
@@ -147,7 +146,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       ) {
         partitionToUse = undefined;
       }
-      const modifiedEnv = await configureEnvVariables(workspaceURI);
+      const modifiedEnv = await configureEnvVariables(workspaceUri);
 
       let continueFlag = true;
       let taskExecutions: IdfTaskExecution[] = [];
@@ -157,7 +156,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
           await focusOnAppropriateOutput(commandName);
           if (commandName === "build") {
             let buildCmdResults = await buildMain(
-              workspaceURI,
+              workspaceUri,
               token,
               flashType,
               partitionToUse,
@@ -167,7 +166,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             taskExecutions.push(...buildCmdResults.executions);
           } else if (commandName === "flash") {
             let flashResults = await flashMain(
-              workspaceURI,
+              workspaceUri,
               token,
               flashType,
               encryptPartitions,
@@ -185,12 +184,10 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 ),
               ]);
             }
-            await interruptMonitorWithDelay(workspaceURI);
-            const noReset = await shouldDisableMonitorReset(workspaceURI);
-            await createNewIdfMonitor(workspaceURI, noReset);
+            await monitorMain(workspaceFolder);
           } else if (commandName === "buildFlashMonitor") {
             const bfmResults = await buildFlashAndMonitorCapture(
-              workspaceURI,
+              workspaceFolder,
               token,
               true,
               flashType,
@@ -200,7 +197,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             taskExecutions.push(...bfmResults.executions);
           } else if (commandName === "eraseFlash") {
             let eraseFlashResult = await eraseFlashMain(
-              workspaceURI,
+              workspaceUri,
               token,
               flashType,
               true // captureOutput = true for language tool
@@ -215,7 +212,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 ),
               ]);
             }
-            const targetsFromIdf = await getTargetsFromEspIdf(workspaceURI);
+            const targetsFromIdf = await getTargetsFromEspIdf(workspaceUri);
             const selectedTarget = targetsFromIdf.find(
               (t) => t.target === target
             );
@@ -238,7 +235,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             }
             setIsSettingIDFTarget(true);
             const setTargetResult = await setTargetInIDF(
-              workspaceURI,
+              workspaceUri,
               selectedTarget
             );
 
@@ -247,22 +244,22 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               vscode.ConfigurationTarget.WorkspaceFolder;
             const customExtraVars = readParameter(
               "idf.customExtraVars",
-              workspaceURI
+              workspaceUri
             ) as { [key: string]: string };
             customExtraVars["IDF_TARGET"] = selectedTarget.target;
             await writeParameter(
               "idf.customExtraVars",
               customExtraVars,
               configurationTarget,
-              workspaceURI
+              workspaceUri
             );
             await updateCurrentProfileIdfTarget(
               selectedTarget.target,
-              workspaceURI
+              workspaceUri
             );
 
             await getIdfTargetFromSdkconfig(
-              workspaceURI,
+              workspaceUri,
               statusBarItems["target"]
             );
 
