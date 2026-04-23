@@ -140,21 +140,27 @@ export class OpenOCDErrorMonitor {
 
     const openOCDManager = OpenOCDManager.init();
 
-    // Add event listener to OpenOCDManager to detect when there's new output
-    openOCDManager.on("data", (data) => {
+    const onData = (data: Buffer) => {
       const content = data.toString();
       this.processOutput(content);
-    });
+    };
 
-    openOCDManager.on("error", (error, data) => {
-      const content = data ? data.toString() : error.message;
+    const onError = (error: unknown, data?: Buffer) => {
+      const content = data
+        ? data.toString()
+        : error instanceof Error
+          ? error.message
+          : String(error);
       this.processOutput(content);
-    });
+    };
+
+    openOCDManager.on("data", onData);
+    openOCDManager.on("error", onError);
 
     this.openOCDLogWatcher = {
       dispose: () => {
-        openOCDManager.removeAllListeners("data");
-        openOCDManager.removeAllListeners("error");
+        openOCDManager.removeListener("data", onData);
+        openOCDManager.removeListener("error", onError);
       },
     };
   }

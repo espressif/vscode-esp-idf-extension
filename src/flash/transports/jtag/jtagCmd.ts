@@ -65,46 +65,49 @@ export async function jtagFlashCommandMain(
   }
 
   FlashSession.isFlashing = true;
-  const forceUNIXPathSeparator = readParameter(
-    "openocd.jtag.command.force_unix_path_separator",
-    workspace
-  );
-  let openOCDJTagFlashArguments = readParameter(
-    "idf.jtagFlashCommandExtraArgs",
-    workspace
-  ) as string[];
-  const customTask = new CustomTask(workspace);
-  if (forceUNIXPathSeparator === true) {
-    buildDirPath = buildDirPath.replace(/\\/g, "/");
-  }
-  const preFlashExecution = await customTask.addCustomTask(
-    CustomTaskType.PreFlash
-  );
-  await TaskManager.runTasks();
-  const flashExecution = await jtagFlash(
-    client,
-    "program_esp_bins",
-    buildDirPath,
-    "flasher_args.json",
-    ...openOCDJTagFlashArguments
-  );
-  if (!flashExecution.continueFlag) {
+  try {
+    const forceUNIXPathSeparator = readParameter(
+      "openocd.jtag.command.force_unix_path_separator",
+      workspace
+    );
+    let openOCDJTagFlashArguments = readParameter(
+      "idf.jtagFlashCommandExtraArgs",
+      workspace
+    ) as string[];
+    const customTask = new CustomTask(workspace);
+    if (forceUNIXPathSeparator === true) {
+      buildDirPath = buildDirPath.replace(/\\/g, "/");
+    }
+    const preFlashExecution = await customTask.addCustomTask(
+      CustomTaskType.PreFlash
+    );
+    await TaskManager.runTasks();
+    const flashExecution = await jtagFlash(
+      client,
+      "program_esp_bins",
+      buildDirPath,
+      "flasher_args.json",
+      ...openOCDJTagFlashArguments
+    );
+    if (!flashExecution.continueFlag) {
+      await throwCapturedTaskFailure(flashExecution.executions);
+    }
+    const postFlashExecution = await customTask.addCustomTask(
+      CustomTaskType.PostFlash
+    );
+    await TaskManager.runTasks();
+    const msg = "⚡️ Flashed Successfully (JTAG)";
+    OutputChannel.appendLineAndShow(msg, "Flash");
+    Logger.infoNotify(msg);
+    return {
+      continueFlag: true,
+      executions: collectExecutions(
+        preFlashExecution,
+        ...flashExecution.executions,
+        postFlashExecution
+      ),
+    };
+  } finally {
     FlashSession.isFlashing = false;
-    await throwCapturedTaskFailure(flashExecution.executions);
   }
-  const postFlashExecution = await customTask.addCustomTask(
-    CustomTaskType.PostFlash
-  );
-  await TaskManager.runTasks();
-  const msg = "⚡️ Flashed Successfully (JTAG)";
-  OutputChannel.appendLineAndShow(msg, "Flash");
-  Logger.infoNotify(msg);
-  return {
-    continueFlag: true,
-    executions: collectExecutions(
-      preFlashExecution,
-      ...flashExecution.executions,
-      postFlashExecution
-    ),
-  };
 }
