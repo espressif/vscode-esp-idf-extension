@@ -228,7 +228,7 @@ export class CDTDebugConfigurationProvider
     token?: CancellationToken
   ) {
     if (!folder) {
-      folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
+      folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       if (!folder) {
         folder = await window.showWorkspaceFolderPick({
           placeHolder: "Pick a workspace folder to start a debug session.",
@@ -270,7 +270,7 @@ export class CDTDebugConfigurationProvider
   ) {
     try {
       if (!folder) {
-        folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
+        folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
         if (!folder) {
           folder = await window.showWorkspaceFolderPick({
             placeHolder: "Pick a workspace folder to start a debug session.",

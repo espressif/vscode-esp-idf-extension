@@ -112,19 +112,13 @@ export function handleFlashCommandCatch(
     Logger.errorNotify(
       errStr,
       error as Error,
-      "uartFlashCommand esptool.py access error"
+      `${category} esptool.py access error`
     );
     return true;
   }
 
   const errStr = `Failed to flash because of some unusual error. Check Terminal for more details`;
-  OutputChannel.appendLine(errStr, "Flash");
-  Logger.errorNotify(
-    errStr,
-    error as Error,
-    `${category} unknown error`,
-    undefined,
-    false
-  );
+  OutputChannel.appendLineAndShow(errStr, "Flash");
+  Logger.errorNotify(errStr, error as Error, `${category} unknown error`);
   return true;
 }

@@ -36,7 +36,11 @@ export function createCapturedExecution(
  * string arguments (prevents breaking out of the quoted token).
  */
 export function quoteTclArg(arg: string): string {
-  const escaped = arg.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  const escaped = arg
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\$/g, "\\$")
+    .replace(/\[/g, "\\[");
   return `"${escaped}"`;
 }
 

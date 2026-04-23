@@ -92,10 +92,11 @@ export async function selectDfuDevice(arrDfuDevices: string[]) {
   });
 
   if (selectedDfuDevice) {
-    const regex = new RegExp(/path="[0-9.]+-[0-9.]+"/g);
-    const pathValue =
-      selectedDfuDevice.detail.match(regex)?.[0]?.slice(6, -1) ?? "";
-    return pathValue;
+    const pathMatch = selectedDfuDevice.detail.match(/path="([^"]+)"/);
+    if (!pathMatch?.[1]) {
+      throw new Error("NO_DFU_DEVICE_PATH_FOUND");
+    }
+    return pathMatch[1];
   } else {
     throw new Error("NO_DFU_DEVICE_SELECTED");
   }
