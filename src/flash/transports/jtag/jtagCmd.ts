@@ -38,6 +38,9 @@ export async function jtagFlashCommandMain(
   workspace: Uri,
   buildDirPath: string
 ) {
+  if (FlashSession.isFlashing) {
+    throw new Error("ALREADY_FLASHING");
+  }
   const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
   if (!isOpenOCDLaunched) {
     const errStr =

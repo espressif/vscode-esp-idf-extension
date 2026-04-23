@@ -30,8 +30,14 @@ export function registerIDFCommand(
     try {
       return await callback.apply(this, args);
     } catch (error) {
-      Logger.error(`Command::${name}::Failed`, error as Error, `registerIDFCommand ${name}`);
-      throw error;
+      const commandError =
+        error instanceof Error ? error : new Error(String(error));
+      Logger.error(
+        `Command::${name}::Failed`,
+        commandError,
+        `registerIDFCommand ${name}`
+      );
+      throw commandError;
     } finally {
       const timeSpent = Date.now() - startTime;
       Telemetry.sendEvent("command", { commandName: name }, { timeSpent });

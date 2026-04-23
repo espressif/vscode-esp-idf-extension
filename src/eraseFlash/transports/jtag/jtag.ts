@@ -49,6 +49,19 @@ export async function jtagEraseFlashCommand(
   const port = readParameter("openocd.tcl.port", workspaceFolder);
   const client = new TCLClient({ host, port });
 
+  let isReady = false;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    isReady = await client.verifyOpenOCDReady();
+    if (isReady) break;
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  if (!isReady) {
+    const errStr = "OpenOCD is not ready to accept commands. Please try again.";
+    OutputChannel.appendLineAndShow(errStr, "Erase Flash");
+    Logger.warnNotify(errStr);
+    return { continueFlag: false, executions: [] };
+  }
+
   const eraseResult = await eraseFlashTelnetCommand(
     client,
     "halt; flash erase_sector 0 0 last; reset"

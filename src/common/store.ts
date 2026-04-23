@@ -42,7 +42,7 @@ export class ExtensionConfigStore {
   public clear(key: string) {
     return this.set(key, undefined);
   }
-  public getSelectedWorkspaceFolderUri() {
+  public getSelectedWorkspaceFolder() {
     const fallbackWorkspaceFolder = workspace.workspaceFolders
       ? workspace.workspaceFolders?.[0]
       : undefined;
