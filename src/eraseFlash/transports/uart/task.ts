@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 import { Uri } from "vscode";
-import { EraseFlashSession } from "../../eraseFlashSession";
 import { configureEnvVariables } from "../../../common/prepareEnv";
 import { resolveEsptoolInvocation } from "../../../flash/shared/esptool/resolveEsptoolInvocation";
 import { addProcessTask } from "../../../taskManager";
@@ -27,15 +26,11 @@ export async function createEraseFlashProcessTask(
   port: string,
   captureOutput?: boolean
 ) {
-  if (EraseFlashSession.isErasing) {
-    throw new Error("ALREADY_ERASING");
-  }
   const modifiedEnv = await configureEnvVariables(workspace);
   const {
     pythonPath: pythonBinPath,
     esptoolScriptPath,
   } = await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]);
-  EraseFlashSession.isErasing = true;
   const args = buildUartEraseFlashArgs(esptoolScriptPath, port);
   return addProcessTask(
     "Erase Flash",

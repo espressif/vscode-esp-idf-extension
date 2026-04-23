@@ -23,6 +23,7 @@ import {
   ShellExecution,
   Task,
   TaskDefinition,
+  TaskExecution,
   TaskPanelKind,
   TaskPresentationOptions,
   TaskRevealKind,
@@ -188,8 +189,25 @@ export class TaskManager {
       if (TaskManager.tasks.length === 0) {
         return resolve();
       }
-      let lastExecution = await tasks.executeTask(TaskManager.tasks[0]);
-      const taskDisposable = tasks.onDidEndTaskProcess(async (e) => {
+
+      let taskDisposable: Disposable | undefined;
+      const disposeTaskListener = () => {
+        if (taskDisposable) {
+          taskDisposable.dispose();
+          const i = TaskManager.disposables.indexOf(taskDisposable);
+          if (i !== -1) {
+            TaskManager.disposables.splice(i, 1);
+          }
+          taskDisposable = undefined;
+        }
+      };
+
+      let lastExecution: TaskExecution | undefined;
+
+      taskDisposable = tasks.onDidEndTaskProcess(async (e) => {
+        if (!lastExecution) {
+          return;
+        }
         if (
           e.execution &&
           e.execution.task.definition.taskId ===
@@ -215,23 +233,44 @@ export class TaskManager {
             // Task has already ended (this handler is triggered *after* end),
             // so terminating here is unnecessary and can produce VS Code errors
             // like "Task to terminate not found".
-            this.cancelTasks();
-            this.disposeListeners();
-            return reject(
+            disposeTaskListener();
+            TaskManager.cancelTasks();
+            TaskManager.disposeListeners();
+            reject(
               new Error(
                 `Task ${lastExecution.task.name} exited with code ${e.exitCode}`
               )
             );
+            return;
           }
           if (TaskManager.tasks.length === 0) {
             TaskManager.tasks = [];
-            return resolve();
-          } else {
+            disposeTaskListener();
+            resolve();
+            return;
+          }
+          try {
             lastExecution = await tasks.executeTask(TaskManager.tasks[0]);
+          } catch (err) {
+            disposeTaskListener();
+            TaskManager.cancelTasks();
+            TaskManager.disposeListeners();
+            reject(
+              err instanceof Error ? err : new Error(String(err))
+            );
           }
         }
       });
       TaskManager.disposables.push(taskDisposable);
+
+      try {
+        lastExecution = await tasks.executeTask(TaskManager.tasks[0]);
+      } catch (err) {
+        disposeTaskListener();
+        TaskManager.cancelTasks();
+        TaskManager.disposeListeners();
+        reject(err instanceof Error ? err : new Error(String(err)));
+      }
     });
   }
 

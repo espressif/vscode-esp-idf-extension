@@ -30,51 +30,75 @@ export function createCapturedExecution(
     getOutput: async () => output,
   } as unknown) as IdfTaskExecution;
 }
+
+/**
+ * Escape backslashes and double quotes, then wrap for OpenOCD TCL double-quoted
+ * string arguments (prevents breaking out of the quoted token).
+ */
+export function quoteTclArg(arg: string): string {
+  const escaped = arg.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return `"${escaped}"`;
+}
+
 export async function jtagFlash(
   client: TCLClient,
   command: string,
   ...args: string[]
 ): Promise<CustomExecutionTaskResult> {
-  const fullCommand = `${command} ${args.map((arg) => `"${arg}"`).join(" ")}`;
+  const fullCommand = `${command} ${args.map(quoteTclArg).join(" ")}`;
 
   return new Promise<CustomExecutionTaskResult>((resolve) => {
-    client
-      .on("response", (data) => {
-        const response = data
-          .toString()
-          .replace(TCLClient.DELIMITER, "")
-          .trim();
-        const success = response === "0";
-        const stderr = success
-          ? ""
-          : `Failed to flash the device (JTAG), please try again [got response: '${response}', expecting: '0']`;
-        const output: CapturedTaskOutput = {
-          stdout: response,
-          stderr,
-          success,
-          exitCode: success ? 0 : -1,
-        };
-        resolve({
-          continueFlag: success,
-          executions: [createCapturedExecution(output)],
-        });
-      })
-      .on("error", (err: unknown) => {
-        const stderr =
-          err instanceof Error
-            ? err.message
-            : "Failed to flash (via JTAG), due to some unknown error in tcl, please try to relaunch open-ocd";
-        const output: CapturedTaskOutput = {
-          stdout: "",
-          stderr,
-          success: false,
-          exitCode: -1,
-        };
-        resolve({
-          continueFlag: false,
-          executions: [createCapturedExecution(output)],
-        });
-      })
-      .sendCommand(fullCommand);
+    let settled = false;
+    const finish = (result: CustomExecutionTaskResult) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      client.off("response", onResponse);
+      client.off("error", onError);
+      resolve(result);
+    };
+
+    const onResponse = (data: Buffer) => {
+      const response = data
+        .toString()
+        .replace(TCLClient.DELIMITER, "")
+        .trim();
+      const success = response === "0";
+      const stderr = success
+        ? ""
+        : `Failed to flash the device (JTAG), please try again [got response: '${response}', expecting: '0']`;
+      const output: CapturedTaskOutput = {
+        stdout: response,
+        stderr,
+        success,
+        exitCode: success ? 0 : -1,
+      };
+      finish({
+        continueFlag: success,
+        executions: [createCapturedExecution(output)],
+      });
+    };
+
+    const onError = (err: unknown) => {
+      const stderr =
+        err instanceof Error
+          ? err.message
+          : "Failed to flash (via JTAG), due to some unknown error in tcl, please try to relaunch open-ocd";
+      const output: CapturedTaskOutput = {
+        stdout: "",
+        stderr,
+        success: false,
+        exitCode: -1,
+      };
+      finish({
+        continueFlag: false,
+        executions: [createCapturedExecution(output)],
+      });
+    };
+
+    client.once("response", onResponse);
+    client.once("error", onError);
+    client.sendCommand(fullCommand);
   });
 }

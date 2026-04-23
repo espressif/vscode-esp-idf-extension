@@ -21,10 +21,7 @@ import { WorkspaceFolder } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
-import {
-  setCCppPropertiesJsonCompilerPath,
-  spawn,
-} from "../../utils";
+import { setCCppPropertiesJsonCompilerPath, spawn } from "../../utils";
 import { ConfserverProcess } from "../menuconfig/confServerProcess";
 import { IdfTarget } from "./getTargets";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
@@ -90,7 +87,7 @@ export async function setTargetInIDF(
     setCCppPropertiesJsonCompilerPath(workspaceFolder);
     return setTargetResult.toString();
   } catch (error) {
-    const errMsg = error instanceof Error ? error.message : new String(error);
+    const errMsg = error instanceof Error ? error.message : String(error);
     throw new Error(
       `Failed to set target ${selectedTarget.target}: ${errMsg}.`
     );
