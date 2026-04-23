@@ -39,20 +39,25 @@ export async function createUartFlashProcessTask(
   if (FlashSession.isFlashing) {
     throw new Error("ALREADY_FLASHING");
   }
-  assertFlashSectionsReadable(buildDirPath, model);
-  const { pythonPath: pythonBinPath, esptoolScriptPath } =
-    await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
   FlashSession.isFlashing = true;
-  const flasherArgs = partitionToUse
-    ? getSingleBinFlasherArgs(model, esptoolScriptPath, partitionToUse)
-    : getFlasherArgs(model, esptoolScriptPath, encryptPartitions);
-  return addProcessTask(
-    "Flash",
-    workspace,
-    pythonBinPath,
-    flasherArgs,
-    buildDirPath,
-    modifiedEnv,
-    { captureOutput }
-  );
+  try {
+    assertFlashSectionsReadable(buildDirPath, model);
+    const { pythonPath: pythonBinPath, esptoolScriptPath } =
+      await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
+    const flasherArgs = partitionToUse
+      ? getSingleBinFlasherArgs(model, esptoolScriptPath, partitionToUse)
+      : getFlasherArgs(model, esptoolScriptPath, encryptPartitions);
+    return addProcessTask(
+      "Flash",
+      workspace,
+      pythonBinPath,
+      flasherArgs,
+      buildDirPath,
+      modifiedEnv,
+      { captureOutput }
+    );
+  } catch (error) {
+    FlashSession.isFlashing = false;
+    throw error;
+  }
 }

@@ -13,7 +13,7 @@ import { openFolderCheck, webIdeCheck } from "../common/PreCheck";
 import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 import { eraseFlashMain } from "./main";
-
+import { Logger } from "../logger/logger";
 
 export function registerEraseFlashCommand(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.eraseFlash", async () => {
@@ -21,7 +21,11 @@ export function registerEraseFlashCommand(context: ExtensionContext) {
       [webIdeCheck, openFolderCheck],
       l10n.t("ESP-IDF: Erasing device flash memory (erase_flash)"),
       async (_progress, cancelToken, wsFolder) => {
-        const workspaceFolderUri = wsFolder!.uri;
+        if (!wsFolder) {
+          Logger.infoNotify(l10n.t("No workspace selected."));
+          return;
+        }
+        const workspaceFolderUri = wsFolder.uri;
         let flashType = readParameter(
           "idf.flashType",
           workspaceFolderUri

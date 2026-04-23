@@ -34,27 +34,31 @@ export async function createDfuFlashProcessTask(
   if (FlashSession.isFlashing) {
     throw new Error("ALREADY_FLASHING");
   }
-  assertFlashSectionsReadable(buildDirPath, model);
-  const { pythonPath: pythonBinPath } =
-    await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
   FlashSession.isFlashing = true;
-  const dfuResult = await dfuFlashingArgs(
-    pythonBinPath,
-    modifiedEnv,
-    model.chip,
-    buildDirPath
-  );
-  if (!dfuResult) {
+  try {
+    assertFlashSectionsReadable(buildDirPath, model);
+    const { pythonPath: pythonBinPath } =
+      await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
+    const dfuResult = await dfuFlashingArgs(
+      pythonBinPath,
+      modifiedEnv,
+      model.chip,
+      buildDirPath
+    );
+    if (!dfuResult) {
+      throw new Error("NO_DFU_DEVICE_SELECTED");
+    }
+    return addProcessTask(
+      "Flash",
+      workspace,
+      dfuResult.cmdToUse,
+      dfuResult.args,
+      buildDirPath,
+      modifiedEnv,
+      { captureOutput }
+    );
+  } catch (error) {
     FlashSession.isFlashing = false;
-    throw new Error("NO_DFU_DEVICE_SELECTED");
+    throw error;
   }
-  return addProcessTask(
-    "Flash",
-    workspace,
-    dfuResult.cmdToUse,
-    dfuResult.args,
-    buildDirPath,
-    modifiedEnv,
-    { captureOutput }
-  );
 }

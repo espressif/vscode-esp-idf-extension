@@ -20,10 +20,8 @@ import {
   CancellationToken,
   DebugConfiguration,
   DebugConfigurationProvider,
-  Uri,
   WorkspaceFolder,
   window,
-  workspace,
 } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import {
@@ -31,7 +29,7 @@ import {
   getProjectElfFilePath,
 } from "../workspaceConfig";
 import { dirname, join } from "path";
-import { pathExists, readFile } from "fs-extra";
+import { pathExists } from "fs-extra";
 import { verifyAppBinary } from "../espIdf/debugAdapter/verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
@@ -230,7 +228,7 @@ export class CDTDebugConfigurationProvider
     token?: CancellationToken
   ) {
     if (!folder) {
-      folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
       if (!folder) {
         folder = await window.showWorkspaceFolderPick({
           placeHolder: "Pick a workspace folder to start a debug session.",
@@ -269,10 +267,10 @@ export class CDTDebugConfigurationProvider
     folder: WorkspaceFolder | undefined,
     config: DebugConfiguration,
     token?: CancellationToken
-  ): Promise<DebugConfiguration> {
+  ) {
     try {
       if (!folder) {
-        folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
         if (!folder) {
           folder = await window.showWorkspaceFolderPick({
             placeHolder: "Pick a workspace folder to start a debug session.",
@@ -374,10 +372,11 @@ export class CDTDebugConfigurationProvider
         }
       }
     } catch (error) {
-      const msg = error.message
-        ? error.message
-        : "Some build files doesn't exist. Build this project first.";
-      Logger.error(msg, error, "CDTDebugConfigurationProvider");
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Some build files doesn't exist. Build this project first.";
+      Logger.error(msg, error as Error, "CDTDebugConfigurationProvider");
       return;
     }
     return config;

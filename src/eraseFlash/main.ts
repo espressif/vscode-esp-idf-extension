@@ -36,6 +36,10 @@ export async function eraseFlashMain(
   flashType?: ESP.FlashType,
   captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
+  if (EraseFlashSession.isErasing) {
+    throw new Error("ALREADY_ERASING");
+  }
+  EraseFlashSession.isErasing = true;
   try {
     if (!flashType) {
       flashType = await selectFlashMethod(workspaceFolderUri);
@@ -80,8 +84,9 @@ export async function eraseFlashMain(
     return eraseFlashCmdResult;
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
-    EraseFlashSession.isErasing = false;
     Logger.errorNotify(errMsg, error as Error, "eraseFlashCommand");
     return { continueFlag: false, executions: [] };
+  } finally {
+    EraseFlashSession.isErasing = false;
   }
 }

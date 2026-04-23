@@ -20,13 +20,20 @@ import { execChildProcess } from "../../../utils";
 import { OutputChannel } from "../../../logger/outputChannel";
 
 function deviceLabel(selectedDevice: string) {
-  const regex = new RegExp(/:\d+\]/g);
-  const pid = selectedDevice.match(regex) ? [0].slice(4, -1) : [];
+  const regex = /:\d+]/g;
+  const match = selectedDevice.match(regex);
+  const pid =
+    match?.[0] !== undefined
+      ? Number(match[0].slice(1, -1))
+      : NaN;
 
-  if (pid && pid[0] === 2) {
+  if (pid === 2) {
     return "ESP32-S2";
+  } else if (pid === 9) {
+    return "ESP32-S3";
+  } else {
+    return "Unknown";
   }
-  return "ESP32-S3";
 }
 
 export async function getDfuList(env: { [key: string]: string }) {

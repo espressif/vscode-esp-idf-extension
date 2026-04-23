@@ -1227,7 +1227,7 @@ export async function shouldDisableMonitorReset(
     return true;
   }
 
-  if (isFlashEncryptionEnabled(workspaceUri)) {
+  if (await isFlashEncryptionEnabled(workspaceUri)) {
     const valueReleaseModeEnabled = await getConfigValueFromSDKConfig(
       "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE",
       workspaceUri

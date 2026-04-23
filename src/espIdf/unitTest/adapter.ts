@@ -83,7 +83,7 @@ export class UnitTest {
       let workspaceFolderUri: Uri | undefined;
       if (!this.unitTestAppUri) {
         try {
-          let workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+          let workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
 
           workspaceFolderUri = workspaceFolder
             ? workspaceFolder.uri

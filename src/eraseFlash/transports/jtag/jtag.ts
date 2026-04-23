@@ -23,7 +23,6 @@ import { readParameter } from "../../../idfConfiguration";
 import { Logger } from "../../../logger/logger";
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
 import { assertMinimumOpenOcdVersionForJtag } from "../../../flash/transports/jtag/assertMinimumOpenOcdVersionForJtag";
-import { EraseFlashSession } from "../../eraseFlashSession";
 import { eraseFlashTelnetCommand } from "./tclClientCmd";
 import {
   collectExecutions,
@@ -50,20 +49,15 @@ export async function jtagEraseFlashCommand(
   const port = readParameter("openocd.tcl.port", workspaceFolder);
   const client = new TCLClient({ host, port });
 
-  EraseFlashSession.isErasing = true;
-  try {
-    const eraseResult = await eraseFlashTelnetCommand(
-      client,
-      "halt; flash erase_sector 0 0 last; reset"
-    );
-    if (!eraseResult.continueFlag) {
-      await throwCapturedTaskFailure(eraseResult.executions);
-    }
-    return {
-      continueFlag: true,
-      executions: collectExecutions(...eraseResult.executions),
-    };
-  } finally {
-    EraseFlashSession.isErasing = false;
+  const eraseResult = await eraseFlashTelnetCommand(
+    client,
+    "halt; flash erase_sector 0 0 last; reset"
+  );
+  if (!eraseResult.continueFlag) {
+    await throwCapturedTaskFailure(eraseResult.executions);
   }
+  return {
+    continueFlag: true,
+    executions: collectExecutions(...eraseResult.executions),
+  };
 }
