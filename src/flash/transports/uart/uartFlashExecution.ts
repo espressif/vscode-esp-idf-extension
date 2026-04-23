@@ -24,7 +24,6 @@ import {
   getFlasherArgs,
   getSingleBinFlasherArgs,
 } from "./flashArgsBuilder";
-import { FlashSession } from "../../shared/flashSession";
 import { assertFlashSectionsReadable } from "../../shared/verifyFlashBins";
 
 export async function createUartFlashProcessTask(
@@ -36,28 +35,19 @@ export async function createUartFlashProcessTask(
   partitionToUse?: ESP.BuildType,
   captureOutput?: boolean
 ) {
-  if (FlashSession.isFlashing) {
-    throw new Error("ALREADY_FLASHING");
-  }
-  FlashSession.isFlashing = true;
-  try {
-    assertFlashSectionsReadable(buildDirPath, model);
-    const { pythonPath: pythonBinPath, esptoolScriptPath } =
-      await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
-    const flasherArgs = partitionToUse
-      ? getSingleBinFlasherArgs(model, esptoolScriptPath, partitionToUse)
-      : getFlasherArgs(model, esptoolScriptPath, encryptPartitions);
-    return addProcessTask(
-      "Flash",
-      workspace,
-      pythonBinPath,
-      flasherArgs,
-      buildDirPath,
-      modifiedEnv,
-      { captureOutput }
-    );
-  } catch (error) {
-    FlashSession.isFlashing = false;
-    throw error;
-  }
+  assertFlashSectionsReadable(buildDirPath, model);
+  const { pythonPath: pythonBinPath, esptoolScriptPath } =
+    await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
+  const flasherArgs = partitionToUse
+    ? getSingleBinFlasherArgs(model, esptoolScriptPath, partitionToUse)
+    : getFlasherArgs(model, esptoolScriptPath, encryptPartitions);
+  return addProcessTask(
+    "Flash",
+    workspace,
+    pythonBinPath,
+    flasherArgs,
+    buildDirPath,
+    modifiedEnv,
+    { captureOutput }
+  );
 }

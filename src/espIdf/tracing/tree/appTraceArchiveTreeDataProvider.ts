@@ -46,10 +46,10 @@ export class AppTraceArchiveItems extends TreeItem {
 export class AppTraceArchiveTreeDataProvider
   implements TreeDataProvider<AppTraceArchiveItems> {
   // tslint:disable-next-line: max-line-length
-  public OnDidChangeTreeData: EventEmitter<
-    AppTraceArchiveItems
-  > = new EventEmitter<AppTraceArchiveItems>();
-  public readonly onDidChangeTreeData: Event<AppTraceArchiveItems> = this
+  public OnDidChangeTreeData: EventEmitter<AppTraceArchiveItems | null> = new EventEmitter<
+    AppTraceArchiveItems | null
+  >();
+  public readonly onDidChangeTreeData: Event<AppTraceArchiveItems | null> = this
     .OnDidChangeTreeData.event;
   public appTraceArchives: AppTraceArchiveItems[];
 
@@ -73,7 +73,7 @@ export class AppTraceArchiveTreeDataProvider
 
   public populateArchiveTree() {
     this.appTraceArchives = Array<AppTraceArchiveItems>(0);
-    const storedWorkspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
+    const storedWorkspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
     let baseFolderPath: string | undefined;
     if (storedWorkspaceFolder) {
       baseFolderPath = storedWorkspaceFolder.uri.fsPath;
@@ -161,9 +161,8 @@ export class AppTraceArchiveTreeDataProvider
     appTraceArchiveNode.description = `${this.sinceAgo(
       name[1].split(".trace")[0]
     )} ${traceSize.size}B`;
-    appTraceArchiveNode.tooltip = `${label} has ${
-      traceSize.size
-    } bytes (${this.sinceAgo(name[1].split(".trace")[0])})`;
+    appTraceArchiveNode.tooltip = `${label} has ${traceSize.size
+      } bytes (${this.sinceAgo(name[1].split(".trace")[0])})`;
     return appTraceArchiveNode;
   }
   private sinceAgo(epoch: string): string {
