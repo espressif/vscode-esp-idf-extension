@@ -50,60 +50,60 @@ export async function uartFlashCommandMain(
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
   cancelToken.onCancellationRequested(() => {
     TaskManager.cancelTasks();
-    TaskManager.disposeListeners();
   });
-  const model = await createFlashModel(
-    flasherArgsJsonPath,
-    port,
-    flashBaudRate
-  );
-  const customTask = new CustomTask(workspace);
   cancelToken.onCancellationRequested(() => {
     FlashSession.isFlashing = false;
   });
-  const preFlashExecution = await customTask.addCustomTask(
-    CustomTaskType.PreFlash,
-    captureOutput
-  );
-  const flashExecution =
-    flashType === ESP.FlashType.DFU
-      ? await createDfuFlashProcessTask(
-          workspace,
-          buildDirPath,
-          model,
-          modifiedEnv,
-          captureOutput
-        )
-      : await createUartFlashProcessTask(
-          workspace,
-          model,
-          modifiedEnv,
-          buildDirPath,
-          encryptPartitions,
-          partitionToUse,
-          captureOutput
-        );
-  const postFlashExecution = await customTask.addCustomTask(
-    CustomTaskType.PostFlash,
-    captureOutput
-  );
-  const flashResult = await TaskManager.runTasksWithBoolean();
+  try {
+    const model = await createFlashModel(
+      flasherArgsJsonPath,
+      port,
+      flashBaudRate
+    );
+    const customTask = new CustomTask(workspace);
+    const preFlashExecution = await customTask.addCustomTask(
+      CustomTaskType.PreFlash,
+      captureOutput
+    );
+    const flashExecution =
+      flashType === ESP.FlashType.DFU
+        ? await createDfuFlashProcessTask(
+            workspace,
+            buildDirPath,
+            model,
+            modifiedEnv,
+            captureOutput
+          )
+        : await createUartFlashProcessTask(
+            workspace,
+            model,
+            modifiedEnv,
+            buildDirPath,
+            encryptPartitions,
+            partitionToUse,
+            captureOutput
+          );
+    const postFlashExecution = await customTask.addCustomTask(
+      CustomTaskType.PostFlash,
+      captureOutput
+    );
+    const flashResult = await TaskManager.runTasksWithBoolean();
 
-  if (!cancelToken.isCancellationRequested) {
-    if (flashResult) {
+    if (!cancelToken.isCancellationRequested && flashResult) {
       const msg = "Flash Done ⚡️";
       OutputChannel.appendLineAndShow(msg, "Flash");
       Logger.infoNotify(msg);
     }
+    return {
+      continueFlag: flashResult,
+      executions: collectExecutions(
+        preFlashExecution,
+        flashExecution,
+        postFlashExecution
+      ),
+    };
+  } finally {
+    FlashSession.isFlashing = false;
     TaskManager.disposeListeners();
   }
-  FlashSession.isFlashing = false;
-  return {
-    continueFlag: flashResult,
-    executions: collectExecutions(
-      preFlashExecution,
-      flashExecution,
-      postFlashExecution
-    ),
-  };
 }

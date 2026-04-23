@@ -56,10 +56,13 @@ export async function saveDefSdkconfig(
     modifiedEnv,
     { captureOutput }
   );
-  await TaskManager.runTasks();
-  if (cancelToken && !cancelToken.isCancellationRequested) {
-    Logger.infoNotify("def-config has been generated");
+  try {
+    await TaskManager.runTasks();
+    if (!cancelToken?.isCancellationRequested) {
+      Logger.infoNotify("def-config has been generated");
+    }
+  } finally {
+    TaskManager.disposeListeners();
   }
-  TaskManager.disposeListeners();
   return saveDefSdkconfigExecution;
 }

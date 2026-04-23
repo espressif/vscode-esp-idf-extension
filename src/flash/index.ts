@@ -20,18 +20,8 @@ import { ExtensionContext } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../common/PreCheck";
 import { ESP } from "../config";
-import { isFlashEncryptionEnabled } from "./verify/flashEncryption";
 import { flash } from "./flashProject";
 import { selectFlashMethod } from "./selectFlashMethod";
-
-async function flashWithEncryptionResolution(options: {
-  explicitFlashType?: ESP.FlashType;
-  partition?: ESP.BuildType;
-}) {
-  const ws = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-  const isEncrypted = ws ? await isFlashEncryptionEnabled(ws.uri) : false;
-  return flash(isEncrypted, options.explicitFlashType, options.partition);
-}
 
 export function registerFlashCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.jtag_flash", () =>
@@ -41,39 +31,28 @@ export function registerFlashCommands(context: ExtensionContext) {
     flash(false, ESP.FlashType.DFU)
   );
   registerIDFCommand(context, "espIdf.flashUart", () =>
-    flashWithEncryptionResolution({ explicitFlashType: ESP.FlashType.UART })
+    flash(undefined, ESP.FlashType.UART)
   );
-  registerIDFCommand(context, "espIdf.flashDevice", () =>
-    flashWithEncryptionResolution({})
-  );
+  registerIDFCommand(context, "espIdf.flashDevice", () => flash(undefined));
   registerIDFCommand(context, "espIdf.flashAndEncryptDevice", () =>
     flash(true)
   );
 
   registerIDFCommand(context, "espIdf.flashAppUart", () =>
-    flashWithEncryptionResolution({
-      explicitFlashType: ESP.FlashType.UART,
-      partition: ESP.BuildType.App,
-    })
+    flash(undefined, ESP.FlashType.UART, ESP.BuildType.App)
   );
 
   registerIDFCommand(context, "espIdf.flashBootloaderUart", () =>
-    flashWithEncryptionResolution({
-      explicitFlashType: ESP.FlashType.UART,
-      partition: ESP.BuildType.Bootloader,
-    })
+    flash(undefined, ESP.FlashType.UART, ESP.BuildType.Bootloader)
   );
 
   registerIDFCommand(context, "espIdf.flashPartitionTableUart", () =>
-    flashWithEncryptionResolution({
-      explicitFlashType: ESP.FlashType.UART,
-      partition: ESP.BuildType.PartitionTable,
-    })
+    flash(undefined, ESP.FlashType.UART, ESP.BuildType.PartitionTable)
   );
 
   registerIDFCommand(context, "espIdf.selectFlashMethodAndFlash", () => {
     PreCheck.perform([openFolderCheck, webIdeCheck], async () => {
-      const ws = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      const ws = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
       await selectFlashMethod(ws!.uri);
     });
   });

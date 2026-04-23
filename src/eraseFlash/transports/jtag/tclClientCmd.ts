@@ -17,7 +17,10 @@
  */
 
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
-import { createCapturedExecution } from "../../../flash/transports/jtag/flashTclClient";
+import {
+  createCapturedExecution,
+  quoteTclArg,
+} from "../../../flash/transports/jtag/flashTclClient";
 import {
   CapturedTaskOutput,
   CustomExecutionTaskResult,
@@ -29,46 +32,60 @@ export async function eraseFlashTelnetCommand(
   command: string,
   ...args: string[]
 ): Promise<CustomExecutionTaskResult> {
-  const fullCommand = `${command} ${args.map((arg) => `"${arg}"`).join(" ")}`;
+  const fullCommand = `${command} ${args.map(quoteTclArg).join(" ")}`;
 
   return new Promise<CustomExecutionTaskResult>((resolve) => {
-    client
-      .on("response", (data: Buffer) => {
-        const response = data
-          .toString()
-          .replace(TCLClient.DELIMITER, "")
-          .trim();
-        const success = isJtagEraseFlashResponseSuccess(response);
-        const stderr = success
-          ? ""
-          : `Failed to erase flash from the device (JTAG), please try again [got response: '${response}', expecting: 'erased sectors ']`;
-        const output: CapturedTaskOutput = {
-          stdout: response,
-          stderr,
-          success,
-          exitCode: success ? 0 : -1,
-        };
-        resolve({
-          continueFlag: success,
-          executions: [createCapturedExecution(output)],
-        });
-      })
-      .on("error", (err: unknown) => {
-        const stderr =
-          err instanceof Error
-            ? err.message
-            : "Failed to erase flash (via JTAG), due to some unknown error in tcl, please try to relaunch open-ocd";
-        const output: CapturedTaskOutput = {
-          stdout: "",
-          stderr,
-          success: false,
-          exitCode: -1,
-        };
-        resolve({
-          continueFlag: false,
-          executions: [createCapturedExecution(output)],
-        });
-      })
-      .sendCommand(fullCommand);
+    let settled = false;
+    const finish = (result: CustomExecutionTaskResult) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      client.off("response", onResponse);
+      client.off("error", onError);
+      resolve(result);
+    };
+
+    const onResponse = (data: Buffer) => {
+      const response = data
+        .toString()
+        .replace(TCLClient.DELIMITER, "")
+        .trim();
+      const success = isJtagEraseFlashResponseSuccess(response);
+      const stderr = success
+        ? ""
+        : `Failed to erase flash from the device (JTAG), please try again [got response: '${response}', expecting: 'erased sectors ']`;
+      const output: CapturedTaskOutput = {
+        stdout: response,
+        stderr,
+        success,
+        exitCode: success ? 0 : -1,
+      };
+      finish({
+        continueFlag: success,
+        executions: [createCapturedExecution(output)],
+      });
+    };
+
+    const onError = (err: unknown) => {
+      const stderr =
+        err instanceof Error
+          ? err.message
+          : "Failed to erase flash (via JTAG), due to some unknown error in tcl, please try to relaunch open-ocd";
+      const output: CapturedTaskOutput = {
+        stdout: "",
+        stderr,
+        success: false,
+        exitCode: -1,
+      };
+      finish({
+        continueFlag: false,
+        executions: [createCapturedExecution(output)],
+      });
+    };
+
+    client.once("response", onResponse);
+    client.once("error", onError);
+    client.sendCommand(fullCommand);
   });
 }

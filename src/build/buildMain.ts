@@ -128,7 +128,8 @@ export async function buildMain(
     cleanupBuildState(buildTask);
 
     return {
-      continueFlag: buildResult && sizeResult,
+      continueFlag:
+        buildResult && sizeResult && !cancelToken.isCancellationRequested,
       executions,
     };
   } catch (error) {

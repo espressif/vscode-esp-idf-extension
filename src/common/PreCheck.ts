@@ -144,11 +144,21 @@ export const isNotDockerContainerCheck = [
   cmdNotDockerContainerMsg,
 ] as PreCheckInput;
 
+const UNRESOLVED_IDF_VERSION = "0.0.0";
+
 export async function minIdfVersionCheck(minVersion: string) {
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
   }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-  const currentVersion = await getEspIdfFromCMake(currentEnvVars["IDF_PATH"]);
+  const idfPath = currentEnvVars["IDF_PATH"];
+  let currentVersion = UNRESOLVED_IDF_VERSION;
+  if (idfPath) {
+    try {
+      currentVersion = await getEspIdfFromCMake(idfPath);
+    } catch {
+      currentVersion = UNRESOLVED_IDF_VERSION;
+    }
+  }
   return [
     () => PreCheck.espIdfVersionValidator(minVersion, currentVersion),
     cmdNeedToolVersionOrHigher("v" + minVersion, "ESP-IDF"),

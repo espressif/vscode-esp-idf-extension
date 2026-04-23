@@ -111,21 +111,26 @@ export async function setIdfTarget(
               if (devkitsOutput) {
                 const parsed = JSON.parse(devkitsOutput);
                 if (parsed && Array.isArray(parsed.boards)) {
-                  connectedBoards = parsed.boards.map(
-                    (b: any) =>
-                      ({
+                  connectedBoards = parsed.boards.flatMap((b: any) => {
+                    const idfTarget = targetsFromIdf.find(
+                      (t) => t.target === b.target
+                    );
+                    if (!idfTarget) {
+                      return [];
+                    }
+                    return [
+                      {
                         label: b.name,
-                        idfTarget: targetsFromIdf.find(
-                          (t) => t.target === b.target
-                        ),
+                        idfTarget,
                         description: b.description,
                         detail: `Status: CONNECTED${
                           b.location ? `   Location: ${b.location}` : ""
                         }`,
                         isConnected: true,
                         boardInfo: b,
-                      } as ISetTargetQuickPickItems)
-                  );
+                      } as ISetTargetQuickPickItems,
+                    ];
+                  });
                 }
               }
             } else {
@@ -223,16 +228,21 @@ export async function setIdfTarget(
           workspaceFolder.uri
         );
       } catch (err) {
-        const errMsg =
+        const normalizedError =
           err instanceof Error
-            ? err.message
-            : l10n.t("Unknown error occurred while setting IDF target.");
+            ? err
+            : new Error(
+                err == null || String(err).trim() === ""
+                  ? l10n.t("Unknown error occurred while setting IDF target.")
+                  : String(err)
+              );
+        const errMsg = normalizedError.message;
 
         if (errMsg.includes("are satisfied")) {
           Logger.info(errMsg);
           OutputChannel.appendLine(errMsg);
         } else {
-          Logger.errorNotify(errMsg, err as Error, "setIdfTarget");
+          Logger.error(errMsg, normalizedError, "setIdfTarget");
           OutputChannel.appendLine(errMsg);
         }
       } finally {

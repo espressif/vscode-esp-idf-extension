@@ -17,11 +17,11 @@
  */
 
 import { ExtensionContext, Uri, workspace } from "vscode";
-import { ESP } from "../config";
 
 export class ExtensionConfigStore {
   private static self: ExtensionConfigStore;
-  private static readonly SELECTED_WORKSPACE_FOLDER = "SELECTED_WORKSPACE_FOLDER";
+  private static readonly SELECTED_WORKSPACE_FOLDER =
+    "SELECTED_WORKSPACE_FOLDER";
   private ctx: ExtensionContext;
 
   public static init(context: ExtensionContext): ExtensionConfigStore {
@@ -33,7 +33,7 @@ export class ExtensionConfigStore {
   private constructor(context: ExtensionContext) {
     this.ctx = context;
   }
-  public get<T>(key: string, defaultValue?: T): T {
+  public get<T>(key: string, defaultValue: T): T {
     return this.ctx.globalState.get<T>(key, defaultValue);
   }
   public set(key: string, value: any) {
@@ -42,17 +42,28 @@ export class ExtensionConfigStore {
   public clear(key: string) {
     return this.set(key, undefined);
   }
-  public getSelectedWorkspaceFolder() {
-    const storedUri = this.get<Uri>(
+  public getSelectedWorkspaceFolderUri() {
+    const fallbackWorkspaceFolder = workspace.workspaceFolders
+      ? workspace.workspaceFolders?.[0]
+      : undefined;
+    const storedUri = this.get<string>(
       ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
-      workspace.workspaceFolders ? workspace.workspaceFolders?.[0].uri : undefined
+      ""
     );
-    if (!storedUri) {
-      return;
+    if (storedUri) {
+      const storedFolder = workspace.getWorkspaceFolder(Uri.parse(storedUri));
+      if (!storedFolder) {
+        this.clear(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER);
+        return fallbackWorkspaceFolder;
+      }
+      return storedFolder;
     }
-    return workspace.getWorkspaceFolder(storedUri);
+    return fallbackWorkspaceFolder;
   }
-  public setSelectedWorkspaceFolder(selectedFolder: Uri) {
-    this.set(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER, selectedFolder);
+  public setSelectedWorkspaceFolder(selectedFolderUri: Uri) {
+    this.set(
+      ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
+      selectedFolderUri.toString()
+    );
   }
 }

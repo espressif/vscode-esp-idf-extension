@@ -133,8 +133,9 @@ export async function flashMain(
     }
     return flashCmdResult;
   } catch (error) {
-    FlashSession.isFlashing = false;
-    handleFlashCommandCatch(error, flashType);
+    if (handleFlashCommandCatch(error, flashType)) {
+      FlashSession.isFlashing = false;
+    }
     return { continueFlag: false, executions: [] };
   }
 }

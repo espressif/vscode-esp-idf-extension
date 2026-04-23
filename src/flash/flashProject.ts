@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  */
 
-import { commands, env, UIKind } from "vscode";
+import { commands, env, l10n, UIKind } from "vscode";
 import { openFolderCheck } from "../common/PreCheck";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
@@ -17,9 +17,11 @@ import {
   resolvePartitionToUseForTask,
 } from "./resolveFlashContext";
 import { flashMain } from "./main";
+import { isFlashEncryptionEnabled } from "./verify/flashEncryption";
+import { Logger } from "../logger/logger";
 
 export async function flash(
-  encryptPartitions: boolean = false,
+  encryptPartitions?: boolean,
   flashType?: ESP.FlashType,
   partitionToUse?: ESP.BuildType
 ) {
@@ -27,6 +29,14 @@ export async function flash(
     [openFolderCheck],
     "ESP-IDF: Flashing project",
     async (_progress, cancelToken, wsFolder) => {
+      if (!wsFolder) {
+        Logger.infoNotify(l10n.t("No workspace selected."));
+        return;
+      }
+      const resolvedEncryptPartitions =
+        encryptPartitions !== undefined
+          ? encryptPartitions
+          : await isFlashEncryptionEnabled(wsFolder.uri);
       const resolvedFlashType = resolveFlashTypeForTask(wsFolder, flashType);
       const resolvedPartition = resolvePartitionToUseForTask(
         wsFolder,
@@ -34,10 +44,10 @@ export async function flash(
       );
       if (
         await flashMain(
-          wsFolder!.uri,
+          wsFolder.uri,
           cancelToken,
           resolvedFlashType,
-          encryptPartitions,
+          resolvedEncryptPartitions,
           resolvedPartition
         )
       ) {

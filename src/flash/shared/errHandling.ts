@@ -78,11 +78,11 @@ function presentMappedFlashCommandError(
   }
 }
 
-// Returns false only for ALREADY_FLASHING (caller returns before clearing session flag).
+// Returns false only for ALREADY_FLASHING (caller must not clear FlashSession).
 export function handleFlashCommandCatch(
   error: unknown,
   flashType: ESP.FlashType
-) {
+): boolean {
   const errMsg = error instanceof Error ? error.message : String(error);
   const category =
     flashType && flashType === ESP.FlashType.UART
@@ -93,13 +93,13 @@ export function handleFlashCommandCatch(
     const errStr = "Already one flash process is running!";
     OutputChannel.appendLineAndShow(errStr, "Flash");
     Logger.errorNotify(errStr, error as Error, "flashCommand already flashing");
-    return;
+    return false;
   }
 
   const mapped = FLASH_COMMAND_ERRORS_BY_MESSAGE.get(errMsg);
   if (mapped) {
     presentMappedFlashCommandError(mapped, error);
-    return;
+    return true;
   }
 
   const errnoCode =
@@ -114,7 +114,7 @@ export function handleFlashCommandCatch(
       error as Error,
       "uartFlashCommand esptool.py access error"
     );
-    return;
+    return true;
   }
 
   const errStr = `Failed to flash because of some unusual error. Check Terminal for more details`;
@@ -126,4 +126,5 @@ export function handleFlashCommandCatch(
     undefined,
     false
   );
+  return true;
 }

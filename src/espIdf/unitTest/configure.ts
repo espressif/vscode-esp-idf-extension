@@ -23,6 +23,7 @@ import { copy, pathExists, readFile, writeFile } from "fs-extra";
 import { readParameter } from "../../idfConfiguration";
 import { buildMain } from "../../build/buildMain";
 import { flashMain } from "../../flash/main";
+import { CustomExecutionTaskResult } from "../../taskManager/customExecution";
 import { OutputChannel } from "../../logger/outputChannel";
 import { Logger } from "../../logger/logger";
 import { getFileList, getTestComponents } from "./utils";
@@ -90,7 +91,7 @@ export async function updateTestComponents(
 export async function buildTestApp(
   unitTestAppDirPath: Uri,
   cancelToken: CancellationToken
-) {
+): Promise<CustomExecutionTaskResult> {
   let flashType = readParameter(
     "idf.flashType",
     unitTestAppDirPath
@@ -98,14 +99,12 @@ export async function buildTestApp(
   if (!flashType) {
     flashType = ESP.FlashType.UART;
   }
-  let buildCmdResults = await buildMain(
+  const buildCmdResults = await buildMain(
     unitTestAppDirPath,
     cancelToken,
     flashType
   );
-  if (!buildCmdResults.continueFlag) {
-    return;
-  }
+  return buildCmdResults;
 }
 
 export async function flashTestApp(
@@ -131,6 +130,9 @@ export async function buildFlashTestApp(
   unitTestAppDirPath: Uri,
   cancelToken: CancellationToken
 ) {
-  await buildTestApp(unitTestAppDirPath, cancelToken);
+  const buildCmdResults = await buildTestApp(unitTestAppDirPath, cancelToken);
+  if (!buildCmdResults.continueFlag) {
+    return;
+  }
   await flashTestApp(unitTestAppDirPath, cancelToken);
 }
