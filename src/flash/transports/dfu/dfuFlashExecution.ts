@@ -16,12 +16,10 @@
  */
 
 import { Uri } from "vscode";
-import * as idfConf from "../../../idfConfiguration";
 import { FlashModel } from "../uart/types/flashModel";
 import { addProcessTask } from "../../../taskManager";
 import { resolveEsptoolInvocation } from "../../shared/esptool/resolveEsptoolInvocation";
 import { dfuFlashingArgs } from "./getDFUArgs";
-import { FlashSession } from "../../shared/flashSession";
 import { assertFlashSectionsReadable } from "../../shared/verifyFlashBins";
 
 export async function createDfuFlashProcessTask(
@@ -31,34 +29,25 @@ export async function createDfuFlashProcessTask(
   modifiedEnv: { [key: string]: string },
   captureOutput?: boolean
 ) {
-  if (FlashSession.isFlashing) {
-    throw new Error("ALREADY_FLASHING");
+  assertFlashSectionsReadable(buildDirPath, model);
+  const { pythonPath: pythonBinPath } =
+    await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
+  const dfuResult = await dfuFlashingArgs(
+    pythonBinPath,
+    modifiedEnv,
+    model.chip,
+    buildDirPath
+  );
+  if (!dfuResult) {
+    throw new Error("NO_DFU_DEVICE_SELECTED");
   }
-  FlashSession.isFlashing = true;
-  try {
-    assertFlashSectionsReadable(buildDirPath, model);
-    const { pythonPath: pythonBinPath } =
-      await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
-    const dfuResult = await dfuFlashingArgs(
-      pythonBinPath,
-      modifiedEnv,
-      model.chip,
-      buildDirPath
-    );
-    if (!dfuResult) {
-      throw new Error("NO_DFU_DEVICE_SELECTED");
-    }
-    return addProcessTask(
-      "Flash",
-      workspace,
-      dfuResult.cmdToUse,
-      dfuResult.args,
-      buildDirPath,
-      modifiedEnv,
-      { captureOutput }
-    );
-  } catch (error) {
-    FlashSession.isFlashing = false;
-    throw error;
-  }
+  return addProcessTask(
+    "Flash",
+    workspace,
+    dfuResult.cmdToUse,
+    dfuResult.args,
+    buildDirPath,
+    modifiedEnv,
+    { captureOutput }
+  );
 }

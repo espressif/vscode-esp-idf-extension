@@ -16,14 +16,20 @@
  * limitations under the License.
  */
 
-import { commands, env, Uri, UIKind, workspace } from "vscode";
+import {
+  CancellationToken,
+  commands,
+  env,
+  Uri,
+  UIKind,
+  workspace,
+} from "vscode";
 import { openFolderCheck } from "../common/PreCheck";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { shouldDisableMonitorReset } from "../utils";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
 import { ESP } from "../config";
-import { IDFMonitor } from "../espIdf/monitor";
 import { buildMain } from "../build/buildMain";
 import { flashMain } from "../flash/main";
 import { createNewIdfMonitor } from "../espIdf/monitor/command";
@@ -32,6 +38,71 @@ import {
   resolvePartitionToUseForTask,
 } from "../flash/resolveFlashContext";
 import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
+import { CustomExecutionTaskResult } from "../taskManager/customExecution";
+
+/**
+ * Build, then flash, then open the serial monitor — same ordering as
+ * {@link buildFlashAndMonitor} — with optional captured task output for LM tools.
+ * Callers supply pre-resolved flash type, partition, and encryption flag (same as
+ * `readParameter` / tool-input resolution in language tools).
+ */
+export async function buildFlashAndMonitorCapture(
+  workspaceFolderUri: Uri,
+  token: CancellationToken,
+  captureOutput: boolean,
+  flashType: ESP.FlashType,
+  partitionToUse: ESP.BuildType | undefined,
+  monitorNoReset?: boolean,
+  onBeforeFlash?: () => void,
+  onBeforeMonitor?: () => void,
+): Promise<CustomExecutionTaskResult> {
+  const executions: CustomExecutionTaskResult["executions"] = [];
+
+  const buildCmdResults = await buildMain(
+    workspaceFolderUri,
+    token,
+    flashType,
+    partitionToUse,
+    captureOutput
+  );
+  executions.push(...buildCmdResults.executions);
+  if (!buildCmdResults.continueFlag) {
+    return { continueFlag: false, executions };
+  }
+
+  if (env.uiKind === UIKind.Web) {
+    commands.executeCommand(IDFWebCommandKeys.FlashAndMonitor);
+    return { continueFlag: true, executions };
+  }
+
+  onBeforeFlash?.();
+
+  const encryptPartitions = await isFlashEncryptionEnabled(workspaceFolderUri);
+
+  const flashResult = await flashMain(
+    workspaceFolderUri,
+    token,
+    flashType,
+    encryptPartitions,
+    partitionToUse,
+    captureOutput
+  );
+  executions.push(...flashResult.executions);
+  if (!flashResult.continueFlag) {
+    return { continueFlag: false, executions };
+  }
+
+  onBeforeMonitor?.();
+
+  await interruptMonitorWithDelay(workspaceFolderUri);
+  const noReset =
+    typeof monitorNoReset !== "undefined"
+      ? monitorNoReset
+      : await shouldDisableMonitorReset(workspaceFolderUri);
+  await createNewIdfMonitor(workspaceFolderUri, noReset);
+
+  return { continueFlag: true, executions };
+}
 
 export async function buildFlashAndMonitor(
   workspaceFolderUri: Uri,
@@ -39,7 +110,7 @@ export async function buildFlashAndMonitor(
 ) {
   const wsFolder =
     workspace.getWorkspaceFolder(workspaceFolderUri) ??
-    ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
+    ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
 
   await withProgressWrapper(
     [openFolderCheck],
@@ -48,49 +119,33 @@ export async function buildFlashAndMonitor(
       const folderUri = taskWsFolder!.uri;
       progress.report({ message: "Building project...", increment: 20 });
       const flashType = resolveFlashTypeForTask(taskWsFolder, undefined);
-      const buildCmdResults = await buildMain(
-        folderUri,
-        cancelToken,
-        flashType
-      );
-      if (!buildCmdResults.continueFlag) {
-        return;
-      }
-      if (env.uiKind === UIKind.Web) {
-        commands.executeCommand(IDFWebCommandKeys.FlashAndMonitor);
-        return;
-      }
-      progress.report({
-        message: "Flashing project into device...",
-        increment: 60,
-      });
-
-      const encryptPartitions = await isFlashEncryptionEnabled(folderUri);
       const partitionToUse = resolvePartitionToUseForTask(
         taskWsFolder,
         undefined
       );
 
-      const canContinue = await flashMain(
+      const result = await buildFlashAndMonitorCapture(
         folderUri,
         cancelToken,
+        false,
         flashType,
-        encryptPartitions,
-        partitionToUse
+        partitionToUse,
+        noResetMonitor,
+        () =>
+          progress.report({
+            message: "Flashing project into device...",
+            increment: 60,
+          }),
+        () =>
+          progress.report({
+            message: "Launching monitor...",
+            increment: 10,
+          }),
+
       );
-      if (!canContinue) {
+      if (!result.continueFlag) {
         return;
       }
-      progress.report({
-        message: "Launching monitor...",
-        increment: 10,
-      });
-      await interruptMonitorWithDelay(workspaceFolderUri);
-      const noReset =
-        typeof noResetMonitor !== "undefined"
-          ? noResetMonitor
-          : await shouldDisableMonitorReset(folderUri);
-      await createNewIdfMonitor(folderUri, noReset);
     },
     { workspaceFolder: wsFolder }
   );

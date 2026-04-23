@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { CancellationToken, l10n, Uri } from "vscode";
+import { CancellationToken, l10n, Uri, workspace } from "vscode";
 import { readParameter, readSerialPort } from "../idfConfiguration";
 import { ESP } from "../config";
 import {
@@ -29,8 +29,8 @@ import { verifyCanFlash } from "./verify/canFlash";
 import { jtagFlashCommandMain } from "./transports/jtag/jtagCmd";
 import { assertMinimumOpenOcdVersionForJtag } from "./transports/jtag/assertMinimumOpenOcdVersionForJtag";
 import { uartFlashCommandMain } from "./transports/uart/uartFlashCmd";
-import { selectFlashMethod } from "./selectFlashMethod";
 import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
+import { resolveFlashTypeForTask } from "./resolveFlashContext";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { throwCapturedTaskFailure } from "../taskManager";
 import { CustomExecutionTaskResult } from "../taskManager/customExecution";
@@ -41,16 +41,15 @@ export { selectFlashMethod } from "./selectFlashMethod";
 export async function flashMain(
   workspaceFolderUri: Uri,
   cancelToken: CancellationToken,
-  flashType: ESP.FlashType,
+  flashTypeIn: ESP.FlashType | undefined,
   encryptPartitions: boolean,
   partitionToUse?: ESP.BuildType,
   captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
+  const wsFolder = workspace.getWorkspaceFolder(workspaceFolderUri);
+  let flashType =
+    resolveFlashTypeForTask(wsFolder, flashTypeIn) ?? ESP.FlashType.UART;
   try {
-    if (!flashType) {
-      flashType = await selectFlashMethod(workspaceFolderUri);
-    }
-
     await interruptMonitorWithDelay(workspaceFolderUri);
 
     if (encryptPartitions) {
@@ -129,7 +128,17 @@ export async function flashMain(
       );
     }
     if (!flashCmdResult.continueFlag) {
-      await throwCapturedTaskFailure(flashCmdResult.executions);
+      try {
+        await throwCapturedTaskFailure(flashCmdResult.executions);
+      } catch (failure) {
+        if (handleFlashCommandCatch(failure, flashType)) {
+          FlashSession.isFlashing = false;
+        }
+        return {
+          continueFlag: false,
+          executions: flashCmdResult.executions,
+        };
+      }
     }
     return flashCmdResult;
   } catch (error) {

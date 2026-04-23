@@ -55,6 +55,7 @@ export async function uartFlashCommandMain(
     FlashSession.isFlashing = false;
   });
   try {
+    FlashSession.isFlashing = true;
     const model = await createFlashModel(
       flasherArgsJsonPath,
       port,

@@ -84,7 +84,7 @@ export async function eraseFlashMain(
     return eraseFlashCmdResult;
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
-    Logger.errorNotify(errMsg, error as Error, "eraseFlashCommand");
+    Logger.error(errMsg, error as Error, "eraseFlashCommand");
     return { continueFlag: false, executions: [] };
   } finally {
     EraseFlashSession.isErasing = false;

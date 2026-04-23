@@ -252,7 +252,7 @@ export class ImageViewPanel {
       }
 
       // Resolve relative paths relative to workspace folder
-      let wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
+      let wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       let workspaceFolderUri = wsFolder ? wsFolder.uri : undefined;
       if (!workspaceFolderUri) {
         workspaceFolderUri = vscode.workspace.workspaceFolders?.length

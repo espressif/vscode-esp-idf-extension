@@ -255,9 +255,7 @@ export class TaskManager {
             disposeTaskListener();
             TaskManager.cancelTasks();
             TaskManager.disposeListeners();
-            reject(
-              err instanceof Error ? err : new Error(String(err))
-            );
+            reject(err instanceof Error ? err : new Error(String(err)));
           }
         }
       });

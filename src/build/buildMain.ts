@@ -117,7 +117,7 @@ export async function buildMain(
     if (!buildResult || !sizeResult) {
       await throwCapturedTaskFailure(executions);
     }
-    if (buildResult && !cancelToken.isCancellationRequested) {
+    if (buildResult && sizeResult && !cancelToken.isCancellationRequested) {
       updateIdfComponentsTree(workspace);
       Logger.infoNotify("Build Successful");
       const flashCmd = await buildFinishFlashCmd(workspace);
@@ -136,13 +136,14 @@ export async function buildMain(
     cleanupBuildState(buildTask);
     if (error instanceof Error && error.message === "ALREADY_BUILDING") {
       Logger.errorNotify("Already a build is running!", error, "buildCommand");
-    }
-    if (error instanceof Error && error.message === "BUILD_TERMINATED") {
+    } else if (error instanceof Error && error.message === "BUILD_TERMINATED") {
       Logger.warnNotify("Build is Terminated");
     } else {
+      const errorInstance =
+        error instanceof Error ? error : new Error(String(error));
       Logger.errorNotify(
         "Something went wrong while trying to build the project",
-        error instanceof Error ? error : new Error(String(error)),
+        errorInstance,
         "buildCommand",
         undefined,
         false

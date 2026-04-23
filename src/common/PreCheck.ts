@@ -71,10 +71,9 @@ export class PreCheck {
     currentVersion: string
   ) {
     try {
-      const minVersionParsed = minVersion.match(/v(\d+.?\d+.?\d)-esp32-(\d+)/);
-      const currentVersionParsed = currentVersion.match(
-        /v(\d+.?\d+.?\d)-esp32-(\d+)/
-      );
+      const openOcdVersionRe = /^v(\d+\.\d+\.\d+)-esp32-(\d+)$/;
+      const minVersionParsed = minVersion.match(openOcdVersionRe);
+      const currentVersionParsed = currentVersion.match(openOcdVersionRe);
       if (!minVersionParsed || !currentVersionParsed) {
         throw new Error("Error parsing OpenOCD versions");
       }
@@ -155,7 +154,12 @@ export async function minIdfVersionCheck(minVersion: string) {
   if (idfPath) {
     try {
       currentVersion = await getEspIdfFromCMake(idfPath);
-    } catch {
+    } catch(error) {
+      Logger.error(
+        `Failed to resolve ESP-IDF version from ${idfPath}`,
+        error as Error,
+        "common PreCheck minIdfVersionCheck"
+      );
       currentVersion = UNRESOLVED_IDF_VERSION;
     }
   }
