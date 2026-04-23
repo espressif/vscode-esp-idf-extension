@@ -52,7 +52,7 @@ export function registerFlashCommands(context: ExtensionContext) {
 
   registerIDFCommand(context, "espIdf.selectFlashMethodAndFlash", () => {
     PreCheck.perform([openFolderCheck, webIdeCheck], async () => {
-      const ws = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
+      const ws = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       await selectFlashMethod(ws!.uri);
     });
   });
