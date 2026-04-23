@@ -12,10 +12,7 @@ import { withProgressWrapper } from "../common/withProgressWrapper";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { ESP } from "../config";
 import { OutputChannel } from "../logger/outputChannel";
-import {
-  resolveFlashTypeForTask,
-  resolvePartitionToUseForTask,
-} from "./resolveFlashContext";
+import { resolvePartitionToUseForTask } from "./resolveFlashContext";
 import { flashMain } from "./main";
 import { isFlashEncryptionEnabled } from "./verify/flashEncryption";
 import { Logger } from "../logger/logger";
@@ -37,20 +34,18 @@ export async function flash(
         encryptPartitions !== undefined
           ? encryptPartitions
           : await isFlashEncryptionEnabled(wsFolder.uri);
-      const resolvedFlashType = resolveFlashTypeForTask(wsFolder, flashType);
       const resolvedPartition = resolvePartitionToUseForTask(
         wsFolder,
         partitionToUse
       );
-      if (
-        await flashMain(
-          wsFolder.uri,
-          cancelToken,
-          resolvedFlashType,
-          resolvedEncryptPartitions,
-          resolvedPartition
-        )
-      ) {
+      const flashResult = await flashMain(
+        wsFolder.uri,
+        cancelToken,
+        flashType,
+        resolvedEncryptPartitions,
+        resolvedPartition
+      );
+      if (flashResult.continueFlag) {
         OutputChannel.appendLine(
           "Flash has finished. You can monitor your device with 'ESP-IDF: Monitor Device'"
         );

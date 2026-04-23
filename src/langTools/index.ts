@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
 import { ESP } from "../config";
 import { buildMain } from "../build/buildMain";
@@ -22,6 +23,7 @@ import { configureEnvVariables } from "../common/prepareEnv";
 import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 import { flashMain } from "../flash/main";
 import { eraseFlashMain } from "../eraseFlash/main";
+import { buildFlashAndMonitorCapture } from "../buildFlashMonitor";
 
 // Map of command names to their corresponding VS Code command IDs
 const COMMAND_MAP: Record<string, string> = {
@@ -88,7 +90,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       const target = options.input.target;
       const commandId = COMMAND_MAP[commandName];
 
-      const workspaceURI = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri()
+      const workspaceURI = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder()
         ?.uri;
 
       // Check if we have a valid workspace
@@ -186,39 +188,15 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             const noReset = await shouldDisableMonitorReset(workspaceURI);
             await createNewIdfMonitor(workspaceURI, noReset);
           } else if (commandName === "buildFlashMonitor") {
-            let buildCmdResults = await buildMain(
+            const bfmResults = await buildFlashAndMonitorCapture(
               workspaceURI,
               token,
+              true,
               flashType,
-              partitionToUse,
-              true // captureOutput = true for language tool
+              partitionToUse
             );
-            continueFlag = buildCmdResults.continueFlag;
-            taskExecutions.push(...buildCmdResults.executions);
-            if (continueFlag) {
-              if (vscode.env.uiKind === vscode.UIKind.Web) {
-                vscode.commands.executeCommand(
-                  IDFWebCommandKeys.FlashAndMonitor
-                );
-              } else {
-                let flashResults = await flashMain(
-                  workspaceURI,
-                  token,
-                  flashType,
-                  encryptPartitions,
-                  partitionToUse,
-                  true // captureOutput = true for language tool
-
-                );
-                continueFlag = flashResults.continueFlag;
-                taskExecutions.push(...flashResults.executions);
-                if (continueFlag) {
-                  await interruptMonitorWithDelay(workspaceURI);
-                  const noReset = await shouldDisableMonitorReset(workspaceURI);
-                  await createNewIdfMonitor(workspaceURI, noReset);
-                }
-              }
-            }
+            continueFlag = bfmResults.continueFlag;
+            taskExecutions.push(...bfmResults.executions);
           } else if (commandName === "eraseFlash") {
             let eraseFlashResult = await eraseFlashMain(
               workspaceURI,
@@ -373,12 +351,13 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               ),
             ]);
           }
-          const errorMessageResult = `Failed to execute command "${commandName}": ${errorMessage}\n${
-            error instanceof Error && error.stack ? error.stack : ""
-          }`;
+          const sanitizedMessage = `Failed to execute command "${commandName}": ${errorMessage}`;
+          const errorForLog =
+            error instanceof Error ? error : new Error(String(error));
+          Logger.error(sanitizedMessage, errorForLog, "langToolsInvoke");
           return new vscode.LanguageModelToolResult([
             ...outputs,
-            new vscode.LanguageModelTextPart(errorMessageResult),
+            new vscode.LanguageModelTextPart(sanitizedMessage),
           ]);
         }
       } else {

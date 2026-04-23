@@ -80,7 +80,6 @@ export class OpenOCDErrorMonitor {
       // Skip initialization if openOCD version is not supporting hints
       const minRequiredVersion = "v0.12.0-esp32-20250226";
       if (
-        !version ||
         !PreCheck.openOCDVersionValidator(minRequiredVersion, version)
       ) {
         Logger.info(
