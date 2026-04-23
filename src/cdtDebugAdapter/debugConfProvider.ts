@@ -20,13 +20,14 @@ import {
   CancellationToken,
   DebugConfiguration,
   DebugConfigurationProvider,
-  Uri,
   WorkspaceFolder,
   window,
-  workspace,
 } from "vscode";
 import { readParameter } from "../idfConfiguration";
-import { getIdfTargetFromSdkconfig, getProjectElfFilePath } from "../workspaceConfig";
+import {
+  getIdfTargetFromSdkconfig,
+  getProjectElfFilePath,
+} from "../workspaceConfig";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { verifyAppBinary } from "../espIdf/debugAdapter/verifyApp";
@@ -45,7 +46,7 @@ export class CDTDebugConfigurationProvider
     token?: CancellationToken
   ) {
     if (!folder) {
-      folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
       if (!folder) {
         folder = await window.showWorkspaceFolderPick({
           placeHolder: "Pick a workspace folder to start a debug session.",
@@ -69,25 +70,25 @@ export class CDTDebugConfigurationProvider
       await createNewIdfMonitor(folder.uri, true);
     }
     const openOCDManager = OpenOCDManager.init();
-      if (
-        !openOCDManager.isRunning() &&
-        debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
-        debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
-        debugConfiguration.sessionID !== "qemu.debug.session" &&
-        debugConfiguration.runOpenOCD !== false
-      ) {
-        await openOCDManager.start();
-      }
+    if (
+      !openOCDManager.isRunning() &&
+      debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
+      debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
+      debugConfiguration.sessionID !== "qemu.debug.session" &&
+      debugConfiguration.runOpenOCD !== false
+    ) {
+      await openOCDManager.start();
+    }
     return debugConfiguration;
   }
   public async resolveDebugConfiguration(
     folder: WorkspaceFolder | undefined,
     config: DebugConfiguration,
     token?: CancellationToken
-  ): Promise<DebugConfiguration> {
+  ) {
     try {
       if (!folder) {
-        folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
         if (!folder) {
           folder = await window.showWorkspaceFolderPick({
             placeHolder: "Pick a workspace folder to start a debug session.",
@@ -185,7 +186,7 @@ export class CDTDebugConfigurationProvider
         config.initCommands = config.initCommands.map((cmd: string) =>
           cmd.replace(
             "{IDF_TARGET_CPU_WATCHPOINT_NUM}",
-            idfTargetWatchpointMap[idfTarget] || 2
+            String(idfTargetWatchpointMap[idfTarget as IdfTarget] || 2)
           )
         );
       }
@@ -211,10 +212,11 @@ export class CDTDebugConfigurationProvider
         }
       }
     } catch (error) {
-      const msg = error.message
-        ? error.message
-        : "Some build files doesn't exist. Build this project first.";
-      Logger.error(msg, error, "CDTDebugConfigurationProvider");
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Some build files doesn't exist. Build this project first.";
+      Logger.error(msg, error as Error, "CDTDebugConfigurationProvider");
       return;
     }
     return config;

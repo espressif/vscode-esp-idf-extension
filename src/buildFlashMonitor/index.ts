@@ -39,7 +39,7 @@ export async function buildFlashAndMonitor(
 ) {
   const wsFolder =
     workspace.getWorkspaceFolder(workspaceFolderUri) ??
-    ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+    ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
 
   await withProgressWrapper(
     [openFolderCheck],

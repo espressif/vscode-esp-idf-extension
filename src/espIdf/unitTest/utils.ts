@@ -24,7 +24,7 @@ import { ESP } from "../../config";
 export async function getFileList(): Promise<Uri[]> {
   let files: Uri[] = [];
   try {
-    let workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+    let workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
     if (!workspaceFolder) {
       workspaceFolder = workspace.workspaceFolders
         ? workspace.workspaceFolders[0]
