@@ -19,7 +19,6 @@
 import { CancellationToken, l10n, Uri } from "vscode";
 import { createEraseFlashProcessTask } from "./task";
 import { collectExecutions, TaskManager } from "../../../taskManager";
-import { EraseFlashSession } from "../../eraseFlashSession";
 import { OutputChannel } from "../../../logger/outputChannel";
 import { Logger } from "../../../logger/logger";
 import { CustomExecutionTaskResult } from "../../../taskManager/customExecution";
@@ -34,7 +33,6 @@ export async function uartEraseFlashCmd(
   cancelToken.onCancellationRequested(() => {
     TaskManager.cancelTasks();
     TaskManager.disposeListeners();
-    EraseFlashSession.isErasing = false;
     return;
   });
   const port = await readSerialPort(workspaceFolderUri, false);
@@ -52,18 +50,20 @@ export async function uartEraseFlashCmd(
     port,
     captureOutput
   );
-  const eraseFlashResult = await TaskManager.runTasksWithBoolean();
-  if (!cancelToken.isCancellationRequested) {
-    const msg = "⚡️ Erase flash done";
-    OutputChannel.appendLine(msg, "Erase flash");
-    Logger.infoNotify(msg);
-    OutputChannel.appendLine("Flash memory content has been erased.");
-    Logger.infoNotify("Flash memory content has been erased.");
+  try {
+    const eraseFlashResult = await TaskManager.runTasksWithBoolean();
+    if (eraseFlashResult && !cancelToken.isCancellationRequested) {
+      const msg = "⚡️ Erase flash done";
+      OutputChannel.appendLine(msg, "Erase flash");
+      Logger.infoNotify(msg);
+      OutputChannel.appendLine("Flash memory content has been erased.");
+      Logger.infoNotify("Flash memory content has been erased.");
+    }
+    return {
+      continueFlag: eraseFlashResult,
+      executions: collectExecutions(eraseFlashExecution),
+    };
+  } finally {
     TaskManager.disposeListeners();
   }
-  EraseFlashSession.isErasing = false;
-  return {
-    continueFlag: eraseFlashResult,
-    executions: collectExecutions(eraseFlashExecution),
-  };
 }

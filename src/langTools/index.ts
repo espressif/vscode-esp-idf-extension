@@ -88,7 +88,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       const target = options.input.target;
       const commandId = COMMAND_MAP[commandName];
 
-      const workspaceURI = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder()
+      const workspaceURI = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri()
         ?.uri;
 
       // Check if we have a valid workspace
@@ -176,7 +176,6 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             continueFlag = flashResults.continueFlag;
             taskExecutions.push(...flashResults.executions);
           } else if (commandName === "monitor") {
-            await interruptMonitorWithDelay(workspaceURI);
             if (vscode.env.uiKind === vscode.UIKind.Web) {
               vscode.commands.executeCommand(IDFWebCommandKeys.Monitor);
               return new vscode.LanguageModelToolResult([
@@ -185,6 +184,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 ),
               ]);
             }
+            await interruptMonitorWithDelay(workspaceURI);
             const noReset = await shouldDisableMonitorReset(workspaceURI);
             await createNewIdfMonitor(workspaceURI, noReset);
           } else if (commandName === "buildFlashMonitor") {

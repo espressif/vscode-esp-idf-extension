@@ -51,7 +51,20 @@ function makeFlashModel(partial: Partial<FlashModel> = {}): FlashModel {
     stub: true,
     writeFlashArgs: ["--flash_mode", "dio"],
   };
-  return { ...base, ...partial, flashSections: partial.flashSections ?? [] };
+  const merged: FlashModel = {
+    ...base,
+    ...partial,
+    flashSections: partial.flashSections ?? [],
+  };
+  if (partial["partition-table"] !== undefined) {
+    merged.partitionTable = merged["partition-table"];
+  } else if (partial.partitionTable !== undefined) {
+    merged["partition-table"] = partial.partitionTable;
+    merged.partitionTable = partial.partitionTable;
+  } else {
+    merged.partitionTable = merged["partition-table"];
+  }
+  return merged;
 }
 
 suite("Flash", () => {
@@ -122,7 +135,7 @@ suite("Flash", () => {
         const args = getSingleBinFlasherArgs(
           model,
           "python",
-          ESP.BuildType.App,
+          ESP.PartitionType.App,
           false
         );
         assert.ok(args.includes("--encrypt-files"));
@@ -135,7 +148,7 @@ suite("Flash", () => {
         const args = getSingleBinFlasherArgs(
           model,
           "python",
-          ESP.BuildType.Bootloader,
+          ESP.PartitionType.Bootloader,
           false
         );
         assert.ok(args.includes("0x1000"));
@@ -153,7 +166,7 @@ suite("Flash", () => {
         const args = getSingleBinFlasherArgs(
           model,
           "python",
-          ESP.BuildType.PartitionTable,
+          ESP.PartitionType.PartitionTable,
           true
         );
         assert.ok(args.some((a) => a.includes("\\") && a.includes("build")));

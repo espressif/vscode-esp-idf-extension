@@ -96,5 +96,6 @@ export async function createFlashModel(
       } as FlashSection);
     }
   });
+  flashModel.partitionTable = flashModel["partition-table"];
   return flashModel;
-}   
+}

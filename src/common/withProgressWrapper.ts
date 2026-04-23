@@ -74,7 +74,7 @@ export async function withProgressWrapper<T = void>(
     }
     const wsFolder =
       options?.workspaceFolder ??
-      ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
     const location = progressLocationForNotificationSetting(wsFolder);
     return window.withProgress(
       {

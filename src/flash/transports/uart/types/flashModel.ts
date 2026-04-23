@@ -22,6 +22,8 @@ export interface FlashModel {
   app: FlashSection;
   bootloader: FlashSection;
   "partition-table": FlashSection;
+  /** Same object as `["partition-table"]`; set in `createFlashModel` for legacy `model.partitionTable` access. */
+  partitionTable?: FlashSection;
   baudRate: string;
   before: string;
   chip: string;

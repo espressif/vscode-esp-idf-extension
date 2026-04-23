@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, ExtensionContext } from "vscode";
+import { commands, Disposable, ExtensionContext } from "vscode";
 import { Logger } from "../logger/logger";
 import { Telemetry } from "../telemetry";
 
@@ -23,21 +23,21 @@ export function registerIDFCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any
-): number {
+): Disposable {
   const telemetryCallback = async function (this: unknown, ...args: any[]): Promise<any> {
     const startTime = Date.now();
     Logger.info(`Command::${name}::Executed`);
     try {
       return await callback.apply(this, args);
     } catch (error) {
-      Logger.error(`Command::${name}::Failed`, error, `registerIDFCommand ${name}`);
+      Logger.error(`Command::${name}::Failed`, error as Error, `registerIDFCommand ${name}`);
       throw error;
     } finally {
       const timeSpent = Date.now() - startTime;
       Telemetry.sendEvent("command", { commandName: name }, { timeSpent });
     }
   };
-  return context.subscriptions.push(
-    commands.registerCommand(name, telemetryCallback)
-  );
+  const disposable = commands.registerCommand(name, telemetryCallback);
+  context.subscriptions.push(disposable);
+  return disposable;
 }
