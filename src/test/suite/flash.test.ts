@@ -51,7 +51,20 @@ function makeFlashModel(partial: Partial<FlashModel> = {}): FlashModel {
     stub: true,
     writeFlashArgs: ["--flash_mode", "dio"],
   };
-  return { ...base, ...partial, flashSections: partial.flashSections ?? [] };
+  const merged: FlashModel = {
+    ...base,
+    ...partial,
+    flashSections: partial.flashSections ?? [],
+  };
+  if (partial["partition-table"] !== undefined) {
+    merged.partitionTable = merged["partition-table"];
+  } else if (partial.partitionTable !== undefined) {
+    merged["partition-table"] = partial.partitionTable;
+    merged.partitionTable = partial.partitionTable;
+  } else {
+    merged.partitionTable = merged["partition-table"];
+  }
+  return merged;
 }
 
 suite("Flash", () => {
