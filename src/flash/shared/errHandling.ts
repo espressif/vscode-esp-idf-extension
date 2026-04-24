@@ -24,6 +24,31 @@ type FlashCommandErrorPresentation = {
   notify: "error" | "info";
 };
 
+/** Task process exit code 74: no DFU-capable USB device (message text varies with task name). */
+const FLASH_TASK_EXIT_CODE_74_PRESENTATION: FlashCommandErrorPresentation = {
+  userMessage: "No DFU capable USB device available found",
+  loggerScope: "flashCommand code 74 no dfu device found",
+  notify: "error",
+};
+
+function readTaskProcessExitCode(error: unknown): number | undefined {
+  if (!error || typeof error !== "object") {
+    return undefined;
+  }
+  const code = (error as { exitCode?: unknown }).exitCode;
+  return typeof code === "number" ? code : undefined;
+}
+
+export function isFlashRelatedTaskExitCode74(
+  error: unknown,
+  errorMessage: string
+): boolean {
+  if (readTaskProcessExitCode(error) === 74) {
+    return true;
+  }
+  return /exited with code 74$/.test(errorMessage);
+}
+
 const FLASH_COMMAND_ERRORS_BY_MESSAGE = new Map<
   string,
   FlashCommandErrorPresentation
@@ -34,14 +59,6 @@ const FLASH_COMMAND_ERRORS_BY_MESSAGE = new Map<
       userMessage: "No DFU was selected",
       loggerScope: "flashCommand no dfu selected",
       notify: "info",
-    },
-  ],
-  [
-    "Task ESP-IDF Flash exited with code 74",
-    {
-      userMessage: "No DFU capable USB device available found",
-      loggerScope: "flashCommand code 74 no dfu device found",
-      notify: "error",
     },
   ],
   [
@@ -98,6 +115,11 @@ export function handleFlashCommandCatch(
     OutputChannel.appendLineAndShow(errStr, "Flash");
     Logger.errorNotify(errStr, error as Error, "flashCommand already flashing");
     return false;
+  }
+
+  if (isFlashRelatedTaskExitCode74(error, errMsg)) {
+    presentMappedFlashCommandError(FLASH_TASK_EXIT_CODE_74_PRESENTATION, error);
+    return true;
   }
 
   const mapped = FLASH_COMMAND_ERRORS_BY_MESSAGE.get(errMsg);

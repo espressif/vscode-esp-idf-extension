@@ -32,7 +32,7 @@ export function reserveBuildSlotOrThrow(): void {
 export async function runValidationBeforeBuild(
   envVariables: NodeJS.ProcessEnv,
   currentWorkspace: Uri
-) {
+): Promise<{ cmakeBin: string; ninjaBin: string }> {
   try {
     const shallSaveBeforeBuild = readParameter(
       "idf.saveBeforeBuild",
