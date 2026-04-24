@@ -18,19 +18,21 @@
 
 import {
   CancellationToken,
+  l10n,
   Progress,
   ProgressLocation,
   window,
   WorkspaceFolder,
 } from "vscode";
-import { PreCheck, PreCheckInput } from "./PreCheck";
+import { Logger } from "../logger/logger";
+import { openFolderCheck, PreCheck, PreCheckInput } from "./PreCheck";
 import { NotificationMode, readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 
 export type WithProgressTask<T = void> = (
   progress: Progress<{ message: string; increment: number }>,
   token: CancellationToken,
-  workspaceFolder: WorkspaceFolder | undefined
+  workspaceFolder: WorkspaceFolder
 ) => Promise<T>;
 
 export type WithProgressWrapperOptions = {
@@ -75,6 +77,18 @@ export async function withProgressWrapper<T = void>(
     const wsFolder =
       options?.workspaceFolder ??
       ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+    if (!wsFolder) {
+      PreCheck.perform([openFolderCheck], () => {
+        Logger.errorNotify(
+          l10n.t("Unable to resolve the workspace folder for this action."),
+          new Error("WORKSPACE_FOLDER_UNRESOLVED"),
+          "withProgressWrapper",
+          undefined,
+          false
+        );
+      });
+      return undefined as T;
+    }
     const location = progressLocationForNotificationSetting(wsFolder);
     return window.withProgress(
       {

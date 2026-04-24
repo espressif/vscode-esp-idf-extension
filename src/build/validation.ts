@@ -22,7 +22,7 @@ import { getToolchainToolName, isBinInPath } from "../utils";
 import { readParameter } from "../idfConfiguration";
 import { Uri, workspace } from "vscode";
 
-/** Must run synchronously before any await in `BuildTask.build`. */
+/** Synchronous acquire for callers outside `buildMain` (e.g. tests). */
 export function reserveBuildSlotOrThrow(): void {
   if (!BuildTask.tryReserveBuild()) {
     throw new Error("ALREADY_BUILDING");

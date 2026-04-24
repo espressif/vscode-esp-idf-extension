@@ -58,9 +58,20 @@ export async function buildMain(
   let executions = collectExecutions();
 
   try {
-    if (BuildTask.isBuilding || FlashSession.isFlashing) {
+    if (FlashSession.isFlashing) {
       const waitProcessIsFinishedMsg = l10n.t(
-        "Wait for ESP-IDF build or flash to finish"
+        "Wait for ESP-IDF flash to finish"
+      );
+      Logger.errorNotify(
+        waitProcessIsFinishedMsg,
+        new Error("One_Task_At_A_Time"),
+        "buildCmd buildCommand"
+      );
+      return { continueFlag: false, executions };
+    }
+    if (!BuildTask.tryReserveBuild()) {
+      const waitProcessIsFinishedMsg = l10n.t(
+        "Wait for ESP-IDF build to finish"
       );
       Logger.errorNotify(
         waitProcessIsFinishedMsg,
@@ -71,7 +82,7 @@ export async function buildMain(
     }
     cancelToken.onCancellationRequested(() => {
       TaskManager.cancelTasks();
-      BuildTask.isBuilding = false;
+      BuildTask.releaseBuildReservation();
     });
     const preBuildExecution = await customTask.addCustomTask(
       CustomTaskType.PreBuild,
@@ -92,11 +103,10 @@ export async function buildMain(
       !(await appendDfuExecution(
         executions,
         workspace,
-        buildTask,
         captureOutput
       ))
     ) {
-      cleanupBuildState(buildTask);
+      cleanupBuildState();
       await throwCapturedTaskFailure(executions);
       return { continueFlag: false, executions };
     }
@@ -125,7 +135,7 @@ export async function buildMain(
         OutputChannel.appendLine(flashCmd, "Build");
       }
     }
-    cleanupBuildState(buildTask);
+    cleanupBuildState();
 
     return {
       continueFlag:
@@ -133,7 +143,7 @@ export async function buildMain(
       executions,
     };
   } catch (error) {
-    cleanupBuildState(buildTask);
+    cleanupBuildState();
     if (error instanceof Error && error.message === "ALREADY_BUILDING") {
       Logger.errorNotify("Already a build is running!", error, "buildCommand");
     } else if (error instanceof Error && error.message === "BUILD_TERMINATED") {

@@ -376,7 +376,7 @@ export class CDTDebugConfigurationProvider
         error instanceof Error
           ? error.message
           : "Some build files doesn't exist. Build this project first.";
-      Logger.error(msg, error as Error, "CDTDebugConfigurationProvider");
+      Logger.error(msg, error as Error, "CDTDebugConfigurationProvider resolveDebugConfiguration");
       return;
     }
     return config;
