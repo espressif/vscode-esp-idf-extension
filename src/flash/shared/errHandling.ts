@@ -85,9 +85,13 @@ export function handleFlashCommandCatch(
 ): boolean {
   const errMsg = error instanceof Error ? error.message : String(error);
   const category =
-    flashType && flashType === ESP.FlashType.UART
+    flashType === ESP.FlashType.UART
       ? "uartFlashCommand"
-      : "jtagFlashCommand";
+      : flashType === ESP.FlashType.DFU
+        ? "dfuFlashCommand"
+        : flashType === ESP.FlashType.JTAG
+          ? "jtagFlashCommand"
+          : "flashCommand";
 
   if (errMsg === "ALREADY_FLASHING") {
     const errStr = "Already one flash process is running!";

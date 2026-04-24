@@ -24,7 +24,7 @@ import { ESP } from "../config";
 import type { OutputCapturingExecution } from "../taskManager/customExecution";
 import type { ProcessExecution, Uri } from "vscode";
 import { readParameter } from "../idfConfiguration";
-import { reserveBuildSlotOrThrow, runValidationBeforeBuild } from "./validation";
+import { runValidationBeforeBuild } from "./validation";
 import { enqueueCompileTaskIfNoCache } from "./cmakeConfigure";
 
 export class BuildTask {
@@ -49,10 +49,10 @@ export class BuildTask {
     BuildTask.isBuilding = false;
   }
 
-  public building(flag: boolean) {
-    BuildTask.isBuilding = flag;
-  }
-
+  /**
+   * @remarks `buildMain` must call `tryReserveBuild()` synchronously before the first
+   * `await` in this pipeline; this method does not acquire the slot itself.
+   */
   public async build(
     buildType?: ESP.BuildType,
     captureOutput?: boolean
@@ -62,7 +62,6 @@ export class BuildTask {
       OutputCapturingExecution | ProcessExecution
     ]
   > {
-    reserveBuildSlotOrThrow();
     try {
       const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
       const buildDirPath = readParameter(
