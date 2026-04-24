@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-import { ExtensionContext } from "vscode";
+import { ExtensionContext, l10n } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../common/PreCheck";
 import { ESP } from "../config";
 import { flash } from "./flashProject";
 import { selectFlashMethod } from "./selectFlashMethod";
+import { Logger } from "../logger/logger";
 
 export function registerFlashCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.jtag_flash", () =>
@@ -53,6 +54,10 @@ export function registerFlashCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.selectFlashMethodAndFlash", () => {
     PreCheck.perform([openFolderCheck, webIdeCheck], async () => {
       const ws = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      if (!ws) {
+        Logger.infoNotify(l10n.t("No workspace selected."));
+        return;
+      }
       await selectFlashMethod(ws!.uri);
     });
   });
