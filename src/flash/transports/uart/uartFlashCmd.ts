@@ -53,8 +53,6 @@ export async function uartFlashCommandMain(
   }
   cancelToken.onCancellationRequested(() => {
     TaskManager.cancelTasks();
-  });
-  cancelToken.onCancellationRequested(() => {
     FlashSession.isFlashing = false;
   });
   try {
