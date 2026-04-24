@@ -23,7 +23,6 @@ import {
   ShellExecution,
   Task,
   TaskDefinition,
-  TaskExecution,
   TaskPanelKind,
   TaskPresentationOptions,
   TaskRevealKind,
@@ -36,6 +35,7 @@ import {
 import { ESP } from "./config";
 import { NotificationMode, readParameter } from "./idfConfiguration";
 import { Logger } from "./logger/logger";
+import type { CaptureableTaskExecution } from "./taskManager/customExecution";
 import {
   OutputCapturingExecution,
   ShellOutputCapturingExecution,
@@ -90,7 +90,7 @@ export function collectExecutions(
  * `continueFlag` / task results separately.
  */
 export async function throwCapturedTaskFailure(
-  executions: MaybeIdfTaskExecution[]
+  executions: ReadonlyArray<MaybeIdfTaskExecution | CaptureableTaskExecution>
 ) {
   for (const execution of executions) {
     if (!execution || !("getOutput" in execution)) {
@@ -99,7 +99,8 @@ export async function throwCapturedTaskFailure(
 
     const executionOutput = await (execution as
       | OutputCapturingExecution
-      | ShellOutputCapturingExecution).getOutput();
+      | ShellOutputCapturingExecution
+      | CaptureableTaskExecution).getOutput();
     if (executionOutput && !executionOutput.success) {
       if (executionOutput.stderr?.trim()) {
         throw new Error(executionOutput.stderr);
@@ -183,8 +184,8 @@ export class TaskManager {
         : TaskRevealKind.Silent;
     newTask.presentationOptions = {
       reveal: showTaskOutput,
-      showReuseMessage: presentationOptions?.showReuseMessage || false,
-      clear: presentationOptions?.clear || false,
+      showReuseMessage: presentationOptions?.showReuseMessage ?? false,
+      clear: presentationOptions?.clear ?? false,
       panel: presentationOptions?.panel || TaskPanelKind.Shared,
     } as TaskPresentationOptions;
     TaskManager.tasks.push(newTask);
@@ -225,7 +226,8 @@ export class TaskManager {
         }
       };
 
-      let lastExecution: TaskExecution | undefined;
+      /** Task id we expect `onDidEndTaskProcess` to report for the in-flight execution (set before each `executeTask`). */
+      let pendingTaskMatchId: string | undefined;
 
       try {
         if (TaskManager.tasks.length === 0) {
@@ -235,71 +237,66 @@ export class TaskManager {
 
         taskDisposable = tasks.onDidEndTaskProcess((e) => {
           try {
-            if (!lastExecution) {
+            if (
+              !e.execution ||
+              pendingTaskMatchId === undefined ||
+              e.execution.task.definition.taskId !== pendingTaskMatchId
+            ) {
               return;
             }
-            if (
-              e.execution &&
-              e.execution.task.definition.taskId ===
-                lastExecution.task.definition.taskId
-            ) {
-              const taskResult = {
-                taskId: lastExecution.task.definition.taskId,
-                exitCode: e.exitCode,
-                taskName: lastExecution.task.name,
-              };
-              TaskManager.taskResults.push(taskResult);
+            const taskResult = {
+              taskId: e.execution.task.definition.taskId,
+              exitCode: e.exitCode,
+              taskName: e.execution.task.name,
+            };
+            TaskManager.taskResults.push(taskResult);
 
-              // Remove the completed task from the array (regardless of success or failure)
-              const taskIndex = TaskManager.tasks.findIndex(
-                (task) =>
-                  task.definition.taskId ===
-                  lastExecution?.task.definition.taskId
+            // Remove the completed task from the array (regardless of success or failure)
+            const taskIndex = TaskManager.tasks.findIndex(
+              (task) => task.definition.taskId === pendingTaskMatchId
+            );
+            if (taskIndex !== -1) {
+              TaskManager.tasks.splice(taskIndex, 1);
+            }
+
+            if (e.exitCode !== 0) {
+              // Task has already ended (this handler runs after end); queued tasks
+              // are dropped without terminate() because they are not running yet.
+              disposeTaskListener();
+              TaskManager.tasks = [];
+              TaskManager.disposeListeners();
+              const taskExitError = new Error(
+                `Task ${e.execution.task.name} exited with code ${e.exitCode}`
               );
-              if (taskIndex !== -1) {
-                TaskManager.tasks.splice(taskIndex, 1);
+              if (typeof e.exitCode === "number") {
+                (taskExitError as Error & { exitCode: number }).exitCode =
+                  e.exitCode;
               }
-
-              if (e.exitCode !== 0) {
-                // Task has already ended (this handler is triggered *after* end),
-                // so terminating here is unnecessary and can produce VS Code errors
-                // like "Task to terminate not found".
-                disposeTaskListener();
-                TaskManager.cancelTasks();
-                TaskManager.disposeListeners();
-                const taskExitError = new Error(
-                  `Task ${lastExecution.task.name} exited with code ${e.exitCode}`
-                );
-                if (typeof e.exitCode === "number") {
-                  (taskExitError as Error & { exitCode: number }).exitCode =
-                    e.exitCode;
+              reject(taskExitError);
+              return;
+            }
+            if (TaskManager.tasks.length === 0) {
+              disposeTaskListener();
+              resolve();
+              return;
+            }
+            try {
+              pendingTaskMatchId = (TaskManager.tasks[0]
+                .definition as IdfTaskDefinition).taskId;
+              Promise.resolve(tasks.executeTask(TaskManager.tasks[0])).then(
+                undefined,
+                (err) => {
+                  disposeTaskListener();
+                  TaskManager.cancelTasks();
+                  TaskManager.disposeListeners();
+                  reject(err instanceof Error ? err : new Error(String(err)));
                 }
-                reject(taskExitError);
-                return;
-              }
-              if (TaskManager.tasks.length === 0) {
-                disposeTaskListener();
-                resolve();
-                return;
-              }
-              try {
-                Promise.resolve(tasks.executeTask(TaskManager.tasks[0])).then(
-                  (execution) => {
-                    lastExecution = execution;
-                  },
-                  (err) => {
-                    disposeTaskListener();
-                    TaskManager.cancelTasks();
-                    TaskManager.disposeListeners();
-                    reject(err instanceof Error ? err : new Error(String(err)));
-                  }
-                );
-              } catch (err) {
-                disposeTaskListener();
-                TaskManager.cancelTasks();
-                TaskManager.disposeListeners();
-                reject(err instanceof Error ? err : new Error(String(err)));
-              }
+              );
+            } catch (err) {
+              disposeTaskListener();
+              TaskManager.cancelTasks();
+              TaskManager.disposeListeners();
+              reject(err instanceof Error ? err : new Error(String(err)));
             }
           } catch (listenerErr) {
             disposeTaskListener();
@@ -315,10 +312,10 @@ export class TaskManager {
         TaskManager.disposables.push(taskDisposable);
 
         try {
+          pendingTaskMatchId = (TaskManager.tasks[0]
+            .definition as IdfTaskDefinition).taskId;
           Promise.resolve(tasks.executeTask(TaskManager.tasks[0])).then(
-            (execution) => {
-              lastExecution = execution;
-            },
+            undefined,
             (err) => {
               disposeTaskListener();
               TaskManager.cancelTasks();

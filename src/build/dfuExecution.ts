@@ -26,14 +26,20 @@ import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { selectedDFUAdapterId } from "../flash/transports/dfu/helpers";
 import { getVirtualEnvPythonPath } from "../pythonManager";
-import { addProcessTask, type MaybeIdfTaskExecution } from "../taskManager";
+import { addProcessTask, type IdfTaskExecution } from "../taskManager";
 
 export async function appendDfuExecution(
-  executions: Exclude<MaybeIdfTaskExecution, undefined>[],
+  executions: IdfTaskExecution[],
   workspace: Uri,
   captureOutput?: boolean
 ): Promise<boolean> {
-  const buildPath = readParameter("idf.buildPath", workspace) as string;
+  const buildPath = (readParameter("idf.buildPath", workspace) as string)?.trim();
+  if (!buildPath) {
+    Logger.warnNotify(
+      "idf.buildPath is not configured. Set the build directory in ESP-IDF settings before building for DFU."
+    );
+    return false;
+  }
   if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
     Logger.warnNotify(
       "flasher_args.json file is missing from the build directory, can't proceed, please build properly!"

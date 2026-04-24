@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { join } from "path";
-import { CancellationToken, Uri } from "vscode";
+import { CancellationToken, Disposable, Uri } from "vscode";
 import { Logger } from "../../../logger/logger";
 import {
   collectExecutions,
@@ -51,12 +51,18 @@ export async function uartFlashCommandMain(
   if (FlashSession.isFlashing) {
     throw new Error("ALREADY_FLASHING");
   }
-  cancelToken.onCancellationRequested(() => {
-    TaskManager.cancelTasks();
-    FlashSession.isFlashing = false;
-  });
+  let ownsFlashSession = false;
+  let cancelSubscription: Disposable | undefined;
   try {
     FlashSession.isFlashing = true;
+    ownsFlashSession = true;
+    cancelSubscription = cancelToken.onCancellationRequested(() => {
+      if (!ownsFlashSession) {
+        return;
+      }
+      TaskManager.cancelTasks();
+      FlashSession.isFlashing = false;
+    });
     const model = await createFlashModel(
       flasherArgsJsonPath,
       port,
@@ -105,7 +111,10 @@ export async function uartFlashCommandMain(
       ),
     };
   } finally {
-    FlashSession.isFlashing = false;
+    cancelSubscription?.dispose();
+    if (ownsFlashSession) {
+      FlashSession.isFlashing = false;
+    }
     TaskManager.disposeListeners();
   }
 }

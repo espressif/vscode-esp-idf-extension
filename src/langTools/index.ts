@@ -277,6 +277,13 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
           }
 
           if (TASK_COMMANDS.has(commandName)) {
+            if (!continueFlag) {
+              outputs.unshift(
+                new vscode.LanguageModelTextPart(
+                  `Command "${commandName}" did not complete successfully.`
+                )
+              );
+            }
             for (const execution of taskExecutions) {
               if (execution && "getOutput" in execution) {
                 const output = await (execution as
@@ -315,6 +322,13 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             return new vscode.LanguageModelToolResult([
               new vscode.LanguageModelTextPart(
                 "Already one flash process is running!"
+              ),
+            ]);
+          }
+          if (errorMessage === "ALREADY_ERASING") {
+            return new vscode.LanguageModelToolResult([
+              new vscode.LanguageModelTextPart(
+                "An erase-flash operation is already in progress."
               ),
             ]);
           }
