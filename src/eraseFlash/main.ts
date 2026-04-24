@@ -66,6 +66,7 @@ export async function eraseFlashMain(
       eraseFlashCmdResult = await jtagEraseFlashCommand(workspaceFolderUri);
       if (!eraseFlashCmdResult.continueFlag) {
         await throwCapturedTaskFailure(eraseFlashCmdResult.executions);
+        return eraseFlashCmdResult;
       }
       const msg =
         "JTAG erase flash finished. Check Output channel to see results.";

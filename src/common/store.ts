@@ -16,7 +16,12 @@
  * limitations under the License.
  */
 
-import { ExtensionContext, Uri, workspace } from "vscode";
+import {
+  ExtensionContext,
+  Uri,
+  workspace,
+  WorkspaceFolder,
+} from "vscode";
 
 export class ExtensionConfigStore {
   private static self: ExtensionConfigStore;
@@ -33,7 +38,12 @@ export class ExtensionConfigStore {
   private constructor(context: ExtensionContext) {
     this.ctx = context;
   }
-  public get<T>(key: string, defaultValue: T): T {
+  public get<T>(key: string): T | undefined;
+  public get<T>(key: string, defaultValue: T): T;
+  public get<T>(key: string, defaultValue?: T): T | undefined {
+    if (defaultValue === undefined) {
+      return this.ctx.globalState.get<T>(key);
+    }
     return this.ctx.globalState.get<T>(key, defaultValue);
   }
   public set(key: string, value: any) {
@@ -42,23 +52,19 @@ export class ExtensionConfigStore {
   public clear(key: string) {
     return this.set(key, undefined);
   }
-  public getSelectedWorkspaceFolder() {
-    const fallbackWorkspaceFolder = workspace.workspaceFolders
-      ? workspace.workspaceFolders?.[0]
-      : undefined;
+  public getSelectedWorkspaceFolder(): WorkspaceFolder | undefined {
+    const fallback = workspace.workspaceFolders?.[0];
     const storedUri = this.get<string>(
       ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
       ""
     );
-    if (storedUri) {
-      const storedFolder = workspace.getWorkspaceFolder(Uri.parse(storedUri));
-      if (!storedFolder) {
-        this.clear(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER);
-        return fallbackWorkspaceFolder;
-      }
-      return storedFolder;
+    if (!storedUri) return fallback;
+    const storedFolder = workspace.getWorkspaceFolder(Uri.parse(storedUri));
+    if (!storedFolder) {
+      this.clear(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER);
+      return fallback;
     }
-    return fallbackWorkspaceFolder;
+    return storedFolder;
   }
   public setSelectedWorkspaceFolder(selectedFolderUri: Uri) {
     this.set(

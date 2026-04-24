@@ -113,7 +113,7 @@ export class UnitTest {
           Logger.error(
             "Failed to configure unit test app:",
             error,
-            "unitTest runHandler configurePytestUnitApp"
+            "unitTest runHandler configureUnityApp"
           );
           return;
         }

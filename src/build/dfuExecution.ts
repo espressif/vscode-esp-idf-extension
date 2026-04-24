@@ -31,7 +31,6 @@ import { addProcessTask, type MaybeIdfTaskExecution } from "../taskManager";
 export async function appendDfuExecution(
   executions: Exclude<MaybeIdfTaskExecution, undefined>[],
   workspace: Uri,
-  buildTask: BuildTask,
   captureOutput?: boolean
 ): Promise<boolean> {
   const buildPath = readParameter("idf.buildPath", workspace) as string;
@@ -55,7 +54,6 @@ export async function appendDfuExecution(
     return false;
   }
 
-  buildTask.building(true);
   const modifiedEnv = await configureEnvVariables(workspace);
   const idfPathDir = modifiedEnv["IDF_PATH"];
   if (!idfPathDir) {

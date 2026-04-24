@@ -117,9 +117,10 @@ export async function buildFlashAndMonitor(
     [openFolderCheck],
     "ESP-IDF:",
     async (progress, cancelToken, taskWsFolder) => {
-      const folderUri = taskWsFolder!.uri;
+      const folderUri = taskWsFolder.uri;
       progress.report({ message: "Building project...", increment: 20 });
-      const flashType = resolveFlashTypeForTask(taskWsFolder, undefined);
+      const flashType =
+        resolveFlashTypeForTask(taskWsFolder, undefined) ?? ESP.FlashType.UART;
       const partitionToUse = resolvePartitionToUseForTask(
         taskWsFolder,
         undefined
