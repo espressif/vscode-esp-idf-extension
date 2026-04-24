@@ -17,18 +17,19 @@
  */
 
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
-import { IdfTaskExecution } from "../../../taskManager";
+import { Logger } from "../../../logger/logger";
 import {
+  CaptureableTaskExecution,
   CapturedTaskOutput,
   CustomExecutionTaskResult,
 } from "../../../taskManager/customExecution";
 
 export function createCapturedExecution(
   output: CapturedTaskOutput
-): IdfTaskExecution {
-  return ({
+): CaptureableTaskExecution {
+  return {
     getOutput: async () => output,
-  } as unknown) as IdfTaskExecution;
+  };
 }
 
 /**
@@ -94,6 +95,11 @@ export async function jtagFlash(
     };
 
     const onError = (err: unknown) => {
+      Logger.error(
+        "jtagFlash OpenOCD TCL error",
+        err instanceof Error ? err : new Error(String(err)),
+        "jtagFlash onError"
+      );
       const stderr =
         err instanceof Error
           ? err.message
