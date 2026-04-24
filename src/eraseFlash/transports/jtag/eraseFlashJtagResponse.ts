@@ -1,7 +1,7 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Tuesday, 22nd October 2019 8:18:43 pm
- * Copyright 2019 Espressif Systems (Shanghai) CO LTD
+ * File Created: Monday, 20th April 2026 5:59:10 pm
+ * Copyright 2026 Espressif Systems (Shanghai) CO LTD
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,10 @@
  * limitations under the License.
  */
 
-// tslint:disable: interface-name
-export interface FlashModel {
-  after: string;
-  app: FlashSection;
-  bootloader: FlashSection;
-  partitionTable: FlashSection;
-  baudRate: string;
-  before: string;
-  chip: string;
-  flashSections: FlashSection[];
-  frequency: string;
-  mode: string;
-  port: string;
-  size: string;
-  stub: boolean;
-}
-export interface FlashSection {
-  address: string;
-  binFilePath: string;
-  encrypted: boolean;
+
+export function isJtagEraseFlashResponseSuccess(response: string): boolean {
+  if (response === "") {
+    return true;
+  }
+  return response.indexOf("erased sectors ") !== -1;
 }

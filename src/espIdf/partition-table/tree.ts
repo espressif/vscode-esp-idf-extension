@@ -33,7 +33,7 @@ import { readParameter, readSerialPort } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { CSV2JSON } from "../../views/partition-table/util";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
-import { createFlashModel } from "../../flash/flashModelBuilder";
+import { createFlashModel } from "../../flash/transports/uart/flashModelBuilder";
 import { formatAsPartitionSize } from "./partitionReader";
 import { spawn } from "../../utils";
 import { configureEnvVariables } from "../../common/prepareEnv";
@@ -110,7 +110,7 @@ export class PartitionTreeDataProvider
         serialPort,
         flashBaudRate
       );
-      let partitionTableOffset = flasherArgsModel.partitionTable.address;
+      let partitionTableOffset = flasherArgsModel["partition-table"].address;
 
       const partitionTableItem: PartitionItem = {
         name: "partition_table",
