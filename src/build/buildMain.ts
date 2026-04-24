@@ -36,15 +36,14 @@ import { runSizeTaskIfEnabled } from "./sizeExecution";
 import { CancellationToken, l10n, Uri } from "vscode";
 
 /**
- * Build the project with the given parameters.
+ * Runs the ESP-IDF build pipeline: optional pre/post custom tasks, CMake/ninja
+ * build via {@link BuildTask}, optional size report, and when {@link ESP.FlashType}
+ * is DFU may append a DFU image generation step.
  *
- * It will build the project, run the size task, and if flashType is DFU, it will append the DFU execution.
- *
- * @param workspace - The workspace folder URI
- * @param cancelToken - The cancellation token
- * @param flashType - The flash type
- * @param buildType - The build type
- * @returns true if the build is successful, false otherwise
+ * @returns A {@link CustomExecutionTaskResult}: `continueFlag` is whether the
+ * build path succeeded; `executions` collects task executions (including
+ * captured output where used) for follow-up checks or
+ * {@link throwCapturedTaskFailure}.
  */
 export async function buildMain(
   workspace: Uri,

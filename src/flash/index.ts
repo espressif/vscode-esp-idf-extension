@@ -58,7 +58,7 @@ export function registerFlashCommands(context: ExtensionContext) {
         Logger.infoNotify(l10n.t("No workspace selected."));
         return;
       }
-      await selectFlashMethod(ws!.uri);
+      await selectFlashMethod(ws.uri);
     });
   });
 }
