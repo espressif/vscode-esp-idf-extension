@@ -50,10 +50,14 @@ export async function build(
     async (_progress, cancelToken, wsFolder) => {
       let resolvedFlashType = flashType;
       if (!resolvedFlashType) {
-        resolvedFlashType = readParameter(
-          "idf.flashType",
-          wsFolder
-        ) as ESP.FlashType;
+        const fromConfig = readParameter("idf.flashType", wsFolder);
+        const raw =
+          typeof fromConfig === "string" ? fromConfig.trim() : "";
+        resolvedFlashType = Object.values(ESP.FlashType).includes(
+          raw as ESP.FlashType
+        )
+          ? (raw as ESP.FlashType)
+          : ESP.FlashType.UART;
       }
       await buildMain(wsFolder.uri, cancelToken, resolvedFlashType, buildType);
     }
