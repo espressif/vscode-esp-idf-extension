@@ -64,6 +64,7 @@ export async function jtagFlashCommandMain(
     const errStr = "OpenOCD is not ready to accept commands. Please try again.";
     OutputChannel.appendLineAndShow(errStr, "JTAG Flash");
     Logger.warnNotify(errStr);
+    client.stop();
     return { continueFlag: false, executions: [] };
   }
 
@@ -73,10 +74,13 @@ export async function jtagFlashCommandMain(
       "openocd.jtag.command.force_unix_path_separator",
       workspace
     );
-    let openOCDJTagFlashArguments = readParameter(
+    const rawJtagFlashExtraArgs = readParameter(
       "idf.jtagFlashCommandExtraArgs",
       workspace
-    ) as string[];
+    );
+    const openOCDJTagFlashArguments = Array.isArray(rawJtagFlashExtraArgs)
+      ? (rawJtagFlashExtraArgs as string[])
+      : [];
     const customTask = new CustomTask(workspace);
     if (forceUNIXPathSeparator === true) {
       buildDirPath = buildDirPath.replace(/\\/g, "/");
@@ -112,5 +116,6 @@ export async function jtagFlashCommandMain(
     };
   } finally {
     FlashSession.isFlashing = false;
+    client.stop();
   }
 }

@@ -51,7 +51,7 @@ export function registerFlashCommands(context: ExtensionContext) {
     flash(undefined, ESP.FlashType.UART, ESP.BuildType.PartitionTable)
   );
 
-  registerIDFCommand(context, "espIdf.selectFlashMethodAndFlash", () => {
+  registerIDFCommand(context, "espIdf.selectFlashMethod", () =>
     PreCheck.perform([openFolderCheck, webIdeCheck], async () => {
       const ws = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       if (!ws) {
@@ -59,6 +59,6 @@ export function registerFlashCommands(context: ExtensionContext) {
         return;
       }
       await selectFlashMethod(ws.uri);
-    });
-  });
+    })
+  );
 }

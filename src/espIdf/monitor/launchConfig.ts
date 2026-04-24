@@ -26,6 +26,7 @@ export type MonitorLaunchFailureReason =
   | "one_task_at_time"
   | "no_port"
   | "no_python"
+  | "no_idf_path"
   | "no_idf_monitor"
   | "no_idf_target"
   | "elf_path_error";
@@ -67,6 +68,9 @@ export async function loadMonitorLaunchConfig(
     [key: string]: string;
   }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
   const idfPath = currentEnvVars["IDF_PATH"];
+  if (!idfPath) {
+    return { ok: false, reason: "no_idf_path" };
+  }
   const idfVersion = await getEspIdfFromCMake(idfPath);
   const sdkMonitorBaudRate = await getMonitorBaudRate(workspaceFolder.uri);
   const idfMonitorToolPath = join(idfPath, "tools", "idf_monitor.py");
