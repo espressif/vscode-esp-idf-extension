@@ -91,7 +91,7 @@
 	"espIdf.searchInEspIdfDocs.title": "在文档中搜索…",
 	"espIdf.selectConfTarget.title": "选择配置存储位置",
 	"espIdf.selectCurrentIdfVersion.title": "选择当前使用的 ESP-IDF 版本",
-	"espIdf.selectFlashMethodAndFlash.title": "选择烧录方式",
+	"espIdf.selectFlashMethod.title": "选择烧录方式",
 	"espIdf.selectMonitorPort.title": "选择要使用的监视器端口（com，tty，usbserial）",
 	"espIdf.selectNotificationMode.title": "选择输出和通知模式",
 	"espIdf.selectOpenOcdConfigFiles.title": "选择 OpenOCD 开发板配置",

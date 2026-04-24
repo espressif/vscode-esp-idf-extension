@@ -56,6 +56,14 @@ export function logInvalidConfigReason(result: LoadMonitorLaunchConfigResult) {
     );
     return;
   }
+  if (reason === "no_idf_path") {
+    Logger.errorNotify(
+      l10n.t("IDF_PATH is not set for this workspace."),
+      new Error("IDF_PATH not set"),
+      "createNewIdfMonitor idf path not set"
+    );
+    return;
+  }
   if (reason === "no_idf_target") {
     Logger.infoNotify("IDF_TARGET is not defined.");
     return;

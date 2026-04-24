@@ -70,7 +70,7 @@ export async function buildFlashAndMonitorCapture(
   }
 
   if (env.uiKind === UIKind.Web) {
-    commands.executeCommand(IDFWebCommandKeys.FlashAndMonitor);
+    await commands.executeCommand(IDFWebCommandKeys.FlashAndMonitor);
     return { continueFlag: true, executions };
   }
 
