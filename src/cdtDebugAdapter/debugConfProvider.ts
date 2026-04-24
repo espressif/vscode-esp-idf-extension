@@ -29,7 +29,7 @@ import {
   getProjectElfFilePath,
 } from "../workspaceConfig";
 import { dirname, join } from "path";
-import { pathExists } from "fs-extra";
+import { pathExists, readFile } from "fs-extra";
 import { verifyAppBinary } from "../espIdf/debugAdapter/verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
@@ -220,6 +220,23 @@ async function getConnectCommands(
   return connectsToTarget ? commands : undefined;
 }
 
+async function getOrPickWorkspaceFolder(
+  folder: WorkspaceFolder | undefined
+): Promise<WorkspaceFolder> {
+  if (!folder) {
+    folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+    if (!folder) {
+      folder = await window.showWorkspaceFolderPick({
+        placeHolder: "Pick a workspace folder to start a debug session.",
+      });
+      if (!folder) {
+        throw new Error("No folder was selected to start debug session");
+      }
+    }
+  }
+  return folder;
+}
+
 export class CDTDebugConfigurationProvider
   implements DebugConfigurationProvider {
   public async resolveDebugConfigurationWithSubstitutedVariables(
@@ -227,17 +244,7 @@ export class CDTDebugConfigurationProvider
     debugConfiguration: DebugConfiguration,
     token?: CancellationToken
   ) {
-    if (!folder) {
-      folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      if (!folder) {
-        folder = await window.showWorkspaceFolderPick({
-          placeHolder: "Pick a workspace folder to start a debug session.",
-        });
-        if (!folder) {
-          throw new Error("No folder was selected to start debug session");
-        }
-      }
-    }
+    folder = await getOrPickWorkspaceFolder(folder);
     const useMonitorWithDebug = readParameter(
       "idf.launchMonitorOnDebugSession",
       folder
@@ -269,17 +276,7 @@ export class CDTDebugConfigurationProvider
     token?: CancellationToken
   ): Promise<DebugConfiguration | undefined> {
     try {
-      if (!folder) {
-        folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-        if (!folder) {
-          folder = await window.showWorkspaceFolderPick({
-            placeHolder: "Pick a workspace folder to start a debug session.",
-          });
-          if (!folder) {
-            throw new Error("No folder was selected to start debug session");
-          }
-        }
-      }
+      folder = await getOrPickWorkspaceFolder(folder);
       if (!config.program) {
         const elfFilePath = await getProjectElfFilePath(folder.uri);
         const elfFileExists = await pathExists(elfFilePath);
@@ -373,7 +370,11 @@ export class CDTDebugConfigurationProvider
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      Logger.error(msg, error as Error, "CDTDebugConfigurationProvider resolveDebugConfiguration");
+      Logger.error(
+        msg,
+        error as Error,
+        "CDTDebugConfigurationProvider resolveDebugConfiguration"
+      );
       return undefined;
     }
     return config;
