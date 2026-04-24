@@ -38,6 +38,23 @@ import { createNewIdfMonitor } from "../espIdf/monitor/command";
 import { ESP } from "../config";
 import { buildFlashAndMonitor } from "../buildFlashMonitor";
 
+async function getOrPickWorkspaceFolder(
+  folder: WorkspaceFolder | undefined
+): Promise<WorkspaceFolder> {
+  if (!folder) {
+    folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+    if (!folder) {
+      folder = await window.showWorkspaceFolderPick({
+        placeHolder: "Pick a workspace folder to start a debug session.",
+      });
+      if (!folder) {
+        throw new Error("No folder was selected to start debug session");
+      }
+    }
+  }
+  return folder;
+}
+
 export class CDTDebugConfigurationProvider
   implements DebugConfigurationProvider {
   public async resolveDebugConfigurationWithSubstitutedVariables(
@@ -45,17 +62,7 @@ export class CDTDebugConfigurationProvider
     debugConfiguration: DebugConfiguration,
     token?: CancellationToken
   ) {
-    if (!folder) {
-      folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      if (!folder) {
-        folder = await window.showWorkspaceFolderPick({
-          placeHolder: "Pick a workspace folder to start a debug session.",
-        });
-        if (!folder) {
-          throw new Error("No folder was selected to start debug session");
-        }
-      }
-    }
+    folder = await getOrPickWorkspaceFolder(folder);
     const useMonitorWithDebug = readParameter(
       "idf.launchMonitorOnDebugSession",
       folder
@@ -87,17 +94,7 @@ export class CDTDebugConfigurationProvider
     token?: CancellationToken
   ): Promise<DebugConfiguration | undefined> {
     try {
-      if (!folder) {
-        folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-        if (!folder) {
-          folder = await window.showWorkspaceFolderPick({
-            placeHolder: "Pick a workspace folder to start a debug session.",
-          });
-          if (!folder) {
-            throw new Error("No folder was selected to start debug session");
-          }
-        }
-      }
+      folder = await getOrPickWorkspaceFolder(folder);
       if (!config.program) {
         const elfFilePath = await getProjectElfFilePath(folder.uri);
         const elfFileExists = await pathExists(elfFilePath);
@@ -183,10 +180,25 @@ export class CDTDebugConfigurationProvider
           esp32c5: 4,
           esp32c61: 4,
         };
+        const rawIdfTarget = idfTarget ?? "";
+        const watchpointNum =
+          rawIdfTarget !== "" &&
+          Object.prototype.hasOwnProperty.call(
+            idfTargetWatchpointMap,
+            rawIdfTarget
+          )
+            ? idfTargetWatchpointMap[rawIdfTarget as IdfTarget]
+            : undefined;
+        if (watchpointNum === undefined && rawIdfTarget !== "") {
+          Logger.info(
+            `Unknown IDF target "${rawIdfTarget}" for CPU hardware watchpoint mapping; using default 2.`,
+            { context: "CDTDebugConfigurationProvider" }
+          );
+        }
         config.initCommands = config.initCommands.map((cmd: string) =>
           cmd.replace(
             "{IDF_TARGET_CPU_WATCHPOINT_NUM}",
-            String(idfTargetWatchpointMap[idfTarget as IdfTarget] ?? 2)
+            String(watchpointNum ?? 2)
           )
         );
       }

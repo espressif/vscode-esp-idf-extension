@@ -2783,6 +2783,14 @@ export async function activate(context: vscode.ExtensionContext) {
               workspaceFolder,
               conf
             );
+            if (!resolvedConf) {
+              await vscode.window.showErrorMessage(
+                vscode.l10n.t(
+                  "Could not resolve the gdbtarget debug configuration. Check the ESP-IDF output for details."
+                )
+              );
+              return;
+            }
             await vscode.debug.startDebugging(workspaceFolder, resolvedConf);
             return;
           }
