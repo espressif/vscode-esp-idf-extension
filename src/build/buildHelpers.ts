@@ -7,7 +7,7 @@
  */
 
 import { Uri } from "vscode";
-import type { BuildTask } from "./buildTask";
+import { BuildTask } from "./buildTask";
 import { readParameter } from "../idfConfiguration";
 import { TaskManager } from "../taskManager";
 
@@ -76,7 +76,7 @@ export async function appendSdkconfigDefaultsAndCcache(
   );
 }
 
-export function cleanupBuildState(buildTask: BuildTask): void {
+export function cleanupBuildState(): void {
   TaskManager.disposeListeners();
-  buildTask.building(false);
+  BuildTask.releaseBuildReservation();
 }

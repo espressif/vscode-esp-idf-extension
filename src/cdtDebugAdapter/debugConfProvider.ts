@@ -186,7 +186,7 @@ export class CDTDebugConfigurationProvider
         config.initCommands = config.initCommands.map((cmd: string) =>
           cmd.replace(
             "{IDF_TARGET_CPU_WATCHPOINT_NUM}",
-            String(idfTargetWatchpointMap[idfTarget as IdfTarget] || 2)
+            String(idfTargetWatchpointMap[idfTarget as IdfTarget] ?? 2)
           )
         );
       }
@@ -216,7 +216,7 @@ export class CDTDebugConfigurationProvider
         error instanceof Error
           ? error.message
           : "Some build files doesn't exist. Build this project first.";
-      Logger.error(msg, error as Error, "CDTDebugConfigurationProvider");
+      Logger.error(msg, error as Error, "CDTDebugConfigurationProvider resolveDebugConfiguration");
       return;
     }
     return config;
