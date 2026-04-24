@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { commands, env, ExtensionContext, UIKind } from "vscode";
+import { commands, env, ExtensionContext, l10n, UIKind } from "vscode";
 import { registerIDFCommand } from "../../common/registerCommand";
 import {
   minIdfVersionCheck,
@@ -32,7 +32,7 @@ import { installWebsocketClient } from "./websocket/checkWebsocketClient";
 import { monitorMain } from "./main";
 import { startWithWebSocket } from "./websocket";
 
-export async function registerMonitorCommands(context: ExtensionContext) {
+export function registerMonitorCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.monitorDevice", () => {
     PreCheck.perform([openFolderCheck], async () => {
       // Re route to ESP-IDF Web extension if using Codespaces or Browser
@@ -41,7 +41,15 @@ export async function registerMonitorCommands(context: ExtensionContext) {
         return;
       }
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      await monitorMain(wsFolder!);
+      if (!wsFolder) {
+        Logger.errorNotify(
+          l10n.t("No workspace folder selected."),
+          new Error("No workspace folder selected"),
+          "monitor.registerMonitorCommands"
+        );
+        return;
+      }
+      await monitorMain(wsFolder);
     });
   });
 
@@ -51,6 +59,14 @@ export async function registerMonitorCommands(context: ExtensionContext) {
       [idfVersionCheck, webIdeCheck, openFolderCheck],
       async () => {
         const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        if (!wsFolder) {
+          Logger.errorNotify(
+            l10n.t("No workspace folder selected."),
+            new Error("No workspace folder selected"),
+            "monitor.registerMonitorCommands"
+          );
+          return;
+        }
         const wsPort = readParameter("idf.wssPort", wsFolder) as number;
         const noReset = readParameter(
           "idf.monitorNoReset",
@@ -58,7 +74,7 @@ export async function registerMonitorCommands(context: ExtensionContext) {
         ) as boolean;
 
         try {
-          await installWebsocketClient(wsFolder!.uri);
+          await installWebsocketClient(wsFolder.uri);
         } catch (error) {
           Logger.errorNotify(
             "Failed to install websocket client dependencies",
@@ -67,7 +83,7 @@ export async function registerMonitorCommands(context: ExtensionContext) {
           );
           return;
         }
-        await startWithWebSocket(wsFolder!, noReset, wsPort);
+        await startWithWebSocket(wsFolder, noReset, wsPort);
       }
     );
   });

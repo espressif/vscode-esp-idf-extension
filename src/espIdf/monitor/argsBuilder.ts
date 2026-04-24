@@ -7,6 +7,7 @@
  */
 
 import { join } from "path";
+import { compareVersion } from "../../utils";
 
 export type MonitorShellKind = "powershell" | "pwsh" | "cmd" | "posix";
 
@@ -93,23 +94,23 @@ function buildIdfMonitorArgvTokens(
   ];
   if (
     input.isDebugSessionActive ||
-    (input.noReset && input.idfVersion >= "5.0")
+    (input.noReset && compareVersion(input.idfVersion, "5.0") >= 0)
   ) {
     argv.splice(2, 0, "--no-reset");
   }
-  if (input.enableTimestamps && input.idfVersion >= "4.4") {
+  if (input.enableTimestamps && compareVersion(input.idfVersion, "4.4") >= 0) {
     argv.push("--timestamps");
   }
   if (
     input.customTimestampFormat.length > 0 &&
-    input.idfVersion >= "4.4"
+    compareVersion(input.idfVersion, "4.4") >= 0
   ) {
     argv.push(
       "--timestamp-format",
       JSON.stringify(input.customTimestampFormat)
     );
   }
-  if (input.idfVersion >= "4.3") {
+  if (compareVersion(input.idfVersion, "4.3") >= 0) {
     argv.push("--target", input.idfTarget);
   }
   if (input.wsPort) {
