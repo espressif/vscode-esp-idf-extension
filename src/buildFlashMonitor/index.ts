@@ -114,7 +114,7 @@ export async function buildFlashAndMonitor(
 
   await withProgressWrapper(
     [openFolderCheck],
-    "ESP-IDF:",
+    "ESP-IDF: Build, Flash & Monitor",
     async (progress, cancelToken, taskWsFolder) => {
       const folderUri = taskWsFolder.uri;
       progress.report({ message: "Building project...", increment: 20 });

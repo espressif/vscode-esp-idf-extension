@@ -32,8 +32,9 @@ export function createCapturedExecution(
 }
 
 /**
- * Escape backslashes and double quotes, then wrap for OpenOCD TCL double-quoted
- * string arguments (prevents breaking out of the quoted token).
+ * Escapes characters that would break or reinterpret a TCL double-quoted string
+ * (backslash, double quote, dollar, left bracket), then wraps the value in
+ * double quotes for safe use as an OpenOCD TCL argument.
  */
 export function quoteTclArg(arg: string): string {
   const escaped = arg
@@ -73,7 +74,8 @@ export async function jtagFlash(
     const onResponse = (data: Buffer) => {
       const response = data
         .toString()
-        .replace(TCLClient.DELIMITER, "")
+        .split(TCLClient.DELIMITER)
+        .join("")
         .trim();
       const success = response === "0";
       const stderr = success

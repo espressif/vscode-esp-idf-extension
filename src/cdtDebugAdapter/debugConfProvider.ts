@@ -85,7 +85,7 @@ export class CDTDebugConfigurationProvider
     folder: WorkspaceFolder | undefined,
     config: DebugConfiguration,
     token?: CancellationToken
-  ) {
+  ): Promise<DebugConfiguration | undefined> {
     try {
       if (!folder) {
         folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
@@ -212,12 +212,9 @@ export class CDTDebugConfigurationProvider
         }
       }
     } catch (error) {
-      const msg =
-        error instanceof Error
-          ? error.message
-          : "Some build files doesn't exist. Build this project first.";
+      const msg = error instanceof Error ? error.message : String(error);
       Logger.error(msg, error as Error, "CDTDebugConfigurationProvider resolveDebugConfiguration");
-      return;
+      return undefined;
     }
     return config;
   }

@@ -55,11 +55,21 @@ export async function jtagEraseFlashCommand(
   ) as number;
   const client = new TCLClient({ host, port });
 
+  const maxOpenOcdReadyAttempts = 3;
+  let attempt = 0;
   let isReady = false;
-  for (let attempt = 0; attempt < 3; attempt++) {
+  while (attempt < maxOpenOcdReadyAttempts && !isReady) {
+    attempt += 1;
     isReady = await client.verifyOpenOCDReady();
-    if (isReady) break;
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!isReady) {
+      Logger.warn(
+        `OpenOCD TCL readiness check failed (attempt ${attempt}/${maxOpenOcdReadyAttempts}).`,
+        { context: "jtagEraseFlashCommand verifyOpenOCDReady" }
+      );
+      if (attempt < maxOpenOcdReadyAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
   }
   if (!isReady) {
     const errStr = "OpenOCD is not ready to accept commands. Please try again.";

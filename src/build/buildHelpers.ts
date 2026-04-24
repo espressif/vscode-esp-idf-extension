@@ -25,28 +25,23 @@ export function applySdkconfigDefaultsAndCcacheArgs(
   sdkconfigFile?: string,
   sdkconfigDefaults?: string[]
 ): void {
-  const hasSdkconfigArg = args.some(
-    (a) =>
-      a.startsWith("-DSDKCONFIG=") || a.startsWith("-DSDKCONFIG='")
-  );
+  const hasSdkconfigArg = args.some((a) => a.startsWith("-DSDKCONFIG="));
   if (sdkconfigFile && !hasSdkconfigArg) {
-    args.push(`-DSDKCONFIG='${sdkconfigFile}'`);
+    args.push(`-DSDKCONFIG=${sdkconfigFile}`);
   }
 
-  const hasSdkconfigDefaultsArg = args.some(
-    (a) =>
-      a.startsWith("-DSDKCONFIG_DEFAULTS=") ||
-      a.startsWith("-DSDKCONFIG_DEFAULTS='")
+  const hasSdkconfigDefaultsArg = args.some((a) =>
+    a.startsWith("-DSDKCONFIG_DEFAULTS=")
   );
   if (
     !hasSdkconfigDefaultsArg &&
     sdkconfigDefaults &&
     sdkconfigDefaults.length > 0
   ) {
-    args.push(`-DSDKCONFIG_DEFAULTS='${sdkconfigDefaults.join(";")}'`);
+    args.push(`-DSDKCONFIG_DEFAULTS=${sdkconfigDefaults.join(";")}`);
   }
 
-  if (enableCCache && args.length) {
+  if (enableCCache) {
     const indexOfCCache = args.indexOf("-DCCACHE_ENABLE=1");
     if (indexOfCCache === -1) {
       args.push("-DCCACHE_ENABLE=1");

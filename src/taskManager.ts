@@ -81,25 +81,13 @@ export function collectExecutions(
 }
 
 /**
- * Inspects task executions that support captured process output and throws if
- * any report failure. Executions are considered only when they implement
- * {@link OutputCapturingExecution.getOutput} / {@link ShellOutputCapturingExecution.getOutput}
- * (duck-typed via `"getOutput" in execution`); plain `ProcessExecution`,
- * `ShellExecution`, etc. are skipped.
+ * Throws if any output-capturing execution reports failure (see
+ * {@link OutputCapturingExecution} / {@link ShellOutputCapturingExecution}); other
+ * execution types are ignored.
  *
- * **No-op:** If every entry is missing, undefined, or has no `getOutput`, or if
- * every `getOutput()` result is missing or has `success: true`, this function
- * returns normally without throwing.
- *
- * **Throw conditions** (first failed `getOutput()` wins, in order):
- * 1. If `!executionOutput.success` and `stderr` has non-whitespace content → throws `Error` with that stderr string.
- * 2. Else if `stdout` has non-whitespace content → throws `Error` with that stdout string.
- * 3. Else → throws `Error` with message ``Task exited with code ${exitCode}``.
- *
- * Callers that must always surface a prior command failure as an exception
- * cannot rely solely on `await throwCapturedTaskFailure(...)`: they must pass
- * at least one output-capturing execution, or perform their own check on
- * `continueFlag` / task results before or after calling this function.
+ * Callers that must always surface a command failure as an exception cannot rely
+ * on this alone: pass at least one output-capturing execution, or check
+ * `continueFlag` / task results separately.
  */
 export async function throwCapturedTaskFailure(
   executions: MaybeIdfTaskExecution[]
@@ -119,7 +107,14 @@ export async function throwCapturedTaskFailure(
       if (executionOutput.stdout?.trim()) {
         throw new Error(executionOutput.stdout);
       }
-      throw new Error(`Task exited with code ${executionOutput.exitCode}`);
+      const taskExitError = new Error(
+        `Task exited with code ${executionOutput.exitCode}`
+      );
+      if (typeof executionOutput.exitCode === "number") {
+        (taskExitError as Error & { exitCode: number }).exitCode =
+          executionOutput.exitCode;
+      }
+      throw taskExitError;
     }
   }
 }
@@ -135,6 +130,8 @@ export class TaskManager {
   private static disposables: Disposable[] = [];
   private static taskResults: Array<{
     taskId: string;
+    exitCode?: number;
+    taskName?: string;
     output?: any;
     error?: Error;
   }> = [];
@@ -270,15 +267,17 @@ export class TaskManager {
                 disposeTaskListener();
                 TaskManager.cancelTasks();
                 TaskManager.disposeListeners();
-                reject(
-                  new Error(
-                    `Task ${lastExecution.task.name} exited with code ${e.exitCode}`
-                  )
+                const taskExitError = new Error(
+                  `Task ${lastExecution.task.name} exited with code ${e.exitCode}`
                 );
+                if (typeof e.exitCode === "number") {
+                  (taskExitError as Error & { exitCode: number }).exitCode =
+                    e.exitCode;
+                }
+                reject(taskExitError);
                 return;
               }
               if (TaskManager.tasks.length === 0) {
-                TaskManager.tasks = [];
                 disposeTaskListener();
                 resolve();
                 return;

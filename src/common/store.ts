@@ -59,12 +59,17 @@ export class ExtensionConfigStore {
       ""
     );
     if (!storedUri) return fallback;
-    const storedFolder = workspace.getWorkspaceFolder(Uri.parse(storedUri));
-    if (!storedFolder) {
+    try {
+      const storedFolder = workspace.getWorkspaceFolder(Uri.parse(storedUri));
+      if (!storedFolder) {
+        this.clear(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER);
+        return fallback;
+      }
+      return storedFolder;
+    } catch {
       this.clear(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER);
       return fallback;
     }
-    return storedFolder;
   }
   public setSelectedWorkspaceFolder(selectedFolderUri: Uri) {
     this.set(
