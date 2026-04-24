@@ -55,7 +55,7 @@ export async function build(
           wsFolder
         ) as ESP.FlashType;
       }
-      await buildMain(wsFolder!.uri, cancelToken, resolvedFlashType, buildType);
+      await buildMain(wsFolder.uri, cancelToken, resolvedFlashType, buildType);
     }
   );
 }

@@ -45,8 +45,14 @@ export async function jtagEraseFlashCommand(
     Logger.warnNotify(errStr);
     return { continueFlag: false, executions: [] };
   }
-  const host = readParameter("openocd.tcl.host", workspaceFolder);
-  const port = readParameter("openocd.tcl.port", workspaceFolder);
+  const host = readParameter(
+    "openocd.tcl.host",
+    workspaceFolder
+  ) as string;
+  const port = readParameter(
+    "openocd.tcl.port",
+    workspaceFolder
+  ) as number;
   const client = new TCLClient({ host, port });
 
   let isReady = false;
@@ -68,6 +74,10 @@ export async function jtagEraseFlashCommand(
   );
   if (!eraseResult.continueFlag) {
     await throwCapturedTaskFailure(eraseResult.executions);
+    return {
+      continueFlag: false,
+      executions: collectExecutions(...eraseResult.executions),
+    };
   }
   return {
     continueFlag: true,

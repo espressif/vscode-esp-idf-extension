@@ -54,7 +54,7 @@ export async function buildFlashAndMonitorCapture(
   partitionToUse: ESP.BuildType | undefined,
   monitorNoReset?: boolean,
   onBeforeFlash?: () => void,
-  onBeforeMonitor?: () => void,
+  onBeforeMonitor?: () => void
 ): Promise<CustomExecutionTaskResult> {
   const executions: CustomExecutionTaskResult["executions"] = [];
 
@@ -116,9 +116,10 @@ export async function buildFlashAndMonitor(
     [openFolderCheck],
     "ESP-IDF:",
     async (progress, cancelToken, taskWsFolder) => {
-      const folderUri = taskWsFolder!.uri;
+      const folderUri = taskWsFolder.uri;
       progress.report({ message: "Building project...", increment: 20 });
-      const flashType = resolveFlashTypeForTask(taskWsFolder, undefined);
+      const flashType =
+        resolveFlashTypeForTask(taskWsFolder, undefined) ?? ESP.FlashType.UART;
       const partitionToUse = resolvePartitionToUseForTask(
         taskWsFolder,
         undefined
@@ -140,8 +141,7 @@ export async function buildFlashAndMonitor(
           progress.report({
             message: "Launching monitor...",
             increment: 10,
-          }),
-
+          })
       );
       if (!result.continueFlag) {
         return;

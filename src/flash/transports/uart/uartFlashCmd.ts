@@ -48,6 +48,9 @@ export async function uartFlashCommandMain(
   captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
+  if (FlashSession.isFlashing) {
+    throw new Error("ALREADY_FLASHING");
+  }
   cancelToken.onCancellationRequested(() => {
     TaskManager.cancelTasks();
   });

@@ -35,6 +35,7 @@ import {
 } from "vscode";
 import { ESP } from "./config";
 import { NotificationMode, readParameter } from "./idfConfiguration";
+import { Logger } from "./logger/logger";
 import {
   OutputCapturingExecution,
   ShellOutputCapturingExecution,
@@ -79,6 +80,27 @@ export function collectExecutions(
   );
 }
 
+/**
+ * Inspects task executions that support captured process output and throws if
+ * any report failure. Executions are considered only when they implement
+ * {@link OutputCapturingExecution.getOutput} / {@link ShellOutputCapturingExecution.getOutput}
+ * (duck-typed via `"getOutput" in execution`); plain `ProcessExecution`,
+ * `ShellExecution`, etc. are skipped.
+ *
+ * **No-op:** If every entry is missing, undefined, or has no `getOutput`, or if
+ * every `getOutput()` result is missing or has `success: true`, this function
+ * returns normally without throwing.
+ *
+ * **Throw conditions** (first failed `getOutput()` wins, in order):
+ * 1. If `!executionOutput.success` and `stderr` has non-whitespace content → throws `Error` with that stderr string.
+ * 2. Else if `stdout` has non-whitespace content → throws `Error` with that stdout string.
+ * 3. Else → throws `Error` with message ``Task exited with code ${exitCode}``.
+ *
+ * Callers that must always surface a prior command failure as an exception
+ * cannot rely solely on `await throwCapturedTaskFailure(...)`: they must pass
+ * at least one output-capturing execution, or perform their own check on
+ * `continueFlag` / task results before or after calling this function.
+ */
 export async function throwCapturedTaskFailure(
   executions: MaybeIdfTaskExecution[]
 ) {
@@ -123,14 +145,22 @@ export class TaskManager {
     execution: IdfTaskExecution,
     presentationOptions?: TaskPresentationOptions
   ): void {
-    // Check if a task with the same taskId already exists
-    const taskId = `idf-${name.toLowerCase().replace(/\s+/g, "-")}-task`;
-    const existingTaskIndex = TaskManager.tasks.findIndex(
-      (task) => task.definition.taskId === taskId
-    );
-    if (existingTaskIndex !== -1) {
-      // Task with this taskId already exists, skip adding
-      return;
+    const nameSlug = name.toLowerCase().replace(/\s+/g, "-");
+    let taskId = `idf-${nameSlug}-task`;
+    let disambiguator = 0;
+    while (
+      TaskManager.tasks.findIndex(
+        (task) => task.definition.taskId === taskId
+      ) !== -1
+    ) {
+      disambiguator++;
+      taskId = `idf-${nameSlug}-task-${disambiguator}`;
+    }
+    if (disambiguator > 0) {
+      Logger.warn(
+        `ESP-IDF task id collision for name "${name}"; registered as ${taskId}`,
+        { context: "TaskManager.addTask" }
+      );
     }
 
     const newTask: Task = new Task(
@@ -184,12 +214,8 @@ export class TaskManager {
     TaskManager.tasks = [];
   }
 
-  public static async runTasks() {
-    return new Promise<void>(async (resolve, reject) => {
-      if (TaskManager.tasks.length === 0) {
-        return resolve();
-      }
-
+  public static runTasks(): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
       let taskDisposable: Disposable | undefined;
       const disposeTaskListener = () => {
         if (taskDisposable) {
@@ -204,65 +230,109 @@ export class TaskManager {
 
       let lastExecution: TaskExecution | undefined;
 
-      taskDisposable = tasks.onDidEndTaskProcess(async (e) => {
-        if (!lastExecution) {
+      try {
+        if (TaskManager.tasks.length === 0) {
+          resolve();
           return;
         }
-        if (
-          e.execution &&
-          e.execution.task.definition.taskId ===
-            lastExecution.task.definition.taskId
-        ) {
-          const taskResult = {
-            taskId: lastExecution.task.definition.taskId,
-            exitCode: e.exitCode,
-            taskName: lastExecution.task.name,
-          };
-          TaskManager.taskResults.push(taskResult);
 
-          // Remove the completed task from the array (regardless of success or failure)
-          const taskIndex = TaskManager.tasks.findIndex(
-            (task) =>
-              task.definition.taskId === lastExecution.task.definition.taskId
-          );
-          if (taskIndex !== -1) {
-            TaskManager.tasks.splice(taskIndex, 1);
-          }
+        taskDisposable = tasks.onDidEndTaskProcess((e) => {
+          try {
+            if (!lastExecution) {
+              return;
+            }
+            if (
+              e.execution &&
+              e.execution.task.definition.taskId ===
+                lastExecution.task.definition.taskId
+            ) {
+              const taskResult = {
+                taskId: lastExecution.task.definition.taskId,
+                exitCode: e.exitCode,
+                taskName: lastExecution.task.name,
+              };
+              TaskManager.taskResults.push(taskResult);
 
-          if (e.exitCode !== 0) {
-            // Task has already ended (this handler is triggered *after* end),
-            // so terminating here is unnecessary and can produce VS Code errors
-            // like "Task to terminate not found".
+              // Remove the completed task from the array (regardless of success or failure)
+              const taskIndex = TaskManager.tasks.findIndex(
+                (task) =>
+                  task.definition.taskId ===
+                  lastExecution?.task.definition.taskId
+              );
+              if (taskIndex !== -1) {
+                TaskManager.tasks.splice(taskIndex, 1);
+              }
+
+              if (e.exitCode !== 0) {
+                // Task has already ended (this handler is triggered *after* end),
+                // so terminating here is unnecessary and can produce VS Code errors
+                // like "Task to terminate not found".
+                disposeTaskListener();
+                TaskManager.cancelTasks();
+                TaskManager.disposeListeners();
+                reject(
+                  new Error(
+                    `Task ${lastExecution.task.name} exited with code ${e.exitCode}`
+                  )
+                );
+                return;
+              }
+              if (TaskManager.tasks.length === 0) {
+                TaskManager.tasks = [];
+                disposeTaskListener();
+                resolve();
+                return;
+              }
+              try {
+                Promise.resolve(tasks.executeTask(TaskManager.tasks[0])).then(
+                  (execution) => {
+                    lastExecution = execution;
+                  },
+                  (err) => {
+                    disposeTaskListener();
+                    TaskManager.cancelTasks();
+                    TaskManager.disposeListeners();
+                    reject(err instanceof Error ? err : new Error(String(err)));
+                  }
+                );
+              } catch (err) {
+                disposeTaskListener();
+                TaskManager.cancelTasks();
+                TaskManager.disposeListeners();
+                reject(err instanceof Error ? err : new Error(String(err)));
+              }
+            }
+          } catch (listenerErr) {
             disposeTaskListener();
             TaskManager.cancelTasks();
             TaskManager.disposeListeners();
             reject(
-              new Error(
-                `Task ${lastExecution.task.name} exited with code ${e.exitCode}`
-              )
+              listenerErr instanceof Error
+                ? listenerErr
+                : new Error(String(listenerErr))
             );
-            return;
           }
-          if (TaskManager.tasks.length === 0) {
-            TaskManager.tasks = [];
-            disposeTaskListener();
-            resolve();
-            return;
-          }
-          try {
-            lastExecution = await tasks.executeTask(TaskManager.tasks[0]);
-          } catch (err) {
-            disposeTaskListener();
-            TaskManager.cancelTasks();
-            TaskManager.disposeListeners();
-            reject(err instanceof Error ? err : new Error(String(err)));
-          }
-        }
-      });
-      TaskManager.disposables.push(taskDisposable);
+        });
+        TaskManager.disposables.push(taskDisposable);
 
-      try {
-        lastExecution = await tasks.executeTask(TaskManager.tasks[0]);
+        try {
+          Promise.resolve(tasks.executeTask(TaskManager.tasks[0])).then(
+            (execution) => {
+              lastExecution = execution;
+            },
+            (err) => {
+              disposeTaskListener();
+              TaskManager.cancelTasks();
+              TaskManager.disposeListeners();
+              reject(err instanceof Error ? err : new Error(String(err)));
+            }
+          );
+        } catch (err) {
+          disposeTaskListener();
+          TaskManager.cancelTasks();
+          TaskManager.disposeListeners();
+          reject(err instanceof Error ? err : new Error(String(err)));
+        }
       } catch (err) {
         disposeTaskListener();
         TaskManager.cancelTasks();

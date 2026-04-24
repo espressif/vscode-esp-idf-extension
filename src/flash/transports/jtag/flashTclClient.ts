@@ -44,6 +44,8 @@ export function quoteTclArg(arg: string): string {
   return `"${escaped}"`;
 }
 
+const JTAG_FLASH_TCL_RESPONSE_TIMEOUT_MS = 120_000;
+
 export async function jtagFlash(
   client: TCLClient,
   command: string,
@@ -53,11 +55,16 @@ export async function jtagFlash(
 
   return new Promise<CustomExecutionTaskResult>((resolve) => {
     let settled = false;
+    let responseTimeoutId: ReturnType<typeof setTimeout> | undefined;
     const finish = (result: CustomExecutionTaskResult) => {
       if (settled) {
         return;
       }
       settled = true;
+      if (responseTimeoutId !== undefined) {
+        clearTimeout(responseTimeoutId);
+        responseTimeoutId = undefined;
+      }
       client.off("response", onResponse);
       client.off("error", onError);
       resolve(result);
@@ -103,6 +110,18 @@ export async function jtagFlash(
 
     client.once("response", onResponse);
     client.once("error", onError);
+    responseTimeoutId = setTimeout(() => {
+      const output: CapturedTaskOutput = {
+        stdout: "",
+        stderr: `JTAG flash timed out after ${JTAG_FLASH_TCL_RESPONSE_TIMEOUT_MS / 1000}s waiting for OpenOCD TCL response.`,
+        success: false,
+        exitCode: -1,
+      };
+      finish({
+        continueFlag: false,
+        executions: [createCapturedExecution(output)],
+      });
+    }, JTAG_FLASH_TCL_RESPONSE_TIMEOUT_MS);
     client.sendCommand(fullCommand);
   });
 }
