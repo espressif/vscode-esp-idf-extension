@@ -49,7 +49,6 @@ export async function startWithWebSocket(
     IdfMonitorWebSocketServer.close();
   }
   IdfMonitorWebSocketServer = new WSServer(wsPort);
-  IdfMonitorWebSocketServer.start();
   IdfMonitorWebSocketServer.on("started", async () => {
     IDFMonitor.updateConfiguration(monitorConfigResult.config);
     await interruptMonitorWithDelay(
@@ -81,8 +80,8 @@ export async function startWithWebSocket(
       IdfMonitorWebSocketServer.close();
     })
     .on("error", (err) => {
-      let message = err.message;
-      if (err && err.message.includes("EADDRINUSE")) {
+      let message = err?.message ?? String(err);
+      if (err?.message?.includes("EADDRINUSE")) {
         message = l10n.t(
           `Your port {wsPort} is not available, use (idf.wssPort) to change to different port`,
           { wsPort: monitorConfigResult.config.wsPort }
@@ -90,9 +89,10 @@ export async function startWithWebSocket(
       }
       Logger.errorNotify(
         message,
-        err,
+        err instanceof Error ? err : new Error(String(err)),
         "extension launchWSServerAndMonitor error event"
       );
       IdfMonitorWebSocketServer.close();
     });
+  IdfMonitorWebSocketServer.start();
 }

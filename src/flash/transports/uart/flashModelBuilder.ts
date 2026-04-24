@@ -65,7 +65,7 @@ export async function createFlashModel(
     port,
     size: flashArgsJson.flash_settings.flash_size,
     stub: flashArgsJson.extra_esptool_args.stub,
-    writeFlashArgs: flashArgsJson.write_flash_args,
+    writeFlashArgs: flashArgsJson.write_flash_args ?? [],
   };
   for (let modelKey of Object.keys(flashArgsJson)) {
     if (

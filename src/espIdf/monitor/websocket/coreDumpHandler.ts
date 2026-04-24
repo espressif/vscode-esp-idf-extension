@@ -80,6 +80,11 @@ export function handleWsCoreDumpDetected(
             ),
           });
           const workspaceFolder = workspace.getWorkspaceFolder(wsFolder.uri);
+          registerWsMonitorDebugCleanup(CORE_DUMP_SESSION_ID, () => {
+            IdfMonitorWebSocketServer.done();
+            IDFMonitor.dispose();
+            IdfMonitorWebSocketServer.close();
+          });
           await debug.startDebugging(workspaceFolder, {
             name: "Core Dump Debug",
             sessionID: CORE_DUMP_SESSION_ID,
@@ -91,11 +96,6 @@ export function handleWsCoreDumpDetected(
             target: {
               connectCommands: [`core ${coreElfFilePath}`],
             },
-          });
-          registerWsMonitorDebugCleanup(CORE_DUMP_SESSION_ID, () => {
-            IdfMonitorWebSocketServer.done();
-            IDFMonitor.dispose();
-            IdfMonitorWebSocketServer.close();
           });
         } else {
           Logger.warnNotify(

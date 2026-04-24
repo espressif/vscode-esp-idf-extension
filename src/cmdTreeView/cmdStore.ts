@@ -34,7 +34,7 @@ export enum IDFWebCommandKeys {
 export enum CommandKeys {
   pickWorkspace = "espIdf.pickAWorkspaceFolder",
   SelectCurrentIdfVersion = "espIdf.selectCurrentIdfVersion",
-  SelectFlashType = "espIdf.selectFlashMethodAndFlash",
+  SelectFlashType = "espIdf.selectFlashMethod",
   SelectSerialPort = "espIdf.selectPort",
   SelectMonitorSerialPort = "espIdf.selectMonitorPort",
   SelectProjectConfiguration = "espIdf.projectConf",
