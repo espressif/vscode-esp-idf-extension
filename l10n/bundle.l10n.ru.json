@@ -5,6 +5,7 @@
   "File project_description.json cannot be found.": "Файл project_description.json не найден.",
   "Open a folder first.": "Сначала откройте папку.",
   "Selected command is not available in {envName}": "Выбранная команда недоступна в {envName}",
+  "Selected command needs {tool} {minVersion} or higher": "Выбранной команде требуется {tool} {minVersion} или новее",
   "Use current folder: {workspace}": "Использовать текущую папку: {workspace}",
   "Choose a container directory...": "Выберите каталог контейнера...",
   "Select a directory to use": "Выберите каталог для использования",

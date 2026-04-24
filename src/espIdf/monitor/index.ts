@@ -16,145 +16,75 @@
  * limitations under the License.
  */
 
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { commands, env, ExtensionContext, l10n, UIKind } from "vscode";
+import { registerIDFCommand } from "../../common/registerCommand";
+import {
+  minIdfVersionCheck,
+  openFolderCheck,
+  PreCheck,
+  webIdeCheck,
+} from "../../common/PreCheck";
+import { readParameter } from "../../idfConfiguration";
+import { IDFWebCommandKeys } from "../../cmdTreeView/cmdStore";
+import { Logger } from "../../logger/logger";
 import { ESP } from "../../config";
-import { getUserShell } from "../../utils";
-import { window, Terminal, Uri, env, debug } from "vscode";
-import { join } from "path";
+import { installWebsocketClient } from "./websocket/checkWebsocketClient";
+import { monitorMain } from "./main";
+import { startWithWebSocket } from "./websocket";
 
-export interface MonitorConfig {
-  baudRate: string;
-  elfFilePath: string;
-  idfMonitorToolPath: string;
-  idfTarget: string;
-  idfVersion: string;
-  noReset: boolean;
-  enableTimestamps: boolean;
-  customTimestampFormat: string;
-  port: string;
-  pythonBinPath: string;
-  toolchainPrefix: string;
-  wsPort?: number;
-  workspaceFolder: Uri;
-  shellPath: string;
-  shellExecutableArgs: string[];
-}
-
-export class IDFMonitor {
-  public static config: MonitorConfig;
-  public static terminal: Terminal;
-
-  static updateConfiguration(config: MonitorConfig) {
-    IDFMonitor.config = config;
-  }
-
-  static async start() {
-    const modifiedEnv = await configureEnvVariables(this.config.workspaceFolder);
-    if (!IDFMonitor.terminal) {
-      IDFMonitor.terminal = window.createTerminal({
-        name: `ESP-IDF Monitor ${this.config.wsPort ? "(--ws enabled)" : ""}`,
-        env: modifiedEnv,
-        cwd:
-          this.config.workspaceFolder.fsPath ||
-          modifiedEnv.IDF_PATH ||
-          process.cwd(),
-        strictEnv: true,
-        shellArgs: this.config.shellExecutableArgs || [],
-        shellPath: this.config.shellPath || env.shell,
-      });
-
-      window.onDidCloseTerminal((e) => {
-        if (e.processId === IDFMonitor.terminal.processId) {
-          IDFMonitor.terminal = undefined;
-        }
-      });
-    }
-    IDFMonitor.terminal.show();
-    const shellType = getUserShell();
-
-    // Function to quote paths for PowerShell and correctly handle spaces for Bash
-    const quotePath = (path) => {
-      if (shellType.includes("powershell") || shellType.includes("pwsh")) {
-        return `'${path.replace(/'/g, "''")}'`;
-      } else if (shellType.includes("cmd")) {
-        return `"${path}"`;
-      } else {
-        return `'${path}'`;
+export function registerMonitorCommands(context: ExtensionContext) {
+  registerIDFCommand(context, "espIdf.monitorDevice", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      // Re route to ESP-IDF Web extension if using Codespaces or Browser
+      if (env.uiKind === UIKind.Web) {
+        commands.executeCommand(IDFWebCommandKeys.Monitor);
+        return;
       }
-    };
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      if (!wsFolder) {
+        Logger.errorNotify(
+          l10n.t("No workspace folder selected."),
+          new Error("No workspace folder selected"),
+          "monitor.registerMonitorCommands"
+        );
+        return;
+      }
+      await monitorMain(wsFolder);
+    });
+  });
 
-    const baudRateToUse =
-      this.config.baudRate ||
-      modifiedEnv.IDF_MONITOR_BAUD ||
-      modifiedEnv.MONITORBAUD ||
-      "115200";
-    const args = [
-      quotePath(this.config.pythonBinPath),
-      quotePath(this.config.idfMonitorToolPath),
-      "-p",
-      this.config.port,
-      "-b",
-      baudRateToUse,
-      "--toolchain-prefix",
-      this.config.toolchainPrefix,
-    ];
-    const idfPy = quotePath(join(modifiedEnv.IDF_PATH, "tools", "idf.py"));
-    const pythonBinPath = quotePath(this.config.pythonBinPath);
-    const flashCommand = pythonBinPath + " " + idfPy;
-    // Pass the command that will be used when monitor needs to run flash/app-flash targets
-    args.push("--make", quotePath(flashCommand));
-    if (
-      this.isDebugSessionActive() ||
-      (this.config.noReset && this.config.idfVersion >= "5.0")
-    ) {
-      args.splice(2, 0, "--no-reset");
-    }
-    if (this.config.enableTimestamps && this.config.idfVersion >= "4.4") {
-      args.push("--timestamps");
-    }
-    if (
-      this.config.customTimestampFormat.length > 0 &&
-      this.config.idfVersion >= "4.4"
-    ) {
-      args.push(
-        "--timestamp-format",
-        JSON.stringify(this.config.customTimestampFormat)
-      );
-    }
-    if (this.config.idfVersion >= "4.3") {
-      args.push("--target", this.config.idfTarget);
-    }
-    if (this.config.wsPort) {
-      args.push("--ws", `ws://localhost:${this.config.wsPort}`);
-    }
-    args.push(quotePath(this.config.elfFilePath));
-    const envSetCmd = process.platform === "win32" ? "set" : "export";
-    const quotedIdfPath = quotePath(modifiedEnv.IDF_PATH);
+  registerIDFCommand(context, "espIdf.launchWSServerAndMonitor", async () => {
+    const idfVersionCheck = await minIdfVersionCheck("4.3");
+    PreCheck.perform(
+      [idfVersionCheck, webIdeCheck, openFolderCheck],
+      async () => {
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        if (!wsFolder) {
+          Logger.errorNotify(
+            l10n.t("No workspace folder selected."),
+            new Error("No workspace folder selected"),
+            "monitor.registerMonitorCommands"
+          );
+          return;
+        }
+        const wsPort = readParameter("idf.wssPort", wsFolder) as number;
+        const noReset = readParameter(
+          "idf.monitorNoReset",
+          wsFolder
+        ) as boolean;
 
-    if (shellType.includes("powershell") || shellType.includes("pwsh")) {
-      this.terminal.sendText(`$env:IDF_PATH = ${quotedIdfPath};`);
-      // For pwsh users on Linux, we need to add delay between commands
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      this.terminal.sendText(` & ${args.join(" ")}\r`);
-    } else if (shellType.includes("cmd")) {
-      this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
-      this.terminal.sendText(args.join(" "));
-    } else {
-      this.terminal.sendText(`${envSetCmd} IDF_PATH=${quotedIdfPath}`);
-      this.terminal.sendText(args.join(" "));
-    }
-
-    return this.terminal;
-  }
-
-  static async dispose() {
-    try {
-      this.terminal.sendText(ESP.CTRL_RBRACKET);
-      this.terminal.sendText(`exit`);
-    } catch (error) {}
-  }
-
-  private static isDebugSessionActive(): boolean {
-    return debug.activeDebugSession !== undefined;
-  }
+        try {
+          await installWebsocketClient(wsFolder.uri);
+        } catch (error) {
+          Logger.errorNotify(
+            "Failed to install websocket client dependencies",
+            error as Error,
+            "extension launchWSServerAndMonitor install websocket client"
+          );
+          return;
+        }
+        await startWithWebSocket(wsFolder, noReset, wsPort);
+      }
+    );
+  });
 }

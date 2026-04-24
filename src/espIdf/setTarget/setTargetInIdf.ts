@@ -21,10 +21,7 @@ import { WorkspaceFolder } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
-import {
-  setCCppPropertiesJsonCompilerPath,
-  spawn,
-} from "../../utils";
+import { setCCppPropertiesJsonCompilerPath, spawn } from "../../utils";
 import { ConfserverProcess } from "../menuconfig/confServerProcess";
 import { IdfTarget } from "./getTargets";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
@@ -32,7 +29,7 @@ import * as vscode from "vscode";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
 export async function setTargetInIDF(
-  workspaceFolder: WorkspaceFolder,
+  workspaceFolder: vscode.Uri,
   selectedTarget: IdfTarget
 ) {
   try {
@@ -41,14 +38,14 @@ export async function setTargetInIDF(
     }
     const buildDirPath = readParameter(
       "idf.buildPath",
-      workspaceFolder.uri
+      workspaceFolder
     ) as string;
-    const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
+    const modifiedEnv = await configureEnvVariables(workspaceFolder);
     const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
-    modifiedEnv.IDF_TARGET = undefined;
+    delete modifiedEnv.IDF_TARGET;
     const enableCCache = readParameter(
       "idf.enableCCache",
-      workspaceFolder.uri
+      workspaceFolder
     ) as boolean;
     const setTargetArgs: string[] = [idfPy];
     if (selectedTarget.isPreview) {
@@ -58,7 +55,7 @@ export async function setTargetInIDF(
     if (enableCCache) {
       modifiedEnv.IDF_CCACHE_ENABLE = "1";
     } else {
-      modifiedEnv.IDF_CCACHE_ENABLE = undefined;
+      delete modifiedEnv.IDF_CCACHE_ENABLE;
     }
     if (modifiedEnv.SDKCONFIG) {
       setTargetArgs.push(`-DSDKCONFIG='${modifiedEnv.SDKCONFIG}'`);
@@ -76,7 +73,7 @@ export async function setTargetInIDF(
     const pythonBinPath = await getVirtualEnvPythonPath();
     OutputChannel.appendLine("Running IDF Set Target action", "Set Target");
     const setTargetResult = await spawn(pythonBinPath, setTargetArgs, {
-      cwd: workspaceFolder.uri.fsPath,
+      cwd: workspaceFolder.fsPath,
       env: modifiedEnv,
       silent: false,
     });
@@ -87,11 +84,12 @@ export async function setTargetInIDF(
     );
     OutputChannel.appendLineAndShow(msg, "Set Target");
     Logger.infoNotify(msg);
-    setCCppPropertiesJsonCompilerPath(workspaceFolder.uri);
+    setCCppPropertiesJsonCompilerPath(workspaceFolder);
     return setTargetResult.toString();
   } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
     throw new Error(
-      `Failed to set target ${selectedTarget.target}: ${error.message}.`
+      `Failed to set target ${selectedTarget.target}: ${errMsg}.`
     );
   }
 }

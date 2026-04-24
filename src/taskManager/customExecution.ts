@@ -24,22 +24,23 @@ import {
   ExecFileOptions,
   spawn,
 } from "child_process";
-
-export interface CustomExecutionTaskResult {
-  continueFlag: boolean;
-  executions: (
-    | OutputCapturingExecution
-    | ShellOutputCapturingExecution
-    | vscode.ProcessExecution
-    | vscode.ShellExecution
-  )[];
-}
+import type { IdfTaskExecution } from "../taskManager";
 
 export interface CapturedTaskOutput {
   stdout: string;
   stderr: string;
   exitCode: number;
   success: boolean;
+}
+
+/** Minimal execution shape for synthesized/captured task results (e.g. JTAG TCL). */
+export interface CaptureableTaskExecution {
+  getOutput(): Promise<CapturedTaskOutput>;
+}
+
+export interface CustomExecutionTaskResult {
+  continueFlag: boolean;
+  executions: (IdfTaskExecution | CaptureableTaskExecution)[];
 }
 
 class OutputCapturingPseudoterminal implements vscode.Pseudoterminal {

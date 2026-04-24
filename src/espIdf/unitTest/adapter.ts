@@ -83,18 +83,18 @@ export class UnitTest {
       let workspaceFolderUri: Uri | undefined;
       if (!this.unitTestAppUri) {
         try {
-          // Get stored workspace folder URI and ensure it's a proper vscode.Uri object
-          const storedUri = ESP.GlobalConfiguration.store.get<Uri>(
-            ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
-          );
-          let workspaceFolder = workspace.getWorkspaceFolder(storedUri);
+          let workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
 
           workspaceFolderUri = workspaceFolder
             ? workspaceFolder.uri
             : undefined;
 
           // Fallback to first workspace folder if no stored URI or conversion failed
-          if (!workspaceFolderUri && workspace.workspaceFolders?.length > 0) {
+          if (
+            !workspaceFolderUri &&
+            workspace.workspaceFolders &&
+            workspace.workspaceFolders.length > 0
+          ) {
             workspaceFolderUri = workspace.workspaceFolders[0].uri;
           }
 
@@ -110,7 +110,11 @@ export class UnitTest {
             cancelToken
           );
         } catch (error) {
-          Logger.error("Failed to configure unit test app:", error, "unitTest runHandler configurePytestUnitApp");
+          Logger.error(
+            "Failed to configure unit test app:",
+            error,
+            "unitTest runHandler configureUnityApp"
+          );
           return;
         }
       }

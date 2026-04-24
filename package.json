@@ -143,7 +143,7 @@
           {
             "id": "setup-project",
             "title": "Setting Up Your Project",
-            "description": "Before building your project, you'll need to configure some essential settings:\n\n1. Configure your target device\n\n[ESP-IDF: Set Espressif Device Target](command:espIdf.setTarget)\n2. Set up project-specific configurations (not needed in our example)\n3. Select serial port \n\n[ESP-IDF: Select Port to Use](command:espIdf.selectPort)\n4. Select flashing method \n\n[ESP-IDF: Select Flash Method](command:espIdf.selectFlashMethodAndFlash)",
+            "description": "Before building your project, you'll need to configure some essential settings:\n\n1. Configure your target device\n\n[ESP-IDF: Set Espressif Device Target](command:espIdf.setTarget)\n2. Set up project-specific configurations (not needed in our example)\n3. Select serial port \n\n[ESP-IDF: Select Port to Use](command:espIdf.selectPort)\n4. Select flashing method \n\n[ESP-IDF: Select Flash Method](command:espIdf.selectFlashMethod)",
             "media": {
               "markdown": "walkthroughs/basic/setup-project.md"
             }
@@ -1610,8 +1610,8 @@
         "when": "!isWeb"
       },
       {
-        "command": "espIdf.selectFlashMethodAndFlash",
-        "title": "%espIdf.selectFlashMethodAndFlash.title%",
+        "command": "espIdf.selectFlashMethod",
+        "title": "%espIdf.selectFlashMethod.title%",
         "category": "ESP-IDF",
         "when": "!isWeb"
       },
