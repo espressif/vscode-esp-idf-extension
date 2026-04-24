@@ -22,6 +22,7 @@ import {
 import { configureEnvVariables } from "../common/prepareEnv";
 import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 import { flashMain } from "../flash/main";
+import { isFlashRelatedTaskExitCode74 } from "../flash/shared/errHandling";
 import { eraseFlashMain } from "../eraseFlash/main";
 import { buildFlashAndMonitorCapture } from "../buildFlashMonitor";
 
@@ -320,7 +321,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               new vscode.LanguageModelTextPart("No DFU was selected"),
             ]);
           }
-          if (errorMessage === "Task ESP-IDF Flash exited with code 74") {
+          if (isFlashRelatedTaskExitCode74(error, errorMessage)) {
             return new vscode.LanguageModelToolResult([
               new vscode.LanguageModelTextPart(
                 "No DFU capable USB device available found"

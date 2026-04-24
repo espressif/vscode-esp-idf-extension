@@ -24,8 +24,8 @@ import { ExtensionContext } from "vscode";
 import { buildMain } from "./buildMain";
 import { registerIDFCommand } from "../common/registerCommand";
 
-export async function registerBuildCommands(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.buildDevice", build);
+export function registerBuildCommands(context: ExtensionContext) {
+  registerIDFCommand(context, "espIdf.buildDevice", () => build());
   registerIDFCommand(context, "espIdf.buildDFU", () =>
     build(ESP.FlashType.DFU)
   );
