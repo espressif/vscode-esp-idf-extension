@@ -42,10 +42,10 @@ export function registerMonitorCommands(context: ExtensionContext) {
       }
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       if (!wsFolder) {
-        Logger.errorNotify(
+        Logger.error(
           l10n.t("No workspace folder selected."),
           new Error("No workspace folder selected"),
-          "monitor.registerMonitorCommands"
+          "monitor registerMonitorCommands monitorDevice"
         );
         return;
       }
@@ -60,10 +60,10 @@ export function registerMonitorCommands(context: ExtensionContext) {
       async () => {
         const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
         if (!wsFolder) {
-          Logger.errorNotify(
+          Logger.error(
             l10n.t("No workspace folder selected."),
             new Error("No workspace folder selected"),
-            "monitor.registerMonitorCommands"
+            "monitor registerMonitorCommands launchWSServerAndMonitor"
           );
           return;
         }
@@ -76,10 +76,12 @@ export function registerMonitorCommands(context: ExtensionContext) {
         try {
           await installWebsocketClient(wsFolder.uri);
         } catch (error) {
-          Logger.errorNotify(
-            "Failed to install websocket client dependencies",
-            error as Error,
-            "extension launchWSServerAndMonitor install websocket client"
+          const errorInstance =
+            error instanceof Error ? error : new Error(String(error));
+          Logger.error(
+            l10n.t("Failed to install websocket client dependencies"),
+            errorInstance,
+            "monitor registerMonitorCommands launchWSServerAndMonitor"
           );
           return;
         }
