@@ -22,7 +22,7 @@ import {
   getEspIdfFromCMake,
 } from "../utils";
 import { NotificationMode, readParameter } from "../idfConfiguration";
-import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
+import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
 import {
   env,
   window,

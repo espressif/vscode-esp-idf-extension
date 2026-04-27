@@ -6,7 +6,7 @@ import {
   showInfoNotificationWithLink,
   showQuickPickWithCustomActions,
 } from "../../logger/utils";
-import { ConfserverProcess } from "../../espIdf/menuconfig/confServerProcess";
+import { ConfserverProcess } from "../../espIdf/menuconfig/confserver/confServerProcess";
 import { ESPEFuseManager } from "../../efuse";
 import { getDocsUrl } from "../../espIdf/documentation/getDocsVersion";
 import * as utils from "../../utils";
