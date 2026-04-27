@@ -16,7 +16,7 @@ import {
   setCCppPropertiesJsonCompileCommands,
 } from "../utils";
 import { ESP } from "../config";
-import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
+import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { createStatusBarItem } from "../statusBar";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";

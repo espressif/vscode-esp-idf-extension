@@ -16,7 +16,7 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { srcOp, UpdateCmakeLists } from "./cmake/srcsWatcher";
-import { ConfserverProcess } from "./espIdf/menuconfig/confServerProcess";
+import { ConfserverProcess } from "./espIdf/menuconfig/confserver/confServerProcess";
 import {
   IOpenOCDConfig,
   OpenOCDManager,
@@ -183,6 +183,7 @@ import { registerFlashCommands } from "./flash";
 import { interruptMonitorWithDelay } from "./espIdf/monitor/interruptMonitorWithDelay";
 import { registerEraseFlashCommand } from "./eraseFlash";
 import { IDFMonitor } from "./espIdf/monitor/terminal";
+import { registerMenuconfigCommands } from "./espIdf/menuconfig";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1856,64 +1857,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   registerIDFCommand("espIdf.monitorQemu", createQemuMonitor);
 
-  registerIDFCommand("espIdf.menuconfig.start", async () => {
-    PreCheck.perform([openFolderCheck], () => {
-      try {
-        if (ConfserverProcess.exists()) {
-          ConfserverProcess.loadExistingInstance();
-          return;
-        }
-        const isIdfProject = utils.checkIsProjectCmakeLists(
-          workspaceRoot.fsPath
-        );
-        if (!isIdfProject) {
-          Logger.infoNotify(
-            vscode.l10n.t("The current directory is not an ESP-IDF project.")
-          );
-          return;
-        }
-        const notificationMode = idfConf.readParameter(
-          "idf.notificationMode",
-          workspaceRoot
-        ) as string;
-        const ProgressLocation =
-          notificationMode === idfConf.NotificationMode.All ||
-          notificationMode === idfConf.NotificationMode.Notifications
-            ? vscode.ProgressLocation.Notification
-            : vscode.ProgressLocation.Window;
-        vscode.window.withProgress(
-          {
-            cancellable: true,
-            location: ProgressLocation,
-            title: vscode.l10n.t("ESP-IDF: SDK Configuration Editor"),
-          },
-          async (
-            progress: vscode.Progress<{ message: string; increment: number }>,
-            cancelToken: vscode.CancellationToken
-          ) => {
-            try {
-              ConfserverProcess.registerProgress(progress);
-              cancelToken.onCancellationRequested(() => {
-                ConfserverProcess.dispose();
-              });
-              await ConfserverProcess.init(
-                workspaceRoot,
-                context.extensionPath
-              );
-            } catch (error) {
-              Logger.errorNotify(
-                error.message,
-                error,
-                "extension menuconfig confserver init"
-              );
-            }
-          }
-        );
-      } catch (error) {
-        Logger.errorNotify(error.message, error, "extension menuconfig start");
-      }
-    });
-  });
+  registerMenuconfigCommands(context);
 
   registerIDFCommand("espIdf.createClassicMenuconfig", () =>
     createClassicMenuconfig(context.extensionPath)
@@ -1946,20 +1890,6 @@ export async function activate(context: vscode.ExtensionContext) {
         }
       );
     });
-  });
-
-  registerIDFCommand("espIdf.disposeConfserverProcess", () => {
-    try {
-      if (ConfserverProcess.exists()) {
-        ConfserverProcess.dispose();
-      }
-    } catch (error) {
-      Logger.errorNotify(
-        error.message,
-        error,
-        "extension disposeConfserverProcess"
-      );
-    }
   });
 
   registerIDFCommand("espIdf.setTarget", (target?: string) => {

@@ -22,7 +22,7 @@ import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import { setCCppPropertiesJsonCompilerPath, spawn } from "../../utils";
-import { ConfserverProcess } from "../menuconfig/confServerProcess";
+import { ConfserverProcess } from "../menuconfig/confserver/confServerProcess";
 import { IdfTarget } from "./getTargets";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import * as vscode from "vscode";
