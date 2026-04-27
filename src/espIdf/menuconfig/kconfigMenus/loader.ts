@@ -16,17 +16,18 @@
  * limitations under the License.
  */
 
-import * as path from "path";
-import * as vscode from "vscode";
-import { readParameter } from "../../idfConfiguration";
-import { readFileSync } from "../../utils";
+import { join } from "path";
+import { readParameter } from "../../../idfConfiguration";
+import { readFileSync } from "../../../utils";
 import { formatHelpText } from "./helpTextFormatter";
-import { Menu, menuType } from "./Menu";
+import { Menu, menuType } from "../Menu";
+import { Uri } from "vscode";
+import { ConfserverValuesResponse } from "./kconfigMenuUpdater";
 
 export class KconfigMenuLoader {
   public static updateValues(
     config: Menu,
-    values: { values: {}; visible: {}; ranges: {}; defaults?: {} }
+    values: ConfserverValuesResponse
   ): Menu {
     const newConfig: Menu = config;
     if (
@@ -61,9 +62,9 @@ export class KconfigMenuLoader {
     return newConfig;
   }
 
-  private workspaceFolder: vscode.Uri;
+  private workspaceFolder: Uri;
 
-  constructor(workspaceFolder: vscode.Uri) {
+  constructor(workspaceFolder: Uri) {
     this.workspaceFolder = workspaceFolder;
   }
 
@@ -72,11 +73,7 @@ export class KconfigMenuLoader {
       "idf.buildPath",
       this.workspaceFolder
     ) as string;
-    const kconfigMenusPath = path.join(
-      buildDirPath,
-      "config",
-      "kconfig_menus.json"
-    );
+    const kconfigMenusPath = join(buildDirPath, "config", "kconfig_menus.json");
     const kconfigJson = JSON.parse(readFileSync(kconfigMenusPath));
 
     const configs: Menu[] = [];
@@ -87,7 +84,7 @@ export class KconfigMenuLoader {
     return configs;
   }
 
-  public mapJsonToMenuObject(config): Menu {
+  public mapJsonToMenuObject(config: any): Menu {
     const menu: Menu = {
       id: config.id,
       name: config.name,
