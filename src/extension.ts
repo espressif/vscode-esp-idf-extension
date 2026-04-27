@@ -4285,13 +4285,13 @@ async function createEspIdfTerminal(
   terminalName: string,
   initialCommand?: string,
   location?: vscode.TerminalLocation
-): Promise<vscode.Terminal> {
+) {
   const shellExecutableArgs = idfConf.readParameter(
     "idf.customTerminalExecutableArgs",
     workspaceRoot
   ) as string[];
   const modifiedEnv = await configureEnvVariables(workspaceRoot);
-  let shellArgs = [];
+  let shellArgs: string[] = [];
   if (process.platform === "win32") {
     shellArgs = ["-ExecutionPolicy", "Bypass"];
   } else if (shellExecutableArgs && shellExecutableArgs.length) {
@@ -4306,8 +4306,17 @@ async function createEspIdfTerminal(
       ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
       : shellExecutablePath
       ? shellExecutablePath
-      : vscode.env.shell;
+      : "/bin/sh";
 
+  const currentSetup = await loadIdfSetup(workspaceRoot);
+  if (!currentSetup) {
+    Logger.errorNotify(
+      vscode.l10n.t("Failed to load ESP-IDF setup for terminal activation"),
+      new Error("ESP-IDF setup load failed"),
+      "extension createEspIdfTerminal load setup"
+    );
+    return;
+  }
   const espIdfTerminal = vscode.window.createTerminal({
     name: terminalName,
     env: modifiedEnv,
@@ -4317,8 +4326,6 @@ async function createEspIdfTerminal(
     shellPath,
     location,
   });
-
-  const currentSetup = await loadIdfSetup(workspaceRoot);
   const activationScriptPathExists = await pathExists(
     currentSetup.activationScript
   );
