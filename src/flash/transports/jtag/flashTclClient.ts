@@ -133,22 +133,7 @@ export async function jtagFlash(
     try {
       client.sendCommand(fullCommand);
     } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-      Logger.error(
-        "jtagFlash OpenOCD TCL sendCommand failed",
-        err,
-        "jtagFlash sendCommand"
-      );
-      const output: CapturedTaskOutput = {
-        stdout: "",
-        stderr: err.message,
-        success: false,
-        exitCode: -1,
-      };
-      finish({
-        continueFlag: false,
-        executions: [createCapturedExecution(output)],
-      });
+      onError(error);
     }
   });
 }
