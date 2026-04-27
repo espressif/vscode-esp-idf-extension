@@ -33,11 +33,12 @@ import {
   throwCapturedTaskFailure,
 } from "../../../taskManager";
 import { jtagFlash } from "./flashTclClient";
+import type { CustomExecutionTaskResult } from "../../../taskManager/customExecution";
 
 export async function jtagFlashCommandMain(
   workspace: Uri,
   buildDirPath: string
-) {
+): Promise<CustomExecutionTaskResult> {
   if (FlashSession.isFlashing) {
     throw new Error("ALREADY_FLASHING");
   }
@@ -67,7 +68,6 @@ export async function jtagFlashCommandMain(
       const errStr = "OpenOCD is not ready to accept commands. Please try again.";
       OutputChannel.appendLineAndShow(errStr, "JTAG Flash");
       Logger.warnNotify(errStr);
-      client.stop();
       return { continueFlag: false, executions: [] };
     }
 
@@ -99,6 +99,10 @@ export async function jtagFlashCommandMain(
     );
     if (!flashExecution.continueFlag) {
       await throwCapturedTaskFailure(flashExecution.executions);
+      return {
+        continueFlag: false,
+        executions: [...collectExecutions(preFlashExecution), ...flashExecution.executions],
+      };
     }
     const postFlashExecution = await customTask.addCustomTask(
       CustomTaskType.PostFlash
@@ -109,11 +113,11 @@ export async function jtagFlashCommandMain(
     Logger.infoNotify(msg);
     return {
       continueFlag: true,
-      executions: collectExecutions(
-        preFlashExecution,
+      executions: [
+        ...collectExecutions(preFlashExecution),
         ...flashExecution.executions,
-        postFlashExecution
-      ),
+        ...collectExecutions(postFlashExecution),
+      ],
     };
   } finally {
     FlashSession.isFlashing = false;
