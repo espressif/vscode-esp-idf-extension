@@ -33,7 +33,7 @@ import { buildFinishFlashCmd } from "./buildFinishFlashCmd";
 import { cleanupBuildState } from "./buildHelpers";
 import { appendDfuExecution } from "./dfuExecution";
 import { runSizeTaskIfEnabled } from "./sizeExecution";
-import { CancellationToken, l10n, Uri } from "vscode";
+import { CancellationToken, Disposable, l10n, Uri } from "vscode";
 
 /**
  * Runs the ESP-IDF build pipeline: optional pre/post custom tasks, CMake/ninja
@@ -55,6 +55,7 @@ export async function buildMain(
   const buildTask = new BuildTask(workspace);
   const customTask = new CustomTask(workspace);
   let executions = collectExecutions();
+  let cancelSubscription: Disposable | undefined;
 
   try {
     if (FlashSession.isFlashing) {
@@ -79,9 +80,9 @@ export async function buildMain(
       );
       return { continueFlag: false, executions };
     }
-    cancelToken.onCancellationRequested(() => {
+    cancelSubscription = cancelToken.onCancellationRequested(() => {
       TaskManager.cancelTasks();
-      BuildTask.releaseBuildReservation();
+      cleanupBuildState();
     });
     const preBuildExecution = await customTask.addCustomTask(
       CustomTaskType.PreBuild,
@@ -162,5 +163,7 @@ export async function buildMain(
       );
     }
     return { continueFlag: false, executions };
+  } finally {
+    cancelSubscription?.dispose();
   }
 }

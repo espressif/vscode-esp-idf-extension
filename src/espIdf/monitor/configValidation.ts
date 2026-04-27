@@ -31,68 +31,75 @@ export function logInvalidConfigReason(result: LoadMonitorLaunchConfigResult) {
     return;
   }
   const { reason, detail } = result;
-  if (reason === "one_task_at_time") {
-    const waitProcessIsFinishedMsg = l10n.t("Wait for ESP-IDF task to finish");
-    Logger.errorNotify(
-      waitProcessIsFinishedMsg,
-      new Error("One_Task_At_A_Time"),
-      "createNewIdfMonitor wait for building flashing task to finish"
-    );
-    return;
-  }
-  if (reason === "no_port") {
-    Logger.errorNotify(
-      "Select a serial port before flashing",
-      new Error("NOT_SELECTED_PORT"),
-      "createNewIdfMonitor select a serial port"
-    );
-    return;
-  }
-  if (reason === "no_python") {
-    Logger.errorNotify(
-      "Python binary path is not defined",
-      new Error("Virtual environment Python path is not defined"),
-      "createNewIdfMonitor pythonBinPath not defined"
-    );
-    return;
-  }
-  if (reason === "no_idf_path") {
-    Logger.errorNotify(
-      l10n.t("IDF_PATH is not set for this workspace."),
-      new Error("IDF_PATH not set"),
-      "createNewIdfMonitor idf path not set"
-    );
-    return;
-  }
-  if (reason === "idf_version_error") {
-    Logger.errorNotify(
-      l10n.t("Failed to read ESP-IDF version from IDF_PATH"),
-      new Error(detail ?? "idf version error"),
-      "createNewIdfMonitor getEspIdfFromCMake"
-    );
-    return;
-  }
-  if (reason === "no_idf_target") {
-    Logger.infoNotify("IDF_TARGET is not defined.");
-    return;
-  }
-  if (reason === "no_idf_monitor") {
-    const pathMsg = detail
-      ? `${detail} is not defined`
-      : "idf_monitor.py is not defined";
-    Logger.errorNotify(
-      pathMsg,
-      new Error(pathMsg),
-      "createNewIdfMonitor idf_monitor not found"
-    );
-    return;
-  }
-  if (reason === "elf_path_error") {
-    Logger.errorNotify(
-      l10n.t("Failed to get project ELF file path"),
-      new Error(detail ?? "ELF path error"),
-      "createNewIdfMonitor getProjectElfFilePath"
-    );
-    return;
+  switch (reason) {
+    case "one_task_at_time": {
+      const waitProcessIsFinishedMsg = l10n.t("Wait for ESP-IDF task to finish");
+      Logger.errorNotify(
+        waitProcessIsFinishedMsg,
+        new Error("One_Task_At_A_Time"),
+        "monitor configValidation one_task_at_time"
+      );
+      return;
+    }
+    case "no_port":
+      Logger.errorNotify(
+        "Select a serial port before flashing",
+        new Error("NOT_SELECTED_PORT"),
+        "monitor configValidation no_port"
+      );
+      return;
+    case "no_python":
+      Logger.errorNotify(
+        "Python binary path is not defined",
+        new Error("Virtual environment Python path is not defined"),
+        "monitor configValidation no_python"
+      );
+      return;
+    case "no_idf_path":
+      Logger.errorNotify(
+        l10n.t("IDF_PATH is not set for this workspace."),
+        new Error("IDF_PATH not set"),
+        "monitor configValidation no_idf_path"
+      );
+      return;
+    case "idf_version_error":
+      Logger.errorNotify(
+        l10n.t("Failed to read ESP-IDF version from IDF_PATH"),
+        new Error(detail ?? "idf version error"),
+        "monitor configValidation idf_version_error"
+      );
+      return;
+    case "no_idf_target":
+      Logger.infoNotify("IDF_TARGET is not defined.", {
+        category: "monitor configValidation no_idf_target",
+      });
+      return;
+    case "no_idf_monitor": {
+      const pathMsg = detail
+        ? `${detail} is not defined`
+        : "idf_monitor.py is not defined";
+      Logger.errorNotify(
+        pathMsg,
+        new Error(pathMsg),
+        "monitor configValidation no_idf_monitor"
+      );
+      return;
+    }
+    case "elf_path_error":
+      Logger.errorNotify(
+        l10n.t("Failed to get project ELF file path"),
+        new Error(detail ?? "ELF path error"),
+        "monitor configValidation elf_path_error"
+      );
+      return;
+    default: {
+      const unexpectedReason: never = reason;
+      Logger.errorNotify(
+        l10n.t("Unexpected monitor launch failure reason"),
+        new Error(String(unexpectedReason)),
+        "monitor configValidation unexpected_reason"
+      );
+      return;
+    }
   }
 }
