@@ -18,6 +18,7 @@
 
 import {
   ExtensionContext,
+  TreeItemCheckboxState,
   Uri,
   workspace,
   WorkspaceFolder,
@@ -27,17 +28,40 @@ export class ExtensionConfigStore {
   private static self: ExtensionConfigStore;
   private static readonly SELECTED_WORKSPACE_FOLDER =
     "SELECTED_WORKSPACE_FOLDER";
+  /** Current key; must stay aligned with `CommandKeys.SelectFlashType` in cmdStore. */
+  private static readonly SELECT_FLASH_TYPE_CHECKBOX_KEY =
+    "espIdf.selectFlashMethod";
   private ctx: ExtensionContext;
 
   public static init(context: ExtensionContext): ExtensionConfigStore {
     if (!this.self) {
       this.self = new ExtensionConfigStore(context);
+      this.self.migrateLegacySelectFlashTypeCheckboxKey();
     }
     return this.self;
   }
   private constructor(context: ExtensionContext) {
     this.ctx = context;
   }
+
+  /**
+   * Copies explorer checkbox state from the pre-rename globalState key so existing
+   * installs keep visibility preference for "Select Flash Method".
+   */
+  private migrateLegacySelectFlashTypeCheckboxKey(): void {
+    const newKey = ExtensionConfigStore.SELECT_FLASH_TYPE_CHECKBOX_KEY;
+    if (this.get<TreeItemCheckboxState>(newKey) !== undefined) {
+      return;
+    }
+    const legacyKey = "espIdf.selectFlashMethodAndFlash";
+    const legacyValue = this.get<TreeItemCheckboxState>(legacyKey);
+    if (legacyValue === undefined) {
+      return;
+    }
+    this.set(newKey, legacyValue);
+    this.clear(legacyKey);
+  }
+
   public get<T>(key: string): T | undefined;
   public get<T>(key: string, defaultValue: T): T;
   public get<T>(key: string, defaultValue?: T): T | undefined {

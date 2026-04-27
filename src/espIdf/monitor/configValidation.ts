@@ -64,6 +64,14 @@ export function logInvalidConfigReason(result: LoadMonitorLaunchConfigResult) {
     );
     return;
   }
+  if (reason === "idf_version_error") {
+    Logger.errorNotify(
+      l10n.t("Failed to read ESP-IDF version from IDF_PATH"),
+      new Error(detail ?? "idf version error"),
+      "createNewIdfMonitor getEspIdfFromCMake"
+    );
+    return;
+  }
   if (reason === "no_idf_target") {
     Logger.infoNotify("IDF_TARGET is not defined.");
     return;

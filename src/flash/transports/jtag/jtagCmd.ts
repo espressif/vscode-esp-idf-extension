@@ -41,35 +41,36 @@ export async function jtagFlashCommandMain(
   if (FlashSession.isFlashing) {
     throw new Error("ALREADY_FLASHING");
   }
-  const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
-  if (!isOpenOCDLaunched) {
-    const errStr =
-      "Can't perform JTAG flash, because OpenOCD server is not running!";
-    OutputChannel.appendLineAndShow(errStr, "Flash");
-    Logger.warnNotify(errStr);
-    return { continueFlag: false, executions: [] };
-  }
-  const host = readParameter("openocd.tcl.host", workspace);
-  const port = readParameter("openocd.tcl.port", workspace);
-  const client = new TCLClient({ host, port });
-
-  // Add verification step before flashing
-  let isReady = false;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    isReady = await client.verifyOpenOCDReady();
-    if (isReady) break;
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  }
-  if (!isReady) {
-    const errStr = "OpenOCD is not ready to accept commands. Please try again.";
-    OutputChannel.appendLineAndShow(errStr, "JTAG Flash");
-    Logger.warnNotify(errStr);
-    client.stop();
-    return { continueFlag: false, executions: [] };
-  }
-
   FlashSession.isFlashing = true;
+  let client: TCLClient | undefined;
   try {
+    const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
+    if (!isOpenOCDLaunched) {
+      const errStr =
+        "Can't perform JTAG flash, because OpenOCD server is not running!";
+      OutputChannel.appendLineAndShow(errStr, "Flash");
+      Logger.warnNotify(errStr);
+      return { continueFlag: false, executions: [] };
+    }
+    const host = readParameter("openocd.tcl.host", workspace);
+    const port = readParameter("openocd.tcl.port", workspace);
+    client = new TCLClient({ host, port });
+
+    // Add verification step before flashing
+    let isReady = false;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      isReady = await client.verifyOpenOCDReady();
+      if (isReady) break;
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    if (!isReady) {
+      const errStr = "OpenOCD is not ready to accept commands. Please try again.";
+      OutputChannel.appendLineAndShow(errStr, "JTAG Flash");
+      Logger.warnNotify(errStr);
+      client.stop();
+      return { continueFlag: false, executions: [] };
+    }
+
     const forceUNIXPathSeparator = readParameter(
       "openocd.jtag.command.force_unix_path_separator",
       workspace
@@ -116,6 +117,6 @@ export async function jtagFlashCommandMain(
     };
   } finally {
     FlashSession.isFlashing = false;
-    client.stop();
+    client?.stop();
   }
 }

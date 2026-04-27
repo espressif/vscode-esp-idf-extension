@@ -27,6 +27,7 @@ export type MonitorLaunchFailureReason =
   | "no_port"
   | "no_python"
   | "no_idf_path"
+  | "idf_version_error"
   | "no_idf_monitor"
   | "no_idf_target"
   | "elf_path_error";
@@ -36,7 +37,7 @@ export type LoadMonitorLaunchConfigResult =
   | {
       ok: false;
       reason: MonitorLaunchFailureReason;
-      /** e.g. idf_monitor.py path when reason is no_idf_monitor */
+      /** e.g. idf_monitor.py path when reason is no_idf_monitor; error text for idf_version_error / elf_path_error */
       detail?: string;
     };
 
@@ -71,7 +72,17 @@ export async function loadMonitorLaunchConfig(
   if (!idfPath) {
     return { ok: false, reason: "no_idf_path" };
   }
-  const idfVersion = await getEspIdfFromCMake(idfPath);
+  let idfVersion: string;
+  try {
+    idfVersion = await getEspIdfFromCMake(idfPath);
+  } catch (error) {
+    return {
+      ok: false,
+      reason: "idf_version_error",
+      detail:
+        error instanceof Error ? error.message : "getEspIdfFromCMake failed",
+    };
+  }
   const sdkMonitorBaudRate = await getMonitorBaudRate(workspaceFolder.uri);
   const idfMonitorToolPath = join(idfPath, "tools", "idf_monitor.py");
   if (!canAccessFile(idfMonitorToolPath, R_OK)) {
