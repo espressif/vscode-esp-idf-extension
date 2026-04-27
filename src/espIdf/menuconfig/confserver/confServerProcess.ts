@@ -20,17 +20,32 @@ import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
 import * as path from "path";
 import * as vscode from "vscode";
-import * as idfConf from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
-import { delConfigFile, isStringNotEmpty } from "../../utils";
-import { KconfigMenuLoader } from "./kconfigMenuLoader";
-import { Menu, menuType } from "./Menu";
-import { MenuConfigPanel } from "./MenuconfigPanel";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
-import { configureEnvVariables } from "../../common/prepareEnv";
-import { ESP } from "../../config";
-import { getSDKConfigFilePath } from "../../workspaceConfig";
+import * as idfConf from "../../../idfConfiguration";
+import { Logger } from "../../../logger/logger";
+import { OutputChannel } from "../../../logger/outputChannel";
+import { delConfigFile, isStringNotEmpty } from "../../../utils";
+import { KconfigMenuLoader } from "../kconfigMenus/loader";
+import { Menu } from "../Menu";
+import { MenuConfigPanel } from "../panel/panel";
+import { getVirtualEnvPythonPath } from "../../../pythonManager";
+import { configureEnvVariables } from "../../../common/prepareEnv";
+import { ESP } from "../../../config";
+import { getSDKConfigFilePath } from "../../../workspaceConfig";
+import {
+  parseConfserverJsonChunk,
+  ConfserverJsonStreamResult,
+} from "./streamJsonParser";
+import {
+  buildLoadRequest,
+  buildResetRequest,
+  buildSaveRequest,
+  buildSetRequest,
+} from "./protocol";
+import { buildConfserverArgs, buildReconfigureArgs } from "./idfPyArgsBuilder";
+import {
+  parseConfserverValues,
+  updateMenusWithValues,
+} from "../kconfigMenus/kconfigMenuUpdater";
 
 export class ConfserverProcess {
   public static async initWithProgress(
@@ -132,57 +147,24 @@ export class ConfserverProcess {
     if (!ConfserverProcess.instance) {
       return [];
     }
-    const jsonValues = JSON.parse(values);
-    const newKconfigMenus: Menu[] = [];
-    for (const config of ConfserverProcess.instance.kconfigsMenus) {
-      const resConfig = KconfigMenuLoader.updateValues(config, jsonValues);
-      newKconfigMenus.push(resConfig);
-    }
-    ConfserverProcess.instance.kconfigsMenus = [];
-    ConfserverProcess.instance.kconfigsMenus = newKconfigMenus;
+    const jsonValues = parseConfserverValues(values);
+    ConfserverProcess.instance.kconfigsMenus = updateMenusWithValues(
+      ConfserverProcess.instance.kconfigsMenus,
+      jsonValues
+    );
     return ConfserverProcess.instance.kconfigsMenus;
   }
 
   public static resetElementById(id: string) {
-    let resetValueRequest = `{"version": 3, "reset": [ "${id}" ]}\n`;
-    ConfserverProcess.sendUpdatedValue(resetValueRequest);
+    ConfserverProcess.sendUpdatedValue(buildResetRequest([id]));
   }
 
   public static resetElementChildren(children: string[]) {
-    let resetValueRequest = `{"version": 3, "reset": [ "${children.join(
-      '", "'
-    )}" ]}\n`;
-    ConfserverProcess.sendUpdatedValue(resetValueRequest);
+    ConfserverProcess.sendUpdatedValue(buildResetRequest(children));
   }
 
   public static setUpdatedValue(updatedValue: Menu) {
-    let newValueRequest: string;
-    switch (updatedValue.type) {
-      case menuType.choice:
-        newValueRequest = `{"version": 2, "set": { "${updatedValue.value}": true }}\n`;
-        break;
-      case menuType.string:
-        newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": "${updatedValue.value}" }}\n`;
-        break;
-      case menuType.hex:
-        newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": "${
-          updatedValue.value || "0"
-        }" }}\n`;
-        break;
-      case menuType.int:
-        if (updatedValue.value === "") {
-          updatedValue.value =
-            updatedValue.range && updatedValue.range.length > 0
-              ? updatedValue.range[0]
-              : 0;
-        }
-        newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": ${updatedValue.value} }}\n`;
-        break;
-      default:
-        newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": ${updatedValue.value} }}\n`;
-        break;
-    }
-    ConfserverProcess.sendUpdatedValue(newValueRequest);
+    ConfserverProcess.sendUpdatedValue(buildSetRequest(updatedValue));
   }
 
   public static sendUpdatedValue(newValueRequest: string) {
@@ -206,13 +188,9 @@ export class ConfserverProcess {
     }
     ConfserverProcess.instance.isSavingSdkconfig = true;
     const configFile = ConfserverProcess.instance.readSdkconfigFilePath();
-    const saveRequest = JSON.stringify({
-      version: 2,
-      save: configFile,
-    });
+    const saveRequest = buildSaveRequest(configFile);
     OutputChannel.appendLine(saveRequest, "SDK Configuration Editor");
     ConfserverProcess.instance.confServerProcess?.stdin?.write(saveRequest);
-    ConfserverProcess.instance.confServerProcess?.stdin?.write("\n");
     ConfserverProcess.instance.areValuesSaved = true;
   }
 
@@ -221,13 +199,9 @@ export class ConfserverProcess {
       return;
     }
     const configFile = ConfserverProcess.instance.readSdkconfigFilePath();
-    const loadRequest = JSON.stringify({
-      version: 2,
-      load: configFile,
-    });
+    const loadRequest = buildLoadRequest(configFile);
     OutputChannel.appendLine(loadRequest, "SDK Configuration Editor");
     ConfserverProcess.instance.confServerProcess?.stdin?.write(loadRequest);
-    ConfserverProcess.instance.confServerProcess?.stdin?.write("\n");
     if (isClosingWithoutSaving) {
       ConfserverProcess.instance.areValuesSaved = true;
     }
@@ -260,11 +234,6 @@ export class ConfserverProcess {
       "idf.enableCCache",
       currWorkspace
     ) as boolean;
-    const reconfigureArgs: string[] = [idfPyPath];
-    if (enableCCache) {
-      reconfigureArgs.push("--ccache");
-    }
-    reconfigureArgs.push("-C", currWorkspace.fsPath);
     const sdkconfigDefaults =
       (idfConf.readParameter(
         "idf.sdkconfigDefaults",
@@ -275,26 +244,12 @@ export class ConfserverProcess {
       "idf.sdkconfigFilePath",
       currWorkspace
     ) as string;
-    const hasSdkconfigArg = reconfigureArgs.some(
-      (arg, index) =>
-        arg.startsWith("-DSDKCONFIG=") ||
-        (arg === "-D" && reconfigureArgs[index + 1]?.startsWith("SDKCONFIG="))
-    );
-
-    if (sdkconfigFile && !hasSdkconfigArg) {
-      reconfigureArgs.push(`-DSDKCONFIG='${sdkconfigFile}'`);
-    }
-
-    if (
-      reconfigureArgs.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
-      sdkconfigDefaults &&
-      sdkconfigDefaults.length
-    ) {
-      reconfigureArgs.push(
-        `-DSDKCONFIG_DEFAULTS='${sdkconfigDefaults.join(";")}'`
-      );
-    }
-    reconfigureArgs.push("reconfigure");
+    const reconfigureArgs = buildReconfigureArgs(idfPyPath, {
+      enableCCache,
+      workspacePath: currWorkspace.fsPath,
+      sdkconfigFile,
+      sdkconfigDefaults,
+    });
     await delConfigFile(currWorkspace);
 
     const getSdkconfigProcess = spawn(pythonBinPath, reconfigureArgs, {
@@ -402,15 +357,10 @@ export class ConfserverProcess {
       "idf.enableCCache",
       workspaceFolder
     ) as boolean;
-    const confServerArgs: string[] = [idfPath];
-    if (enableCCache) {
-      confServerArgs.push("--ccache");
-    }
     const buildDirPath = idfConf.readParameter(
       "idf.buildPath",
       workspaceFolder
     ) as string;
-    confServerArgs.push("-B", buildDirPath);
     const sdkconfigDefaults =
       (idfConf.readParameter(
         "idf.sdkconfigDefaults",
@@ -421,26 +371,13 @@ export class ConfserverProcess {
       "idf.sdkconfigFilePath",
       workspaceFolder
     ) as string;
-    const hasSdkconfigArg = confServerArgs.some(
-      (arg, index) =>
-        arg.startsWith("-DSDKCONFIG=") ||
-        (arg === "-D" && confServerArgs[index + 1]?.startsWith("SDKCONFIG="))
-    );
-
-    if (sdkconfigFile && !hasSdkconfigArg) {
-      confServerArgs.push(`-DSDKCONFIG='${sdkconfigFile}'`);
-    }
-
-    if (
-      confServerArgs.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
-      sdkconfigDefaults &&
-      sdkconfigDefaults.length
-    ) {
-      confServerArgs.push(
-        `-DSDKCONFIG_DEFAULTS='${sdkconfigDefaults.join(";")}'`
-      );
-    }
-    confServerArgs.push("-C", workspaceFolder.fsPath, "confserver");
+    const confServerArgs = buildConfserverArgs(idfPath, {
+      enableCCache,
+      workspacePath: workspaceFolder.fsPath,
+      buildDirPath,
+      sdkconfigFile,
+      sdkconfigDefaults,
+    });
 
     const pythonBinPath = getVirtualEnvPythonPath();
     if (!pythonBinPath) {
@@ -473,20 +410,20 @@ export class ConfserverProcess {
   }
 
   private checkIfJsonIsReceived() {
-    const newValuesJsonReceived = this.receivedDataBuffer.match(
-      /(\{[.\s\S]*?\}\})/g
+    const streamResult: ConfserverJsonStreamResult = parseConfserverJsonChunk(
+      "",
+      this.receivedDataBuffer
     );
-    if (newValuesJsonReceived !== null && newValuesJsonReceived.length > 0) {
-      const lastIndex = newValuesJsonReceived.length - 1;
+    this.receivedDataBuffer = streamResult.remainingBuffer;
+    if (streamResult.latestJson) {
       if (this.jsonListener) {
         ConfserverProcess.instance?.emitter.emit("valuesLoaded");
-        this.jsonListener(newValuesJsonReceived[lastIndex]);
+        this.jsonListener(streamResult.latestJson);
       } else {
         this.printError(
           "Confserver listener doesn't exist. Error with MenuconfigPanel?"
         );
       }
-      this.receivedDataBuffer = "";
     }
   }
 
@@ -495,12 +432,8 @@ export class ConfserverProcess {
     // Kconfig configurations are built into JS Objects (Class Menu)
     // without values and visibility. Those are lazy loaded from confServerProcess
     const configObjects = configLoader.initMenuconfigServer();
-    this.kconfigsMenus = [];
-    const jsonValues = JSON.parse(values);
-    for (const config of configObjects) {
-      const resConfig = KconfigMenuLoader.updateValues(config, jsonValues);
-      this.kconfigsMenus.push(resConfig);
-    }
+    const jsonValues = parseConfserverValues(values);
+    this.kconfigsMenus = updateMenusWithValues(configObjects, jsonValues);
 
     if (jsonValues && jsonValues.version) {
       ConfserverProcess.confserverVersion = jsonValues.version;
