@@ -106,7 +106,6 @@ export async function buildMain(
       ))
     ) {
       cleanupBuildState();
-      await throwCapturedTaskFailure(executions);
       return { continueFlag: false, executions };
     }
     const postBuildExecution = await customTask.addCustomTask(
