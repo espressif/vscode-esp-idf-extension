@@ -14,11 +14,12 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
-import { Logger } from "../../logger/logger";
-import { getWebViewFavicon } from "../../utils";
-import { ConfserverProcess } from "./confServerProcess";
-import { Menu } from "./Menu";
-import { NotificationMode, readParameter } from "../../idfConfiguration";
+import { Logger } from "../../../logger/logger";
+import { getWebViewFavicon } from "../../../utils";
+import { ConfserverProcess } from "../confserver/confServerProcess";
+import { Menu } from "../Menu";
+import { NotificationMode, readParameter } from "../../../idfConfiguration";
+import { createMenuconfigPanelController } from "./controller";
 
 export class MenuConfigPanel {
   public static currentPanel: MenuConfigPanel | undefined;
@@ -132,113 +133,31 @@ export class MenuConfigPanel {
       this.disposables
     );
 
-    this.panel.webview.onDidReceiveMessage(async (message) => {
-      switch (message.command) {
-        case "updateValue":
-          ConfserverProcess.setUpdatedValue(
-            JSON.parse(message.updated_value) as Menu
-          );
-          break;
-        case "resetElement":
-          ConfserverProcess.resetElementById(message.id);
-          break;
-        case "resetElementChildren":
-          ConfserverProcess.resetElementChildren(message.children);
-          break;
-        case "setDefault":
-          if (ConfserverProcess.confserverVersion >= 3) {
-            ConfserverProcess.resetElementById("all");
-          } else {
-            const changesNotSavedMessage = vscode.l10n.t(
-              "This action will delete your project sdkconfig. Continue?"
-            );
-            const yesMsg = vscode.l10n.t("Save");
-            const noMsg = vscode.l10n.t("Discard");
-            const isModal = process.platform !== "win32" ? true : false;
-            const selected = await vscode.window.showInformationMessage(
-              changesNotSavedMessage,
-              { modal: isModal },
-              { title: yesMsg, isCloseAffordance: false },
-              { title: noMsg, isCloseAffordance: true }
-            );
-            if (selected && selected.title === yesMsg) {
-              const notificationMode = readParameter(
-                "idf.notificationMode",
-                this.curWorkspaceFolder
-              ) as string;
-              const ProgressLocation =
-                notificationMode === NotificationMode.All ||
-                notificationMode === NotificationMode.Notifications
-                  ? vscode.ProgressLocation.Notification
-                  : vscode.ProgressLocation.Window;
-              vscode.window.withProgress(
-                {
-                  cancellable: true,
-                  location: ProgressLocation,
-                  title: "ESP-IDF: SDK Configuration editor",
-                },
-                async (
-                  progress: vscode.Progress<{
-                    message: string;
-                    increment: number;
-                  }>
-                ) => {
-                  try {
-                    await ConfserverProcess.setDefaultValues(
-                      extensionPath,
-                      progress
-                    );
-                  } catch (error) {
-                    const errMsg =
-                      error && typeof error === "object" && "message" in error
-                        ? (error as Error).message
-                        : String(error);
-                    Logger.errorNotify(
-                      errMsg,
-                      error as Error,
-                      "MenuConfigPanel setDefaultValues"
-                    );
-                  }
-                }
-              );
-            }
-          }
-          break;
-        case "saveChanges": {
-          ConfserverProcess.saveGuiConfigValues();
-          const saveMessage = vscode.l10n.t(
-            "Saved changes in SDK Configuration editor"
-          );
-          Logger.infoNotify(saveMessage);
-          break;
-        }
-        case "discardChanges": {
-          ConfserverProcess.loadGuiConfigValues();
-          const discardMessage = vscode.l10n.t(
-            "Discarded changes in SDK Configuration editor"
-          );
-          Logger.infoNotify(discardMessage);
-          break;
-        }
-        case "requestInitValues":
-          MenuConfigPanel.currentPanel?.panel.webview.postMessage({
-            command: "load_initial_values",
-            menus: initialValues,
-            version: ConfserverProcess.confserverVersion,
-          });
-          break;
-        default:
-          const err = new Error(
-            `Menuconfig: Unrecognized command received, file: ${__filename}`
-          );
-          Logger.error(
-            err.message,
-            err,
-            "MenuconfigPanel Unrecognized command"
-          );
-          break;
-      }
+    const onWebviewMessage = createMenuconfigPanelController({
+      setUpdatedValue: (updatedValue: Menu) =>
+        ConfserverProcess.setUpdatedValue(updatedValue),
+      resetElementById: (id: string) => ConfserverProcess.resetElementById(id),
+      resetElementChildren: (children: string[]) =>
+        ConfserverProcess.resetElementChildren(children),
+      setDefault: async () => this.handleSetDefault(extensionPath),
+      saveChanges: () => {
+        ConfserverProcess.saveGuiConfigValues();
+        const saveMessage = vscode.l10n.t(
+          "Saved changes in SDK Configuration editor"
+        );
+        Logger.infoNotify(saveMessage);
+      },
+      discardChanges: () => {
+        ConfserverProcess.loadGuiConfigValues();
+        const discardMessage = vscode.l10n.t(
+          "Discarded changes in SDK Configuration editor"
+        );
+        Logger.infoNotify(discardMessage);
+      },
+      requestInitValues: () => this.postInitialValues(initialValues),
+      onUnknownCommand: this.reportUnknownCommand,
     });
+    this.panel.webview.onDidReceiveMessage(onWebviewMessage);
   }
 
   public dispose() {
@@ -264,6 +183,79 @@ export class MenuConfigPanel {
       command: "update_values",
       updated_values: updatedMenus,
     });
+  }
+
+  private postInitialValues(initialValues: Menu[]) {
+    MenuConfigPanel.currentPanel?.panel.webview.postMessage({
+      command: "load_initial_values",
+      menus: initialValues,
+      version: ConfserverProcess.confserverVersion,
+    });
+  }
+
+  private reportUnknownCommand() {
+    const err = new Error(
+      `Menuconfig: Unrecognized command received, file: ${__filename}`
+    );
+    Logger.error(err.message, err, "MenuconfigPanel Unrecognized command");
+  }
+
+  private async handleSetDefault(extensionPath: string) {
+    if (ConfserverProcess.confserverVersion >= 3) {
+      ConfserverProcess.resetElementById("all");
+      return;
+    }
+    const changesNotSavedMessage = vscode.l10n.t(
+      "This action will delete your project sdkconfig. Continue?"
+    );
+    const yesMsg = vscode.l10n.t("Save");
+    const noMsg = vscode.l10n.t("Discard");
+    const isModal = process.platform !== "win32" ? true : false;
+    const selected = await vscode.window.showInformationMessage(
+      changesNotSavedMessage,
+      { modal: isModal },
+      { title: yesMsg, isCloseAffordance: false },
+      { title: noMsg, isCloseAffordance: true }
+    );
+    if (!selected || selected.title !== yesMsg) {
+      return;
+    }
+    const notificationMode = readParameter(
+      "idf.notificationMode",
+      this.curWorkspaceFolder
+    ) as string;
+    const progressLocation =
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
+    await vscode.window.withProgress(
+      {
+        cancellable: true,
+        location: progressLocation,
+        title: "ESP-IDF: SDK Configuration editor",
+      },
+      async (
+        progress: vscode.Progress<{
+          message: string;
+          increment: number;
+        }>
+      ) => {
+        try {
+          await ConfserverProcess.setDefaultValues(extensionPath, progress);
+        } catch (error) {
+          const errMsg =
+            error && typeof error === "object" && "message" in error
+              ? (error as Error).message
+              : String(error);
+          Logger.errorNotify(
+            errMsg,
+            error as Error,
+            "MenuConfigPanel setDefaultValues"
+          );
+        }
+      }
+    );
   }
 
   private createMenuconfigHtml(scriptPath: vscode.Uri) {
