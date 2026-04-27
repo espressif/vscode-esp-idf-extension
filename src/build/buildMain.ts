@@ -82,7 +82,6 @@ export async function buildMain(
     }
     cancelSubscription = cancelToken.onCancellationRequested(() => {
       TaskManager.cancelTasks();
-      cleanupBuildState();
     });
     const preBuildExecution = await customTask.addCustomTask(
       CustomTaskType.PreBuild,
@@ -106,7 +105,6 @@ export async function buildMain(
         captureOutput
       ))
     ) {
-      cleanupBuildState();
       return { continueFlag: false, executions };
     }
     const postBuildExecution = await customTask.addCustomTask(
@@ -134,15 +132,12 @@ export async function buildMain(
         OutputChannel.appendLine(flashCmd, "Build");
       }
     }
-    cleanupBuildState();
-
     return {
       continueFlag:
         buildResult && sizeResult && !cancelToken.isCancellationRequested,
       executions,
     };
   } catch (error) {
-    cleanupBuildState();
     if (error instanceof Error && error.message === "ALREADY_BUILDING") {
       Logger.errorNotify(
         "Already a build is running!",
@@ -165,5 +160,6 @@ export async function buildMain(
     return { continueFlag: false, executions };
   } finally {
     cancelSubscription?.dispose();
+    cleanupBuildState();
   }
 }
