@@ -18,12 +18,16 @@
 
 import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
-import { existsSync } from "fs";
+import { accessSync, constants, lstatSync } from "fs";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
-import { isBinInPath, PreCheck, spawn as sspawn } from "../../utils";
+import {
+  isBinInPath,
+  PreCheck,
+  spawn as sspawn,
+} from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 import { ESP } from "../../config";
 import {
@@ -50,11 +54,19 @@ export class OpenOCDManager extends EventEmitter {
     workspace: vscode.Uri,
     modifiedEnv: { [Key: string]: string }
   ): Promise<string> {
-    const customOpenOcdPath = (
-      idfConf.readParameter("idf.customOpenOCDPath", workspace) as string
-    )?.trim();
-    if (customOpenOcdPath && existsSync(customOpenOcdPath)) {
-      return customOpenOcdPath;
+    const customOpenOcdPath = (idfConf.readParameter(
+      "idf.customOpenOCDPath",
+      workspace
+    ) as string)?.trim();
+    if (customOpenOcdPath) {
+      try {
+        if (lstatSync(customOpenOcdPath).isFile()) {
+          accessSync(customOpenOcdPath, constants.X_OK);
+          return customOpenOcdPath;
+        }
+      } catch (_error) {
+        // Fall through to PATH lookup when the configured file is invalid.
+      }
     }
     const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
       "openocd-esp32",

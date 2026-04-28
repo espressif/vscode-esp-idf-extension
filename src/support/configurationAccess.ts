@@ -62,7 +62,7 @@ export async function getConfigurationAccess(
   if (reportedResult.configurationSettings.customOpenOcdPath) {
     reportedResult.configurationAccess.customOpenOcdPath = canAccessFile(
       reportedResult.configurationSettings.customOpenOcdPath,
-      constants.R_OK,
+      constants.X_OK,
       "CUSTOM_OPENOCD_PATH"
     );
   }

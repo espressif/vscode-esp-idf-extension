@@ -47,48 +47,42 @@ export class DevkitsCommand {
         throw new Error("No workspace folder found");
       }
 
-      const modifiedEnv = await configureEnvVariables(this.workspaceFolderUri);
-      const openOcdPath = await OpenOCDManager.getOpenOcdPath(
-        this.workspaceFolderUri,
-        modifiedEnv
-      );
-
-      if (!openOcdPath || !openOCDVersion) {
-        throw new Error("Could not get toolsPath or OpenOCD version");
+      if (!openOCDVersion) {
+        throw new Error("Could not get OpenOCD version");
       }
-
-      const scriptPath = join(
-        openOcdPath,
-        "..",
-        "..",
-        "share",
-        "openocd",
-        "espressif",
-        "tools",
-        "esp_detect_config.py"
-      );
-
+      
+      const scriptPath = await this.getScriptPath(openOCDVersion);
+      if (!scriptPath) {
+        throw new Error(
+          "Could not locate esp_detect_config.py for the current OpenOCD installation"
+        );
+      }
+      
       const openOcdScriptsPath = await getOpenOcdScripts(
         this.workspaceFolderUri
       );
       if (!openOcdScriptsPath) {
         throw new Error("Could not get OpenOCD scripts path");
       }
-
+      
       const espConfigPath = join(openOcdScriptsPath, "esp-config.json");
-
+      
       const notificationMode = idfConf.readParameter(
         "idf.notificationMode",
         this.workspaceFolderUri
       ) as string;
-
+      
       const ProgressLocation =
-        notificationMode === idfConf.NotificationMode.All ||
-        notificationMode === idfConf.NotificationMode.Notifications
-          ? vscode.ProgressLocation.Notification
-          : vscode.ProgressLocation.Window;
-
-      const pythonBinPath = await getVirtualEnvPythonPath();
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+      ? vscode.ProgressLocation.Notification
+      : vscode.ProgressLocation.Window;
+      
+      const pythonBinPath = getVirtualEnvPythonPath();
+      if (!pythonBinPath) {
+        throw new Error("Could not get Python binary path");
+      }
+      const modifiedEnv = await configureEnvVariables(this.workspaceFolderUri);
 
       // Remove OPENOCD_USB_ADAPTER_LOCATION from environment during device detection
       // to allow scanning all available devices, not just the one at the configured location
@@ -140,10 +134,10 @@ export class DevkitsCommand {
             vscode.window.showInformationMessage("ESP Detect Config completed");
             return result;
           } catch (error) {
-            const msg = error.message
+            const msg = error instanceof Error && error.message
               ? error.message
               : "Error running ESP Detect Config";
-            Logger.errorNotify(msg, error, "DevkitsCommand");
+            Logger.errorNotify(msg, error as Error, "DevkitsCommand");
             OutputChannel.appendLine(msg, "ESP Detect Config");
             OutputChannel.show();
             throw error;
@@ -151,14 +145,14 @@ export class DevkitsCommand {
         }
       );
     } catch (error) {
-      const msg = error.message
+      const msg = error instanceof Error && error.message
         ? error.message
         : "Error running ESP Detect Config";
       if (opts?.silent) {
-        Logger.error(msg, error, "DevkitsCommand");
+        Logger.error(msg, error as Error, "DevkitsCommand");
         throw error;
       } else {
-        Logger.errorNotify(msg, error, "DevkitsCommand");
+        Logger.errorNotify(msg, error as Error, "DevkitsCommand");
         OutputChannel.appendLine(msg, "ESP Detect Config");
         OutputChannel.show();
       }

@@ -73,7 +73,7 @@ export async function writeTextReport(
   output += `Flash type (idf.flashType) ${reportedResult.configurationSettings.flashType}${EOL}`;
   output += `Flash partition to use (idf.flashPartitionToUse) ${reportedResult.configurationSettings.flashPartitionToUse}${EOL}`;
   if (reportedResult.configurationSettings.customOpenOcdPath) {
-    output += `Custom OpenOCD path (idf.customOpenOcdPath) ${reportedResult.configurationSettings.customOpenOcdPath}${EOL}`;
+    output += `Custom OpenOCD path (idf.customOpenOCDPath) ${reportedResult.configurationSettings.customOpenOcdPath}${EOL}`;
   }
   if (reportedResult.configurationSettings.customTerminalExecutable) {
     output += `Custom terminal executable (idf.customTerminalExecutable) ${reportedResult.configurationSettings.customTerminalExecutable}${EOL}`;
@@ -96,7 +96,7 @@ export async function writeTextReport(
   output += `Access to Ninja in environment PATH ${reportedResult.configurationAccess.ninjaInEnv}${EOL}`;
   output += `Access to ESP-IDF Tools Path ${reportedResult.configurationAccess.toolsPath}${EOL}`;
   if (reportedResult.configurationSettings.customOpenOcdPath) {
-    output += `Custom OpenOCD path (idf.customOpenOcdPath) ${reportedResult.configurationAccess.customOpenOcdPath}${EOL}`;
+    output += `Access to Custom OpenOCD path (idf.customOpenOCDPath) ${reportedResult.configurationAccess.customOpenOcdPath}${EOL}`;
   }
   output += `-------------------------------------------------------- Configurations has spaces -------------------------------------------------------------${EOL}`;
   output += `Spaces in system environment Path ${reportedResult.configurationSpacesValidation.systemEnvPath}${EOL}`;
