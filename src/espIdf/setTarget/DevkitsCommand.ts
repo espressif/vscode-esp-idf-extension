@@ -23,7 +23,7 @@ import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
-import { execChildProcess, isBinInPath } from "../../utils";
+import { execChildProcess } from "../../utils";
 import { OutputChannel } from "../../logger/outputChannel";
 import { getOpenOcdScripts } from "../openOcd/boardConfiguration";
 import { configureEnvVariables } from "../../common/prepareEnv";
@@ -47,11 +47,22 @@ export class DevkitsCommand {
         throw new Error("No workspace folder found");
       }
 
-      if (!openOCDVersion) {
-        throw new Error("Could not get OpenOCD version");
+      const modifiedEnv = await configureEnvVariables(this.workspaceFolderUri);
+      const openOcdPath = await OpenOCDManager.getOpenOcdPath(
+        this.workspaceFolderUri,
+        modifiedEnv
+      );
+      if (!openOcdPath) {
+        throw new Error("Could not resolve OpenOCD binary path");
       }
-      
-      const scriptPath = await this.getScriptPath(openOCDVersion);
+
+      if (!openOCDVersion) {
+        Logger.info(
+          "OpenOCD version is unavailable. Continuing script discovery using the OpenOCD binary path."
+        );
+      }
+
+      const scriptPath = await this.getScriptPath(openOcdPath);
       if (!scriptPath) {
         throw new Error(
           "Could not locate esp_detect_config.py for the current OpenOCD installation"
@@ -82,7 +93,6 @@ export class DevkitsCommand {
       if (!pythonBinPath) {
         throw new Error("Could not get Python binary path");
       }
-      const modifiedEnv = await configureEnvVariables(this.workspaceFolderUri);
 
       // Remove OPENOCD_USB_ADAPTER_LOCATION from environment during device detection
       // to allow scanning all available devices, not just the one at the configured location
@@ -137,7 +147,7 @@ export class DevkitsCommand {
             const msg = error instanceof Error && error.message
               ? error.message
               : "Error running ESP Detect Config";
-            Logger.errorNotify(msg, error as Error, "DevkitsCommand");
+            Logger.error(msg, error as Error, "DevkitsCommand");
             OutputChannel.appendLine(msg, "ESP Detect Config");
             OutputChannel.show();
             throw error;
@@ -152,22 +162,16 @@ export class DevkitsCommand {
         Logger.error(msg, error as Error, "DevkitsCommand");
         throw error;
       } else {
-        Logger.errorNotify(msg, error as Error, "DevkitsCommand");
+        Logger.error(msg, error as Error, "DevkitsCommand");
         OutputChannel.appendLine(msg, "ESP Detect Config");
         OutputChannel.show();
       }
     }
   }
 
-  public async getScriptPath(openOCDVersion: string): Promise<string | null> {
+  public async getScriptPath(openOcdPath: string): Promise<string | null> {
     try {
-      const modifiedEnv = await configureEnvVariables(this.workspaceFolderUri);
-      const openOcdPath = await OpenOCDManager.getOpenOcdPath(
-        this.workspaceFolderUri,
-        modifiedEnv
-      );
-
-      if (!openOcdPath || !openOCDVersion) {
+      if (!openOcdPath) {
         return null;
       }
 

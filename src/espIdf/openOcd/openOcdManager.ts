@@ -18,7 +18,7 @@
 
 import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
-import { accessSync, constants, lstatSync } from "fs";
+import { accessSync, constants, statSync } from "fs";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
@@ -60,7 +60,7 @@ export class OpenOCDManager extends EventEmitter {
     ) as string)?.trim();
     if (customOpenOcdPath) {
       try {
-        if (lstatSync(customOpenOcdPath).isFile()) {
+        if (statSync(customOpenOcdPath).isFile()) {
           accessSync(customOpenOcdPath, constants.X_OK);
           return customOpenOcdPath;
         }
