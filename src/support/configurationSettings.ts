@@ -66,6 +66,7 @@ export async function getConfigurationSettings(
     espIdfPath: idfPathDir,
     customTerminalExecutable: conf.get("idf.customTerminalExecutable"),
     customTerminalExecutableArgs: conf.get("idf.customTerminalExecutableArgs"),
+    customOpenOcdPath: conf.get("idf.customOpenOcdPath"),
     flashType: conf.get("idf.flashType"),
     flashPartitionToUse: conf.get("idf.flashPartitionToUse"),
     customExtraPaths: currentEnvVars["PATH"],

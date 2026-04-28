@@ -27,6 +27,7 @@ export class ConfigurationAccess {
   cmakeInEnv: boolean;
   ninjaInEnv: boolean;
   toolsPath: boolean;
+  customOpenOcdPath: boolean;
 }
 export class Configuration {
   systemEnvPath: string;
@@ -48,6 +49,7 @@ export class Configuration {
   gitPath: string;
   customTerminalExecutable: string;
   customTerminalExecutableArgs: string[];
+  customOpenOcdPath: string;
 }
 
 export class ConfigurationSpacesValidation {

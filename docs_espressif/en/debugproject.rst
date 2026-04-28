@@ -92,6 +92,16 @@ For example, to add ``-c "init"`` to the OpenOCD command, set ``idf.openOcdLaunc
 
 In Visual Studio Code select menu **View** > **Output** > **ESP-IDF**. This output information is useful to know what is happening in the extension. For example, ``OpenOCD`` communication is displayed in this output.
 
+Using a Custom OpenOCD Path
+---------------------------
+By default the extension will use the OpenOCD installed in the ESP-IDF IDF_TOOLS_PATH directory. If you want to use a custom OpenOCD, you can set ``idf.customOpenOCDPath`` in your ``<project-directory>/.vscode/settings.json``. If this setting is empty or points to a path that does not exist, the extension will fallback to searching OpenOCD in ``PATH``.
+
+.. code-block:: JSON
+
+    {
+        "idf.customOpenOCDPath": "/path/to/your/openocd"
+    }
+
 Setting a Custom Application Image Offset
 -----------------------------------------
 

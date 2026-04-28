@@ -160,6 +160,7 @@
 	"param.notificationMode.silent": "Не показывать уведомления и не фокусировать вывод задач",
 	"param.openOcdConfigFilesList": "Список файлов конфигурации в каталоге скриптов OpenOCD",
 	"param.openOcdDebugLevel": "Уровень отладки сервера OpenOCD",
+	"param.customOpenOCDPath": "Абсолютный путь к пользовательскому исполняемому файлу OpenOCD. Если путь пустой или недействительный, расширение ищет OpenOCD в PATH",
 	"param.openOcdLaunchArgs": "Аргументы запуска openOCD из этого расширения",
 	"param.partialDarkTheme": "Цвет фона для частично покрытых линий в темной теме для покрытия ESP-IDF",
 	"param.partialLightTheme": "Цвет фона для частично покрытых линий в светлой теме для покрытия ESP-IDF",

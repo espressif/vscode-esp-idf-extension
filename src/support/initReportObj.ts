@@ -26,6 +26,7 @@ export function initializeReportObject() {
     flashType: undefined,
     flashPartitionToUse: undefined,
     customExtraPaths: undefined,
+    customOpenOcdPath: undefined,
     idfExtraVars: undefined,
     userExtraVars: undefined,
     customTerminalExecutable: undefined,
@@ -49,6 +50,7 @@ export function initializeReportObject() {
     cmakeInEnv: undefined,
     ninjaInEnv: undefined,
     toolsPath: undefined,
+    customOpenOcdPath: undefined,
   };
   report.configurationSpacesValidation = {
     customExtraPaths: undefined,

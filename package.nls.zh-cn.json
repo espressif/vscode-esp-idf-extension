@@ -155,6 +155,7 @@
 	"param.notificationMode.silent": "不显示通知和任务输出",
 	"param.openOcdConfigFilesList": "OpenOCD 脚本目录中的配置文件列表",
 	"param.openOcdDebugLevel": "OpenOCD 服务器调试级别",
+	"param.customOpenOCDPath": "自定义 OpenOCD 可执行文件的绝对路径。若为空或无效，扩展将从 PATH 中查找 OpenOCD",
 	"param.openOcdLaunchArgs": "从此扩展启动 OpenOCD 的参数",
 	"param.partialDarkTheme": "深色主题下 ESP-IDF 代码覆盖率报告中部分覆盖行的背景颜色",
 	"param.partialLightTheme": "浅色主题下 ESP-IDF 代码覆盖率报告中部分覆盖行的背景颜色",

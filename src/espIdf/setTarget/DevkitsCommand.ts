@@ -48,9 +48,10 @@ export class DevkitsCommand {
       }
 
       const modifiedEnv = await configureEnvVariables(this.workspaceFolderUri);
-      const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
-        "openocd-esp32",
-      ]);
+      const openOcdPath = await OpenOCDManager.getOpenOcdPath(
+        this.workspaceFolderUri,
+        modifiedEnv
+      );
 
       if (!openOcdPath || !openOCDVersion) {
         throw new Error("Could not get toolsPath or OpenOCD version");
@@ -167,9 +168,10 @@ export class DevkitsCommand {
   public async getScriptPath(openOCDVersion: string): Promise<string | null> {
     try {
       const modifiedEnv = await configureEnvVariables(this.workspaceFolderUri);
-      const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
-        "openocd-esp32",
-      ]);
+      const openOcdPath = await OpenOCDManager.getOpenOcdPath(
+        this.workspaceFolderUri,
+        modifiedEnv
+      );
 
       if (!openOcdPath || !openOCDVersion) {
         return null;
