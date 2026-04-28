@@ -15,7 +15,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Call clang restart server after compile_commands.json change](https://github.com/espressif/vscode-esp-idf-extension/pull/1769)
 - [Move extension settings in categories](https://github.com/espressif/vscode-esp-idf-extension/pull/1770)
 - [ESP32P4 PIE Registers support in debug session](https://github.com/espressif/vscode-esp-idf-extension/pull/1790)
-- [Refine EIM launch detection and remove GUI/CLI split commmands](https://github.com/espressif/vscode-esp-idf-extension/pull/1822)
+- [Refine EIM launch detection and remove GUI/CLI split commands](https://github.com/espressif/vscode-esp-idf-extension/pull/1822)
 
 ## Bug Fixes
 
