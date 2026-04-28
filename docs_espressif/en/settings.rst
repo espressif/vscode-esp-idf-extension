@@ -101,7 +101,7 @@ Flash
     * - **idf.flashPartitionToUse**
       - Partition to flash during build and flash (default: ``all``). Options: ``all``, ``app``, ``bootloader``, ``partition-table``. Scope: Resource.
     * - **idf.jtagFlashCommandExtraArgs**
-      - OpenOCD JTAG flash extra arguments (default: ``["verify", "compress", "skip_loaded", "reset"]``). Scope: Resource.
+      - OpenOCD JTAG flash extra arguments (default: ``["verify", "compress", "reset"]``). Scope: Resource.
     * - **idf.preFlashTask**
       - Command string to execute before flash task. Scope: Resource.
     * - **idf.postFlashTask**
