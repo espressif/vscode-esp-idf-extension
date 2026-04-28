@@ -93,7 +93,7 @@
     此适配器是 VS Code、配置的工具链 GDB 以及 OpenOCD 服务器之间的中间桥梁。可参考以下链接，查看 `乐鑫芯片调试工作原理 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/jtag-debugging/index.html#jtag-debugging-how-it-works>`_，以及 VS Code 如何使用 `调试适配器 <https://microsoft.github.io/debug-adapter-protocol/overview>`_ 与不同调试工具进行通信。
 
 使用自定义 OpenOCD 路径
-----------------------
+--------------------------------
 默认情况下，扩展会使用安装在 ESP-IDF IDF_TOOLS_PATH 目录中的 OpenOCD。如果你希望使用自定义 OpenOCD，可在 ``<project-directory>/.vscode/settings.json`` 中设置 ``idf.customOpenOCDPath``。如果该设置为空，或指向不存在的路径，扩展会回退为在 ``PATH`` 中查找 OpenOCD。
 
 .. code-block:: JSON
