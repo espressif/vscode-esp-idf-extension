@@ -8,6 +8,30 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [2.1.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.1.0)
+
+## Features and enhancements
+
+- [Call clang restart server after compile_commands.json change](https://github.com/espressif/vscode-esp-idf-extension/pull/1769)
+- [Move extension settings in categories](https://github.com/espressif/vscode-esp-idf-extension/pull/1770)
+- [ESP32P4 PIE Registers support in debug session](https://github.com/espressif/vscode-esp-idf-extension/pull/1790)
+- [Refine EIM launch detection and remove GUI/CLI split commmands](https://github.com/espressif/vscode-esp-idf-extension/pull/1822)
+
+## Bug Fixes
+
+- [Monitor Device typo in documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/1782) Thanks @gubertoli !
+- [Patch extension activation logic](https://github.com/espressif/vscode-esp-idf-extension/pull/1775)
+- [Fix End to end test output json for CI](https://github.com/espressif/vscode-esp-idf-extension/pull/1789)
+- [Fix rename chinese translation file](https://github.com/espressif/vscode-esp-idf-extension/pull/1810)
+- [Fix Hints yaml file path in ESP-IDF v6.0](https://github.com/espressif/vscode-esp-idf-extension/pull/1798)
+- [Fix VS Code Snap install activation issues Add CLI install commands](https://github.com/espressif/vscode-esp-idf-extension/pull/1786)
+- [Fix extension activation for non EIM manual ESP-IDF setups](https://github.com/espressif/vscode-esp-idf-extension/pull/1797)
+- [Fix sdkconfig file path resolution](https://github.com/espressif/vscode-esp-idf-extension/pull/1805)
+- [Fix CI Actions](https://github.com/espressif/vscode-esp-idf-extension/pull/1801)
+- [Use env vars collection on idf.customExtraVars](https://github.com/espressif/vscode-esp-idf-extension/pull/1814)
+- [Use sh for activation shell script and IDF Terminal](https://github.com/espressif/vscode-esp-idf-extension/pull/1821)
+- [Remove unused skip_loaded JTAG flash arguments](https://github.com/espressif/vscode-esp-idf-extension/pull/1820) Thanks @sobuch !
+
 ## [2.0.2](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.0.2)
 
 ## Features and enhancements
