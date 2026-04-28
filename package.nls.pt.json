@@ -68,8 +68,6 @@
   "espIdf.idfReconfigureTask.title": "ESP-IDF: Execute a tarefa de reconfiguração idf.py",
 	"espIdf.importProject.title": "Importar projeto ESP-IDF",
   "espIdf.installManager.title": "Abra o gerenciador de instalação ESP-IDF",
-  "espIdf.openInstallationManagerGui.title": "Abra o gerenciador de instalação ESP-IDF (GUI)",
-  "espIdf.openInstallationManagerCli.title": "Abra o gerenciador de instalação ESP-IDF (Terminal)",
 	"espIdf.jtag_flash.title": "Flash (com JTag)",
 	"espIdf.launchQemu.title": "Inicie o servidor QEMU",
 	"espIdf.launchWSServerAndMonitor.title": "Inicie o IDF Monitor para modo CoreDump / GDB-Stub",

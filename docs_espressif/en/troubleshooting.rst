@@ -44,17 +44,13 @@ Review `OpenOCD Troubleshooting FAQ <https://github.com/espressif/openocd-esp32/
 EIM Launch Modes (GUI vs CLI)
 -----------------------------
 
-When running the **ESP-IDF: Open ESP-IDF Installation Manager** command, the extension will prompt you to choose between:
+When running the **ESP-IDF: Open ESP-IDF Installation Manager** command, the extension now selects the launch mode automatically:
 
--  **Graphical Interface (GUI)** -- opens the EIM graphical application.
--  **Command Line (Terminal)** -- runs EIM in CLI mode inside the VS Code integrated terminal.
+-  If an existing EIM installation is found and it supports the ``gui`` subcommand, the extension opens the EIM graphical application.
+-  If the detected EIM only supports CLI commands, the extension runs EIM in CLI mode inside the VS Code integrated terminal.
+-  If EIM is not yet installed, the extension downloads the GUI-capable build in local desktop environments and the CLI build in remote or headless environments.
 
-You can also use the dedicated commands to skip the prompt:
-
--  **ESP-IDF: Open ESP-IDF Installation Manager (GUI)** -- always launches in GUI mode.
--  **ESP-IDF: Open ESP-IDF Installation Manager (Terminal)** -- always launches in CLI mode.
-
-Your choice is saved to the ``idf.eimExecutableArgs`` setting.
+The extension updates the ``idf.eimExecutableArgs`` setting automatically based on the mode it launches.
 
 Remote and Headless Environments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -74,7 +70,7 @@ If you installed VS Code via snap (the default method on Ubuntu), the EIM GUI ca
 
     The terminal process "/usr/bin/bash" terminated with exit code: 127.
 
-When snap is detected, the extension shows a modal with two options:
+When snap is detected and the resolved EIM supports the GUI, the extension shows a modal with two options:
 
 1.  **Run EIM in Terminal** -- launches EIM in CLI mode directly in the VS Code integrated terminal.
 
@@ -93,6 +89,20 @@ Alternatively, you can **install VS Code via the .deb package** (recommended) to
     sudo snap remove code
     # Then install the .deb package downloaded from https://code.visualstudio.com/Download
 
-You can also use the **ESP-IDF: Open ESP-IDF Installation Manager (Terminal)** command directly to skip the modal and launch EIM in CLI mode.
-
 If you cannot resolve the error, please search the `GitHub Repository Issues <http://github.com/espressif/vscode-esp-idf-extension/issues>`_ for existing issues or create a new issue `here <https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose>`_.
+
+EIM Path Resolution Order
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When the extension needs to locate the EIM binary, it checks the following locations in order, stopping at the first match:
+
+1. **System PATH** -- runs ``which eim`` / ``where eim`` to find an EIM already on the PATH.
+2. **eim_idf.json** -- reads the ``eimPath`` field from the JSON file at the path configured by ``idf.eimIdfJsonPath``. Default locations:
+
+   - **Windows**: ``C:\Espressif\tools\eim_idf.json``
+   - **macOS/Linux**: ``$HOME/.espressif/tools/eim_idf.json``
+
+3. **EIM_PATH environment variable** -- reads the ``EIM_PATH`` environment variable.
+4. **Managed install directory** -- checks the extension-managed install folders. In normal desktop environments the GUI build is preferred; in headless, remote, or snap environments the CLI build is checked first.
+
+If the extension fails to find or launch EIM, run the **ESP-IDF: Doctor Command** and inspect the ``esp_idf_vsc_ext.log`` file. Each step above is logged with the path being checked, so you can identify exactly which location is missing or incorrect.
