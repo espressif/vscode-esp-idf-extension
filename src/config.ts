@@ -85,12 +85,6 @@ export namespace ESP {
     export const DB_VERSION_KEY = "esp.extension.version";
   }
 
-  export namespace PreReleaseNotification {
-    export const SHOWN_KEY = "espIdf.prerelease.notification.shown";
-    // Specific notification campaigns - add new ones for future campaigns
-    export const EIM_SETUP_CAMPAIGN = "eim-setup-2025";
-  }
-
   export namespace URL {
     export const IDF_GITHUB_ASSETS = "https://dl.espressif.com/github_assets";
     export namespace IDF_EMBED_GIT {
