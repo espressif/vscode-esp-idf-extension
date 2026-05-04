@@ -2,7 +2,7 @@
   "name": "esp-idf-extension",
   "displayName": "ESP-IDF",
   "description": "Develop and debug applications for Espressif chips with ESP-IDF",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "media/espressif_icon.png",
@@ -737,15 +737,42 @@
               "additionalProperties": false
             },
             "default": {
-              "CP2102/CP2102N": { "vendorId": "0x10c4", "productId": "0xea60" },
-              "FT2232H": { "vendorId": "0x0403", "productId": "0x6010" },
-              "Espressif USB_SERIAL_JTAG": { "vendorId": "0x303a", "productId": "0x1001" },
-              "Espressif esp-usb-bridge firmware": { "vendorId": "0x303a", "productId": "0x1002" },
-              "ESP32-S2 USB_CDC": { "vendorId": "0x303a", "productId": "0x0002" },
-              "ESP32-S3 USB_CDC": { "vendorId": "0x303a", "productId": "0x0009" },
-              "CH9102F": { "vendorId": "0x1a86", "productId": "0x55d4" },
-              "CH340T": { "vendorId": "0x1a86", "productId": "0x7523" },
-              "FT232R": { "vendorId": "0x0403", "productId": "0x6001" }
+              "CP2102/CP2102N": {
+                "vendorId": "0x10c4",
+                "productId": "0xea60"
+              },
+              "FT2232H": {
+                "vendorId": "0x0403",
+                "productId": "0x6010"
+              },
+              "Espressif USB_SERIAL_JTAG": {
+                "vendorId": "0x303a",
+                "productId": "0x1001"
+              },
+              "Espressif esp-usb-bridge firmware": {
+                "vendorId": "0x303a",
+                "productId": "0x1002"
+              },
+              "ESP32-S2 USB_CDC": {
+                "vendorId": "0x303a",
+                "productId": "0x0002"
+              },
+              "ESP32-S3 USB_CDC": {
+                "vendorId": "0x303a",
+                "productId": "0x0009"
+              },
+              "CH9102F": {
+                "vendorId": "0x1a86",
+                "productId": "0x55d4"
+              },
+              "CH340T": {
+                "vendorId": "0x1a86",
+                "productId": "0x7523"
+              },
+              "FT232R": {
+                "vendorId": "0x0403",
+                "productId": "0x6001"
+              }
             }
           },
           "idf.serialPortDetectionTimeout": {
@@ -1046,7 +1073,10 @@
           "trace.wait4halt": {
             "type": "number",
             "default": 0,
-            "enum": [0, 1],
+            "enum": [
+              0,
+              1
+            ],
             "scope": "resource",
             "description": "%trace.wait4halt.description%"
           },
@@ -1102,7 +1132,12 @@
           "idf.notificationMode": {
             "type": "string",
             "scope": "resource",
-            "enum": ["Silent", "Notifications", "Output", "All"],
+            "enum": [
+              "Silent",
+              "Notifications",
+              "Output",
+              "All"
+            ],
             "enumDescriptions": [
               "%param.notificationMode.silent%",
               "%param.notificationMode.notification%",
@@ -1115,9 +1150,21 @@
           "idf.saveScope": {
             "type": "number",
             "default": 1,
-            "enum": [1, 2, 3],
-            "enumItemLabels": ["Global", "Workspace", "WorkspaceFolder"],
-            "enumDescriptions": ["Global", "Workspace", "WorkspaceFolder"],
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "enumItemLabels": [
+              "Global",
+              "Workspace",
+              "WorkspaceFolder"
+            ],
+            "enumDescriptions": [
+              "Global",
+              "Workspace",
+              "WorkspaceFolder"
+            ],
             "description": "%param.saveScope%",
             "scope": "application"
           },
