@@ -84,7 +84,7 @@ export async function getPythonEnvPath(
   const pyDir =
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
-      : ["bin", "python"];
+      : ["bin", "python3"];
   const fullIdfPyEnvPath = join(idfPyEnvPath, ...pyDir);
   const pyEnvPathExists = await pathExists(fullIdfPyEnvPath);
   return pyEnvPathExists ? fullIdfPyEnvPath : "";

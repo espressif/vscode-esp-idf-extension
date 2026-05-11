@@ -77,7 +77,7 @@ export async function getEnvVariablesFromActivationScript(
     const pyDir =
       process.platform === "win32"
         ? ["Scripts", "python.exe"]
-        : ["bin", "python"];
+        : ["bin", "python3"];
     envDict["PYTHON"] = join(envDict["IDF_PYTHON_ENV_PATH"], ...pyDir);
 
     return envDict;
