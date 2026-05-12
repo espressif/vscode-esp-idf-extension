@@ -116,8 +116,6 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   let cmakeUserPresetsExists = await pathExists(cmakeUserPresetsPath);
   let anyConfigFileExists = cmakePresetsExists || cmakeUserPresetsExists;
 
-  let currentIdfVersion = await getCurrentIdfSetup(workspaceFolder, false);
-
   statusBarItems["workspace"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.pickWorkspace].iconId})`,
     commandDictionary[CommandKeys.pickWorkspace].tooltip,
