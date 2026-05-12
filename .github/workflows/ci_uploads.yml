@@ -65,10 +65,10 @@ jobs:
                       echo "Uploading $FILE_NAME to S3..."
                       if aws s3 cp "$FILE" "$S3_PATH" --acl public-read; then
                         echo "✓ Successfully uploaded $FILE_NAME to $S3_PATH"
-                        ((UPLOADED_COUNT++))
+                        UPLOADED_COUNT=$((UPLOADED_COUNT + 1))
                       else
                         echo "✗ Failed to upload $FILE_NAME"
-                        ((FAILED_COUNT++))
+                        FAILED_COUNT=$((FAILED_COUNT + 1))
                       fi
                     fi
                   done
