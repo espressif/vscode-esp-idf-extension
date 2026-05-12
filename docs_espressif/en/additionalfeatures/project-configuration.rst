@@ -84,39 +84,42 @@ To create multiple build configurations:
 1. Create or edit ``CMakePresets.json`` in your project root directory.
 2. Define your configuration presets in the ``configurePresets`` array. Each preset can override the following extension settings:
 
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| Extension Setting                 | CMakePresets Location                                                                                            |
-+===================================+==================================================================================================================+
-| **idf.cmakeCompilerArgs**         | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``compileArgs``)                                          |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.ninjaArgs**                 | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``ninjaArgs``)                                            |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.buildPath**                 | ``binaryDir``                                                                                                    |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.sdkconfigFilePath**         | ``cacheVariables.SDKCONFIG``                                                                                     |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.sdkconfigDefaults**         | ``cacheVariables.SDKCONFIG_DEFAULTS`` (semicolon-separated string)                                               |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.customExtraVars**           | ``environment`` (IDF_TARGET is in ``cacheVariables.IDF_TARGET``)                                                 |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.flashBaudRate**             | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``flashBaudRate``)                                        |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.monitorBaudRate**           | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``monitorBaudRate``)                                     |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.openOcdDebugLevel**         | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``openOCD``, field: ``debugLevel``)                      |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.openOcdConfigs**            | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``openOCD``, field: ``configs``)                          |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.openOcdLaunchArgs**         | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``openOCD``, field: ``args``)                             |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.preBuildTask**              | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``tasks``, field: ``preBuild``)                          |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.postBuildTask**             | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``tasks``, field: ``postBuild``)                         |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.preFlashTask**              | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``tasks``, field: ``preFlash``)                          |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.postFlashTask**             | ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``tasks``, field: ``postFlash``)                         |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Extension Setting
+     - CMakePresets Location
+   * - **idf.cmakeCompilerArgs**
+     - ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``compileArgs``)
+   * - **idf.ninjaArgs**
+     - ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``ninjaArgs``)
+   * - **idf.buildPath**
+     - ``binaryDir``
+   * - **idf.sdkconfigFilePath**
+     - ``cacheVariables.SDKCONFIG``
+   * - **idf.sdkconfigDefaults**
+     - ``cacheVariables.SDKCONFIG_DEFAULTS`` (semicolon-separated string)
+   * - **idf.customExtraVars**
+     - ``environment`` (IDF_TARGET is in ``cacheVariables.IDF_TARGET``)
+   * - **idf.flashBaudRate**
+     - ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``flashBaudRate``)
+   * - **idf.monitorBaudRate**
+     - ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``monitorBaudRate``)
+   * - **idf.openOcdDebugLevel**
+     - ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``openOCD``, field: ``debugLevel``)
+   * - **idf.openOcdConfigs**
+     - ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``openOCD``, field: ``configs``)
+   * - **idf.openOcdLaunchArgs**
+     - ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``openOCD``, field: ``args``)
+   * - **idf.preBuildTask**
+     - ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``tasks``, field: ``preBuild``)
+   * - **idf.postBuildTask**
+     - ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``tasks``, field: ``postBuild``)
+   * - **idf.preFlashTask**
+     - ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``tasks``, field: ``preFlash``)
+   * - **idf.postFlashTask**
+     - ``vendor["espressif/vscode-esp-idf"].settings`` (type: ``tasks``, field: ``postFlash``)
 
 3. After defining your presets, use the ``ESP-IDF: Select Project Configuration`` command to choose the configuration to use.
 
@@ -264,39 +267,42 @@ When you select the ``production`` preset, the extension will use the flash and 
 
 While each field is self-explanatory, here is the mapping of the CMakePresets structure to the extension settings:
 
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| Extension Setting                 | CMakePresets Location                                                                                            |
-+===================================+==================================================================================================================+
-| **idf.cmakeCompilerArgs**         | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "compileArgs"``            |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.ninjaArgs**                 | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "ninjaArgs"``              |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.buildPath**                 | ``configurePresets[].binaryDir``                                                                                 |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.sdkconfigFilePath**         | ``configurePresets[].cacheVariables.SDKCONFIG``                                                                  |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.sdkconfigDefaults**         | ``configurePresets[].cacheVariables.SDKCONFIG_DEFAULTS`` (semicolon-separated string)                            |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.customExtraVars**           | ``configurePresets[].environment`` (IDF_TARGET is in ``cacheVariables.IDF_TARGET``)                             |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.flashBaudRate**             | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "flashBaudRate"``           |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.monitorBaudRate**           | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "monitorBaudRate"``         |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.openOcdDebugLevel**         | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "openOCD"``, field: ``debugLevel`` |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.openOcdConfigs**            | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "openOCD"``, field: ``configs`` |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.openOcdLaunchArgs**         | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "openOCD"``, field: ``args`` |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.preBuildTask**              | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "tasks"``, field: ``preBuild`` |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.postBuildTask**             | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "tasks"``, field: ``postBuild`` |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.preFlashTask**              | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "tasks"``, field: ``preFlash`` |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
-| **idf.postFlashTask**             | ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "tasks"``, field: ``postFlash`` |
-+-----------------------------------+------------------------------------------------------------------------------------------------------------------+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Extension Setting
+     - CMakePresets Location
+   * - **idf.cmakeCompilerArgs**
+     - ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "compileArgs"``
+   * - **idf.ninjaArgs**
+     - ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "ninjaArgs"``
+   * - **idf.buildPath**
+     - ``configurePresets[].binaryDir``
+   * - **idf.sdkconfigFilePath**
+     - ``configurePresets[].cacheVariables.SDKCONFIG``
+   * - **idf.sdkconfigDefaults**
+     - ``configurePresets[].cacheVariables.SDKCONFIG_DEFAULTS`` (semicolon-separated string)
+   * - **idf.customExtraVars**
+     - ``configurePresets[].environment`` (IDF_TARGET is in ``cacheVariables.IDF_TARGET``)
+   * - **idf.flashBaudRate**
+     - ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "flashBaudRate"``
+   * - **idf.monitorBaudRate**
+     - ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "monitorBaudRate"``
+   * - **idf.openOcdDebugLevel**
+     - ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "openOCD"``, field: ``debugLevel``
+   * - **idf.openOcdConfigs**
+     - ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "openOCD"``, field: ``configs``
+   * - **idf.openOcdLaunchArgs**
+     - ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "openOCD"``, field: ``args``
+   * - **idf.preBuildTask**
+     - ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "tasks"``, field: ``preBuild``
+   * - **idf.postBuildTask**
+     - ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "tasks"``, field: ``postBuild``
+   * - **idf.preFlashTask**
+     - ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "tasks"``, field: ``preFlash``
+   * - **idf.postFlashTask**
+     - ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "tasks"``, field: ``postFlash``
 
 
 Multiple Configuration Tutorial
