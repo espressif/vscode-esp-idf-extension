@@ -136,23 +136,18 @@ export async function setIdfTarget(
               }
             } else {
               Logger.info(
-                l10n.t(
-                  "Devkit detection script not available. A default list of targets will be displayed instead."
-                )
+                "Devkit detection script not available. A default list of targets will be displayed instead."
               );
             }
           } catch (e) {
             Logger.info(
-              l10n.t(
-                "No connected boards detected or error running DevkitsCommand: "
-              ) + (e && e.message ? e.message : e)
+              "No connected boards detected or error running DevkitsCommand: " +
+              (e && e.message ? e.message : e)
             );
           }
         } else {
           Logger.info(
-            l10n.t(
-              "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually."
-            )
+            "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually."
           );
         }
         let quickPickItems: ISetTargetQuickPickItems[] = [];

@@ -169,17 +169,11 @@ export class OpenOCDManager extends EventEmitter {
       "openocd-esp32",
     ]);
     if (!openOcdPath) {
-      throw new Error(
-        vscode.l10n.t(
-          "Invalid OpenOCD bin path or access is denied for the user"
-        )
-      );
+      throw new Error("Invalid OpenOCD bin path or access is denied for the user");
     }
     if (typeof modifiedEnv.OPENOCD_SCRIPTS === "undefined") {
       throw new Error(
-        vscode.l10n.t(
-          "OPENOCD_SCRIPTS environment variable is missing. Please set it in idf.customExtraVars or in your system environment variables."
-        )
+        "OPENOCD_SCRIPTS environment variable is missing. Please set it in idf.customExtraVars or in your system environment variables."
       );
     }
 
@@ -214,9 +208,7 @@ export class OpenOCDManager extends EventEmitter {
         openOcdConfigFilesList.length < 1
       ) {
         throw new Error(
-          vscode.l10n.t(
-            "Invalid OpenOCD Config files. Check idf.openOcdConfigs configuration value."
-          )
+          "Invalid OpenOCD Config files. Check idf.openOcdConfigs configuration value."
         );
       }
 
@@ -306,10 +298,7 @@ export class OpenOCDManager extends EventEmitter {
     this.server.on("close", (code: number, signal: string) => {
       if (this.encounteredErrors) {
         OutputChannel.appendLine(
-          vscode.l10n.t(
-            "For assistance with OpenOCD errors, please refer to our Troubleshooting FAQ: {0}",
-            ESP.URL.OpenOcdTroubleshootingFaq
-          ),
+          `For assistance with OpenOCD errors, please refer to our Troubleshooting FAQ: ${ESP.URL.OpenOcdTroubleshootingFaq}`,
           "OpenOCD"
         );
       }
@@ -336,7 +325,7 @@ export class OpenOCDManager extends EventEmitter {
       this.server.kill("SIGKILL");
       this.server = undefined;
       this.updateStatusText(`❌ ${vscode.l10n.t("OpenOCD Server (Stopped)")}`);
-      const endMsg = `${vscode.l10n.t("[Stopped] : OpenOCD Server")}`;
+      const endMsg = "[Stopped] : OpenOCD Server";
       OutputChannel.appendLine(endMsg, "OpenOCD");
       Logger.info(endMsg);
     }
