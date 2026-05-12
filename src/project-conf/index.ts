@@ -99,7 +99,7 @@ export async function updateCurrentProfileOpenOcdConfigs(
     // Add new openOCD setting
     const openOcdDebugLevel = readParameter(
             "idf.openOcdDebugLevel",
-            this.workspace
+            workspaceFolder
           ) as string;
     config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY].settings.push({
       type: "openOCD",
