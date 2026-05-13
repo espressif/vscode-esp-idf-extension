@@ -84,15 +84,15 @@ export async function updateCurrentProfileOpenOcdConfigs(
   await updateCurrentProjectConfiguration(workspaceFolder, (config) => {
     // Update OpenOCD configs in vendor settings
     if (!config.vendor) {
-      config.vendor = { [ESP.CMakePresets.ESP_IDF_VENDOR_KEY]: { settings: [] } };
+      config.vendor = { [ESP.CMakePresets.ESP_IDF_VENDOR_KEY]: { schemaVersion: ESP.CMakePresets.CMAKE_PRESET_SCHEMA_VERSION, settings: [] } };
     }
     if (!config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]) {
-      config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY] = { settings: [] };
+      config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY] = { schemaVersion: ESP.CMakePresets.CMAKE_PRESET_SCHEMA_VERSION, settings: [] };
     }
 
     // Remove existing openOCD setting
     config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY].settings = 
-      config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY].settings.filter(
+      (config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY].settings ?? []).filter(
         (setting) => setting.type !== "openOCD"
       );
 
@@ -931,6 +931,7 @@ function mergePresets(
   if (child.vendor || parent.vendor) {
     merged.vendor = {
       [ESP.CMakePresets.ESP_IDF_VENDOR_KEY]: {
+        schemaVersion: ESP.CMakePresets.CMAKE_PRESET_SCHEMA_VERSION,
         settings: [
           ...(parent.vendor?.[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]?.settings || []),
           ...(child.vendor?.[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]?.settings || []),
