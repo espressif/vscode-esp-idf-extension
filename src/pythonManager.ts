@@ -116,16 +116,15 @@ export function getVirtualEnvPythonPath() {
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
   }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  if (currentEnvVars["PYTHON"]) {
+    return currentEnvVars["PYTHON"];
+  }
   if (currentEnvVars["IDF_PYTHON_ENV_PATH"]) {
     const pyDir =
       process.platform === "win32"
         ? ["Scripts", "python.exe"]
         : ["bin", "python3"];
-    const venvPythonPath = join(
-      currentEnvVars["IDF_PYTHON_ENV_PATH"],
-      ...pyDir
-    );
-    return venvPythonPath;
+    return join(currentEnvVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
   }
 }
 
