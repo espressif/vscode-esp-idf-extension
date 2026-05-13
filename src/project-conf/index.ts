@@ -1603,7 +1603,7 @@ function getConfigurePresetParameterValue(
       return getESPIDFSettingValue(preset, "monitorBaudRate") || "";
     case "idf.openOcdDebugLevel":
       const openOCDSettings = getESPIDFSettingValue(preset, "openOCD");
-      return openOCDSettings?.debugLevel && openOCDSettings.debugLevel > -1
+      return typeof openOCDSettings?.debugLevel === 'number' && openOCDSettings.debugLevel > -1
         ? openOCDSettings.debugLevel.toString()
         : "";
     case "idf.openOcdConfigs":
@@ -1757,7 +1757,7 @@ function convertConfigurePresetToProjectConfElement(
     flashBaudRate,
     monitorBaudRate,
     openOCD: {
-      debugLevel: openOCDSettings.debugLevel || -1,
+      debugLevel: openOCDSettings.debugLevel ?? -1,
       configs: Array.isArray(openOCDSettings.configs)
         ? openOCDSettings.configs
         : [],
