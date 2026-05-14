@@ -150,7 +150,6 @@
   "No ESP-IDF Setups found": "未找到 ESP-IDF 设置",
   "Use docker container configuration": "使用docker容器配置",
   "Install ESP-ADF": "安装 ESP-ADF",
-  "Project Configuration editor": "项目配置编辑器",
   "Select Project Configuration": "选择项目配置",
   "Add .vscode subdirectory files": "添加 .vscode 子目录文件",
   "Add .devcontainer subdirectory files": "添加 .devcontainer 子目录文件",

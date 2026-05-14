@@ -118,7 +118,6 @@ import { updateCurrentProfileIdfTarget } from "./project-conf";
 import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
-import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
 import { ProjectConfigStore } from "./project-conf";
 import { UnitTest } from "./espIdf/unitTest/adapter";
 import {
@@ -1172,60 +1171,6 @@ export async function activate(context: vscode.ExtensionContext) {
       statusBarItems["projectConf"].dispose();
       statusBarItems["projectConf"] = undefined;
     }
-  });
-
-  registerIDFCommand("espIdf.projectConfigurationEditor", async () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      try {
-        if (projectConfigurationPanel.isCreatedAndHidden()) {
-          projectConfigurationPanel.createOrShow(
-            context.extensionPath,
-            workspaceRoot
-          );
-          return;
-        }
-        const notificationMode = idfConf.readParameter(
-          "idf.notificationMode",
-          workspaceRoot
-        ) as string;
-        const ProgressLocation =
-          notificationMode === idfConf.NotificationMode.All ||
-          notificationMode === idfConf.NotificationMode.Notifications
-            ? vscode.ProgressLocation.Notification
-            : vscode.ProgressLocation.Window;
-        await vscode.window.withProgress(
-          {
-            cancellable: false,
-            location: ProgressLocation,
-            title: "ESP-IDF: Project configuration",
-          },
-          async (
-            progress: vscode.Progress<{ message: string; increment: number }>
-          ) => {
-            try {
-              const targetsFromIdf = await getTargetsFromEspIdf(workspaceRoot);
-              projectConfigurationPanel.createOrShow(
-                context.extensionPath,
-                workspaceRoot,
-                targetsFromIdf
-              );
-            } catch (error) {
-              Logger.errorNotify(
-                error.message,
-                error,
-                "extension projectConfigurationEditor"
-              );
-            }
-          }
-        );
-      } catch (error) {
-        Logger.errorNotify(
-          error.message,
-          error,
-          "extension projectConfigurationEditor"
-        );
-      }
-    });
   });
 
   vscode.workspace.onDidChangeConfiguration(async (e) => {

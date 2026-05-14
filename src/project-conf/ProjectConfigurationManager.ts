@@ -6,7 +6,6 @@ import {
   workspace,
   Uri,
   l10n,
-  commands,
   ConfigurationTarget,
 } from "vscode";
 import {
@@ -14,6 +13,7 @@ import {
   readFileSync,
   readJson,
   setCCppPropertiesJsonCompileCommands,
+  writeJson,
 } from "../utils";
 import { ESP } from "../config";
 import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
@@ -174,7 +174,7 @@ export class ProjectConfigurationManager {
         Logger.info(
           `Project configuration files loaded but contain no configurations`
         );
-        this.setNoConfigurationSelectedStatus();
+        this.clearConfigurationState();
       }
     } catch (error) {
       Logger.errorNotify(
@@ -183,7 +183,7 @@ export class ProjectConfigurationManager {
         "ProjectConfigurationManager initialize"
       );
       this.configVersions = []; // Ensure clean state on error
-      this.setNoConfigurationSelectedStatus();
+      this.clearConfigurationState();
     }
   }
 
@@ -284,10 +284,18 @@ export class ProjectConfigurationManager {
         ESP.ProjectConfiguration.store.clear(
           ESP.ProjectConfiguration.SELECTED_CONFIG
         );
-        this.setNoConfigurationSelectedStatus();
+        if (currentVersions.length === 0) {
+          this.clearConfigurationState();
+        } else {
+          this.setNoConfigurationSelectedStatus();
+        }
       } else {
         // No configuration is selected
-        this.setNoConfigurationSelectedStatus();
+        if (currentVersions.length === 0) {
+          this.clearConfigurationState();
+        } else {
+          this.setNoConfigurationSelectedStatus();
+        }
       }
     } catch (error) {
       Logger.errorNotify(
@@ -295,7 +303,8 @@ export class ProjectConfigurationManager {
         error,
         "ProjectConfigurationManager handleConfigFileChange"
       );
-      this.setNoConfigurationSelectedStatus();
+      this.configVersions = [];
+      this.clearConfigurationState();
     }
   }
 
@@ -373,7 +382,7 @@ export class ProjectConfigurationManager {
         }
       } else {
         // Empty configuration file
-        this.setNoConfigurationSelectedStatus();
+        this.clearConfigurationState();
       }
     } catch (error) {
       Logger.errorNotify(
@@ -389,6 +398,11 @@ export class ProjectConfigurationManager {
    * Sets the status bar to indicate no configuration is selected
    */
   private setNoConfigurationSelectedStatus(): void {
+    if (this.configVersions.length === 0) {
+      this.clearConfigurationState();
+      return;
+    }
+
     const statusBarItemName = l10n.t("No Configuration Selected");
     const statusBarItemTooltip =
       l10n.t("No project configuration selected. Click to select one");
@@ -518,14 +532,16 @@ export class ProjectConfigurationManager {
           return;
         }
 
-        const openEditorLabel = l10n.t("Open editor");
+        const openLabel = l10n.t("Open CMakePresets.json");
         const emptyOption = await window.showInformationMessage(
-          l10n.t("No CMakePresets configure presets found"),
-          openEditorLabel
+          l10n.t(
+            "No CMakePresets configure presets found. Define configurePresets in CMakePresets.json (or CMakeUserPresets.json)."
+          ),
+          openLabel
         );
 
-        if (emptyOption === openEditorLabel) {
-          commands.executeCommand("espIdf.projectConfigurationEditor");
+        if (emptyOption === openLabel) {
+          await this.openOrCreateCmakePresetsFile();
         }
         return;
       }
@@ -739,6 +755,36 @@ export class ProjectConfigurationManager {
         l10n.t("Failed to migrate project configuration: {0}", error.message),
         error,
         "ProjectConfigurationManager performDirectMigration"
+      );
+    }
+  }
+
+  private async openOrCreateCmakePresetsFile(): Promise<void> {
+    const uri = Uri.joinPath(
+      this.workspaceUri,
+      ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+    );
+    try {
+      if (!(await pathExists(uri.fsPath))) {
+        const minimal = {
+          version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
+          cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
+          configurePresets: [] as unknown[],
+        };
+        await writeJson(uri.fsPath, minimal);
+      }
+      const doc = await workspace.openTextDocument(uri);
+      await window.showTextDocument(doc);
+    } catch (error) {
+      Logger.error(
+        "Failed to open or create CMakePresets.json",
+        error,
+        "ProjectConfigurationManager openOrCreateCmakePresetsFile"
+      );
+      Logger.errorNotify(
+        l10n.t("Could not open CMakePresets.json"),
+        error,
+        "ProjectConfigurationManager openOrCreateCmakePresetsFile"
       );
     }
   }

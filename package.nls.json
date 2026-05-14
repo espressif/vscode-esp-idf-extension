@@ -83,7 +83,6 @@
   "espIdf.partition.table.refresh.title": "Refresh Partition Table",
   "espIdf.pickAWorkspaceFolder.title": "Pick a Workspace Folder",
   "espIdf.projectConf.title": "Select Project Configuration",
-  "espIdf.projectConfigurationEditor.title": "Open Project Configuration",
   "espIdf.qemuDebug.title": "Launch QEMU Debug Session",
   "espIdf.removeCoverage.title": "Remove Editor Coverage",
   "espIdf.saveDefSdkconfig.title": "ESP-IDF: Save Default SDKCONFIG File (save-defconfig)",

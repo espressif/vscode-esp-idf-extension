@@ -1765,11 +1765,6 @@
         "category": "ESP-IDF"
       },
       {
-        "command": "espIdf.projectConfigurationEditor",
-        "title": "%espIdf.projectConfigurationEditor.title%",
-        "category": "ESP-IDF"
-      },
-      {
         "command": "espIdf.projectConf",
         "title": "%espIdf.projectConf.title%",
         "category": "ESP-IDF"

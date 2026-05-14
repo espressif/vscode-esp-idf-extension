@@ -82,7 +82,6 @@
 	"espIdf.partition.table.refresh.title": "刷新分区表",
 	"espIdf.pickAWorkspaceFolder.title": "选择工作区文件夹",
 	"espIdf.projectConf.title": "选择项目配置",
-	"espIdf.projectConfigurationEditor.title": "打开项目配置",
 	"espIdf.qemuDebug.title": "启动 QEMU 调试会话",
 	"espIdf.removeCoverage.title": "移除编辑器覆盖率",
 	"espIdf.saveDefSdkconfig.title": "ESP-IDF：保存默认 SDKCONFIG 文件 (save-defconfig)",

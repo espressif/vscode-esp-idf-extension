@@ -150,7 +150,6 @@
   "No ESP-IDF Setups found": "No se encontraron configuraciones ESP-IDF",
   "Use docker container configuration": "Usar la configuración del contenedor docker",
   "Install ESP-ADF": "Instalar ESP-ADF",
-  "Project Configuration editor": "Editor de configuración del proyecto",
   "Select Project Configuration": "Seleccione Configuración del proyecto",
   "Add .vscode subdirectory files": "Agregar archivos de subdirectorio .vscode",
   "Add .devcontainer subdirectory files": "Agregar archivos de subdirectorio .devcontainer",

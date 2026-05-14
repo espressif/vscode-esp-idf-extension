@@ -150,7 +150,6 @@
   "The extension configuration is not valid. Choose an action:": "Недопустимая конфигурация расширения. Выберите действие:",
   "No ESP-IDF Setups found": "Настройки ESP-IDF не найдены",
   "Use docker container configuration": "Использовать конфигурацию Docker-контейнера",
-  "Project Configuration editor": "Редактор конфигурации проекта",
   "Select Project Configuration": "Выбор конфигурации проекта",
   "Add .vscode subdirectory files": "Добавить файлы подкаталога .vscode",
   "Add .devcontainer subdirectory files": "Добавить файлы подкаталога .devcontainer",
