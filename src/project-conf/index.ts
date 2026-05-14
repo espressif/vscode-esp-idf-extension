@@ -17,7 +17,7 @@
  */
 
 import * as path from "path";
-import { ExtensionContext, Uri, window, l10n } from "vscode";
+import { ExtensionContext, Uri, l10n } from "vscode";
 import { ESP } from "../config";
 import { pathExists, readJson, writeJson } from "fs-extra";
 import {
@@ -720,9 +720,7 @@ export async function getProjectConfigurationElements(
     cmakeUserPresetsFilePath.fsPath
   );
 
-  // If neither file exists, check for legacy file
   if (!cmakePresetsExists && !cmakeUserPresetsExists) {
-    await checkAndPromptLegacyMigration(workspaceFolder);
     return {};
   }
 
@@ -941,53 +939,6 @@ function mergePresets(
   }
 
   return merged;
-}
-
-/**
- * Checks for the legacy project configuration file (esp_idf_project_configuration.json)
- * and prompts the user to migrate it to the new CMakePresets.json format if found.
- * This ensures a smooth transition from the old configuration format to the new one.
- * 
- * @param workspaceFolder The workspace folder Uri where the legacy file might be located
- */
-async function checkAndPromptLegacyMigration(
-  workspaceFolder: Uri
-): Promise<void> {
-  const legacyFilePath = Uri.joinPath(
-    workspaceFolder,
-    "esp_idf_project_configuration.json"
-  );
-
-  if (await pathExists(legacyFilePath.fsPath)) {
-    await promptLegacyMigration(workspaceFolder, legacyFilePath);
-  }
-}
-
-/**
- * Prompts user to migrate legacy configuration file
- */
-export async function promptLegacyMigration(
-  workspaceFolder: Uri,
-  legacyFilePath: Uri
-): Promise<void> {
-  const message = l10n.t(
-    "A legacy project configuration file (esp_idf_project_configuration.json) was found. \n" +
-      "Would you like to migrate it to the new CMakePresets.json format? \n" +
-      "Your original file will remain unchanged.\n"
-  );
-
-  const migrateOption = l10n.t("Migrate");
-  // const cancelOption = l10n.t("Cancel");
-
-  const choice = await window.showInformationMessage(
-    message,
-    { modal: true },
-    migrateOption,
-  );
-
-  if (choice === migrateOption) {
-    await migrateLegacyConfiguration(workspaceFolder, legacyFilePath);
-  }
 }
 
 /**
