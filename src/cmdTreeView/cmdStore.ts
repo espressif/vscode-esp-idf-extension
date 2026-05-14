@@ -60,7 +60,6 @@ export enum AdvancedCommandKeys {
   EraseFlash = "espIdf.eraseFlash",
   DoctorCommand = "espIdf.doctorCommand",
   GetADF = "espIdf.getEspAdf",
-  ProjectConfEditor = "espIdf.projectConfigurationEditor",
   CreateVscodeFolder = "espIdf.createVsCodeFolder",
   CreateDevContainerFolder = "espIdf.createDevContainer",
   CreateIdfComponent = "espIdf.createNewComponent",
@@ -105,11 +104,6 @@ export function createAdvancedCommandDictionary(): Record<
       checkboxState: undefined,
       iconId: "extensions",
       tooltip: l10n.t("Install ESP-ADF"),
-    },
-    [AdvancedCommandKeys.ProjectConfEditor]: {
-      checkboxState: undefined,
-      iconId: "project",
-      tooltip: l10n.t("Project Configuration editor"),
     },
     [AdvancedCommandKeys.CreateVscodeFolder]: {
       checkboxState: undefined,

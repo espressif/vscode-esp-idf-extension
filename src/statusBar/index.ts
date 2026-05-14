@@ -36,6 +36,7 @@ import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { pathExists } from "fs-extra";
 import { getStoredAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 import { getEspIdfFromCMake } from "../utils";
+import { getProjectConfigurationElements } from "../project-conf";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
 
@@ -101,20 +102,27 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   let projectConf = ESP.ProjectConfiguration.store.get<string>(
     ESP.ProjectConfiguration.SELECTED_CONFIG
   );
-  let cmakePresetsPath = path.join(
+  const cmakePresetsPath = path.join(
     workspaceFolder.fsPath,
     ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
   );
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-  let cmakeUserPresetsPath = path.join(
+  const cmakeUserPresetsPath = path.join(
     workspaceFolder.fsPath,
     ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME
   );
-  let cmakePresetsExists = await pathExists(cmakePresetsPath);
-  let cmakeUserPresetsExists = await pathExists(cmakeUserPresetsPath);
-  let anyConfigFileExists = cmakePresetsExists || cmakeUserPresetsExists;
+  const cmakePresetsExists = await pathExists(cmakePresetsPath);
+  const cmakeUserPresetsExists = await pathExists(cmakeUserPresetsPath);
+  let hasConfigurePresets = false;
+  if (cmakePresetsExists || cmakeUserPresetsExists) {
+    const elements = await getProjectConfigurationElements(
+      workspaceFolder,
+      false
+    );
+    hasConfigurePresets = Object.keys(elements).length > 0;
+  }
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
 
   statusBarItems["workspace"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.pickWorkspace].iconId})`,
@@ -179,8 +187,8 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     }
   }
 
-  // Only create the project configuration status bar item if any configuration file exists
-  if (anyConfigFileExists) {
+  // Only create the project configuration status bar item when configure presets exist
+  if (hasConfigurePresets) {
     if (!projectConf) {
       // No configuration selected but file exists with configurations
       let statusBarItemName = "No Configuration Selected";
