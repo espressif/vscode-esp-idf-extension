@@ -677,13 +677,10 @@ export class ProjectConfigurationManager {
       );
 
       const migrateOption = l10n.t("Migrate Now");
-      const cancelOption = l10n.t("Cancel");
-
       const choice = await window.showInformationMessage(
         message,
         { modal: true },
         migrateOption,
-        cancelOption
       );
 
       if (choice === migrateOption) {
