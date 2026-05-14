@@ -24,7 +24,6 @@ import { Logger } from "../logger/logger";
 import {
   getProjectConfigurationElements,
   configurePresetToProjectConfElement,
-  promptLegacyMigration,
   migrateLegacyConfiguration,
 } from "./index";
 import { pathExists } from "fs-extra";
@@ -712,11 +711,11 @@ export class ProjectConfigurationManager {
   }
 
   /**
-   * Performs the actual migration and updates UI (with confirmation dialog)
+   * Performs migration after the user confirmed in handleLegacyMigrationDialog.
    */
   private async performMigration(legacyFilePath: Uri): Promise<void> {
     try {
-      await promptLegacyMigration(this.workspaceUri, legacyFilePath);
+      await migrateLegacyConfiguration(this.workspaceUri, legacyFilePath);
 
       // After migration, reinitialize to show the new configurations
       await this.initialize();
