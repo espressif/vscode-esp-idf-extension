@@ -971,19 +971,18 @@ export async function promptLegacyMigration(
   legacyFilePath: Uri
 ): Promise<void> {
   const message = l10n.t(
-    "A legacy project configuration file (esp_idf_project_configuration.json) was found. " +
-      "Would you like to migrate it to the new CMakePresets.json format? " +
-      "Your original file will remain unchanged."
+    "A legacy project configuration file (esp_idf_project_configuration.json) was found. \n" +
+      "Would you like to migrate it to the new CMakePresets.json format? \n" +
+      "Your original file will remain unchanged.\n"
   );
 
   const migrateOption = l10n.t("Migrate");
-  const cancelOption = l10n.t("Cancel");
+  // const cancelOption = l10n.t("Cancel");
 
   const choice = await window.showInformationMessage(
     message,
     { modal: true },
     migrateOption,
-    cancelOption
   );
 
   if (choice === migrateOption) {
