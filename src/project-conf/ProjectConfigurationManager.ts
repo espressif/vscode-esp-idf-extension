@@ -767,7 +767,7 @@ export class ProjectConfigurationManager {
       if (!(await pathExists(uri.fsPath))) {
         const minimal = {
           version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
-          cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
+          cmakeMinimumRequired: ESP.CMakePresets.CMAKE_PRESET_MINIMUM_REQUIRED,
           configurePresets: [] as unknown[],
         };
         await writeJson(uri.fsPath, minimal);
