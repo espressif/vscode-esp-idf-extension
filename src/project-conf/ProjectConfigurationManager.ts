@@ -128,7 +128,7 @@ export class ProjectConfigurationManager {
         this.configVersions.includes(currentSelectedConfig)
       ) {
         // Current selection is valid, keep it
-        this.updateConfiguration(currentSelectedConfig);
+        await this.updateConfiguration(currentSelectedConfig);
       } else if (currentSelectedConfig) {
         // Current selection is invalid, clear it
         ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
