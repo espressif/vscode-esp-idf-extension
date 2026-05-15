@@ -91,10 +91,11 @@ export async function updateCurrentProfileOpenOcdConfigs(
     }
 
     // Remove existing openOCD setting
-    config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY].settings = 
-      (config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY].settings ?? []).filter(
-        (setting) => setting.type !== "openOCD"
-      );
+    const currentSettings =
+      config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY].settings as ESPIDFSettings[];
+    const existingOpenOcd = currentSettings.find((s) => s.type === "openOCD")?.value;
+    config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY].settings =
+      currentSettings.filter((setting) => setting.type !== "openOCD") as ESPIDFSettings[];
 
     // Add new openOCD setting
     const openOcdDebugLevel = readParameter(
@@ -104,9 +105,9 @@ export async function updateCurrentProfileOpenOcdConfigs(
     config.vendor[ESP.CMakePresets.ESP_IDF_VENDOR_KEY].settings.push({
       type: "openOCD",
       value: {
-        debugLevel: openOcdDebugLevel ?? 2,
+        debugLevel: openOcdDebugLevel ?? existingOpenOcd?.debugLevel ?? 2,
         configs: configs,
-        args: []
+        args: existingOpenOcd?.args ?? []
       }
     });
 
