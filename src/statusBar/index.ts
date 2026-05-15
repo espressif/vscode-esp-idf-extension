@@ -37,6 +37,7 @@ import { pathExists } from "fs-extra";
 import { getStoredAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 import { getEspIdfFromCMake } from "../utils";
 import { getProjectConfigurationElements } from "../project-conf";
+import { Logger } from "../logger/logger";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
 
@@ -114,11 +115,20 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   const cmakeUserPresetsExists = await pathExists(cmakeUserPresetsPath);
   let hasConfigurePresets = false;
   if (cmakePresetsExists || cmakeUserPresetsExists) {
-    const elements = await getProjectConfigurationElements(
-      workspaceFolder,
-      false
-    );
-    hasConfigurePresets = Object.keys(elements).length > 0;
+    try {
+      const elements = await getProjectConfigurationElements(
+        workspaceFolder,
+        false
+      );
+      hasConfigurePresets = Object.keys(elements).length > 0;
+    } catch (error) {
+      Logger.error(
+        "Failed to read project configuration presets for status bar",
+        error,
+        "createCmdsStatusBarItems"
+      );
+      hasConfigurePresets = false;
+    }
   }
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
