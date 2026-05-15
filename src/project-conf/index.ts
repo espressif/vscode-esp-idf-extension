@@ -300,12 +300,14 @@ async function saveConfigurationToUserPresets(
       Logger.error(`Error reading user presets file: ${error.message}`, error, "saveConfigurationToUserPresets");
       userPresets = {
         version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
+        cmakeMinimumRequired: ESP.CMakePresets.CMAKE_PRESET_MINIMUM_REQUIRED,
         configurePresets: []
       };
     }
   } else {
     userPresets = {
       version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
+      cmakeMinimumRequired: ESP.CMakePresets.CMAKE_PRESET_MINIMUM_REQUIRED,
       configurePresets: []
     };
   }
@@ -360,12 +362,14 @@ async function saveConfigurationToProjectPresets(
       Logger.error(`Error reading project presets file: ${error.message}`, error, "saveConfigurationToProjectPresets");
       projectPresets = {
         version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
+        cmakeMinimumRequired: ESP.CMakePresets.CMAKE_PRESET_MINIMUM_REQUIRED,
         configurePresets: []
       };
     }
   } else {
     projectPresets = {
       version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
+      cmakeMinimumRequired: ESP.CMakePresets.CMAKE_PRESET_MINIMUM_REQUIRED,
       configurePresets: []
     };
   }
@@ -413,7 +417,7 @@ export async function saveProjectConfFile(
 
   const cmakePresets: CMakePresets = {
     version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
-    cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
+    cmakeMinimumRequired: ESP.CMakePresets.CMAKE_PRESET_MINIMUM_REQUIRED,
     configurePresets,
   };
 
@@ -448,7 +452,7 @@ export async function saveProjectConfFileLegacy(
 
   const cmakePresets: CMakePresets = {
     version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
-    cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
+    cmakeMinimumRequired: ESP.CMakePresets.CMAKE_PRESET_MINIMUM_REQUIRED,
     configurePresets,
   };
 

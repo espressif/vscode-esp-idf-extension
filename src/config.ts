@@ -148,5 +148,10 @@ export namespace ESP {
     export const ESP_IDF_VENDOR_KEY = "espressif/vscode-esp-idf";
     export const CMAKE_PRESET_VERSION = 3;
     export const CMAKE_PRESET_SCHEMA_VERSION = 1;
+    export const CMAKE_PRESET_MINIMUM_REQUIRED = {
+      major: 3,
+      minor: 23,
+      patch: 0,
+    };
   }
 }
