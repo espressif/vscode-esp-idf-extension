@@ -844,7 +844,8 @@ async function loadRawConfigurationFile(
  */
 async function resolvePresetInheritance(
   preset: ConfigurePreset,
-  allPresets: { [key: string]: ConfigurePreset }
+  allPresets: { [key: string]: ConfigurePreset },
+  visiting: Set<string> = new Set()
 ): Promise<ConfigurePreset> {
   // If no inheritance, return as-is
   if (!preset.inherits) {
@@ -859,25 +860,40 @@ async function resolvePresetInheritance(
   // Start with an empty base preset
   let resolvedPreset: ConfigurePreset = { name: preset.name };
 
-  // Apply each parent preset in order
-  for (const parentName of parentNames) {
-    const parentPreset = allPresets[parentName];
-    if (!parentPreset) {
-      Logger.warn(
-        `Preset "${preset.name}" inherits from "${parentName}" which was not found`,
-        new Error("Missing parent preset")
+  visiting.add(preset.name);
+  try {
+    // Apply each parent preset in order
+    for (const parentName of parentNames) {
+      if (visiting.has(parentName)) {
+        const cycle = [...visiting, parentName].join(" -> ");
+        Logger.warn(
+          `Circular preset inheritance detected for "${preset.name}": ${cycle}`,
+          new Error("Circular preset inheritance")
+        );
+        continue;
+      }
+
+      const parentPreset = allPresets[parentName];
+      if (!parentPreset) {
+        Logger.warn(
+          `Preset "${preset.name}" inherits from "${parentName}" which was not found`,
+          new Error("Missing parent preset")
+        );
+        continue;
+      }
+
+      // Recursively resolve parent's inheritance first
+      const resolvedParent = await resolvePresetInheritance(
+        parentPreset,
+        allPresets,
+        visiting
       );
-      continue;
+
+      // Merge parent into resolved preset
+      resolvedPreset = mergePresets(resolvedPreset, resolvedParent);
     }
-
-    // Recursively resolve parent's inheritance first
-    const resolvedParent = await resolvePresetInheritance(
-      parentPreset,
-      allPresets
-    );
-
-    // Merge parent into resolved preset
-    resolvedPreset = mergePresets(resolvedPreset, resolvedParent);
+  } finally {
+    visiting.delete(preset.name);
   }
 
   // Finally, merge the current preset (child overrides parent)
