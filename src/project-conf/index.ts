@@ -951,10 +951,16 @@ function mergePresets(
     merged.vendor = {
       [ESP.CMakePresets.ESP_IDF_VENDOR_KEY]: {
         schemaVersion: ESP.CMakePresets.CMAKE_PRESET_SCHEMA_VERSION,
-        settings: [
-          ...(parent.vendor?.[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]?.settings || []),
-          ...(child.vendor?.[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]?.settings || []),
-        ],
+        settings: (() => {
+          const byType = new Map<string, ESPIDFSettings>();
+          for (const s of parent.vendor?.[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]?.settings || []) {
+            byType.set(s.type, s);
+          }
+          for (const s of child.vendor?.[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]?.settings || []) {
+            byType.set(s.type, s); // child overwrites parent
+          }
+          return [...byType.values()];
+        })(),
       },
     };
   }
