@@ -2,10 +2,10 @@
   "$id": "https://dl.espressif.com/dl/vscode-esp-idf-extension/schemas/esp-idf-cmakepresets-schema-v1.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ESP-IDF CMakePresets Extension v1.0",
-  "description": "Extends the official CMakePresets schema (v3) with strict ESP-IDF vendor fields; requires CMake >= 3.21.",
+  "description": "Extends the official CMakePresets schema (v3) with strict ESP-IDF vendor fields; requires CMake >= 3.21. Upstream base schema pinned to Kitware/CMake v3.21.0 (presets format v3).",
   "allOf": [
     {
-      "$ref": "https://raw.githubusercontent.com/Kitware/CMake/master/Help/manual/presets/schema.json"
+      "$ref": "https://raw.githubusercontent.com/Kitware/CMake/v3.21.0/Help/manual/presets/schema.json"
     },
     {
       "type": "object",
