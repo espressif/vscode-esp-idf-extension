@@ -149,7 +149,7 @@ Selecting presets:
 
 1. Open Command Palette and run ``ESP-IDF: Select Project Configuration``.
 2. Pick ``default``, ``prod1`` or ``prod2``.
-3. Run ``ESP-IDF: Build Your Project`` to build with the selected preset. Switch presets any time via the same selection command.
+3. Run ``ESP-IDF: Build your Project`` to build with the selected preset. Switch presets any time via the same selection command.
 
 Multiple ESP-IDF Versions
 -------------------------
