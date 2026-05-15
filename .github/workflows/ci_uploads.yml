@@ -6,11 +6,6 @@ on:
       - master
     paths:
       - 'internal/com.espressif.idf.uploads/**'
-  pull_request:
-    branches:
-      - master
-    paths:
-      - 'internal/com.espressif.idf.uploads/**'
 
 jobs:
   upload-files:
