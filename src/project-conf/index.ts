@@ -498,7 +498,7 @@ function parameterToSameProjectConfigMap(
         currentProjectConf.build.sdkconfigDefaults &&
         currentProjectConf.build.sdkconfigDefaults.length
         ? currentProjectConf.build.sdkconfigDefaults
-        : "";
+        : [];
     case "idf.flashBaudRate":
       return currentProjectConf.flashBaudRate;
     case "idf.monitorBaudRate":
@@ -1573,7 +1573,7 @@ function getConfigurePresetParameterValue(
       return preset.binaryDir || "";
     case "idf.sdkconfigDefaults":
       const sdkconfigDefaults = preset.cacheVariables?.SDKCONFIG_DEFAULTS;
-      return sdkconfigDefaults ? sdkconfigDefaults.split(";") : "";
+      return sdkconfigDefaults ? sdkconfigDefaults.split(";") : [];
     case "idf.flashBaudRate":
       return getESPIDFSettingValue(preset, "flashBaudRate") || "";
     case "idf.monitorBaudRate":
