@@ -923,12 +923,7 @@ function mergePresets(
   parent: ConfigurePreset,
   child: ConfigurePreset
 ): ConfigurePreset {
-  const merged: ConfigurePreset = { ...parent };
-
-  // Merge basic properties
-  if (child.name !== undefined) merged.name = child.name;
-  if (child.binaryDir !== undefined) merged.binaryDir = child.binaryDir;
-  if (child.inherits !== undefined) merged.inherits = child.inherits;
+  const merged: ConfigurePreset = { ...parent, ...child };
 
   // Merge cacheVariables (child overrides parent)
   if (child.cacheVariables || parent.cacheVariables) {
