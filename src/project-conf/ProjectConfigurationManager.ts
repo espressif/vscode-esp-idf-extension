@@ -127,8 +127,19 @@ export class ProjectConfigurationManager {
         currentSelectedConfig &&
         this.configVersions.includes(currentSelectedConfig)
       ) {
-        // Current selection is valid, keep it
-        await this.updateConfiguration(currentSelectedConfig);
+        const saveLastProjectConfiguration = idfConf.readParameter(
+          "idf.saveLastProjectConfiguration",
+          this.workspaceUri
+        );
+        if (saveLastProjectConfiguration !== false) {
+          await this.updateConfiguration(currentSelectedConfig);
+        } else {
+          ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
+          ESP.ProjectConfiguration.store.clear(
+            ESP.ProjectConfiguration.SELECTED_CONFIG
+          );
+          this.setNoConfigurationSelectedStatus();
+        }
       } else if (currentSelectedConfig) {
         // Current selection is invalid, clear it
         ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
@@ -142,32 +153,15 @@ export class ProjectConfigurationManager {
         if (cmakePresetsExists) fileInfo.push("CMakePresets.json");
         if (cmakeUserPresetsExists) fileInfo.push("CMakeUserPresets.json");
 
-        // Check if we should show no configuration selected status
-        const saveLastProjectConfiguration = idfConf.readParameter("idf.saveLastProjectConfiguration", this.workspaceUri);
-        
-        if (saveLastProjectConfiguration !== false) {
-          // When setting is enabled, show no configuration selected status
-          window.showInformationMessage(
-            l10n.t(
-              "Loaded {0} project configuration(s) from {1}: {2}. No configuration selected.",
-              this.configVersions.length,
-              fileInfo.join(" and "),
-              this.configVersions.join(", ")
-            )
-          );
-          this.setNoConfigurationSelectedStatus();
-        } else {
-          // Show the current behavior when auto-selection is disabled
-          window.showInformationMessage(
-            l10n.t(
-              "Loaded {0} project configuration(s) from {1}: {2}",
-              this.configVersions.length,
-              fileInfo.join(" and "),
-              this.configVersions.join(", ")
-            )
-          );
-          this.setNoConfigurationSelectedStatus();
-        }
+        window.showInformationMessage(
+          l10n.t(
+            "Loaded {0} project configuration(s) from {1}: {2}. No configuration selected.",
+            this.configVersions.length,
+            fileInfo.join(" and "),
+            this.configVersions.join(", ")
+          )
+        );
+        this.setNoConfigurationSelectedStatus();
       } else {
         // No configurations found
         Logger.info(
