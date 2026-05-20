@@ -4471,7 +4471,7 @@ async function ensureEimAndLaunch(workspaceRoot: vscode.Uri) {
       }
 
       const mode = canLaunchGui ? "gui" : "wizard";
-      const raw = vscode.workspace.getConfiguration("").get<string[]>("idf.eimExecutableArgs");
+      const raw = idfConf.readParameter("idf.eimExecutableArgs");
       const existing = Array.isArray(raw) ? raw : [];
       const merged = [mode, "--idf-features ide", ...existing.filter(
         arg => arg !== "gui" && arg !== "wizard" && arg !== "--idf-features ide"
@@ -4498,7 +4498,7 @@ async function showSnapEimNotification(eimPath: string) {
   );
 
   if (action === runCliLabel) {
-    const raw = vscode.workspace.getConfiguration("").get<string[]>("idf.eimExecutableArgs");
+    const raw = idfConf.readParameter("idf.eimExecutableArgs");
     const existing = Array.isArray(raw) ? raw : [];
     const merged = ["wizard", "--idf-features ide", ...existing.filter(
       arg => arg !== "gui" && arg !== "wizard" && arg !== "--idf-features ide"
