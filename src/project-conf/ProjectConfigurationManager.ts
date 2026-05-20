@@ -7,11 +7,11 @@ import {
   Uri,
   l10n,
   ConfigurationTarget,
+  RelativePattern,
 } from "vscode";
 import {
   fileExists,
   readFileSync,
-  readJson,
   setCCppPropertiesJsonCompileCommands,
   writeJson,
 } from "../utils";
@@ -81,14 +81,14 @@ export class ProjectConfigurationManager {
 
     // Watch both CMakePresets.json and CMakeUserPresets.json
     this.cmakePresetsWatcher = workspace.createFileSystemWatcher(
-      this.cmakePresetsFilePath,
+      new RelativePattern(this.workspaceUri, ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME),
       false,
       false,
       false
     );
 
     this.cmakeUserPresetsWatcher = workspace.createFileSystemWatcher(
-      this.cmakeUserPresetsFilePath,
+      new RelativePattern(this.workspaceUri, ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME),
       false,
       false,
       false
