@@ -664,7 +664,7 @@ export class ProjectConfigurationManager {
         this.workspaceUri,
         "esp_idf_project_configuration.json"
       );
-      await this.performDirectMigration(legacyFilePath);
+      await this.performMigration(legacyFilePath);
     }
   }
 
@@ -724,30 +724,6 @@ export class ProjectConfigurationManager {
         l10n.t("Failed to migrate project configuration: {0}", error.message),
         error,
         "ProjectConfigurationManager performMigration"
-      );
-    }
-  }
-
-  /**
-   * Performs direct migration without additional confirmation (for notification)
-   */
-  private async performDirectMigration(legacyFilePath: Uri): Promise<void> {
-    try {
-      await migrateLegacyConfiguration(this.workspaceUri, legacyFilePath);
-
-      // After migration, reinitialize to show the new configurations
-      await this.initialize();
-
-      window.showInformationMessage(
-        l10n.t(
-          "Project configurations successfully migrated to CMakePresets.json format!"
-        )
-      );
-    } catch (error) {
-      Logger.errorNotify(
-        l10n.t("Failed to migrate project configuration: {0}", error.message),
-        error,
-        "ProjectConfigurationManager performDirectMigration"
       );
     }
   }
