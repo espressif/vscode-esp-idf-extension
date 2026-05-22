@@ -19,6 +19,7 @@
 import * as vscode from "vscode";
 import { ESP } from "../../config";
 import { Logger } from "../../logger/logger";
+import { PreCheck } from "../../utils";
 
 /**
  * Key used to store the OpenOCD USB adapter serial number in the extension workspace state
@@ -117,6 +118,17 @@ export function clearAdapterSerial(
       "clearAdapterSerial"
     );
   }
+}
+
+const ADAPTER_USB_LOCATION_MIN_VERSION = "v0.12.0-esp32-20260424";
+
+/**
+ * Returns true when the detected OpenOCD build supports the
+ * `adapter usb location <location>` command (>= v0.12.0-esp32-20260424).
+ * Older builds require the OPENOCD_USB_ADAPTER_LOCATION environment variable instead.
+ */
+export function supportsAdapterUsbLocationCommand(version: string): boolean {
+  return PreCheck.openOCDVersionValidator(ADAPTER_USB_LOCATION_MIN_VERSION, version);
 }
 
 /**
