@@ -37,6 +37,7 @@ import {
   parseAdapterSerialFromLog,
   storeAdapterSerial,
   getStoredAdapterSerial,
+  supportsAdapterUsbLocationCommand,
 } from "./adapterSerial";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
@@ -179,6 +180,13 @@ export class OpenOCDManager extends EventEmitter {
       );
     }
 
+    const versionString = await this.version(true);
+    const useLocationCommand = supportsAdapterUsbLocationCommand(versionString);
+    const adapterLocation = modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
+    if (useLocationCommand && adapterLocation) {
+      delete modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
+    }
+
     const openOcdArgs: string[] = [];
     const openOcdLaunchArgs = idfConf.readParameter(
       "idf.openOcdLaunchArgs",
@@ -198,6 +206,13 @@ export class OpenOCDManager extends EventEmitter {
         !openOcdArgs.some((a) => typeof a === "string" && a.match(/^-d-?\d+$/))
       ) {
         openOcdArgs.unshift("-d2");
+      }
+
+      const alreadyHasLocation = openOcdArgs.some(
+        (a) => typeof a === "string" && a.includes("adapter usb location")
+      );
+      if (useLocationCommand && adapterLocation && !alreadyHasLocation) {
+        openOcdArgs.unshift("-c", `adapter usb location ${adapterLocation}`);
       }
     } else {
       const openOcdConfigFilesList = idfConf.readParameter(
@@ -234,6 +249,10 @@ export class OpenOCDManager extends EventEmitter {
       // Inject adapter serial command if we have a stored serial number
       if (storedSerial) {
         openOcdArgs.push("-c", `adapter serial ${storedSerial}`);
+      }
+
+      if (useLocationCommand && adapterLocation) {
+        openOcdArgs.push("-c", `adapter usb location ${adapterLocation}`);
       }
 
       openOcdConfigFilesList.forEach((configFile) => {
