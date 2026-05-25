@@ -10,7 +10,7 @@ on:
 
 jobs:
   ui_test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, BrnoUBU0004]
 
     steps:
       - uses: actions/checkout@v6
@@ -32,10 +32,11 @@ jobs:
           yarn
           yarn install
 
-      - name: Run End to End tests script with xvfb
-        run: xvfb-run --auto-servernum yarn ci-test
+      - name: Run End to End tests script
+        run: yarn ci-test
 
       - name: Print UI Test Results
+        if: always()
         run: |
           echo "=== UI Test Results ==="
           if [ -f "./reports/ui-test-results.json" ]; then
