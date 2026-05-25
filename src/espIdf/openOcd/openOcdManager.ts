@@ -38,6 +38,7 @@ import {
   storeAdapterSerial,
   getStoredAdapterSerial,
   supportsAdapterUsbLocationCommand,
+  supportsSerialFromDetectConfig,
 } from "./adapterSerial";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
@@ -182,6 +183,7 @@ export class OpenOCDManager extends EventEmitter {
 
     const versionString = await this.version(true);
     const useLocationCommand = supportsAdapterUsbLocationCommand(versionString);
+    const useDetectConfigSerial = supportsSerialFromDetectConfig(versionString);
     const adapterLocation = modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
     if (useLocationCommand && adapterLocation) {
       delete modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
@@ -194,7 +196,7 @@ export class OpenOCDManager extends EventEmitter {
     ) as string[];
 
     const storedSerial = getStoredAdapterSerial(this.workspace);
-    const needsSerialDiscovery = !storedSerial;
+    const needsSerialDiscovery = !storedSerial && !useDetectConfigSerial;
 
     if (openOcdLaunchArgs && openOcdLaunchArgs.length > 0) {
       openOcdArgs.push(...openOcdLaunchArgs);
@@ -275,11 +277,12 @@ export class OpenOCDManager extends EventEmitter {
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
 
-      // Parse adapter serial number from log output
-      const serialNumber = parseAdapterSerialFromLog(data);
-      if (serialNumber && this.workspace) {
-        storeAdapterSerial(this.workspace, serialNumber);
-        updateOpenOcdAdapterStatusBarItem(this.workspace);
+      if (!useDetectConfigSerial) {
+        const serialNumber = parseAdapterSerialFromLog(data);
+        if (serialNumber && this.workspace) {
+          storeAdapterSerial(this.workspace, serialNumber);
+          updateOpenOcdAdapterStatusBarItem(this.workspace);
+        }
       }
 
       const regex = /Error:.*/i;
@@ -303,11 +306,12 @@ export class OpenOCDManager extends EventEmitter {
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
 
-      // Parse adapter serial number from log output
-      const serialNumber = parseAdapterSerialFromLog(data);
-      if (serialNumber && this.workspace) {
-        storeAdapterSerial(this.workspace, serialNumber);
-        updateOpenOcdAdapterStatusBarItem(this.workspace);
+      if (!useDetectConfigSerial) {
+        const serialNumber = parseAdapterSerialFromLog(data);
+        if (serialNumber && this.workspace) {
+          storeAdapterSerial(this.workspace, serialNumber);
+          updateOpenOcdAdapterStatusBarItem(this.workspace);
+        }
       }
 
       this.emit("data", this.chan);
