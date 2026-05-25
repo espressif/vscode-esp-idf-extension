@@ -97,8 +97,12 @@ export async function getNewProjectArgs(
   }
   const adfExists = await dirExistPromise(espAdfPath);
   if (adfExists) {
-    const adfTemplates = getExamplesList(espAdfPath);
-    templates["ESP-ADF"] = adfTemplates;
+    const adfExamplesDir = (await dirExistPromise(
+      join(espAdfPath, "adf_examples")
+    ))
+      ? "adf_examples"
+      : "examples";
+    templates["ESP-ADF"] = getExamplesList(espAdfPath, [adfExamplesDir]);
   }
 
   const targetsFromIdf = await getTargetsFromEspIdf(
