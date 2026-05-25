@@ -34,7 +34,12 @@ import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 import { configureEnvVariables } from "../../common/prepareEnv";
 import { DevkitsCommand } from "../setTarget/DevkitsCommand";
 import { OpenOCDManager } from "./openOcdManager";
-import { clearAdapterSerial } from "./adapterSerial";
+import {
+  clearAdapterSerial,
+  storeAdapterSerial,
+  supportsSerialFromDetectConfig,
+} from "./adapterSerial";
+import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
 
 export interface IdfBoard {
   name: string;
@@ -50,6 +55,7 @@ interface BoardQuickPickItem extends QuickPickItem {
   boardInfo?: {
     location: string;
     config_files: string[];
+    serial_number?: string;
   };
 }
 
@@ -145,11 +151,12 @@ export async function selectOpenOcdConfigFiles(
     }
 
     let connectedBoardItems: BoardQuickPickItem[] = [];
+    let openOCDVersion: string | undefined;
     const isDebugging = debug.activeDebugSession !== undefined;
     if (!isDebugging) {
       try {
         const openOCDManager = OpenOCDManager.init();
-        const openOCDVersion = await openOCDManager.version();
+        openOCDVersion = await openOCDManager.version();
         const devkitsCmd = new DevkitsCommand(workspaceFolder);
         const scriptPath = await devkitsCmd.getScriptPath(openOCDVersion);
         if (scriptPath) {
@@ -173,6 +180,7 @@ export async function selectOpenOcdConfigFiles(
                     boardInfo: {
                       location: b.location,
                       config_files: b.config_files,
+                      serial_number: b.serial_number,
                     },
                     picked: false,
                   })
@@ -251,6 +259,16 @@ export async function selectOpenOcdConfigFiles(
             workspaceFolder
           ) as { [key: string]: string };
           clearAdapterSerial(workspaceFolder);
+
+          if (
+            selectedBoard.isConnected &&
+            selectedBoard.boardInfo?.serial_number &&
+            openOCDVersion &&
+            supportsSerialFromDetectConfig(openOCDVersion)
+          ) {
+            storeAdapterSerial(workspaceFolder, selectedBoard.boardInfo.serial_number);
+            updateOpenOcdAdapterStatusBarItem(workspaceFolder);
+          }
 
           if (selectedBoard.isConnected && selectedBoard.boardInfo) {
             const configFiles = selectedBoard.boardInfo.config_files || [];

@@ -131,6 +131,12 @@ export function supportsAdapterUsbLocationCommand(version: string): boolean {
   return PreCheck.openOCDVersionValidator(ADAPTER_USB_LOCATION_MIN_VERSION, version);
 }
 
+const ADAPTER_SERIAL_FROM_DETECT_MIN_VERSION = "v0.12.0-esp32-20260304";
+
+export function supportsSerialFromDetectConfig(version: string): boolean {
+  return PreCheck.openOCDVersionValidator(ADAPTER_SERIAL_FROM_DETECT_MIN_VERSION, version);
+}
+
 /**
  * Gets the OpenOCD USB adapter identifier to use, preferring serial number over location
  * @param workspaceFolder The workspace folder URI
