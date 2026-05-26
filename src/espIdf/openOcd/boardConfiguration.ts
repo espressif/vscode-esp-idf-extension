@@ -282,6 +282,8 @@ export async function selectOpenOcdConfigFiles(
               customExtraVars[
                 "OPENOCD_USB_ADAPTER_LOCATION"
               ] = selectedBoard.boardInfo.location.replace("usb://", "");
+            } else {
+              delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
             }
             await writeParameter(
               "idf.customExtraVars",
