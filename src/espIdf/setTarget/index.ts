@@ -37,7 +37,11 @@ import { selectOpenOcdConfigFiles } from "../openOcd/boardConfiguration";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { getTargetsFromEspIdf, IdfTarget } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
-import { updateCurrentProfileIdfTarget } from "../../project-conf";
+import { 
+  updateCurrentProfileIdfTarget,
+  updateCurrentProfileOpenOcdConfigs,
+  updateCurrentProfileCustomExtraVars 
+} from "../../project-conf";
 import { DevkitsCommand } from "./DevkitsCommand";
 import {
   clearAdapterSerial,
@@ -91,7 +95,7 @@ export async function setIdfTarget(
     {
       cancellable: false,
       location: progressLocation,
-      title: "ESP-IDF: Setting device target...",
+      title: l10n.t("ESP-IDF: Setting device target..."),
     },
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
@@ -125,9 +129,11 @@ export async function setIdfTarget(
                           (t) => t.target === b.target
                         ),
                         description: b.description,
-                        detail: `Status: CONNECTED${
-                          b.location ? `   Location: ${b.location}` : ""
-                        }`,
+                        detail:
+                          l10n.t("Status: CONNECTED") +
+                          (b.location
+                            ? `   ${l10n.t("Location: {0}", b.location)}`
+                            : ""),
                         isConnected: true,
                         boardInfo: b,
                       } as ISetTargetQuickPickItems)
@@ -142,7 +148,7 @@ export async function setIdfTarget(
           } catch (e) {
             Logger.info(
               "No connected boards detected or error running DevkitsCommand: " +
-                (e && e.message ? e.message : e)
+              (e && e.message ? e.message : e)
             );
           }
         } else {
@@ -155,7 +161,7 @@ export async function setIdfTarget(
           (t) => ({
             label: t.label,
             idfTarget: t,
-            description: t.isPreview ? "Preview target" : undefined,
+            description: t.isPreview ? l10n.t("Preview target") : undefined,
             isConnected: false,
           })
         );
@@ -164,7 +170,10 @@ export async function setIdfTarget(
           connectedBoards.length > 0
             ? [
                 ...connectedBoards,
-                { kind: QuickPickItemKind.Separator, label: "Default Boards" },
+                {
+                  kind: QuickPickItemKind.Separator,
+                  label: l10n.t("Default Boards"),
+                },
                 ...defaultBoards,
               ]
             : defaultBoards;
@@ -195,6 +204,13 @@ export async function setIdfTarget(
             configurationTarget,
             workspaceFolder.uri
           );
+
+          // Update project configuration with OpenOCD configs if a configuration is selected
+          await updateCurrentProfileOpenOcdConfigs(
+            configFiles,
+            workspaceFolder.uri
+          );
+
           // Store USB location if available (will be used as fallback if serial is not found)
           if (selectedTarget.boardInfo.location) {
             const location = selectedTarget.boardInfo.location.replace(
@@ -202,6 +218,18 @@ export async function setIdfTarget(
               ""
             );
             customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"] = location;
+            await writeParameter(
+              "idf.customExtraVars",
+              customExtraVars,
+              configurationTarget,
+              workspaceFolder.uri
+            );
+
+            // Update project configuration with custom extra vars if a configuration is selected
+            await updateCurrentProfileCustomExtraVars(
+              { "OPENOCD_USB_ADAPTER_LOCATION": location },
+              workspaceFolder.uri
+            );
           }
         } else {
           await selectOpenOcdConfigFiles(
@@ -218,7 +246,11 @@ export async function setIdfTarget(
           configurationTarget,
           workspaceFolder.uri
         );
+
         updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
+
+        // Update project configuration with IDF_TARGET if a configuration is selected
+        // Note: IDF_TARGET goes in cacheVariables, not environment
         await updateCurrentProfileIdfTarget(
           selectedTarget.idfTarget.target,
           workspaceFolder.uri
