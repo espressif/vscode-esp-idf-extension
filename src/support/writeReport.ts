@@ -72,6 +72,9 @@ export async function writeTextReport(
   output += `Notification Mode (idf.notificationMode) ${reportedResult.configurationSettings.notificationMode}${EOL}`;
   output += `Flash type (idf.flashType) ${reportedResult.configurationSettings.flashType}${EOL}`;
   output += `Flash partition to use (idf.flashPartitionToUse) ${reportedResult.configurationSettings.flashPartitionToUse}${EOL}`;
+  if (reportedResult.configurationSettings.customOpenOcdPath) {
+    output += `Custom OpenOCD path (idf.customOpenOCDPath) ${reportedResult.configurationSettings.customOpenOcdPath}${EOL}`;
+  }
   if (reportedResult.configurationSettings.customTerminalExecutable) {
     output += `Custom terminal executable (idf.customTerminalExecutable) ${reportedResult.configurationSettings.customTerminalExecutable}${EOL}`;
   }
@@ -92,6 +95,9 @@ export async function writeTextReport(
   output += `Access to CMake in environment PATH ${reportedResult.configurationAccess.cmakeInEnv}${EOL}`;
   output += `Access to Ninja in environment PATH ${reportedResult.configurationAccess.ninjaInEnv}${EOL}`;
   output += `Access to ESP-IDF Tools Path ${reportedResult.configurationAccess.toolsPath}${EOL}`;
+  if (reportedResult.configurationSettings.customOpenOcdPath) {
+    output += `Access to Custom OpenOCD path (idf.customOpenOCDPath) ${reportedResult.configurationAccess.customOpenOcdPath}${EOL}`;
+  }
   output += `-------------------------------------------------------- Configurations has spaces -------------------------------------------------------------${EOL}`;
   output += `Spaces in system environment Path ${reportedResult.configurationSpacesValidation.systemEnvPath}${EOL}`;
   output += `Spaces in ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportedResult.configurationSpacesValidation.espAdfPath}${EOL}`;

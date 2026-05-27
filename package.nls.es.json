@@ -153,6 +153,7 @@
 	"param.notificationMode.silent": "No mostrar notificaciones ni enfocar la salida de tareas.",
 	"param.openOcdConfigFilesList": "Lista de archivos de configuración dentro del directorio de scripts de OpenOCD",
 	"param.openOcdDebugLevel": "Nivel de depuración del servidor OpenOCD",
+	"param.customOpenOCDPath": "Ruta absoluta de un ejecutable OpenOCD personalizado. Si está vacía o no es válida, la extensión buscará OpenOCD en PATH",
 	"param.openOcdLaunchArgs": "Argumentos para iniciar OpenOCD desde esta extensión",
 	"param.partialDarkTheme": "Color de fondo para líneas parcialmente cubiertas en tema oscuro para Cobertura de ESP-IDF.",
 	"param.partialLightTheme": "Color de fondo para líneas parcialmente cubiertas en tema claro para Cobertura de ESP-IDF.",

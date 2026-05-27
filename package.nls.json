@@ -154,6 +154,7 @@
   "param.notificationMode.silent": "Show no notifications and do not focus on tasks output",
   "param.openOcdConfigFilesList": "List of configuration files inside OpenOCD scripts directory",
   "param.openOcdDebugLevel": "OpenOCD server debug level",
+  "param.customOpenOCDPath": "Absolute path to a custom OpenOCD executable. If empty or invalid, the extension searches for OpenOCD in PATH",
   "param.openOcdLaunchArgs": "Arguments to launch openOCD from this extension",
   "param.partialDarkTheme": "Background color for partially covered lines in dark theme for ESP-IDF coverage",
   "param.partialLightTheme": "Background color for partially covered lines in light theme for ESP-IDF coverage",

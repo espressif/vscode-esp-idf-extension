@@ -1003,6 +1003,12 @@
             "scope": "resource",
             "description": "%param.openOcdDebugLevel%"
           },
+          "idf.customOpenOCDPath": {
+            "type": "string",
+            "default": "",
+            "description": "%param.customOpenOCDPath%",
+            "scope": "resource"
+          },
           "idf.openOcdLaunchArgs": {
             "type": "array",
             "default": [],

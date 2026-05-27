@@ -18,11 +18,16 @@
 
 import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
+import { accessSync, constants, statSync } from "fs";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
-import { isBinInPath, PreCheck, spawn as sspawn } from "../../utils";
+import {
+  isBinInPath,
+  PreCheck,
+  spawn as sspawn,
+} from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 import { ESP } from "../../config";
 import {
@@ -45,6 +50,29 @@ export interface IOpenOCDConfig {
 }
 
 export class OpenOCDManager extends EventEmitter {
+  public static async getOpenOcdPath(
+    workspace: vscode.Uri,
+    modifiedEnv: { [Key: string]: string }
+  ): Promise<string> {
+    const customOpenOcdPath = (idfConf.readParameter(
+      "idf.customOpenOCDPath",
+      workspace
+    ) as string)?.trim();
+    if (customOpenOcdPath) {
+      try {
+        if (statSync(customOpenOcdPath).isFile()) {
+          accessSync(customOpenOcdPath, constants.X_OK);
+          return customOpenOcdPath;
+        }
+      } catch (_error) {
+        // Fall through to PATH lookup when the configured file is invalid.
+      }
+    }
+    const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
+      "openocd-esp32",
+    ]);
+    return openOcdPath;
+  }
   public static init(): OpenOCDManager {
     if (!OpenOCDManager.instance) {
       OpenOCDManager.instance = new OpenOCDManager();
@@ -65,9 +93,10 @@ export class OpenOCDManager extends EventEmitter {
 
   public async version(silent: boolean = false): Promise<string> {
     const modifiedEnv = await configureEnvVariables(this.workspace);
-    const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
-      "openocd-esp32",
-    ]);
+    const openOcdPath = await OpenOCDManager.getOpenOcdPath(
+      this.workspace,
+      modifiedEnv
+    );
     if (!openOcdPath) {
       return "";
     }
@@ -165,9 +194,10 @@ export class OpenOCDManager extends EventEmitter {
       return;
     }
     const modifiedEnv = await configureEnvVariables(this.workspace);
-    const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
-      "openocd-esp32",
-    ]);
+    const openOcdPath = await OpenOCDManager.getOpenOcdPath(
+      this.workspace,
+      modifiedEnv
+    );
     if (!openOcdPath) {
       throw new Error(
         "Invalid OpenOCD bin path or access is denied for the user"

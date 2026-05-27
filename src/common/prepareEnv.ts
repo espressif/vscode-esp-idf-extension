@@ -24,6 +24,7 @@ import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { ESP } from "../config";
 import { isBinInPath } from "../utils";
 import { pathExists } from "fs-extra";
+import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 
 /**
  * Configures and prepares environment variables necessary for executing ESP-IDF tasks.
@@ -99,9 +100,10 @@ export async function configureEnvVariables(
   }
 
   try {
-    const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
-      "openocd-esp32",
-    ]);
+    const openOcdPath = await OpenOCDManager.getOpenOcdPath(
+      curWorkspace,
+      modifiedEnv
+    );
     if (openOcdPath) {
       const openOcdDir = dirname(openOcdPath);
       const openOcdScriptsPath = join(

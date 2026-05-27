@@ -4465,7 +4465,9 @@ async function ensureEimAndLaunch(workspaceRoot: vscode.Uri) {
 
         canLaunchGui = !shouldUseCliMode && eimSupportsGui;
         Logger.info(
-          `EIM launch mode: ${canLaunchGui ? "gui" : "cli wizard"} (forceCliMode=${forceCliMode}, isSnapInstall=${isSnapInstall}, eimSupportsGui=${eimSupportsGui})`,
+          `EIM launch mode: ${
+            canLaunchGui ? "gui" : "cli wizard"
+          } (forceCliMode=${forceCliMode}, isSnapInstall=${isSnapInstall}, eimSupportsGui=${eimSupportsGui})`,
           "openEIM"
         );
       }

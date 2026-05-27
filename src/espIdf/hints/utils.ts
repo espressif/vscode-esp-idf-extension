@@ -5,6 +5,7 @@ import { isBinInPath } from "../../utils";
 import { readParameter } from "../../idfConfiguration";
 import { configureEnvVariables } from "../../common/prepareEnv";
 import { Uri } from "vscode";
+import { OpenOCDManager } from "../openOcd/openOcdManager";
 
 /**
  * Gets the path to the OpenOCD hints YAML file for the specified version.
@@ -16,9 +17,10 @@ export async function getOpenOcdHintsYmlPath(
   workspace: Uri
 ): Promise<string | null> {
   const modifiedEnv = await configureEnvVariables(workspace);
-  const openOcdPath = await isBinInPath("openocd", modifiedEnv, [
-    "openocd-esp32",
-  ]);
+  const openOcdPath = await OpenOCDManager.getOpenOcdPath(
+      workspace,
+      modifiedEnv
+    );
   if (!openOcdPath) {
     Logger.warn(
       "Missing OpenOCD path for getting hints path.",

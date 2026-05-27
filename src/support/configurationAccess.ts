@@ -59,6 +59,13 @@ export async function getConfigurationAccess(
       );
     }
   }
+  if (reportedResult.configurationSettings.customOpenOcdPath) {
+    reportedResult.configurationAccess.customOpenOcdPath = canAccessFile(
+      reportedResult.configurationSettings.customOpenOcdPath,
+      constants.X_OK,
+      "CUSTOM_OPENOCD_PATH"
+    );
+  }
   if (process.platform !== "win32") {
     const cmakePathInEnv = await isBinInPath("cmake", process.env);
     reportedResult.configurationAccess.cmakeInEnv =

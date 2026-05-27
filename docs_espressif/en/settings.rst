@@ -168,6 +168,8 @@ Debug & OpenOCD
       - Launch ESP-IDF Monitor when starting an ESP-IDF debug session (default: ``false``). Scope: Resource.
     * - **idf.openOcdDebugLevel**
       - OpenOCD debug level 0–4 (default: 2). 0 = error only, 4 = verbose. Ignored if **idf.openOcdLaunchArgs** is set. Scope: Resource.
+    * - **idf.customOpenOCDPath**
+      - Absolute path to a custom OpenOCD executable. If empty or the path does not exist, the extension falls back to searching OpenOCD in ``PATH``. Scope: Resource.
     * - **idf.openOcdLaunchArgs**
       - Custom arguments for OpenOCD. If set, **idf.openOcdConfigs** and **idf.openOcdDebugLevel** are ignored. Command form otherwise: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}``. Scope: Resource.
     * - **idf.svdFilePath**
