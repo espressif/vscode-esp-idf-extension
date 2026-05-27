@@ -33,18 +33,18 @@ function getSetPayload(updatedValue: Menu): { [id: string]: any } {
   return { [updatedValue.id]: updatedValue.value };
 }
 
-export function buildSetRequest(updatedValue: Menu): string {
+export function setValueRequest(updatedValue: Menu): string {
   return `${JSON.stringify({ version: 2, set: getSetPayload(updatedValue) })}\n`;
 }
 
-export function buildResetRequest(ids: string[]): string {
+export function resetValueRequest(ids: string[]): string {
   return `${JSON.stringify({ version: 3, reset: ids })}\n`;
 }
 
-export function buildSaveRequest(filePath: string): string {
+export function saveValueRequest(filePath: string): string {
   return `${JSON.stringify({ version: 2, save: filePath })}\n`;
 }
 
-export function buildLoadRequest(filePath: string): string {
+export function loadValueRequest(filePath: string): string {
   return `${JSON.stringify({ version: 2, load: filePath })}\n`;
 }
