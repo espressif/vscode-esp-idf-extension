@@ -36,10 +36,10 @@ import {
   ConfserverJsonStreamResult,
 } from "./streamJsonParser";
 import {
-  buildLoadRequest,
-  buildResetRequest,
-  buildSaveRequest,
-  buildSetRequest,
+  loadValueRequest,
+  resetValueRequest,
+  saveValueRequest,
+  setValueRequest,
 } from "./protocol";
 import { buildConfserverArgs, buildReconfigureArgs } from "./idfPyArgsBuilder";
 import {
@@ -156,15 +156,15 @@ export class ConfserverProcess {
   }
 
   public static resetElementById(id: string) {
-    ConfserverProcess.sendUpdatedValue(buildResetRequest([id]));
+    ConfserverProcess.sendUpdatedValue(resetValueRequest([id]));
   }
 
   public static resetElementChildren(children: string[]) {
-    ConfserverProcess.sendUpdatedValue(buildResetRequest(children));
+    ConfserverProcess.sendUpdatedValue(resetValueRequest(children));
   }
 
   public static setUpdatedValue(updatedValue: Menu) {
-    ConfserverProcess.sendUpdatedValue(buildSetRequest(updatedValue));
+    ConfserverProcess.sendUpdatedValue(setValueRequest(updatedValue));
   }
 
   public static sendUpdatedValue(newValueRequest: string) {
@@ -188,7 +188,7 @@ export class ConfserverProcess {
     }
     ConfserverProcess.instance.isSavingSdkconfig = true;
     const configFile = ConfserverProcess.instance.readSdkconfigFilePath();
-    const saveRequest = buildSaveRequest(configFile);
+    const saveRequest = saveValueRequest(configFile);
     OutputChannel.appendLine(saveRequest, "SDK Configuration Editor");
     ConfserverProcess.instance.confServerProcess?.stdin?.write(saveRequest);
     ConfserverProcess.instance.areValuesSaved = true;
@@ -199,7 +199,7 @@ export class ConfserverProcess {
       return;
     }
     const configFile = ConfserverProcess.instance.readSdkconfigFilePath();
-    const loadRequest = buildLoadRequest(configFile);
+    const loadRequest = loadValueRequest(configFile);
     OutputChannel.appendLine(loadRequest, "SDK Configuration Editor");
     ConfserverProcess.instance.confServerProcess?.stdin?.write(loadRequest);
     if (isClosingWithoutSaving) {
