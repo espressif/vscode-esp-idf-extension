@@ -9,10 +9,10 @@
 import * as assert from "assert";
 import { Menu, menuType } from "../../espIdf/menuconfig/Menu";
 import {
-  buildLoadRequest,
-  buildResetRequest,
-  buildSaveRequest,
-  buildSetRequest,
+  loadValueRequest,
+  resetValueRequest,
+  saveValueRequest,
+  setValueRequest,
 } from "../../espIdf/menuconfig/confserver/protocol";
 
 function createMenu(
@@ -43,10 +43,10 @@ function parseRequest(request: string): any {
 }
 
 suite("menuconfig protocol", () => {
-  suite("buildSetRequest", () => {
+  suite("setValueRequest", () => {
     test("builds choice payload", () => {
       const menu = createMenu(menuType.choice, { value: "CONFIG_CHOICE_A" });
-      assert.deepStrictEqual(parseRequest(buildSetRequest(menu)), {
+      assert.deepStrictEqual(parseRequest(setValueRequest(menu)), {
         version: 2,
         set: { CONFIG_CHOICE_A: true },
       });
@@ -54,7 +54,7 @@ suite("menuconfig protocol", () => {
 
     test("builds string payload", () => {
       const menu = createMenu(menuType.string, { value: "hello" });
-      assert.deepStrictEqual(parseRequest(buildSetRequest(menu)), {
+      assert.deepStrictEqual(parseRequest(setValueRequest(menu)), {
         version: 2,
         set: { CFG_ID: "hello" },
       });
@@ -62,7 +62,7 @@ suite("menuconfig protocol", () => {
 
     test("uses zero for empty hex value", () => {
       const menu = createMenu(menuType.hex, { value: "" });
-      assert.deepStrictEqual(parseRequest(buildSetRequest(menu)), {
+      assert.deepStrictEqual(parseRequest(setValueRequest(menu)), {
         version: 2,
         set: { CFG_ID: "0" },
       });
@@ -70,16 +70,16 @@ suite("menuconfig protocol", () => {
 
     test("uses first range value for empty int value", () => {
       const menu = createMenu(menuType.int, { value: "", range: [10, 20] });
-      assert.deepStrictEqual(parseRequest(buildSetRequest(menu)), {
+      assert.deepStrictEqual(parseRequest(setValueRequest(menu)), {
         version: 2,
         set: { CFG_ID: 10 },
       });
     });
   });
 
-  suite("buildResetRequest", () => {
+  suite("resetValueRequest", () => {
     test("builds reset payload for one element", () => {
-      assert.deepStrictEqual(parseRequest(buildResetRequest(["CONFIG_A"])), {
+      assert.deepStrictEqual(parseRequest(resetValueRequest(["CONFIG_A"])), {
         version: 3,
         reset: ["CONFIG_A"],
       });
@@ -87,7 +87,7 @@ suite("menuconfig protocol", () => {
 
     test("builds reset payload for multiple elements", () => {
       assert.deepStrictEqual(
-        parseRequest(buildResetRequest(["CONFIG_A", "CONFIG_B"])),
+        parseRequest(resetValueRequest(["CONFIG_A", "CONFIG_B"])),
         {
           version: 3,
           reset: ["CONFIG_A", "CONFIG_B"],
@@ -96,15 +96,15 @@ suite("menuconfig protocol", () => {
     });
   });
 
-  test("buildSaveRequest includes version and path", () => {
-    assert.deepStrictEqual(parseRequest(buildSaveRequest("/tmp/sdkconfig")), {
+  test("saveValueRequest includes version and path", () => {
+    assert.deepStrictEqual(parseRequest(saveValueRequest("/tmp/sdkconfig")), {
       version: 2,
       save: "/tmp/sdkconfig",
     });
   });
 
-  test("buildLoadRequest includes version and path", () => {
-    assert.deepStrictEqual(parseRequest(buildLoadRequest("/tmp/sdkconfig")), {
+  test("loadValueRequest includes version and path", () => {
+    assert.deepStrictEqual(parseRequest(loadValueRequest("/tmp/sdkconfig")), {
       version: 2,
       load: "/tmp/sdkconfig",
     });
