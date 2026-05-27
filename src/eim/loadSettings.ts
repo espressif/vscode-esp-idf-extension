@@ -19,6 +19,7 @@
 import { spawn } from "../utils";
 import { IdfSetup } from "./types";
 import { delimiter, join } from "path";
+import { pathExists } from "fs-extra";
 import { getEnvVariablesFromIdfSetup } from "./migrationTool";
 import { Logger } from "../logger/logger";
 
@@ -77,8 +78,13 @@ export async function getEnvVariablesFromActivationScript(
     const pyDir =
       process.platform === "win32"
         ? ["Scripts", "python.exe"]
-        : ["bin", "python"];
-    envDict["PYTHON"] = join(envDict["IDF_PYTHON_ENV_PATH"], ...pyDir);
+        : ["bin", "python3"];
+    const python3Path = join(envDict["IDF_PYTHON_ENV_PATH"], ...pyDir);
+    if (process.platform !== "win32" && !(await pathExists(python3Path))) {
+      envDict["PYTHON"] = join(envDict["IDF_PYTHON_ENV_PATH"], "bin", "python");
+    } else {
+      envDict["PYTHON"] = python3Path;
+    }
 
     return envDict;
   } catch (error) {

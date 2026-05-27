@@ -84,10 +84,20 @@ export async function getPythonEnvPath(
   const pyDir =
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
-      : ["bin", "python"];
+      : ["bin", "python3"];
   const fullIdfPyEnvPath = join(idfPyEnvPath, ...pyDir);
   const pyEnvPathExists = await pathExists(fullIdfPyEnvPath);
-  return pyEnvPathExists ? fullIdfPyEnvPath : "";
+  if (pyEnvPathExists) {
+    return fullIdfPyEnvPath;
+  }
+  if (process.platform !== "win32") {
+    const pythonFallback = join(idfPyEnvPath, "bin", "python");
+    const pythonFallbackExists = await pathExists(pythonFallback);
+    if (pythonFallbackExists) {
+      return pythonFallback;
+    }
+  }
+  return "";
 }
 
 export async function getEnvVariablesFromIdfSetup(idfSetup: IdfSetup) {
