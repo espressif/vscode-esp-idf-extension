@@ -4472,14 +4472,13 @@ async function ensureEimAndLaunch(workspaceRoot: vscode.Uri) {
         );
       }
 
-      const argsValue = canLaunchGui
-        ? ["gui", "--idf-features ide"]
-        : ["wizard", "--idf-features ide"];
-      await idfConf.writeParameter(
-        "idf.eimExecutableArgs",
-        argsValue,
-        vscode.ConfigurationTarget.Global
-      );
+      const mode = canLaunchGui ? "gui" : "wizard";
+      const raw = idfConf.readParameter("idf.eimExecutableArgs");
+      const existing = Array.isArray(raw) ? raw : [];
+      const merged = [mode, "--idf-features ide", ...existing.filter(
+        arg => arg !== "gui" && arg !== "wizard" && arg !== "--idf-features ide"
+      )];
+      await idfConf.writeParameter("idf.eimExecutableArgs", merged, vscode.ConfigurationTarget.Global);
       await launchEimInTerminal(eimPath);
     }
   );
@@ -4501,11 +4500,12 @@ async function showSnapEimNotification(eimPath: string) {
   );
 
   if (action === runCliLabel) {
-    await idfConf.writeParameter(
-      "idf.eimExecutableArgs",
-      ["wizard", "--idf-features ide"],
-      vscode.ConfigurationTarget.Global
-    );
+    const raw = idfConf.readParameter("idf.eimExecutableArgs");
+    const existing = Array.isArray(raw) ? raw : [];
+    const merged = ["wizard", "--idf-features ide", ...existing.filter(
+      arg => arg !== "gui" && arg !== "wizard" && arg !== "--idf-features ide"
+    )];
+    await idfConf.writeParameter("idf.eimExecutableArgs", merged, vscode.ConfigurationTarget.Global);
     await launchEimInTerminal(eimPath);
   } else if (action === copyPathLabel) {
     await vscode.env.clipboard.writeText(eimPath);
