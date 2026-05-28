@@ -173,7 +173,6 @@ export async function selectOpenOcdConfigFiles(
                 .map(
                   (b: any): BoardQuickPickItem => ({
                     label: b.name,
-                    description: b.description,
                     detail: `Status: CONNECTED${
                       b.location ? `   Location: ${b.location}` : ""
                     }`,
@@ -212,7 +211,6 @@ export async function selectOpenOcdConfigFiles(
       return;
     }
     const staticChoices: BoardQuickPickItem[] = boards.map((b) => ({
-      description: b.description,
       detail: b.configFiles.join(", "),
       label: b.name,
       target: b,
