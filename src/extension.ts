@@ -4285,7 +4285,7 @@ async function createEspIdfTerminal(
       ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
       : shellExecutablePath
       ? shellExecutablePath
-      : "/bin/sh";
+      : "bash";
 
   const currentSetup = await loadIdfSetup(workspaceRoot);
   if (!currentSetup) {
