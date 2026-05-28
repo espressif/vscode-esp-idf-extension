@@ -122,7 +122,6 @@ export async function setIdfTarget(
                         idfTarget: targetsFromIdf.find(
                           (t) => t.target === b.target
                         ),
-                        description: b.description,
                         detail: `Status: CONNECTED${
                           b.location ? `   Location: ${b.location}` : ""
                         }`,
