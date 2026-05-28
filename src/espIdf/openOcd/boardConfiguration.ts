@@ -173,7 +173,8 @@ export async function selectOpenOcdConfigFiles(
                 .map(
                   (b: any): BoardQuickPickItem => ({
                     label: b.name,
-                    description: `${b.description}${
+                    description: b.description,
+                    detail: `Status: CONNECTED${
                       b.location ? `   Location: ${b.location}` : ""
                     }`,
                     isConnected: true,
@@ -211,7 +212,8 @@ export async function selectOpenOcdConfigFiles(
       return;
     }
     const staticChoices: BoardQuickPickItem[] = boards.map((b) => ({
-      description: `${b.description} (${b.configFiles})`,
+      description: b.description,
+      detail: b.configFiles.join(", "),
       label: b.name,
       target: b,
       picked: currentOpenOcdConfigs
@@ -220,12 +222,23 @@ export async function selectOpenOcdConfigFiles(
       isConnected: false,
     }));
 
+    const connectedKeys = new Set(
+      connectedBoardItems
+        .filter((c) => c.boardInfo?.config_files)
+        .map((c) => [...c.boardInfo.config_files].sort().join(","))
+    );
+    const filteredStaticChoices = staticChoices.filter(
+      (s) =>
+        !s.target ||
+        !connectedKeys.has([...s.target.configFiles].sort().join(","))
+    );
+
     const allChoices: BoardQuickPickItem[] =
       connectedBoardItems.length > 0
         ? [
             ...connectedBoardItems,
-            { kind: QuickPickItemKind.Separator, label: "Default Boards" },
-            ...staticChoices,
+            { kind: QuickPickItemKind.Separator, label: l10n.t("Other Boards") },
+            ...filteredStaticChoices,
           ]
         : staticChoices;
 
