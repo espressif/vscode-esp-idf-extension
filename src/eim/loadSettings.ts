@@ -48,7 +48,7 @@ export async function getEnvVariablesFromActivationScript(
     const shellPath =
       process.platform === "win32"
         ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
-        : "/bin/bash";
+        : "bash";
     const envVarsOutput = await spawn(shellPath, args, {
       maxBuffer: 500 * 1024,
       cwd: process.cwd(),
