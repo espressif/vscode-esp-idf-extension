@@ -162,7 +162,7 @@ export async function setIdfTarget(
           connectedBoards.length > 0
             ? [
                 ...connectedBoards,
-                { kind: QuickPickItemKind.Separator, label: "Default Boards" },
+                { kind: QuickPickItemKind.Separator, label: l10n.t("Default Boards") },
                 ...defaultBoards,
               ]
             : defaultBoards;
