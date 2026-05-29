@@ -21,6 +21,50 @@ After making changes, click ``save`` and close the window.
 
 Next, proceed to :ref:`Build Your project <build the project>`.
 
+Adding ESP-IDF Components
+-------------------------
+
+The `ESP Component Registry <https://components.espressif.com>`_ is a collection of ESP-IDF components that can be easily added to your project. You can browse the registry, install components and create new ESP-IDF projects from components example directly from Visual Studio Code.
+
+In Visual Studio Code:
+
+- Navigate to ``View`` > ``Command Palette``.
+- Type ``ESP-IDF: Show ESP Component Registry`` and select the command to open the ESP Component Registry UI.
+
+The ``ESP-IDF: Show ESP Component Registry`` command launches a UI showing the `ESP Component Registry <https://components.espressif.com>`_.
+
+.. image:: ../../media/tutorials/features/component-registry.png
+
+You can browse various ESP components and install them in your current ESP-IDF project using the ``Install`` button.
+
+.. image:: ../../media/tutorials/features/install-component.png
+
+For more information, refer to `ESP Component Registry Documentation <https://docs.espressif.com/projects/idf-component-manager/en/latest/>`_.
+
+Using other ESP solutions
+----------------------------
+
+If you are working with ESP solutions such as ESP-Matter or ESP-RainMaker, chances are you will find them in the ESP Component Registry and you can use either create projects from their examples or install the component in your current ESP-IDF project.
+
+In case you want to use the main branch of these ESP solutions, you just need to define the exported environment variables in your project's ``<.vscode/settings.json>`` file using the ``idf.customExtraVars`` VS Code configuration setting.
+
+For example, for `ESP-Matter <https://github.com/espressif/esp-matter>`_ you need to define the ``ESP_MATTER_PATH`` variable with the path to your local ESP-Matter repository:
+
+.. code-block:: JSON
+
+    {
+        "idf.customExtraVars": {
+            "ESP_MATTER_PATH": "/path/to/esp-matter"
+        }
+    }
+
+or you can do it from the Settings UI of Visual Studio Code:
+
+- Navigate to ``View`` > ``Command Palette``.
+- Type ``Preferences: Open Settings (UI)`` and select the command to open the Settings UI. Select the ``Workspace`` tab to edit the settings for the current workspace (your ESP-IDF project) or ``User`` tab to edit the settings for all VS Code instances.
+- Search for ``idf custom extra vars`` or ``idf.customExtraVars``.
+- Click on ``Add Item`` and add the variable name (e.g., ``ESP_MATTER_PATH``) and its value (e.g., ``/path/to/esp-matter``).
+
 C and C++ Code Navigation and Syntax Highlighting
 -------------------------------------------------
 

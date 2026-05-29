@@ -5,12 +5,13 @@
 
 :link_to_translation:`en:[English]`
 
-可以通过以下两种方式创建项目：
+可以通过以下三种方式开始项目：
 
 1. :ref:`ESP-IDF New Project`
 2. :ref:`ESP-IDF Existing ESP-IDF Project`
+3. :ref:`ESP-IDF Component Registry`
 
-推荐使用第一种方式，便于配置项目；第二种方式将使用当前工作区文件夹配置创建项目。
+推荐使用第一种方式，因为便于配置项目；第二种和第三种方式会使用当前工作区文件夹的配置创建项目。
 
 .. _ESP-IDF New Project:
 
@@ -51,7 +52,7 @@
 
     .. note::
 
-        请参阅 `根据目标配置 OpenOCD <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_，根据硬件选择正确的 OpenOCD 配置文件。
+        请参阅 `根据目标芯片配置 OpenOCD <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_，根据硬件选择正确的 OpenOCD 配置文件。
 
 - （可选）可将任意 ESP-IDF 组件目录 ``component-dir`` 导入新项目，该目录会被复制到新项目的 ``components`` 子目录（``<project-dir>/components/component-dir``）。
 
@@ -118,3 +119,25 @@ ESP-IDF 项目遵循以下目录结构：
     - 前往 ``查看`` > ``命令面板``。
 
     - 输入 ``Dev Containers: Open Folder in Remote Container`` 并选择该命令，在由上一步 Dockerfile 创建的容器中打开现有项目。
+
+.. _ESP-IDF Component Registry:
+
+ESP-IDF 注册表
+--------------
+
+`ESP 组件注册表 <https://components.espressif.com>`_ 汇集了可轻松加入项目的 ESP-IDF 组件。你可以在 Visual Studio Code 中浏览注册表、安装组件，并直接从组件示例创建新的 ESP-IDF 项目。
+
+在 Visual Studio Code 中：
+
+- 前往 ``查看`` > ``命令面板``。
+- 输入 ``ESP-IDF: Show ESP Component Registry`` 并选择该命令，打开 ESP 组件注册表界面。
+
+``ESP-IDF: Show ESP Component Registry`` 命令会打开一个界面，展示 `ESP 组件注册表 <https://components.espressif.com>`_。
+
+.. image:: ../../media/tutorials/features/component-registry.png
+
+你也可以使用 ``Create project from this example`` 按钮，基于 ESP 组件示例创建新项目。
+
+.. image:: ../../media/tutorials/features/create-project-from-component-example.png
+
+更多信息请参阅 `ESP 组件注册表文档 <https://docs.espressif.com/projects/idf-component-manager/zh_CN/latest/>`_。
