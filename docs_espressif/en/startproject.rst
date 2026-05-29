@@ -9,6 +9,7 @@ You can start a project in three ways:
 
 1. :ref:`ESP-IDF New Project`
 2. :ref:`ESP-IDF Existing ESP-IDF Project`
+3. :ref:`ESP-IDF Component Registry`
 
 The first option is recommended because it allows to configure the project. The second and third options create the project with the current workspace folder configuration.
 
@@ -118,3 +119,25 @@ In Visual Studio Code, go to ``File`` > ``Open Folder`` and open a directory con
     - Navigate to ``View`` > ``Command Palette``.
 
     - Type ``Dev Containers: Open Folder in Remote Container`` and select the command to open the existing project inside the container created from the Dockerfile in the previous step.
+
+.. _ESP-IDF Component Registry:
+
+ESP Component Registry
+------------------------
+
+The `ESP Component Registry <https://components.espressif.com>`_ is a collection of ESP-IDF components that can be easily added to your project. You can browse the registry, install components and create new ESP-IDF projects from component examples directly from Visual Studio Code.
+
+In Visual Studio Code:
+
+- Navigate to ``View`` > ``Command Palette``.
+- Type ``ESP-IDF: Show ESP Component Registry`` and select the command to open the ESP Component Registry UI.
+
+The ``ESP-IDF: Show ESP Component Registry`` command launches a UI showing the `ESP Component Registry <https://components.espressif.com>`_.
+
+.. image:: ../../media/tutorials/features/component-registry.png
+
+You can also create a new project from an ESP component example using the ``Create project from this example`` button.
+
+.. image:: ../../media/tutorials/features/create-project-from-component-example.png
+
+For more information, refer to `ESP Component Registry Documentation <https://docs.espressif.com/projects/idf-component-manager/en/latest/>`_.
