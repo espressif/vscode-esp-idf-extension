@@ -24,7 +24,7 @@ Next, proceed to :ref:`Build Your project <build the project>`.
 Adding ESP-IDF Components
 -------------------------
 
-The `ESP Component Registry <https://components.espressif.com>`_ is a collection of ESP-IDF components that can be easily added to your project. You can browse the registry, install components and create new ESP-IDF projects from components example directly from Visual Studio Code.
+The `ESP Component Registry <https://components.espressif.com>`_ is a collection of ESP-IDF components that can be easily added to your project. You can browse the registry, install components and create new ESP-IDF projects from component examples directly from Visual Studio Code.
 
 In Visual Studio Code:
 
@@ -44,9 +44,9 @@ For more information, refer to `ESP Component Registry Documentation <https://do
 Using other ESP solutions
 ----------------------------
 
-If you are working with ESP solutions such as ESP-Matter or ESP-RainMaker, chances are you will find them in the ESP Component Registry and you can use either create projects from their examples or install the component in your current ESP-IDF project.
+If you are working with ESP solutions such as ESP-Matter or ESP-RainMaker, chances are you will find them in the ESP Component Registry and you can either create projects from their examples or install the component in your current ESP-IDF project.
 
-In case you want to use the main branch of these ESP solutions, you just need to define the exported environment variables in your project's ``<.vscode/settings.json>`` file using the ``idf.customExtraVars`` VS Code configuration setting.
+In case you want to use the main branch of these ESP solutions, you just need to define the exported environment variables in your project's ``.vscode/settings.json`` file using the ``idf.customExtraVars`` VS Code configuration setting.
 
 For example, for `ESP-Matter <https://github.com/espressif/esp-matter>`_ you need to define the ``ESP_MATTER_PATH`` variable with the path to your local ESP-Matter repository:
 

@@ -122,10 +122,10 @@ In Visual Studio Code, go to ``File`` > ``Open Folder`` and open a directory con
 
 .. _ESP-IDF Component Registry:
 
-ESP-IDF Registry
------------------
+ESP Component Registry
+------------------------
 
-The `ESP Component Registry <https://components.espressif.com>`_ is a collection of ESP-IDF components that can be easily added to your project. You can browse the registry, install components and create new ESP-IDF projects from components example directly from Visual Studio Code.
+The `ESP Component Registry <https://components.espressif.com>`_ is a collection of ESP-IDF components that can be easily added to your project. You can browse the registry, install components and create new ESP-IDF projects from component examples directly from Visual Studio Code.
 
 In Visual Studio Code:
 

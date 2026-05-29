@@ -46,7 +46,7 @@
 
 如果你在使用 ESP-Matter、ESP-RainMaker 等 ESP 方案，通常可以在 ESP 组件注册表中找到它们；既可以基于其示例创建项目，也可以将组件安装到当前的 ESP-IDF 项目中。
 
-若要使用这些 ESP 方案的主线（main）分支，只需在项目的 ``<.vscode/settings.json>`` 中通过 VS Code 配置项 ``idf.customExtraVars`` 定义需要导出的环境变量。
+若要使用这些 ESP 方案的主线（main）分支，只需在项目的 ``.vscode/settings.json`` 中通过 VS Code 配置项 ``idf.customExtraVars`` 定义需要导出的环境变量。
 
 例如，对于 `ESP-Matter <https://github.com/espressif/esp-matter>`_，需要将 ``ESP_MATTER_PATH`` 设置为本地 ESP-Matter 仓库路径：
 

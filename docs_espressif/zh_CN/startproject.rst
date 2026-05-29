@@ -122,8 +122,8 @@ ESP-IDF 项目遵循以下目录结构：
 
 .. _ESP-IDF Component Registry:
 
-ESP-IDF 注册表
---------------
+ESP-IDF 组件注册表
+------------------
 
 `ESP 组件注册表 <https://components.espressif.com>`_ 汇集了可轻松加入项目的 ESP-IDF 组件。你可以在 Visual Studio Code 中浏览注册表、安装组件，并直接从组件示例创建新的 ESP-IDF 项目。
 
