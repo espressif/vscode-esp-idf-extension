@@ -7,7 +7,7 @@
 
 import * as assert from "assert";
 import * as vscode from "vscode";
-import { PreCheck } from "../utils";
+import { PreCheck } from "../common/PreCheck";
 
 // Mock the checkAndPromptForClangdExtension function
 // Since it's a private function in extension.ts, we'll test the logic separately

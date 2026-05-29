@@ -12,16 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as vscode from "vscode";
 import * as yaml from "js-yaml";
-import { readFile, pathExists } from "fs-extra";
-import * as path from "path";
-import * as idfConf from "../../idfConfiguration";
+import { readFile } from "fs-extra";
 import { Logger } from "../../logger/logger";
-import { PreCheck } from "../../utils";
 import { getOpenOcdHintsYmlPath } from "./utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { ErrorHintProvider } from "./index";
+import { PreCheck } from "../../common/PreCheck";
+import { Disposable, Uri } from "vscode";
 
 interface OpenOCDHint {
   source?: string;
@@ -40,14 +38,14 @@ export class OpenOCDErrorMonitor {
   private errorHintProvider: ErrorHintProvider;
   private hintsData: OpenOCDHint[] = [];
   private errorBuffer: string[] = [];
-  private workspaceRoot: vscode.Uri;
+  private workspaceRoot: Uri;
   private debounceTimer: NodeJS.Timeout | null = null;
-  private openOCDLogWatcher: vscode.Disposable | null = null;
+  private openOCDLogWatcher: Disposable | null = null;
   private readonly DEBOUNCE_TIME = 300; // ms
 
   private constructor(
     errorHintProvider: ErrorHintProvider,
-    workspaceRoot: vscode.Uri
+    workspaceRoot: Uri
   ) {
     this.errorHintProvider = errorHintProvider;
     this.workspaceRoot = workspaceRoot;
@@ -55,7 +53,7 @@ export class OpenOCDErrorMonitor {
 
   public static init(
     errorHintProvider: ErrorHintProvider,
-    workspaceRoot: vscode.Uri
+    workspaceRoot: Uri
   ): OpenOCDErrorMonitor {
     if (!OpenOCDErrorMonitor.instance) {
       OpenOCDErrorMonitor.instance = new OpenOCDErrorMonitor(
@@ -68,26 +66,31 @@ export class OpenOCDErrorMonitor {
 
   public async initialize(): Promise<void> {
     try {
-        // Check OpenOCD version first
-        const openOCDManager = OpenOCDManager.init();
-        const version = await openOCDManager.version(true);
+      // Check OpenOCD version first
+      const openOCDManager = OpenOCDManager.init();
+      const version = await openOCDManager.version(true);
 
-        if (!version) {
-            Logger.info(
-              "Could not determine OpenOCD version. Hints file won't be loaded."
-            );
-            return;
-        }
+      if (!version) {
+        Logger.info(
+          "Could not determine OpenOCD version. Hints file won't be loaded."
+        );
+        return;
+      }
 
-        // Skip initialization if openOCD version is not supporting hints
-        const minRequiredVersion = "v0.12.0-esp32-20250226";
-        if (!version || !PreCheck.openOCDVersionValidator(minRequiredVersion, version)) {
-            Logger.info(`OpenOCD version ${version} doesn't support hints. Minimum required: ${minRequiredVersion}`);
-            return;
-        }
-      
+      // Skip initialization if openOCD version is not supporting hints
+      const minRequiredVersion = "v0.12.0-esp32-20250226";
+      if (
+        !version ||
+        !PreCheck.openOCDVersionValidator(minRequiredVersion, version)
+      ) {
+        Logger.info(
+          `OpenOCD version ${version} doesn't support hints. Minimum required: ${minRequiredVersion}`
+        );
+        return;
+      }
+
       const openOcdHintsPath = await getOpenOcdHintsYmlPath(this.workspaceRoot);
-      
+
       if (openOcdHintsPath) {
         try {
           const fileContents = await readFile(openOcdHintsPath, "utf-8");
@@ -122,7 +125,7 @@ export class OpenOCDErrorMonitor {
       this.openOCDLogWatcher.dispose();
       this.openOCDLogWatcher = null;
     }
-    
+
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = null;
@@ -134,34 +137,34 @@ export class OpenOCDErrorMonitor {
     if (this.openOCDLogWatcher) {
       this.openOCDLogWatcher.dispose();
     }
-    
+
     const openOCDManager = OpenOCDManager.init();
-    
+
     // Add event listener to OpenOCDManager to detect when there's new output
     openOCDManager.on("data", (data) => {
       const content = data.toString();
       this.processOutput(content);
     });
-    
+
     openOCDManager.on("error", (error, data) => {
       const content = data ? data.toString() : error.message;
       this.processOutput(content);
     });
-    
+
     this.openOCDLogWatcher = {
       dispose: () => {
         openOCDManager.removeAllListeners("data");
         openOCDManager.removeAllListeners("error");
-      }
+      },
     };
   }
 
   private processOutput(content: string): void {
     if (!content) return;
-    
+
     // Split into lines and process each line
-    const lines = content.split('\n');
-    
+    const lines = content.split("\n");
+
     for (const line of lines) {
       this.processOutputLine(line.trim());
     }
@@ -170,15 +173,15 @@ export class OpenOCDErrorMonitor {
   public processOutputLine(line: string): void {
     // Skip empty lines
     if (!line) return;
-    
+
     // Add line to buffer
     this.errorBuffer.push(line);
-    
+
     // Keep the buffer at a reasonable size (last 100 lines)
     if (this.errorBuffer.length > 100) {
       this.errorBuffer.shift();
     }
-    
+
     // Check for OpenOCD error patterns in the recent output
     if (line.includes("Error:") || line.includes("Warn:")) {
       this.debouncedAnalyzeErrors();
@@ -190,7 +193,7 @@ export class OpenOCDErrorMonitor {
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
     }
-    
+
     this.debounceTimer = setTimeout(() => {
       this.analyzeErrors();
     }, this.DEBOUNCE_TIME);
@@ -200,58 +203,66 @@ export class OpenOCDErrorMonitor {
     try {
       // Get the last few lines of context that might contain errors
       const context = this.errorBuffer.join("\n");
-      
+
       // Look for error patterns
       for (const hint of this.hintsData) {
         // Skip if the hint is for a specific source that doesn't match
-        if (hint.source && hint.source !== 'ocd') {
+        if (hint.source && hint.source !== "ocd") {
           continue;
         }
-        
+
         // Process variables if they exist
         if (hint.variables && hint.variables.length > 0) {
           let foundMatch = false;
-          
+
           for (const variableSet of hint.variables) {
             const reVariables = variableSet.re_variables;
             const hintVariables = variableSet.hint_variables;
-            
+
             let re = this.formatEntry(reVariables, hint.re);
             let hintMsg = this.formatEntry(hintVariables, hint.hint);
-            
-            const regex = new RegExp(re, 'i');
+
+            const regex = new RegExp(re, "i");
             const match = regex.exec(context);
-            
+
             if (match) {
               // Format the hint message if match_to_output is true
-              if (hint.match_to_output && match.length > 0 && hintMsg.includes("{}")) {
+              if (
+                hint.match_to_output &&
+                match.length > 0 &&
+                hintMsg.includes("{}")
+              ) {
                 hintMsg = hintMsg.replace("{}", match[0]);
               }
-              
+
               // Show the error hint
               await this.showErrorHint(match[0], hintMsg, hint.ref);
               foundMatch = true;
               break;
             }
           }
-          
+
           if (foundMatch) break;
         } else {
           // No variables, just check the regex directly
-          const regex = new RegExp(hint.re, 'i');
+          const regex = new RegExp(hint.re, "i");
           const match = regex.exec(context);
-          
+
           if (match) {
             // Format the hint message
             let hintMessage = hint.hint;
-            
-            if (hint.match_to_output && match.length > 0 && hintMessage.includes("{}")) {
+
+            if (
+              hint.match_to_output &&
+              match.length > 0 &&
+              hintMessage.includes("{}")
+            ) {
               hintMessage = hintMessage.replace("{}", match[0]);
             }
-            
+
             // Trigger the error hint display
             await this.showErrorHint(match[0], hintMessage, hint.ref);
-            
+
             // Only show one hint at a time to avoid overwhelming the user
             break;
           }
@@ -268,26 +279,34 @@ export class OpenOCDErrorMonitor {
 
   private formatEntry(vars: string[], entry: string): string {
     let formattedEntry = entry;
-    
+
     // Replace numbered placeholders with variables
     let i = 0;
     while (formattedEntry.includes("{}")) {
       formattedEntry = formattedEntry.replace("{}", `{${i++}}`);
     }
-    
+
     // Replace {n} with corresponding variable from vars array
     formattedEntry = formattedEntry.replace(/\{(\d+)\}/g, (match, idx) => {
       const index = parseInt(idx, 10);
       return index < vars.length ? vars[index] : "";
     });
-    
+
     return formattedEntry;
   }
 
-  private async showErrorHint(errorMessage: string, hintMessage: string, reference?: string): Promise<void> {
+  private async showErrorHint(
+    errorMessage: string,
+    hintMessage: string,
+    reference?: string
+  ): Promise<void> {
     try {
       // Use the existing error hint provider to display the hint
-      await this.errorHintProvider.showOpenOCDErrorHint(errorMessage, hintMessage, reference);
+      await this.errorHintProvider.showOpenOCDErrorHint(
+        errorMessage,
+        hintMessage,
+        reference
+      );
     } catch (error) {
       Logger.errorNotify(
         `Error showing OpenOCD error hint: ${error.message}`,
