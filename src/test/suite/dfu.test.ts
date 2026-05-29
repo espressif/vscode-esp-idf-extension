@@ -1,7 +1,7 @@
 import * as assert from "assert";
 import * as fse from "fs-extra";
 import { resolve } from "path";
-import { listAvailableDfuDevices } from "../../flash/dfu";
+import { listAvailableDfuDevices } from "../../flash/transports/dfu/helpers";
 
 suite("DFU Flashing Suite", () => {
   test("listAvailableDfuDevices mockdata test", async () => {
