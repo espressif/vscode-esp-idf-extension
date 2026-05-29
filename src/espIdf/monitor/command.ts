@@ -17,7 +17,7 @@
  */
 import { join } from "path";
 import { commands, l10n, Uri } from "vscode";
-import { FlashTask } from "../../flash/flashTask";
+import { FlashSession } from "../../flash/shared/flashSession";
 import { readParameter, readSerialPort } from "../../idfConfiguration";
 import * as utils from "../../utils";
 import { BuildTask } from "../../build/buildTask";
@@ -30,13 +30,14 @@ import {
   getProjectElfFilePath,
 } from "../../workspaceConfig";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { interruptMonitorWithDelay } from "./interruptMonitorWithDelay";
 
 export async function createNewIdfMonitor(
   workspaceFolder: Uri,
   noReset: boolean = false,
   givenSerialPort?: string
 ) {
-  if (BuildTask.isBuilding || FlashTask.isFlashing) {
+  if (BuildTask.isBuilding || FlashSession.isFlashing) {
     const waitProcessIsFinishedMsg = l10n.t("Wait for ESP-IDF task to finish");
     Logger.errorNotify(
       waitProcessIsFinishedMsg,
@@ -61,7 +62,7 @@ export async function createNewIdfMonitor(
     } catch (error) {
       Logger.error(
         "Unable to execute the command: espIdf.selectPort",
-        error,
+        error as Error,
         "command createNewIdfMonitor"
       );
     }
@@ -72,12 +73,13 @@ export async function createNewIdfMonitor(
     );
   }
   const pythonBinPath = await getVirtualEnvPythonPath();
-  if (!utils.canAccessFile(pythonBinPath, R_OK)) {
+  if (!pythonBinPath || !utils.canAccessFile(pythonBinPath, R_OK)) {
     Logger.errorNotify(
       "Python binary path is not defined",
       new Error("Virtual environment Python path is not defined"),
       "createNewIdfMonitor pythonBinPath not defined"
     );
+    return;
   }
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
@@ -94,6 +96,7 @@ export async function createNewIdfMonitor(
       new Error(idfMonitorToolPath + " is not defined"),
       "createNewIdfMonitor idf_monitor not found"
     );
+    return;
   }
   let idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder);
   const elfFilePath = await getProjectElfFilePath(workspaceFolder);
@@ -131,9 +134,7 @@ export async function createNewIdfMonitor(
     shellExecutableArgs,
   };
   IDFMonitor.updateConfiguration(idfMonitorConfig);
-  if (IDFMonitor.terminal) {
-    IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-  }
+  await interruptMonitorWithDelay(workspaceFolder);
   IDFMonitor.start();
   if (noReset) {
     const monitorDelay = readParameter(

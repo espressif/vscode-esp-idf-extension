@@ -17,7 +17,7 @@
  */
 
 import { readJSON } from "fs-extra";
-import { FlashModel, FlashSection } from "./flashModel";
+import { FlashModel, FlashSection } from "./types/flashModel";
 
 export async function createFlashModel(
   modelJsonPath: string,
@@ -44,7 +44,7 @@ export async function createFlashModel(
         ? flashArgsJson.bootloader.encrypted.indexOf("true") !== -1
         : undefined,
     } as FlashSection,
-    partitionTable: {
+    "partition-table": {
       address: flashArgsJson["partition-table"]
         ? flashArgsJson["partition-table"].offset
         : undefined,
@@ -65,8 +65,23 @@ export async function createFlashModel(
     port,
     size: flashArgsJson.flash_settings.flash_size,
     stub: flashArgsJson.extra_esptool_args.stub,
+    writeFlashArgs: flashArgsJson.write_flash_args,
   };
-  addFlashSectionToModel(flashArgsJson, flashModel);
+  for (let modelKey of Object.keys(flashArgsJson)) {
+    if (
+      flashArgsJson[modelKey] &&
+      flashArgsJson[modelKey].offset &&
+      flashArgsJson[modelKey].file &&
+      flashArgsJson[modelKey].encrypted
+    ) {
+      const newFlashSection = {
+        address: flashArgsJson[modelKey].offset,
+        binFilePath: flashArgsJson[modelKey].file,
+        encrypted: flashArgsJson[modelKey].encrypted.indexOf("true") !== -1,
+      } as FlashSection;
+      flashModel.flashSections.push(newFlashSection);
+    }
+  }
   Object.keys(flashArgsJson.flash_files).forEach((fileKey) => {
     const existingFlashSection = flashModel.flashSections.length
       ? flashModel.flashSections.filter(
@@ -81,23 +96,6 @@ export async function createFlashModel(
       } as FlashSection);
     }
   });
+  flashModel.partitionTable = flashModel["partition-table"];
   return flashModel;
-}
-
-function addFlashSectionToModel(flashArgsJson, model: FlashModel) {
-  for (let modelKey of Object.keys(flashArgsJson)) {
-    if (
-      flashArgsJson[modelKey] &&
-      flashArgsJson[modelKey].offset &&
-      flashArgsJson[modelKey].file &&
-      flashArgsJson[modelKey].encrypted
-    ) {
-      const newFlashSection = {
-        address: flashArgsJson[modelKey].offset,
-        binFilePath: flashArgsJson[modelKey].file,
-        encrypted: flashArgsJson[modelKey].encrypted.indexOf("true") !== -1,
-      } as FlashSection;
-      model.flashSections.push(newFlashSection);
-    }
-  }
 }
