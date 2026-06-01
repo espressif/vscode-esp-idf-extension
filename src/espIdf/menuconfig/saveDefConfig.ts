@@ -40,9 +40,8 @@ export async function saveDefSdkconfig(
     join(modifiedEnv["IDF_PATH"], "tools", "idf.py"),
     "save-defconfig",
   ];
-  const pythonBinPath = await getVirtualEnvPythonPath();
-  const pythonBinExists = await pathExists(pythonBinPath);
-  if (!pythonBinExists) {
+  const pythonBinPath = getVirtualEnvPythonPath();
+  if (!pythonBinPath || !await pathExists(pythonBinPath)) {
     throw new Error(
       `Virtual environment Python path doesn't exist. Configure the extension first.`
     );

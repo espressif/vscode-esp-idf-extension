@@ -36,8 +36,6 @@ export function applySdkconfigDefaultsAndCcacheArgs(
   }
 }
 
-export { appendSdkconfigDefineArgs } from "./sdkconfigArgHelpers";
-
 export async function appendSdkconfigDefaultsAndCcache(
   args: string[],
   workspaceUri: Uri
