@@ -62,11 +62,7 @@ export class KconfigMenuLoader {
     return newConfig;
   }
 
-  private workspaceFolder: Uri;
-
-  constructor(workspaceFolder: Uri) {
-    this.workspaceFolder = workspaceFolder;
-  }
+  constructor(private workspaceFolder: Uri) {}
 
   public initMenuconfigServer(): Menu[] {
     const buildDirPath = readParameter(

@@ -17,28 +17,22 @@
  */
 
 import { Uri } from "vscode";
-import { readParameter } from "../../idfConfiguration";
 import { join } from "path";
 import { addProcessTask } from "../../taskManager";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import { configureEnvVariables } from "../../common/prepareEnv";
-import {
-  appendSdkconfigDefaultsAndCcache,
-  replaceBuildDirArg,
-} from "../../build/buildHelpers";
+import { buildIdfPyConfigSubcommandArgs } from "../common/idfPySubCmdBuilder";
 
 export async function addIdfReconfigureTask(workspace: Uri) {
   const modifiedEnv = await configureEnvVariables(workspace);
-  const buildDirPath = readParameter("idf.buildPath", workspace) as string;
   const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
-  const reconfigureArgs = [idfPy];
+  const reconfigureArgs = buildIdfPyConfigSubcommandArgs(
+    idfPy,
+    "reconfigure",
+    workspace
+  );
 
-  replaceBuildDirArg(reconfigureArgs, buildDirPath);
-  await appendSdkconfigDefaultsAndCcache(reconfigureArgs, workspace);
-
-  reconfigureArgs.push("reconfigure");
-
-  const pythonBinPath = await getVirtualEnvPythonPath();
+  const pythonBinPath = getVirtualEnvPythonPath();
 
   if (!pythonBinPath) {
     return;

@@ -7,42 +7,44 @@
  */
 
 import * as assert from "assert";
-import {
-  buildConfserverArgs,
-  buildReconfigureArgs,
-} from "../../espIdf/menuconfig/confserver/idfPyArgsBuilder";
+import { Uri } from "vscode";
+import { buildIdfPyConfigSubcommandArgs } from "../../espIdf/common/idfPySubCmdBuilder";
 
-suite("idfPyArgsBuilder", () => {
-  test("buildConfserverArgs includes required command shape", () => {
-    const args = buildConfserverArgs("/idf/tools/idf.py", {
-      enableCCache: true,
-      workspacePath: "/project",
-      buildDirPath: "/project/build",
-      sdkconfigFile: "/project/sdkconfig.custom",
-      sdkconfigDefaults: ["defaults.a", "defaults.b"],
-    });
+suite("buildIdfPyConfigSubcommandArgs", () => {
+  test("buildIdfPyConfigSubcommandArgs includes required command shape", () => {
+    const args = buildIdfPyConfigSubcommandArgs(
+      "/idf/tools/idf.py",
+      "confserver",
+      Uri.parse("/project"),
+      true,
+      "/project/build",
+      "/project/sdkconfig.custom",
+      ["defaults.a", "defaults.b"]
+    );
 
     assert.deepStrictEqual(args, [
       "/idf/tools/idf.py",
-      "--ccache",
       "-B",
       "/project/build",
       "-DSDKCONFIG=/project/sdkconfig.custom",
       "-DSDKCONFIG_DEFAULTS=defaults.a;defaults.b",
+      "-DCCACHE_ENABLE=1",
       "-C",
       "/project",
       "confserver",
     ]);
   });
 
-  test("buildConfserverArgs omits optional flags when not provided", () => {
-    const args = buildConfserverArgs("/idf.py", {
-      enableCCache: false,
-      workspacePath: "/project",
-      buildDirPath: "/project/build",
-      sdkconfigFile: "",
-      sdkconfigDefaults: [],
-    });
+  test("buildIdfPyConfigSubcommandArgs omits optional flags when not provided", () => {
+    const args = buildIdfPyConfigSubcommandArgs(
+      "/idf.py",
+      "confserver",
+      Uri.parse("/project"),
+      false,
+      "/project/build",
+      "",
+      []
+    );
     assert.deepStrictEqual(args, [
       "/idf.py",
       "-B",
@@ -53,32 +55,47 @@ suite("idfPyArgsBuilder", () => {
     ]);
   });
 
-  test("buildReconfigureArgs includes required command shape", () => {
-    const args = buildReconfigureArgs("/idf/tools/idf.py", {
-      enableCCache: true,
-      workspacePath: "/project",
-      sdkconfigFile: "/project/sdkconfig.custom",
-      sdkconfigDefaults: ["defaults.a", "defaults.b"],
-    });
+  test("buildIdfPyConfigSubcommandArgs includes required command shape", () => {
+    const args = buildIdfPyConfigSubcommandArgs(
+      "/idf/tools/idf.py",
+      "reconfigure",
+      Uri.parse("/project"),
+      true,
+      "/project/build",
+      "/project/sdkconfig.custom",
+      ["defaults.a", "defaults.b"]
+    );
 
     assert.deepStrictEqual(args, [
       "/idf/tools/idf.py",
-      "--ccache",
-      "-C",
-      "/project",
+      "-B",
+      "/project/build",
       "-DSDKCONFIG=/project/sdkconfig.custom",
       "-DSDKCONFIG_DEFAULTS=defaults.a;defaults.b",
+      "-DCCACHE_ENABLE=1",
+      "-C",
+      "/project",
       "reconfigure",
     ]);
   });
 
-  test("buildReconfigureArgs omits optional flags when not provided", () => {
-    const args = buildReconfigureArgs("/idf.py", {
-      enableCCache: false,
-      workspacePath: "/project",
-      sdkconfigFile: "",
-      sdkconfigDefaults: [],
-    });
-    assert.deepStrictEqual(args, ["/idf.py", "-C", "/project", "reconfigure"]);
+  test("buildIdfPyConfigSubcommandArgs omits optional flags when not provided", () => {
+    const args = buildIdfPyConfigSubcommandArgs(
+      "/idf.py",
+      "reconfigure",
+      Uri.parse("/project"),
+      false,
+      "/project/build",
+      "",
+      []
+    );
+    assert.deepStrictEqual(args, [
+      "/idf.py",
+      "-B",
+      "/project/build",
+      "-C",
+      "/project",
+      "reconfigure",
+    ]);
   });
 });
