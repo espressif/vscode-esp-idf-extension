@@ -15,31 +15,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as path from "path";
-import * as vscode from "vscode";
+import {
+  commands,
+  Disposable,
+  ExtensionContext,
+  Uri,
+  ViewColumn,
+  Webview,
+  WebviewPanel,
+  window,
+} from "vscode";
 import { Logger } from "../../logger/logger";
 import { getWebViewFavicon } from "../../utils";
+import type { IDFSizeCalculateResult } from "./types";
+import { join } from "path";
 
 export class IDFSizePanel {
   public static createOrShow(
-    context: vscode.ExtensionContext,
-    webviewData?: object
+    context: ExtensionContext,
+    webviewData?: IDFSizeCalculateResult
   ) {
-    const column = vscode.window.activeTextEditor
-      ? vscode.window.activeTextEditor.viewColumn
+    const column = window.activeTextEditor
+      ? window.activeTextEditor.viewColumn
       : undefined;
     if (IDFSizePanel.currentPanel) {
       IDFSizePanel.currentPanel._panel.reveal(column);
       return;
     }
-    const panel = vscode.window.createWebviewPanel(
+    const panel = window.createWebviewPanel(
       IDFSizePanel.viewType,
       IDFSizePanel.viewTitle,
-      column || vscode.ViewColumn.One,
+      column || ViewColumn.One,
       {
         enableScripts: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(context.extensionPath, "dist", "views")),
+          Uri.file(join(context.extensionPath, "dist", "views")),
         ],
         retainContextWhenHidden: true,
       }
@@ -53,7 +63,7 @@ export class IDFSizePanel {
 
   public static isCreatedAndHidden(): boolean {
     return (
-      IDFSizePanel.currentPanel &&
+      !!IDFSizePanel.currentPanel &&
       IDFSizePanel.currentPanel._panel.visible === false
     );
   }
@@ -62,21 +72,20 @@ export class IDFSizePanel {
   private static readonly viewType = "idfSize";
   private static readonly viewTitle = "IDF-Size Analysis";
 
-  private readonly _panel: vscode.WebviewPanel;
+  private readonly _panel: WebviewPanel;
   private readonly _extensionPath: string;
-  private _disposables: vscode.Disposable[] = [];
-  private _webviewData: object;
+  private _disposables: Disposable[] = [];
+  private _webviewData: IDFSizeCalculateResult | undefined;
 
   private constructor(
-    panel: vscode.WebviewPanel,
+    panel: WebviewPanel,
     extensionPath: string,
-    webviewData: object
+    webviewData?: IDFSizeCalculateResult
   ) {
     this._panel = panel;
     this._extensionPath = extensionPath;
     this._webviewData = webviewData;
-    const isNewIdfSize: boolean =
-      webviewData["overview"] && webviewData["overview"].version;
+    const isNewIdfSize: boolean = Boolean(webviewData?.overview?.version);
     this.initWebview(isNewIdfSize);
   }
   private disposeWebview() {
@@ -93,13 +102,15 @@ export class IDFSizePanel {
       (msg) => {
         switch (msg.command) {
           case "flash":
-            vscode.commands.executeCommand("espIdf.flashDevice");
+            commands.executeCommand("espIdf.flashDevice");
             break;
           case "requestInitialValues":
-            this._panel.webview.postMessage({
-              command: "initialLoad",
-              ...this._webviewData,
-            });
+            if (this._webviewData) {
+              this._panel.webview.postMessage({
+                command: "initialLoad",
+                ...this._webviewData,
+              });
+            }
             break;
           default:
             const err = new Error(
@@ -114,13 +125,10 @@ export class IDFSizePanel {
     );
   }
 
-  private getHtmlContent(
-    webview: vscode.Webview,
-    isNewIdfSize: boolean
-  ): string {
+  private getHtmlContent(webview: Webview, isNewIdfSize: boolean): string {
     const scriptPath = webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(
+      Uri.file(
+        join(
           this._extensionPath,
           "dist",
           "views",

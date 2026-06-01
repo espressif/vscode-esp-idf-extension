@@ -184,6 +184,7 @@ import { interruptMonitorWithDelay } from "./espIdf/monitor/interruptMonitorWith
 import { registerEraseFlashCommand } from "./eraseFlash";
 import { IDFMonitor } from "./espIdf/monitor/terminal";
 import { registerMenuconfigCommands } from "./espIdf/menuconfig";
+import { registerIdfSizeUICmd } from "./espIdf/size";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -2139,77 +2140,7 @@ export async function activate(context: vscode.ExtensionContext) {
     return await getOpenOcdScripts(workspaceRoot);
   });
 
-  registerIDFCommand("espIdf.size", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const idfSize = new IDFSize(workspaceRoot);
-      try {
-        if (IDFSizePanel.isCreatedAndHidden()) {
-          IDFSizePanel.createOrShow(context);
-          return;
-        }
-
-        const mapFileExists = await idfSize.isBuiltAlready();
-        if (!mapFileExists) {
-          throw new Error("Build is required for a size analysis");
-        }
-
-        const notificationMode = idfConf.readParameter(
-          "idf.notificationMode",
-          workspaceRoot
-        ) as string;
-        const ProgressLocation =
-          notificationMode === idfConf.NotificationMode.All ||
-          notificationMode === idfConf.NotificationMode.Notifications
-            ? vscode.ProgressLocation.Notification
-            : vscode.ProgressLocation.Window;
-        vscode.window.withProgress(
-          {
-            cancellable: true,
-            location: ProgressLocation,
-            title: "ESP-IDF: Size",
-          },
-          async (
-            progress: vscode.Progress<{ message: string; increment: number }>,
-            cancelToken: vscode.CancellationToken
-          ) => {
-            try {
-              cancelToken.onCancellationRequested(idfSize.cancel);
-              const results = await idfSize.calculateWithProgress(progress);
-              if (!cancelToken.isCancellationRequested) {
-                IDFSizePanel.createOrShow(context, results);
-              }
-            } catch (error) {
-              const msg: string =
-                error && error.message ? error.message : JSON.stringify(error);
-              Logger.errorNotify(
-                msg,
-                error,
-                "extension IDFSizePanel calculate"
-              );
-            }
-          }
-        );
-      } catch (error) {
-        const msg: string =
-          error && error.message ? error.message : JSON.stringify(error);
-        if (
-          msg.indexOf("project_description.json doesn't exist.") !== -1 ||
-          msg.indexOf("Build is required for a size analysis") !== -1
-        ) {
-          const buildProject = await vscode.window.showInformationMessage(
-            `ESP-IDF Size requires to build the project first. Build the project?`,
-            "Build"
-          );
-          if (buildProject === "Build") {
-            vscode.commands.executeCommand("espIdf.buildDevice");
-          }
-          Logger.error(msg, error, "extension IDFSizePanel build files");
-          return;
-        }
-        Logger.errorNotify(error.message, error, "extension IDFSizePanel");
-      }
-    });
-  });
+  registerIdfSizeUICmd(context);
 
   registerIDFCommand("espIdf.importProject", async () => {
     const srcFolder = await vscode.window.showOpenDialog({
