@@ -21,17 +21,16 @@ import { pathExists } from "fs-extra";
 import { resolve } from "path";
 import {
   BottomBarPanel,
-  By,
-  EditorView,
   InputBox,
-  WebView,
   Workbench,
 } from "vscode-extension-tester";
+import { openTestProject, testWorkspaceDir } from "./ui-test-helpers";
 
-const containerPath = resolve(__dirname, "..", "..", "testFiles");
-const projectName = "testWorkspaceFlash";
-const projectPath = resolve(containerPath, projectName);
-const helloWorldBinPath = resolve(projectPath, "build", `${projectName}.bin`);
+const helloWorldBinPath = resolve(
+  testWorkspaceDir,
+  "build",
+  "hello-world.bin"
+);
 const serialPort = process.env.IDF_UI_TEST_SERIAL_PORT ?? "/dev/ttyUSB1";
 
 const FLASH_SUCCESS_PATTERN =
@@ -53,18 +52,6 @@ async function selectQuickPickOption(
   const inputBox = await InputBox.create();
   await inputBox.selectQuickPick(option);
   await new Promise((res) => setTimeout(res, 1000));
-}
-
-async function confirmProjectOverwriteIfNeeded(): Promise<void> {
-  const notifications = await new Workbench().getNotifications();
-  for (const notification of notifications) {
-    const message = await notification.getMessage();
-    if (message.includes("already exists")) {
-      await notification.takeAction("Yes");
-      await new Promise((res) => setTimeout(res, 2000));
-      return;
-    }
-  }
 }
 
 async function waitForTerminalOutput(
@@ -90,86 +77,16 @@ async function waitForTerminalOutput(
 }
 
 describe("Flash testing", () => {
-  let view: WebView | undefined;
-
   before(async function () {
-    this.timeout(120000);
+    this.timeout(100000);
     await dismissNotifications();
-    await new Workbench().executeCommand("espIdf.newProject.start");
-    const inputBox = await InputBox.create();
-    await inputBox.selectQuickPick(0);
-    await new Promise((res) => setTimeout(res, 2000));
-    view = new WebView();
-    await view.switchToFrame();
+    await openTestProject();
   });
 
-  after(async () => {
-    if (view) {
-      await view.switchBack();
-    }
-    await new EditorView().closeAllEditors();
-  });
-
-  it("creates the hello_world example project", async () => {
-    const espIdfSection = await view!.findWebElement(
-      By.xpath(`.//div[@data-node-name='ESP-IDF Examples']`)
-    );
-    await espIdfSection.click();
-    await new Promise((res) => setTimeout(res, 1000));
-
-    const getStartedSection = await view!.findWebElement(
-      By.xpath(`.//div[@data-node-name='get-started']`)
-    );
-    await getStartedSection.click();
-    await new Promise((res) => setTimeout(res, 1000));
-
-    const helloWorldExample = await view!.findWebElement(
-      By.xpath(`.//div[@data-example-id='hello_world']`)
-    );
-    await helloWorldExample.click();
+  it("builds, configures UART flash, and flashes testWorkspace", async () => {
     await new Promise((res) => setTimeout(res, 3000));
-
-    const chooseTemplateButton = await view!.findWebElement(
-      By.id("chooseTemplateButton")
-    );
-    expect(await chooseTemplateButton.getText()).to.include(
-      "Create project using template hello_world"
-    );
-    await chooseTemplateButton.click();
-    await new Promise((res) => setTimeout(res, 2000));
-
-    const projectDirInput = await view!.findWebElement(By.id("projectDirectory"));
-    await projectDirInput.clear();
-    await projectDirInput.sendKeys(containerPath);
-    const projectNameInput = await view!.findWebElement(By.id("projectName"));
-    await projectNameInput.clear();
-    await projectNameInput.sendKeys(projectName);
-
-    const createProjectButton = await view!.findWebElement(
-      By.id("createProjectButton")
-    );
-    await createProjectButton.click();
-    await confirmProjectOverwriteIfNeeded();
-    await new Promise((res) => setTimeout(res, 15000));
-
-    const openProjectButton = await view!.findWebElement(
-      By.xpath(`//button[contains(.,'Open Project')]`)
-    );
-    await openProjectButton.click();
-    await new Promise((res) => setTimeout(res, 8000));
-
-    expect(await pathExists(projectPath)).to.be.true;
-    expect(await pathExists(helloWorldBinPath)).to.be.false;
-  }).timeout(120000);
-
-  it("builds, configures UART flash, and flashes the project", async () => {
-    if (view) {
-      await view.switchBack();
-      view = undefined;
-    }
-    await dismissNotifications();
-    await new Promise((res) => setTimeout(res, 5000));
-
+    await new Workbench().executeCommand("ESP-IDF: Full Clean Project");
+    await new Promise((res) => setTimeout(res, 10000));
     await new Workbench().executeCommand("ESP-IDF: Build your Project");
     await new Promise((res) => setTimeout(res, 150000));
 
