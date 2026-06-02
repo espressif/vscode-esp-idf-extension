@@ -30,7 +30,7 @@ import {
 } from "../workspaceConfig";
 import { dirname, join } from "path";
 import { pathExists, readFile } from "fs-extra";
-import { verifyAppBinary } from "../espIdf/debugAdapter/verifyApp";
+import { verifyAppBinary } from "./verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
 import {

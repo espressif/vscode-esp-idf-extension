@@ -15,13 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import * as vscode from "vscode";
-import * as path from "path";
-import * as fs from "fs";
 import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { ESP } from "../config";
+import {
+  debug,
+  DebugSession,
+  Disposable,
+  Uri,
+  ViewColumn,
+  Webview,
+  WebviewPanel,
+  window,
+  workspace,
+} from "vscode";
+import { basename, join, resolve } from "path";
+import { existsSync, readFileSync } from "fs";
 
 export interface ImageElement {
   name: string;
@@ -63,10 +72,10 @@ export interface DataSizeConfig {
 }
 
 export class ImageViewPanel {
-  private static instance: ImageViewPanel;
-  private readonly panel: vscode.WebviewPanel;
+  private static instance: ImageViewPanel | undefined;
+  private readonly panel: WebviewPanel;
   private readonly extensionPath: string;
-  private disposables: vscode.Disposable[] = [];
+  private disposables: Disposable[] = [];
   private imageFormatConfigs: ImageFormatConfig[] = [];
 
   // Valid format strings that match the frontend dropdown
@@ -95,8 +104,8 @@ export class ImageViewPanel {
   ];
 
   public static show(extensionPath: string) {
-    const column = vscode.window.activeTextEditor
-      ? vscode.window.activeTextEditor.viewColumn
+    const column = window.activeTextEditor
+      ? window.activeTextEditor.viewColumn
       : undefined;
 
     if (ImageViewPanel.instance) {
@@ -104,16 +113,14 @@ export class ImageViewPanel {
       return;
     }
 
-    const panel = vscode.window.createWebviewPanel(
+    const panel = window.createWebviewPanel(
       "espIdf.imageView",
       "Image Viewer",
-      column || vscode.ViewColumn.One,
+      column || ViewColumn.One,
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, "dist", "views")),
-        ],
+        localResourceRoots: [Uri.file(join(extensionPath, "dist", "views"))],
       }
     );
 
@@ -158,24 +165,24 @@ export class ImageViewPanel {
     } catch (error) {
       Logger.error(
         "Failed to load image from file:",
-        error,
+        error as Error,
         "ImageViewPanel loadImageFromFile"
       );
       if (ImageViewPanel.instance) {
         ImageViewPanel.instance.panel.webview.postMessage({
           command: "showError",
-          error: `Failed to load image from LVGL cfile: ${error}`,
+          error: `Failed to load image from LVGL cfile: ${error as Error}`,
         });
       }
     }
   }
 
-  private constructor(panel: vscode.WebviewPanel, extensionPath: string) {
+  private constructor(panel: WebviewPanel, extensionPath: string) {
     this.panel = panel;
     this.extensionPath = extensionPath;
 
-    this.panel.iconPath = vscode.Uri.file(
-      path.join(extensionPath, "media", "espressif_icon.png")
+    this.panel.iconPath = Uri.file(
+      join(extensionPath, "media", "espressif_icon.png")
     );
 
     this.panel.webview.html = this.getHtmlContent(this.panel.webview);
@@ -220,11 +227,11 @@ export class ImageViewPanel {
 
   private loadDefaultConfigs(): ImageFormatConfig[] {
     try {
-      const defaultConfigPath = path.join(
+      const defaultConfigPath = join(
         this.extensionPath,
         "DEFAULT_CONFIGS.json"
       );
-      const configData = fs.readFileSync(defaultConfigPath, "utf8");
+      const configData = readFileSync(defaultConfigPath, "utf8");
       const configs = JSON.parse(configData) as ImageFormatConfig[];
 
       // Convert string keys in imageFormats to numbers (JSON doesn't support numeric keys)
@@ -237,7 +244,7 @@ export class ImageViewPanel {
     } catch (error) {
       Logger.error(
         "Failed to load default image format configurations:",
-        error,
+        error as Error,
         "ImageViewPanel loadDefaultConfigs"
       );
       return [];
@@ -255,22 +262,22 @@ export class ImageViewPanel {
       let wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       let workspaceFolderUri = wsFolder ? wsFolder.uri : undefined;
       if (!workspaceFolderUri) {
-        workspaceFolderUri = vscode.workspace.workspaceFolders?.length
-          ? vscode.workspace.workspaceFolders[0].uri
+        workspaceFolderUri = workspace.workspaceFolders?.length
+          ? workspace.workspaceFolders[0].uri
           : undefined;
       }
       const resolvedPath = workspaceFolderUri
-        ? path.resolve(workspaceFolderUri.fsPath, userConfigPath)
+        ? resolve(workspaceFolderUri.fsPath, userConfigPath)
         : userConfigPath;
 
-      if (!fs.existsSync(resolvedPath)) {
+      if (!existsSync(resolvedPath)) {
         Logger.warn(
           `User image format configuration file not found: ${resolvedPath}`
         );
         return [];
       }
 
-      const configData = fs.readFileSync(resolvedPath, "utf8");
+      const configData = readFileSync(resolvedPath, "utf8");
       const configs = JSON.parse(configData) as ImageFormatConfig[];
 
       // Convert string keys in imageFormats to numbers
@@ -283,7 +290,7 @@ export class ImageViewPanel {
     } catch (error) {
       Logger.error(
         "Failed to load user image format configurations:",
-        error,
+        error as Error,
         "ImageViewPanel loadUserConfigs"
       );
       return [];
@@ -427,7 +434,7 @@ export class ImageViewPanel {
   }
 
   private async extractFieldValue(
-    session: vscode.DebugSession,
+    session: DebugSession,
     variablesReference: number,
     fieldConfig: FieldConfig,
     frameId: number,
@@ -481,7 +488,7 @@ export class ImageViewPanel {
   }
 
   private async extractChildValue(
-    session: vscode.DebugSession,
+    session: DebugSession,
     variablesReference: number,
     fieldPath: string,
     extractAsAddress: boolean = false
@@ -525,7 +532,7 @@ export class ImageViewPanel {
   }
 
   private async extractDataSize(
-    session: vscode.DebugSession,
+    session: DebugSession,
     variablesReference: number,
     dataSizeConfig: DataSizeConfig,
     frameId: number,
@@ -576,7 +583,7 @@ export class ImageViewPanel {
     type: string;
   }) {
     try {
-      const session = vscode.debug.activeDebugSession;
+      const session = debug.activeDebugSession;
       if (!session) {
         this.panel.webview.postMessage({
           command: "showError",
@@ -586,9 +593,7 @@ export class ImageViewPanel {
       }
 
       // Find matching configuration
-      let config: ImageFormatConfig = this.findMatchingConfig(
-        variable.type || ""
-      );
+      let config = this.findMatchingConfig(variable.type || "");
 
       if (!config) {
         this.panel.webview.postMessage({
@@ -632,7 +637,7 @@ export class ImageViewPanel {
   }
 
   private async extractImagePropertiesWithConfig(
-    session: vscode.DebugSession,
+    session: DebugSession,
     variableName: string,
     variablesReference: number,
     config: ImageFormatConfig,
@@ -765,7 +770,7 @@ export class ImageViewPanel {
     size: string | number
   ) {
     try {
-      const session = vscode.debug.activeDebugSession;
+      const session = debug.activeDebugSession;
       if (!session) {
         this.panel.webview.postMessage({
           command: "showError",
@@ -859,7 +864,12 @@ export class ImageViewPanel {
         });
       }
     } catch (error) {
-      if (error && error.message && error.message.includes("-var-create")) {
+      if (
+        error &&
+        error instanceof Error &&
+        error.message &&
+        error.message.includes("-var-create")
+      ) {
         this.panel.webview.postMessage({
           command: "showError",
           error: `Variable ${variableName} not found in the current debug session.`,
@@ -873,10 +883,10 @@ export class ImageViewPanel {
     }
   }
 
-  private getHtmlContent(webview: vscode.Webview): string {
+  private getHtmlContent(webview: Webview): string {
     const scriptPath = webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(this.extensionPath, "dist", "views", "imageView-bundle.js")
+      Uri.file(
+        join(this.extensionPath, "dist", "views", "imageView-bundle.js")
       )
     );
 
@@ -896,7 +906,7 @@ export class ImageViewPanel {
 
   private async parseLvglImageFromFile(filePath: string) {
     try {
-      const fileContent = fs.readFileSync(filePath, "utf8");
+      const fileContent = readFileSync(filePath, "utf8");
       if (!fileContent.includes("lv_image_dsc_t")) {
         this.panel.webview.postMessage({
           command: "showError",
@@ -918,7 +928,7 @@ export class ImageViewPanel {
       const imageData = this.parseImageDataFromCFile(fileContent, config);
 
       if (imageData) {
-        this.panel.title = `Image Viewer: ${path.basename(filePath)} (LVGL)`;
+        this.panel.title = `Image Viewer: ${basename(filePath)} (LVGL)`;
         this.sendImageWithDimensionsData(imageData, config.name);
       }
     } catch (error) {
@@ -977,7 +987,7 @@ export class ImageViewPanel {
     } catch (error) {
       Logger.error(
         "Error parsing image data from C file:",
-        error,
+        error as Error,
         "ImageViewPanel parseImageDataFromCFile"
       );
       return null;
@@ -1042,9 +1052,7 @@ export class ImageViewPanel {
     }
 
     if (fieldConfig.type === "formula") {
-      throw new Error(
-        "Formula-based data size supported for file parsing"
-      );
+      throw new Error("Formula-based data size supported for file parsing");
     }
 
     throw new Error(`Unsupported field type: ${fieldConfig.type}`);
@@ -1132,7 +1140,7 @@ export class ImageViewPanel {
     } catch (error) {
       Logger.error(
         "Error extracting data address from C file:",
-        error,
+        error as Error,
         "ImageViewPanel extractDataAddressFromCFile"
       );
       return null;
@@ -1152,7 +1160,7 @@ export class ImageViewPanel {
     } catch (error) {
       Logger.error(
         "Error extracting data array from C file:",
-        error,
+        error as Error,
         "ImageViewPanel extractDataArrayFromCFile"
       );
       return null;
@@ -1234,7 +1242,7 @@ export class ImageViewPanel {
     } catch (error) {
       Logger.error(
         "Error parsing array content:",
-        error,
+        error as Error,
         "ImageViewPanel parseArrayContent"
       );
       return null;
@@ -1243,7 +1251,6 @@ export class ImageViewPanel {
 
   private correctEndianness(rawData: number[]): number[] {
     try {
-
       if (rawData.length % 4 !== 0) {
         return rawData;
       }
@@ -1266,7 +1273,7 @@ export class ImageViewPanel {
     } catch (error) {
       Logger.error(
         "Error correcting endianness:",
-        error,
+        error as Error,
         "ImageViewPanel correctEndianness"
       );
       return rawData;
