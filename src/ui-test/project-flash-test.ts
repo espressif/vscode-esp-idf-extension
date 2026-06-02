@@ -19,12 +19,14 @@
 import { expect } from "chai";
 import { pathExists } from "fs-extra";
 import { resolve } from "path";
+import { BottomBarPanel, Workbench } from "vscode-extension-tester";
 import {
-  BottomBarPanel,
-  InputBox,
-  Workbench,
-} from "vscode-extension-tester";
-import { openTestProject, testWorkspaceDir } from "./ui-test-helpers";
+  ESP_IDF_COMMANDS,
+  executeEspIdfCommand,
+  executeEspIdfCommandAndSelectOption,
+  openTestProject,
+  testWorkspaceDir,
+} from "./ui-test-helpers";
 
 const helloWorldBinPath = resolve(
   testWorkspaceDir,
@@ -41,17 +43,6 @@ async function dismissNotifications(): Promise<void> {
   for (const notification of notifications) {
     await notification.dismiss();
   }
-}
-
-async function selectQuickPickOption(
-  command: string,
-  option: string | number
-): Promise<void> {
-  await new Workbench().executeCommand(command);
-  await new Promise((res) => setTimeout(res, 2000));
-  const inputBox = await InputBox.create();
-  await inputBox.selectQuickPick(option);
-  await new Promise((res) => setTimeout(res, 1000));
 }
 
 async function waitForTerminalOutput(
@@ -85,17 +76,23 @@ describe("Flash testing", () => {
 
   it("builds, configures UART flash, and flashes testWorkspace", async () => {
     await new Promise((res) => setTimeout(res, 3000));
-    await new Workbench().executeCommand("ESP-IDF: Full Clean Project");
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.fullClean);
     await new Promise((res) => setTimeout(res, 10000));
-    await new Workbench().executeCommand("ESP-IDF: Build your Project");
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.build);
     await new Promise((res) => setTimeout(res, 150000));
 
     expect(await pathExists(helloWorldBinPath)).to.be.true;
 
-    await selectQuickPickOption("ESP-IDF: Select Port to Use", serialPort);
-    await selectQuickPickOption("ESP-IDF: Select Flash Method", "UART");
+    await executeEspIdfCommandAndSelectOption(
+      ESP_IDF_COMMANDS.selectPort,
+      serialPort
+    );
+    await executeEspIdfCommandAndSelectOption(
+      ESP_IDF_COMMANDS.selectFlashMethod,
+      "UART"
+    );
 
-    await new Workbench().executeCommand("ESP-IDF: Flash Your Project");
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.flash);
     const terminalOutput = await waitForTerminalOutput(
       FLASH_SUCCESS_PATTERN,
       180000
