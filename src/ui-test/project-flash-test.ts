@@ -92,10 +92,10 @@ describe("Flash testing", () => {
 
     expect(await pathExists(helloWorldBinPath)).to.be.true;
 
-    await selectQuickPickOption("espIdf.selectPort", serialPort);
-    await selectQuickPickOption("espIdf.selectFlashMethodAndFlash", "UART");
+    await selectQuickPickOption("ESP-IDF: Select Port to Use", serialPort);
+    await selectQuickPickOption("ESP-IDF: Select Flash Method", "UART");
 
-    await new Workbench().executeCommand("espIdf.flashDevice");
+    await new Workbench().executeCommand("ESP-IDF: Flash Your Project");
     const terminalOutput = await waitForTerminalOutput(
       FLASH_SUCCESS_PATTERN,
       180000
