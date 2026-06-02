@@ -18,27 +18,34 @@
 
 import { join } from "path";
 import { l10n, Uri } from "vscode";
-import { createFlashModel } from "../../flash/transports/uart/flashModelBuilder";
-import { readParameter, readSerialPort } from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
-import { spawn } from "../../utils";
+import { configureEnvVariables } from "../common/prepareEnv";
+import { readParameter, readSerialPort } from "../idfConfiguration";
+import { Logger } from "../logger/logger";
+import { getVirtualEnvPythonPath } from "../pythonManager";
 import { pathExists } from "fs-extra";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { createFlashModel } from "../flash/transports/uart/flashModelBuilder";
+import { spawn } from "../utils";
 
 export async function verifyAppBinary(workspaceFolder: Uri) {
   const modifiedEnv = await configureEnvVariables(workspaceFolder);
   const serialPort = await readSerialPort(workspaceFolder, false);
   if (!serialPort) {
-    return Logger.warnNotify(
+    Logger.warnNotify(
       l10n.t(
         "No serial port found for current IDF_TARGET: {0}",
         modifiedEnv["IDF_TARGET"] || "default"
       )
     );
+    return false;
   }
   const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolder);
-  const pythonBinPath = await getVirtualEnvPythonPath();
+  const pythonBinPath = getVirtualEnvPythonPath();
+  if (!pythonBinPath) {
+    Logger.info(
+      "Python environment is not set up. Please set up Python environment to verify app binary."
+    );
+    return false;
+  }
   const esptoolPath = join(
     modifiedEnv["IDF_PATH"],
     "components",
@@ -53,9 +60,10 @@ export async function verifyAppBinary(workspaceFolder: Uri) {
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
   const flasherArgsJsonPathExists = await pathExists(flasherArgsJsonPath);
   if (!flasherArgsJsonPathExists) {
-    return Logger.info(
+    Logger.info(
       `${flasherArgsJsonPath} doesn't exist. Build the project first`
     );
+    return false;
   }
   const model = await createFlashModel(
     flasherArgsJsonPath,
@@ -93,15 +101,16 @@ export async function verifyAppBinary(workspaceFolder: Uri) {
   } catch (error) {
     if (
       error &&
+      error instanceof Error &&
       error.message &&
       error.message.indexOf("verify FAILED (digest mismatch)") !== -1
     ) {
       return false;
     }
-    const msg = error.message
+    const msg = error && error instanceof Error && error.message
       ? error.message
       : "Something wrong while verifying app binary.";
-    Logger.errorNotify(msg, error, "verifyAppBinary");
+    Logger.errorNotify(msg, error as Error, "verifyAppBinary");
     return false;
   }
 }

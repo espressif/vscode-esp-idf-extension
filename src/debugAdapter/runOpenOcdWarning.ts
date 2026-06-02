@@ -73,7 +73,7 @@ async function setRunOpenOCDInLaunchJson(session: DebugSession) {
     }
     return;
   }
-  const updatedConfigurations = configurations.slice();
+  const updatedConfigurations = (configurations ?? []).slice();
   updatedConfigurations[matchIndex] = {
     ...updatedConfigurations[matchIndex],
     runOpenOCD: true,

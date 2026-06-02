@@ -203,7 +203,9 @@ export class OpenOCDManager extends EventEmitter {
       modifiedEnv
     );
     if (!openOcdPath) {
-      throw new Error("Invalid OpenOCD bin path or access is denied for the user");
+      throw new Error(
+        "Invalid OpenOCD bin path or access is denied for the user"
+      );
     }
     if (typeof modifiedEnv.OPENOCD_SCRIPTS === "undefined") {
       throw new Error(
@@ -372,6 +374,22 @@ export class OpenOCDManager extends EventEmitter {
       }
       this.stop();
       this.emit("close", { code, signal });
+
+      const session = vscode.debug.activeDebugSession;
+      if (
+        !session ||
+        session.type !== "gdbtarget" ||
+        session.configuration.sessionID === "core-dump.debug.session.ws" ||
+        session.configuration.sessionID === "gdbstub.debug.session.ws" ||
+        session.configuration.sessionID === "qemu.debug.session" ||
+        session.configuration.runOpenOCD === false
+      ) {
+        return;
+      }
+      vscode.window.showWarningMessage(
+        "OpenOCD has stopped. Ending the debug session."
+      );
+      void vscode.debug.stopDebugging(session);
     });
     this.updateStatusText(`❇️ ${vscode.l10n.t("OpenOCD Server (Running)")}`);
     OutputChannel.show();

@@ -13,7 +13,7 @@ import { promisify } from 'util';
 import { dirname } from 'path';
 import { existsSync } from 'fs';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import { MIDataDisassembleAsmInsn } from '../adapter/mi/data';
+import { MIDataDisassembleAsmInsn } from './mi/data';
 
 /**
  * This method actually launches 'gdb --version' to determine the version of
