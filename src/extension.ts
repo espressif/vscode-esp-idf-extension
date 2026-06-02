@@ -107,8 +107,6 @@ import {
 } from "./espIdf/setTarget";
 import { setTargetInIDF } from "./espIdf/setTarget/setTargetInIdf";
 import { updateCurrentProfileIdfTarget } from "./project-conf";
-import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
-import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
 import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
 import { ProjectConfigStore } from "./project-conf";
@@ -123,8 +121,6 @@ import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 import { createSBOM, installEspSBOM } from "./espBom";
 import { selectIdfSetup } from "./versionSwitcher";
-import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
-import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
 import { addIdfReconfigureTask } from "./espIdf/reconfigure/task";
 import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
 import { TroubleshootingPanel } from "./support/troubleshootPanel";
@@ -145,17 +141,10 @@ import {
 } from "./project-conf/ProjectConfigurationManager";
 import { readPartition } from "./espIdf/partition-table/partitionReader";
 import { getTargetsFromEspIdf } from "./espIdf/setTarget/getTargets";
-import {
-  HexTreeItem,
-  HexViewProvider,
-} from "./cdtDebugAdapter/hexViewProvider";
-
-import { ImageViewPanel } from "./cdtDebugAdapter/imageViewPanel";
 import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
 import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
-import { readSerialPort } from "./idfConfiguration";
 import {
   minIdfVersionCheck,
   openFolderCheck,
@@ -180,22 +169,19 @@ import {
 } from "./clang/checkClangExtension";
 import { registerBuildCommands } from "./build";
 import { registerFlashCommands } from "./flash";
-import { interruptMonitorWithDelay } from "./espIdf/monitor/interruptMonitorWithDelay";
 import { registerEraseFlashCommand } from "./eraseFlash";
 import { IDFMonitor } from "./espIdf/monitor/terminal";
 import { registerMenuconfigCommands } from "./espIdf/menuconfig";
 import { registerIdfSizeUICmd } from "./espIdf/size";
+import { registerDebugCommands } from "./debugAdapter";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
-const DEBUG_DEFAULT_PORT = 43474;
 let covRenderer: CoverageRenderer;
 
-// OpenOCD  and Debug Adapter Manager
+// OpenOCD
 
 let openOCDManager: OpenOCDManager;
-let isOpenOCDLaunchedByDebug: boolean = false;
-let isDebugRestarted: boolean = false;
 
 // QEMU
 let qemuManager: QemuManager;
@@ -224,15 +210,9 @@ let commandTreeDataProvider: CommandsProvider;
 // ESP eFuse Explorer
 let eFuseExplorer: ESPEFuseTreeDataProvider;
 
-// Peripheral Tree Data Provider
-let peripheralTreeProvider: PeripheralTreeView;
-let peripheralTreeView: vscode.TreeView<PeripheralBaseNode>;
-
 // Precheck methods and their messages
 
 let projectConfigManager: ProjectConfigurationManager | undefined;
-
-let cdtDebugAdapterFactory: CDTDebugAdapterDescriptorFactory | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
@@ -403,6 +383,8 @@ export async function activate(context: vscode.ExtensionContext) {
   qemuManager = QemuManager.init();
   const commandDictionary = createCommandDictionary();
 
+  registerDebugCommands(context);
+
   // Register Tree Provider for IDF Explorer
   registerTreeProvidersForIDFExplorer(context);
   appTraceManager = new AppTraceManager(
@@ -413,23 +395,6 @@ export async function activate(context: vscode.ExtensionContext) {
     appTraceTreeDataProvider,
     appTraceArchiveTreeDataProvider
   );
-
-  // Debug session Peripherals tree view
-  peripheralTreeProvider = new PeripheralTreeView();
-  peripheralTreeView = vscode.window.createTreeView("espIdf.peripheralView", {
-    treeDataProvider: peripheralTreeProvider,
-  });
-  context.subscriptions.push(
-    peripheralTreeView,
-    peripheralTreeView.onDidExpandElement((e) => {
-      e.element.expanded = true;
-      e.element.getPeripheral().updateData();
-      peripheralTreeProvider.refresh();
-    })
-  ),
-    peripheralTreeView.onDidCollapseElement((e) => {
-      e.element.expanded = false;
-    });
 
   // register openOCD status bar item
   registerOpenOCDStatusBarItem(context);
@@ -593,13 +558,6 @@ export async function activate(context: vscode.ExtensionContext) {
       ConfserverProcess.dispose();
     })
   );
-
-  vscode.debug.onDidTerminateDebugSession((e) => {
-    if (isOpenOCDLaunchedByDebug && !isDebugRestarted) {
-      isOpenOCDLaunchedByDebug = false;
-      openOCDManager.stop();
-    }
-  });
 
   const kconfigMenusWatcher = vscode.workspace.createFileSystemWatcher(
     "**/config/kconfig_menus.json",
@@ -1089,21 +1047,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.workspace.onDidChangeConfiguration(async (e) => {
     const winFlag = process.platform === "win32" ? "Win" : "";
-    // Launch.json changes
-    if (e.affectsConfiguration("launch.configurations")) {
-      const config = vscode.workspace.getConfiguration("launch", workspaceRoot);
-      const configurations =
-        config.get<vscode.DebugConfiguration[]>("configurations") || [];
-      for (const conf of configurations) {
-        if (
-          conf.type === "gdbtarget" &&
-          conf.debugPort &&
-          !cdtDebugAdapterFactory.checkCurrentPort(conf.debugPort)
-        ) {
-          cdtDebugAdapterFactory.dispose();
-        }
-      }
-    }
 
     // Refresh OpenOCD adapter status bar item when adapter location is manually edited
     if (
@@ -1205,251 +1148,6 @@ export async function activate(context: vscode.ExtensionContext) {
         cancelTokenSource.dispose();
       }
     }
-  });
-
-  const cdtDebugProvider = new CDTDebugConfigurationProvider();
-  context.subscriptions.push(
-    vscode.debug.registerDebugConfigurationProvider(
-      "gdbtarget",
-      cdtDebugProvider
-    )
-  );
-
-  cdtDebugAdapterFactory = new CDTDebugAdapterDescriptorFactory();
-  context.subscriptions.push(
-    vscode.debug.registerDebugAdapterDescriptorFactory(
-      "gdbtarget",
-      cdtDebugAdapterFactory
-    )
-  );
-
-  vscode.debug.onDidStartDebugSession(async (session) => {
-    const svdFile = idfConf.readParameter(
-      "idf.svdFilePath",
-      workspaceRoot
-    ) as string;
-    peripheralTreeProvider.debugSessionStarted(session, svdFile, 16); // Move svdFile and threshold as conf settings
-    if (
-      openOCDManager.isRunning() &&
-      session.type === "gdbtarget" &&
-      session.configuration.sessionID !== "core-dump.debug.session.ws" &&
-      session.configuration.sessionID !== "gdbstub.debug.session.ws"
-    ) {
-      isOpenOCDLaunchedByDebug = true;
-    }
-    isDebugRestarted = false;
-  });
-
-  vscode.debug.registerDebugAdapterTrackerFactory("gdbtarget", {
-    createDebugAdapterTracker(session: vscode.DebugSession) {
-      return {
-        onDidSendMessage: async (m) => {
-          if (m && m.type === "event" && m.event === "stopped") {
-            const peripherals = await peripheralTreeProvider.getChildren();
-            for (const p of peripherals) {
-              p.getPeripheral().updateData();
-            }
-            peripheralTreeProvider.refresh();
-          }
-        },
-        onWillReceiveMessage(message) {
-          if (message && message.command === "disconnect") {
-            if (message.arguments.restart) {
-              isDebugRestarted = true;
-            }
-          }
-        },
-      };
-    },
-  });
-
-  vscode.debug.onDidTerminateDebugSession((session) => {
-    peripheralTreeProvider.debugSessionTerminated(session);
-  });
-
-  vscode.debug.registerDebugAdapterTrackerFactory("gdbtarget", {
-    createDebugAdapterTracker(
-      session: vscode.DebugSession
-    ): vscode.ProviderResult<vscode.DebugAdapterTracker> {
-      return {
-        onDidSendMessage(message) {
-          if (
-            message.type === "response" &&
-            message.command === "variables" &&
-            message.body &&
-            Array.isArray(message.body.variables)
-          ) {
-            const variables = message.body.variables;
-            for (const variable of variables) {
-              if (variable.name && variable.value) {
-                const existingItem = hexViewProvider.findElement(variable.name);
-                if (existingItem) {
-                  const numericValue = parseInt(variable.value, 10);
-                  if (!isNaN(numericValue)) {
-                    hexViewProvider.updateElement(variable.name, numericValue);
-                  }
-                }
-              }
-            }
-          }
-        },
-      };
-    },
-  });
-
-  const hexViewProvider = new HexViewProvider();
-  vscode.window.registerTreeDataProvider("espIdf.hexView", hexViewProvider);
-
-  registerIDFCommand("espIdf.hexView.deleteElement", (item: HexTreeItem) => {
-    return PreCheck.perform([openFolderCheck], async () => {
-      hexViewProvider.removeElement(item.element);
-    });
-  });
-
-  registerIDFCommand("espIdf.hexView.copyValue", (item: HexTreeItem) => {
-    return PreCheck.perform([openFolderCheck], async () => {
-      vscode.env.clipboard.writeText(
-        `${item.element.name} ${item.description.toString()}`
-      );
-      vscode.window.showInformationMessage(
-        `Copied ${item.element.name} to clipboard`
-      );
-    });
-  });
-
-  registerIDFCommand(
-    "espIdf.viewAsHex",
-    (debugContext: {
-      container: {
-        expensive: boolean;
-        name: string;
-        variablesReference: number;
-      };
-      sessionId: string;
-      variable: {
-        evaluateName: string;
-        memoryReference: string;
-        name: string;
-        value: string;
-        variablesReference: number;
-      };
-    }) => {
-      return PreCheck.perform([openFolderCheck], async () => {
-        if (
-          !debugContext ||
-          !debugContext.variable ||
-          !debugContext.variable.evaluateName
-        ) {
-          return;
-        }
-        if (!vscode.debug.activeDebugSession) {
-          return;
-        }
-
-        try {
-          if (
-            debugContext &&
-            debugContext.variable &&
-            debugContext.variable.value
-          ) {
-            const numericValue = parseInt(debugContext.variable.value, 10);
-            if (isNaN(numericValue)) {
-              vscode.l10n.t("The value {value} is not a number.", {
-                value: debugContext.variable.value,
-              });
-              return;
-            }
-            hexViewProvider.addElement(
-              debugContext.variable.name,
-              numericValue
-            );
-          }
-        } catch (e) {
-          const msg = e && e.message ? e.message : e;
-          Logger.errorNotify(msg, e, "extension espIdf.viewAsHex");
-        }
-      });
-    }
-  );
-
-  registerIDFCommand(
-    "espIdf.viewVariableAsImage",
-    (debugContext: {
-      container: {
-        expensive: boolean;
-        name: string;
-        variablesReference: number;
-      };
-      sessionId: string;
-      variable: {
-        evaluateName: string;
-        memoryReference: string;
-        name: string;
-        value: string;
-        variablesReference: number;
-        type: string;
-      };
-    }) => {
-      return PreCheck.perform([openFolderCheck], async () => {
-        if (
-          !debugContext ||
-          !debugContext.variable ||
-          !debugContext.variable.evaluateName
-        ) {
-          return;
-        }
-        if (!vscode.debug.activeDebugSession) {
-          return;
-        }
-
-        try {
-          // Show the ImageViewPanel and pass the variable information
-          ImageViewPanel.show(context.extensionPath);
-
-          // Send the variable information to the ImageViewPanel with automatic type detection
-          ImageViewPanel.handleVariableAsImage(debugContext);
-        } catch (e) {
-          const msg = e && e.message ? e.message : e;
-          Logger.errorNotify(msg, e, "extension espIdf.viewVariableAsImage");
-        }
-      });
-    }
-  );
-
-  registerIDFCommand("espIdf.openImageViewer", () => {
-    return PreCheck.perform([openFolderCheck], () => {
-      // Show the ImageViewPanel without an image
-      ImageViewPanel.show(context.extensionPath);
-    });
-  });
-
-  registerIDFCommand("espIdf.loadImageFromFile", async () => {
-    return PreCheck.perform([openFolderCheck], async () => {
-      try {
-        // Show file picker to select LVGL C file
-        const fileUri = await vscode.window.showOpenDialog({
-          canSelectMany: false,
-          openLabel: "Select LVGL C file with image data",
-          filters: {
-            "C files": ["c", "h"],
-            "All files": ["*"],
-          },
-        });
-
-        if (fileUri && fileUri[0]) {
-          const filePath = fileUri[0].fsPath;
-
-          // Load LVGL image directly (no config selection needed)
-          await ImageViewPanel.loadImageFromFile(
-            context.extensionPath,
-            filePath
-          );
-        }
-      } catch (error) {
-        const msg = error && error.message ? error.message : error;
-        Logger.errorNotify(msg, error, "extension espIdf.loadImageFromFile");
-      }
-    });
   });
 
   registerIDFCommand("espIdf.genCoverage", () => {
@@ -2593,60 +2291,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.troubleshootPanel", async () => {
     TroubleshootingPanel.createOrShow(context, workspaceRoot);
-  });
-
-  registerIDFCommand("espIdf.debug", async () => {
-    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(
-        workspaceRoot
-      );
-      const launchJsonPath = path.join(
-        workspaceRoot.fsPath,
-        ".vscode",
-        "launch.json"
-      );
-      const launchJsonPathExist = await pathExists(launchJsonPath);
-      if (!launchJsonPathExist) {
-        await vscode.window.showInformationMessage(
-          vscode.l10n.t(
-            `No launch.json found.\nUse the 'ESP-IDF: Add vscode Configuration Folder' command.`
-          )
-        );
-        return;
-      }
-      const config = vscode.workspace.getConfiguration("launch", workspaceRoot);
-
-      // retrieve values
-      const configurations = config.get(
-        "configurations"
-      ) as vscode.DebugConfiguration[];
-      if (configurations && configurations.length) {
-        for (const conf of configurations) {
-          if (conf.type === "gdbtarget") {
-            const resolvedConf = await cdtDebugProvider.resolveDebugConfiguration(
-              workspaceFolder,
-              conf
-            );
-            if (!resolvedConf) {
-              await vscode.window.showErrorMessage(
-                vscode.l10n.t(
-                  "Could not resolve the gdbtarget debug configuration. Check the ESP-IDF output for details."
-                )
-              );
-              return;
-            }
-            await vscode.debug.startDebugging(workspaceFolder, resolvedConf);
-            return;
-          }
-        }
-      }
-      vscode.window.showInformationMessage(
-        vscode.l10n.t(
-          `No gdbtarget configuration found in launch.json.\nDelete launch.json and use the 'ESP-IDF: Add vscode Configuration Folder' command.`
-        )
-      );
-      return;
-    });
   });
 
   registerIDFCommand(
