@@ -22,7 +22,6 @@ import { Logger } from "../logger/logger";
 import { delimiter, dirname, join } from "path";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { ESP } from "../config";
-import { isBinInPath } from "../utils";
 import { pathExists } from "fs-extra";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 
