@@ -22,6 +22,7 @@ import { openFolderCheck } from "../../common/PreCheck";
 import { ConfserverProcess } from "./confserver/confServerProcess";
 import { Logger } from "../../logger/logger";
 import { withProgressWrapper } from "../../common/withProgressWrapper";
+import { createClassicMenuconfig } from "./classicTerminal";
 
 export function registerMenuconfigCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.menuconfig.start", async () => {
@@ -65,4 +66,8 @@ export function registerMenuconfigCommands(context: ExtensionContext) {
       );
     }
   });
+
+  registerIDFCommand(context, "espIdf.createClassicMenuconfig", () =>
+    createClassicMenuconfig(context.extensionPath)
+  );
 }
