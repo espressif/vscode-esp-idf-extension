@@ -129,11 +129,7 @@ import {
   statusBarItems,
   updateOpenOcdAdapterStatusBarItem,
 } from "./statusBar";
-import {
-  CommandKeys,
-  createCommandDictionary,
-  IDFWebCommandKeys,
-} from "./cmdTreeView/cmdStore";
+import { CommandKeys, createCommandDictionary } from "./cmdTreeView/cmdStore";
 import { asyncRemoveEspIdfSettings } from "./uninstall";
 import {
   clearSelectedProjectConfiguration,
@@ -154,7 +150,6 @@ import {
 import { buildFlashAndMonitor } from "./buildFlashMonitor";
 import { getIdfSetups } from "./eim/getExistingSetups";
 import { loadIdfSetup } from "./eim/loadIdfSetup";
-import { configureEnvVariables } from "./common/prepareEnv";
 import {
   checkEimExists,
   downloadAndInstallEIM,
@@ -174,6 +169,7 @@ import { IDFMonitor } from "./espIdf/monitor/terminal";
 import { registerMenuconfigCommands } from "./espIdf/menuconfig";
 import { registerIdfSizeUICmd } from "./espIdf/size";
 import { registerDebugCommands } from "./debugAdapter";
+import { registerIdfTerminalCommand } from "./terminal";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1544,23 +1540,17 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.createIdfTerminal", () =>
-    createIdfTerminal(context.extensionPath)
-  );
   registerBuildCommands(context);
   registerFlashCommands(context);
   registerEraseFlashCommand(context);
   registerMonitorCommands(context);
+  registerIdfTerminalCommand(context);
   registerIDFCommand("espIdf.buildFlashMonitor", () =>
     buildFlashAndMonitor(workspaceRoot)
   );
   registerIDFCommand("espIdf.monitorQemu", createQemuMonitor);
 
   registerMenuconfigCommands(context);
-
-  registerIDFCommand("espIdf.createClassicMenuconfig", () =>
-    createClassicMenuconfig(context.extensionPath)
-  );
 
   registerIDFCommand("espIdf.saveDefSdkconfig", async () => {
     const idfVersionCheck = await minIdfVersionCheck("5.0");
@@ -3216,129 +3206,6 @@ function createQemuMonitor() {
           Logger.errorNotify(msg, error, "extension qemu monitor");
         }
       }
-    );
-  });
-}
-
-async function createEspIdfTerminal(
-  extensionPath: string,
-  terminalName: string,
-  initialCommand?: string,
-  location?: vscode.TerminalLocation
-) {
-  const shellExecutableArgs = idfConf.readParameter(
-    "idf.customTerminalExecutableArgs",
-    workspaceRoot
-  ) as string[];
-  const modifiedEnv = await configureEnvVariables(workspaceRoot);
-  let shellArgs: string[] = [];
-  if (process.platform === "win32") {
-    shellArgs = ["-ExecutionPolicy", "Bypass"];
-  } else if (shellExecutableArgs && shellExecutableArgs.length) {
-    shellArgs = shellExecutableArgs;
-  }
-  let shellExecutablePath = idfConf.readParameter(
-    "idf.customTerminalExecutable",
-    workspaceRoot
-  ) as string;
-  const shellPath =
-    process.platform === "win32"
-      ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
-      : shellExecutablePath
-      ? shellExecutablePath
-      : "bash";
-
-  const currentSetup = await loadIdfSetup(workspaceRoot);
-  if (!currentSetup) {
-    Logger.errorNotify(
-      vscode.l10n.t("Failed to load ESP-IDF setup for terminal activation"),
-      new Error("ESP-IDF setup load failed"),
-      "extension createEspIdfTerminal load setup"
-    );
-    return;
-  }
-  const espIdfTerminal = vscode.window.createTerminal({
-    name: terminalName,
-    env: modifiedEnv,
-    cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
-    strictEnv: true,
-    shellArgs,
-    shellPath,
-    location,
-  });
-  const activationScriptPathExists = await pathExists(
-    currentSetup.activationScript
-  );
-
-  if (process.platform === "win32") {
-    const activationScriptPath = activationScriptPathExists
-      ? currentSetup.activationScript
-      : path.join(extensionPath, "export.ps1");
-    espIdfTerminal.sendText(`& '${activationScriptPath.replace(/'/g, "''")}'`);
-  } else if (activationScriptPathExists) {
-    espIdfTerminal.sendText(
-      `. '${currentSetup.activationScript.replace(/'/g, "''")}'`
-    );
-  }
-
-  if (initialCommand) {
-    espIdfTerminal.sendText(initialCommand);
-  }
-
-  espIdfTerminal.show();
-  return espIdfTerminal;
-}
-
-function createIdfTerminal(extensionPath: string) {
-  PreCheck.perform([openFolderCheck], async () => {
-    await createEspIdfTerminal(extensionPath, "ESP-IDF Terminal");
-  });
-}
-
-function createClassicMenuconfig(extensionPath: string) {
-  PreCheck.perform([openFolderCheck], async () => {
-    // Get build directory and sdkconfig file from settings
-    const buildDirPath = idfConf.readParameter(
-      "idf.buildPath",
-      workspaceRoot
-    ) as string;
-    const sdkconfigFilePath = idfConf.readParameter(
-      "idf.sdkconfigFilePath",
-      workspaceRoot
-    ) as string;
-    const sdkconfigDefaults = idfConf.readParameter(
-      "idf.sdkconfigDefaults",
-      workspaceRoot
-    ) as string[];
-
-    // Build the idf.py menuconfig command with optional parameters
-    let menuconfigCommand = "idf.py";
-    if (buildDirPath) {
-      menuconfigCommand += ` -B "${buildDirPath}"`;
-    }
-    if (sdkconfigFilePath) {
-      menuconfigCommand += ` -DSDKCONFIG='${sdkconfigFilePath}'`;
-    }
-    if (sdkconfigDefaults && sdkconfigDefaults.length > 0) {
-      menuconfigCommand += ` -DSDKCONFIG_DEFAULTS="${sdkconfigDefaults.join(
-        ";"
-      )}"`;
-    }
-    menuconfigCommand += ` -C '${workspaceRoot.fsPath}' menuconfig`;
-
-    const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
-      ESP.ProjectConfiguration.SELECTED_CONFIG
-    );
-
-    const terminalName = `ESP-IDF Menuconfig${
-      currentSelectedConfig ? ` - (${currentSelectedConfig})` : ""
-    }`;
-
-    await createEspIdfTerminal(
-      extensionPath,
-      terminalName,
-      menuconfigCommand,
-      vscode.TerminalLocation.Editor
     );
   });
 }
