@@ -30,6 +30,24 @@ import { createHash } from "crypto";
 import { pathExists } from "fs-extra";
 import { IdfToolsManager } from "../idfToolsManager";
 
+export async function getCurrentIdfSetup(workspaceFolder: Uri): Promise<IdfSetup | undefined> {
+  const idfSetups = await getIdfSetups(workspaceFolder);
+  if (!idfSetups || idfSetups.length < 1) {
+    return;
+  }
+  const idfConfigurationName = readParameter(
+    "idf.currentSetup",
+    workspaceFolder
+  ) as string;
+  if (!idfConfigurationName) {
+    return;
+  }
+  const idfSetupToUse = idfSetups.find((idfSetup) => {
+    return idfSetup.idfPath === idfConfigurationName;
+  });
+  return idfSetupToUse;
+}
+
 export async function loadIdfSetup(workspaceFolder: Uri) {
   ESP.ProjectConfiguration.store.clear(
     ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
