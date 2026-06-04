@@ -149,7 +149,7 @@ import {
 } from "./common/PreCheck";
 import { buildFlashAndMonitor } from "./buildFlashMonitor";
 import { getIdfSetups } from "./eim/getExistingSetups";
-import { loadIdfSetup } from "./eim/loadIdfSetup";
+import { getCurrentIdfSetup, loadIdfSetup } from "./eim/loadIdfSetup";
 import {
   checkEimExists,
   downloadAndInstallEIM,
@@ -1748,18 +1748,20 @@ export async function activate(context: vscode.ExtensionContext) {
         try {
           progress.report({ message: "Loading IDF setups...", increment: 10 });
           let idfSetups = await getIdfSetups(workspaceRoot);
-          const currentIdfSetup = await loadIdfSetup(workspaceRoot);
-          const isCurrentSetupInList = idfSetups.findIndex((idfSetup) => {
-            return (
-              idfSetup.idfPath === currentIdfSetup.idfPath &&
-              idfSetup.toolsPath === currentIdfSetup.toolsPath
-            );
-          });
-          if (isCurrentSetupInList === -1) {
-            idfSetups.push(currentIdfSetup);
-          }
           if (idfSetups.length === 0) {
             return;
+          }
+          const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
+          if (currentIdfSetup) {
+            const isCurrentSetupInList = idfSetups.findIndex((idfSetup) => {
+              return (
+                idfSetup.idfPath === currentIdfSetup.idfPath &&
+                idfSetup.toolsPath === currentIdfSetup.toolsPath
+              );
+            });
+            if (isCurrentSetupInList === -1) {
+              idfSetups.push(currentIdfSetup);
+            }
           }
 
           let existingIdfSetups = await Promise.all(
