@@ -21,7 +21,7 @@ import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { readParameter } from "../idfConfiguration";
 import { configureEnvVariables } from "../common/prepareEnv";
-import { loadIdfSetup } from "../eim/loadIdfSetup";
+import { getCurrentIdfSetup } from "../eim/loadIdfSetup";
 import { pathExists } from "fs-extra";
 import { join } from "path";
 import { Logger } from "../logger/logger";
@@ -67,7 +67,7 @@ export async function createEspIdfTerminal(
       ? shellExecutablePath
       : "bash";
 
-  const currentSetup = await loadIdfSetup(workspaceFolder.uri);
+  const currentSetup = await getCurrentIdfSetup(workspaceFolder.uri);
   if (!currentSetup) {
     Logger.errorNotify(
       l10n.t("Failed to load ESP-IDF setup for terminal activation"),
