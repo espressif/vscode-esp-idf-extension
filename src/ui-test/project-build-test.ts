@@ -25,6 +25,7 @@ import {
 import { expect } from "chai";
 import { resolve } from "path";
 import { pathExists } from "fs-extra";
+import { openTestProject } from "./ui-test-helpers";
 
 describe("Build testing", async () => {
   let panel: BottomBarPanel;
@@ -102,20 +103,3 @@ describe("Build testing", async () => {
     expect(componentSrcPathExists).to.be.true;
   }).timeout(999999);
 });
-
-export async function openTestProject() {
-  await new Promise((res) => setTimeout(res, 5000));
-  await new Workbench().executeCommand("file: open folder");
-  const testWorkspaceDir = resolve(
-    __dirname,
-    "..",
-    "..",
-    "testFiles",
-    "testWorkspace"
-  );
-  await new Promise((res) => setTimeout(res, 1000));
-  const input = await InputBox.create();
-  await input.setText(testWorkspaceDir);
-  await input.confirm();
-  await new Promise((res) => setTimeout(res, 4000));
-}
