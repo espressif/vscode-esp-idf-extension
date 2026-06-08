@@ -2607,7 +2607,9 @@
     "webpack": "webpack --mode production",
     "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json out/ui-test/project-build-test.js out/ui-test/project-menuconfig-test.js out/ui-test/project-test.js",
     "ci-test": "yarn compile && extest setup-and-run out/ui-test/project-build-test.js out/ui-test/project-menuconfig-test.js out/ui-test/project-test.js -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m ./src/ui-test/.mocharc-ci.js",
-    "ci-test-flash": "IDF_UI_TEST_SERIAL_PORT=/dev/ttyUSB1 yarn compile && extest setup-and-run out/ui-test/project-flash-test.js -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m ./src/ui-test/.mocharc-ci-flash.js"
+    "ci-test-hardware": "IDF_UI_TEST_SERIAL_PORT=/dev/ttyUSB1 yarn compile && extest setup-and-run out/ui-test/project-flash-test.js out/ui-test/project-monitor-test.js -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m ./src/ui-test/.mocharc-ci-hardware.js",
+    "ci-test-flash": "IDF_UI_TEST_SERIAL_PORT=/dev/ttyUSB1 yarn compile && extest setup-and-run out/ui-test/project-flash-test.js -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m ./src/ui-test/.mocharc-ci-hardware.js",
+    "ci-test-monitor": "IDF_UI_TEST_SERIAL_PORT=/dev/ttyUSB1 yarn compile && extest setup-and-run out/ui-test/project-monitor-test.js -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m ./src/ui-test/.mocharc-ci-hardware.js"
   },
   "devDependencies": {
     "@babel/types": "^7.23.0",

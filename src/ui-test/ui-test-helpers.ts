@@ -31,8 +31,13 @@ export const ESP_IDF_COMMANDS = {
   fullClean: "ESP-IDF: Full Clean Project",
   build: "ESP-IDF: Build Your Project",
   selectPort: "ESP-IDF: Select Port to Use (COM, tty, usbserial)",
+  selectMonitorPort:
+    "ESP-IDF: Select Monitor Port to Use (COM, tty, usbserial)",
   selectFlashMethod: "ESP-IDF: Select Flash Method",
   flash: "ESP-IDF: Flash Your Project",
+  monitor: "ESP-IDF: Monitor Device",
+  buildFlashMonitor:
+    "ESP-IDF: Build, Flash and Start a Monitor on Your Device",
 } as const;
 
 export async function openTestProject(): Promise<void> {

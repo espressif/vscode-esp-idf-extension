@@ -1,0 +1,117 @@
+/*
+ * Project: ESP-IDF VSCode Extension
+ * File Created: Thursday, 28th May 2026
+ * Copyright 2026 Espressif Systems (Shanghai) CO LTD
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { expect } from "chai";
+import { pathExists } from "fs-extra";
+import { resolve } from "path";
+import { BottomBarPanel, Workbench } from "vscode-extension-tester";
+import {
+  ESP_IDF_COMMANDS,
+  executeEspIdfCommand,
+  executeEspIdfCommandAndSelectOption,
+  openTestProject,
+  testWorkspaceDir,
+} from "./ui-test-helpers";
+
+const helloWorldBinPath = resolve(
+  testWorkspaceDir,
+  "build",
+  "hello-world.bin"
+);
+const serialPort = process.env.IDF_UI_TEST_SERIAL_PORT ?? "/dev/ttyUSB1";
+
+const FLASH_SUCCESS_PATTERN =
+  /Hash of data verified|Flash Done|Hard resetting via RTS pin/;
+
+const MONITOR_OUTPUT_PATTERN = /UI test monitor output check/;
+
+async function dismissNotifications(): Promise<void> {
+  const notifications = await new Workbench().getNotifications();
+  for (const notification of notifications) {
+    await notification.dismiss();
+  }
+}
+
+async function waitForTerminalOutput(
+  pattern: RegExp,
+  timeoutMs: number
+): Promise<string> {
+  const panel = new BottomBarPanel();
+  const terminalView = await panel.openTerminalView();
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const text = await terminalView.getText();
+    if (pattern.test(text)) {
+      return text;
+    }
+    await new Promise((res) => setTimeout(res, 5000));
+  }
+
+  const text = await terminalView.getText();
+  throw new Error(
+    `Timed out waiting for terminal output matching ${pattern}. Last output:\n${text}`
+  );
+}
+
+describe("Monitor testing", () => {
+  before(async function () {
+    this.timeout(100000);
+    await dismissNotifications();
+    await openTestProject();
+  });
+
+  it("builds, configures UART flash, flashes and monitors testWorkspace", async () => {
+    await new Promise((res) => setTimeout(res, 3000));
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.fullClean);
+    await new Promise((res) => setTimeout(res, 10000));
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.build);
+    await new Promise((res) => setTimeout(res, 150000));
+
+    expect(await pathExists(helloWorldBinPath)).to.be.true;
+
+    await executeEspIdfCommandAndSelectOption(
+      ESP_IDF_COMMANDS.selectPort,
+      serialPort
+    );
+    await executeEspIdfCommandAndSelectOption(
+      ESP_IDF_COMMANDS.selectFlashMethod,
+      "UART"
+    );
+
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.flash);
+    const flashOutput = await waitForTerminalOutput(
+      FLASH_SUCCESS_PATTERN,
+      180000
+    );
+    console.log(flashOutput);
+    expect(FLASH_SUCCESS_PATTERN.test(flashOutput)).to.be.true;
+
+    await executeEspIdfCommandAndSelectOption(
+      ESP_IDF_COMMANDS.selectMonitorPort,
+      serialPort
+    );
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.monitor);
+    const monitorOutput = await waitForTerminalOutput(
+      MONITOR_OUTPUT_PATTERN,
+      120000
+    );
+    console.log(monitorOutput);
+    expect(MONITOR_OUTPUT_PATTERN.test(monitorOutput)).to.be.true;
+  }).timeout(999999);
+});
