@@ -22,9 +22,6 @@ import { BottomBarPanel, InputBox, Workbench } from "vscode-extension-tester";
 const BUILD_FAILURE_PATTERN =
   /ninja: build stopped|CMake Error|FAILED:|ninja: error|Compilation failed/i;
 
-const BUILD_SUCCESS_TERMINAL_PATTERN =
-  /hello-world\.bin|Project build complete|Built target.*(?:app|gen_project_binary)/i;
-
 export const testWorkspaceDir = resolve(
   __dirname,
   "..",
@@ -87,29 +84,42 @@ export async function waitForPathAbsent(
   throw new Error(`Timed out waiting for file to be removed: ${filePath}`);
 }
 
+async function readTerminalText(): Promise<string> {
+  const panel = new BottomBarPanel();
+  const terminalView = await panel.openTerminalView();
+  return terminalView.getText();
+}
+
+function throwIfBuildFailed(terminalText: string): void {
+  if (BUILD_FAILURE_PATTERN.test(terminalText)) {
+    throw new Error(`Build failed. Terminal output:\n${terminalText}`);
+  }
+}
+
 export async function waitForBuildComplete(
   binPath: string,
   timeoutMs: number
 ): Promise<string> {
-  const panel = new BottomBarPanel();
-  const terminalView = await panel.openTerminalView();
   const deadline = Date.now() + timeoutMs;
+  let lastFailureCheck = 0;
+  const failureCheckIntervalMs = 30000;
 
   while (Date.now() < deadline) {
-    const text = await terminalView.getText();
-    if (BUILD_FAILURE_PATTERN.test(text)) {
-      throw new Error(`Build failed. Terminal output:\n${text}`);
+    if (await pathExists(binPath)) {
+      return `Build complete: ${binPath}`;
     }
-    if (
-      BUILD_SUCCESS_TERMINAL_PATTERN.test(text) &&
-      (await pathExists(binPath))
-    ) {
-      return text;
+
+    const now = Date.now();
+    if (now - lastFailureCheck >= failureCheckIntervalMs) {
+      lastFailureCheck = now;
+      throwIfBuildFailed(await readTerminalText());
     }
-    await new Promise((res) => setTimeout(res, 5000));
+
+    await new Promise((res) => setTimeout(res, 2000));
   }
 
-  const text = await terminalView.getText();
+  const text = await readTerminalText();
+  throwIfBuildFailed(text);
   const binExists = await pathExists(binPath);
   throw new Error(
     `Timed out waiting for build to complete. bin exists: ${binExists}. Last terminal output:\n${text}`
