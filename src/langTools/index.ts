@@ -596,7 +596,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
 
 async function focusOnAppropriateOutput(commandName: string): Promise<void> {
   if (TASK_COMMANDS.has(commandName)) {
-    await focusOnTerminal();
+    void focusOnTerminal();
   } else {
     OutputChannel.show();
   }
