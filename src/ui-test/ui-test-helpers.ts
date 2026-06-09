@@ -16,7 +16,7 @@
  */
 
 import { resolve } from "path";
-import { InputBox, Workbench } from "vscode-extension-tester";
+import { BottomBarPanel, InputBox, Workbench } from "vscode-extension-tester";
 
 export const testWorkspaceDir = resolve(
   __dirname,
@@ -25,6 +25,44 @@ export const testWorkspaceDir = resolve(
   "testFiles",
   "testWorkspace"
 );
+
+export const helloWorldBinPath = resolve(
+  testWorkspaceDir,
+  "build",
+  "hello-world.bin"
+);
+
+export const testHardwareSerialPort =
+  process.env.IDF_UI_TEST_SERIAL_PORT ?? "/dev/ttyUSB1";
+
+export async function dismissNotifications(): Promise<void> {
+  const notifications = await new Workbench().getNotifications();
+  for (const notification of notifications) {
+    await notification.dismiss();
+  }
+}
+
+export async function waitForTerminalOutput(
+  pattern: RegExp,
+  timeoutMs: number
+): Promise<string> {
+  const panel = new BottomBarPanel();
+  const terminalView = await panel.openTerminalView();
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const text = await terminalView.getText();
+    if (pattern.test(text)) {
+      return text;
+    }
+    await new Promise((res) => setTimeout(res, 5000));
+  }
+
+  const text = await terminalView.getText();
+  throw new Error(
+    `Timed out waiting for terminal output matching ${pattern}. Last output:\n${text}`
+  );
+}
 
 /** Must match command palette labels exactly (category + package.nls title). */
 export const ESP_IDF_COMMANDS = {

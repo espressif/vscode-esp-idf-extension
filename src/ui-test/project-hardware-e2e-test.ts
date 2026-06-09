@@ -18,65 +18,28 @@
 
 import { expect } from "chai";
 import { pathExists } from "fs-extra";
-import { resolve } from "path";
-import { BottomBarPanel, Workbench } from "vscode-extension-tester";
 import {
   ESP_IDF_COMMANDS,
+  dismissNotifications,
   executeEspIdfCommand,
   executeEspIdfCommandAndSelectOption,
+  helloWorldBinPath,
   openTestProject,
-  testWorkspaceDir,
+  testHardwareSerialPort,
+  waitForTerminalOutput,
 } from "./ui-test-helpers";
-
-const helloWorldBinPath = resolve(
-  testWorkspaceDir,
-  "build",
-  "hello-world.bin"
-);
-const serialPort = process.env.IDF_UI_TEST_SERIAL_PORT ?? "/dev/ttyUSB1";
 
 const FLASH_SUCCESS_PATTERN =
   /Hash of data verified|Flash Done|Hard resetting via RTS pin/;
 
 const MONITOR_OUTPUT_PATTERN = /UI test monitor output check/;
 
-async function dismissNotifications(): Promise<void> {
-  const notifications = await new Workbench().getNotifications();
-  for (const notification of notifications) {
-    await notification.dismiss();
-  }
-}
-
-async function waitForTerminalOutput(
-  pattern: RegExp,
-  timeoutMs: number
-): Promise<string> {
-  const panel = new BottomBarPanel();
-  const terminalView = await panel.openTerminalView();
-  const deadline = Date.now() + timeoutMs;
-
-  while (Date.now() < deadline) {
-    const text = await terminalView.getText();
-    if (pattern.test(text)) {
-      return text;
-    }
-    await new Promise((res) => setTimeout(res, 5000));
-  }
-
-  const text = await terminalView.getText();
-  throw new Error(
-    `Timed out waiting for terminal output matching ${pattern}. Last output:\n${text}`
-  );
-}
-
-describe("Monitor testing", () => {
+describe("Hardware E2E: build → flash → monitor", () => {
   before(async function () {
-    this.timeout(100000);
+    this.timeout(300000);
     await dismissNotifications();
     await openTestProject();
-  });
 
-  it("builds, configures UART flash, flashes and monitors testWorkspace", async () => {
     await new Promise((res) => setTimeout(res, 3000));
     await executeEspIdfCommand(ESP_IDF_COMMANDS.fullClean);
     await new Promise((res) => setTimeout(res, 10000));
@@ -84,10 +47,12 @@ describe("Monitor testing", () => {
     await new Promise((res) => setTimeout(res, 150000));
 
     expect(await pathExists(helloWorldBinPath)).to.be.true;
+  });
 
+  it("flashes testWorkspace", async () => {
     await executeEspIdfCommandAndSelectOption(
       ESP_IDF_COMMANDS.selectPort,
-      serialPort
+      testHardwareSerialPort
     );
     await executeEspIdfCommandAndSelectOption(
       ESP_IDF_COMMANDS.selectFlashMethod,
@@ -101,10 +66,12 @@ describe("Monitor testing", () => {
     );
     console.log(flashOutput);
     expect(FLASH_SUCCESS_PATTERN.test(flashOutput)).to.be.true;
+  }).timeout(999999);
 
+  it("shows expected monitor output", async () => {
     await executeEspIdfCommandAndSelectOption(
       ESP_IDF_COMMANDS.selectMonitorPort,
-      serialPort
+      testHardwareSerialPort
     );
     await executeEspIdfCommand(ESP_IDF_COMMANDS.monitor);
     const monitorOutput = await waitForTerminalOutput(
