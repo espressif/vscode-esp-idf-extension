@@ -15,8 +15,15 @@
  * limitations under the License.
  */
 
+import { pathExists } from "fs-extra";
 import { resolve } from "path";
 import { BottomBarPanel, InputBox, Workbench } from "vscode-extension-tester";
+
+const BUILD_FAILURE_PATTERN =
+  /ninja: build stopped|CMake Error|FAILED:|ninja: error|Compilation failed/i;
+
+const BUILD_SUCCESS_TERMINAL_PATTERN =
+  /hello-world\.bin|Project build complete|Built target.*(?:app|gen_project_binary)/i;
 
 export const testWorkspaceDir = resolve(
   __dirname,
@@ -61,6 +68,51 @@ export async function waitForTerminalOutput(
   const text = await terminalView.getText();
   throw new Error(
     `Timed out waiting for terminal output matching ${pattern}. Last output:\n${text}`
+  );
+}
+
+export async function waitForPathAbsent(
+  filePath: string,
+  timeoutMs: number
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    if (!(await pathExists(filePath))) {
+      return;
+    }
+    await new Promise((res) => setTimeout(res, 2000));
+  }
+
+  throw new Error(`Timed out waiting for file to be removed: ${filePath}`);
+}
+
+export async function waitForBuildComplete(
+  binPath: string,
+  timeoutMs: number
+): Promise<string> {
+  const panel = new BottomBarPanel();
+  const terminalView = await panel.openTerminalView();
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const text = await terminalView.getText();
+    if (BUILD_FAILURE_PATTERN.test(text)) {
+      throw new Error(`Build failed. Terminal output:\n${text}`);
+    }
+    if (
+      BUILD_SUCCESS_TERMINAL_PATTERN.test(text) &&
+      (await pathExists(binPath))
+    ) {
+      return text;
+    }
+    await new Promise((res) => setTimeout(res, 5000));
+  }
+
+  const text = await terminalView.getText();
+  const binExists = await pathExists(binPath);
+  throw new Error(
+    `Timed out waiting for build to complete. bin exists: ${binExists}. Last terminal output:\n${text}`
   );
 }
 

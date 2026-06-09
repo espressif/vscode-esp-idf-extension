@@ -17,7 +17,6 @@
  */
 
 import { expect } from "chai";
-import { pathExists } from "fs-extra";
 import {
   ESP_IDF_COMMANDS,
   dismissNotifications,
@@ -26,6 +25,8 @@ import {
   helloWorldBinPath,
   openTestProject,
   testHardwareSerialPort,
+  waitForBuildComplete,
+  waitForPathAbsent,
   waitForTerminalOutput,
 } from "./ui-test-helpers";
 
@@ -34,22 +35,34 @@ const FLASH_SUCCESS_PATTERN =
 
 const MONITOR_OUTPUT_PATTERN = /UI test monitor output check/;
 
+const hardwareE2eState = {
+  buildSucceeded: false,
+  flashSucceeded: false,
+};
+
 describe("Hardware E2E: build → flash → monitor", () => {
   before(async function () {
-    this.timeout(300000);
+    this.timeout(100000);
     await dismissNotifications();
     await openTestProject();
-
-    await new Promise((res) => setTimeout(res, 3000));
-    await executeEspIdfCommand(ESP_IDF_COMMANDS.fullClean);
-    await new Promise((res) => setTimeout(res, 10000));
-    await executeEspIdfCommand(ESP_IDF_COMMANDS.build);
-    await new Promise((res) => setTimeout(res, 150000));
-
-    expect(await pathExists(helloWorldBinPath)).to.be.true;
   });
 
-  it("flashes testWorkspace", async () => {
+  it("builds testWorkspace", async function () {
+    await new Promise((res) => setTimeout(res, 3000));
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.fullClean);
+    await waitForPathAbsent(helloWorldBinPath, 60000);
+
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.build);
+    const buildOutput = await waitForBuildComplete(helloWorldBinPath, 300000);
+    console.log(buildOutput);
+    hardwareE2eState.buildSucceeded = true;
+  }).timeout(999999);
+
+  it("flashes testWorkspace", async function () {
+    if (!hardwareE2eState.buildSucceeded) {
+      this.skip();
+    }
+
     await executeEspIdfCommandAndSelectOption(
       ESP_IDF_COMMANDS.selectPort,
       testHardwareSerialPort
@@ -66,9 +79,14 @@ describe("Hardware E2E: build → flash → monitor", () => {
     );
     console.log(flashOutput);
     expect(FLASH_SUCCESS_PATTERN.test(flashOutput)).to.be.true;
+    hardwareE2eState.flashSucceeded = true;
   }).timeout(999999);
 
-  it("shows expected monitor output", async () => {
+  it("shows expected monitor output", async function () {
+    if (!hardwareE2eState.flashSucceeded) {
+      this.skip();
+    }
+
     await executeEspIdfCommandAndSelectOption(
       ESP_IDF_COMMANDS.selectMonitorPort,
       testHardwareSerialPort
