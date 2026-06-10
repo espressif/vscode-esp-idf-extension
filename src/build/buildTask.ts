@@ -18,12 +18,12 @@
 
 import { ensureDir, pathExists } from "fs-extra";
 import { join } from "path";
-import { addProcessTask } from "../taskManager";
+import { addProcessTask } from "../taskManager/taskManager";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { ESP } from "../config";
 import type { OutputCapturingExecution } from "../taskManager/customExecution";
 import type { ProcessExecution, Uri } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { runValidationBeforeBuild } from "./validation";
 import { enqueueCompileTaskIfNoCache } from "./cmakeConfigure";
 

@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 6th January 2021 1:25:19 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +19,7 @@
 import { join } from "path";
 import { Disposable, Uri, ViewColumn, WebviewPanel, window } from "vscode";
 import { ESP } from "../config";
-import { NotificationMode, readParameter } from "../idfConfiguration";
+import { NotificationMode, readParameter } from "../configuration/idf";
 import { addDependency, createProject } from "./utils";
 import * as vscode from "vscode";
 
@@ -45,7 +45,7 @@ export class ComponentManagerUIPanel {
     if (!!ComponentManagerUIPanel.instance) {
       ComponentManagerUIPanel.instance.panel.reveal(column);
     }
-    const url = readParameter("esp.component-manager.url", workspaceRoot);
+    const url = readParameter("esp.component-manager.url", workspaceRoot) as string;
     if (!url) {
       throw new Error("esp.component-manager.url is not set");
     }

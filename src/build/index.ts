@@ -19,7 +19,7 @@
 import { openFolderCheck } from "../common/PreCheck";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { ESP } from "../config";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { ExtensionContext } from "vscode";
 import { buildMain } from "./buildMain";
 import { registerIDFCommand } from "../common/registerCommand";

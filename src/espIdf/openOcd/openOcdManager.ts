@@ -20,9 +20,9 @@ import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
 import { accessSync, constants, statSync } from "fs";
 import * as vscode from "vscode";
-import * as idfConf from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
+import { readParameter } from "../../configuration/idf";
+import { Logger } from "../../common/logger";
+import { OutputChannel } from "../../common/outputChannel";
 import { isBinInPath, spawn as sspawn } from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 import { ESP } from "../../config";
@@ -42,7 +42,6 @@ import {
   supportsSerialFromDetectConfig,
 } from "./adapterSerial";
 import { configureEnvVariables } from "../../common/prepareEnv";
-import { PreCheck } from "../../common/PreCheck";
 
 export interface IOpenOCDConfig {
   workspace: vscode.Uri;
@@ -53,7 +52,7 @@ export class OpenOCDManager extends EventEmitter {
     workspace: vscode.Uri,
     modifiedEnv: { [Key: string]: string }
   ): Promise<string> {
-    const customOpenOcdPath = (idfConf.readParameter(
+    const customOpenOcdPath = (readParameter(
       "idf.customOpenOCDPath",
       workspace
     ) as string)?.trim();
@@ -79,10 +78,10 @@ export class OpenOCDManager extends EventEmitter {
     return OpenOCDManager.instance;
   }
   private static instance: OpenOCDManager;
-  private server: ChildProcess;
-  private chan: Buffer;
-  private statusBar: vscode.StatusBarItem;
-  private workspace: vscode.Uri;
+  private server: ChildProcess | undefined;
+  private chan: Buffer = Buffer.alloc(0);
+  private statusBar: vscode.StatusBarItem | undefined;
+  private workspace: vscode.Uri | undefined;
   private encounteredErrors: boolean = false;
 
   private constructor() {
@@ -91,6 +90,9 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   public async version(silent: boolean = false): Promise<string> {
+    if (!this.workspace) {
+      return "no+workspace";
+    }
     const modifiedEnv = await configureEnvVariables(this.workspace);
     const openOcdPath = await OpenOCDManager.getOpenOcdPath(
       this.workspace,
@@ -113,12 +115,17 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   public statusBarItem(): vscode.StatusBarItem {
-    return this.statusBar;
+    if (!this.statusBar) {
+      this.registerOpenOCDStatusBarItem();
+    }
+    return this.statusBar as vscode.StatusBarItem;
   }
 
   public updateStatusText(text: string) {
-    this.statusBar.text = text;
-    this.statusBar.show();
+    if (this.statusBar) {
+      this.statusBar.text = text;
+      this.statusBar.show();
+    }
   }
 
   public async commandHandler() {
@@ -150,8 +157,12 @@ export class OpenOCDManager extends EventEmitter {
           break;
       }
     } catch (error) {
-      const msg = error.message ? error.message : JSON.stringify(error);
-      Logger.error(msg, error, "OpenOCDManager commandHandler");
+      const msg = error instanceof Error ? error.message : "Unknown error";
+      Logger.error(
+        msg,
+        error instanceof Error ? error : new Error("Unknown error"),
+        "OpenOCDManager commandHandler"
+      );
       OutputChannel.appendLine(msg, "OpenOCD");
     }
     return true;
@@ -164,12 +175,12 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   public isRunning(): boolean {
-    return this.server && !this.server.killed;
+    return typeof this.server !== "undefined" && !this.server.killed;
   }
 
   public async promptUserToLaunchOpenOCDServer(): Promise<boolean> {
-    const host = idfConf.readParameter("openocd.tcl.host", this.workspace);
-    const port = idfConf.readParameter("openocd.tcl.port", this.workspace);
+    const host = readParameter("openocd.tcl.host", this.workspace) as string;
+    const port = readParameter("openocd.tcl.port", this.workspace) as number;
     const tclConnectionParams: TCLConnection = { host, port };
     const tclClient = new TCLClient(tclConnectionParams);
     if (!(await tclClient.isOpenOCDServerRunning())) {
@@ -191,6 +202,9 @@ export class OpenOCDManager extends EventEmitter {
   public async start() {
     if (this.isRunning()) {
       return;
+    }
+    if (!this.workspace) {
+      throw new Error("No workspace folder found. Please open a workspace to launch OpenOCD server.");
     }
     const modifiedEnv = await configureEnvVariables(this.workspace);
     const openOcdPath = await OpenOCDManager.getOpenOcdPath(
@@ -215,7 +229,7 @@ export class OpenOCDManager extends EventEmitter {
     }
 
     const openOcdArgs: string[] = [];
-    const openOcdLaunchArgs = idfConf.readParameter(
+    const openOcdLaunchArgs = readParameter(
       "idf.openOcdLaunchArgs",
       this.workspace
     ) as string[];
@@ -242,7 +256,7 @@ export class OpenOCDManager extends EventEmitter {
         openOcdArgs.unshift("-c", `adapter usb location ${adapterLocation}`);
       }
     } else {
-      const openOcdConfigFilesList = idfConf.readParameter(
+      const openOcdConfigFilesList = readParameter(
         "idf.openOcdConfigs",
         this.workspace
       ) as string[];
@@ -256,7 +270,7 @@ export class OpenOCDManager extends EventEmitter {
         );
       }
 
-      const openOcdDebugLevelRaw = idfConf.readParameter(
+      const openOcdDebugLevelRaw = readParameter(
         "idf.openOcdDebugLevel",
         this.workspace
       ) as unknown;
@@ -297,7 +311,7 @@ export class OpenOCDManager extends EventEmitter {
       cwd: this.workspace.fsPath,
       env: modifiedEnv,
     });
-    this.server.stderr.on("data", (data) => {
+    this.server.stderr?.on("data", (data) => {
       this.encounteredErrors = true;
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
@@ -327,7 +341,7 @@ export class OpenOCDManager extends EventEmitter {
       OutputChannel.appendLine(errStr, "OpenOCD");
       Logger.info(errStr);
     });
-    this.server.stdout.on("data", (data) => {
+    this.server.stdout?.on("data", (data) => {
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
 
@@ -406,7 +420,10 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   private configureServerWithDefaultParam() {
-    if (PreCheck.isWorkspaceFolderOpen()) {
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0].uri
+    ) {
       this.workspace = vscode.workspace.workspaceFolders[0].uri;
     }
     this.chan = Buffer.alloc(0);

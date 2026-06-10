@@ -23,16 +23,16 @@ import {
   WorkspaceFolder,
   window,
 } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import {
   getIdfTargetFromSdkconfig,
   getProjectElfFilePath,
-} from "../workspaceConfig";
+} from "../configuration/workspace";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { verifyAppBinary } from "./verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { getConfigValueFromSDKConfig, getToolchainPath } from "../utils";
 import { ESP } from "../config";
 import { buildFlashAndMonitor } from "../buildFlashMonitor";

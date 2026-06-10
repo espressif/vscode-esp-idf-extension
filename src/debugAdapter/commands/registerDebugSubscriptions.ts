@@ -22,8 +22,8 @@ import {
 } from "vscode";
 import { PeripheralTreeView } from "../svd/peripheralTreeView";
 import { HexViewProvider } from "../hexViewProvider";
-import { readParameter } from "../../idfConfiguration";
 import { OpenOCDManager } from "../../espIdf/openOcd/openOcdManager";
+import { readParameter } from "../../configuration/idf";
 
 export type DebugSessionOpenOcdFlags = {
   isOpenOCDLaunchedByDebug: { value: boolean };

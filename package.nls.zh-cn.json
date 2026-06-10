@@ -175,7 +175,6 @@
 	"param.showOnboardingOnInit": "在激活扩展时显示 ESP-IDF 配置窗口",
 	"param.svdFile": "用于解析 ESP-IDF 外设视图的 SVD 文件，显示在调试视图中",
 	"param.telemetry": "将匿名遥测和崩溃报告发送回扩展 (更改设置后需要重新启动以生效)",
-	"param.toolsPath": "指定 ESP-IDF 工具的路径 (IDF_TOOLS_PATH)",
 	"param.uncoveredDarkTheme": "深色主题下 ESP-IDF 代码覆盖率报告中未覆盖行的背景颜色",
 	"param.uncoveredLightTheme": "浅色主题下 ESP-IDF 代码覆盖率报告中未覆盖行的背景颜色",
 	"param.useIDFKConfigStyle": "启用/禁用 Kconfig 文件的 ESP-IDF 样式验证",

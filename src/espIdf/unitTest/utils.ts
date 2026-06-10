@@ -18,7 +18,7 @@
 
 import { basename, sep } from "path";
 import { RelativePattern, Uri, window, workspace } from "vscode";
-import { readParameter } from "../../idfConfiguration";
+import { readParameter } from "../../configuration/idf";
 import { ESP } from "../../config";
 
 export async function getFileList(): Promise<Uri[]> {
@@ -37,8 +37,10 @@ export async function getFileList(): Promise<Uri[]> {
       return [];
     }
     const filePattern =
-      readParameter("idf.unitTestFilePattern", workspaceFolder?.uri) ||
-      "**/test/test_*.c";
+      (readParameter(
+        "idf.unitTestFilePattern",
+        workspaceFolder?.uri
+      ) as string) || "**/test/test_*.c";
     const relativePattern = new RelativePattern(workspaceFolder, filePattern);
     files = await workspace.findFiles(relativePattern);
   } catch (err) {

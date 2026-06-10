@@ -32,13 +32,13 @@ import {
   WriteStream,
 } from "fs-extra";
 import { CancellationToken, env, Progress, UIKind, window } from "vscode";
-import { OutputChannel } from "../logger/outputChannel";
+import { OutputChannel } from "../common/outputChannel";
 import del from "del";
 import { dirExistPromise, isBinInPath, spawn } from "../utils";
 import * as yauzl from "yauzl";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { getEimIdfJson } from "./getExistingSetups";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 
 type EimShellProfileTarget = {
   path: string;

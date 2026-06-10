@@ -21,7 +21,7 @@ import { IdfSetup } from "./types";
 import { delimiter, join } from "path";
 import { pathExists } from "fs-extra";
 import { getEnvVariablesFromIdfSetup } from "./migrationTool";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 
 export async function getEnvVariables(idfSetup: IdfSetup) {
   if (idfSetup.activationScript) {

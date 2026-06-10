@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as tmp from "tmp";
-
 export interface IFileInfo {
   sha256: string;
   size: number;
@@ -26,8 +24,12 @@ export interface IVersion {
   win32: IFileInfo;
   win64: IFileInfo;
   macos: IFileInfo;
-  linux_am64: IFileInfo;
-  linux_i686: IFileInfo;
+  "linux-amd64": IFileInfo;
+  "linux-i686": IFileInfo;
+  "macos-arm64": IFileInfo;
+  "linux-armel": IFileInfo;
+  "linux-armhf": IFileInfo;
+  "linux-arm64": IFileInfo;
   any: IFileInfo;
 }
 
@@ -35,6 +37,7 @@ export interface IPlatformOverride {
   install: string;
   platforms: string[];
   export_paths: [string[]];
+  export_vars: { [key: string]: string };
 }
 
 export interface IPackage {
@@ -47,7 +50,7 @@ export interface IPackage {
   export_paths: [string[]];
 
   // Exports paths
-  export_vars: {};
+  export_vars: { [key: string]: string };
 
   platform_overrides: IPlatformOverride[];
 

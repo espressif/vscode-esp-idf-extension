@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { BuildTask } from "./buildTask";
 import { getToolchainToolName, isBinInPath } from "../utils";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { Uri, workspace } from "vscode";
 
 /** Synchronous acquire for callers outside `buildMain` (e.g. tests). */

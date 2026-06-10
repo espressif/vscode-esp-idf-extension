@@ -17,16 +17,15 @@
  */
 
 import { Uri } from "vscode";
-import { BuildTask } from "./buildTask";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { join } from "path";
 import { pathExists } from "fs-extra";
-import { Logger } from "../logger/logger";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { Logger } from "../common/logger";
+import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { selectedDFUAdapterId } from "../flash/transports/dfu/helpers";
-import { getVirtualEnvPythonPath } from "../pythonManager";
-import { addProcessTask, type IdfTaskExecution } from "../taskManager";
+import { getVirtualEnvPythonPath } from "../configuration/env";
+import { addProcessTask, type IdfTaskExecution } from "../taskManager/taskManager";
 
 export async function appendDfuExecution(
   executions: IdfTaskExecution[],

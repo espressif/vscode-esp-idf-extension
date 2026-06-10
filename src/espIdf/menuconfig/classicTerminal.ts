@@ -19,9 +19,9 @@
 import { l10n, TerminalLocation } from "vscode";
 import { openFolderCheck, PreCheck } from "../../common/PreCheck";
 import { ESP } from "../../config";
-import { readParameter } from "../../idfConfiguration";
+import { readParameter } from "../../configuration/idf";
 import { createEspIdfTerminal } from "../../terminal";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 
 export async function createClassicMenuconfig(extensionPath: string) {
   PreCheck.perform([openFolderCheck], async () => {

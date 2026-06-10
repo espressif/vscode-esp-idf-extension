@@ -17,7 +17,7 @@
  */
 import { defineStore } from "pinia";
 import { IComponent } from "../../espIdf/idfComponent/IdfComponent";
-import { IExample, IExampleCategory } from "../../examples/Example";
+import { IExample, IExampleCategory } from "../../newProject/Example";
 import { IdfBoard } from "../../espIdf/openOcd/boardConfiguration";
 import { Ref, ref } from "vue";
 import { IdfTarget } from "../../espIdf/setTarget/getTargets";

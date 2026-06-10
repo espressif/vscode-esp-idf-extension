@@ -17,9 +17,9 @@
  */
 
 import { Uri } from "vscode";
-import { OutputChannel } from "../../../logger/outputChannel";
+import { OutputChannel } from "../../../common/outputChannel";
 import { execChildProcess } from "../../../utils";
-import { getVirtualEnvPythonPath } from "../../../pythonManager";
+import { getVirtualEnvPythonPath } from "../../../configuration/env";
 import { configureEnvVariables } from "../../../common/prepareEnv";
 
 export async function installWebsocketClient(workspace: Uri) {

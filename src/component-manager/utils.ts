@@ -15,15 +15,14 @@
  */
 
 import { existsSync } from "fs";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { spawn } from "../utils";
 import { CancellationToken, Uri, l10n } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { join } from "path";
-import { getVirtualEnvPythonPath } from "../pythonManager";
 import { EOL } from "os";
 import { configureEnvVariables } from "../common/prepareEnv";
-import { ESP } from "../config";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 
 export async function addDependency(
   workspace: Uri,
@@ -32,9 +31,7 @@ export async function addDependency(
   cancelToken: CancellationToken
 ) {
   try {
-    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-      [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    const currentEnvVars = getCurrentIdfConfiguration();
     const idfPathDir = currentEnvVars["IDF_PATH"];
     const idfPy = join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = await configureEnvVariables(workspace);
@@ -88,9 +85,7 @@ export async function createProject(
   example: string
 ): Promise<Uri> {
   try {
-    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-      [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    const currentEnvVars = getCurrentIdfConfiguration();
     const idfPathDir = currentEnvVars["IDF_PATH"];
     const idfPy = join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = await configureEnvVariables(workspace);

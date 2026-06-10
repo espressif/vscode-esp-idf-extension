@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import * as os from "os";
+import { IVersion } from "./IPackage";
 
 export class PlatformInformation {
   public static GetPlatformInformation(): PlatformInformation {
@@ -53,7 +54,7 @@ export class PlatformInformation {
     return new PlatformInformation(platform, architecture);
   }
 
-  public get platformToUse(): string {
+  public get platformToUse(): keyof IVersion {
     switch (this.platform) {
       case "darwin":
         return this.architecture === "arm64" ? "macos-arm64" : "macos";
@@ -76,11 +77,11 @@ export class PlatformInformation {
             return "linux-amd64";
         }
       default:
-        break;
+        return "any";
     }
   }
 
-  public get fallbackPlatform(): string {
+  public get fallbackPlatform(): keyof IVersion {
     switch (this.platform) {
       case "darwin":
         return "macos";

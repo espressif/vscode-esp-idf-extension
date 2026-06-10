@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 import { ESP } from "../../config";
-import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
+import { Logger } from "../../common/logger";
+import { OutputChannel } from "../../common/outputChannel";
 
 type FlashCommandErrorPresentation = {
   userMessage: string;

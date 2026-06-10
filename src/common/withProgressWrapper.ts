@@ -24,9 +24,9 @@ import {
   window,
   WorkspaceFolder,
 } from "vscode";
-import { Logger } from "../logger/logger";
+import { Logger } from "./logger";
 import { openFolderCheck, PreCheck, PreCheckInput } from "./PreCheck";
-import { NotificationMode, readParameter } from "../idfConfiguration";
+import { NotificationMode, readParameter } from "../configuration/idf";
 import { ESP } from "../config";
 
 export type WithProgressTask<T = void> = (

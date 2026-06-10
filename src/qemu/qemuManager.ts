@@ -28,15 +28,15 @@ import {
   window,
 } from "vscode";
 import { ESP } from "../config";
-import { readParameter } from "../idfConfiguration";
-import { Logger } from "../logger/logger";
+import { readParameter } from "../configuration/idf";
+import { Logger } from "../common/logger";
 import { statusBarItems } from "../statusBar";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { isBinInPath } from "../utils";
 import { IdfToolsManager } from "../idfToolsManager";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { join } from "path";
-import { getVirtualEnvPythonPath } from "../pythonManager";
+import { getVirtualEnvPythonPath } from "../configuration/env";
 
 export enum QemuLaunchMode {
   Debug,
@@ -52,21 +52,23 @@ export class QemuManager extends EventEmitter {
     return QemuManager.instance;
   }
   private static instance: QemuManager;
-  private qemuTerminal: Terminal;
-  private _statusBarItem: StatusBarItem;
+  private qemuTerminal: Terminal | undefined;
+  private _statusBarItem: StatusBarItem | undefined;
 
   private constructor() {
     super();
     this.registerQemuStatusBarItem();
   }
 
-  public statusBarItem(): StatusBarItem {
+  public statusBarItem(): StatusBarItem | undefined {
     return this._statusBarItem;
   }
 
   public updateStatusText(text: string) {
-    this._statusBarItem.text = text;
-    this._statusBarItem.show();
+    if (this._statusBarItem) {
+      this._statusBarItem.text = text;
+      this._statusBarItem.show();
+    }
   }
 
   public async commandHandler() {
@@ -103,8 +105,8 @@ export class QemuManager extends EventEmitter {
           break;
       }
     } catch (error) {
-      const msg = error.message ? error.message : "";
-      Logger.errorNotify(msg, error, "QemuManager commandHandler");
+      const msg = error instanceof Error && error.message ? error.message : "Error executing QEMU command";
+      Logger.errorNotify(msg, error as Error, "QemuManager commandHandler");
     }
   }
 
@@ -153,11 +155,15 @@ export class QemuManager extends EventEmitter {
       return pkg.name === "qemu-riscv32";
     });
     const qemuDictionary: { [key: string]: string } = {};
-    for (const supportedTarget of xtensaPackage.supported_targets) {
-      qemuDictionary[supportedTarget] = xtensaPackage.version_cmd[0];
+    if (xtensaPackage) {
+      for (const supportedTarget of xtensaPackage.supported_targets) {
+        qemuDictionary[supportedTarget] = xtensaPackage.version_cmd[0];
+      }
     }
-    for (const supportedTarget of risvPackage.supported_targets) {
-      qemuDictionary[supportedTarget] = risvPackage.version_cmd[0];
+    if (risvPackage) {
+      for (const supportedTarget of risvPackage.supported_targets) {
+        qemuDictionary[supportedTarget] = risvPackage.version_cmd[0];
+      }
     }
     // fallback for older versions
     if (Object.keys(qemuDictionary).length === 0) {
@@ -181,17 +187,17 @@ export class QemuManager extends EventEmitter {
         `${modifiedEnv.IDF_TARGET} is not supported by Espressif QEMU. Check ESP-IDF and QEMU version installed.`
       );
     }
-    const isQemuBinInPath = await isBinInPath(
-      qemuExecutable,
-      modifiedEnv
-    );
+    const isQemuBinInPath = await isBinInPath(qemuExecutable, modifiedEnv);
     if (!isQemuBinInPath) {
       throw new Error(
         `${qemuExecutable} is not found in PATH or access is denied`
       );
     }
 
-    const qemuArgs: string[] = await this.getLaunchArguments(mode, workspaceFolder);
+    const qemuArgs: string[] = await this.getLaunchArguments(
+      mode,
+      workspaceFolder
+    );
     if (typeof qemuArgs === "undefined" || qemuArgs.length < 1) {
       throw new Error("No QEMU launch arguments found.");
     }
@@ -206,7 +212,7 @@ export class QemuManager extends EventEmitter {
         strictEnv: true,
       });
       window.onDidCloseTerminal((e) => {
-        if (e.processId === this.qemuTerminal.processId) {
+        if (e.processId === this.qemuTerminal?.processId) {
           this.stop();
         }
       });
@@ -214,7 +220,7 @@ export class QemuManager extends EventEmitter {
     const pythonBinPath = await getVirtualEnvPythonPath();
     this.qemuTerminal.sendText(`${pythonBinPath} ${qemuArgs.join(" ")}`);
     this.qemuTerminal.show(true);
-          this.updateStatusText("❇️ QEMU Server (Running)");
+    this.updateStatusText("❇️ QEMU Server (Running)");
   }
 
   public stop() {
@@ -223,7 +229,7 @@ export class QemuManager extends EventEmitter {
       this.qemuTerminal.dispose();
       this.qemuTerminal = undefined;
     }
-          this.updateStatusText("❌ QEMU Server (Stopped)");
+    this.updateStatusText("❌ QEMU Server (Stopped)");
   }
 
   public showOutputChannel(preserveFocus?: boolean) {

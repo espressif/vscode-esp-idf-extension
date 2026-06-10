@@ -18,15 +18,13 @@
 import { basename, dirname, join } from "path";
 import * as vscode from "vscode";
 import { constants, pathExists, readFile, writeFile } from "fs-extra";
-import { Logger } from "../../../logger/logger";
-import * as idfConf from "../../../idfConfiguration";
+import { Logger } from "../../../common/logger";
 import { canAccessFile, execChildProcess } from "../../../utils";
-import { OutputChannel } from "../../../logger/outputChannel";
-import { getVirtualEnvPythonPath } from "../../../pythonManager";
-import { ESP } from "../../../config";
+import { OutputChannel } from "../../../common/outputChannel";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../../configuration/env";
 
 export class NVSPartitionTable {
-  private static currentPanel: NVSPartitionTable;
+  private static currentPanel: NVSPartitionTable | undefined;
   private static readonly viewType = "idfNvsPartitionTableEditor";
   private static readonly viewTitle = "NVS Partition Table";
 
@@ -35,9 +33,11 @@ export class NVSPartitionTable {
     filePath: string,
     workspaceFolder: vscode.Uri
   ) {
-    const column = vscode.window.activeTextEditor
-      ? vscode.window.activeTextEditor.viewColumn
-      : vscode.ViewColumn.One;
+    const column =
+      vscode.window.activeTextEditor &&
+      typeof vscode.window.activeTextEditor.viewColumn === "number"
+        ? vscode.window.activeTextEditor.viewColumn
+        : vscode.ViewColumn.One;
 
     if (!!NVSPartitionTable.currentPanel) {
       if (NVSPartitionTable.currentPanel.filePath === filePath) {
@@ -68,7 +68,7 @@ export class NVSPartitionTable {
   }
 
   private static sendMessageToPanel(command: string, payload: object) {
-    if (this.currentPanel.panel && this.currentPanel.panel.webview) {
+    if (this.currentPanel?.panel && this.currentPanel.panel.webview) {
       this.currentPanel.panel.webview.postMessage({ command, ...payload });
     }
   }
@@ -122,17 +122,13 @@ export class NVSPartitionTable {
         csv: csvContent,
       });
     } catch (error) {
-      error.message
-        ? Logger.errorNotify(
-            error.message,
-            error,
-            "NVSPartitionTable getCSVFromFile"
-          )
-        : Logger.errorNotify(
-            `Failed to read CSV from ${filePath}`,
-            error,
-            "NVSPartitionTable getCSVFromFile"
-          );
+      const errMsg =
+        error instanceof Error ? error.message : "Error loading CSV from file";
+      Logger.errorNotify(
+        errMsg,
+        error as Error,
+        "NVSPartitionTable getCSVFromFile"
+      );
     }
   }
 
@@ -143,12 +139,26 @@ export class NVSPartitionTable {
     partitionSize: string
   ) {
     try {
-      const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-        [key: string]: string;
-      }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+      const currentEnvVars = getCurrentIdfConfiguration();
       const idfPathDir = currentEnvVars["IDF_PATH"];
 
-      const pythonBinPath = await getVirtualEnvPythonPath();
+      const pythonBinPath = getVirtualEnvPythonPath();
+      if (!idfPathDir) {
+        Logger.errorNotify(
+          "IDF_PATH is not defined",
+          new Error("IDF_PATH is not defined in current environment variables"),
+          "NVSPartitionTable generateNvsPartition, IDF_PATH"
+        );
+        return;
+      }
+      if (!pythonBinPath) {
+        Logger.errorNotify(
+          "Python binary path is not defined",
+          new Error("Virtual environment Python path is not defined"),
+          "NVSPartitionTable generateNvsPartition pythonBinPath"
+        );
+        return;
+      }
       const dirPath = dirname(this.filePath);
       const fileName = basename(this.filePath);
       const resultName = fileName.replace(".csv", ".bin");
@@ -207,11 +217,16 @@ export class NVSPartitionTable {
         Logger.infoNotify(`Created NVS Binary in ${join(dirPath, resultName)}`);
       }
     } catch (error) {
-      const msg = error.message
-        ? error.message
-        : "Error generating NVS partition";
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Error generating NVS partition";
       OutputChannel.appendLine(msg);
-      Logger.errorNotify(msg, error, "NVSPartitionTable generateNvsPartition");
+      Logger.errorNotify(
+        msg,
+        error as Error,
+        "NVSPartitionTable generateNvsPartition"
+      );
     }
   }
 
@@ -220,7 +235,7 @@ export class NVSPartitionTable {
     this.panel.dispose();
     while (this.disposables.length) {
       const disposable = this.disposables.pop();
-      disposable.dispose();
+      disposable?.dispose();
     }
   }
 
@@ -311,8 +326,12 @@ export class NVSPartitionTable {
       }
     } catch (err) {
       return Logger.errorNotify(
-        `Failed to save the partition data to the file ${this.filePath} due to some error. Error: ${err.message}`,
-        err,
+        `Failed to save the partition data to the file ${
+          this.filePath
+        } due to some error. Error: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`,
+        err instanceof Error ? err : new Error("Unknown error"),
         "NVSPartitionTable writeCSVDataToFile"
       );
     }

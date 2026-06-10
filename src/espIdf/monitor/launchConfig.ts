@@ -9,13 +9,12 @@
 import { join } from "path";
 import { R_OK } from "constants";
 import { WorkspaceFolder } from "vscode";
-import { readParameter, readSerialPort } from "../../idfConfiguration";
-import { ESP } from "../../config";
+import { readParameter, readSerialPort } from "../../configuration/idf";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
 import {
   getIdfTargetFromSdkconfig,
   getProjectElfFilePath,
-} from "../../workspaceConfig";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
+} from "../../configuration/workspace";
 import { FlashSession } from "../../flash/shared/flashSession";
 import { BuildTask } from "../../build/buildTask";
 import { getMonitorBaudRate } from "./getMonitorBaudRate";
@@ -65,9 +64,7 @@ export async function loadMonitorLaunchConfig(
     return { ok: false, reason: "no_python" };
   }
 
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const currentEnvVars = getCurrentIdfConfiguration();
   const idfPath = currentEnvVars["IDF_PATH"];
   if (!idfPath) {
     return { ok: false, reason: "no_idf_path" };

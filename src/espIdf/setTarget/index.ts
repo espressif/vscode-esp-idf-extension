@@ -30,9 +30,9 @@ import {
   NotificationMode,
   readParameter,
   writeParameter,
-} from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
+} from "../../configuration/idf";
+import { Logger } from "../../common/logger";
+import { OutputChannel } from "../../common/outputChannel";
 import { selectOpenOcdConfigFiles } from "../openOcd/boardConfiguration";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { getTargetsFromEspIdf, IdfTarget } from "./getTargets";

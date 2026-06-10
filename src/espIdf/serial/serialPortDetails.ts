@@ -18,10 +18,10 @@
 
 export class SerialPortDetails {
   public comName: string;
-  public manufacturer: string;
-  public vendorId: string;
-  public productId: string;
-  public chipType: string;
+  public manufacturer?: string;
+  public vendorId?: string;
+  public productId?: string;
+  public chipType?: string;
 
   constructor(
     comName: string,

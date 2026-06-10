@@ -17,7 +17,7 @@
  */
 
 import { Uri } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { createFlashModel } from "../flash/transports/uart/flashModelBuilder";
@@ -30,7 +30,7 @@ export async function buildFinishFlashCmd(workspace: Uri) {
     return "";
   }
   const port = readParameter("idf.port", workspace) as string;
-  const flashBaudRate = readParameter("idf.flashBaudRate", workspace);
+  const flashBaudRate = readParameter("idf.flashBaudRate", workspace) as string;
 
   const flasherArgsModel = await createFlashModel(
     flasherArgsPath,

@@ -14,24 +14,29 @@
 import { spawn, ChildProcess } from "child_process";
 import { join, basename } from "path";
 import treeKill from "tree-kill";
-import { Logger } from "../logger/logger";
+import { Logger } from "./logger";
 import { checkGitExists, dirExistPromise, execChildProcess } from "../utils";
-import { OutputChannel } from "../logger/outputChannel";
+import { OutputChannel } from "./outputChannel";
 import {
   CancellationToken,
+  ConfigurationTarget,
   Progress,
   ProgressLocation,
   Uri,
   window,
 } from "vscode";
-import * as idfConf from "../idfConfiguration";
-import { PackageProgress } from "../PackageProgress";
+import {
+  NotificationMode,
+  readParameter,
+  writeParameter,
+} from "../configuration/idf";
 import { ESP } from "../config";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 
 export class AbstractCloning {
-  private cloneProcess: ChildProcess;
+  private cloneProcess?: ChildProcess;
   private readonly GITHUB_REPO: string;
-  private readonly GITEE_REPO: string;
+  private readonly GITEE_REPO?: string;
 
   constructor(
     githubRepository: string,
@@ -45,7 +50,11 @@ export class AbstractCloning {
   }
 
   public cancel() {
-    if (this.cloneProcess && !this.cloneProcess.killed) {
+    if (
+      this.cloneProcess &&
+      this.cloneProcess.pid &&
+      !this.cloneProcess.killed
+    ) {
       treeKill(this.cloneProcess.pid, "SIGKILL");
       this.cloneProcess = undefined;
       OutputChannel.appendLine(`\n❌ [${this.name} Cloning] : Stopped!\n`);
@@ -55,7 +64,6 @@ export class AbstractCloning {
 
   public downloadByCloning(
     installDir: string,
-    pkgProgress?: PackageProgress,
     progress?: Progress<{ message?: string; increment?: number }>,
     recursiveDownload: boolean = true,
     mirror: ESP.IdfMirror = ESP.IdfMirror.Github
@@ -64,24 +72,20 @@ export class AbstractCloning {
     if (recursiveDownload) {
       args.push("--recursive");
     }
-    args.push(
-      "--progress",
-      "-b",
-      this.branchToUse,
-      mirror === ESP.IdfMirror.Espressif ? this.GITEE_REPO : this.GITHUB_REPO
-    );
+    const repoToUse =
+      mirror === ESP.IdfMirror.Espressif && this.GITEE_REPO
+        ? this.GITEE_REPO
+        : this.GITHUB_REPO;
+    args.push("--progress", "-b", this.branchToUse, repoToUse);
     OutputChannel.appendLine(
       `Cloning mirror ${
         mirror == ESP.IdfMirror.Espressif ? "Espressif" : "Github"
-      } with URL ${
-        mirror === ESP.IdfMirror.Espressif ? this.GITEE_REPO : this.GITHUB_REPO
-      }`
+      } with URL ${repoToUse}`
     );
     return this.spawnWithProgress(
       this.gitBinPath,
       args,
       installDir,
-      pkgProgress,
       progress
     );
   }
@@ -91,13 +95,10 @@ export class AbstractCloning {
     workspace?: Uri,
     recursiveDownload?: boolean
   ) {
-    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    const currentEnvVars = getCurrentIdfConfiguration();
+    const customExtraVars = readParameter("idf.customExtraVars", workspace) as {
       [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-    const customExtraVars = idfConf.readParameter(
-      "idf.customExtraVars",
-      workspace
-    ) as { [key: string]: string };
+    };
     const toolsDir = currentEnvVars["IDF_TOOLS_PATH"];
     const installDir = await window.showQuickPick(
       [
@@ -156,13 +157,9 @@ export class AbstractCloning {
     }
 
     if (installDir.target === "existing") {
-      const target = idfConf.readParameter("idf.saveScope");
+      const target = readParameter("idf.saveScope") as ConfigurationTarget;
       customExtraVars[configurationId] = installDirPath;
-      await idfConf.writeParameter(
-        "idf.customExtraVars",
-        customExtraVars,
-        target
-      );
+      await writeParameter("idf.customExtraVars", customExtraVars, target);
       Logger.infoNotify(`${this.name} has been installed`);
       return;
     }
@@ -173,12 +170,10 @@ export class AbstractCloning {
       Logger.infoNotify(`${resultingPath} already exist.`);
       return;
     }
-    const notificationMode = idfConf.readParameter(
-      "idf.notificationMode"
-    ) as string;
+    const notificationMode = readParameter("idf.notificationMode") as string;
     const progressLocation =
-      notificationMode === idfConf.NotificationMode.All ||
-      notificationMode === idfConf.NotificationMode.Notifications
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Notifications
         ? ProgressLocation.Notification
         : ProgressLocation.Window;
     await window.withProgress(
@@ -207,27 +202,23 @@ export class AbstractCloning {
           }
           await this.downloadByCloning(
             installDirPath,
-            undefined,
             progress,
             recursiveDownload,
             mirrorOption.target
           );
           if (mirrorOption.target === ESP.IdfMirror.Espressif) {
-            await this.updateSubmodules(resultingPath, undefined, progress);
+            await this.updateSubmodules(resultingPath, progress);
           }
-          const target = idfConf.readParameter("idf.saveScope");
+          const target = readParameter("idf.saveScope") as ConfigurationTarget;
           customExtraVars[configurationId] = resultingPath;
-          await idfConf.writeParameter(
-            "idf.customExtraVars",
-            customExtraVars,
-            target
-          );
+          await writeParameter("idf.customExtraVars", customExtraVars, target);
           Logger.infoNotify(`${this.name} has been installed`);
         } catch (error) {
-          OutputChannel.appendLine(error.message);
+          const msg = error instanceof Error ? error.message : String(error);
+          OutputChannel.appendLine(msg);
           Logger.errorNotify(
-            error.message,
-            error,
+            msg,
+            error as Error,
             "AbstractCloning getRepository"
           );
         }
@@ -237,21 +228,18 @@ export class AbstractCloning {
 
   public downloadSubmodules(
     repoRootDir: string,
-    pkgProgress?: PackageProgress,
     progress?: Progress<{ message?: string; increment?: number }>
   ) {
     return this.spawnWithProgress(
       this.gitBinPath,
       ["submodule", "update", "--init", "--depth", "1", "--progress"],
       repoRootDir,
-      pkgProgress,
       progress
     );
   }
 
   public async updateSubmodules(
     repoPath: string,
-    pkgProgress?: PackageProgress,
     progress?: Progress<{ message?: string; increment?: number }>
   ) {
     const REPOS_ARRAY = [
@@ -340,14 +328,12 @@ export class AbstractCloning {
       this.gitBinPath,
       ["submodule", "update", "--progress"],
       repoPath,
-      pkgProgress,
       progress
     );
     await this.spawnWithProgress(
       this.gitBinPath,
       ["submodule", "foreach", "git", "submodule", "update"],
       repoPath,
-      pkgProgress,
       progress
     );
   }
@@ -356,7 +342,6 @@ export class AbstractCloning {
     cmd: string,
     args: string[],
     currentWorkDirectory: string,
-    pkgProgress?: PackageProgress,
     progress?: Progress<{ message?: string; increment?: number }>
   ) {
     return new Promise<void>((resolve, reject) => {
@@ -371,7 +356,7 @@ export class AbstractCloning {
         }
         const output = data.toString().trim();
         const progressPattern = /(?:Counting|Compressing|Receiving|Resolving) objects:\s+(\d+%) \(\d+\/\d+\)/g;
-        let match: RegExpExecArray;
+        let match: RegExpExecArray | null;
 
         while ((match = progressPattern.exec(output)) !== null) {
           if (progress) {
@@ -379,22 +364,13 @@ export class AbstractCloning {
               message: match[0],
             });
           }
-          if (pkgProgress) {
-            pkgProgress.Progress = `${match[1]}`;
-            pkgProgress.ProgressDetail = match[0];
-          }
-        }
-
-        if (pkgProgress && data.toString().indexOf("Cloning into") !== -1) {
-          pkgProgress.Progress = `0%`;
-          pkgProgress.ProgressDetail = data.toString();
         }
       };
 
-      this.cloneProcess.stdout.on("data", handleSpawnOutput);
-      this.cloneProcess.stderr.on("data", handleSpawnOutput);
+      this.cloneProcess?.stdout?.on("data", handleSpawnOutput);
+      this.cloneProcess?.stderr?.on("data", handleSpawnOutput);
 
-      this.cloneProcess.on("exit", (code, signal) => {
+      this.cloneProcess?.on("exit", (code, signal) => {
         if (!signal && code !== 0) {
           const msg = `Submodules clone has exit with ${code}`;
           OutputChannel.appendLine(msg);
@@ -411,14 +387,13 @@ export class AbstractCloning {
   }
 
   public async getSubmodules(repoRootDir: string) {
-    const repoName = /[^/]*$/.exec(repoRootDir)[0];
+    const repoNameMatch = /[^/]*$/.exec(repoRootDir);
+    const repoName = repoNameMatch ? repoNameMatch[0] : repoRootDir;
     OutputChannel.appendLine(`Downloading ${repoName} submodules`);
-    const notificationMode = idfConf.readParameter(
-      "idf.notificationMode"
-    ) as string;
+    const notificationMode = readParameter("idf.notificationMode") as string;
     const progressLocation =
-      notificationMode === idfConf.NotificationMode.All ||
-      notificationMode === idfConf.NotificationMode.Notifications
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Notifications
         ? ProgressLocation.Notification
         : ProgressLocation.Window;
     await window.withProgress(
@@ -435,13 +410,14 @@ export class AbstractCloning {
           cancelToken.onCancellationRequested((e) => {
             this.cancel();
           });
-          await this.downloadSubmodules(repoRootDir, undefined, progress);
+          await this.downloadSubmodules(repoRootDir, progress);
           Logger.infoNotify(`${repoName} submodules checked out successfully`);
         } catch (error) {
-          OutputChannel.appendLine(error.message);
+          const msg = error instanceof Error ? error.message : String(error);
+          OutputChannel.appendLine(msg);
           Logger.errorNotify(
-            error.message,
-            error,
+            msg,
+            error instanceof Error ? error : new Error(msg),
             "AbstractCloning getSubmodules"
           );
         }

@@ -32,14 +32,12 @@ import {
   workspace,
   WorkspaceFolder,
 } from "vscode";
-import { ESP } from "./config";
-import { NotificationMode, readParameter } from "./idfConfiguration";
-import { Logger } from "./logger/logger";
-import type { CaptureableTaskExecution } from "./taskManager/customExecution";
-import {
-  OutputCapturingExecution,
-  ShellOutputCapturingExecution,
-} from "./taskManager/customExecution";
+import { ESP } from "../config";
+import { NotificationMode, readParameter } from "../configuration/idf";
+import { Logger } from "../common/logger";
+import type { CaptureableTaskExecution } from "./types";
+import { OutputCapturingExecution } from "./customExecution";
+import { ShellOutputCapturingExecution } from "./shellCaptureExecution";
 
 export interface IdfTaskDefinition extends TaskDefinition {
   command?: string;

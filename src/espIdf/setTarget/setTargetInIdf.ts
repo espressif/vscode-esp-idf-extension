@@ -17,14 +17,13 @@
  */
 
 import { join } from "path";
-import { WorkspaceFolder } from "vscode";
-import { readParameter } from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
+import { readParameter } from "../../configuration/idf";
+import { Logger } from "../../common/logger";
+import { OutputChannel } from "../../common/outputChannel";
 import { setCCppPropertiesJsonCompilerPath, spawn } from "../../utils";
 import { ConfserverProcess } from "../menuconfig/confserver/confServerProcess";
 import { IdfTarget } from "./getTargets";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { getVirtualEnvPythonPath } from "../../configuration/env";
 import * as vscode from "vscode";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
@@ -70,7 +69,12 @@ export async function setTargetInIDF(
     }
 
     setTargetArgs.push("set-target", selectedTarget.target);
-    const pythonBinPath = await getVirtualEnvPythonPath();
+    const pythonBinPath = getVirtualEnvPythonPath();
+    if (!pythonBinPath) {
+      throw new Error(
+        "Python binary path not found. Please check your Python environment configuration."
+      );
+    }
     OutputChannel.appendLine("Running IDF Set Target action", "Set Target");
     const setTargetResult = await spawn(pythonBinPath, setTargetArgs, {
       cwd: workspaceFolder.fsPath,

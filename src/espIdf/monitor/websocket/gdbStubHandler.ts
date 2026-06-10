@@ -12,7 +12,7 @@ import { registerWsMonitorDebugCleanup } from "./monitorDebugCleanup";
 import { GDBStubResponse } from "../../communications/ws";
 import { IdfMonitorWebSocketServer } from ".";
 import { IDFMonitor } from "../terminal";
-import { Logger } from "../../../logger/logger";
+import { Logger } from "../../../common/logger";
 
 const GDB_STUB_SESSION_ID = "gdbstub.debug.session.ws";
 

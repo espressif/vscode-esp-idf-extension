@@ -12,13 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as vscode from "vscode";
+import {
+  DecorationRangeBehavior,
+  Disposable,
+  FileSystemWatcher,
+  OverviewRulerLane,
+  TextEditor,
+  TextEditorDecorationType,
+  Uri,
+  window,
+  workspace
+} from "vscode";
 import {
   generateCoverageForEditors,
   textEditorWithCoverage,
 } from "./coverageService";
-import * as idfConf from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { getGcovData } from "./gcdaPaths";
+import { IGcovOutput } from "./gcovData";
 
 export interface CoverageOptions {
   darkThemeCoveredBackgroundColor: string;
@@ -27,55 +38,55 @@ export interface CoverageOptions {
   lightThemePartialBackgroundColor: string;
   darkThemeUncoveredBackgroundColor: string;
   lightThemeUncoveredBackgroundColor: string;
-  overviewRuleLane: vscode.OverviewRulerLane;
+  overviewRuleLane: OverviewRulerLane;
 }
 
-export function getCoverageOptions(workspace: vscode.Uri) {
+export function getCoverageOptions(workspace: Uri) {
   const coverageOptions: CoverageOptions = {
-    darkThemeCoveredBackgroundColor: idfConf.readParameter(
+    darkThemeCoveredBackgroundColor: readParameter(
       "idf.coveredDarkTheme",
       workspace
-    ),
-    darkThemeUncoveredBackgroundColor: idfConf.readParameter(
+    ) as string,
+    darkThemeUncoveredBackgroundColor: readParameter(
       "idf.uncoveredDarkTheme",
       workspace
-    ),
-    darkThemePartialBackgroundColor: idfConf.readParameter(
+    ) as string,
+    darkThemePartialBackgroundColor: readParameter(
       "idf.partialDarkTheme",
       workspace
-    ),
-    lightThemeCoveredBackgroundColor: idfConf.readParameter(
+    ) as string,
+    lightThemeCoveredBackgroundColor: readParameter(
       "idf.coveredLightTheme",
       workspace
-    ),
-    lightThemePartialBackgroundColor: idfConf.readParameter(
+    ) as string,
+    lightThemePartialBackgroundColor: readParameter(
       "idf.partialLightTheme",
       workspace
-    ),
-    lightThemeUncoveredBackgroundColor: idfConf.readParameter(
+    ) as string,
+    lightThemeUncoveredBackgroundColor: readParameter(
       "idf.uncoveredLightTheme",
       workspace
-    ),
-    overviewRuleLane: vscode.OverviewRulerLane.Right,
+    ) as string,
+    overviewRuleLane: OverviewRulerLane.Right,
   };
   return coverageOptions;
 }
 
 export class CoverageRenderer {
   private cache: textEditorWithCoverage[];
-  private countDecoratorTypes: vscode.TextEditorDecorationType[];
-  private coverageWatcher: vscode.FileSystemWatcher;
-  private coveredDecoratorType: vscode.TextEditorDecorationType;
-  private editorEventListener: vscode.Disposable;
-  private marginDecoratorType: vscode.TextEditorDecorationType;
-  private notCoveredDecoratorType: vscode.TextEditorDecorationType;
-  private partialDecoratorType: vscode.TextEditorDecorationType;
-  private workspaceFolder: vscode.Uri;
-  private gcovObj;
+  private countDecoratorTypes: TextEditorDecorationType[];
+  private coverageWatcher?: FileSystemWatcher;
+  private coveredDecoratorType: TextEditorDecorationType;
+  private editorEventListener?: Disposable;
+  private marginDecoratorType: TextEditorDecorationType;
+  private notCoveredDecoratorType: TextEditorDecorationType;
+  private partialDecoratorType: TextEditorDecorationType;
+  private workspaceFolder: Uri;
+  private gcovObj?: IGcovOutput[];
 
-  constructor(workspaceFolder: vscode.Uri, options: CoverageOptions) {
+  constructor(workspaceFolder: Uri, options: CoverageOptions) {
     this.workspaceFolder = workspaceFolder;
-    this.coveredDecoratorType = vscode.window.createTextEditorDecorationType({
+    this.coveredDecoratorType = window.createTextEditorDecorationType({
       isWholeLine: true,
       dark: {
         backgroundColor:
@@ -86,9 +97,9 @@ export class CoverageRenderer {
           options.lightThemeCoveredBackgroundColor || "rgba(0,128,0,0.4)",
       },
       overviewRulerLane:
-        options.overviewRuleLane || vscode.OverviewRulerLane.Left,
+        options.overviewRuleLane || OverviewRulerLane.Left,
     });
-    this.partialDecoratorType = vscode.window.createTextEditorDecorationType({
+    this.partialDecoratorType = window.createTextEditorDecorationType({
       isWholeLine: true,
       dark: {
         backgroundColor:
@@ -99,29 +110,27 @@ export class CoverageRenderer {
           options.lightThemePartialBackgroundColor || "rgba(250,218,94,0.1)",
       },
       overviewRulerLane:
-        options.overviewRuleLane || vscode.OverviewRulerLane.Left,
+        options.overviewRuleLane || OverviewRulerLane.Left,
     });
-    this.notCoveredDecoratorType = vscode.window.createTextEditorDecorationType(
-      {
-        isWholeLine: true,
-        dark: {
-          backgroundColor:
-            options.darkThemeUncoveredBackgroundColor || "rgba(255,0,0,0.1)",
-        },
-        light: {
-          backgroundColor:
-            options.lightThemeUncoveredBackgroundColor || "rgba(255,0,0,0.1)",
-        },
-        overviewRulerLane:
-          options.overviewRuleLane || vscode.OverviewRulerLane.Left,
-      }
-    );
-    this.marginDecoratorType = vscode.window.createTextEditorDecorationType({
+    this.notCoveredDecoratorType = window.createTextEditorDecorationType({
+      isWholeLine: true,
+      dark: {
+        backgroundColor:
+          options.darkThemeUncoveredBackgroundColor || "rgba(255,0,0,0.1)",
+      },
+      light: {
+        backgroundColor:
+          options.lightThemeUncoveredBackgroundColor || "rgba(255,0,0,0.1)",
+      },
+      overviewRulerLane:
+        options.overviewRuleLane || OverviewRulerLane.Left,
+    });
+    this.marginDecoratorType = window.createTextEditorDecorationType({
       before: {
         contentText: " ",
         margin: "0 3em 0 0",
       },
-      rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen,
+      rangeBehavior: DecorationRangeBehavior.ClosedOpen,
     });
     this.countDecoratorTypes = [];
     this.cache = [];
@@ -146,14 +155,14 @@ export class CoverageRenderer {
         covEditor.allLines
       );
       covEditor.countPerLines.forEach((countRangePerLine) => {
-        const decoratorType = vscode.window.createTextEditorDecorationType({
+        const decoratorType = window.createTextEditorDecorationType({
           before: {
             backgroundColor: "rgba(255, 255, 255, 0.2)",
             contentText: countRangePerLine.count.toString(),
             margin: "0 3em 0 0",
             textDecoration: `none`,
           },
-          rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen,
+          rangeBehavior: DecorationRangeBehavior.ClosedOpen,
         });
         covEditor.editor.setDecorations(decoratorType, [
           countRangePerLine.range,
@@ -164,7 +173,7 @@ export class CoverageRenderer {
   }
 
   public async renderCoverage() {
-    const editors = vscode.window.visibleTextEditors;;
+    const editors = window.visibleTextEditors;
     this.gcovObj = await getGcovData(this.workspaceFolder);
     if (editors && editors.length > 0 && this.cache.length < 1) {
       const editorsWithCoverage = await generateCoverageForEditors(
@@ -179,8 +188,8 @@ export class CoverageRenderer {
     }
   }
 
-  private async editorEventHandler(textEditors: vscode.TextEditor[]) {
-    const editorsWithNoCoverage: vscode.TextEditor[] = [];
+  private async editorEventHandler(textEditors: readonly TextEditor[]) {
+    const editorsWithNoCoverage: TextEditor[] = [];
     const editorsInCache: textEditorWithCoverage[] = [];
     for (const textEditor of textEditors) {
       const editorInCache = this.cache.find(
@@ -196,23 +205,25 @@ export class CoverageRenderer {
       }
     }
     this.setDecoratorsForEditor(editorsInCache);
-    const editorsWithCoverage = await generateCoverageForEditors(
-      this.workspaceFolder,
-      editorsWithNoCoverage,
-      this.gcovObj
-    );
-    this.cache.push(...editorsWithCoverage);
-    this.setDecoratorsForEditor(editorsWithCoverage);
+    if (this.gcovObj) {
+      const editorsWithCoverage = await generateCoverageForEditors(
+        this.workspaceFolder,
+        editorsWithNoCoverage,
+        this.gcovObj
+      );
+      this.cache.push(...editorsWithCoverage);
+      this.setDecoratorsForEditor(editorsWithCoverage);
+    }
   }
 
   private listenToEditorEvent() {
-    this.editorEventListener = vscode.window.onDidChangeVisibleTextEditors(
+    this.editorEventListener = window.onDidChangeVisibleTextEditors(
       this.editorEventHandler.bind(this)
     );
   }
 
   private listenToCovChanges() {
-    this.coverageWatcher = vscode.workspace.createFileSystemWatcher(
+    this.coverageWatcher = workspace.createFileSystemWatcher(
       `**/*.{gcda,gcno}`
     );
     this.coverageWatcher.onDidChange(this.renderCoverage.bind(this));
@@ -221,15 +232,17 @@ export class CoverageRenderer {
   }
 
   public removeCoverage() {
-    const editors = vscode.window.visibleTextEditors;
+    const editors = window.visibleTextEditors;
     for (const editor of editors) {
       editor.setDecorations(this.coveredDecoratorType, []);
       editor.setDecorations(this.notCoveredDecoratorType, []);
       editor.setDecorations(this.partialDecoratorType, []);
       while (this.countDecoratorTypes.length > 0) {
         const countDecorator = this.countDecoratorTypes.pop();
-        editor.setDecorations(countDecorator, []);
-        countDecorator.dispose();
+        if (countDecorator) {
+          editor.setDecorations(countDecorator, []);
+          countDecorator.dispose();
+        }
       }
       editor.setDecorations(this.marginDecoratorType, []);
     }
@@ -243,9 +256,9 @@ export class CoverageRenderer {
   }
 
   public dispose() {
-    this.coverageWatcher.dispose();
+    this.coverageWatcher?.dispose();
     this.coveredDecoratorType.dispose();
-    this.editorEventListener.dispose();
+    this.editorEventListener?.dispose();
     this.marginDecoratorType.dispose();
     this.notCoveredDecoratorType.dispose();
     this.partialDecoratorType.dispose();

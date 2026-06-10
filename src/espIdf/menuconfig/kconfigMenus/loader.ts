@@ -17,7 +17,7 @@
  */
 
 import { join } from "path";
-import { readParameter } from "../../../idfConfiguration";
+import { readParameter } from "../../../configuration/idf";
 import { readFileSync } from "../../../utils";
 import { formatHelpText } from "./helpTextFormatter";
 import { Menu, menuType } from "../Menu";
