@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { readParameter } from "../idfConfiguration";
-import { Logger } from "../logger/logger";
+import { readParameter } from "../configuration/idf";
+import { Logger } from "../common/logger";
 import { ESP } from "../config";
 import {
   debug,
@@ -253,7 +253,7 @@ export class ImageViewPanel {
 
   private loadUserConfigs(): ImageFormatConfig[] {
     try {
-      const userConfigPath = readParameter("idf.imageViewerConfigs");
+      const userConfigPath = readParameter("idf.imageViewerConfigs") as string;
       if (!userConfigPath) {
         return [];
       }

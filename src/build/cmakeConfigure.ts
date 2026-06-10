@@ -7,12 +7,12 @@
  */
 
 import { Uri } from "vscode";
-import { addProcessTask } from "../taskManager";
+import { addProcessTask } from "../taskManager/taskManager";
 import {
   appendSdkconfigDefaultsAndCcache,
   replaceBuildDirArg,
 } from "./buildHelpers";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 
 export async function enqueueCompileTaskIfNoCache(
   workspaceUri: Uri,

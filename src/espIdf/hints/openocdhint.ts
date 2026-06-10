@@ -14,7 +14,7 @@
 
 import * as yaml from "js-yaml";
 import { readFile } from "fs-extra";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { getOpenOcdHintsYmlPath } from "./utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { ErrorHintProvider } from "./index";

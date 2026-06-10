@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import { l10n, Progress, window, Uri } from "vscode";
-import { getExamplesList, IExampleCategory } from "../examples/Example";
+import { getExamplesList, IExampleCategory } from "./Example";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
-import * as idfConf from "../idfConfiguration";
 import { SerialPort } from "../espIdf/serial/serialPort";
 import { dirExistPromise } from "../utils";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import {
   getBoards,
   getOpenOcdScripts,
@@ -29,6 +28,7 @@ import {
 } from "../espIdf/setTarget/getTargets";
 import { join } from "path";
 import { IdfSetup } from "../eim/types";
+import { readParameter } from "../configuration/idf";
 
 export interface INewProjectArgs {
   espIdfSetup: IdfSetup;
@@ -46,7 +46,6 @@ export async function getNewProjectArgs(
   workspace: Uri,
   idfSetups: IdfSetup[]
 ) {
-  const components = [];
   progress.report({ increment: 10, message: "Loading ESP-IDF setups list..." });
 
   const pickItems: {
@@ -72,7 +71,7 @@ export async function getNewProjectArgs(
     return;
   }
   const idfSetup = espIdfPathToUse.target;
-  const customExtraVars = idfConf.readParameter(
+  const customExtraVars = readParameter(
     "idf.customExtraVars",
     workspace
   ) as { [key: string]: string };
@@ -119,11 +118,9 @@ export async function getNewProjectArgs(
     );
     serialPortList.push(...serialPortListDetails.map((p) => p.comName));
   } catch (error) {
-    const msg = error.message
-      ? error.message
-      : "Error looking for serial ports.";
+    const msg = error instanceof Error && error.message ? error.message : "Error looking for serial ports.";
     Logger.infoNotify(msg);
-    Logger.error(msg, error, "getNewProjectArgs getSerialPort");
+    Logger.error(msg, error as Error, "getNewProjectArgs getSerialPort");
     serialPortList = ["no port"];
   }
   progress.report({ increment: 10, message: "Loading ESP-IDF Boards list..." });
@@ -133,7 +130,7 @@ export async function getNewProjectArgs(
   progress.report({ increment: 50, message: "Initializing wizard..." });
   return {
     boards: espBoards,
-    components,
+    components: [],
     espIdfSetup: idfSetup,
     espAdfPath: adfExists ? espAdfPath : undefined,
     idfTargets: targetsFromIdf,

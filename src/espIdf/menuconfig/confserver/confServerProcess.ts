@@ -18,15 +18,15 @@
 
 import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
-import { Logger } from "../../../logger/logger";
-import { OutputChannel } from "../../../logger/outputChannel";
+import { Logger } from "../../../common/logger";
+import { OutputChannel } from "../../../common/outputChannel";
 import { delConfigFile, isStringNotEmpty } from "../../../utils";
 import { KconfigMenuLoader } from "../kconfigMenus/loader";
 import { Menu } from "../Menu";
 import { MenuConfigPanel } from "../panel/panel";
-import { getVirtualEnvPythonPath } from "../../../pythonManager";
+import { getVirtualEnvPythonPath } from "../../../configuration/env";
 import { configureEnvVariables } from "../../../common/prepareEnv";
-import { getSDKConfigFilePath } from "../../../workspaceConfig";
+import { getSDKConfigFilePath } from "../../../configuration/workspace";
 import {
   parseConfserverJsonChunk,
   ConfserverJsonStreamResult,
@@ -48,7 +48,7 @@ import {
   Uri,
   window,
 } from "vscode";
-import { NotificationMode, readParameter } from "../../../idfConfiguration";
+import { NotificationMode, readParameter } from "../../../configuration/idf";
 import { join } from "path";
 import { buildIdfPyConfigSubcommandArgs } from "../../common/idfPySubCmdBuilder";
 import { pathExists } from "fs-extra";

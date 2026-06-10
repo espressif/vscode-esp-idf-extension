@@ -17,7 +17,7 @@
  */
 
 import { l10n } from "vscode";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { LoadMonitorLaunchConfigResult } from "./launchConfig";
 
 function isMonitorLaunchConfigFailure(

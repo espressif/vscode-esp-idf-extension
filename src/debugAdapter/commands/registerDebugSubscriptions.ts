@@ -26,7 +26,7 @@ import { PeripheralTreeView } from "../svd/peripheralTreeView";
 import { HexViewProvider } from "../hexViewProvider";
 import { CDTDebugAdapterDescriptorFactory } from "../server";
 import { ESP } from "../../config";
-import { readParameter } from "../../idfConfiguration";
+import { readParameter } from "../../configuration/idf";
 import { OpenOCDManager } from "../../espIdf/openOcd/openOcdManager";
 
 export type DebugSessionOpenOcdFlags = {

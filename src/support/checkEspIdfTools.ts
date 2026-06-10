@@ -20,7 +20,7 @@ import { join } from "path";
 import * as vscode from "vscode";
 import { IdfToolsManager } from "../idfToolsManager";
 import { PlatformInformation } from "../PlatformInformation";
-import { OutputChannel } from "../logger/outputChannel";
+import { OutputChannel } from "../common/outputChannel";
 import { reportObj } from "./types";
 
 export async function checkEspIdfTools(

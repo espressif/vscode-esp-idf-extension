@@ -17,14 +17,14 @@
  */
 
 import { CancellationToken, l10n, Uri, workspace } from "vscode";
-import { readParameter, readSerialPort } from "../idfConfiguration";
+import { readParameter, readSerialPort } from "../configuration/idf";
 import { ESP } from "../config";
 import {
   checkFlashEncryption,
   FlashCheckResultType,
 } from "./verify/flashEncryption";
-import { Logger } from "../logger/logger";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { Logger } from "../common/logger";
+import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { verifyCanFlash } from "./verify/canFlash";
 import { jtagFlashCommandMain } from "./transports/jtag/jtagCmd";
 import { assertMinimumOpenOcdVersionForJtag } from "./transports/jtag/assertMinimumOpenOcdVersionForJtag";
@@ -32,8 +32,8 @@ import { uartFlashCommandMain } from "./transports/uart/uartFlashCmd";
 import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 import { resolveFlashTypeForTask } from "./resolveFlashContext";
 import { configureEnvVariables } from "../common/prepareEnv";
-import { throwCapturedTaskFailure } from "../taskManager";
-import { CustomExecutionTaskResult } from "../taskManager/customExecution";
+import { throwCapturedTaskFailure } from "../taskManager/taskManager";
+import { CustomExecutionTaskResult } from "../taskManager/types";
 import { FlashSession } from "./shared/flashSession";
 import { handleFlashCommandCatch } from "./shared/errHandling";
 export { selectFlashMethod } from "./selectFlashMethod";
@@ -90,7 +90,7 @@ export async function flashMain(
     const flashBaudRate = readParameter(
       "idf.flashBaudRate",
       workspaceFolderUri
-    );
+    ) as string;
     const modifiedEnv = await configureEnvVariables(workspaceFolderUri);
     const canFlash = await verifyCanFlash(
       flashBaudRate,

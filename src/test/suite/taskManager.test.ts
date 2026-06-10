@@ -16,7 +16,7 @@ import {
   TaskManager,
   throwCapturedTaskFailure,
   type IdfTaskExecution,
-} from "../../taskManager";
+} from "../../taskManager/taskManager";
 
 suite("taskManager helpers", () => {
   suite("collectExecutions", () => {

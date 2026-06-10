@@ -18,7 +18,7 @@
 
 import { EventEmitter } from "events";
 import WebSocket, { Server } from "ws";
-import { Logger } from "../../../logger/logger";
+import { Logger } from "../../../common/logger";
 
 export interface GDBStubResponse {
   event: "gdb_stub";

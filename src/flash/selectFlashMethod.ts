@@ -7,7 +7,7 @@
  */
 
 import { ConfigurationTarget, l10n, Uri, window } from "vscode";
-import { readParameter, writeParameter } from "../idfConfiguration";
+import { readParameter, writeParameter } from "../configuration/idf";
 import { ESP } from "../config";
 
 export async function selectFlashMethod(workspaceFolderUri: Uri) {

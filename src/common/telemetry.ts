@@ -18,7 +18,7 @@
 
 import TelemetryReporter from "@vscode/extension-telemetry";
 import { extensions } from "vscode";
-import { Logger } from "../logger/logger";
+import { Logger } from "./logger";
 
 export class Telemetry {
   private static reporter?: TelemetryReporter;
@@ -33,15 +33,15 @@ export class Telemetry {
   private constructor(isEnabled: boolean) {
     const extensionID = "espressif.esp-idf-extension";
     const extension = extensions.getExtension(extensionID);
-    const version = extension.packageJSON.version;
-    const key = extension.packageJSON.azure.insight.key;
+    const version = extension?.packageJSON.version;
+    const key = extension?.packageJSON.azure.insight.key;
 
     try {
       Telemetry.reporter = new TelemetryReporter(extensionID, version, key);
       Telemetry.enabled =
         isEnabled && process.env["VSCODE_EXTENSION_MODE"] !== "development";
     } catch (error) {
-      Logger.telemetryError(`Failed to load TelemetryReporter`, error);
+      Logger.telemetryError(`Failed to load TelemetryReporter`, error as Error);
     }
   }
   public static dispose() {
@@ -65,7 +65,7 @@ export class Telemetry {
           measurements
         );
       } catch (error) {
-        Logger.telemetryError("Failed to sendEvent", error);
+        Logger.telemetryError("Failed to sendEvent", error as Error);
       }
     }
   }
@@ -87,7 +87,7 @@ export class Telemetry {
           measurements
         );
       } catch (error) {
-        Logger.telemetryError("Failed to sendException", error);
+        Logger.telemetryError("Failed to sendException", error as Error);
       }
     }
   }

@@ -173,7 +173,6 @@
 	"param.showOnboardingOnInit": "Mostrar janela de configuração do ESP-IDF na ativação da extensão",
 	"param.svdFile": "Arquivo SVD para resolver a visualização periférica ESP-IDF na visualização de depuração",
 	"param.telemetry": "Enviar telemetria anônima e relatório de falhas de volta para a extensão (alterações nas configurações exigirão reinicialização para efeito imediato)",
-	"param.toolsPath": "Caminho para localizar ferramentas ESP-IDF (IDF_TOOLS_PATH)",
 	"param.uncoveredDarkTheme": "Cor de fundo para linhas descobertas no tema Dark para cobertura ESP-IDF.",
 	"param.uncoveredLightTheme": "Cor de fundo para linhas descobertas no tema Light para cobertura ESP-IDF.",
 	"param.useIDFKConfigStyle": "Habilitar/desabilitar validação de estilo ESP-IDF para arquivos Kconfig",

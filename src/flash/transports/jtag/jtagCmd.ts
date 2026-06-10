@@ -18,22 +18,22 @@
 
 import { FlashSession } from "../../shared/flashSession";
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
-import { readParameter } from "../../../idfConfiguration";
+import { readParameter } from "../../../configuration/idf";
 import { OpenOCDManager } from "../../../espIdf/openOcd/openOcdManager";
-import { Logger } from "../../../logger/logger";
+import { Logger } from "../../../common/logger";
 import {
   CustomTask,
   CustomTaskType,
 } from "../../../customTasks/customTaskProvider";
 import { Uri } from "vscode";
-import { OutputChannel } from "../../../logger/outputChannel";
+import { OutputChannel } from "../../../common/outputChannel";
 import {
   collectExecutions,
   TaskManager,
   throwCapturedTaskFailure,
-} from "../../../taskManager";
+} from "../../../taskManager/taskManager";
 import { jtagFlash } from "./flashTclClient";
-import type { CustomExecutionTaskResult } from "../../../taskManager/customExecution";
+import type { CustomExecutionTaskResult } from "../../../taskManager/types";
 
 export async function jtagFlashCommandMain(
   workspace: Uri,
@@ -53,8 +53,8 @@ export async function jtagFlashCommandMain(
       Logger.warnNotify(errStr);
       return { continueFlag: false, executions: [] };
     }
-    const host = readParameter("openocd.tcl.host", workspace);
-    const port = readParameter("openocd.tcl.port", workspace);
+    const host = readParameter("openocd.tcl.host", workspace) as string;
+    const port = readParameter("openocd.tcl.port", workspace) as number;
     client = new TCLClient({ host, port });
 
     // Add verification step before flashing

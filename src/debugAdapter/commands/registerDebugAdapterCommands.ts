@@ -29,7 +29,7 @@ import { HexTreeItem, HexViewProvider } from "../hexViewProvider";
 import { CDTDebugConfigurationProvider } from "../debugConfProvider";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../../common/PreCheck";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
 import { ImageViewPanel } from "../imageViewPanel";
 import {

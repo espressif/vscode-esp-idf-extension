@@ -18,8 +18,8 @@
 
 import { pathExists, readJson } from "fs-extra";
 import { join } from "path";
-import { readParameter } from "../idfConfiguration";
-import { Logger } from "../logger/logger";
+import { readParameter } from "../configuration/idf";
+import { Logger } from "../common/logger";
 import { EspIdfJson, IdfSetup } from "./types";
 import { compareVersion, getEspIdfFromCMake } from "../utils";
 import { loadIdfSetupsFromEspIdfJson } from "./migrationTool";
@@ -52,15 +52,6 @@ export async function getIdfSetups(workspaceFolder: Uri) {
     defaultIdfToolsPath
   );
   resultingIdfSetups = resultingIdfSetups.concat(espIdfSysJsonSetups);
-
-  const oldIdfToolsPath = readParameter(
-    "idf.toolsPath",
-    workspaceFolder
-  ) as string;
-  if (oldIdfToolsPath) {
-    const oldIdfSetups = await loadIdfSetupsFromEspIdfJson(oldIdfToolsPath);
-    resultingIdfSetups = resultingIdfSetups.concat(oldIdfSetups);
-  }
 
   resultingIdfSetups = resultingIdfSetups.filter(
     (setup, index, self) =>
@@ -103,7 +94,7 @@ export async function loadIdfSetupsFromEimIdfJson() {
 }
 
 export async function getEimIdfJson() {
-  const espIdeJsonCustomPath = readParameter("idf.eimIdfJsonPath");
+  const espIdeJsonCustomPath = readParameter("idf.eimIdfJsonPath") as string;
   const espIdePathExists = await pathExists(espIdeJsonCustomPath);
   let eimIdfJsonPath = "";
   if (espIdePathExists) {

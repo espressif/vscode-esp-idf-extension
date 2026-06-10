@@ -1,8 +1,7 @@
 import * as path from "path";
 import { pathExists } from "fs-extra";
-import { Logger } from "../../logger/logger";
-import { isBinInPath } from "../../utils";
-import { readParameter } from "../../idfConfiguration";
+import { Logger } from "../../common/logger";
+import { readParameter } from "../../configuration/idf";
 import { configureEnvVariables } from "../../common/prepareEnv";
 import { Uri } from "vscode";
 import { OpenOCDManager } from "../openOcd/openOcdManager";

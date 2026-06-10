@@ -13,34 +13,42 @@
 // limitations under the License.
 
 import { basename, sep, join } from "path";
-import * as vscode from "vscode";
+import {
+  Range,
+  TextEditor,
+  Uri,
+  ViewColumn,
+  WebviewPanel,
+  window,
+} from "vscode";
 import {
   extensionContext,
   getToolchainToolName,
   getWebViewFavicon,
 } from "../utils";
-import * as idfConf from "../idfConfiguration";
-import { OutputChannel } from "../logger/outputChannel";
-import { Logger } from "../logger/logger";
+import { readParameter } from "../configuration/idf";
+import { OutputChannel } from "../common/outputChannel";
+import { Logger } from "../common/logger";
 import { getGcovData } from "./gcdaPaths";
-import { createGcovHtmlReport, createGcovReportObj } from "./gcovHtmlReport";
+import { createGcovHtmlReport } from "./gcovHtmlReport";
+import { IGcovOutput } from "./gcovData";
 
 const COVERED_FACTOR = 0.9;
 const PARTIAL_FACTOR = 0.75;
 const MIN_LINE_COUNT = 1;
 
 export interface countRange {
-  range: vscode.Range;
+  range: Range;
   count: Number;
 }
 
 export interface textEditorWithCoverage {
-  allLines: vscode.Range[];
+  allLines: Range[];
   countPerLines: countRange[];
-  coveredLines: vscode.Range[];
-  editor: vscode.TextEditor;
-  partialLines: vscode.Range[];
-  uncoveredLines: vscode.Range[];
+  coveredLines: Range[];
+  editor: TextEditor;
+  partialLines: Range[];
+  uncoveredLines: Range[];
 }
 
 export function getGcovExecutable(idfTarget: string) {
@@ -48,9 +56,9 @@ export function getGcovExecutable(idfTarget: string) {
 }
 
 export async function generateCoverageForEditors(
-  dirPath: vscode.Uri,
-  editors: readonly vscode.TextEditor[],
-  gcovJsonObj
+  dirPath: Uri,
+  editors: readonly TextEditor[],
+  gcovJsonObj: IGcovOutput[]
 ) {
   const coveredEditors: textEditorWithCoverage[] = [];
   try {
@@ -62,18 +70,20 @@ export async function generateCoverageForEditors(
           .split(sep);
         if (fileParts && fileParts.length > 1) {
           const fileName = fileParts.pop();
-          const buildDirPath = idfConf.readParameter(
+          const buildDirPath = readParameter(
             "idf.buildPath",
             dirPath
           ) as string;
-          gcovObjFilePath = join(
-            buildDirPath,
-            "esp-idf",
-            fileParts[fileParts.length - 1],
-            "CMakeFiles",
-            `__idf_${fileParts[fileParts.length - 1]}.dir`,
-            fileName
-          ).replace(/\\/g, "/");
+          if (fileName) {
+            gcovObjFilePath = join(
+              buildDirPath,
+              "esp-idf",
+              fileParts[fileParts.length - 1],
+              "CMakeFiles",
+              `__idf_${fileParts[fileParts.length - 1]}.dir`,
+              fileName
+            ).replace(/\\/g, "/");
+          }
         }
       }
 
@@ -148,12 +158,12 @@ export async function generateCoverageForEditors(
       }
     }
   } catch (error) {
-    const msg = error.message ? error.message : error;
+    const msg = error instanceof Error && error.message ? error.message : String(error);
     Logger.error(
       "Error generate editor coverage.\n" +
         "Check the ESP-IDF output for more details." +
         msg,
-      error,
+      error instanceof Error ? error : new Error(String(error)),
       "coverageService generateCoverageForEditors"
     );
     OutputChannel.appendLine(
@@ -166,19 +176,20 @@ export async function generateCoverageForEditors(
   return coveredEditors;
 }
 
-let gcovHtmlPanel: vscode.WebviewPanel;
-export async function previewReport(dirPath: vscode.Uri) {
+let gcovHtmlPanel: WebviewPanel | undefined = undefined;
+export async function previewReport(dirPath: Uri) {
   try {
-    const column = vscode.window.activeTextEditor
-      ? vscode.window.activeTextEditor.viewColumn
-      : vscode.ViewColumn.One;
+    const column =
+      window.activeTextEditor && window.activeTextEditor.viewColumn
+        ? window.activeTextEditor.viewColumn
+        : ViewColumn.One;
     if (gcovHtmlPanel) {
       gcovHtmlPanel.reveal(column);
       return;
     }
     const gcovObj = await getGcovData(dirPath);
     const reportHtml = createGcovHtmlReport(gcovObj);
-    gcovHtmlPanel = vscode.window.createWebviewPanel(
+    gcovHtmlPanel = window.createWebviewPanel(
       "gcoveragePreview",
       "GCC Code Coverage Report",
       column
@@ -187,11 +198,11 @@ export async function previewReport(dirPath: vscode.Uri) {
     gcovHtmlPanel.webview.html = reportHtml;
     gcovHtmlPanel.onDidDispose(() => (gcovHtmlPanel = undefined));
   } catch (e) {
-    const msg = e && e.message ? e.message : e;
+    const msg = e instanceof Error && e.message ? e.message : String(e);
     Logger.errorNotify(
       "Error building gcov html.\n" +
         "Check the ESP-IDF output for more details.",
-      e,
+      e instanceof Error ? e : new Error(String(e)),
       "coverageService previewReport"
     );
     OutputChannel.appendLine(

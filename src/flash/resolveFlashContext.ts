@@ -8,7 +8,7 @@
 
 import { WorkspaceFolder } from "vscode";
 import { ESP } from "../config";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 
 const ALLOWED_PARTITIONS = new Set([
   "app",

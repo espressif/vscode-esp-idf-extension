@@ -14,11 +14,11 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
-import { Logger } from "../../../logger/logger";
+import { Logger } from "../../../common/logger";
 import { getWebViewFavicon } from "../../../utils";
 import { ConfserverProcess } from "../confserver/confServerProcess";
 import { Menu } from "../Menu";
-import { NotificationMode, readParameter } from "../../../idfConfiguration";
+import { NotificationMode, readParameter } from "../../../configuration/idf";
 import { createMenuconfigPanelController } from "./controller";
 
 export class MenuConfigPanel {

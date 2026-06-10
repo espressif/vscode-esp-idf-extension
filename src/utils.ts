@@ -33,16 +33,15 @@ import { marked } from "marked";
 import { EOL, platform } from "os";
 import * as path from "path";
 import * as vscode from "vscode";
-import { IdfComponent } from "./idfComponent";
-import * as idfConf from "./idfConfiguration";
-import { Logger } from "./logger/logger";
-import { OutputChannel } from "./logger/outputChannel";
+import { readParameter } from "./configuration/idf";
+import { Logger } from "./common/logger";
+import { OutputChannel } from "./common/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
 import { isFlashEncryptionEnabled } from "./flash/verify/flashEncryption";
 import { configureClangSettings } from "./clang";
 import { configureEnvVariables } from "./common/prepareEnv";
-import { getSDKConfigFilePath } from "./workspaceConfig";
+import { getSDKConfigFilePath } from "./configuration/workspace";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
 
@@ -237,7 +236,7 @@ export async function setCCppPropertiesJsonCompilerPath(
 export async function setCCppPropertiesJsonCompileCommands(
   curWorkspaceFsPath: vscode.Uri
 ) {
-  const buildDirPath = idfConf.readParameter(
+  const buildDirPath = readParameter(
     "idf.buildPath",
     curWorkspaceFsPath
   ) as string;
@@ -409,37 +408,6 @@ export function writeJson(jsonPath: string, object: any) {
   return writeJSON(jsonPath, object, {
     spaces: 2,
   });
-}
-
-export function readComponentsDirs(filePath): IdfComponent[] {
-  const filesOrFolders: IdfComponent[] = [];
-
-  const files = fs.readdirSync(filePath);
-
-  const openComponentMsg = vscode.l10n.t("ESP-IDF: Open IDF Component File");
-
-  for (const file of files) {
-    const stats = fs.statSync(path.join(filePath, file));
-    const isCollapsable: vscode.TreeItemCollapsibleState = stats.isDirectory()
-      ? 1
-      : 0;
-    const idfCommand = stats.isDirectory()
-      ? void 0
-      : {
-          arguments: [vscode.Uri.file(path.join(filePath, file))],
-          command: "espIdf.openIdfDocument",
-          title: openComponentMsg,
-        };
-    const component = new IdfComponent(
-      file,
-      isCollapsable,
-      vscode.Uri.file(path.join(filePath, file)),
-      idfCommand
-    );
-    filesOrFolders.push(component);
-  }
-
-  return filesOrFolders;
 }
 
 export function isJson(jsonString: string) {
@@ -1165,10 +1133,7 @@ export async function getConfigValueFromBuild(
   configKey: string,
   workspacePath: vscode.Uri
 ): Promise<string> {
-  const buildPath = idfConf.readParameter(
-    "idf.buildPath",
-    workspacePath
-  ) as string;
+  const buildPath = readParameter("idf.buildPath", workspacePath) as string;
   const jsonFilePath = path.join(buildPath, "config", "sdkconfig.json");
   try {
     const data = await readFile(jsonFilePath, "utf-8");
@@ -1196,10 +1161,7 @@ export async function getConfigValueFromBuild(
 export async function shouldDisableMonitorReset(
   workspaceUri: vscode.Uri
 ): Promise<boolean> {
-  const configNoReset = idfConf.readParameter(
-    "idf.monitorNoReset",
-    workspaceUri
-  );
+  const configNoReset = readParameter("idf.monitorNoReset", workspaceUri);
 
   if (configNoReset === true) {
     return true;

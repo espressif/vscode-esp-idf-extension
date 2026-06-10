@@ -17,18 +17,18 @@
  */
 
 import { Uri } from "vscode";
-import { OutputChannel } from "../../../logger/outputChannel";
+import { OutputChannel } from "../../../common/outputChannel";
 import { OpenOCDManager } from "../../../espIdf/openOcd/openOcdManager";
-import { readParameter } from "../../../idfConfiguration";
-import { Logger } from "../../../logger/logger";
+import { readParameter } from "../../../configuration/idf";
+import { Logger } from "../../../common/logger";
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
 import { assertMinimumOpenOcdVersionForJtag } from "../../../flash/transports/jtag/assertMinimumOpenOcdVersionForJtag";
 import { eraseFlashTelnetCommand } from "./tclClientCmd";
 import {
   collectExecutions,
   throwCapturedTaskFailure,
-} from "../../../taskManager";
-import { CustomExecutionTaskResult } from "../../../taskManager/customExecution";
+} from "../../../taskManager/taskManager";
+import { CustomExecutionTaskResult } from "../../../taskManager/types";
 
 export async function jtagEraseFlashCommand(
   workspaceFolder: Uri

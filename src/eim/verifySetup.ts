@@ -17,13 +17,13 @@
  */
 
 import { pathExists } from "fs-extra";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { IdfSetup } from "./types";
 import { startPythonReqsProcess } from "../utils";
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import { join } from "path";
 import { ConfigurationTarget, StatusBarItem, Uri } from "vscode";
-import { readParameter, writeParameter } from "../idfConfiguration";
+import { readParameter, writeParameter } from "../configuration/idf";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { getEnvVariables } from "./loadSettings";
 import { ESP } from "../config";

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { Logger } from "./logger/logger";
-import { OutputChannel } from "./logger/outputChannel";
+import { Logger } from "./common/logger";
+import { OutputChannel } from "./common/outputChannel";
 import { ESP } from "./config";
 
 export async function asyncRemoveEspIdfSettings() {
