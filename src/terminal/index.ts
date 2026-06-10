@@ -19,12 +19,12 @@
 import { ExtensionContext, l10n, TerminalLocation, window } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { getCurrentIdfSetup } from "../eim/loadIdfSetup";
 import { pathExists } from "fs-extra";
 import { join } from "path";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { ESP } from "../config";
 
 export async function registerIdfTerminalCommand(context: ExtensionContext) {

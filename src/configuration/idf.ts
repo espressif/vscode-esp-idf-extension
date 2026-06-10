@@ -12,16 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as vscode from "vscode";
-import { Logger } from "./logger/logger";
-import { ESP } from "./config";
-import { ConfigurePreset } from "./project-conf/projectConfiguration";
+import { ESP } from "../config";
+import { ConfigurePreset } from "../project-conf/projectConfiguration";
 import {
   getPresetCustomExtraVars,
   getPresetParameterValue,
-} from "./project-conf/presetSettings";
-import { SerialPort } from "./espIdf/serial/serialPort";
-import { showInfoNotificationWithAction } from "./logger/utils";
+} from "../project-conf/presetSettings";
+import { SerialPort } from "../espIdf/serial/serialPort";
+import { showInfoNotificationWithAction } from "../common/customNotifications";
+import {
+  commands,
+  ConfigurationScope,
+  ConfigurationTarget,
+  l10n,
+  Uri,
+  window,
+  workspace,
+} from "vscode";
+import { Logger } from "../common/logger";
+import { getCurrentIdfConfiguration } from "./env";
 
 export enum NotificationMode {
   Silent = "Silent",
@@ -42,7 +51,7 @@ export function addWinIfRequired(param: string) {
 
 export function parameterToProjectConfigMap(
   param: string,
-  scope?: vscode.ConfigurationScope
+  scope?: ConfigurationScope
 ): any {
   if (!ESP.ProjectConfiguration.store) {
     return "";
@@ -61,9 +70,9 @@ export function parameterToProjectConfigMap(
   }
   if (param === "idf.customExtraVars") {
     const settingsVars =
-      (vscode.workspace
-        .getConfiguration("", scope)
-        .get(addWinIfRequired(param)) as { [key: string]: any }) ?? {};
+      (workspace.getConfiguration("", scope).get(addWinIfRequired(param)) as {
+        [key: string]: any;
+      }) ?? {};
     return { ...settingsVars, ...getPresetCustomExtraVars(currentProjectConf) };
   }
   return getPresetParameterValue(param, currentProjectConf);
@@ -71,13 +80,12 @@ export function parameterToProjectConfigMap(
 
 export function readParameter(
   param: string,
-  scope?: vscode.ConfigurationScope
-) {
+  scope?: ConfigurationScope
+): string | string[] | boolean | ConfigurationTarget | { [key: string]: any } {
   const paramUpdated = addWinIfRequired(param);
   let paramValue = parameterToProjectConfigMap(param);
   paramValue =
-    paramValue ||
-    vscode.workspace.getConfiguration("", scope).get(paramUpdated);
+    paramValue || workspace.getConfiguration("", scope).get(paramUpdated);
   if (typeof paramValue === "undefined") {
     return "";
   }
@@ -99,22 +107,22 @@ export function readParameter(
 }
 
 export async function chooseConfigurationTarget() {
-  const confTarget = await vscode.window.showQuickPick(
+  const confTarget = await window.showQuickPick(
     [
       {
         description: "Global",
         label: "Global",
-        target: vscode.ConfigurationTarget.Global,
+        target: ConfigurationTarget.Global,
       },
       {
         description: "Workspace",
         label: "Workspace",
-        target: vscode.ConfigurationTarget.Workspace,
+        target: ConfigurationTarget.Workspace,
       },
       {
         description: "Workspace Folder",
         label: "Workspace Folder",
-        target: vscode.ConfigurationTarget.WorkspaceFolder,
+        target: ConfigurationTarget.WorkspaceFolder,
       },
     ],
     { placeHolder: "Where to save the configuration?" }
@@ -125,7 +133,7 @@ export async function chooseConfigurationTarget() {
   await writeParameter(
     "idf.saveScope",
     confTarget.target,
-    vscode.ConfigurationTarget.Global
+    ConfigurationTarget.Global
   );
   Logger.infoNotify(`Save location has changed to ${confTarget.description}`);
   return confTarget.target;
@@ -133,38 +141,44 @@ export async function chooseConfigurationTarget() {
 
 export async function writeParameter(
   param: string,
-  newValue,
-  target: vscode.ConfigurationTarget,
-  wsFolderUri?: vscode.Uri
+  newValue:
+    | string
+    | string[]
+    | boolean
+    | { [key: string]: any }
+    | ConfigurationTarget,
+  target: ConfigurationTarget,
+  wsFolderUri?: Uri
 ) {
   const paramValue = addWinIfRequired(param);
-  if (target !== vscode.ConfigurationTarget.WorkspaceFolder) {
-    await vscode.workspace
-      .getConfiguration()
-      .update(paramValue, newValue, target);
+  if (target !== ConfigurationTarget.WorkspaceFolder) {
+    await workspace.getConfiguration().update(paramValue, newValue, target);
 
-    vscode.workspace.getConfiguration("");
-    return target === vscode.ConfigurationTarget.Global
+    workspace.getConfiguration("");
+    return target === ConfigurationTarget.Global
       ? "User settings"
       : "Workspace settings";
   } else {
     if (
-      typeof vscode.workspace.workspaceFolders === "undefined" ||
-      !vscode.workspace.workspaceFolders.length
+      typeof workspace.workspaceFolders === "undefined" ||
+      !workspace.workspaceFolders.length
     ) {
       return;
     }
     if (!wsFolderUri) {
-      let workspaceFolder = await vscode.window.showWorkspaceFolderPick({
+      let workspaceFolder = await window.showWorkspaceFolderPick({
         placeHolder: `Pick Workspace Folder to which ${param} should be applied`,
       });
+      if (!workspaceFolder) {
+        return;
+      }
       wsFolderUri = workspaceFolder.uri;
     }
-    await vscode.workspace
+    await workspace
       .getConfiguration("", wsFolderUri)
       .update(paramValue, newValue, target);
 
-    vscode.workspace.getConfiguration("");
+    workspace.getConfiguration("");
     return wsFolderUri.fsPath;
   }
 }
@@ -174,9 +188,9 @@ export async function updateConfParameter(
   confParamDescription: string,
   currentValue: any,
   label: string,
-  workspaceFolderUri: vscode.Uri
+  workspaceFolderUri: Uri
 ) {
-  const newValue = await vscode.window.showInputBox({
+  const newValue = await window.showInputBox({
     placeHolder: confParamDescription,
     value: currentValue,
   });
@@ -199,21 +213,19 @@ export async function updateConfParameter(
   await writeParameter(
     confParamName,
     valueToWrite,
-    vscode.ConfigurationTarget.WorkspaceFolder,
+    ConfigurationTarget.WorkspaceFolder,
     workspaceFolderUri
   );
-  const updateMessage = vscode.l10n.t(" has been updated");
+  const updateMessage = l10n.t(" has been updated");
   Logger.infoNotify(label + updateMessage);
 }
 
 export function checkTypeOfConfiguration(paramName: string) {
-  const { defaultValue } = vscode.workspace
-    .getConfiguration()
-    .inspect(paramName);
-  if (typeof defaultValue === "object") {
-    return Array.isArray(defaultValue) ? "array" : "object";
+  const confSetting = workspace.getConfiguration().inspect(paramName);
+  if (typeof confSetting?.defaultValue === "object") {
+    return Array.isArray(confSetting.defaultValue) ? "array" : "object";
   } else {
-    return typeof defaultValue;
+    return typeof confSetting?.defaultValue;
   }
 }
 
@@ -230,7 +242,7 @@ export function parseStrToArray(groupStr: string) {
 
 export function resolveVariables(
   configPath: string,
-  scope?: vscode.ConfigurationScope
+  scope?: ConfigurationScope
 ) {
   const regexp = /\$\{(.*?)\}/g; // Find ${anything}
   return configPath.replace(regexp, (match: string, name: string) => {
@@ -263,12 +275,14 @@ export function resolveVariables(
     if (match.indexOf("env:") > 0) {
       const envVariable = name.substring(name.indexOf("env:") + "env:".length);
       const customExtraVars = readParameter("idf.customExtraVars", scope);
-      if (Object.keys(customExtraVars).indexOf(envVariable) !== -1) {
+      if (
+        typeof customExtraVars === "object" &&
+        !Array.isArray(customExtraVars) &&
+        Object.keys(customExtraVars).indexOf(envVariable) !== -1
+      ) {
         return customExtraVars[envVariable];
       }
-      const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-        [key: string]: string;
-      }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+      const currentEnvVars = getCurrentIdfConfiguration();
       if (Object.keys(currentEnvVars).indexOf(envVariable) !== -1) {
         return currentEnvVars[envVariable];
       }
@@ -306,7 +320,7 @@ export function resolveVariables(
  * @returns The resolved port string or undefined if detection fails
  */
 export async function readSerialPort(
-  workspaceFolder: vscode.Uri,
+  workspaceFolder: Uri,
   useMonitorPort: boolean = false
 ): Promise<string> {
   const portSetting = useMonitorPort ? "idf.monitorPort" : "idf.port";
@@ -327,11 +341,9 @@ export async function readSerialPort(
       Logger.warn("Auto-detection failed, no compatible device found");
       // Do not await this function so it doesn't block progress update
       showInfoNotificationWithAction(
-        vscode.l10n.t(
-          "Serial port auto-detection failed, no compatible device found"
-        ),
-        vscode.l10n.t("Detect"),
-        () => vscode.commands.executeCommand("espIdf.detectSerialPort")
+        l10n.t("Serial port auto-detection failed, no compatible device found"),
+        l10n.t("Detect"),
+        () => commands.executeCommand("espIdf.detectSerialPort")
       );
       return "";
     }

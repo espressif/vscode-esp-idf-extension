@@ -22,6 +22,7 @@ export interface IGcovLine {
   line_number: number;
   unexecuted_block: boolean;
   branches: IGcovBranches[];
+  "gcovr/noncode"?: string;
 }
 
 export interface IGcovFunction {

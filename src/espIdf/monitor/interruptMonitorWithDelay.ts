@@ -7,7 +7,7 @@
  */
 
 import { Uri } from "vscode";
-import { readParameter } from "../../idfConfiguration";
+import { readParameter } from "../../configuration/idf";
 import { sleep } from "../../utils";
 import { ESP } from "../../config";
 import { IDFMonitor } from "./terminal";

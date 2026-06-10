@@ -18,7 +18,7 @@
 import { join } from "path";
 import { reportObj } from "./types";
 import { Uri, workspace } from "vscode";
-import { ESP } from "../config";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 
 export async function getConfigurationSettings(
   reportedResult: reportObj,
@@ -30,9 +30,7 @@ export async function getConfigurationSettings(
     ? scope.fsPath
     : "No workspace folder is open";
 
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const currentEnvVars = getCurrentIdfConfiguration();
 
   const userExtraVars = conf.get("idf.customExtraVars") as {
     [key: string]: string;

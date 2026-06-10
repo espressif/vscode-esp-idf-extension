@@ -17,11 +17,11 @@
  */
 
 import { CancellationToken, Uri } from "vscode";
-import { addProcessTask, TaskManager } from "../../taskManager";
-import { Logger } from "../../logger/logger";
+import { addProcessTask, TaskManager } from "../../taskManager/taskManager";
+import { Logger } from "../../common/logger";
 import { join } from "path";
 import { pathExists } from "fs-extra";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { getVirtualEnvPythonPath } from "../../configuration/env";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
 export async function saveDefSdkconfig(

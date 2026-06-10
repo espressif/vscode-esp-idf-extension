@@ -17,11 +17,11 @@
  */
 
 import { Progress } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { packageJson } from "../utils";
 import { parseStringPromise } from "xml2js";
-import { Logger } from "../logger/logger";
-import { ESP } from "../config";
+import { Logger } from "../common/logger";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 
 export interface IWelcomeArticle {
   title: string;
@@ -43,9 +43,7 @@ export async function getWelcomePageInitialValues(
 ) {
   progress.report({ increment: 20, message: "Getting extension version..." });
   const extensionVersion = packageJson.version as string;
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-      [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const currentEnvVars = getCurrentIdfConfiguration();
   const confShowOnboardingOnInit = readParameter(
     "idf.showOnboardingOnInit"
   ) as boolean;
@@ -180,7 +178,7 @@ export async function loadDeveloperPortalArticles() {
   } catch (error) {
     Logger.error(
       "Failed to fetch blog articles from backend:",
-      error,
+      error as Error,
       "loadDeveloperPortalArticles"
     );
     return [];

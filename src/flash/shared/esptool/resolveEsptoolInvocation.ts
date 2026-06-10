@@ -17,7 +17,7 @@
 
 import { constants } from "fs";
 import { join } from "path";
-import { getVirtualEnvPythonPath } from "../../../pythonManager";
+import { getVirtualEnvPythonPath } from "../../../configuration/env";
 import { canAccessFile } from "../../../utils";
 
 export type EsptoolInvocation = {

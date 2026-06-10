@@ -17,7 +17,7 @@
  */
 import * as vscode from "vscode";
 import { execChildProcess } from "../../../utils";
-import { OutputChannel } from "../../../logger/outputChannel";
+import { OutputChannel } from "../../../common/outputChannel";
 
 function deviceLabel(selectedDevice: string) {
   const regex = /:\d+]/g;

@@ -31,7 +31,7 @@ import {
   Uri,
   window,
 } from "vscode";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { AddrRange, MessageNode, NodeSetting } from "./common";
 import { BasePeripheral, PeripheralBaseNode } from "./nodes/base";
 import { Peripheral } from "./nodes/peripheral";

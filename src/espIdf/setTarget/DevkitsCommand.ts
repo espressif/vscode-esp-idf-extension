@@ -19,12 +19,12 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import { join } from "path";
-import * as idfConf from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { NotificationMode, readParameter } from "../../configuration/idf";
+import { Logger } from "../../common/logger";
+import { getVirtualEnvPythonPath } from "../../configuration/env";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { execChildProcess } from "../../utils";
-import { OutputChannel } from "../../logger/outputChannel";
+import { OutputChannel } from "../../common/outputChannel";
 import { getOpenOcdScripts } from "../openOcd/boardConfiguration";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
@@ -38,7 +38,7 @@ export class DevkitsCommand {
   public async runDevkitsScript(
     openOCDVersion: string,
     opts?: { silent?: boolean }
-  ): Promise<string> {
+  ) {
     try {
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(
         this.workspaceFolderUri
@@ -78,14 +78,14 @@ export class DevkitsCommand {
       
       const espConfigPath = join(openOcdScriptsPath, "esp-config.json");
       
-      const notificationMode = idfConf.readParameter(
+      const notificationMode = readParameter(
         "idf.notificationMode",
         this.workspaceFolderUri
       ) as string;
       
       const ProgressLocation =
-      notificationMode === idfConf.NotificationMode.All ||
-      notificationMode === idfConf.NotificationMode.Notifications
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Notifications
       ? vscode.ProgressLocation.Notification
       : vscode.ProgressLocation.Window;
       

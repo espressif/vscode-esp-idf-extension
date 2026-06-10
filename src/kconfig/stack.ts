@@ -12,13 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export class PackageError extends Error {
-  constructor(
-    public message: string,
-    public methodName: string,
-    public innerError: any = null,
-    public errorCode: string = " "
-  ) {
-    super(message);
+export class Stack {
+  count = 0;
+  storage: { [key: number]: any } = {};
+
+  push(value: any) {
+    this.storage[this.count] = value;
+    this.count++;
+  }
+
+  pop() {
+    // Check if the stack is empty
+    if (this.count === 0) {
+      return undefined;
+    }
+
+    this.count--;
+    const result = this.storage[this.count];
+    delete this.storage[this.count];
+    return result;
+  }
+
+  size() {
+    return this.count;
+  }
+
+  peek() {
+    return this.storage[this.count - 1];
   }
 }

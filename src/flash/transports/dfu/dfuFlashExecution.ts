@@ -17,7 +17,7 @@
 
 import { Uri } from "vscode";
 import { FlashModel } from "../uart/types/flashModel";
-import { addProcessTask } from "../../../taskManager";
+import { addProcessTask } from "../../../taskManager/taskManager";
 import { resolveEsptoolInvocation } from "../../shared/esptool/resolveEsptoolInvocation";
 import { dfuFlashingArgs } from "./getDFUArgs";
 import { assertFlashSectionsReadable } from "../../shared/verifyFlashBins";

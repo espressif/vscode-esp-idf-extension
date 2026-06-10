@@ -17,9 +17,9 @@
 import { debug, DebugSession, ExtensionContext, window } from "vscode";
 import { PeripheralTreeView } from "../svd/peripheralTreeView";
 import { HexViewProvider } from "../hexViewProvider";
-import { readParameter } from "../../idfConfiguration";
 import { OpenOCDManager } from "../../espIdf/openOcd/openOcdManager";
 import { RunOpenOCDWarningTrackerFactory } from "../runOpenOcdWarning";
+import { readParameter } from "../../configuration/idf";
 
 export type DebugSessionOpenOcdFlags = {
   isDebugRestarted: { value: boolean };

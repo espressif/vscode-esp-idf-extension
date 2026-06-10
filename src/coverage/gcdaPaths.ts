@@ -22,8 +22,8 @@ import { Uri } from "vscode";
 import { getGcovExecutable } from "./coverageService";
 import { exec } from "child_process";
 import { IGcovOutput } from "./gcovData";
-import { Logger } from "../logger/logger";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { Logger } from "../common/logger";
+import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { configureEnvVariables } from "../common/prepareEnv";
 
 export async function getGcdaPaths(workspaceFolder: Uri) {

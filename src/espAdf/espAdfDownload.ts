@@ -13,7 +13,7 @@
 // limitations under the License.
 import { Uri } from "vscode";
 import { AbstractCloning } from "../common/abstractCloning";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 
 export class AdfCloning extends AbstractCloning {
   constructor(gitBinPath: string = "git") {
@@ -28,7 +28,7 @@ export class AdfCloning extends AbstractCloning {
 }
 
 export async function getEspAdf(workspace?: Uri) {
-  const gitPath = (await readParameter("idf.gitPath", workspace)) || "git";
+  const gitPath = (readParameter("idf.gitPath", workspace) as string) || "git";
   const adfInstaller = new AdfCloning(gitPath);
   await adfInstaller.getRepository("ADF_PATH", workspace);
 }

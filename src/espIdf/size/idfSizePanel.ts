@@ -25,7 +25,7 @@ import {
   WebviewPanel,
   window,
 } from "vscode";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { getWebViewFavicon } from "../../utils";
 import type { IDFSizeCalculateResult } from "./types";
 import { join } from "path";

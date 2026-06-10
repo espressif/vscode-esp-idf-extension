@@ -20,7 +20,7 @@ import * as assert from "assert";
 import * as path from "path";
 import { ExtensionContext } from "vscode";
 import { IdfToolsManager } from "../../idfToolsManager";
-import { OutputChannel } from "../../logger/outputChannel";
+import { OutputChannel } from "../../common/outputChannel";
 import { PlatformInformation } from "../../PlatformInformation";
 import * as utils from "../../utils";
 import { ProjectConfigStore } from "../../project-conf";

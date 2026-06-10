@@ -18,7 +18,7 @@
 
 import { join } from "path";
 import { spawn } from "../../utils";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { Uri } from "vscode";
 import { configureEnvVariables } from "../../common/prepareEnv";
 

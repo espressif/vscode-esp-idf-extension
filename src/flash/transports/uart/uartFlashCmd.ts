@@ -17,12 +17,11 @@
  */
 import { join } from "path";
 import { CancellationToken, Disposable, Uri } from "vscode";
-import { Logger } from "../../../logger/logger";
+import { Logger } from "../../../common/logger";
 import {
   collectExecutions,
   TaskManager,
-  throwCapturedTaskFailure,
-} from "../../../taskManager";
+} from "../../..//taskManager/taskManager";
 import { createUartFlashProcessTask } from "./uartFlashExecution";
 import { createDfuFlashProcessTask } from "../dfu/dfuFlashExecution";
 import { createFlashModel } from "./flashModelBuilder";
@@ -31,8 +30,8 @@ import {
   CustomTaskType,
 } from "../../../customTasks/customTaskProvider";
 import { ESP } from "../../../config";
-import { OutputChannel } from "../../../logger/outputChannel";
-import { CustomExecutionTaskResult } from "../../../taskManager/customExecution";
+import { OutputChannel } from "../../../common/outputChannel";
+import { CustomExecutionTaskResult } from "../../../taskManager/types";
 import { FlashSession } from "../../shared/flashSession";
 
 export async function uartFlashCommandMain(

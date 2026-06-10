@@ -18,8 +18,8 @@
 
 import * as vscode from "vscode";
 import { ESP } from "../../config";
-import { Logger } from "../../logger/logger";
-import { PreCheck } from "../../utils";
+import { Logger } from "../../common/logger";
+import { PreCheck } from "../../common/PreCheck";
 
 /**
  * Key used to store the OpenOCD USB adapter serial number in the extension workspace state

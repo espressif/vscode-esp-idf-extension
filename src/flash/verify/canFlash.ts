@@ -20,11 +20,11 @@ import { ESP } from "../../config";
 import { commands, l10n, Uri } from "vscode";
 import { BuildTask } from "../../build/buildTask";
 import { FlashSession } from "../shared/flashSession";
-import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
+import { Logger } from "../../common/logger";
+import { OutputChannel } from "../../common/outputChannel";
 import { pathExists } from "fs-extra";
 import { join } from "path";
-import { getProjectElfFilePath } from "../../workspaceConfig";
+import { getProjectElfFilePath } from "../../configuration/workspace";
 import { getDfuList } from "../transports/dfu/helpers";
 
 export async function verifyCanFlash(

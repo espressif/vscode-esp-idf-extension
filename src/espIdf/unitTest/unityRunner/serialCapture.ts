@@ -8,7 +8,7 @@ import { ReadlineParser } from '@serialport/parser-readline';
 import { SerialPortConfig } from "./types"
 import { EventEmitter } from 'events';
 import { promises } from 'fs';
-import { Logger } from '../../../logger/logger';
+import { Logger } from '../../../common/logger';
 
 export class UnitySerialCapture extends EventEmitter {
   private port: SerialPort | null = null;

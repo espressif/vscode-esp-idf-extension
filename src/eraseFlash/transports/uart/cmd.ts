@@ -18,12 +18,12 @@
 
 import { CancellationToken, l10n, Uri } from "vscode";
 import { createEraseFlashProcessTask } from "./task";
-import { collectExecutions, TaskManager } from "../../../taskManager";
-import { OutputChannel } from "../../../logger/outputChannel";
-import { Logger } from "../../../logger/logger";
-import { CustomExecutionTaskResult } from "../../../taskManager/customExecution";
-import { readSerialPort } from "../../../idfConfiguration";
-import { getIdfTargetFromSdkconfig } from "../../../workspaceConfig";
+import { collectExecutions, TaskManager } from "../../../taskManager/taskManager";
+import { OutputChannel } from "../../../common/outputChannel";
+import { Logger } from "../../../common/logger";
+import { CustomExecutionTaskResult } from "../../../taskManager/types";
+import { readSerialPort } from "../../../configuration/idf";
+import { getIdfTargetFromSdkconfig } from "../../../configuration/workspace";
 
 export async function uartEraseFlashCmd(
   workspaceFolderUri: Uri,

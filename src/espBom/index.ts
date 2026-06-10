@@ -18,13 +18,13 @@
 
 import { Uri } from "vscode";
 import { canAccessFile, execChildProcess } from "../utils";
-import { readParameter } from "../idfConfiguration";
-import { OutputChannel } from "../logger/outputChannel";
+import { readParameter } from "../configuration/idf";
+import { OutputChannel } from "../common/outputChannel";
 import { join } from "path";
 import { pathExists, lstat, constants } from "fs-extra";
-import { Logger } from "../logger/logger";
-import { addProcessTask, TaskManager } from "../taskManager";
-import { getVirtualEnvPythonPath } from "../pythonManager";
+import { Logger } from "../common/logger";
+import { addProcessTask, TaskManager } from "../taskManager/taskManager";
+import { getVirtualEnvPythonPath } from "../configuration/env";
 import { configureEnvVariables } from "../common/prepareEnv";
 
 export async function createSBOM(workspaceUri: Uri) {
@@ -82,15 +82,20 @@ export async function createSBOM(workspaceUri: Uri) {
     );
     await TaskManager.runTasks();
   } catch (error) {
-    const msg = error.message
+    const msg = error instanceof Error && error.message
       ? error.message
       : "Error create SBOM Report or check vulnerabilities.";
-    Logger.errorNotify(msg, error, "createSBOM");
+    Logger.errorNotify(msg, error as Error, "createSBOM");
   }
 }
 
 export async function installEspSBOM(workspace: Uri) {
-  const pythonBinPath = await getVirtualEnvPythonPath();
+  const pythonBinPath = getVirtualEnvPythonPath();
+  if (!pythonBinPath) {
+    return Logger.infoNotify(
+      "Python environment is not set up. Please set up Python environment to use ESP-IDF SBOM features."
+    );
+  }
   const modifiedEnv = await configureEnvVariables(workspace);
   try {
     const showResult = await execChildProcess(

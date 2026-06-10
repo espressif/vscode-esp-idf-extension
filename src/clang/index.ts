@@ -18,10 +18,10 @@
 
 import { l10n, Uri } from "vscode";
 import { isBinInPath } from "../utils";
-import { pathExists, readFile, writeFile } from "fs-extra";
-import { readParameter } from "../idfConfiguration";
+import { pathExists, writeJSON, writeFile } from "fs-extra";
+import { readParameter } from "../configuration/idf";
 import { join } from "path";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { ParseError, parse } from "jsonc-parser";
 import { EOL } from "os";
 import { configureEnvVariables } from "../common/prepareEnv";

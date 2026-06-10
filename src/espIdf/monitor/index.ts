@@ -24,9 +24,9 @@ import {
   PreCheck,
   webIdeCheck,
 } from "../../common/PreCheck";
-import { readParameter } from "../../idfConfiguration";
+import { readParameter } from "../../configuration/idf";
 import { IDFWebCommandKeys } from "../../cmdTreeView/cmdStore";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
 import { installWebsocketClient } from "./websocket/checkWebsocketClient";
 import { monitorMain } from "./main";

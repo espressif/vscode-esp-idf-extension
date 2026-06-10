@@ -28,13 +28,13 @@ import {
   l10n,
   window,
 } from "vscode";
-import { NotificationMode, readParameter } from "../idfConfiguration";
+import { NotificationMode, readParameter } from "../configuration/idf";
 import { initializeReportObject } from "./initReportObj";
 import { generateConfigurationReport } from ".";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { writeTextReport } from "./writeReport";
 import { EOL } from "os";
-import { Telemetry } from "../telemetry";
+import { Telemetry } from "../common/telemetry";
 
 export class TroubleshootingPanel {
   public static currentPanel: TroubleshootingPanel | undefined;

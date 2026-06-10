@@ -18,7 +18,7 @@
 import { Uri } from "vscode";
 import { configureEnvVariables } from "../../../common/prepareEnv";
 import { resolveEsptoolInvocation } from "../../../flash/shared/esptool/resolveEsptoolInvocation";
-import { addProcessTask } from "../../../taskManager";
+import { addProcessTask } from "../../../taskManager/taskManager";
 import { buildUartEraseFlashArgs } from "./eraseFlashUartArgs";
 
 export async function createEraseFlashProcessTask(

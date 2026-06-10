@@ -18,8 +18,8 @@
 
 import { env, l10n, workspace } from "vscode";
 import { compareVersion, getEspIdfFromCMake } from "../utils";
-import { Logger } from "../logger/logger";
-import { ESP } from "../config";
+import { Logger } from "./logger";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 
 type PreCheckFunc = (...args: any[]) => boolean;
 export type PreCheckInput = [PreCheckFunc, string];
@@ -46,7 +46,10 @@ export class PreCheck {
     }
   }
   public static isWorkspaceFolderOpen(): boolean {
-    return workspace.workspaceFolders && workspace.workspaceFolders.length > 0;
+    return (
+      typeof workspace.workspaceFolders !== "undefined" &&
+      workspace.workspaceFolders.length > 0
+    );
   }
   public static isNotDockerContainer(): boolean {
     return env.remoteName !== "dev-container";
@@ -88,7 +91,7 @@ export class PreCheck {
     } catch (error) {
       Logger.error(
         `openOCDVersionValidator failed unexpectedly - min:${minVersion}, curr:${currentVersion}`,
-        error,
+        error as Error,
         "src utils openOCDVersionValidator"
       );
       return false;
@@ -103,7 +106,7 @@ export class PreCheck {
     } catch (error) {
       Logger.error(
         `ESP-IDF version validator failed - min: ${minVersion}, current: ${currentVersion}`,
-        error,
+        error as Error,
         "src utils espIdfVersionValidator"
       );
       return false;
@@ -143,15 +146,13 @@ export const isNotDockerContainerCheck = [
 const UNRESOLVED_IDF_VERSION = "0.0.0";
 
 export async function minIdfVersionCheck(minVersion: string) {
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const currentEnvVars = getCurrentIdfConfiguration();
   const idfPath = currentEnvVars["IDF_PATH"];
   let currentVersion = UNRESOLVED_IDF_VERSION;
   if (idfPath) {
     try {
       currentVersion = await getEspIdfFromCMake(idfPath);
-    } catch(error) {
+    } catch (error) {
       Logger.error(
         `Failed to resolve ESP-IDF version from ${idfPath}`,
         error as Error,

@@ -8,8 +8,8 @@
 
 import type { Uri } from "vscode";
 import { BuildTask } from "./buildTask";
-import { readParameter } from "../idfConfiguration";
-import { TaskManager } from "../taskManager";
+import { readParameter } from "../configuration/idf";
+import { TaskManager } from "../taskManager/taskManager";
 import { appendSdkconfigDefineArgs } from "./sdkconfigArgHelpers";
 
 export function replaceBuildDirArg(args: string[], buildDirPath: string): void {
