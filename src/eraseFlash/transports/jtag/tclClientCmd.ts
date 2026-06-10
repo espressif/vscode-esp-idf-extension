@@ -24,7 +24,7 @@ import {
 import {
   CapturedTaskOutput,
   CustomExecutionTaskResult,
-} from "../../../taskManager/customExecution";
+} from "../../../taskManager/types";
 import { isJtagEraseFlashResponseSuccess } from "./eraseFlashJtagResponse";
 
 export async function eraseFlashTelnetCommand(

@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 import { commands, Disposable, ExtensionContext } from "vscode";
-import { Logger } from "../logger/logger";
-import { Telemetry } from "../telemetry";
+import { Logger } from "./logger";
+import { Telemetry } from "./telemetry";
 
 export function registerIDFCommand(
   context: ExtensionContext,

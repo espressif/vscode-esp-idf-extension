@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 import { join } from "path";
-import { readParameter, writeParameter } from "../../idfConfiguration";
+import { readParameter, writeParameter } from "../../configuration/idf";
 import { readJSON } from "fs-extra";
-import { Logger } from "../../logger/logger";
 import {
   commands,
   ConfigurationTarget,
@@ -29,8 +28,9 @@ import {
   Uri,
   window,
 } from "vscode";
+import { Logger } from "../../common/logger";
 import { defaultBoards } from "./defaultBoards";
-import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
+import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
 import { configureEnvVariables } from "../../common/prepareEnv";
 import { DevkitsCommand } from "../setTarget/DevkitsCommand";
 import { OpenOCDManager } from "./openOcdManager";
@@ -73,12 +73,13 @@ export async function getOpenOcdScripts(workspace: Uri): Promise<string> {
       ? userExtraVars.OPENOCD_SCRIPTS
       : process.env.OPENOCD_SCRIPTS
       ? process.env.OPENOCD_SCRIPTS
-      : undefined;
+      : "";
   } catch (error) {
-    Logger.error(error.message, error, "boardConfiguration getOpenOcdScripts");
+    const errMsg = error instanceof Error ? error.message : "Unknown error";
+    Logger.error(errMsg, error instanceof Error ? error : new Error("Unknown error"), "boardConfiguration getOpenOcdScripts");
     openOcdScriptsPath = process.env.OPENOCD_SCRIPTS
       ? process.env.OPENOCD_SCRIPTS
-      : undefined;
+      : "";
   }
   return openOcdScriptsPath;
 }
@@ -96,7 +97,7 @@ export async function getBoards(
   const openOcdEspConfig = join(openOcdScriptsPath, "esp-config.json");
   try {
     const openOcdEspConfigObj = await readJSON(openOcdEspConfig);
-    const espBoards: IdfBoard[] = openOcdEspConfigObj.boards.map((b) => {
+    const espBoards: IdfBoard[] = openOcdEspConfigObj.boards.map((b: any) => {
       return {
         name: b.name,
         description: b.description,
@@ -125,7 +126,8 @@ export async function getBoards(
     });
     return idfTarget ? filteredEspBoards : espBoards;
   } catch (error) {
-    Logger.error(error.message, error, "boardConfiguration getBoards");
+    const errMsg = error instanceof Error ? error.message : "Unknown error";
+    Logger.error(errMsg, error instanceof Error ? error : new Error("Unknown error"), "boardConfiguration getBoards");
     const filteredDefaultBoards = defaultBoards.filter((b) => {
       return b.target === idfTarget;
     });
@@ -224,7 +226,7 @@ export async function selectOpenOcdConfigFiles(
     const connectedKeys = new Set(
       connectedBoardItems
         .filter((c) => c.boardInfo?.config_files)
-        .map((c) => [...c.boardInfo.config_files].sort().join(","))
+        .map((c) => [...(c.boardInfo?.config_files || [])].sort().join(","))
     );
     const filteredStaticChoices = staticChoices.filter(
       (s) =>
@@ -362,11 +364,10 @@ export async function selectOpenOcdConfigFiles(
       boardQuickPick.show();
     });
   } catch (error) {
-    const errMsg =
-      error.message || "Failed to select openOCD configuration files";
+    const errMsg = error instanceof Error ? error.message : "Failed to select openOCD configuration files";
     Logger.errorNotify(
       errMsg,
-      error,
+      error instanceof Error ? error : new Error("Failed to select openOCD configuration files"),
       "boardConfiguration selectOpenOcdConfigFiles"
     );
     return;

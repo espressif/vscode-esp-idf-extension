@@ -1,22 +1,21 @@
 import * as vscode from "vscode";
-import { Logger } from "../logger/logger";
-import { OutputChannel } from "../logger/outputChannel";
+import { Logger } from "../common/logger";
+import { OutputChannel } from "../common/outputChannel";
 import { ESP } from "../config";
 import { buildMain } from "../build/buildMain";
-import { readParameter, writeParameter } from "../idfConfiguration";
+import { readParameter, writeParameter } from "../configuration/idf";
 import { getEspIdfFromCMake } from "../utils";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
-import { IdfTaskExecution } from "../taskManager";
+import { IdfTaskExecution } from "../taskManager/taskManager";
 import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
 import { updateCurrentProfileIdfTarget } from "../project-conf";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { setTargetInIDF } from "../espIdf/setTarget/setTargetInIdf";
 import { statusBarItems } from "../statusBar";
 import { isSettingIDFTarget, setIsSettingIDFTarget } from "../espIdf/setTarget";
 import {
   OutputCapturingExecution,
-  ShellOutputCapturingExecution,
 } from "../taskManager/customExecution";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { flashMain } from "../flash/main";
@@ -24,6 +23,7 @@ import { isFlashRelatedTaskExitCode74 } from "../flash/shared/errHandling";
 import { eraseFlashMain } from "../eraseFlash/main";
 import { buildFlashAndMonitorCapture } from "../buildFlashMonitor";
 import { monitorMain } from "../espIdf/monitor/main";
+import { ShellOutputCapturingExecution } from "../taskManager/shellCaptureExecution";
 
 // Map of command names to their corresponding VS Code command IDs
 const COMMAND_MAP: Record<string, string> = {

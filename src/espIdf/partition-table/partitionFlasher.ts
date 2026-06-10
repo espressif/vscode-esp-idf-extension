@@ -22,10 +22,10 @@ import {
   NotificationMode,
   readParameter,
   readSerialPort,
-} from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
+} from "../../configuration/idf";
+import { Logger } from "../../common/logger";
 import { spawn } from "../../utils";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { getVirtualEnvPythonPath } from "../../configuration/env";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
 export async function flashBinaryToPartition(
@@ -61,7 +61,12 @@ export async function flashBinaryToPartition(
           );
         }
         const idfPath = modifiedEnv["IDF_PATH"];
-        const pythonBinPath = await getVirtualEnvPythonPath();
+        const pythonBinPath = getVirtualEnvPythonPath();
+        if(!pythonBinPath) {
+          return Logger.warnNotify(
+            "Python environment is not set up. Please set up the Python environment to flash the binary."
+          );
+        }
         const esptoolPath = join(
           idfPath,
           "components",
@@ -82,10 +87,10 @@ export async function flashBinaryToPartition(
           `Binary ${basename(binPath)} is flashed in ${offset}`
         );
       } catch (error) {
-        let msg = error.message
+        let msg = error instanceof Error && error.message
           ? error.message
           : "Error flashing binary to device";
-        Logger.errorNotify(msg, error, "flashBinaryToPartition");
+        Logger.errorNotify(msg, error instanceof Error ? error : new Error("Error flashing binary to device"), "flashBinaryToPartition");
       }
     }
   );

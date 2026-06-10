@@ -36,7 +36,7 @@ import {
   resolveFlashTypeForTask,
   resolvePartitionToUseForTask,
 } from "../flash/resolveFlashContext";
-import { CustomExecutionTaskResult } from "../taskManager/customExecution";
+import { CustomExecutionTaskResult } from "../taskManager/types";
 import { monitorMain } from "../espIdf/monitor/main";
 
 /**

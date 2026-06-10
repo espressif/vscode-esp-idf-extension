@@ -28,16 +28,17 @@ import {
   l10n,
   ThemeColor,
 } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { ESP } from "../config";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 import { CommandItem } from "../cmdTreeView/cmdTreeDataProvider";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { pathExists } from "fs-extra";
 import { getStoredAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 import { getEspIdfFromCMake } from "../utils";
 import { getProjectConfigurationElements } from "../project-conf";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
 
@@ -64,13 +65,13 @@ export function updateOpenOcdAdapterStatusBarItem(workspaceFolder: Uri) {
 
 export function updateStatusBarItemVisibility(cmdItem: CommandItem) {
   for (let statusBarItemKey of Object.keys(statusBarItems)) {
-    if (statusBarItems[statusBarItemKey].command === cmdItem.command.command) {
+    if (cmdItem.command && statusBarItems[statusBarItemKey].command === cmdItem.command.command) {
       cmdItem.checkboxState === TreeItemCheckboxState.Checked
         ? statusBarItems[statusBarItemKey].show()
         : statusBarItems[statusBarItemKey].hide();
 
       ESP.GlobalConfiguration.store.set(
-        cmdItem.command.command,
+        cmdItem.command?.command,
         cmdItem.checkboxState
       );
 
@@ -122,15 +123,13 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     } catch (error) {
       Logger.error(
         "Failed to read project configuration presets for status bar",
-        error,
+        error as Error,
         "createCmdsStatusBarItems"
       );
       hasConfigurePresets = false;
     }
   }
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const currentEnvVars = getCurrentIdfConfiguration();
 
   statusBarItems["workspace"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.pickWorkspace].iconId})`,
@@ -226,7 +225,7 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   } else if (statusBarItems["projectConf"]) {
     // If no configuration files exist but the status bar item does, remove it
     statusBarItems["projectConf"].dispose();
-    statusBarItems["projectConf"] = undefined;
+    delete statusBarItems["projectConf"];
   }
 
   statusBarItems["target"] = createStatusBarItem(
@@ -319,7 +318,7 @@ export function createStatusBarItem(
   tooltip: string,
   cmd: string,
   priority: number,
-  showItem: TreeItemCheckboxState
+  showItem: TreeItemCheckboxState | undefined
 ) {
   const alignment: StatusBarAlignment = StatusBarAlignment.Left;
   const statusBarItem = window.createStatusBarItem(cmd, alignment, priority);
@@ -327,7 +326,7 @@ export function createStatusBarItem(
   statusBarItem.text = icon;
   statusBarItem.tooltip = tooltip;
   statusBarItem.command = cmd;
-  if (showItem === TreeItemCheckboxState.Checked) {
+  if (typeof showItem !== "undefined" && showItem === TreeItemCheckboxState.Checked) {
     statusBarItem.show();
   }
   return statusBarItem;
@@ -360,6 +359,6 @@ export function updateHintsStatusBarItem(hasHints: boolean) {
 export function disposeHintsStatusBarItem() {
   if (statusBarItems["hints"]) {
     statusBarItems["hints"].dispose();
-    statusBarItems["hints"] = undefined;
+    delete statusBarItems["hints"];
   }
 }

@@ -17,10 +17,10 @@
  */
 import { dirname, join } from "path";
 import { l10n, Progress, ProgressLocation, Uri, window } from "vscode";
-import { NotificationMode, readParameter, readSerialPort } from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
+import { NotificationMode, readParameter, readSerialPort } from "../../configuration/idf";
+import { Logger } from "../../common/logger";
 import { spawn } from "../../utils";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { getVirtualEnvPythonPath } from "../../configuration/env";
 import { ensureDir } from "fs-extra";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
@@ -47,7 +47,7 @@ export async function readPartition(
     },
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
-        const modifiedEnv = await configureEnvVariables(this.config.workspaceFolder);
+        const modifiedEnv = await configureEnvVariables(workspaceFolder);
         const serialPort = await readSerialPort(workspaceFolder, false);
         if (!serialPort) {
           return Logger.warnNotify(
@@ -58,7 +58,12 @@ export async function readPartition(
           );
         }
         const idfPath = modifiedEnv.IDF_PATH;
-        const pythonBinPath = await getVirtualEnvPythonPath();
+        const pythonBinPath = getVirtualEnvPythonPath();
+        if(!pythonBinPath) {
+          return Logger.warnNotify(
+            "Python environment is not set up. Please set up the Python environment to read the partition."
+          );
+        }
         const esptoolPath = join(
           idfPath,
           "components",
@@ -96,10 +101,10 @@ export async function readPartition(
           `Device partition @${offset} saved as ${resultBinaryPath}`
         );
       } catch (error) {
-        let msg = error.message
+        let msg = error instanceof Error && error.message
           ? error.message
           : "Error reading partition from device to binary";
-        Logger.errorNotify(msg, error, "readPartition");
+        Logger.errorNotify(msg, error instanceof Error ? error : new Error("Error reading partition from device to binary"), "readPartition");
       }
     }
   );

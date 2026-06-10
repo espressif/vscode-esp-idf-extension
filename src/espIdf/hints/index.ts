@@ -14,7 +14,7 @@
 
 import * as yaml from "js-yaml";
 import { readFile, pathExists } from "fs-extra";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import * as utils from "../../utils";
 import { getOpenOcdHintsYmlPath, resolveIdfHintsYmlPath } from "./utils";
 import * as vscode from "vscode";

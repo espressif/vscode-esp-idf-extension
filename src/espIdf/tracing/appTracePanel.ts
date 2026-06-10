@@ -20,13 +20,13 @@
 import AnsiToHtml from "ansi-to-html";
 import * as path from "path";
 import * as vscode from "vscode";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { getWebViewFavicon } from "../../utils";
 import { LogTraceProc } from "./tools/logTraceProc";
 import { SysviewTraceProc } from "./tools/sysviewTraceProc";
 import { Addr2Line } from "./tools/xtensa/addr2line";
 import { ReadElf } from "./tools/xtensa/readelf";
-import { getProjectElfFilePath } from "../../workspaceConfig";
+import { getProjectElfFilePath } from "../../configuration/workspace";
 
 export class AppTracePanel {
   public static createOrShow(

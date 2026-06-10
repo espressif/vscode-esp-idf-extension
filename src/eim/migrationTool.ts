@@ -21,7 +21,7 @@ import { execChildProcess, getEspIdfFromCMake } from "../utils";
 import { IdfSetup } from "./types";
 import { pathExists, readJson } from "fs-extra";
 import { ESP } from "../config";
-import { getEnvVarsFromIdfTools, getUnixPythonList } from "../pythonManager";
+import { getEnvVarsFromIdfTools, getUnixPythonList } from "./pythonManager";
 import { IdfToolsManager } from "../idfToolsManager";
 
 export async function getSystemPython(
@@ -29,7 +29,7 @@ export async function getSystemPython(
   espIdfToolsPath: string
 ) {
   if (process.platform !== "win32") {
-    const sysPythonList = await getUnixPythonList(__dirname);
+    const sysPythonList = await getUnixPythonList();
     return sysPythonList && sysPythonList.length ? sysPythonList[0] : "python3";
   } else {
     const idfVersion = await getEspIdfFromCMake(espIdfPath);

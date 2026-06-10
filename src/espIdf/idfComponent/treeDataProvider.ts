@@ -12,30 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { EventEmitter, TreeDataProvider, TreeItem } from "vscode";
-import * as vscode from "vscode";
-import { IdfComponent } from "./idfComponent";
-import * as idfConf from "./idfConfiguration";
-import { Logger } from "./logger/logger";
-import * as utils from "./utils";
+import {
+  EventEmitter,
+  l10n,
+  TreeDataProvider,
+  TreeItem,
+  TreeItemCollapsibleState,
+} from "vscode";
+import { Event, Uri } from "vscode";
+import { readParameter } from "../../configuration/idf";
+import { Logger } from "../../common/logger";
 import { join } from "path";
-import { ESP } from "./config";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
+import { IdfComponentTreeItem } from "./IdfComponent";
+import { existsSync, readFileSync } from "fs";
+import { readComponentsDirs } from "./readComponents";
 
-export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
+export class IdfTreeDataProvider implements TreeDataProvider<IdfComponentTreeItem> {
   private OnDidChangeTreeData: EventEmitter<
-    IdfComponent | undefined
-  > = new EventEmitter<IdfComponent | undefined>();
+    IdfComponentTreeItem | undefined
+  > = new EventEmitter<IdfComponentTreeItem | undefined>();
   // tslint:disable-next-line:member-ordering
-  public readonly onDidChangeTreeData: vscode.Event<
-    IdfComponent | undefined
-  > = this.OnDidChangeTreeData.event;
+  public readonly onDidChangeTreeData: Event<IdfComponentTreeItem | undefined> = this
+    .OnDidChangeTreeData.event;
 
   private projectDescriptionJsonPath: string;
-  private workspaceFolder: vscode.Uri;
 
-  constructor(workspaceFolder: vscode.Uri) {
-    this.workspaceFolder = workspaceFolder;
-    const buildDirPath = idfConf.readParameter(
+  constructor(workspaceFolder: Uri) {
+    const buildDirPath = readParameter(
       "idf.buildPath",
       workspaceFolder
     ) as string;
@@ -45,9 +49,8 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
     );
   }
 
-  public refresh(workspaceFolder: vscode.Uri): void {
-    this.workspaceFolder = workspaceFolder;
-    const buildDirPath = idfConf.readParameter(
+  public refresh(workspaceFolder: Uri): void {
+    const buildDirPath = readParameter(
       "idf.buildPath",
       workspaceFolder
     ) as string;
@@ -55,34 +58,32 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
       buildDirPath,
       "project_description.json"
     );
-    this.OnDidChangeTreeData.fire(null);
+    this.OnDidChangeTreeData.fire(undefined);
   }
 
-  public getTreeItem(element: IdfComponent): TreeItem {
+  public getTreeItem(element: IdfComponentTreeItem): TreeItem {
     return element;
   }
 
-  public getChildren(element?: IdfComponent): Thenable<IdfComponent[]> {
+  public getChildren(element?: IdfComponentTreeItem): Thenable<IdfComponentTreeItem[]> {
     return new Promise((resolve) => {
       if (element) {
-        resolve(utils.readComponentsDirs(element.uri.fsPath));
+        resolve(readComponentsDirs(element.uri.fsPath));
       } else {
         resolve(this.getComponentsInProject());
       }
     });
   }
 
-  private getComponentsInProject(): IdfComponent[] {
-    if (utils.fileExists(this.projectDescriptionJsonPath)) {
-      const componentsList: IdfComponent[] = [];
-      const userComponentsList: IdfComponent[] = [];
+  private getComponentsInProject(): IdfComponentTreeItem[] {
+    if (existsSync(this.projectDescriptionJsonPath)) {
+      const componentsList: IdfComponentTreeItem[] = [];
+      const userComponentsList: IdfComponentTreeItem[] = [];
       const projDescJson = JSON.parse(
-        utils.readFileSync(this.projectDescriptionJsonPath)
+        readFileSync(this.projectDescriptionJsonPath, "utf-8")
       );
 
-      const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-        [key: string]: string;
-      }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+      const currentEnvVars = getCurrentIdfConfiguration();
       let defaultComponentsDir = currentEnvVars["IDF_PATH"];
 
       if (
@@ -95,10 +96,10 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
           if (projDescJson.build_component_paths[i] === "") {
             continue;
           }
-          const element: IdfComponent = new IdfComponent(
+          const element: IdfComponentTreeItem = new IdfComponentTreeItem(
             projDescJson.build_components[i],
-            vscode.TreeItemCollapsibleState.Collapsed,
-            vscode.Uri.file(projDescJson.build_component_paths[i]).with({
+            TreeItemCollapsibleState.Collapsed,
+            Uri.file(projDescJson.build_component_paths[i]).with({
               scheme: "vscode-resource",
             })
           );
@@ -120,13 +121,13 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
       return sortedUserList.concat(sortedDefaultList);
     } else {
       Logger.errorNotify(
-        vscode.l10n.t("File project_description.json cannot be found."),
+        l10n.t("File project_description.json cannot be found."),
         new Error("File-Not-Found"),
         "IDFTreeDataProvider getComponentsInProject",
         undefined,
         false
       );
-      return null;
+      return [];
     }
   }
 }

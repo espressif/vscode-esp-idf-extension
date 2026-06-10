@@ -19,9 +19,9 @@
 import { join } from "path";
 import { l10n, Uri } from "vscode";
 import { configureEnvVariables } from "../common/prepareEnv";
-import { readParameter, readSerialPort } from "../idfConfiguration";
-import { Logger } from "../logger/logger";
-import { getVirtualEnvPythonPath } from "../pythonManager";
+import { readParameter, readSerialPort } from "../configuration/idf";
+import { Logger } from "../common/logger";
+import { getVirtualEnvPythonPath } from "../configuration/env";
 import { pathExists } from "fs-extra";
 import { createFlashModel } from "../flash/transports/uart/flashModelBuilder";
 import { spawn } from "../utils";
@@ -38,7 +38,7 @@ export async function verifyAppBinary(workspaceFolder: Uri) {
     );
     return false;
   }
-  const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolder);
+  const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolder) as string;
   const pythonBinPath = getVirtualEnvPythonPath();
   if (!pythonBinPath) {
     Logger.info(

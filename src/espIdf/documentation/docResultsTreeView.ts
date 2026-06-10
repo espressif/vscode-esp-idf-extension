@@ -14,7 +14,7 @@
 
 import * as vscode from "vscode";
 import { IDocResult } from "./getSearchResults";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
 
 export class DocSearchResult extends vscode.TreeItem {

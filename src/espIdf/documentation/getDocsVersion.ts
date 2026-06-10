@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { ESP } from "../../config";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 import {
   createWriteStream,
   pathExists,
@@ -24,10 +25,10 @@ import {
 import { tmpdir } from "os";
 import { basename, join } from "path";
 import jsonic from "jsonic";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { extensionContext, getEspIdfFromCMake } from "../../utils";
-import * as vscode from "vscode";
-import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
+import { Uri } from "vscode";
+import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
 import axios from "axios";
 
 export interface IEspIdfDocVersion {
@@ -44,7 +45,7 @@ export async function getDocsVersion() {
   );
   try {
     const docsVersions: IEspIdfDocVersion[] = docsIdfVersionObj.VERSIONS.map(
-      (v) => {
+      (v: any) => {
         return {
           name: v.name,
           supportedTargets: v.supported_targets,
@@ -56,7 +57,7 @@ export async function getDocsVersion() {
   } catch (error) {
     Logger.error(
       `Error parsing object from ${ESP.URL.Docs.IDF_VERSIONS}`,
-      error,
+      error as Error,
       "getDocsVersion"
     );
   }
@@ -72,12 +73,12 @@ export function getDocsBaseUrl(docVersion: string, idfTarget?: string) {
 export function getDocsLocaleLang() {
   let localeLang: string = "en";
   try {
-    const localeConf = JSON.parse(process.env.VSCODE_NLS_CONFIG);
-    localeLang = localeConf.locale === "zh-CN" ? "zh_CN" : "en";
+    const localeConf = process.env.VSCODE_NLS_CONFIG ? JSON.parse(process.env.VSCODE_NLS_CONFIG) : null;
+    localeLang = localeConf && localeConf.locale === "zh-CN" ? "zh_CN" : "en";
   } catch (error) {
     Logger.error(
       "Error getting current vscode language",
-      error,
+      error as Error,
       "getDocsVersion getDocsLocaleLang"
     );
   }
@@ -141,7 +142,7 @@ async function downloadFile(url: string, outputLocationPath: string) {
   } catch (error) {
     Logger.error(
       `Error downloading ${basename(url)}: ${error}`,
-      error,
+      error as Error,
       "getDocsVersion downloadFile"
     );
     throw error;
@@ -156,16 +157,22 @@ async function downloadFile(url: string, outputLocationPath: string) {
  */
 export async function getDocsUrl(
   documentationPart: string,
-  workspace: vscode.Uri
+  workspace: Uri
 ) {
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const currentEnvVars = getCurrentIdfConfiguration();
   const espIdfPath = currentEnvVars["IDF_PATH"];
 
   const adapterTargetName = await getIdfTargetFromSdkconfig(workspace);
   const idfVersion = await getEspIdfFromCMake(espIdfPath);
   const docVersions = await getDocsVersion();
+  if (!docVersions) {
+    Logger.error(
+      "No documentation versions found",
+      new Error("No documentation versions found"),
+      "getDocsVersion getDocsUrl"
+    );
+    return;
+  }
   let docVersion = docVersions.find((docVer) => docVer.name === idfVersion);
   if (!docVersion) {
     docVersion = docVersions.find((docVer) => docVer.name === "latest");

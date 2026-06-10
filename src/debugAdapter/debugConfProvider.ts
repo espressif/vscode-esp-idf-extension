@@ -23,16 +23,16 @@ import {
   WorkspaceFolder,
   window,
 } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import {
   getProjectDescriptionJson,
   getProjectElfFilePath,
-} from "../workspaceConfig";
+} from "../configuration/workspace";
 import { dirname, join } from "path";
 import { pathExists, readFile } from "fs-extra";
 import { verifyAppBinary } from "./verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import {
   execChildProcess,
   getConfigValueFromSDKConfig,

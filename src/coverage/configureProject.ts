@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 18th March 2021 9:41:56 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,7 +21,7 @@ import {
   getConfigValueFromSDKConfig,
   getEspIdfFromCMake,
 } from "../utils";
-import { NotificationMode, readParameter } from "../idfConfiguration";
+import { NotificationMode, readParameter } from "../configuration/idf";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
 import {
   env,
@@ -35,8 +35,8 @@ import {
   getDocsLocaleLang,
   getDocsVersion,
 } from "../espIdf/documentation/getDocsVersion";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
-import { ESP } from "../config";
+import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 
 export async function configureProjectWithGcov(workspacePath: Uri) {
   const appTraceDestTrax = await getConfigValueFromSDKConfig(
@@ -133,9 +133,7 @@ export async function openCoverageUrl(workspacePath: Uri) {
   if (!docsVersions) {
     return;
   }
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const currentEnvVars = getCurrentIdfConfiguration();
   const idfPath = currentEnvVars["IDF_PATH"];
   let idfVersion = "v" + (await getEspIdfFromCMake(idfPath));
   let idfTarget = await getIdfTargetFromSdkconfig(workspacePath);

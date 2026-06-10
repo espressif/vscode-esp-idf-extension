@@ -18,8 +18,8 @@
 
 import { Uri } from "vscode";
 import { join } from "path";
-import { addProcessTask } from "../../taskManager";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { addProcessTask } from "../../taskManager/taskManager";
+import { getVirtualEnvPythonPath } from "../../configuration/env";
 import { configureEnvVariables } from "../../common/prepareEnv";
 import { buildIdfPyConfigSubcommandArgs } from "../common/idfPySubCmdBuilder";
 

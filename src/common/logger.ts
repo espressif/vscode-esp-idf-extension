@@ -18,8 +18,8 @@
 
 import * as vscode from "vscode";
 import * as winston from "winston";
-import UserNotificationManagerTransport from "../userNotificationManager/userNotificationManager";
-import { Telemetry } from "../telemetry";
+import UserNotificationManagerTransport from "./userNotificationManager";
+import { Telemetry } from "./telemetry";
 
 export class Logger {
   public static init(context: vscode.ExtensionContext): Logger {
@@ -115,15 +115,17 @@ export class Logger {
   private LOG_FILE_NAME = "esp_idf_vsc_ext.log";
 
   private constructor(context: vscode.ExtensionContext) {
+    const fileTransport = new winston.transports.File({
+      filename: context.asAbsolutePath(this.LOG_FILE_NAME),
+      level: "warn",
+    });
+    const userNotificationTransport = new UserNotificationManagerTransport({
+      level: "info",
+    });
     winston.configure({
       transports: [
-        new winston.transports.File({
-          filename: context.asAbsolutePath(this.LOG_FILE_NAME),
-          level: "warn",
-        }),
-        new UserNotificationManagerTransport({
-          level: "info",
-        }),
+        fileTransport,
+        userNotificationTransport
       ],
     });
   }

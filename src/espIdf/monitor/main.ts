@@ -21,7 +21,7 @@ import { WorkspaceFolder } from "vscode";
 import { loadMonitorLaunchConfig } from "./launchConfig";
 import { logInvalidConfigReason } from "./configValidation";
 import { IDFMonitor } from "./terminal";
-import { readParameter } from "../../idfConfiguration";
+import { readParameter } from "../../configuration/idf";
 
 export async function monitorMain(
   workspaceFolder: WorkspaceFolder,

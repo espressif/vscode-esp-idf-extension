@@ -19,11 +19,11 @@ import { ChildProcess, spawn } from "child_process";
 import { ensureDir, pathExists, writeFile } from "fs-extra";
 import { join } from "path";
 import { env, Uri, window } from "vscode";
-import { readParameter } from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
+import { readParameter } from "../../configuration/idf";
+import { Logger } from "../../common/logger";
+import { OutputChannel } from "../../common/outputChannel";
 import { getToolchainToolName, isBinInPath } from "../../utils";
-import { getProjectElfFilePath } from "../../workspaceConfig";
+import { getProjectElfFilePath } from "../../configuration/workspace";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import {
@@ -35,7 +35,7 @@ import { configureEnvVariables } from "../../common/prepareEnv";
 export class GdbHeapTraceManager {
   private treeDataProvider: AppTraceTreeDataProvider;
   private archiveDataProvider: AppTraceArchiveTreeDataProvider;
-  private childProcess: ChildProcess;
+  private childProcess: ChildProcess | null = null;
   private gdbinitFileName: string = "heaptrace-gdbinit";
 
   constructor(
@@ -91,12 +91,12 @@ export class GdbHeapTraceManager {
           }
         );
 
-        this.childProcess.stdout.on("data", (data) => {
+        this.childProcess.stdout?.on("data", (data) => {
           Logger.info(data.toString());
           this.errorHandler(data.toString());
         });
 
-        this.childProcess.stderr.on("data", (data) => {
+        this.childProcess.stderr?.on("data", (data) => {
           Logger.info(data.toString());
           this.errorHandler(data.toString());
         });
@@ -122,10 +122,10 @@ export class GdbHeapTraceManager {
         });
       }
     } catch (error) {
-      const msg = error.message
+      const msg = error instanceof Error && error.message
         ? error.message
         : "Error starting GDB Heap Tracing";
-      Logger.errorNotify(msg, error, "GdbHeapTraceManager start");
+      Logger.errorNotify(msg, error as Error, "GdbHeapTraceManager start");
       OutputChannel.appendLine(msg, "GDB Heap Trace");
       this.stop();
     }
@@ -134,7 +134,7 @@ export class GdbHeapTraceManager {
   public async stop() {
     try {
       if (this.childProcess) {
-        this.childProcess.stdin.write("quit\n");
+        this.childProcess.stdin?.write("quit\n");
         // Give GDB some time to process the quit command
         await new Promise(resolve => setTimeout(resolve, 1000));
         if (!this.childProcess.killed) {
@@ -145,10 +145,10 @@ export class GdbHeapTraceManager {
       this.archiveDataProvider.populateArchiveTree();
       this.showStartButton();
     } catch (error) {
-      const msg = error.message
+      const msg = error instanceof Error && error.message
         ? error.message
         : "Error stopping GDB Heap Tracing";
-      Logger.errorNotify(msg, error, "GdbHeapTraceManager stop");
+      Logger.errorNotify(msg, error as Error, "GdbHeapTraceManager stop");
     }
   }
 

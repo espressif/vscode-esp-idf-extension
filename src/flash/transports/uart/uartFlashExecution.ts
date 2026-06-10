@@ -17,7 +17,7 @@
  */
 import { Uri } from "vscode";
 import { FlashModel } from "./types/flashModel";
-import { addProcessTask } from "../../../taskManager";
+import { addProcessTask } from "../../../taskManager/taskManager";
 import { ESP } from "../../../config";
 import { resolveEsptoolInvocation } from "../../shared/esptool/resolveEsptoolInvocation";
 import {

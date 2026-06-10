@@ -18,14 +18,14 @@
 
 import { CancellationToken, l10n, Uri } from "vscode";
 import { ESP } from "../config";
-import { throwCapturedTaskFailure } from "../taskManager";
+import { throwCapturedTaskFailure } from "../taskManager/taskManager";
 import { selectFlashMethod } from "../flash/main";
 import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
-import { CustomExecutionTaskResult } from "../taskManager/customExecution";
+import { CustomExecutionTaskResult } from "../taskManager/types";
 import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 import { getConfigValueFromSDKConfig } from "../utils";
-import { Logger } from "../logger/logger";
-import { OutputChannel } from "../logger/outputChannel";
+import { Logger } from "../common/logger";
+import { OutputChannel } from "../common/outputChannel";
 import { jtagEraseFlashCommand } from "./transports/jtag/jtag";
 import { uartEraseFlashCmd } from "./transports/uart/cmd";
 import { EraseFlashSession } from "./eraseFlashSession";

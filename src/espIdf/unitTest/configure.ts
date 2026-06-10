@@ -20,17 +20,17 @@ import { CancellationToken, Uri, extensions } from "vscode";
 import { ESP } from "../../config";
 import { join } from "path";
 import { copy, pathExists, readFile, writeFile } from "fs-extra";
-import { readParameter } from "../../idfConfiguration";
+import { readParameter } from "../../configuration/idf";
 import { buildMain } from "../../build/buildMain";
 import { flashMain } from "../../flash/main";
-import { CustomExecutionTaskResult } from "../../taskManager/customExecution";
-import { OutputChannel } from "../../logger/outputChannel";
-import { Logger } from "../../logger/logger";
+import { CustomExecutionTaskResult } from "../../taskManager/types";
+import { OutputChannel } from "../../common/outputChannel";
+import { Logger } from "../../common/logger";
 import { getFileList, getTestComponents } from "./utils";
 
 export async function configureUnityApp(
   workspaceFolder: Uri,
-  cancelToken?: CancellationToken
+  cancelToken: CancellationToken
 ) {
   try {
     let unitTestAppUri = Uri.joinPath(workspaceFolder, "unity-app");
@@ -47,11 +47,11 @@ export async function configureUnityApp(
     return unitTestAppUri;
   } catch (error) {
     const msg =
-      error && error.message
+      error instanceof Error && error.message
         ? error.message
         : "Error configuring Unity App for project";
     OutputChannel.appendLine(msg, "idf-unit-test");
-    Logger.error(msg, error, "configureUnityApp");
+    Logger.error(msg, error instanceof Error ? error : new Error(String(error)), "configureUnityApp");
   }
 }
 
@@ -59,8 +59,12 @@ export async function copyTestAppProject(
   workspaceFolder: Uri,
   testComponents: string[]
 ) {
+  const extensionPath = extensions.getExtension(ESP.extensionID)?.extensionPath;
+  if (!extensionPath) {
+    throw new Error("Extension path not found");
+  }
   let unityAppDir: string = join(
-    extensions.getExtension(ESP.extensionID).extensionPath,
+    extensionPath,
     "templates",
     "unity-app"
   );
@@ -75,7 +79,7 @@ export async function updateTestComponents(
   testComponents: string[]
 ) {
   const cmakeListFile = Uri.joinPath(unityApp, "CMakeLists.txt");
-  if (pathExists(cmakeListFile.fsPath)) {
+  if (await pathExists(cmakeListFile.fsPath)) {
     let content = await readFile(cmakeListFile.fsPath, "utf-8");
     const projectMatches = content.match(/(project\(.*?\))/g);
     if (projectMatches && projectMatches.length) {

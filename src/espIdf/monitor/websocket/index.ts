@@ -22,7 +22,7 @@ import { IDFMonitor } from "../terminal";
 import { interruptMonitorWithDelay } from "../interruptMonitorWithDelay";
 import { handleWsCoreDumpDetected } from "./coreDumpHandler";
 import { handleWsGdbStubDetected } from "./gdbStubHandler";
-import { Logger } from "../../../logger/logger";
+import { Logger } from "../../../common/logger";
 import { logInvalidConfigReason } from "../configValidation";
 import { loadMonitorLaunchConfig } from "../launchConfig";
 

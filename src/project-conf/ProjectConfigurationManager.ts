@@ -18,8 +18,8 @@ import { ESP } from "../config";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { createStatusBarItem } from "../statusBar";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
-import { Logger } from "../logger/logger";
+import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
+import { Logger } from "../common/logger";
 import { getProjectConfigurationElements } from "./presetsReader";
 import { createStarterPresetsFile } from "./presetsWriter";
 import { migrateLegacyConfiguration } from "./legacy";
@@ -28,7 +28,7 @@ import { configureClangSettings } from "../clang";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { clearAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../statusBar";
-import * as idfConf from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 
 export function clearSelectedProjectConfiguration(): void {
   if (ESP.ProjectConfiguration.store) {
@@ -130,7 +130,7 @@ export class ProjectConfigurationManager {
         currentSelectedConfig &&
         this.configVersions.includes(currentSelectedConfig)
       ) {
-        const saveLastProjectConfiguration = idfConf.readParameter(
+        const saveLastProjectConfiguration = readParameter(
           "idf.saveLastProjectConfiguration",
           this.workspaceUri
         );

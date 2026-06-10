@@ -21,12 +21,12 @@ import {
   addProcessTask,
   type MaybeIdfTaskExecution,
   TaskManager,
-} from "../taskManager";
-import { readParameter } from "../idfConfiguration";
+} from "../taskManager/taskManager";
+import { readParameter } from "../configuration/idf";
 import { configureEnvVariables } from "../common/prepareEnv";
-import { getVirtualEnvPythonPath } from "../pythonManager";
+import { getVirtualEnvPythonPath } from "../configuration/env";
 import { join } from "path";
-import { getProjectName } from "../workspaceConfig";
+import { getProjectName } from "../configuration/workspace";
 
 export async function runSizeTaskIfEnabled(
   executions: Exclude<MaybeIdfTaskExecution, undefined>[],

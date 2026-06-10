@@ -26,8 +26,8 @@ import {
   window,
   workspace,
 } from "vscode";
-import { Logger } from "../logger/logger";
-import { readParameter } from "../idfConfiguration";
+import { Logger } from "../common/logger";
+import { readParameter } from "../configuration/idf";
 
 export const CLANGD_EXTENSION_ID = "llvm-vs-code-extensions.vscode-clangd";
 

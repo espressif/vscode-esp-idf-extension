@@ -17,12 +17,12 @@
  */
 
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
-import { Logger } from "../../../logger/logger";
+import { Logger } from "../../../common/logger";
 import {
   CaptureableTaskExecution,
   CapturedTaskOutput,
   CustomExecutionTaskResult,
-} from "../../../taskManager/customExecution";
+} from "../../../taskManager/types";
 
 export function createCapturedExecution(
   output: CapturedTaskOutput

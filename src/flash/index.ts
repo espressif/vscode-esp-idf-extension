@@ -22,7 +22,7 @@ import { openFolderCheck, PreCheck, webIdeCheck } from "../common/PreCheck";
 import { ESP } from "../config";
 import { flash } from "./flashProject";
 import { selectFlashMethod } from "./selectFlashMethod";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 
 export function registerFlashCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.jtag_flash", () =>

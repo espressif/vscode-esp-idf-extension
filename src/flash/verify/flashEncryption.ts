@@ -1,17 +1,17 @@
-import * as idfConf from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
+import { NotificationMode, readParameter, writeParameter} from "../../configuration/idf";
+import { Logger } from "../../common/logger";
+import { OutputChannel } from "../../common/outputChannel";
 import { ESP } from "../../config";
 import {
   showInfoNotificationWithLink,
   showQuickPickWithCustomActions,
-} from "../../logger/utils";
+} from "../../common/customNotifications";
 import { ConfserverProcess } from "../../espIdf/menuconfig/confserver/confServerProcess";
 import { ESPEFuseManager } from "../../efuse";
 import { getDocsUrl } from "../../espIdf/documentation/getDocsVersion";
 import * as utils from "../../utils";
 import * as vscode from "vscode";
-import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
+import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
 
 export enum FlashCheckResultType {
   Success,
@@ -61,7 +61,7 @@ export async function checkFlashEncryption(
         {
           label: vscode.l10n.t("Change flash type to UART"),
           action: () => {
-            idfConf.writeParameter(
+            writeParameter(
               "idf.flashType",
               "UART",
               vscode.ConfigurationTarget.WorkspaceFolder,
@@ -130,13 +130,13 @@ export async function checkFlashEncryption(
     const idfTarget = await getIdfTargetFromSdkconfig(workspaceRoot);
     const eFuse = new ESPEFuseManager(workspaceRoot);
 
-    const notificationMode = idfConf.readParameter(
+    const notificationMode = readParameter(
       "idf.notificationMode",
       workspaceRoot
     ) as string;
     const ProgressLocation =
-      notificationMode === idfConf.NotificationMode.All ||
-      notificationMode === idfConf.NotificationMode.Notifications
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
     const data = await vscode.window.withProgress(
@@ -177,7 +177,7 @@ export async function checkFlashEncryption(
           } catch (error) {
             Logger.errorNotify(
               vscode.l10n.t("Failed to read eFuse summary"),
-              error,
+              error as Error,
               "verifyFlashEncryption readSummary",
               { tag: "Flash Encryption" }
             );
@@ -365,7 +365,8 @@ export async function checkFlashEncryption(
       };
     }
   } catch (error) {
-    if (error.message === "Operation cancelled by user") {
+    const errMsg = error instanceof Error && error.message ? error.message : "Unknown error";
+    if (errMsg === "Operation cancelled by user") {
       const cancelMessage = vscode.l10n.t("eFuse check cancelled by user");
       Logger.info(cancelMessage, { tag: "Flash Encryption" });
       OutputChannel.appendLineAndShow(cancelMessage, "Flash Encryption");
@@ -377,12 +378,12 @@ export async function checkFlashEncryption(
 
     const errorMessage = vscode.l10n.t(
       "Error during flash encryption check: {0}",
-      error.message
+      errMsg
     );
     OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
     Logger.errorNotify(
       errorMessage,
-      error,
+      error as Error,
       "verifyFlashEncryption checkFlashEncryption",
       { tag: "Flash Encryption" }
     );

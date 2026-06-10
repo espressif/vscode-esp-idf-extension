@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Saturday, 9th May 2020 7:56:03 pm
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,14 +18,14 @@
 import axios from "axios";
 import { stringify } from "querystring";
 import { ESP } from "../../config";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import {
   RainmakerLoginResponseModel,
   RainmakerNodeWithDetails,
   RainmakerDeviceParams,
   RainmakerUserInfo,
 } from "./model";
-import { readParameter } from "../../idfConfiguration";
+import { readParameter } from "../../configuration/idf";
 import { commands } from "vscode";
 
 const USER_TOKEN_CACHE_KEY = "esp.rainmaker.login.tokens";
@@ -39,7 +39,7 @@ export enum RainmakerAPIClientErrors {
 export class RainmakerAPIClient {
   public static async exchangeCodeForTokens(
     code: string
-  ): Promise<RainmakerLoginResponseModel> {
+  ): Promise<RainmakerLoginResponseModel | undefined> {
     const resp = await axios.post(
       ESP.Rainmaker.OAuth.AuthURL,
       stringify({
@@ -67,7 +67,7 @@ export class RainmakerAPIClient {
   public static async login(
     username: string,
     password: string
-  ): Promise<RainmakerLoginResponseModel> {
+  ): Promise<RainmakerLoginResponseModel | undefined> {
     const resp = await axios.post<RainmakerLoginResponseModel>(
       this.generateURLFor("login"),
       { user_name: username, password },
@@ -111,7 +111,7 @@ export class RainmakerAPIClient {
   }
 
   public static async getAllUserAssociatedNodes(): Promise<
-    RainmakerNodeWithDetails
+    RainmakerNodeWithDetails | undefined
   > {
     const nodes = this.getNodesFromCache();
     if (nodes) {
@@ -149,7 +149,7 @@ export class RainmakerAPIClient {
 
   public static async getNodeParams(
     nodeID: string
-  ): Promise<RainmakerDeviceParams> {
+  ): Promise<RainmakerDeviceParams | undefined> {
     const resp = await axios.get<RainmakerDeviceParams>(
       this.generateURLFor(`user/nodes/params?nodeid=${nodeID}`),
       { headers: this.getAuthHeader() }
@@ -167,7 +167,7 @@ export class RainmakerAPIClient {
     paramName: string,
     value: any
   ) {
-    const payload = {};
+    const payload: { [key: string]: any } = {};
     payload[deviceName] = {};
     payload[deviceName][paramName] = value;
 
@@ -182,7 +182,7 @@ export class RainmakerAPIClient {
     this.throwUnknownError(resp);
   }
 
-  public static async getUserInfo(): Promise<RainmakerUserInfo> {
+  public static async getUserInfo(): Promise<RainmakerUserInfo | undefined> {
     try {
       const resp = await axios.get<RainmakerUserInfo>(
         this.generateURLFor(`user`),
@@ -194,7 +194,7 @@ export class RainmakerAPIClient {
         return resp.data;
       }
     } catch (error) {
-      if (error.response.status === 401) {
+      if (error instanceof axios.AxiosError && error.response?.status === 401) {
         // session is expired
         await this.refreshAccessToken();
         return this.getUserInfo();
@@ -231,7 +231,7 @@ export class RainmakerAPIClient {
       undefined
     );
   }
-  private static updateUserTokens(tokens: RainmakerLoginResponseModel) {
+  private static updateUserTokens(tokens: RainmakerLoginResponseModel | undefined) {
     return ESP.Rainmaker.store.set(USER_TOKEN_CACHE_KEY, tokens);
   }
   private static getNodesFromCache(): RainmakerNodeWithDetails {
@@ -240,7 +240,7 @@ export class RainmakerAPIClient {
       undefined
     );
   }
-  private static updateNodeCache(nodes: RainmakerNodeWithDetails) {
+  private static updateNodeCache(nodes: RainmakerNodeWithDetails | undefined) {
     return ESP.Rainmaker.store.set(USER_ASSOCIATED_NODES_CACHE_KEY, nodes);
   }
 
@@ -251,7 +251,12 @@ export class RainmakerAPIClient {
     const UnknownError = new Error(
       "Unknown Error while trying to login with rainmaker server"
     );
-    Logger.error(UnknownError.message, UnknownError, "RainmakerAPIClient throwUnknownError", { meta });
+    Logger.error(
+      UnknownError.message,
+      UnknownError,
+      "RainmakerAPIClient throwUnknownError",
+      { meta }
+    );
     throw UnknownError;
   }
   private static setUserLoggedInContext(v: boolean) {

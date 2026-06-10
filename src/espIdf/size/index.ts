@@ -17,7 +17,7 @@
  */
 
 import { commands, ExtensionContext, l10n, window } from "vscode";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { openFolderCheck } from "../../common/PreCheck";
 import { withProgressWrapper } from "../../common/withProgressWrapper";

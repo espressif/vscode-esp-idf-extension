@@ -22,10 +22,10 @@ import {
   TaskPanelKind,
   Uri,
 } from "vscode";
-import { readParameter } from "../idfConfiguration";
-import { getWorkspaceFolderForTask, TaskManager } from "../taskManager";
-import { ShellOutputCapturingExecution } from "../taskManager/customExecution";
+import { readParameter } from "../configuration/idf";
+import { getWorkspaceFolderForTask, TaskManager } from "../taskManager/taskManager";
 import { configureEnvVariables } from "../common/prepareEnv";
+import { ShellOutputCapturingExecution } from "../taskManager/shellCaptureExecution";
 
 export enum CustomTaskType {
   Custom = "custom",
@@ -64,23 +64,23 @@ export class CustomTask {
     let taskName: string = "";
     switch (taskType) {
       case CustomTaskType.PreBuild:
-        command = readParameter("idf.preBuildTask", this.currentWorkspace);
+        command = readParameter("idf.preBuildTask", this.currentWorkspace) as string;
         taskName = "Pre Build";
         break;
       case CustomTaskType.PostBuild:
-        command = readParameter("idf.postBuildTask", this.currentWorkspace);
+        command = readParameter("idf.postBuildTask", this.currentWorkspace) as string;
         taskName = "Post Build";
         break;
       case CustomTaskType.PreFlash:
-        command = readParameter("idf.preFlashTask", this.currentWorkspace);
+        command = readParameter("idf.preFlashTask", this.currentWorkspace) as string;
         taskName = "Pre Flash";
         break;
       case CustomTaskType.PostFlash:
-        command = readParameter("idf.postFlashTask", this.currentWorkspace);
+        command = readParameter("idf.postFlashTask", this.currentWorkspace) as string;
         taskName = "Post Flash";
         break;
       case CustomTaskType.Custom:
-        command = readParameter("idf.customTask", this.currentWorkspace);
+        command = readParameter("idf.customTask", this.currentWorkspace) as string;
         taskName = "Custom task";
       default:
         break;

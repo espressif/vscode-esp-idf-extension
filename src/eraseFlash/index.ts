@@ -10,7 +10,7 @@ import { ExtensionContext, l10n } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { openFolderCheck, webIdeCheck } from "../common/PreCheck";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { ESP } from "../config";
 import { eraseFlashMain } from "./main";
 export function registerEraseFlashCommand(context: ExtensionContext) {
