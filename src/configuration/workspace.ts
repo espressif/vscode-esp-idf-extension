@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as fs from "fs";
-import * as path from "path";
-import * as vscode from "vscode";
-import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
-import { Logger } from "./logger/logger";
-import * as utils from "./utils";
-import { readParameter } from "./idfConfiguration";
-import { showInfoNotificationWithAction } from "./logger/utils";
-import { isSettingIDFTarget } from "./espIdf/setTarget";
+import { promises } from "fs";
+import { join, isAbsolute } from "path";
+import { commands, l10n, StatusBarItem, Uri, window, workspace } from "vscode";
+import { Logger } from "../common/logger";
+import { readParameter } from "./idf";
+import { showInfoNotificationWithAction } from "../common/customNotifications";
+import { isSettingIDFTarget } from "../espIdf/setTarget";
 import { pathExists } from "fs-extra";
+import { getConfigValueFromSDKConfig, updateStatus } from "../utils";
+import { IdfTreeDataProvider } from "../espIdf/idfComponent/treeDataProvider";
 
 /** Parsed subset of build/project_description.json; fields are optional for partial or evolving schemas. */
 export interface IProjectDescription {
@@ -63,11 +63,11 @@ function optString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-export function initSelectedWorkspace(status?: vscode.StatusBarItem) {
+export function initSelectedWorkspace(status?: StatusBarItem) {
   const workspaceRoot =
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders.length
-      ? vscode.workspace.workspaceFolders[0]
+    workspace.workspaceFolders &&
+    workspace.workspaceFolders.length
+      ? workspace.workspaceFolders[0]
       : undefined;
   if (!workspaceRoot) {
     return;
@@ -80,16 +80,16 @@ export function initSelectedWorkspace(status?: vscode.StatusBarItem) {
     text: "${file-directory}",
   };
   if (status) {
-    utils.updateStatus(status, workspaceFolderInfo);
+    updateStatus(status, workspaceFolderInfo);
   }
   return workspaceRoot.uri;
 }
 
 let idfDataProvider: IdfTreeDataProvider;
-export function updateIdfComponentsTree(workspaceFolder: vscode.Uri) {
+export function updateIdfComponentsTree(workspaceFolder: Uri) {
   if (typeof idfDataProvider === "undefined") {
     idfDataProvider = new IdfTreeDataProvider(workspaceFolder);
-    vscode.window.registerTreeDataProvider("idfComponents", idfDataProvider);
+    window.registerTreeDataProvider("idfComponents", idfDataProvider);
   }
   idfDataProvider.refresh(workspaceFolder);
 }
@@ -99,11 +99,11 @@ export function updateIdfComponentsTree(workspaceFolder: vscode.Uri) {
  *
  * Returns `undefined` when the build directory or file is missing, content is invalid,
  * or parsing/reading fails.
- * @param {vscode.Uri} workspaceFolder - Workspace URI to read the project description JSON from its build directory.
+ * @param {Uri} workspaceFolder - Workspace URI to read the project description JSON from its build directory.
  * @returns {Promise<IProjectDescription | undefined>}
  */
 export async function getProjectDescriptionJson(
-  workspaceFolder: vscode.Uri
+  workspaceFolder: Uri
 ): Promise<IProjectDescription | undefined> {
   const buildDirPath = readParameter(
     "idf.buildPath",
@@ -114,15 +114,12 @@ export async function getProjectDescriptionJson(
     if (!doesBuildPathExists) {
       return undefined;
     }
-    const projDescJsonPath = path.join(
-      buildDirPath,
-      "project_description.json"
-    );
+    const projDescJsonPath = join(buildDirPath, "project_description.json");
     const doesExists = await pathExists(projDescJsonPath);
     if (!doesExists) {
       return undefined;
     }
-    const projDescJsonContent = await fs.promises.readFile(projDescJsonPath);
+    const projDescJsonContent = await promises.readFile(projDescJsonPath);
     const projDescJson = JSON.parse(projDescJsonContent.toString()) as Record<
       string,
       unknown
@@ -220,14 +217,14 @@ export async function getProjectDescriptionJson(
  * @returns {Promise<string>}
  */
 export async function getSDKConfigFilePath(
-  workspacePath: vscode.Uri
+  workspacePath: Uri
 ): Promise<string> {
   try {
     const projDescObj = await getProjectDescriptionJson(workspacePath);
     if (projDescObj?.configFile) {
-      const configFilePath = path.isAbsolute(projDescObj.configFile)
+      const configFilePath = isAbsolute(projDescObj.configFile)
         ? projDescObj.configFile
-        : path.join(workspacePath.fsPath, projDescObj.configFile);
+        : join(workspacePath.fsPath, projDescObj.configFile);
       if (await pathExists(configFilePath)) {
         return configFilePath;
       }
@@ -237,7 +234,7 @@ export async function getSDKConfigFilePath(
       workspacePath
     ) as string;
     if (!sdkconfigFilePath) {
-      sdkconfigFilePath = path.join(workspacePath.fsPath, "sdkconfig");
+      sdkconfigFilePath = join(workspacePath.fsPath, "sdkconfig");
     }
     return sdkconfigFilePath;
   } catch (error) {
@@ -246,18 +243,18 @@ export async function getSDKConfigFilePath(
         ? (error as Error).message
         : String(error);
     Logger.error(errMsg, error as Error, "workspaceConfig getSdkconfigPath");
-    return path.join(workspacePath.fsPath, "sdkconfig");
+    return join(workspacePath.fsPath, "sdkconfig");
   }
 }
 
 /**
  * Returns `projectName` from `project_description.json`.
  * Throws if the file cannot be read or `projectName` is missing.
- * @param {vscode.Uri} workspacePath - Workspace URI to get the project name from its project description.
+ * @param {Uri} workspacePath - Workspace URI to get the project name from its project description.
  * @returns {Promise<string>}
  */
 export async function getProjectName(
-  workspacePath: vscode.Uri
+  workspacePath: Uri
 ): Promise<string> {
   const projectDescription = await getProjectDescriptionJson(workspacePath);
   if (projectDescription && projectDescription.projectName) {
@@ -273,7 +270,7 @@ export async function getProjectName(
  * @returns {Promise<string>}
  */
 export async function getProjectElfFilePath(
-  workspacePath: vscode.Uri
+  workspacePath: Uri
 ): Promise<string> {
   const projectDescription = await getProjectDescriptionJson(workspacePath);
   if (projectDescription && projectDescription.appElf) {
@@ -284,7 +281,7 @@ export async function getProjectElfFilePath(
     if (!buildDirPath) {
       throw new Error("Failed to get build directory path for ELF file path.");
     }
-    const elfFilePath = path.join(buildDirPath, projectDescription.appElf);
+    const elfFilePath = join(buildDirPath, projectDescription.appElf);
     return elfFilePath;
   }
   throw new Error(
@@ -300,7 +297,7 @@ export async function getProjectElfFilePath(
  * @returns {Promise<string>}
  */
 export async function getProjectMapFilePath(
-  workspacePath: vscode.Uri
+  workspacePath: Uri
 ): Promise<string> {
   const projectName = await getProjectName(workspacePath);
   if (!projectName) {
@@ -310,7 +307,7 @@ export async function getProjectMapFilePath(
   if (!buildDirPath) {
     throw new Error("Failed to get build directory path for MAP file path.");
   }
-  const mapFilePath = path.join(buildDirPath, `${projectName}.map`);
+  const mapFilePath = join(buildDirPath, `${projectName}.map`);
   return mapFilePath;
 }
 
@@ -318,16 +315,16 @@ export async function getProjectMapFilePath(
  * Returns the IDF target from `sdkconfig` (`CONFIG_IDF_TARGET`) if available.
  * If not available, uses `idf.customExtraVars.IDF_TARGET`; if still missing, returns `"esp32"`.
  * Updates `statusItem.text` with the resolved IDF target when `statusItem` is provided.
- * @param {vscode.Uri} workspacePath - Workspace URI to get the IDF target from its SDK configuration.
- * @param {vscode.StatusBarItem} [statusItem] - Optional status bar item to update with the resolved IDF target.
+ * @param {Uri} workspacePath - Workspace URI to get the IDF target from its SDK configuration.
+ * @param {StatusBarItem} [statusItem] - Optional status bar item to update with the resolved IDF target.
  * @returns {Promise<string>} - The resolved IDF target.
  */
 export async function getIdfTargetFromSdkconfig(
-  workspacePath: vscode.Uri,
-  statusItem?: vscode.StatusBarItem
+  workspacePath: Uri,
+  statusItem?: StatusBarItem
 ) {
   try {
-    const configIdfTarget = await utils.getConfigValueFromSDKConfig(
+    const configIdfTarget = await getConfigValueFromSDKConfig(
       "CONFIG_IDF_TARGET",
       workspacePath
     );
@@ -341,13 +338,13 @@ export async function getIdfTargetFromSdkconfig(
     if (idfTarget && customIdfTarget && idfTarget !== customIdfTarget) {
       if (!isSettingIDFTarget) {
         showInfoNotificationWithAction(
-          vscode.l10n.t(
+          l10n.t(
             'IDF_TARGET mismatch: SDKConfig value is "{0}" but settings value is "{1}".',
             idfTarget,
             customIdfTarget
           ),
-          vscode.l10n.t("Set IDF_TARGET"),
-          () => vscode.commands.executeCommand("espIdf.setTarget")
+          l10n.t("Set IDF_TARGET"),
+          () => commands.executeCommand("espIdf.setTarget")
         );
       }
     }

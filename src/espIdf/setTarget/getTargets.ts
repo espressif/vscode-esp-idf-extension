@@ -18,7 +18,7 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { Uri } from "vscode";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
 export interface IdfTarget {

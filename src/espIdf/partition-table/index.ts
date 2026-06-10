@@ -28,7 +28,7 @@ import { join } from "path";
 import { ESP } from "../../config";
 import { readFileSync } from "../../utils";
 import { writeFile } from "fs-extra";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 
 export class PartitionTableEditorPanel {
   private static instance: PartitionTableEditorPanel;

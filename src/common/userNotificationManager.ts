@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Monday, 10th June 2019 1:00:54 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-import * as vscode from "vscode";
-import * as winston from "winston";
-import * as idfConf from "../idfConfiguration";
-import { Telemetry } from "../telemetry";
+import { window } from "vscode";
+import { error, Transport } from "winston";
+import { NotificationMode, readParameter } from "../configuration/idf";
+import { Telemetry } from "./telemetry";
 
-export default class UserNotificationManagerTransport extends winston.Transport {
+export default class UserNotificationManagerTransport extends Transport {
   constructor(options: any) {
     super(options);
   }
@@ -30,21 +30,21 @@ export default class UserNotificationManagerTransport extends winston.Transport 
     level: string,
     message: string,
     metadata?: any,
-    callback?: (arg1, arg2) => void
+    callback?: (arg1: any, arg2: any) => void
   ) {
-    const notificationMode = idfConf.readParameter(
+    const notificationMode = readParameter(
       "idf.notificationMode"
     ) as string;
     const enableNotification =
-      notificationMode === idfConf.NotificationMode.All ||
-      notificationMode === idfConf.NotificationMode.Notifications;
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Notifications;
     if (metadata && metadata.user && enableNotification) {
       if (level === "info") {
-        vscode.window.showInformationMessage(message);
+        window.showInformationMessage(message);
       } else if (level === "warn") {
-        vscode.window.showWarningMessage(message);
+        window.showWarningMessage(message);
       } else if (level === "error") {
-        vscode.window
+        window
           .showErrorMessage(message, "Report", "Cancel")
           .then((item) => {
             if (item === "Cancel") {
@@ -55,7 +55,7 @@ export default class UserNotificationManagerTransport extends winston.Transport 
             }
           });
       } else {
-        winston.error(
+        error(
           `Invalid error level '${level}' for user notification. ${message}`
         );
       }

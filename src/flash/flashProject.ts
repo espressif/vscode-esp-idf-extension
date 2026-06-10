@@ -11,7 +11,7 @@ import { openFolderCheck } from "../common/PreCheck";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { ESP } from "../config";
-import { OutputChannel } from "../logger/outputChannel";
+import { OutputChannel } from "../common/outputChannel";
 import { resolvePartitionToUseForTask } from "./resolveFlashContext";
 import { flashMain } from "./main";
 import { isFlashEncryptionEnabled } from "./verify/flashEncryption";

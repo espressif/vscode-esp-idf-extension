@@ -19,7 +19,7 @@ import { readJSON } from "fs-extra";
 import { setClangSettings } from "../clang/index";
 import { IdfSetup } from "../eim/types";
 import { Uri } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,

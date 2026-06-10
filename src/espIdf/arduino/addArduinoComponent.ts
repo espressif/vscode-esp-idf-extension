@@ -17,12 +17,11 @@
  */
 import { checkGitExists, getEspIdfFromCMake } from "../../utils";
 import { spawn, ChildProcess } from "child_process";
-import * as idfConf from "../../idfConfiguration";
 import * as treeKill from "tree-kill";
 import { join } from "path";
 import { ensureDir } from "fs-extra";
-import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
+import { Logger } from "../../common/logger";
+import { OutputChannel } from "../../common/outputChannel";
 import { ESP } from "../../config";
 
 export class ArduinoComponentInstaller {

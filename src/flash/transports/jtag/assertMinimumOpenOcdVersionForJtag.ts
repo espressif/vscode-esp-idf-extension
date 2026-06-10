@@ -17,7 +17,7 @@
 
 import { PreCheck } from "../../../common/PreCheck";
 import { OpenOCDManager } from "../../../espIdf/openOcd/openOcdManager";
-import { Logger } from "../../../logger/logger";
+import { Logger } from "../../../common/logger";
 
 /** Minimum OpenOCD build required for JTAG flash and JTAG erase in this extension. */
 export const MIN_OPENOCD_VERSION_FOR_JTAG = "v0.10.0-esp32-20201125";

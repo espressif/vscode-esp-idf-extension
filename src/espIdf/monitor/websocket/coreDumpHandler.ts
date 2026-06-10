@@ -17,12 +17,12 @@ import {
 } from "vscode";
 import { registerWsMonitorDebugCleanup } from "./monitorDebugCleanup";
 import { CoreDumpResponse } from "../../communications/ws";
-import { NotificationMode, readParameter } from "../../../idfConfiguration";
+import { NotificationMode, readParameter } from "../../../configuration/idf";
 import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "../../core-dump";
-import { getProjectName } from "../../../workspaceConfig";
+import { getProjectName } from "../../../configuration/workspace";
 import { IdfMonitorWebSocketServer } from ".";
 import { IDFMonitor } from "../terminal";
-import { Logger } from "../../../logger/logger";
+import { Logger } from "../../../common/logger";
 
 const CORE_DUMP_SESSION_ID = "core-dump.debug.session.ws";
 

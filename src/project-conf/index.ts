@@ -21,8 +21,8 @@ import { ExtensionContext, Uri, window } from "vscode";
 import { ESP } from "../config";
 import { pathExists, readJson, writeJson } from "fs-extra";
 import { ProjectConfElement } from "./projectConfiguration";
-import { Logger } from "../logger/logger";
-import { resolveVariables } from "../idfConfiguration";
+import { Logger } from "../common/logger";
+import { resolveVariables } from "../configuration/idf";
 
 export class ProjectConfigStore {
   private static self: ProjectConfigStore;
@@ -341,11 +341,11 @@ export async function getProjectConfigurationElements(
   } catch (error) {
     Logger.errorNotify(
       `Failed to read or parse ${ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME}`,
-      error,
+      error as Error,
       "getProjectConfigurationElements"
     );
     window.showErrorMessage(
-      `Error reading or parsing project configuration file (${projectConfFilePath.fsPath}): ${error.message}`
+      `Error reading or parsing project configuration file (${projectConfFilePath.fsPath}): ${(error as Error).message}`
     );
     return {}; // Return empty if JSON is invalid or unreadable
   }

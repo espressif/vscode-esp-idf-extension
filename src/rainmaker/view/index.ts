@@ -32,7 +32,7 @@ import {
   DeviceItem,
   DeviceParamItem,
 } from "./item_generator";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { RMakerItem, RMakerItemType } from "./item";
 import {
   RainmakerNodeWithDetails,

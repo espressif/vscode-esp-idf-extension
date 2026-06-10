@@ -14,8 +14,8 @@
 
 import { pathExists, readFile, writeFile } from "fs-extra";
 import { basename, dirname, join } from "path";
-import { Logger } from "../logger/logger";
-import { readParameter } from "../idfConfiguration";
+import { Logger } from "../common/logger";
+import { readParameter } from "../configuration/idf";
 
 export enum srcOp {
   delete,

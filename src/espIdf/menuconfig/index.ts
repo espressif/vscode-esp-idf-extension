@@ -20,7 +20,7 @@ import { ExtensionContext } from "vscode";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { openFolderCheck } from "../../common/PreCheck";
 import { ConfserverProcess } from "./confserver/confServerProcess";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { withProgressWrapper } from "../../common/withProgressWrapper";
 import { createClassicMenuconfig } from "./classicTerminal";
 

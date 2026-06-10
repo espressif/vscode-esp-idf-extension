@@ -16,16 +16,15 @@
  * limitations under the License.
  */
 
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import {
   compareVersion,
   fileExists,
   getEspIdfFromCMake,
   spawn,
 } from "../../utils";
-import { getProjectMapFilePath } from "../../workspaceConfig";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
-import { ESP } from "../../config";
+import { getProjectMapFilePath } from "../../configuration/workspace";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
 import type { IDFSizeCalculateResult } from "./types";
 import { CancellationToken, l10n, Progress, Uri } from "vscode";
 import { join } from "path";
@@ -99,9 +98,7 @@ export class IDFSize {
   }
 
   private idfPath(): string {
-    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-      [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    const currentEnvVars = getCurrentIdfConfiguration();
     return currentEnvVars["IDF_PATH"];
   }
 

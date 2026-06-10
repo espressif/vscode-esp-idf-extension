@@ -18,17 +18,17 @@
 
 import { BuildTask } from "./buildTask";
 import { FlashSession } from "../flash/shared/flashSession";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import {
   collectExecutions,
   TaskManager,
   throwCapturedTaskFailure,
-} from "../taskManager";
-import { updateIdfComponentsTree } from "../workspaceConfig";
+} from "../taskManager/taskManager";
+import { updateIdfComponentsTree } from "../configuration/workspace";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { ESP } from "../config";
-import { OutputChannel } from "../logger/outputChannel";
-import { CustomExecutionTaskResult } from "../taskManager/customExecution";
+import { OutputChannel } from "../common/outputChannel";
+import { CustomExecutionTaskResult } from "../taskManager/types";
 import { buildFinishFlashCmd } from "./buildFinishFlashCmd";
 import { cleanupBuildState } from "./buildHelpers";
 import { appendDfuExecution } from "./dfuExecution";

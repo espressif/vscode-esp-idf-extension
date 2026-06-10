@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+import { env, Uri, window } from "vscode";
 
 type NotificationAction = () => Thenable<unknown> | Promise<void> | void;
 
@@ -14,7 +14,7 @@ export async function showInfoNotificationWithAction(
   buttonLabel: string,
   action: NotificationAction
 ): Promise<void> {
-  const selectedOption = await vscode.window.showInformationMessage(
+  const selectedOption = await window.showInformationMessage(
     infoMessage,
     buttonLabel
   );
@@ -41,7 +41,7 @@ export async function showInfoNotificationWithMultipleActions(
   infoMessage: string,
   actions: { label: string; action: NotificationAction }[]
 ): Promise<void> {
-  const selectedOption = await vscode.window.showInformationMessage(
+  const selectedOption = await window.showInformationMessage(
     infoMessage,
     ...actions.map((action) => action.label)
   );
@@ -64,17 +64,17 @@ export async function showInfoNotificationWithMultipleActions(
  * @returns {Promise<void>} - A promise that resolves when the notification is shown.
  */
 export async function showInfoNotificationWithLink(
-  infoMessage,
-  linkUrl,
-  buttonLabel = "Read documentation"
-) {
-  const selectedOption = await vscode.window.showInformationMessage(
+  infoMessage: string,
+  linkUrl: string,
+  buttonLabel: string = "Read documentation"
+): Promise<void> {
+  const selectedOption = await window.showInformationMessage(
     infoMessage,
     buttonLabel
   );
 
   if (selectedOption === buttonLabel) {
-    vscode.env.openExternal(vscode.Uri.parse(linkUrl));
+    env.openExternal(Uri.parse(linkUrl));
   }
 }
 
@@ -88,7 +88,7 @@ export async function showQuickPickWithCustomActions(
   message: string,
   buttons: { label: string; action: () => void }[]
 ): Promise<void> {
-  const selectedOption = await vscode.window.showQuickPick(
+  const selectedOption = await window.showQuickPick(
     buttons.map((button) => button.label),
     {
       placeHolder: message,

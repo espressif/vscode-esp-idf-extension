@@ -19,7 +19,7 @@ import * as assert from "assert";
 import { readdir, readFile, readJson, remove } from "fs-extra";
 import { join, resolve } from "path";
 import { ExtensionContext, Uri } from "vscode";
-import { getExamplesList } from "../examples/Example";
+import { getExamplesList } from "../newProject/Example";
 import { setCurrentSettingsInTemplate } from "../newProject/utils";
 import {
   copyFromSrcProject,
