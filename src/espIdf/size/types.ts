@@ -58,3 +58,10 @@ export interface IDFSizeOverview {
   version: string;
   layout: IDFSizeOverviewSection[];
 }
+
+/** Payload from `IDFSize.calculateWithProgress` for the size webview. */
+export interface IDFSizeCalculateResult {
+  archives: { [key: string]: IDFSizeArchive };
+  files: { [key: string]: IDFSizeFile };
+  overview: IDFSizeOverview;
+}

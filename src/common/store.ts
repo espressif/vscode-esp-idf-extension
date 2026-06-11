@@ -16,22 +16,58 @@
  * limitations under the License.
  */
 
-import { ExtensionContext } from "vscode";
+import {
+  ExtensionContext,
+  TreeItemCheckboxState,
+  Uri,
+  workspace,
+  WorkspaceFolder,
+} from "vscode";
 
 export class ExtensionConfigStore {
   private static self: ExtensionConfigStore;
+  private static readonly SELECTED_WORKSPACE_FOLDER =
+    "SELECTED_WORKSPACE_FOLDER";
+  /** Current key; must stay aligned with `CommandKeys.SelectFlashType` in cmdStore. */
+  private static readonly SELECT_FLASH_TYPE_CHECKBOX_KEY =
+    "espIdf.selectFlashMethod";
   private ctx: ExtensionContext;
 
   public static init(context: ExtensionContext): ExtensionConfigStore {
     if (!this.self) {
-      return new ExtensionConfigStore(context);
+      this.self = new ExtensionConfigStore(context);
+      this.self.migrateLegacySelectFlashTypeCheckboxKey();
     }
     return this.self;
   }
   private constructor(context: ExtensionContext) {
     this.ctx = context;
   }
-  public get<T>(key: string, defaultValue?: T): T {
+
+  /**
+   * Copies explorer checkbox state from the pre-rename globalState key so existing
+   * installs keep visibility preference for "Select Flash Method".
+   */
+  private migrateLegacySelectFlashTypeCheckboxKey(): void {
+    const newKey = ExtensionConfigStore.SELECT_FLASH_TYPE_CHECKBOX_KEY;
+    if (this.get<TreeItemCheckboxState>(newKey) !== undefined) {
+      return;
+    }
+    const legacyKey = "espIdf.selectFlashMethodAndFlash";
+    const legacyValue = this.get<TreeItemCheckboxState>(legacyKey);
+    if (legacyValue === undefined) {
+      return;
+    }
+    this.set(newKey, legacyValue);
+    this.clear(legacyKey);
+  }
+
+  public get<T>(key: string): T | undefined;
+  public get<T>(key: string, defaultValue: T): T;
+  public get<T>(key: string, defaultValue?: T): T | undefined {
+    if (defaultValue === undefined) {
+      return this.ctx.globalState.get<T>(key);
+    }
     return this.ctx.globalState.get<T>(key, defaultValue);
   }
   public set(key: string, value: any) {
@@ -39,5 +75,30 @@ export class ExtensionConfigStore {
   }
   public clear(key: string) {
     return this.set(key, undefined);
+  }
+  public getSelectedWorkspaceFolder(): WorkspaceFolder | undefined {
+    const fallback = workspace.workspaceFolders?.[0];
+    const storedUri = this.get<string>(
+      ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
+      ""
+    );
+    if (!storedUri) return fallback;
+    try {
+      const storedFolder = workspace.getWorkspaceFolder(Uri.parse(storedUri));
+      if (!storedFolder) {
+        this.clear(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER);
+        return fallback;
+      }
+      return storedFolder;
+    } catch {
+      this.clear(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER);
+      return fallback;
+    }
+  }
+  public setSelectedWorkspaceFolder(selectedFolderUri: Uri) {
+    this.set(
+      ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
+      selectedFolderUri.toString()
+    );
   }
 }
