@@ -23,6 +23,7 @@ import {
 } from "vscode";
 import { Logger } from "../common/logger";
 import { ESP } from "../config";
+import { getIdfConfigurationSource } from "./idfConfigurationSource";
 import { getCurrentIdfConfiguration } from "./env";
 import { ProjectConfElement } from "../project-conf/projectConfiguration";
 import { SerialPort } from "../espIdf/serial/serialPort";
@@ -90,9 +91,17 @@ export function parameterToProjectConfigMap(
         : "";
     case "idf.customExtraVars":
       const paramUpdated = addWinIfRequired(param);
-      let settingsVars = workspace
-        .getConfiguration("", scope)
-        .get(paramUpdated) as { [key: string]: any };
+      const rawSettingsVars = getIdfConfigurationSource().getScoped(
+        "",
+        scope,
+        paramUpdated
+      );
+      let settingsVars =
+        rawSettingsVars &&
+        typeof rawSettingsVars === "object" &&
+        !Array.isArray(rawSettingsVars)
+          ? (rawSettingsVars as { [key: string]: any })
+          : {};
       let resultVars: { [key: string]: any } = {};
       for (const envKey of Object.keys(settingsVars)) {
         resultVars[envKey] = settingsVars[envKey];
@@ -162,9 +171,10 @@ export function readParameter(
   scope?: ConfigurationScope
 ): string | string[] | boolean | ConfigurationTarget | { [key: string]: any } {
   const paramUpdated = addWinIfRequired(param);
-  let paramValue = parameterToProjectConfigMap(param);
+  let paramValue = parameterToProjectConfigMap(param, scope);
   paramValue =
-    paramValue || workspace.getConfiguration("", scope).get(paramUpdated);
+    paramValue ||
+    getIdfConfigurationSource().getScoped("", scope, paramUpdated);
   if (typeof paramValue === "undefined") {
     return "";
   }
@@ -225,10 +235,11 @@ export async function writeParameter(
   wsFolderUri?: Uri
 ) {
   const paramValue = addWinIfRequired(param);
+  const conf = getIdfConfigurationSource();
   if (target !== ConfigurationTarget.WorkspaceFolder) {
-    await workspace.getConfiguration().update(paramValue, newValue, target);
+    await conf.updateGlobal(paramValue, newValue, target);
 
-    workspace.getConfiguration("");
+    conf.refreshConfiguration();
     return target === ConfigurationTarget.Global
       ? "User settings"
       : "Workspace settings";
@@ -248,11 +259,9 @@ export async function writeParameter(
       }
       wsFolderUri = workspaceFolder.uri;
     }
-    await workspace
-      .getConfiguration("", wsFolderUri)
-      .update(paramValue, newValue, target);
+    await conf.updateScoped("", wsFolderUri, paramValue, newValue, target);
 
-    workspace.getConfiguration("");
+    conf.refreshConfiguration();
     return wsFolderUri.fsPath;
   }
 }
@@ -295,7 +304,7 @@ export async function updateConfParameter(
 }
 
 export function checkTypeOfConfiguration(paramName: string) {
-  const confSetting = workspace.getConfiguration().inspect(paramName);
+  const confSetting = getIdfConfigurationSource().inspectGlobal(paramName);
   if (typeof confSetting?.defaultValue === "object") {
     return Array.isArray(confSetting.defaultValue) ? "array" : "object";
   } else {
