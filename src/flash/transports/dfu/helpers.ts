@@ -1,0 +1,103 @@
+/*
+ * Project: ESP-IDF VSCode Extension
+ * File Created: Monday, 24th January 2022 3:15:44 pm
+ * Copyright 2022 Espressif Systems (Shanghai) CO LTD
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import * as vscode from "vscode";
+import { execChildProcess } from "../../../utils";
+import { OutputChannel } from "../../../logger/outputChannel";
+
+function deviceLabel(selectedDevice: string) {
+  const regex = /:\d+]/g;
+  const match = selectedDevice.match(regex);
+  const pid =
+    match?.[0] !== undefined
+      ? Number(match[0].slice(1, -1))
+      : NaN;
+
+  if (pid === 2) {
+    return "ESP32-S2";
+  } else if (pid === 9) {
+    return "ESP32-S3";
+  } else {
+    return "Unknown";
+  }
+}
+
+export async function getDfuList(env: { [key: string]: string }) {
+  const dfuListStr = await execChildProcess(
+    "dfu-util",
+    ["--list"],
+    process.cwd(),
+    OutputChannel.init(),
+    {
+      env,
+      maxBuffer: 500 * 1024,
+      cwd: process.cwd(),
+    }
+  );
+  const arrayDfuDevices = listAvailableDfuDevices(dfuListStr);
+  return arrayDfuDevices;
+}
+
+export function listAvailableDfuDevices(text: string) {
+  const regex = new RegExp(
+    /\[([0-9a-fA-F]{4}\:[0-9a-fA-F]{4}\]) ver=.+, devnum=[0-9]+, cfg=.+, intf=.+, path=".+", alt=.+, name=".+", serial=".+"/g
+  );
+  const arrayDfuDevices = text.match(regex);
+  return arrayDfuDevices;
+}
+
+/**
+ * Select IDF target PID for DFU flashing
+ * @param {string} chip - String to identify the chip (IDF_TARGET)
+ * @returns {number} PID Number for DFU
+ */
+export function selectedDFUAdapterId(chip: string): number {
+  switch (chip) {
+    case "esp32s2":
+      return 2;
+    case "esp32s3":
+      return 9;
+    default:
+      return -1;
+  }
+}
+
+export async function selectDfuDevice(arrDfuDevices: string[]) {
+  let options: { label: string; detail: string }[] = [];
+  for (let i = 0; i < arrDfuDevices.length; i++) {
+    options.push({
+      label: deviceLabel(arrDfuDevices[i]),
+      detail: arrDfuDevices[i],
+    });
+  }
+
+  let selectedDfuDevice = await vscode.window.showQuickPick(options, {
+    ignoreFocusOut: true,
+    matchOnDetail: true,
+    placeHolder: "Select one of the available devices from the list",
+  });
+
+  if (selectedDfuDevice) {
+    const pathMatch = selectedDfuDevice.detail.match(/path="([^"]+)"/);
+    if (!pathMatch?.[1]) {
+      throw new Error("NO_DFU_DEVICE_PATH_FOUND");
+    }
+    return pathMatch[1];
+  } else {
+    throw new Error("NO_DFU_DEVICE_SELECTED");
+  }
+}
