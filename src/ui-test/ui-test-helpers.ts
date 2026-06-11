@@ -15,8 +15,12 @@
  * limitations under the License.
  */
 
+import { pathExists } from "fs-extra";
 import { resolve } from "path";
-import { InputBox, Workbench } from "vscode-extension-tester";
+import { BottomBarPanel, InputBox, Workbench } from "vscode-extension-tester";
+
+const BUILD_FAILURE_PATTERN =
+  /ninja: build stopped|CMake Error|FAILED:|ninja: error|Compilation failed/i;
 
 export const testWorkspaceDir = resolve(
   __dirname,
@@ -26,13 +30,114 @@ export const testWorkspaceDir = resolve(
   "testWorkspace"
 );
 
+export const helloWorldBinPath = resolve(
+  testWorkspaceDir,
+  "build",
+  "hello-world.bin"
+);
+
+export const testHardwareSerialPort =
+  process.env.IDF_UI_TEST_SERIAL_PORT ?? "/dev/ttyUSB1";
+
+export async function dismissNotifications(): Promise<void> {
+  const notifications = await new Workbench().getNotifications();
+  for (const notification of notifications) {
+    await notification.dismiss();
+  }
+}
+
+export async function waitForTerminalOutput(
+  pattern: RegExp,
+  timeoutMs: number
+): Promise<string> {
+  const panel = new BottomBarPanel();
+  const terminalView = await panel.openTerminalView();
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const text = await terminalView.getText();
+    if (pattern.test(text)) {
+      return text;
+    }
+    await new Promise((res) => setTimeout(res, 5000));
+  }
+
+  const text = await terminalView.getText();
+  throw new Error(
+    `Timed out waiting for terminal output matching ${pattern}. Last output:\n${text}`
+  );
+}
+
+export async function waitForPathAbsent(
+  filePath: string,
+  timeoutMs: number
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    if (!(await pathExists(filePath))) {
+      return;
+    }
+    await new Promise((res) => setTimeout(res, 2000));
+  }
+
+  throw new Error(`Timed out waiting for file to be removed: ${filePath}`);
+}
+
+async function readTerminalText(): Promise<string> {
+  const panel = new BottomBarPanel();
+  const terminalView = await panel.openTerminalView();
+  return terminalView.getText();
+}
+
+function throwIfBuildFailed(terminalText: string): void {
+  if (BUILD_FAILURE_PATTERN.test(terminalText)) {
+    throw new Error(`Build failed. Terminal output:\n${terminalText}`);
+  }
+}
+
+export async function waitForBuildComplete(
+  binPath: string,
+  timeoutMs: number
+): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  let lastFailureCheck = 0;
+  const failureCheckIntervalMs = 30000;
+
+  while (Date.now() < deadline) {
+    if (await pathExists(binPath)) {
+      return `Build complete: ${binPath}`;
+    }
+
+    const now = Date.now();
+    if (now - lastFailureCheck >= failureCheckIntervalMs) {
+      lastFailureCheck = now;
+      throwIfBuildFailed(await readTerminalText());
+    }
+
+    await new Promise((res) => setTimeout(res, 2000));
+  }
+
+  const text = await readTerminalText();
+  throwIfBuildFailed(text);
+  const binExists = await pathExists(binPath);
+  throw new Error(
+    `Timed out waiting for build to complete. bin exists: ${binExists}. Last terminal output:\n${text}`
+  );
+}
+
 /** Must match command palette labels exactly (category + package.nls title). */
 export const ESP_IDF_COMMANDS = {
   fullClean: "ESP-IDF: Full Clean Project",
   build: "ESP-IDF: Build Your Project",
   selectPort: "ESP-IDF: Select Port to Use (COM, tty, usbserial)",
+  selectMonitorPort:
+    "ESP-IDF: Select Monitor Port to Use (COM, tty, usbserial)",
   selectFlashMethod: "ESP-IDF: Select Flash Method",
   flash: "ESP-IDF: Flash Your Project",
+  monitor: "ESP-IDF: Monitor Device",
+  buildFlashMonitor:
+    "ESP-IDF: Build, Flash and Start a Monitor on Your Device",
 } as const;
 
 export async function openTestProject(): Promise<void> {
