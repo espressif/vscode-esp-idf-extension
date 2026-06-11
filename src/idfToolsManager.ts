@@ -68,7 +68,7 @@ export class IdfToolsManager {
 
   public getPackageList(onReqPkgs?: string[]): Promise<IPackage[]> {
     return new Promise<IPackage[]>((resolve, reject) => {
-      if (!this.allPackages) {
+      if (this.allPackages.length === 0) {
         if (this.toolsJson.tools) {
           this.allPackages = this.toolsJson.tools as IPackage[];
           // Change relative path to desired full paths.
