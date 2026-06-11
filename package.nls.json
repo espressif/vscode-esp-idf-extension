@@ -83,7 +83,6 @@
   "espIdf.partition.table.refresh.title": "Refresh Partition Table",
   "espIdf.pickAWorkspaceFolder.title": "Pick a Workspace Folder",
   "espIdf.projectConf.title": "Select Project Configuration",
-  "espIdf.projectConfigurationEditor.title": "Open Project Configuration",
   "espIdf.qemuDebug.title": "Launch QEMU Debug Session",
   "espIdf.removeCoverage.title": "Remove Editor Coverage",
   "espIdf.saveDefSdkconfig.title": "ESP-IDF: Save Default SDKCONFIG File (save-defconfig)",
@@ -219,5 +218,6 @@
   "command.errorHints.clearAll.title": "Clear All Error Hints",
   "command.errorHints.clearBuild.title": "Clear Build Error Hints",
   "command.errorHints.clearOpenOCD.title": "Clear OpenOCD Error Hints",
-  "Launch Debug": "Launch Debug"
+  "Launch Debug": "Launch Debug",
+  "param.saveLastProjectConfiguration": "Save and restore the last selected project configuration when reopening a workspace. When enabled, the extension will restore the last used configuration if it exists, otherwise no configuration will be selected. When disabled, no configuration will be selected by default."
 }

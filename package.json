@@ -110,6 +110,15 @@
   "main": "./dist/extension",
   "l10n": "./l10n",
   "contributes": {
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          "CMakePresets.json",
+          "CMakeUserPresets.json"
+        ],
+        "url": "./internal/com.espressif.idf.uploads/cmakepresets/esp-idf-cmakepresets-schema-v1.json"
+      }
+    ],
     "walkthroughs": [
       {
         "id": "espIdf.walkthrough.basic-usage",
@@ -658,6 +667,12 @@
             "default": "",
             "description": "%param.currentSetup%",
             "scope": "resource"
+          },
+          "idf.saveLastProjectConfiguration": {
+            "type": "boolean",
+            "default": true,
+            "scope": "resource",
+            "description": "%param.saveLastProjectConfiguration%"
           },
           "idf.gitPath": {
             "type": "string",
@@ -1753,11 +1768,6 @@
       {
         "command": "espIdf.welcome.start",
         "title": "%espIdf.welcome.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.projectConfigurationEditor",
-        "title": "%espIdf.projectConfigurationEditor.title%",
         "category": "ESP-IDF"
       },
       {
