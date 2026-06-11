@@ -41,6 +41,8 @@ import { updateCurrentProfileIdfTarget } from "../../project-conf";
 import { DevkitsCommand } from "./DevkitsCommand";
 import {
   clearAdapterSerial,
+  storeAdapterSerial,
+  supportsSerialFromDetectConfig,
 } from "../openOcd/adapterSerial";
 import { SerialPort } from "../serial/serialPort";
 import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
@@ -54,6 +56,7 @@ export interface ISetTargetQuickPickItems {
   boardInfo?: {
     location: string;
     config_files: string[];
+    serial_number?: string;
   };
   description?: string;
   isConnected?: boolean;
@@ -97,13 +100,14 @@ export async function setIdfTarget(
       try {
         const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
         let connectedBoards: ISetTargetQuickPickItems[] = [];
+        let openOCDVersion: string | undefined;
 
         const isDebugging = debug.activeDebugSession !== undefined;
 
         if (!isDebugging) {
           try {
             const openOCDManager = OpenOCDManager.init();
-            const openOCDVersion = await openOCDManager.version();
+            openOCDVersion = await openOCDManager.version();
             const devkitsCmd = new DevkitsCommand(workspaceFolder.uri);
             const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
             const openOcdPath = await OpenOCDManager.getOpenOcdPath(
@@ -124,7 +128,6 @@ export async function setIdfTarget(
                         idfTarget: targetsFromIdf.find(
                           (t) => t.target === b.target
                         ),
-                        description: b.description,
                         detail: `Status: CONNECTED${
                           b.location ? `   Location: ${b.location}` : ""
                         }`,
@@ -164,7 +167,7 @@ export async function setIdfTarget(
           connectedBoards.length > 0
             ? [
                 ...connectedBoards,
-                { kind: QuickPickItemKind.Separator, label: "Default Boards" },
+                { kind: QuickPickItemKind.Separator, label: l10n.t("Default Boards") },
                 ...defaultBoards,
               ]
             : defaultBoards;
@@ -185,6 +188,16 @@ export async function setIdfTarget(
         // Clear stored adapter serial and location when target changes
         clearAdapterSerial(workspaceFolder.uri);
         delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
+
+        if (
+          selectedTarget.isConnected &&
+          selectedTarget.boardInfo?.serial_number &&
+          openOCDVersion &&
+          supportsSerialFromDetectConfig(openOCDVersion)
+        ) {
+          storeAdapterSerial(workspaceFolder.uri, selectedTarget.boardInfo.serial_number);
+          updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
+        }
 
         if (selectedTarget.isConnected && selectedTarget.boardInfo) {
           // Directly set OpenOCD configs for connected board
