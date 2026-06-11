@@ -37,6 +37,7 @@ import {
   readParameter,
   writeParameter,
 } from "./configuration/idf";
+import { resetIdfConfigurationSource } from "./configuration/idfConfigurationSource";
 import {
   getCurrentIdfConfiguration,
   getVirtualEnvPythonPath,
@@ -218,6 +219,7 @@ let projectConfigManager: ProjectConfigurationManager | undefined;
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
   Logger.init(context);
+  resetIdfConfigurationSource();
   ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
 
