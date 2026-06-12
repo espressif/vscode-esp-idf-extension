@@ -24,7 +24,7 @@ import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import { join } from "path";
 import { ConfigurationTarget, StatusBarItem, Uri } from "vscode";
 import { readParameter, writeParameter } from "../configuration/idf";
-import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
+import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { getEnvVariables } from "./loadSettings";
 import { ESP } from "../config";
 
@@ -205,7 +205,6 @@ export async function saveSettings(
     ConfigurationTarget.Global
   );
   if (espIdfStatusBar) {
-    const commandDictionary = createCommandDictionary();
     espIdfStatusBar.text = `$(${
       commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
     }) ESP-IDF v${setupConf.version}`;

@@ -30,10 +30,7 @@ import {
   statusBarItems,
   updateOpenOcdAdapterStatusBarItem,
 } from "../../statusBar";
-import {
-  CommandKeys,
-  createCommandDictionary,
-} from "../../cmdTreeView/cmdStore";
+import { commandDictionary, CommandKeys } from "../../cmdTreeView/cmdStore";
 import {
   parseAdapterSerialFromLog,
   storeAdapterSerial,
@@ -204,7 +201,9 @@ export class OpenOCDManager extends EventEmitter {
       return;
     }
     if (!this.workspace) {
-      throw new Error("No workspace folder found. Please open a workspace to launch OpenOCD server.");
+      throw new Error(
+        "No workspace folder found. Please open a workspace to launch OpenOCD server."
+      );
     }
     const modifiedEnv = await configureEnvVariables(this.workspace);
     const openOcdPath = await OpenOCDManager.getOpenOcdPath(
@@ -408,7 +407,6 @@ export class OpenOCDManager extends EventEmitter {
       1
     );
     this.statusBar.name = this.statusBar.text = "OpenOCD Server";
-    const commandDictionary = createCommandDictionary();
     this.statusBar.tooltip = commandDictionary[CommandKeys.OpenOCD].tooltip;
     this.statusBar.command = CommandKeys.OpenOCD;
     if (
