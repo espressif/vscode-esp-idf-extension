@@ -31,7 +31,7 @@ import { ESP } from "../config";
 import { readParameter } from "../configuration/idf";
 import { Logger } from "../common/logger";
 import { statusBarItems } from "../statusBar";
-import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
+import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { isBinInPath } from "../utils";
 import { IdfToolsManager } from "../idfToolsManager";
 import { configureEnvVariables } from "../common/prepareEnv";
@@ -105,7 +105,10 @@ export class QemuManager extends EventEmitter {
           break;
       }
     } catch (error) {
-      const msg = error instanceof Error && error.message ? error.message : "Error executing QEMU command";
+      const msg =
+        error instanceof Error && error.message
+          ? error.message
+          : "Error executing QEMU command";
       Logger.errorNotify(msg, error as Error, "QemuManager commandHandler");
     }
   }
@@ -246,7 +249,6 @@ export class QemuManager extends EventEmitter {
         0
       );
       this._statusBarItem.name = this._statusBarItem.text = "QEMU";
-      const commandDictionary = createCommandDictionary();
       this._statusBarItem.tooltip =
         commandDictionary[CommandKeys.QemuServer].tooltip;
       this._statusBarItem.command = CommandKeys.QemuServer;
