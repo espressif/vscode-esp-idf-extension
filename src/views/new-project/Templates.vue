@@ -18,7 +18,7 @@ let {
   searchString,
 } = storeToRefs(store);
 
-import type { IExample, IExampleCategory } from "../newProject/Example";
+import type { IExample, IExampleCategory } from "../../newProject/Example";
 
 function flattenExamples(category: IExampleCategory): IExample[] {
   let result: IExample[] = [];
