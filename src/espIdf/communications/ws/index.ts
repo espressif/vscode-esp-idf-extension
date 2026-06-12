@@ -18,15 +18,15 @@
 
 import { EventEmitter } from "events";
 import WebSocket, { Server } from "ws";
-import { Logger } from "../../../logger/logger";
+import { Logger } from "../../../common/logger";
 
-interface GDBStubResponse {
+export interface GDBStubResponse {
   event: "gdb_stub";
   port: string;
   prog: string;
 }
 
-interface CoreDumpResponse {
+export interface CoreDumpResponse {
   event: "coredump";
   file: string;
   prog: string;

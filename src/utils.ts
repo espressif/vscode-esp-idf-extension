@@ -33,16 +33,15 @@ import { marked } from "marked";
 import { EOL, platform } from "os";
 import * as path from "path";
 import * as vscode from "vscode";
-import { IdfComponent } from "./idfComponent";
-import * as idfConf from "./idfConfiguration";
-import { Logger } from "./logger/logger";
-import { getSDKConfigFilePath } from "./workspaceConfig";
-import { OutputChannel } from "./logger/outputChannel";
+import { readParameter } from "./configuration/idf";
+import { Logger } from "./common/logger";
+import { OutputChannel } from "./common/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
-import { isFlashEncryptionEnabled } from "./flash/verifyFlashEncryption";
+import { isFlashEncryptionEnabled } from "./flash/verify/flashEncryption";
 import { configureClangSettings } from "./clang";
 import { configureEnvVariables } from "./common/prepareEnv";
+import { getSDKConfigFilePath } from "./configuration/workspace";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
 
@@ -57,104 +56,6 @@ export function setExtensionContext(context: vscode.ExtensionContext): void {
 
 export const packageJson = vscode.extensions.getExtension(ESP.extensionID)
   .packageJSON;
-
-type PreCheckFunc = (...args: any[]) => boolean;
-export type PreCheckInput = [PreCheckFunc, string];
-export class PreCheck {
-  public static perform(
-    preCheckFunctions: PreCheckInput[],
-    proceed: () => any
-  ): any {
-    let isPassedAll: boolean = true;
-    preCheckFunctions.forEach((preCheck: PreCheckInput) => {
-      if (!preCheck[0]()) {
-        isPassedAll = false;
-        Logger.errorNotify(
-          preCheck[1],
-          new Error("PRECHECK_FAILED"),
-          "utils precheck failed",
-          undefined,
-          false
-        );
-      }
-    });
-    if (isPassedAll) {
-      return proceed();
-    }
-  }
-  public static isWorkspaceFolderOpen(): boolean {
-    return (
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders.length > 0
-    );
-  }
-  public static isNotDockerContainer(): boolean {
-    return vscode.env.remoteName !== "dev-container";
-  }
-  public static notUsingWebIde(): boolean {
-    if (vscode.env.remoteName === "codespaces") {
-      return false;
-    }
-    return process.env.WEB_IDE ? false : true;
-  }
-
-  /**
-   * Checks if the extension is running in a VS Code fork (not the original Visual Studio Code)
-   * @returns true if running in a fork like Cursor, VSCodium, etc., false if running in original VS Code
-   * @example
-   * if (PreCheck.isRunningInVSCodeFork()) {
-   *   // Fork-specific behavior
-   *   Logger.info("Running in VS Code fork");
-   * }
-   */
-  public static isRunningInVSCodeFork(): boolean {
-    return vscode.env.appName !== "Visual Studio Code";
-  }
-
-  public static openOCDVersionValidator(
-    minVersion: string,
-    currentVersion: string
-  ) {
-    try {
-      const minVersionParsed = minVersion.match(/v(\d+.?\d+.?\d)-esp32-(\d+)/);
-      const currentVersionParsed = currentVersion.match(
-        /v(\d+.?\d+.?\d)-esp32-(\d+)/
-      );
-      if (!minVersionParsed || !currentVersionParsed) {
-        throw new Error("Error parsing OpenOCD versions");
-      }
-      const validationResult =
-        currentVersionParsed[1] >= minVersionParsed[1]
-          ? currentVersionParsed[2] >= minVersionParsed[2]
-            ? true
-            : false
-          : false;
-      return validationResult;
-    } catch (error) {
-      Logger.error(
-        `openOCDVersionValidator failed unexpectedly - min:${minVersion}, curr:${currentVersion}`,
-        error,
-        "src utils openOCDVersionValidator"
-      );
-      return false;
-    }
-  }
-  public static espIdfVersionValidator(
-    minVersion: string,
-    currentVersion: string
-  ) {
-    try {
-      return compareVersion(currentVersion, minVersion) !== -1;
-    } catch (error) {
-      Logger.error(
-        `ESP-IDF version validator failed - min: ${minVersion}, current: ${currentVersion}`,
-        error,
-        "src utils espIdfVersionValidator"
-      );
-      return false;
-    }
-  }
-}
 
 export interface ISpawnOptions extends childProcess.SpawnOptions {
   /** Cancellation token to cancel the spawn */
@@ -335,7 +236,7 @@ export async function setCCppPropertiesJsonCompilerPath(
 export async function setCCppPropertiesJsonCompileCommands(
   curWorkspaceFsPath: vscode.Uri
 ) {
-  const buildDirPath = idfConf.readParameter(
+  const buildDirPath = readParameter(
     "idf.buildPath",
     curWorkspaceFsPath
   ) as string;
@@ -483,28 +384,6 @@ export async function getConfigValueFromSDKConfig(
   return match ? match[1] : "";
 }
 
-export async function getMonitorBaudRate(workspacePath: vscode.Uri) {
-  let sdkMonitorBaudRate = "";
-  try {
-    sdkMonitorBaudRate = idfConf.readParameter(
-      "idf.monitorBaudRate",
-      workspacePath
-    ) as string;
-    if (!sdkMonitorBaudRate) {
-      sdkMonitorBaudRate = await getConfigValueFromSDKConfig(
-        "CONFIG_ESP_CONSOLE_UART_BAUDRATE",
-        workspacePath
-      );
-    }
-  } catch (error) {
-    const errMsg = error.message
-      ? error.message
-      : "ERROR reading CONFIG_ESP_CONSOLE_UART_BAUDRATE from sdkconfig";
-    Logger.error(errMsg, error, "src utils getMonitorBaudRate");
-  }
-  return sdkMonitorBaudRate;
-}
-
 export async function delConfigFile(workspaceRoot: vscode.Uri) {
   const sdkconfigFile = await getSDKConfigFilePath(workspaceRoot);
   fs.unlinkSync(sdkconfigFile);
@@ -529,37 +408,6 @@ export function writeJson(jsonPath: string, object: any) {
   return writeJSON(jsonPath, object, {
     spaces: 2,
   });
-}
-
-export function readComponentsDirs(filePath): IdfComponent[] {
-  const filesOrFolders: IdfComponent[] = [];
-
-  const files = fs.readdirSync(filePath);
-
-  const openComponentMsg = vscode.l10n.t("ESP-IDF: Open IDF Component File");
-
-  for (const file of files) {
-    const stats = fs.statSync(path.join(filePath, file));
-    const isCollapsable: vscode.TreeItemCollapsibleState = stats.isDirectory()
-      ? 1
-      : 0;
-    const idfCommand = stats.isDirectory()
-      ? void 0
-      : {
-          arguments: [vscode.Uri.file(path.join(filePath, file))],
-          command: "espIdf.openIdfDocument",
-          title: openComponentMsg,
-        };
-    const component = new IdfComponent(
-      file,
-      isCollapsable,
-      vscode.Uri.file(path.join(filePath, file)),
-      idfCommand
-    );
-    filesOrFolders.push(component);
-  }
-
-  return filesOrFolders;
 }
 
 export function isJson(jsonString: string) {
@@ -1285,10 +1133,7 @@ export async function getConfigValueFromBuild(
   configKey: string,
   workspacePath: vscode.Uri
 ): Promise<string> {
-  const buildPath = idfConf.readParameter(
-    "idf.buildPath",
-    workspacePath
-  ) as string;
+  const buildPath = readParameter("idf.buildPath", workspacePath) as string;
   const jsonFilePath = path.join(buildPath, "config", "sdkconfig.json");
   try {
     const data = await readFile(jsonFilePath, "utf-8");
@@ -1316,16 +1161,13 @@ export async function getConfigValueFromBuild(
 export async function shouldDisableMonitorReset(
   workspaceUri: vscode.Uri
 ): Promise<boolean> {
-  const configNoReset = idfConf.readParameter(
-    "idf.monitorNoReset",
-    workspaceUri
-  );
+  const configNoReset = readParameter("idf.monitorNoReset", workspaceUri);
 
   if (configNoReset === true) {
     return true;
   }
 
-  if (isFlashEncryptionEnabled(workspaceUri)) {
+  if (await isFlashEncryptionEnabled(workspaceUri)) {
     const valueReleaseModeEnabled = await getConfigValueFromSDKConfig(
       "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE",
       workspaceUri

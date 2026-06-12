@@ -28,7 +28,7 @@ export class SysviewTraceProc extends AbstractTracingToolManager {
   }
 
   public async parse(): Promise<Buffer> {
-    if (!this.preCheck([this.traceFilePath], constants.R_OK)) {
+    if (!this.traceFilePath || !this.preCheck([this.traceFilePath], constants.R_OK)) {
       throw new Error("Trace file does not exists or not accessible");
     }
     if (

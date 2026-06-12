@@ -37,16 +37,16 @@ import { configureUnityApp } from "./configure";
 import { getFileList } from "./utils";
 import { ESP } from "../../config";
 import { UnityTestRunner } from "./unityRunner/unityTestRunner";
-import { readParameter, readSerialPort } from "../../idfConfiguration";
+import { readParameter, readSerialPort } from "../../configuration/idf";
 import { UnityParserOptions } from "./unityRunner/types";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 
 const unitTestControllerId = "IDF_UNIT_TEST_CONTROLLER";
 const unitTestControllerLabel = "ESP-IDF Unit test controller";
 
 export class UnitTest {
   public unitTestController: TestController;
-  private unitTestAppUri: Uri;
+  private unitTestAppUri: Uri | undefined;
 
   constructor(context: ExtensionContext) {
     this.unitTestController = tests.createTestController(
@@ -83,18 +83,18 @@ export class UnitTest {
       let workspaceFolderUri: Uri | undefined;
       if (!this.unitTestAppUri) {
         try {
-          // Get stored workspace folder URI and ensure it's a proper vscode.Uri object
-          const storedUri = ESP.GlobalConfiguration.store.get<Uri>(
-            ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
-          );
-          let workspaceFolder = workspace.getWorkspaceFolder(storedUri);
+          let workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
 
-          workspaceFolderUri = workspaceFolder
-            ? workspaceFolder.uri
-            : undefined;
+          if (workspaceFolder) {
+            workspaceFolderUri = workspaceFolder.uri;
+          }
 
           // Fallback to first workspace folder if no stored URI or conversion failed
-          if (!workspaceFolderUri && workspace.workspaceFolders?.length > 0) {
+          if (
+            !workspaceFolderUri &&
+            workspace.workspaceFolders &&
+            workspace.workspaceFolders.length > 0
+          ) {
             workspaceFolderUri = workspace.workspaceFolders[0].uri;
           }
 
@@ -110,7 +110,11 @@ export class UnitTest {
             cancelToken
           );
         } catch (error) {
-          Logger.error("Failed to configure unit test app:", error, "unitTest runHandler configurePytestUnitApp");
+          Logger.error(
+            "Failed to configure unit test app:",
+            error as Error,
+            "unitTest runHandler configureUnityApp"
+          );
           return;
         }
       }

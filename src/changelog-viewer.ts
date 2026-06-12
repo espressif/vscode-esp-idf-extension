@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 18th September 2020 11:39:20 am
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,9 +19,9 @@
 import { join } from "path";
 import { commands, ExtensionContext, Uri, window } from "vscode";
 import { ESP } from "./config";
-import { Logger } from "./logger/logger";
+import { Logger } from "./common/logger";
 import { packageJson } from "./utils";
-import { NotificationMode, readParameter } from "./idfConfiguration";
+import { NotificationMode, readParameter } from "./configuration/idf";
 
 export namespace ChangelogViewer {
   export async function showChangeLogAndUpdateVersion(cxt: ExtensionContext) {

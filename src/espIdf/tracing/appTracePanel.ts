@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 17th July 2019 3:58:48 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,13 +20,13 @@
 import AnsiToHtml from "ansi-to-html";
 import * as path from "path";
 import * as vscode from "vscode";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { getWebViewFavicon } from "../../utils";
 import { LogTraceProc } from "./tools/logTraceProc";
 import { SysviewTraceProc } from "./tools/sysviewTraceProc";
 import { Addr2Line } from "./tools/xtensa/addr2line";
 import { ReadElf } from "./tools/xtensa/readelf";
-import { getProjectElfFilePath } from "../../workspaceConfig";
+import { getProjectElfFilePath } from "../../configuration/workspace";
 
 export class AppTracePanel {
   public static createOrShow(

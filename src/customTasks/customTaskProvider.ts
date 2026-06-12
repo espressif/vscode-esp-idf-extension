@@ -20,16 +20,12 @@ import {
   ShellExecution,
   ShellExecutionOptions,
   TaskPanelKind,
-  TaskPresentationOptions,
-  TaskRevealKind,
-  TaskScope,
   Uri,
-  workspace,
 } from "vscode";
-import { NotificationMode, readParameter } from "../idfConfiguration";
-import { TaskManager } from "../taskManager";
-import { ShellOutputCapturingExecution } from "../taskManager/customExecution";
+import { readParameter } from "../configuration/idf";
+import { getWorkspaceFolderForTask, TaskManager } from "../taskManager/taskManager";
 import { configureEnvVariables } from "../common/prepareEnv";
+import { ShellOutputCapturingExecution } from "../taskManager/shellCaptureExecution";
 
 export enum CustomTaskType {
   Custom = "custom",
@@ -48,7 +44,7 @@ export class CustomTask {
     CustomTask.isRunningCustomTask = flag;
   }
 
-  public getProcessExecution(
+  public getShellExecution(
     cmdString: string,
     options: ShellExecutionOptions,
     captureOutput?: boolean
@@ -68,23 +64,23 @@ export class CustomTask {
     let taskName: string = "";
     switch (taskType) {
       case CustomTaskType.PreBuild:
-        command = readParameter("idf.preBuildTask", this.currentWorkspace);
+        command = readParameter("idf.preBuildTask", this.currentWorkspace) as string;
         taskName = "Pre Build";
         break;
       case CustomTaskType.PostBuild:
-        command = readParameter("idf.postBuildTask", this.currentWorkspace);
+        command = readParameter("idf.postBuildTask", this.currentWorkspace) as string;
         taskName = "Post Build";
         break;
       case CustomTaskType.PreFlash:
-        command = readParameter("idf.preFlashTask", this.currentWorkspace);
+        command = readParameter("idf.preFlashTask", this.currentWorkspace) as string;
         taskName = "Pre Flash";
         break;
       case CustomTaskType.PostFlash:
-        command = readParameter("idf.postFlashTask", this.currentWorkspace);
+        command = readParameter("idf.postFlashTask", this.currentWorkspace) as string;
         taskName = "Post Flash";
         break;
       case CustomTaskType.Custom:
-        command = readParameter("idf.customTask", this.currentWorkspace);
+        command = readParameter("idf.customTask", this.currentWorkspace) as string;
         taskName = "Custom task";
       default:
         break;
@@ -111,81 +107,17 @@ export class CustomTask {
     if (shellExecutableArgs && shellExecutableArgs.length) {
       options.shellArgs = shellExecutableArgs;
     }
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      this.currentWorkspace
-    ) as string;
-    const showTaskOutput =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Output
-        ? TaskRevealKind.Always
-        : TaskRevealKind.Silent;
-    const customExecution = this.getProcessExecution(
+    const customExecution = this.getShellExecution(
       command,
       options,
       captureOutput
     );
-    const customTaskPresentationOptions = {
-      reveal: showTaskOutput,
-      showReuseMessage: false,
-      clear: false,
-      panel: TaskPanelKind.Dedicated,
-    } as TaskPresentationOptions;
-    const currentWorkspaceFolder = workspace.workspaceFolders?.length
-      ? workspace.workspaceFolders.find((w) => w.uri === this.currentWorkspace)
-      : undefined;
     TaskManager.addTask(
-      {
-        type: "esp-idf",
-        command: `ESP-IDF ${taskName}`,
-        taskId: `idf-${taskType}-task`,
-      },
-      currentWorkspaceFolder || TaskScope.Workspace,
-      `ESP-IDF ${taskName}`,
+      taskName,
+      getWorkspaceFolderForTask(this.currentWorkspace),
       customExecution,
-      ["espIdf", "espIdfLd"],
-      customTaskPresentationOptions
+      { panel: TaskPanelKind.Dedicated }
     );
     return customExecution;
-  }
-
-  public async runTasks(taskType: CustomTaskType) {
-    let command: string = "";
-    switch (taskType) {
-      case CustomTaskType.PreBuild:
-        command = readParameter(
-          "idf.preBuildTask",
-          this.currentWorkspace
-        ) as string;
-        break;
-      case CustomTaskType.PostBuild:
-        command = readParameter(
-          "idf.postBuildTask",
-          this.currentWorkspace
-        ) as string;
-        break;
-      case CustomTaskType.PreFlash:
-        command = readParameter(
-          "idf.preFlashTask",
-          this.currentWorkspace
-        ) as string;
-        break;
-      case CustomTaskType.PostFlash:
-        command = readParameter(
-          "idf.postFlashTask",
-          this.currentWorkspace
-        ) as string;
-        break;
-      case CustomTaskType.Custom:
-        command = readParameter(
-          "idf.customTask",
-          this.currentWorkspace
-        ) as string;
-      default:
-        break;
-    }
-    if (command) {
-      await TaskManager.runTasks();
-    }
   }
 }

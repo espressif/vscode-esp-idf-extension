@@ -16,23 +16,21 @@
  * limitations under the License.
  */
 
-import { CancellationToken, Uri, extensions, l10n } from "vscode";
+import { CancellationToken, Uri, extensions } from "vscode";
 import { ESP } from "../../config";
 import { join } from "path";
 import { copy, pathExists, readFile, writeFile } from "fs-extra";
-import { readParameter, readSerialPort } from "../../idfConfiguration";
-import { buildCommand } from "../../build/buildCmd";
-import { verifyCanFlash } from "../../flash/flashCmd";
-import { jtagFlashCommand } from "../../flash/jtagCmd";
-import { flashCommand } from "../../flash/uartFlash";
-import { OutputChannel } from "../../logger/outputChannel";
-import { Logger } from "../../logger/logger";
+import { readParameter } from "../../configuration/idf";
+import { buildMain } from "../../build/buildMain";
+import { flashMain } from "../../flash/main";
+import { CustomExecutionTaskResult } from "../../taskManager/types";
+import { OutputChannel } from "../../common/outputChannel";
+import { Logger } from "../../common/logger";
 import { getFileList, getTestComponents } from "./utils";
-import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 
 export async function configureUnityApp(
   workspaceFolder: Uri,
-  cancelToken?: CancellationToken
+  cancelToken: CancellationToken
 ) {
   try {
     let unitTestAppUri = Uri.joinPath(workspaceFolder, "unity-app");
@@ -49,11 +47,11 @@ export async function configureUnityApp(
     return unitTestAppUri;
   } catch (error) {
     const msg =
-      error && error.message
+      error instanceof Error && error.message
         ? error.message
         : "Error configuring Unity App for project";
     OutputChannel.appendLine(msg, "idf-unit-test");
-    Logger.error(msg, error, "configureUnityApp");
+    Logger.error(msg, error instanceof Error ? error : new Error(String(error)), "configureUnityApp");
   }
 }
 
@@ -61,8 +59,12 @@ export async function copyTestAppProject(
   workspaceFolder: Uri,
   testComponents: string[]
 ) {
+  const extensionPath = extensions.getExtension(ESP.extensionID)?.extensionPath;
+  if (!extensionPath) {
+    throw new Error("Extension path not found");
+  }
   let unityAppDir: string = join(
-    extensions.getExtension(ESP.extensionID).extensionPath,
+    extensionPath,
     "templates",
     "unity-app"
   );
@@ -77,7 +79,7 @@ export async function updateTestComponents(
   testComponents: string[]
 ) {
   const cmakeListFile = Uri.joinPath(unityApp, "CMakeLists.txt");
-  if (pathExists(cmakeListFile.fsPath)) {
+  if (await pathExists(cmakeListFile.fsPath)) {
     let content = await readFile(cmakeListFile.fsPath, "utf-8");
     const projectMatches = content.match(/(project\(.*?\))/g);
     if (projectMatches && projectMatches.length) {
@@ -93,7 +95,7 @@ export async function updateTestComponents(
 export async function buildTestApp(
   unitTestAppDirPath: Uri,
   cancelToken: CancellationToken
-) {
+): Promise<CustomExecutionTaskResult> {
   let flashType = readParameter(
     "idf.flashType",
     unitTestAppDirPath
@@ -101,14 +103,12 @@ export async function buildTestApp(
   if (!flashType) {
     flashType = ESP.FlashType.UART;
   }
-  let canContinue = await buildCommand(
+  const buildCmdResults = await buildMain(
     unitTestAppDirPath,
     cancelToken,
     flashType
   );
-  if (!canContinue) {
-    return;
-  }
+  return buildCmdResults;
 }
 
 export async function flashTestApp(
@@ -119,52 +119,24 @@ export async function flashTestApp(
     "idf.flashType",
     unitTestAppDirPath
   ) as ESP.FlashType;
-  const port = await readSerialPort(unitTestAppDirPath, false);
-  if (!port) {
-    return Logger.warnNotify(
-      l10n.t(
-        "No serial port found for current IDF_TARGET: {0}",
-        await getIdfTargetFromSdkconfig(unitTestAppDirPath)
-      )
-    );
+  if (!flashType) {
+    flashType = ESP.FlashType.UART;
   }
-  const flashBaudRate = readParameter("idf.flashBaudRate", unitTestAppDirPath);
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-  const idfPathDir = currentEnvVars["IDF_PATH"];
-  const canFlash = await verifyCanFlash(
-    flashBaudRate,
-    port,
+  await flashMain(
+    unitTestAppDirPath,
+    cancelToken,
     flashType,
-    unitTestAppDirPath
+    false
   );
-  if (!canFlash) {
-    return;
-  }
-  let canContinue = true;
-  if (flashType === ESP.FlashType.JTAG) {
-    canContinue = await jtagFlashCommand(unitTestAppDirPath);
-  } else {
-    canContinue = await flashCommand(
-      cancelToken,
-      flashBaudRate,
-      idfPathDir,
-      port,
-      unitTestAppDirPath,
-      flashType,
-      false
-    );
-  }
-  if (!canContinue) {
-    return;
-  }
 }
 
 export async function buildFlashTestApp(
   unitTestAppDirPath: Uri,
   cancelToken: CancellationToken
 ) {
-  await buildTestApp(unitTestAppDirPath, cancelToken);
+  const buildCmdResults = await buildTestApp(unitTestAppDirPath, cancelToken);
+  if (!buildCmdResults.continueFlag) {
+    return;
+  }
   await flashTestApp(unitTestAppDirPath, cancelToken);
 }

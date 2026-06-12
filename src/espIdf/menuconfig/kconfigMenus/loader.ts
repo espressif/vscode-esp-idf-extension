@@ -1,0 +1,105 @@
+/*
+ * Project: ESP-IDF VSCode Extension
+ * File Created: Friday, 21st June 2019 10:57:18 am
+ * Copyright 2019 Espressif Systems (Shanghai) CO LTD
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { join } from "path";
+import { readParameter } from "../../../configuration/idf";
+import { readFileSync } from "../../../utils";
+import { formatHelpText } from "./helpTextFormatter";
+import { Menu, menuType } from "../Menu";
+import { Uri } from "vscode";
+import { ConfserverValuesResponse } from "./kconfigMenuUpdater";
+
+export class KconfigMenuLoader {
+  public static updateValues(
+    config: Menu,
+    values: ConfserverValuesResponse
+  ): Menu {
+    const newConfig: Menu = config;
+    if (
+      values.values.hasOwnProperty(newConfig.name) &&
+      newConfig.type !== menuType.choice
+    ) {
+      newConfig.value =
+        newConfig.type === menuType.hex
+          ? values.values[newConfig.name].toString(16)
+          : values.values[newConfig.name];
+    }
+    if (values.defaults && values.defaults.hasOwnProperty(newConfig.name)) {
+      newConfig.default =
+        newConfig.type === menuType.hex
+          ? values.defaults[newConfig.name].toString(16)
+          : values.defaults[newConfig.name];
+    }
+    if (values.visible.hasOwnProperty(newConfig.id)) {
+      newConfig.isVisible = values.visible[newConfig.id];
+    }
+    if (values.ranges.hasOwnProperty(newConfig.name)) {
+      newConfig.range = values.ranges[newConfig.name];
+    }
+    for (let i = 0; i < newConfig.children.length; i++) {
+      newConfig.children[i] = this.updateValues(newConfig.children[i], values);
+      if (newConfig.type === menuType.choice) {
+        values.values[newConfig.children[i].name]
+          ? (newConfig.value = newConfig.children[i].name)
+          : (newConfig.children[i].value = false);
+      }
+    }
+    return newConfig;
+  }
+
+  constructor(private workspaceFolder: Uri) {}
+
+  public initMenuconfigServer(): Menu[] {
+    const buildDirPath = readParameter(
+      "idf.buildPath",
+      this.workspaceFolder
+    ) as string;
+    const kconfigMenusPath = join(buildDirPath, "config", "kconfig_menus.json");
+    const kconfigJson = JSON.parse(readFileSync(kconfigMenusPath));
+
+    const configs: Menu[] = [];
+    for (const config of kconfigJson) {
+      const menu: Menu = this.mapJsonToMenuObject(config);
+      configs.push(menu);
+    }
+    return configs;
+  }
+
+  public mapJsonToMenuObject(config: any): Menu {
+    const menu: Menu = {
+      id: config.id,
+      name: config.name,
+      help: formatHelpText(config.help),
+      range: config.range,
+      title: config.title,
+      type: config.type,
+      isCollapsed: false,
+      isMenuconfig: config.is_menuconfig,
+      isVisible: false,
+      dependsOn: config.depends_on,
+      children: [],
+      value: null,
+      default: null,
+    };
+    for (const child of config.children) {
+      const childMenu: Menu = this.mapJsonToMenuObject(child);
+      menu.children.push(childMenu);
+    }
+    return menu;
+  }
+}

@@ -11,8 +11,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+import { Command, TreeItem, TreeItemCollapsibleState, Uri } from "vscode";
 
 export interface IComponent {
   path: string;
   name: string;
+}
+export class IdfComponentTreeItem extends TreeItem {
+  constructor(
+    public readonly label: string,
+    public readonly collapsibleState: TreeItemCollapsibleState,
+    public readonly uri: Uri,
+    public readonly command?: Command
+  ) {
+    super(label, collapsibleState);
+  }
 }

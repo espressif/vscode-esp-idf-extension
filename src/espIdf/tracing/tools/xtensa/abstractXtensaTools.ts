@@ -17,9 +17,9 @@
  */
 
 import * as vscode from "vscode";
-import { Logger } from "../../../../logger/logger";
+import { Logger } from "../../../../common/logger";
 import { getToolchainToolName, spawn } from "../../../../utils";
-import { getIdfTargetFromSdkconfig } from "../../../../workspaceConfig";
+import { getIdfTargetFromSdkconfig } from "../../../../configuration/workspace";
 import { configureEnvVariables } from "../../../../common/prepareEnv";
 
 export abstract class XtensaTools {

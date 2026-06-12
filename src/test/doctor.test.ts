@@ -40,7 +40,7 @@ import { getGitVersion } from "../support/gitVersion";
 import { writeTextReport } from "../support/writeReport";
 import { ProjectConfigStore } from "../project-conf";
 import { createMockMemento } from "./mockUtils";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 
 suite("Doctor Command tests", () => {
   const reportObj = initializeReportObject();

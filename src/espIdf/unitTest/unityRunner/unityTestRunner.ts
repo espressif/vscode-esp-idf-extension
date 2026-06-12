@@ -7,7 +7,7 @@ import { UnityParser } from "./unityParser";
 import { UnitySerialCapture } from "./serialCapture";
 import { UnityParserOptions, UnityParseResult, IndividualTestResult } from "./types";
 import { EventEmitter } from "events";
-import { OutputChannel } from "../../../logger/outputChannel";
+import { OutputChannel } from "../../../common/outputChannel";
 import { EOL } from "os";
 
 export class UnityTestRunner extends EventEmitter {

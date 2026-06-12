@@ -17,16 +17,15 @@
  */
 import { checkGitExists, getEspIdfFromCMake } from "../../utils";
 import { spawn, ChildProcess } from "child_process";
-import * as idfConf from "../../idfConfiguration";
-import * as treeKill from "tree-kill";
+import treeKill from "tree-kill";
 import { join } from "path";
 import { ensureDir } from "fs-extra";
-import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
+import { Logger } from "../../common/logger";
+import { OutputChannel } from "../../common/outputChannel";
 import { ESP } from "../../config";
 
 export class ArduinoComponentInstaller {
-  private cloneProcess: ChildProcess;
+  private cloneProcess: ChildProcess | undefined;
   private espIdfPath: string;
   private readonly projectDir: string;
   private gitBinPath: string;
@@ -42,7 +41,11 @@ export class ArduinoComponentInstaller {
   }
 
   public cancel() {
-    if (this.cloneProcess && !this.cloneProcess.killed) {
+    if (
+      this.cloneProcess &&
+      this.cloneProcess.pid &&
+      !this.cloneProcess.killed
+    ) {
       treeKill(this.cloneProcess.pid, "SIGKILL");
       this.cloneProcess = undefined;
       const stoppedMsg = "\n❌ [Arduino ESP32 Cloning] : Stopped!\n";
@@ -72,12 +75,12 @@ export class ArduinoComponentInstaller {
         ],
         { cwd: componentsDir }
       );
-      this.cloneProcess.stderr.on("data", (data) => {
+      this.cloneProcess.stderr?.on("data", (data) => {
         OutputChannel.appendLine(data.toString());
         Logger.info(data.toString());
       });
 
-      this.cloneProcess.stdout.on("data", (data) => {
+      this.cloneProcess.stdout?.on("data", (data) => {
         OutputChannel.appendLine(data.toString());
         Logger.info(data.toString());
       });
@@ -85,7 +88,11 @@ export class ArduinoComponentInstaller {
         if (!signal && code !== 0) {
           const errorMsg = `Arduino ESP32 cloning has exit with ${code}`;
           OutputChannel.appendLine(errorMsg);
-          Logger.errorNotify(errorMsg, new Error(errorMsg), "addArduinoComponent cloneArduinoInComponentsFolder");
+          Logger.errorNotify(
+            errorMsg,
+            new Error(errorMsg),
+            "addArduinoComponent cloneArduinoInComponentsFolder"
+          );
           reject(new Error(errorMsg));
         }
         resolve();
@@ -93,11 +100,8 @@ export class ArduinoComponentInstaller {
     });
   }
 
-  private async checkIdfVersion(espIdfPath?: string) {
-    if (typeof espIdfPath === "undefined" || espIdfPath === "") {
-      espIdfPath = this.espIdfPath || process.env.IDF_PATH;
-    }
-    const idfVersion = await getEspIdfFromCMake(espIdfPath);
+  private async checkIdfVersion() {
+    const idfVersion = await getEspIdfFromCMake(this.espIdfPath);
     const majorMinorMatches = idfVersion.match(/([0-9]+\.[0-9]+).*/);
     const espIdfVersion =
       majorMinorMatches && majorMinorMatches.length > 0
@@ -109,8 +113,8 @@ export class ArduinoComponentInstaller {
     return results[espIdfVersion] || "master";
   }
 
-  public async addArduinoAsComponent(espIdfPath?: string) {
-    const branchToUse = await this.checkIdfVersion(espIdfPath);
+  public async addArduinoAsComponent() {
+    const branchToUse = await this.checkIdfVersion();
     await ensureDir(this.projectDir);
     await this.cloneArduinoInComponentsFolder(branchToUse);
   }

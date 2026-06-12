@@ -16,130 +16,60 @@
  * limitations under the License.
  */
 
-import {
-  ProcessExecution,
-  ProcessExecutionOptions,
-  TaskPanelKind,
-  TaskPresentationOptions,
-  TaskRevealKind,
-  TaskScope,
-  Uri,
-  workspace,
-} from "vscode";
-import { NotificationMode, readParameter } from "../../idfConfiguration";
+import { ExtensionContext, Uri } from "vscode";
 import { join } from "path";
-import { TaskManager } from "../../taskManager";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { addProcessTask, TaskManager } from "../../taskManager/taskManager";
+import { getVirtualEnvPythonPath } from "../../configuration/env";
 import { configureEnvVariables } from "../../common/prepareEnv";
+import { buildIdfPyConfigSubcommandArgs } from "../common/idfPySubCmdBuilder";
+import { withProgressWrapper } from "../../common/withProgressWrapper";
+import { registerIDFCommand } from "../../common/registerCommand";
+import { openFolderCheck } from "../../common/PreCheck";
+import { Logger } from "../../common/logger";
 
-export class IdfReconfigureTask {
-  private buildDirPath: string;
-  private curWorkspace: Uri;
+export async function addIdfReconfigureTask(workspace: Uri) {
+  const modifiedEnv = await configureEnvVariables(workspace);
+  const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
+  const reconfigureArgs = buildIdfPyConfigSubcommandArgs(
+    idfPy,
+    "reconfigure",
+    workspace
+  );
 
-  constructor(workspace: Uri) {
-    this.curWorkspace = workspace;
-    this.buildDirPath = readParameter("idf.buildPath", workspace) as string;
+  const pythonBinPath = getVirtualEnvPythonPath();
+
+  if (!pythonBinPath) {
+    return;
   }
 
-  public async reconfigure() {
-    const modifiedEnv = await configureEnvVariables(this.curWorkspace);
-    const options: ProcessExecutionOptions = {
-      cwd: this.curWorkspace.fsPath,
-      env: modifiedEnv,
-    };
-    const currentWorkspaceFolder = workspace.workspaceFolders?.length
-      ? workspace.workspaceFolders.find((w) => w.uri === this.curWorkspace)
-      : undefined;
+  addProcessTask(
+    "Reconfigure",
+    workspace,
+    pythonBinPath,
+    reconfigureArgs,
+    workspace.fsPath,
+    modifiedEnv
+  );
+}
 
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      this.curWorkspace
-    ) as string;
-    const showTaskOutput =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Output
-        ? TaskRevealKind.Always
-        : TaskRevealKind.Silent;
-
-    const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
-    const reconfigureArgs = [idfPy];
-
-    let buildPathArgsIndex = reconfigureArgs.indexOf("-B");
-    if (buildPathArgsIndex !== -1) {
-      reconfigureArgs.splice(buildPathArgsIndex, 2);
-    }
-    reconfigureArgs.push("-B", this.buildDirPath);
-
-    const sdkconfigFile = readParameter(
-      "idf.sdkconfigFilePath",
-      this.curWorkspace
-    ) as string;
-    const hasSdkconfigArg = reconfigureArgs.some(
-      (arg, index) =>
-        arg.startsWith("-DSDKCONFIG=") ||
-        (arg === "-D" && reconfigureArgs[index + 1]?.startsWith("SDKCONFIG="))
-    );
-    if (sdkconfigFile && !hasSdkconfigArg) {
-      reconfigureArgs.push(`-DSDKCONFIG='${sdkconfigFile}'`);
-    }
-
-    const sdkconfigDefaults =
-      (readParameter("idf.sdkconfigDefaults", this.curWorkspace) as string[]) ||
-      [];
-    if (
-      reconfigureArgs.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
-      sdkconfigDefaults &&
-      sdkconfigDefaults.length
-    ) {
-      reconfigureArgs.push(
-        `-DSDKCONFIG_DEFAULTS='${sdkconfigDefaults.join(";")}'`
-      );
-    }
-
-    const enableCCache = readParameter(
-      "idf.enableCCache",
-      this.curWorkspace
-    ) as boolean;
-    if (enableCCache && reconfigureArgs && reconfigureArgs.length) {
-      const indexOfCCache = reconfigureArgs.indexOf("-DCCACHE_ENABLE=1");
-      if (indexOfCCache === -1) {
-        reconfigureArgs.push("-DCCACHE_ENABLE=1");
+export function registerReconfigureCmd(context: ExtensionContext) {
+  registerIDFCommand(context, "espIdf.idfReconfigureTask", async () => {
+    await withProgressWrapper(
+      [openFolderCheck],
+      "ESP-IDF: Reconfiguring ESP-IDF project",
+      async (progress, cancelToken, wsFolder) => {
+        try {
+          await addIdfReconfigureTask(wsFolder.uri);
+          await TaskManager.runTasks();
+          if (!cancelToken.isCancellationRequested) {
+            Logger.infoNotify("ESP-IDF Reconfigure Successfully");
+            TaskManager.disposeListeners();
+          }
+        } catch (error) {
+          const errMsg = error instanceof Error ? error.message : String(error);
+          Logger.errorNotify(errMsg, error as Error, "idfReconfigureTask");
+        }
       }
-    }
-
-    reconfigureArgs.push("reconfigure");
-
-    const pythonBinPath = await getVirtualEnvPythonPath();
-
-    if (!pythonBinPath) {
-      throw new Error(
-        "Python binary path not found. Please check your Python configuration."
-      );
-    }
-
-    const reconfigureExecution = new ProcessExecution(
-      pythonBinPath,
-      reconfigureArgs,
-      options
     );
-    const presentationOptions = {
-      reveal: showTaskOutput,
-      showReuseMessage: false,
-      clear: false,
-      panel: TaskPanelKind.Shared,
-    } as TaskPresentationOptions;
-
-    TaskManager.addTask(
-      {
-        type: "esp-idf",
-        command: "ESP-IDF Reconfigure",
-        taskId: "idf-reconfigure-task",
-      },
-      currentWorkspaceFolder || TaskScope.Workspace,
-      "ESP-IDF Reconfigure",
-      reconfigureExecution,
-      ["espIdf"],
-      presentationOptions
-    );
-  }
+  });
 }

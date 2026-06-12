@@ -18,22 +18,15 @@
 
 import { pathExists, readJson } from "fs-extra";
 import { join } from "path";
-import { readParameter } from "../idfConfiguration";
-import { Logger } from "../logger/logger";
+import { readParameter } from "../configuration/idf";
+import { Logger } from "../common/logger";
 import { EspIdfJson, IdfSetup } from "./types";
 import { compareVersion, getEspIdfFromCMake } from "../utils";
 import { loadIdfSetupsFromEspIdfJson } from "./migrationTool";
-import { ESP } from "../config";
 import { Uri } from "vscode";
 
 export async function getIdfSetups(workspaceFolder: Uri) {
-  const workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
-    ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
-  );
-  const customVars = readParameter(
-    "idf.customExtraVars",
-    workspaceFolderUri
-  ) as {
+  const customVars = readParameter("idf.customExtraVars", workspaceFolder) as {
     [key: string]: string;
   };
   const eimIDFSetups = await loadIdfSetupsFromEimIdfJson();
@@ -51,19 +44,14 @@ export async function getIdfSetups(workspaceFolder: Uri) {
     resultingIdfSetups = resultingIdfSetups.concat(espIdfSysJsonSetups);
   }
   const containerPath =
-    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+    (process.platform === "win32"
+      ? process.env.USERPROFILE
+      : process.env.HOME) || "";
   const defaultIdfToolsPath = join(containerPath, ".espressif");
   const espIdfSysJsonSetups = await loadIdfSetupsFromEspIdfJson(
     defaultIdfToolsPath
   );
   resultingIdfSetups = resultingIdfSetups.concat(espIdfSysJsonSetups);
-
-
-  const oldIdfToolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
-  if (oldIdfToolsPath) {
-    const oldIdfSetups = await loadIdfSetupsFromEspIdfJson(oldIdfToolsPath);
-    resultingIdfSetups = resultingIdfSetups.concat(oldIdfSetups);
-  }
 
   resultingIdfSetups = resultingIdfSetups.filter(
     (setup, index, self) =>
@@ -106,7 +94,7 @@ export async function loadIdfSetupsFromEimIdfJson() {
 }
 
 export async function getEimIdfJson() {
-  const espIdeJsonCustomPath = readParameter("idf.eimIdfJsonPath");
+  const espIdeJsonCustomPath = readParameter("idf.eimIdfJsonPath") as string;
   const espIdePathExists = await pathExists(espIdeJsonCustomPath);
   let eimIdfJsonPath = "";
   if (espIdePathExists) {
@@ -115,7 +103,7 @@ export async function getEimIdfJson() {
     eimIdfJsonPath =
       process.platform === "win32"
         ? join("C:", "Espressif", "tools", "eim_idf.json")
-        : join(process.env.HOME, ".espressif", "tools", "eim_idf.json");
+        : join(process.env.HOME || "", ".espressif", "tools", "eim_idf.json");
   }
   const espIdfJsonExists = await pathExists(eimIdfJsonPath);
   let espIdfJson: EspIdfJson;
@@ -127,9 +115,9 @@ export async function getEimIdfJson() {
     return espIdfJson;
   } catch (error) {
     const msg =
-      error && error.message
+      error instanceof Error
         ? error.message
         : `Error reading ${eimIdfJsonPath}.`;
-    Logger.error(msg, error, "getEimIdfJson");
+    Logger.error(msg, error as Error, "getEimIdfJson");
   }
 }

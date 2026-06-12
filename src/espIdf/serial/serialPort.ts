@@ -18,16 +18,15 @@
 
 import { join } from "path";
 import * as vscode from "vscode";
-import * as idfConf from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
+import { readParameter, writeParameter } from "../../configuration/idf";
+import { Logger } from "../../common/logger";
 import { spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
-import { OutputChannel } from "../../logger/outputChannel";
+import { OutputChannel } from "../../common/outputChannel";
 import * as SerialPortLib from "serialport";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
-import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
-import { showInfoNotificationWithAction } from "../../logger/utils";
-import { ESP } from "../../config";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
+import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
+import { showInfoNotificationWithAction } from "../../common/customNotifications";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
 export class SerialPort {
@@ -98,7 +97,12 @@ export class SerialPort {
         try {
           const modifiedEnv = await configureEnvVariables(workspaceFolder);
           const idfPath = modifiedEnv["IDF_PATH"];
-          const pythonBinPath = await getVirtualEnvPythonPath();
+          const pythonBinPath = getVirtualEnvPythonPath();
+          if (!pythonBinPath) {
+            throw new Error(
+              "Python binary path not found. Please check your Python environment configuration."
+            );
+          }
           const esptoolPath = join(
             idfPath,
             "components",
@@ -115,7 +119,7 @@ export class SerialPort {
             `Detecting default port using esptool.py...`
           );
           const timeout =
-            (idfConf.readParameter(
+            (readParameter(
               "idf.serialPortDetectionTimeout",
               workspaceFolder
             ) as number) * 1000; // Convert seconds to milliseconds
@@ -208,7 +212,7 @@ export class SerialPort {
         } catch (error) {
           Logger.error(
             "Failed to detect default serial port",
-            error,
+            error as Error,
             "serialPort detectDefaultPort"
           );
           return undefined;
@@ -233,7 +237,7 @@ export class SerialPort {
 
       // Get the currently selected port
       const portSetting2Use = useMonitorPort ? "idf.monitorPort" : "idf.port";
-      const currentPort = idfConf.readParameter(
+      const currentPort = readParameter(
         portSetting2Use,
         workspaceFolder
       ) as string;
@@ -249,7 +253,7 @@ export class SerialPort {
 
       const portOptions = portList.map((l: SerialPortDetails) => {
         return {
-          description: l.chipType || l.manufacturer,
+          description: l.chipType || l.manufacturer || "",
           label: l.comName,
           picked: SerialPort.isSamePort(l.comName, currentPort),
         };
@@ -316,13 +320,18 @@ export class SerialPort {
         }
       }
     } catch (error) {
-      const msg = error.message
-        ? error.message
-        : "Something went wrong while getting the serial port list";
+      const msg =
+        error instanceof Error && error.message
+          ? error.message
+          : "Something went wrong while getting the serial port list";
       const sendToTelemetry = msg.indexOf("No serial ports found") === -1;
       Logger.errorNotify(
         msg,
-        error,
+        error instanceof Error
+          ? error
+          : new Error(
+              "Something went wrong while getting the serial port list"
+            ),
         "SerialPort displayList",
         undefined,
         sendToTelemetry
@@ -345,7 +354,7 @@ export class SerialPort {
     useMonitorPort: boolean
   ) {
     const portSetting2Use = useMonitorPort ? "idf.monitorPort" : "idf.port";
-    const settingsSavedLocation = await idfConf.writeParameter(
+    const settingsSavedLocation = await writeParameter(
       portSetting2Use,
       l,
       vscode.ConfigurationTarget.WorkspaceFolder,
@@ -378,15 +387,15 @@ export class SerialPort {
             item.productId
           );
         });
-        const enableSerialPortChipIdRequest = idfConf.readParameter(
+        const enableSerialPortChipIdRequest = readParameter(
           "idf.enableSerialPortChipIdRequest",
           workspaceFolder
         ) as boolean;
-        const useSerialPortVendorProductFilter = idfConf.readParameter(
+        const useSerialPortVendorProductFilter = readParameter(
           "idf.useSerialPortVendorProductFilter",
           workspaceFolder
         ) as boolean;
-        const usbSerialPortFilters = idfConf.readParameter(
+        const usbSerialPortFilters = readParameter(
           "idf.usbSerialPortFilters",
           workspaceFolder
         ) as { [key: string]: { vendorId: string; productId: string } };
@@ -414,10 +423,8 @@ export class SerialPort {
         if (skipEsptoolCall) {
           resolve(choices);
         } else {
-          const pythonBinPath = await getVirtualEnvPythonPath();
-          const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-            [key: string]: string;
-          }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+          const pythonBinPath = getVirtualEnvPythonPath();
+          const currentEnvVars = getCurrentIdfConfiguration();
           const idfPath = currentEnvVars["IDF_PATH"];
           const esptoolPath = join(
             idfPath,
@@ -440,6 +447,11 @@ export class SerialPort {
             esptoolPath: string
           ) {
             try {
+              if (!pythonBinPath) {
+                throw new Error(
+                  "Python binary path not found. Please check your Python environment configuration."
+                );
+              }
               const chipIdBuffer = await spawn(
                 pythonBinPath,
                 [esptoolPath, "--port", serialPort.comName, "chip_id"],

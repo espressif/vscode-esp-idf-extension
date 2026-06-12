@@ -11,9 +11,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import { Uri } from "vscode";
+import { ExtensionContext, Uri } from "vscode";
 import { AbstractCloning } from "../common/abstractCloning";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
+import { registerIDFCommand } from "../common/registerCommand";
+import { ESP } from "../config";
+import { openFolderCheck, PreCheck } from "../common/PreCheck";
 
 export class AdfCloning extends AbstractCloning {
   constructor(gitBinPath: string = "git") {
@@ -28,7 +31,16 @@ export class AdfCloning extends AbstractCloning {
 }
 
 export async function getEspAdf(workspace?: Uri) {
-  const gitPath = (await readParameter("idf.gitPath", workspace)) || "git";
+  const gitPath = (readParameter("idf.gitPath", workspace) as string) || "git";
   const adfInstaller = new AdfCloning(gitPath);
   await adfInstaller.getRepository("ADF_PATH", workspace);
+}
+
+export async function registerEspAdfCmd(context: ExtensionContext) {
+  registerIDFCommand(context, "espIdf.getEspAdf", async () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      await getEspAdf(wsFolder?.uri);
+    });
+  });
 }

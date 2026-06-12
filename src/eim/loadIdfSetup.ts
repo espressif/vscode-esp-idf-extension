@@ -21,14 +21,32 @@ import { ESP } from "../config";
 import { getIdfSetups } from "./getExistingSetups";
 import { IdfSetup } from "./types";
 import { getEnvVariables } from "./loadSettings";
-import { readParameter, writeParameter } from "../idfConfiguration";
+import { readParameter, writeParameter } from "../configuration/idf";
 import { getEspIdfFromCMake, isBinInPath } from "../utils";
 import { join } from "path";
 import { isIdfSetupValid } from "./verifySetup";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { createHash } from "crypto";
 import { pathExists } from "fs-extra";
 import { IdfToolsManager } from "../idfToolsManager";
+
+export async function getCurrentIdfSetup(workspaceFolder: Uri): Promise<IdfSetup | undefined> {
+  const idfSetups = await getIdfSetups(workspaceFolder);
+  if (!idfSetups || idfSetups.length < 1) {
+    return;
+  }
+  const idfConfigurationName = readParameter(
+    "idf.currentSetup",
+    workspaceFolder
+  ) as string;
+  if (!idfConfigurationName) {
+    return;
+  }
+  const idfSetupToUse = idfSetups.find((idfSetup) => {
+    return idfSetup.idfPath === idfConfigurationName;
+  });
+  return idfSetupToUse;
+}
 
 export async function loadIdfSetup(workspaceFolder: Uri) {
   ESP.ProjectConfiguration.store.clear(

@@ -17,12 +17,11 @@
  */
 
 import { Uri } from "vscode";
-import { readParameter } from "../idfConfiguration";
-import { Logger } from "../logger/logger";
+import { readParameter } from "../configuration/idf";
+import { Logger } from "./logger";
 import { delimiter, dirname, join } from "path";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
-import { ESP } from "../config";
-import { isBinInPath } from "../utils";
+import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 import { pathExists } from "fs-extra";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 
@@ -55,9 +54,7 @@ export async function configureEnvVariables(
   let pathNameInEnv: string =
     Object.keys(process.env).find((k) => k.toUpperCase() == "PATH") || "PATH";
 
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const currentEnvVars = getCurrentIdfConfiguration();
 
   if (currentEnvVars) {
     try {
@@ -186,9 +183,9 @@ export async function configureEnvVariables(
     modifiedEnv[pathNameInEnv] += delimiter + pathToGitDir;
   }
 
-  if (currentEnvVars["IDF_PYTHON_ENV_PATH"]) {
+  if (modifiedEnv["IDF_PYTHON_ENV_PATH"]) {
     const pyDir = process.platform === "win32" ? "Scripts" : "bin";
-    const venvPyContainer = join(currentEnvVars["IDF_PYTHON_ENV_PATH"], pyDir);
+    const venvPyContainer = join(modifiedEnv["IDF_PYTHON_ENV_PATH"], pyDir);
     if (
       modifiedEnv[pathNameInEnv] &&
       !modifiedEnv[pathNameInEnv].includes(venvPyContainer)
