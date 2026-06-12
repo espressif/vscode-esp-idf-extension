@@ -177,6 +177,7 @@ import { registerMenuconfigCommands } from "./espIdf/menuconfig";
 import { registerIdfSizeUICmd } from "./espIdf/size";
 import { registerDebugCommands } from "./debugAdapter";
 import { registerIdfTerminalCommand } from "./terminal";
+import { registerAddArduinoAsComponentCmd } from "./espIdf/arduino";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -658,76 +659,14 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         Logger.infoNotify(vscode.l10n.t("Build directory has been deleted."));
       } catch (error) {
-        OutputChannel.appendLineAndShow(error.message);
-        Logger.errorNotify(error.message, error, "extension fullClean");
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        OutputChannel.appendLineAndShow(errorMsg);
+        Logger.errorNotify(errorMsg, error as Error, "extension fullClean");
       }
     });
   });
 
-  registerIDFCommand("espIdf.addArduinoAsComponentToCurFolder", () => {
-    PreCheck.perform([openFolderCheck], () => {
-      const notificationMode = readParameter(
-        "idf.notificationMode",
-        workspaceRoot
-      ) as string;
-      const ProgressLocation =
-        notificationMode === NotificationMode.All ||
-        notificationMode === NotificationMode.Notifications
-          ? vscode.ProgressLocation.Notification
-          : vscode.ProgressLocation.Window;
-      vscode.window.withProgress(
-        {
-          cancellable: true,
-          location: ProgressLocation,
-          title: vscode.l10n.t("ESP-IDF: Arduino ESP32 as ESP-IDF component"),
-        },
-        async (
-          progress: vscode.Progress<{
-            message: string;
-            increment: number;
-          }>,
-          cancelToken: vscode.CancellationToken
-        ) => {
-          try {
-            const gitPath =
-              (readParameter("idf.gitPath", workspaceRoot) as string) || "git";
-            const currentEnvVars = getCurrentIdfConfiguration();
-            let idfPath = currentEnvVars["IDF_PATH"];
-            const arduinoComponentManager = new ArduinoComponentInstaller(
-              idfPath,
-              workspaceRoot.fsPath,
-              gitPath
-            );
-            cancelToken.onCancellationRequested(() => {
-              arduinoComponentManager.cancel();
-            });
-            const arduinoDirPath = path.join(
-              workspaceRoot.fsPath,
-              "components",
-              "arduino"
-            );
-            const arduinoDirExists = await utils.dirExistPromise(
-              arduinoDirPath
-            );
-            if (arduinoDirExists) {
-              return Logger.infoNotify(
-                vscode.l10n.t(`{arduinoDirPath} already exists.`, {
-                  arduinoDirPath,
-                })
-              );
-            }
-            await arduinoComponentManager.addArduinoAsComponent();
-          } catch (error) {
-            Logger.errorNotify(
-              error.message,
-              error,
-              "extension addArduinoAsComponentToCurFolder"
-            );
-          }
-        }
-      );
-    });
-  });
+  registerAddArduinoAsComponentCmd(context);
 
   registerIDFCommand("espIdf.getEspAdf", async () => getEspAdf(workspaceRoot));
 
