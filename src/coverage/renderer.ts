@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import {
+  ConfigurationChangeEvent,
   DecorationRangeBehavior,
   Disposable,
   FileSystemWatcher,
@@ -21,7 +22,7 @@ import {
   TextEditorDecorationType,
   Uri,
   window,
-  workspace
+  workspace,
 } from "vscode";
 import {
   generateCoverageForEditors,
@@ -72,21 +73,39 @@ export function getCoverageOptions(workspace: Uri) {
   return coverageOptions;
 }
 
-export class CoverageRenderer {
-  private cache: textEditorWithCoverage[];
-  private countDecoratorTypes: TextEditorDecorationType[];
-  private coverageWatcher?: FileSystemWatcher;
-  private coveredDecoratorType: TextEditorDecorationType;
-  private editorEventListener?: Disposable;
-  private marginDecoratorType: TextEditorDecorationType;
-  private notCoveredDecoratorType: TextEditorDecorationType;
-  private partialDecoratorType: TextEditorDecorationType;
-  private workspaceFolder: Uri;
-  private gcovObj?: IGcovOutput[];
+const coverageOptionConfigKeys = [
+  "idf.coveredDarkTheme",
+  "idf.uncoveredDarkTheme",
+  "idf.partialDarkTheme",
+  "idf.coveredLightTheme",
+  "idf.partialLightTheme",
+  "idf.uncoveredLightTheme",
+] as const;
 
-  constructor(workspaceFolder: Uri, options: CoverageOptions) {
-    this.workspaceFolder = workspaceFolder;
-    this.coveredDecoratorType = window.createTextEditorDecorationType({
+export function coverageRendererSettingsAffected(
+  e: ConfigurationChangeEvent,
+  scope: Uri | undefined
+): boolean {
+  if (!scope) {
+    return false;
+  }
+  return coverageOptionConfigKeys.some((key) =>
+    e.affectsConfiguration(key, scope)
+  );
+}
+
+type CoverageLineDecorationTypes = {
+  covered: TextEditorDecorationType;
+  partial: TextEditorDecorationType;
+  notCovered: TextEditorDecorationType;
+};
+
+function createCoverageLineDecorationTypes(
+  options: CoverageOptions
+): CoverageLineDecorationTypes {
+  const lane = options.overviewRuleLane || OverviewRulerLane.Left;
+  return {
+    covered: window.createTextEditorDecorationType({
       isWholeLine: true,
       dark: {
         backgroundColor:
@@ -96,10 +115,9 @@ export class CoverageRenderer {
         backgroundColor:
           options.lightThemeCoveredBackgroundColor || "rgba(0,128,0,0.4)",
       },
-      overviewRulerLane:
-        options.overviewRuleLane || OverviewRulerLane.Left,
-    });
-    this.partialDecoratorType = window.createTextEditorDecorationType({
+      overviewRulerLane: lane,
+    }),
+    partial: window.createTextEditorDecorationType({
       isWholeLine: true,
       dark: {
         backgroundColor:
@@ -109,10 +127,9 @@ export class CoverageRenderer {
         backgroundColor:
           options.lightThemePartialBackgroundColor || "rgba(250,218,94,0.1)",
       },
-      overviewRulerLane:
-        options.overviewRuleLane || OverviewRulerLane.Left,
-    });
-    this.notCoveredDecoratorType = window.createTextEditorDecorationType({
+      overviewRulerLane: lane,
+    }),
+    notCovered: window.createTextEditorDecorationType({
       isWholeLine: true,
       dark: {
         backgroundColor:
@@ -122,9 +139,30 @@ export class CoverageRenderer {
         backgroundColor:
           options.lightThemeUncoveredBackgroundColor || "rgba(255,0,0,0.1)",
       },
-      overviewRulerLane:
-        options.overviewRuleLane || OverviewRulerLane.Left,
-    });
+      overviewRulerLane: lane,
+    }),
+  };
+}
+
+export class CoverageRenderer {
+  private cache: textEditorWithCoverage[];
+  private countDecoratorTypes: TextEditorDecorationType[];
+  private coverageWatcher?: FileSystemWatcher;
+  private coveredDecoratorType: TextEditorDecorationType;
+  private editorEventListener?: Disposable;
+  private marginDecoratorType: TextEditorDecorationType;
+  private notCoveredDecoratorType: TextEditorDecorationType;
+  private partialDecoratorType: TextEditorDecorationType;
+  private gcovObj?: IGcovOutput[];
+
+  constructor(
+    public readonly workspaceFolder: Uri,
+    options: CoverageOptions
+  ) {
+    const lineTypes = createCoverageLineDecorationTypes(options);
+    this.coveredDecoratorType = lineTypes.covered;
+    this.partialDecoratorType = lineTypes.partial;
+    this.notCoveredDecoratorType = lineTypes.notCovered;
     this.marginDecoratorType = window.createTextEditorDecorationType({
       before: {
         contentText: " ",
@@ -134,6 +172,19 @@ export class CoverageRenderer {
     });
     this.countDecoratorTypes = [];
     this.cache = [];
+  }
+
+  public updateCoverageOptions(options: CoverageOptions): void {
+    this.coveredDecoratorType.dispose();
+    this.partialDecoratorType.dispose();
+    this.notCoveredDecoratorType.dispose();
+    const lineTypes = createCoverageLineDecorationTypes(options);
+    this.coveredDecoratorType = lineTypes.covered;
+    this.partialDecoratorType = lineTypes.partial;
+    this.notCoveredDecoratorType = lineTypes.notCovered;
+    if (this.cache.length > 0) {
+      this.setDecoratorsForEditor(this.cache);
+    }
   }
 
   private setDecoratorsForEditor(editorsWithCov: textEditorWithCoverage[]) {
@@ -264,3 +315,35 @@ export class CoverageRenderer {
     this.partialDecoratorType.dispose();
   }
 }
+
+export class CoverageRendererScope {
+  private renderer?: CoverageRenderer;
+
+  public get(): CoverageRenderer | undefined {
+    return this.renderer;
+  }
+
+  public setForWorkspace(workspaceFolder: Uri): void {
+    this.renderer?.dispose();
+    this.renderer = new CoverageRenderer(
+      workspaceFolder,
+      getCoverageOptions(workspaceFolder)
+    );
+  }
+
+  public refreshOptionsFromWorkspace(): void {
+    if (!this.renderer) {
+      return;
+    }
+    this.renderer.updateCoverageOptions(
+      getCoverageOptions(this.renderer.workspaceFolder)
+    );
+  }
+
+  public dispose(): void {
+    this.renderer?.dispose();
+    this.renderer = undefined;
+  }
+}
+
+export const espIdfCoverageRenderer = new CoverageRendererScope();

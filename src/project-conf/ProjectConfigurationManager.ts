@@ -16,7 +16,7 @@ import {
 } from "../utils";
 import { ESP } from "../config";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
-import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
+import { CommandKeys, commandDictionary } from "../cmdTreeView/cmdStore";
 import { createStatusBarItem } from "../statusBar";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { Logger } from "../common/logger";
@@ -64,7 +64,6 @@ export class ProjectConfigurationManager {
     this.workspaceUri = workspaceUri;
     this.context = context;
     this.statusBarItems = statusBarItems;
-    this.commandDictionary = createCommandDictionary();
 
     this.cmakePresetsFilePath = Uri.joinPath(
       workspaceUri,
@@ -378,12 +377,12 @@ export class ProjectConfigurationManager {
 
     this.statusBarItems["projectConf"] = createStatusBarItem(
       `$(${
-        this.commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
+        commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
       }) ${statusBarItemName}`,
       statusBarItemTooltip,
       commandToUse,
       99,
-      this.commandDictionary[CommandKeys.SelectProjectConfiguration]
+      commandDictionary[CommandKeys.SelectProjectConfiguration]
         .checkboxState
     );
   }
@@ -443,12 +442,12 @@ export class ProjectConfigurationManager {
 
     this.statusBarItems["projectConf"] = createStatusBarItem(
       `$(${
-        this.commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
+        commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
       }) ${configName}`,
-      this.commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
+      commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
       CommandKeys.SelectProjectConfiguration,
       99,
-      this.commandDictionary[CommandKeys.SelectProjectConfiguration]
+      commandDictionary[CommandKeys.SelectProjectConfiguration]
         .checkboxState
     );
 
