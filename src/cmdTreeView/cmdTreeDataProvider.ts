@@ -28,10 +28,10 @@ import {
 } from "vscode";
 import { updateStatusBarItemVisibility } from "../statusBar";
 import {
+  advancedCommandDictionary,
   AdvancedCommandKeys,
+  commandDictionary,
   CommandKeys,
-  createAdvancedCommandDictionary,
-  createCommandDictionary,
 } from "./cmdStore";
 
 export class CommandsProvider implements TreeDataProvider<CommandItem> {
@@ -62,7 +62,6 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
 
   private getAdvancedCommands() {
     const cmdItemList: CommandItem[] = [];
-    const advancedCommandDictionary = createAdvancedCommandDictionary();
 
     for (let advancedCmdKey of Object.values(AdvancedCommandKeys)) {
       let cmdItem = new CommandItem(
@@ -79,7 +78,6 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
 
   private getInitialCommands() {
     const cmdItemList: CommandItem[] = [];
-    const commandDictionary = createCommandDictionary();
     for (let cmdKey of Object.values(CommandKeys)) {
       let cmdItem = new CommandItem(
         commandDictionary[cmdKey].tooltip,

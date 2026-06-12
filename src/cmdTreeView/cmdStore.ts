@@ -70,246 +70,235 @@ export enum AdvancedCommandKeys {
   WebsocketMonitor = "espIdf.launchWSServerAndMonitor",
   ClassicMenuconfig = "espIdf.createClassicMenuconfig",
 }
+export const advancedCommandDictionary = {
+  [AdvancedCommandKeys.InstallManager]: {
+    checkboxState: undefined,
+    iconId: "link-external",
+    tooltip: l10n.t("Open ESP-IDF Installation Manager"),
+  },
+  [AdvancedCommandKeys.NewProject]: {
+    checkboxState: undefined,
+    iconId: "add",
+    tooltip: l10n.t("New Project Wizard"),
+  },
+  [AdvancedCommandKeys.DoctorCommand]: {
+    checkboxState: undefined,
+    iconId: "bug",
+    tooltip: l10n.t("Doctor Command"),
+  },
+  [AdvancedCommandKeys.Size]: {
+    checkboxState: undefined,
+    iconId: "info",
+    tooltip: l10n.t("ESP-IDF Size"),
+  },
+  [AdvancedCommandKeys.EraseFlash]: {
+    checkboxState: undefined,
+    iconId: "close-all",
+    tooltip: l10n.t("Erase Flash"),
+  },
+  [AdvancedCommandKeys.GetADF]: {
+    checkboxState: undefined,
+    iconId: "extensions",
+    tooltip: l10n.t("Install ESP-ADF"),
+  },
+  [AdvancedCommandKeys.ProjectConfEditor]: {
+    checkboxState: undefined,
+    iconId: "project",
+    tooltip: l10n.t("Project Configuration editor"),
+  },
+  [AdvancedCommandKeys.CreateVscodeFolder]: {
+    checkboxState: undefined,
+    iconId: "add",
+    tooltip: l10n.t("Add .vscode subdirectory files"),
+  },
+  [AdvancedCommandKeys.CreateDevContainerFolder]: {
+    checkboxState: undefined,
+    iconId: "add",
+    tooltip: l10n.t("Add .devcontainer subdirectory files"),
+  },
+  [AdvancedCommandKeys.CreateIdfComponent]: {
+    checkboxState: undefined,
+    iconId: "add",
+    tooltip: l10n.t("Create ESP-IDF Component"),
+  },
+  [AdvancedCommandKeys.JtagFlash]: {
+    checkboxState: undefined,
+    iconId: "zap",
+    tooltip: l10n.t("Flash with JTAG"),
+  },
+  [AdvancedCommandKeys.UartFlash]: {
+    checkboxState: undefined,
+    iconId: "zap",
+    tooltip: l10n.t("Flash with UART"),
+  },
+  [AdvancedCommandKeys.DfuFlash]: {
+    checkboxState: undefined,
+    iconId: "zap",
+    tooltip: l10n.t("Flash with DFU"),
+  },
+  [AdvancedCommandKeys.WebsocketMonitor]: {
+    checkboxState: undefined,
+    iconId: "device-desktop",
+    tooltip: l10n.t("Launch Websocket server and IDF Monitor"),
+  },
+  [AdvancedCommandKeys.ClassicMenuconfig]: {
+    checkboxState: undefined,
+    iconId: "gear",
+    tooltip: l10n.t("Classic Menuconfig"),
+  },
+} as Record<AdvancedCommandKeys, IDFCommandDescription>;
 
-export function createAdvancedCommandDictionary(): Record<
-  AdvancedCommandKeys,
-  IDFCommandDescription
-> {
-  return {
-    [AdvancedCommandKeys.InstallManager]: {
-      checkboxState: undefined,
-      iconId: "link-external",
-      tooltip: l10n.t("Open ESP-IDF Installation Manager"),
-    },
-    [AdvancedCommandKeys.NewProject]: {
-      checkboxState: undefined,
-      iconId: "add",
-      tooltip: l10n.t("New Project Wizard"),
-    },
-    [AdvancedCommandKeys.DoctorCommand]: {
-      checkboxState: undefined,
-      iconId: "bug",
-      tooltip: l10n.t("Doctor Command"),
-    },
-    [AdvancedCommandKeys.Size]: {
-      checkboxState: undefined,
-      iconId: "info",
-      tooltip: l10n.t("ESP-IDF Size"),
-    },
-    [AdvancedCommandKeys.EraseFlash]: {
-      checkboxState: undefined,
-      iconId: "close-all",
-      tooltip: l10n.t("Erase Flash"),
-    },
-    [AdvancedCommandKeys.GetADF]: {
-      checkboxState: undefined,
-      iconId: "extensions",
-      tooltip: l10n.t("Install ESP-ADF"),
-    },
-    [AdvancedCommandKeys.ProjectConfEditor]: {
-      checkboxState: undefined,
-      iconId: "project",
-      tooltip: l10n.t("Project Configuration editor"),
-    },
-    [AdvancedCommandKeys.CreateVscodeFolder]: {
-      checkboxState: undefined,
-      iconId: "add",
-      tooltip: l10n.t("Add .vscode subdirectory files"),
-    },
-    [AdvancedCommandKeys.CreateDevContainerFolder]: {
-      checkboxState: undefined,
-      iconId: "add",
-      tooltip: l10n.t("Add .devcontainer subdirectory files"),
-    },
-    [AdvancedCommandKeys.CreateIdfComponent]: {
-      checkboxState: undefined,
-      iconId: "add",
-      tooltip: l10n.t("Create ESP-IDF Component"),
-    },
-    [AdvancedCommandKeys.JtagFlash]: {
-      checkboxState: undefined,
-      iconId: "zap",
-      tooltip: l10n.t("Flash with JTAG"),
-    },
-    [AdvancedCommandKeys.UartFlash]: {
-      checkboxState: undefined,
-      iconId: "zap",
-      tooltip: l10n.t("Flash with UART"),
-    },
-    [AdvancedCommandKeys.DfuFlash]: {
-      checkboxState: undefined,
-      iconId: "zap",
-      tooltip: l10n.t("Flash with DFU"),
-    },
-    [AdvancedCommandKeys.WebsocketMonitor]: {
-      checkboxState: undefined,
-      iconId: "device-desktop",
-      tooltip: l10n.t("Launch Websocket server and IDF Monitor"),
-    },
-    [AdvancedCommandKeys.ClassicMenuconfig]: {
-      checkboxState: undefined,
-      iconId: "gear",
-      tooltip: l10n.t("Classic Menuconfig"),
-    },
-  };
-}
-
-export function createCommandDictionary(): Record<
-  CommandKeys,
-  IDFCommandDescription
-> {
-  return {
-    [CommandKeys.pickWorkspace]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.pickWorkspace,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "file-submodule",
-      tooltip: l10n.t("Select Current Project workspace folder"),
-    },
-    [CommandKeys.SelectCurrentIdfVersion]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.SelectCurrentIdfVersion,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "octoface",
-      tooltip: l10n.t("Select current ESP-IDF version"),
-    },
-    [CommandKeys.SelectFlashType]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.SelectFlashType,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "star-empty",
-      tooltip: l10n.t("Select Flash Method"),
-    },
-    [CommandKeys.SelectSerialPort]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.SelectSerialPort,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "plug",
-      tooltip: l10n.t("Select Port to Use (COM, tty, usbserial)"),
-    },
-    [CommandKeys.SelectMonitorSerialPort]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.SelectMonitorSerialPort,
-        TreeItemCheckboxState.Unchecked
-      ),
-      iconId: "plug",
-      tooltip: l10n.t("Select Monitor Port to Use (COM, tty, usbserial)"),
-    },
-    [CommandKeys.SelectProjectConfiguration]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.SelectProjectConfiguration,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "versions",
-      tooltip: l10n.t("Select Project Configuration"),
-    },
-    [CommandKeys.SetEspressifTarget]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.SetEspressifTarget,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "chip",
-      tooltip: l10n.t("Set Espressif Device Target (IDF_TARGET)"),
-    },
-    [CommandKeys.SDKConfig]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.SDKConfig,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "gear",
-      tooltip: l10n.t("SDK Configuration Editor (menuconfig)"),
-    },
-    [CommandKeys.FullClean]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.FullClean,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "trash",
-      tooltip: l10n.t("Full Clean"),
-    },
-    [CommandKeys.Build]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.Build,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "symbol-property",
-      tooltip: l10n.t("Build Project"),
-    },
-    [CommandKeys.Flash]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.Flash,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "zap",
-      tooltip: l10n.t("Flash Device"),
-    },
-    [CommandKeys.Monitor]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.Monitor,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "device-desktop",
-      tooltip: l10n.t("Monitor Device"),
-    },
-    [CommandKeys.BuildFlashMonitor]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.BuildFlashMonitor,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "flame",
-      tooltip: l10n.t("Build, Flash and Monitor"),
-    },
-    [CommandKeys.OpenOCD]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.OpenOCD,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "server-environment",
-      tooltip: l10n.t("OpenOCD Server"),
-    },
-    [CommandKeys.OpenOcdAdapterStatusBar]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.OpenOcdAdapterStatusBar,
-        TreeItemCheckboxState.Unchecked
-      ),
-      iconId: "link",
-      tooltip: l10n.t("OpenOCD Adaptor (serial & location)"),
-    },
-    [CommandKeys.Debug]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.Debug,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "debug-alt",
-      tooltip: l10n.t("Launch Debug"),
-    },
-    [CommandKeys.IDFTerminal]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.IDFTerminal,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "terminal",
-      tooltip: l10n.t("Open ESP-IDF Terminal"),
-    },
-    [CommandKeys.CustomTask]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.CustomTask,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "diff-renamed",
-      tooltip: l10n.t("Execute Custom Task"),
-    },
-    [CommandKeys.QemuServer]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.QemuServer,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "server-environment",
-      tooltip: l10n.t("Start/Stop QEMU Server"),
-    },
-  };
-}
+export const commandDictionary = {
+  [CommandKeys.pickWorkspace]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.pickWorkspace,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "file-submodule",
+    tooltip: l10n.t("Select Current Project workspace folder"),
+  },
+  [CommandKeys.SelectCurrentIdfVersion]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.SelectCurrentIdfVersion,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "octoface",
+    tooltip: l10n.t("Select current ESP-IDF version"),
+  },
+  [CommandKeys.SelectFlashType]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.SelectFlashType,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "star-empty",
+    tooltip: l10n.t("Select Flash Method"),
+  },
+  [CommandKeys.SelectSerialPort]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.SelectSerialPort,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "plug",
+    tooltip: l10n.t("Select Port to Use (COM, tty, usbserial)"),
+  },
+  [CommandKeys.SelectMonitorSerialPort]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.SelectMonitorSerialPort,
+      TreeItemCheckboxState.Unchecked
+    ),
+    iconId: "plug",
+    tooltip: l10n.t("Select Monitor Port to Use (COM, tty, usbserial)"),
+  },
+  [CommandKeys.SelectProjectConfiguration]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.SelectProjectConfiguration,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "versions",
+    tooltip: l10n.t("Select Project Configuration"),
+  },
+  [CommandKeys.SetEspressifTarget]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.SetEspressifTarget,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "chip",
+    tooltip: l10n.t("Set Espressif Device Target (IDF_TARGET)"),
+  },
+  [CommandKeys.SDKConfig]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.SDKConfig,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "gear",
+    tooltip: l10n.t("SDK Configuration Editor (menuconfig)"),
+  },
+  [CommandKeys.FullClean]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.FullClean,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "trash",
+    tooltip: l10n.t("Full Clean"),
+  },
+  [CommandKeys.Build]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.Build,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "symbol-property",
+    tooltip: l10n.t("Build Project"),
+  },
+  [CommandKeys.Flash]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.Flash,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "zap",
+    tooltip: l10n.t("Flash Device"),
+  },
+  [CommandKeys.Monitor]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.Monitor,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "device-desktop",
+    tooltip: l10n.t("Monitor Device"),
+  },
+  [CommandKeys.BuildFlashMonitor]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.BuildFlashMonitor,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "flame",
+    tooltip: l10n.t("Build, Flash and Monitor"),
+  },
+  [CommandKeys.OpenOCD]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.OpenOCD,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "server-environment",
+    tooltip: l10n.t("OpenOCD Server"),
+  },
+  [CommandKeys.OpenOcdAdapterStatusBar]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.OpenOcdAdapterStatusBar,
+      TreeItemCheckboxState.Unchecked
+    ),
+    iconId: "link",
+    tooltip: l10n.t("OpenOCD Adaptor (serial & location)"),
+  },
+  [CommandKeys.Debug]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.Debug,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "debug-alt",
+    tooltip: l10n.t("Launch Debug"),
+  },
+  [CommandKeys.IDFTerminal]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.IDFTerminal,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "terminal",
+    tooltip: l10n.t("Open ESP-IDF Terminal"),
+  },
+  [CommandKeys.CustomTask]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.CustomTask,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "diff-renamed",
+    tooltip: l10n.t("Execute Custom Task"),
+  },
+  [CommandKeys.QemuServer]: {
+    checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      CommandKeys.QemuServer,
+      TreeItemCheckboxState.Checked
+    ),
+    iconId: "server-environment",
+    tooltip: l10n.t("Start/Stop QEMU Server"),
+  },
+} as Record<CommandKeys, IDFCommandDescription>;

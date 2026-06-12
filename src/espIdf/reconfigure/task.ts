@@ -16,12 +16,16 @@
  * limitations under the License.
  */
 
-import { Uri } from "vscode";
+import { ExtensionContext, Uri } from "vscode";
 import { join } from "path";
-import { addProcessTask } from "../../taskManager/taskManager";
+import { addProcessTask, TaskManager } from "../../taskManager/taskManager";
 import { getVirtualEnvPythonPath } from "../../configuration/env";
 import { configureEnvVariables } from "../../common/prepareEnv";
 import { buildIdfPyConfigSubcommandArgs } from "../common/idfPySubCmdBuilder";
+import { withProgressWrapper } from "../../common/withProgressWrapper";
+import { registerIDFCommand } from "../../common/registerCommand";
+import { openFolderCheck } from "../../common/PreCheck";
+import { Logger } from "../../common/logger";
 
 export async function addIdfReconfigureTask(workspace: Uri) {
   const modifiedEnv = await configureEnvVariables(workspace);
@@ -46,4 +50,26 @@ export async function addIdfReconfigureTask(workspace: Uri) {
     workspace.fsPath,
     modifiedEnv
   );
+}
+
+export function registerReconfigureCmd(context: ExtensionContext) {
+  registerIDFCommand(context, "espIdf.idfReconfigureTask", async () => {
+    await withProgressWrapper(
+      [openFolderCheck],
+      "ESP-IDF: Reconfiguring ESP-IDF project",
+      async (progress, cancelToken, wsFolder) => {
+        try {
+          await addIdfReconfigureTask(wsFolder.uri);
+          await TaskManager.runTasks();
+          if (!cancelToken.isCancellationRequested) {
+            Logger.infoNotify("ESP-IDF Reconfigure Successfully");
+            TaskManager.disposeListeners();
+          }
+        } catch (error) {
+          const errMsg = error instanceof Error ? error.message : String(error);
+          Logger.errorNotify(errMsg, error as Error, "idfReconfigureTask");
+        }
+      }
+    );
+  });
 }

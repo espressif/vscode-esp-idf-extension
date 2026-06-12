@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import * as path from "path";
+import { join } from "path";
 import {
   env,
   StatusBarAlignment,
@@ -32,7 +32,7 @@ import { readParameter } from "../configuration/idf";
 import { ESP } from "../config";
 import { getCurrentIdfConfiguration } from "../configuration/env";
 import { CommandItem } from "../cmdTreeView/cmdTreeDataProvider";
-import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
+import { CommandKeys, commandDictionary } from "../cmdTreeView/cmdStore";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { pathExists } from "fs-extra";
 import { getStoredAdapterSerial } from "../espIdf/openOcd/adapterSerial";
@@ -63,7 +63,10 @@ export function updateOpenOcdAdapterStatusBarItem(workspaceFolder: Uri) {
 
 export function updateStatusBarItemVisibility(cmdItem: CommandItem) {
   for (let statusBarItemKey of Object.keys(statusBarItems)) {
-    if (cmdItem.command && statusBarItems[statusBarItemKey].command === cmdItem.command.command) {
+    if (
+      cmdItem.command &&
+      statusBarItems[statusBarItemKey].command === cmdItem.command.command
+    ) {
       cmdItem.checkboxState === TreeItemCheckboxState.Checked
         ? statusBarItems[statusBarItemKey].show()
         : statusBarItems[statusBarItemKey].hide();
@@ -85,7 +88,6 @@ export function updateStatusBarItemVisibility(cmdItem: CommandItem) {
 }
 
 export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
-  const commandDictionary = createCommandDictionary();
   const enableStatusBar = readParameter("idf.enableStatusBar") as boolean;
   if (!enableStatusBar) {
     return {};
@@ -100,7 +102,7 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   let projectConf = ESP.ProjectConfiguration.store.get<string>(
     ESP.ProjectConfiguration.SELECTED_CONFIG
   );
-  let projectConfPath = path.join(
+  let projectConfPath = join(
     workspaceFolder.fsPath,
     ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
   );
@@ -302,7 +304,10 @@ export function createStatusBarItem(
   statusBarItem.text = icon;
   statusBarItem.tooltip = tooltip;
   statusBarItem.command = cmd;
-  if (typeof showItem !== "undefined" && showItem === TreeItemCheckboxState.Checked) {
+  if (
+    typeof showItem !== "undefined" &&
+    showItem === TreeItemCheckboxState.Checked
+  ) {
     statusBarItem.show();
   }
   return statusBarItem;
