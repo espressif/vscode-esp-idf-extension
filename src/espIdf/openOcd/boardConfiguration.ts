@@ -265,11 +265,13 @@ export async function selectOpenOcdConfigFiles(
             `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`
           );
         } else {
-          const customExtraVars = readParameter(
+          const customExtraVarsRead = readParameter(
             "idf.customExtraVars",
             workspaceFolder
           ) as { [key: string]: string };
+          const customExtraVars = { ...customExtraVarsRead };
           clearAdapterSerial(workspaceFolder);
+          delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
 
           if (
             selectedBoard.isConnected &&
@@ -293,8 +295,6 @@ export async function selectOpenOcdConfigFiles(
               customExtraVars[
                 "OPENOCD_USB_ADAPTER_LOCATION"
               ] = selectedBoard.boardInfo.location.replace("usb://", "");
-            } else {
-              delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
             }
             await writeParameter(
               "idf.customExtraVars",
@@ -317,7 +317,6 @@ export async function selectOpenOcdConfigFiles(
                 selectedBoard.target.configFiles = inputBoard.split(",");
               }
             }
-            delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
             await writeParameter(
               "idf.openOcdConfigs",
               selectedBoard.target.configFiles,
