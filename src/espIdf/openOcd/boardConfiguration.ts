@@ -40,7 +40,10 @@ import {
   supportsSerialFromDetectConfig,
 } from "./adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
-import { updateCurrentProfileOpenOcdConfigs } from "../../project-conf";
+import {
+  updateCurrentProfileCustomExtraVars,
+  updateCurrentProfileOpenOcdConfigs,
+} from "../../project-conf";
 
 export interface IdfBoard {
   name: string;
@@ -76,7 +79,11 @@ export async function getOpenOcdScripts(workspace: Uri): Promise<string> {
       : "";
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : "Unknown error";
-    Logger.error(errMsg, error instanceof Error ? error : new Error("Unknown error"), "boardConfiguration getOpenOcdScripts");
+    Logger.error(
+      errMsg,
+      error instanceof Error ? error : new Error("Unknown error"),
+      "boardConfiguration getOpenOcdScripts"
+    );
     openOcdScriptsPath = process.env.OPENOCD_SCRIPTS
       ? process.env.OPENOCD_SCRIPTS
       : "";
@@ -127,7 +134,11 @@ export async function getBoards(
     return idfTarget ? filteredEspBoards : espBoards;
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : "Unknown error";
-    Logger.error(errMsg, error instanceof Error ? error : new Error("Unknown error"), "boardConfiguration getBoards");
+    Logger.error(
+      errMsg,
+      error instanceof Error ? error : new Error("Unknown error"),
+      "boardConfiguration getBoards"
+    );
     const filteredDefaultBoards = defaultBoards.filter((b) => {
       return b.target === idfTarget;
     });
@@ -178,9 +189,11 @@ export async function selectOpenOcdConfigFiles(
                 .map(
                   (b: any): BoardQuickPickItem => ({
                     label: b.name,
-                    detail: `Status: CONNECTED${
-                      b.location ? `   Location: ${b.location}` : ""
-                    }`,
+                    detail:
+                      l10n.t("Status: CONNECTED") +
+                      (b.location
+                        ? `   ${l10n.t("Location: {0}", b.location)}`
+                        : ""),
                     isConnected: true,
                     boardInfo: {
                       location: b.location,
@@ -306,6 +319,14 @@ export async function selectOpenOcdConfigFiles(
               customExtraVars[
                 "OPENOCD_USB_ADAPTER_LOCATION"
               ] = selectedBoard.boardInfo.location.replace("usb://", "");
+              // Update project configuration with custom extra vars if a configuration is selected
+              await updateCurrentProfileCustomExtraVars(
+                {
+                  OPENOCD_USB_ADAPTER_LOCATION:
+                    customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"],
+                },
+                workspaceFolder
+              );
             }
             await writeParameter(
               "idf.customExtraVars",
@@ -364,10 +385,15 @@ export async function selectOpenOcdConfigFiles(
       boardQuickPick.show();
     });
   } catch (error) {
-    const errMsg = error instanceof Error ? error.message : "Failed to select openOCD configuration files";
+    const errMsg =
+      error instanceof Error
+        ? error.message
+        : "Failed to select openOCD configuration files";
     Logger.errorNotify(
       errMsg,
-      error instanceof Error ? error : new Error("Failed to select openOCD configuration files"),
+      error instanceof Error
+        ? error
+        : new Error("Failed to select openOCD configuration files"),
       "boardConfiguration selectOpenOcdConfigFiles"
     );
     return;

@@ -32,7 +32,7 @@ import { ESP } from "../config";
 export type WithProgressTask<T = void> = (
   progress: Progress<{ message: string; increment: number }>,
   token: CancellationToken,
-  workspaceFolder: WorkspaceFolder
+  workspaceFolder: WorkspaceFolder | undefined
 ) => Promise<T>;
 
 export type WithProgressWrapperOptions = {
@@ -46,6 +46,11 @@ export type WithProgressWrapperOptions = {
    * selected workspace folder (for example build/flash against an explicit folder).
    */
   workspaceFolder?: WorkspaceFolder | undefined;
+  /**
+   * When true (default), a workspace folder must be resolved or the action is aborted with an error.
+   * When false, that check is skipped and the task receives undefined if no folder is available.
+   */
+  requireWorkspaceFolder?: boolean;
 };
 
 function progressLocationForNotificationSetting(
@@ -67,6 +72,7 @@ export async function withProgressWrapper<T = void>(
   task: WithProgressTask<T>,
   options?: WithProgressWrapperOptions
 ): Promise<T | undefined> {
+  const requireWorkspaceFolder = options?.requireWorkspaceFolder !== false;
   return PreCheck.perform(preChecks, async () => {
     if (options?.afterPreCheckProceed) {
       const proceed = await options.afterPreCheckProceed();
@@ -77,7 +83,7 @@ export async function withProgressWrapper<T = void>(
     const wsFolder =
       options?.workspaceFolder ??
       ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-    if (!wsFolder) {
+    if (!wsFolder && requireWorkspaceFolder) {
       PreCheck.perform([openFolderCheck], () => {
         Logger.errorNotify(
           l10n.t("Unable to resolve the workspace folder for this action."),

@@ -18,7 +18,7 @@
 
 import { l10n, Uri } from "vscode";
 import { isBinInPath } from "../utils";
-import { pathExists, writeJSON, writeFile } from "fs-extra";
+import { pathExists, readFile, writeFile } from "fs-extra";
 import { readParameter } from "../configuration/idf";
 import { join } from "path";
 import { Logger } from "../common/logger";

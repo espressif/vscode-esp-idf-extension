@@ -23,7 +23,7 @@ export enum srcOp {
 }
 
 export class UpdateCmakeLists {
-  public static singletonPromise: Promise<void>;
+  public static singletonPromise: Promise<void> | undefined = undefined;
 
   public static updateSrcsInCmakeLists(
     srcPath: string,

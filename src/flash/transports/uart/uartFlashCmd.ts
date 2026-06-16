@@ -28,7 +28,7 @@ import { createFlashModel } from "./flashModelBuilder";
 import {
   CustomTask,
   CustomTaskType,
-} from "../../../customTasks/customTaskProvider";
+} from "../../../taskManager/customTaskProvider";
 import { ESP } from "../../../config";
 import { OutputChannel } from "../../../common/outputChannel";
 import { CustomExecutionTaskResult } from "../../../taskManager/types";

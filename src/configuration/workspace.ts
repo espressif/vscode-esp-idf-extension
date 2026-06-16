@@ -18,10 +18,18 @@ import { commands, l10n, StatusBarItem, Uri, window, workspace } from "vscode";
 import { Logger } from "../common/logger";
 import { readParameter } from "./idf";
 import { showInfoNotificationWithAction } from "../common/customNotifications";
-import { isSettingIDFTarget } from "../espIdf/setTarget";
-import { pathExists } from "fs-extra";
-import { getConfigValueFromSDKConfig, updateStatus } from "../utils";
+import { isSettingIDFTarget } from "../espIdf/setTarget/main";
+import { pathExists, readFile, writeFile } from "fs-extra";
+import {
+  getConfigValueFromSDKConfig,
+  getToolchainToolName,
+  isBinInPath,
+  updateStatus,
+} from "../utils";
 import { IdfTreeDataProvider } from "../espIdf/idfComponent/treeDataProvider";
+import { configureEnvVariables } from "../common/prepareEnv";
+import { parse, ParseError } from "jsonc-parser";
+import { updateJsonPreservingComments } from "../jsonc/updateJsonPreservingComments";
 
 /** Parsed subset of build/project_description.json; fields are optional for partial or evolving schemas. */
 export interface IProjectDescription {
@@ -65,8 +73,7 @@ function optString(value: unknown): string | undefined {
 
 export function initSelectedWorkspace(status?: StatusBarItem) {
   const workspaceRoot =
-    workspace.workspaceFolders &&
-    workspace.workspaceFolders.length
+    workspace.workspaceFolders && workspace.workspaceFolders.length
       ? workspace.workspaceFolders[0]
       : undefined;
   if (!workspaceRoot) {
@@ -253,9 +260,7 @@ export async function getSDKConfigFilePath(
  * @param {Uri} workspacePath - Workspace URI to get the project name from its project description.
  * @returns {Promise<string>}
  */
-export async function getProjectName(
-  workspacePath: Uri
-): Promise<string> {
+export async function getProjectName(workspacePath: Uri): Promise<string> {
   const projectDescription = await getProjectDescriptionJson(workspacePath);
   if (projectDescription && projectDescription.projectName) {
     return projectDescription.projectName;
@@ -369,5 +374,76 @@ export async function getIdfTargetFromSdkconfig(
       statusItem.text = `$(chip) ${idfTarget}`;
     }
     return idfTarget;
+  }
+}
+
+export async function setCCppPropertiesJsonCompilerPath(
+  curWorkspaceFsPath: Uri
+) {
+  const modifiedEnv = await configureEnvVariables(curWorkspaceFsPath);
+  const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
+  const gccTool = getToolchainToolName(idfTarget, "gcc");
+  const compilerAbsolutePath = await isBinInPath(gccTool, modifiedEnv);
+  if (!compilerAbsolutePath) {
+    return;
+  }
+  await updateCCppPropertiesJson(
+    curWorkspaceFsPath,
+    "compilerPath",
+    compilerAbsolutePath
+  );
+}
+
+export async function setCCppPropertiesJsonCompileCommands(
+  curWorkspaceFsPath: Uri
+) {
+  const buildDirPath = readParameter(
+    "idf.buildPath",
+    curWorkspaceFsPath
+  ) as string;
+  const compileCommandsPath = join(buildDirPath, "compile_commands.json");
+
+  await updateCCppPropertiesJson(
+    curWorkspaceFsPath,
+    "compileCommands",
+    compileCommandsPath
+  );
+}
+
+export async function updateCCppPropertiesJson(
+  workspaceUri: Uri,
+  fieldToUpdate: string,
+  newFieldValue: string
+) {
+  const cCppPropertiesJsonPath = join(
+    workspaceUri.fsPath,
+    ".vscode",
+    "c_cpp_properties.json"
+  );
+  const doesPathExists = await pathExists(cCppPropertiesJsonPath);
+  if (!doesPathExists) {
+    return;
+  }
+  const cCppPropertiesContent = await readFile(cCppPropertiesJsonPath, "utf8");
+  const parseErrors: ParseError[] = [];
+  const cCppPropertiesJson = parse(cCppPropertiesContent, parseErrors, {
+    allowTrailingComma: true,
+  });
+  if (parseErrors.length > 0) {
+    throw new Error(
+      `Failed to parse c_cpp_properties.json with ${parseErrors.length} errors`
+    );
+  }
+  if (
+    cCppPropertiesJson &&
+    cCppPropertiesJson.configurations &&
+    cCppPropertiesJson.configurations.length
+  ) {
+    cCppPropertiesJson.configurations[0][fieldToUpdate] = newFieldValue;
+    await updateJsonPreservingComments(
+      cCppPropertiesJsonPath,
+      cCppPropertiesJson,
+      [["configurations", 0, fieldToUpdate]]
+    );
   }
 }

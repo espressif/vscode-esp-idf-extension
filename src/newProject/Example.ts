@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as path from "path";
-import * as utils from "../utils";
+import { basename, join, sep } from "path";
+import { checkIsProjectCmakeLists } from "./utils";
+import { readdirSync, statSync } from "fs";
 
 export interface IExample {
   name: string;
@@ -31,9 +32,9 @@ export function getExamplesList(
   examplesContainer: string[] = ["examples"],
   name?: string
 ): IExampleCategory {
-  const rootName = path.basename(targetFrameworkFolder);
-  const examplesRoot = path.join(targetFrameworkFolder, ...examplesContainer);
-  const examplesPathList = utils.getSubProjects(examplesRoot);
+  const rootName = basename(targetFrameworkFolder);
+  const examplesRoot = join(targetFrameworkFolder, ...examplesContainer);
+  const examplesPathList = getSubProjects(examplesRoot);
   const rootFolder: IExampleCategory = {
     name: name || rootName.toUpperCase(),
     examples: [],
@@ -41,8 +42,8 @@ export function getExamplesList(
   };
   for (const examplePath of examplesPathList) {
     const pathSegments = examplePath
-      .replace(examplesRoot + path.sep, "")
-      .split(path.sep);
+      .replace(examplesRoot + sep, "")
+      .split(sep);
     addSubCategory(rootFolder, examplePath, pathSegments);
   }
   const getStartedIndex = rootFolder.subcategories.findIndex(
@@ -91,5 +92,23 @@ export function addSubCategory(
       path,
       pathSegments.slice(1)
     );
+  }
+}
+
+export function getSubProjects(dir: string): string[] {
+  const subDirs = readdirSync(dir).filter((file) => {
+    return statSync(join(dir, file)).isDirectory();
+  });
+  if (checkIsProjectCmakeLists(dir)) {
+    return [dir];
+  } else {
+    const subProjectsPathArray: string[] = [];
+    for (const subDir of subDirs) {
+      const subProjectsPaths = getSubProjects(join(dir, subDir));
+      subProjectsPaths.forEach((subProjPath) => {
+        subProjectsPathArray.push(subProjPath);
+      });
+    }
+    return subProjectsPathArray;
   }
 }

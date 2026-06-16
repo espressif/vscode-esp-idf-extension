@@ -13,7 +13,7 @@ import { updateCurrentProfileIdfTarget } from "../project-conf";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { setTargetInIDF } from "../espIdf/setTarget/setTargetInIdf";
 import { statusBarItems } from "../statusBar";
-import { isSettingIDFTarget, setIsSettingIDFTarget } from "../espIdf/setTarget";
+import { isSettingIDFTarget, setIsSettingIDFTarget } from "../espIdf/setTarget/main";
 import {
   OutputCapturingExecution,
 } from "../taskManager/customExecution";
