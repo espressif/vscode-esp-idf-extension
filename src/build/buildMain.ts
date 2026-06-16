@@ -25,7 +25,7 @@ import {
   throwCapturedTaskFailure,
 } from "../taskManager/taskManager";
 import { updateIdfComponentsTree } from "../configuration/workspace";
-import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
+import { CustomTask, CustomTaskType } from "../taskManager/customTaskProvider";
 import { ESP } from "../config";
 import { OutputChannel } from "../common/outputChannel";
 import { CustomExecutionTaskResult } from "../taskManager/types";

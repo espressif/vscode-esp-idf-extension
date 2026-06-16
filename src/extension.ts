@@ -15,12 +15,7 @@
 "use strict";
 import * as path from "path";
 import * as vscode from "vscode";
-import { srcOp, UpdateCmakeLists } from "./cmake/srcsWatcher";
 import { ConfserverProcess } from "./espIdf/menuconfig/confserver/confServerProcess";
-import {
-  IOpenOCDConfig,
-  OpenOCDManager,
-} from "./espIdf/openOcd/openOcdManager";
 import { AppTraceManager } from "./espIdf/tracing/appTraceManager";
 import { AppTracePanel } from "./espIdf/tracing/appTracePanel";
 import { GdbHeapTraceManager } from "./espIdf/tracing/gdbHeapTraceManager";
@@ -31,7 +26,6 @@ import {
 } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
 import {
-  chooseConfigurationTarget,
   NotificationMode,
   readParameter,
   writeParameter,
@@ -54,15 +48,10 @@ import {
 } from "./configuration/workspace";
 import { SystemViewResultParser } from "./espIdf/tracing/system-view";
 import { Telemetry } from "./common/telemetry";
-import { ESPRainMakerTreeDataProvider } from "./rainmaker";
+import { registerRainMakerCommands } from "./rainmaker";
 import { CommandsProvider } from "./cmdTreeView/cmdTreeDataProvider";
-import { RainmakerAPIClient } from "./rainmaker/client";
 import { ESP } from "./config";
-import { PromptUserToLogin } from "./rainmaker/view/login";
-import { RMakerItem } from "./rainmaker/view/item";
 import { RainmakerStore } from "./rainmaker/store";
-import { RainmakerDeviceParamStructure } from "./rainmaker/client/model";
-import { RainmakerOAuthManager } from "./rainmaker/oauth";
 import {
   coverageRendererSettingsAffected,
   espIdfCoverageRenderer,
@@ -75,11 +64,6 @@ import { createFileSync, pathExists, readFile } from "fs-extra";
 import { registerEspAdfCmd } from "./espAdf/espAdfDownload";
 import { ChangelogViewer } from "./changelog-viewer";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
-import { seachInEspDocs } from "./espIdf/documentation/getSearchResults";
-import {
-  DocSearchResult,
-  DocSearchResultTreeDataProvider,
-} from "./espIdf/documentation/docResultsTreeView";
 import { NVSPartitionTable } from "./espIdf/nvs/partitionTable/panel";
 import {
   getOpenOcdScripts,
@@ -89,38 +73,26 @@ import { clearAdapterSerial } from "./espIdf/openOcd/adapterSerial";
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
-import { getNewProjectArgs } from "./newProject/newProjectInit";
-import { NewProjectPanel } from "./newProject/newProjectPanel";
 import { KconfigLangClient } from "./kconfig";
 import { configureProjectWithGcov } from "./coverage/configureProject";
 import { ComponentManagerUIPanel } from "./component-manager/panel";
-import { QemuLaunchMode, QemuManager } from "./qemu/qemuManager";
 import {
   PartitionItem,
   PartitionTreeDataProvider,
 } from "./espIdf/partition-table/tree";
 import { flashBinaryToPartition } from "./espIdf/partition-table/partitionFlasher";
-import { CustomTask, CustomTaskType } from "./customTasks/customTaskProvider";
-import { TaskManager } from "./taskManager/taskManager";
 import { WelcomePanel } from "./welcome/panel";
 import { getWelcomePageInitialValues } from "./welcome/welcomeInit";
 import {
   setIdfTarget,
   setIsSettingIDFTarget,
   isSettingIDFTarget,
-} from "./espIdf/setTarget";
+} from "./espIdf/setTarget/main";
 import { setTargetInIDF } from "./espIdf/setTarget/setTargetInIdf";
 import { updateCurrentProfileIdfTarget } from "./project-conf";
 import { ExtensionConfigStore } from "./common/store";
 import { ProjectConfigStore } from "./project-conf";
 import { UnitTest } from "./espIdf/unitTest/adapter";
-import {
-  buildFlashTestApp,
-  buildTestApp,
-  copyTestAppProject,
-  flashTestApp,
-} from "./espIdf/unitTest/configure";
-import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 import { createSBOM, installEspSBOM } from "./espBom";
 import { selectIdfSetup } from "./eim/selectIdfSetup";
@@ -151,16 +123,7 @@ import {
   webIdeCheck,
 } from "./common/PreCheck";
 import { buildFlashAndMonitor } from "./buildFlashMonitor";
-import { getIdfSetups } from "./eim/getExistingSetups";
 import { getCurrentIdfSetup, loadIdfSetup } from "./eim/loadIdfSetup";
-import {
-  checkEimExists,
-  downloadAndInstallEIM,
-  isEimGuiCapable,
-  isVSCodeInstalledViaSnap,
-  launchEimInTerminal,
-  shouldForceCliMode,
-} from "./eim/downloadInstall";
 import {
   checkAndPromptForClangdExtension,
   handleCompileCommandsUpdate,
@@ -177,19 +140,23 @@ import { registerAddArduinoAsComponentCmd } from "./espIdf/arduino";
 import { registerFullCleanCmd } from "./clean";
 import { registerSerialPortCmds } from "./espIdf/serial";
 import { registerCoverageCommands } from "./coverage";
+import { addCmakeFileSystemWatcher } from "./cmake";
+import { registerCustomTaskCommand } from "./taskManager";
+import { registerNewProjectWizardCmd } from "./newProject";
+import { addUnitTestCommands } from "./espIdf/unitTest";
+import { registerSearchDocsCommand } from "./espIdf/documentation";
+import { installManagerCommand } from "./eim";
+import { checkIsProjectCmakeLists } from "./newProject/utils";
+import { registerQEMUCommands } from "./qemu";
+import { registerOpenOCDCommands } from "./espIdf/openOcd";
+import {
+  IOpenOCDConfig,
+  OpenOCDManager,
+} from "./espIdf/openOcd/openOcdManager";
+import { registerSetTargetCommand } from "./espIdf/setTarget";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
-
-// OpenOCD
-
-let openOCDManager: OpenOCDManager;
-
-// QEMU
-let qemuManager: QemuManager;
-
-// ESP-IDF Docs search results Tree view
-let espIdfDocsResultTreeDataProvider: DocSearchResultTreeDataProvider;
 
 // App Tracing
 let appTraceTreeDataProvider: AppTraceTreeDataProvider;
@@ -199,12 +166,6 @@ let gdbHeapTraceManager: GdbHeapTraceManager;
 
 // Partition table
 let partitionTableTreeDataProvider: PartitionTreeDataProvider;
-
-// ESP-IDF Search results
-let idfSearchResults: vscode.TreeView<DocSearchResult>;
-
-// ESP Rainmaker
-let rainMakerTreeDataProvider: ESPRainMakerTreeDataProvider;
 
 // Commands Provider
 let commandTreeDataProvider: CommandsProvider;
@@ -392,9 +353,6 @@ export async function activate(context: vscode.ExtensionContext) {
   // Initialize ESP-IDF Language Tool for chat commands
   activateLanguageTool(context);
 
-  openOCDManager = OpenOCDManager.init();
-  qemuManager = QemuManager.init();
-
   registerDebugCommands(context);
 
   // Register Tree Provider for IDF Explorer
@@ -408,14 +366,12 @@ export async function activate(context: vscode.ExtensionContext) {
     appTraceArchiveTreeDataProvider
   );
 
-  // register openOCD status bar item
-  registerOpenOCDStatusBarItem(context);
-
-  registerQemuStatusBarItem(context);
-
   if (PreCheck.isWorkspaceFolderOpen()) {
     await loadIdfSetup(vscode.workspace.workspaceFolders[0].uri);
-    await createCmdsStatusBarItems(vscode.workspace.workspaceFolders[0].uri);
+    await createCmdsStatusBarItems(
+      context,
+      vscode.workspace.workspaceFolders[0].uri
+    );
     workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
     ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(workspaceRoot);
     await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
@@ -428,46 +384,9 @@ export async function activate(context: vscode.ExtensionContext) {
     handleCompileCommandsUpdate(workspaceRoot, context);
   }
   let unitTestController = new UnitTest(context);
-  // Add delete or update new sources in CMakeLists.txt of same folder
-  const newSrcWatcher = vscode.workspace.createFileSystemWatcher(
-    "**/*.{c,cpp,cc,S}",
-    false,
-    false,
-    false
-  );
-  const srcWatchDeleteDisposable = newSrcWatcher.onDidDelete(async (e) => {
-    if (UpdateCmakeLists.singletonPromise) {
-      UpdateCmakeLists.singletonPromise.then(() => {
-        UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.delete);
-        UpdateCmakeLists.singletonPromise = undefined;
-      });
-    } else {
-      UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.delete);
-    }
-  });
-  context.subscriptions.push(srcWatchDeleteDisposable);
-  const srcWatchCreateDisposable = newSrcWatcher.onDidCreate(async (e) => {
-    if (UpdateCmakeLists.singletonPromise) {
-      UpdateCmakeLists.singletonPromise.then(() => {
-        UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.other);
-        UpdateCmakeLists.singletonPromise = undefined;
-      });
-    } else {
-      UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.other);
-    }
-  });
-  context.subscriptions.push(srcWatchCreateDisposable);
-  const srcWatchOnChangeDisposable = newSrcWatcher.onDidChange(async (e) => {
-    if (UpdateCmakeLists.singletonPromise) {
-      UpdateCmakeLists.singletonPromise.then(() => {
-        UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.other);
-        UpdateCmakeLists.singletonPromise = undefined;
-      });
-    } else {
-      UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.other);
-    }
-  });
-  context.subscriptions.push(srcWatchOnChangeDisposable);
+
+  addCmakeFileSystemWatcher(context);
+
   context.subscriptions.push(
     vscode.workspace.onDidChangeWorkspaceFolders(async (e) => {
       if (PreCheck.isWorkspaceFolderOpen()) {
@@ -547,7 +466,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const openOCDConfig: IOpenOCDConfig = {
           workspace: workspaceRoot,
         } as IOpenOCDConfig;
-        openOCDManager.configureServer(openOCDConfig);
+        OpenOCDManager.init().configureServer(openOCDConfig);
         if (projectConfigManager) {
           projectConfigManager.dispose();
           projectConfigManager = undefined;
@@ -563,50 +482,6 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  const kconfigMenusWatcher = vscode.workspace.createFileSystemWatcher(
-    "**/config/kconfig_menus.json",
-    true,
-    false,
-    false
-  );
-  context.subscriptions.push(
-    kconfigMenusWatcher.onDidChange(async (e) => {
-      if (ConfserverProcess.exists()) {
-        ConfserverProcess.dispose();
-      }
-    }),
-    kconfigMenusWatcher.onDidDelete(async (e) => {
-      if (ConfserverProcess.exists()) {
-        ConfserverProcess.dispose();
-      }
-    })
-  );
-
-  const sdkconfigWatcher = vscode.workspace.createFileSystemWatcher(
-    "**/sdkconfig",
-    false,
-    false,
-    false
-  );
-  const updateGuiValues = async (e: vscode.Uri) => {
-    if (ConfserverProcess.exists() && !ConfserverProcess.isSavedByUI()) {
-      ConfserverProcess.loadGuiConfigValues();
-    }
-    ConfserverProcess.resetSavedByUI();
-    await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
-  };
-  const sdkCreateWatchDisposable = sdkconfigWatcher.onDidCreate(
-    updateGuiValues
-  );
-  context.subscriptions.push(sdkCreateWatchDisposable);
-  const sdkWatchDisposable = sdkconfigWatcher.onDidChange(updateGuiValues);
-  context.subscriptions.push(sdkWatchDisposable);
-  const sdkDeleteWatchDisposable = sdkconfigWatcher.onDidDelete(async () => {
-    ConfserverProcess.dispose();
-    await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
-  });
-  context.subscriptions.push(sdkDeleteWatchDisposable);
-
   registerFullCleanCmd(context);
 
   registerAddArduinoAsComponentCmd(context);
@@ -615,85 +490,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerSerialPortCmds(context);
 
-  registerIDFCommand("espIdf.selectCurrentIdfVersion", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const currentIdfSetup = await selectIdfSetup(
-        workspaceRoot,
-        statusBarItems["currentIdfVersion"]
-      );
-    });
-  });
-
   registerReconfigureCmd(context);
 
-  registerIDFCommand("espIdf.customTask", async () => {
-    try {
-      const customTask = new CustomTask(workspaceRoot);
-      await customTask.addCustomTask(CustomTaskType.Custom);
-      await TaskManager.runTasks();
-    } catch (error) {
-      const errMsg = error instanceof Error ? error.message : String(error);
-      Logger.errorNotify(errMsg, error as Error, "extension customTask");
-    }
-  });
-
-  registerIDFCommand("espIdf.selectConfTarget", async () => {
-    await chooseConfigurationTarget();
-  });
-
-  registerIDFCommand("espIdf.selectNotificationMode", async () => {
-    const notificationTarget = await vscode.window.showQuickPick(
-      [
-        {
-          description: vscode.l10n.t(
-            "Show no notifications and do not focus tasks output."
-          ),
-          label: "Silent",
-          target: "Silent",
-        },
-        {
-          description: vscode.l10n.t(
-            "Show notifications but do not focus tasks output."
-          ),
-          label: "Notifications",
-          target: "Notifications",
-        },
-        {
-          description: vscode.l10n.t(
-            "Do not show notifications but focus tasks output."
-          ),
-          label: "Output",
-          target: "Output",
-        },
-        {
-          description: vscode.l10n.t(
-            "Show notifications and focus tasks output."
-          ),
-          label: "All",
-          target: "All",
-        },
-      ],
-      { placeHolder: vscode.l10n.t("Select the output and notification mode") }
-    );
-    if (!notificationTarget) {
-      return;
-    }
-    const saveScope = readParameter(
-      "idf.saveScope"
-    ) as vscode.ConfigurationTarget;
-
-    await writeParameter(
-      "idf.notificationMode",
-      notificationTarget.target,
-      saveScope,
-      workspaceRoot
-    );
-    Logger.infoNotify(
-      vscode.l10n.t(`Notification mode has changed to {mode}`, {
-        mode: notificationTarget.label,
-      })
-    );
-  });
+  registerCustomTaskCommand(context);
 
   registerIDFCommand("espIdf.rmProjectConfStatusBar", async () => {
     if (statusBarItems["projectConf"]) {
@@ -723,7 +522,7 @@ export async function activate(context: vscode.ExtensionContext) {
         workspaceRoot
       ) as boolean;
       if (enableStatusBar) {
-        await createCmdsStatusBarItems(workspaceRoot);
+        await createCmdsStatusBarItems(context, workspaceRoot);
       } else if (!enableStatusBar) {
         for (let statusItem in statusBarItems) {
           statusBarItems[statusItem].dispose();
@@ -802,203 +601,9 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.searchInEspIdfDocs", async () => {
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      workspaceRoot
-    ) as string;
-    const ProgressLocation =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Notifications
-        ? vscode.ProgressLocation.Notification
-        : vscode.ProgressLocation.Window;
-    vscode.window.withProgress(
-      {
-        cancellable: true,
-        location: ProgressLocation,
-        title: "ESP-IDF: Documentation search results",
-      },
-      async () => {
-        try {
-          const currentEditor = vscode.window.activeTextEditor;
-          if (!currentEditor) {
-            return;
-          }
-          let selection = currentEditor.document.getText(
-            currentEditor.selection
-          );
-          if (!selection) {
-            const range = currentEditor.document.getWordRangeAtPosition(
-              currentEditor.selection.active
-            );
-            selection = currentEditor.document.getText(range);
-          }
-          const searchResults = await seachInEspDocs(selection, workspaceRoot);
-          espIdfDocsResultTreeDataProvider.getResults(
-            searchResults,
-            idfSearchResults
-          );
-        } catch (error) {
-          const errMsg = error.message || "Error searching in ESP-IDF docs";
-          Logger.errorNotify(errMsg, error, "extension searchInEspIdfDocs");
-          return;
-        }
-      }
-    );
-  });
+  registerSearchDocsCommand(context);
 
-  registerIDFCommand("espIdf.unitTest.buildUnitTestApp", () => {
-    return PreCheck.perform([openFolderCheck], async () => {
-      const notificationMode = readParameter(
-        "idf.notificationMode",
-        workspaceRoot
-      ) as string;
-      const ProgressLocation =
-        notificationMode === NotificationMode.All ||
-        notificationMode === NotificationMode.Notifications
-          ? vscode.ProgressLocation.Notification
-          : vscode.ProgressLocation.Window;
-      vscode.window.withProgress(
-        {
-          cancellable: true,
-          location: ProgressLocation,
-          title: vscode.l10n.t("ESP-IDF: Building unit test app"),
-        },
-        async (
-          progress: vscode.Progress<{ message: string; increment?: number }>,
-          cancelToken: vscode.CancellationToken
-        ) => {
-          try {
-            let unitTestAppUri = vscode.Uri.joinPath(
-              workspaceRoot,
-              "unity-app"
-            );
-            const doesUnitTestAppExists = await pathExists(
-              unitTestAppUri.fsPath
-            );
-            if (!doesUnitTestAppExists) {
-              const unitTestFiles = await getFileList();
-              const testComponents = await getTestComponents(unitTestFiles);
-              unitTestAppUri = await copyTestAppProject(
-                workspaceRoot,
-                testComponents
-              );
-            }
-            await buildTestApp(unitTestAppUri, cancelToken);
-          } catch (error) {
-            const msg =
-              error && error.message
-                ? error.message
-                : "Error building PyTest Unit App for project";
-            OutputChannel.appendLine(msg, "idf-unit-test");
-            Logger.error(msg, error, "extension buildTestApp");
-          }
-        }
-      );
-    });
-  });
-
-  registerIDFCommand("espIdf.unitTest.flashUnitTestApp", () => {
-    return PreCheck.perform([openFolderCheck], async () => {
-      const notificationMode = readParameter(
-        "idf.notificationMode",
-        workspaceRoot
-      ) as string;
-      const ProgressLocation =
-        notificationMode === NotificationMode.All ||
-        notificationMode === NotificationMode.Notifications
-          ? vscode.ProgressLocation.Notification
-          : vscode.ProgressLocation.Window;
-      vscode.window.withProgress(
-        {
-          cancellable: true,
-          location: ProgressLocation,
-          title: vscode.l10n.t("ESP-IDF: Building unit test app and flashing"),
-        },
-        async (
-          progress: vscode.Progress<{ message: string; increment?: number }>,
-          cancelToken: vscode.CancellationToken
-        ) => {
-          try {
-            let unitTestAppUri = vscode.Uri.joinPath(
-              workspaceRoot,
-              "unity-app"
-            );
-            const doesUnitTestAppExists = await pathExists(
-              unitTestAppUri.fsPath
-            );
-            if (!doesUnitTestAppExists) {
-              const unitTestFiles = await getFileList();
-              const testComponents = await getTestComponents(unitTestFiles);
-              unitTestAppUri = await copyTestAppProject(
-                workspaceRoot,
-                testComponents
-              );
-            }
-            await flashTestApp(unitTestAppUri, cancelToken);
-          } catch (error) {
-            const msg =
-              error && error.message
-                ? error.message
-                : "Error flashing PyTest Unit App for project";
-            OutputChannel.appendLine(msg, "idf-unit-test");
-            Logger.error(msg, error, "extension flashTestApp");
-          }
-        }
-      );
-    });
-  });
-
-  registerIDFCommand("espIdf.unitTest.buildFlashUnitTestApp", () => {
-    return PreCheck.perform([openFolderCheck], async () => {
-      const notificationMode = readParameter(
-        "idf.notificationMode",
-        workspaceRoot
-      ) as string;
-      const ProgressLocation =
-        notificationMode === NotificationMode.All ||
-        notificationMode === NotificationMode.Notifications
-          ? vscode.ProgressLocation.Notification
-          : vscode.ProgressLocation.Window;
-      vscode.window.withProgress(
-        {
-          cancellable: true,
-          location: ProgressLocation,
-          title: vscode.l10n.t("ESP-IDF: Building unit test app and flashing"),
-        },
-        async (
-          progress: vscode.Progress<{ message: string; increment?: number }>,
-          cancelToken: vscode.CancellationToken
-        ) => {
-          try {
-            let unitTestAppUri = vscode.Uri.joinPath(
-              workspaceRoot,
-              "unity-app"
-            );
-            const doesUnitTestAppExists = await pathExists(
-              unitTestAppUri.fsPath
-            );
-            if (!doesUnitTestAppExists) {
-              const unitTestFiles = await getFileList();
-              const testComponents = await getTestComponents(unitTestFiles);
-              unitTestAppUri = await copyTestAppProject(
-                workspaceRoot,
-                testComponents
-              );
-            }
-            await buildFlashTestApp(unitTestAppUri, cancelToken);
-          } catch (error) {
-            const msg =
-              error && error.message
-                ? error.message
-                : "Error build or flashing PyTest Unit App for project";
-            OutputChannel.appendLine(msg, "idf-unit-test");
-            Logger.error(msg, error, "extension buildFlashTestApp");
-          }
-        }
-      );
-    });
-  });
+  addUnitTestCommands(context);
 
   registerIDFCommand("espIdf.getToolchainGdb", () => {
     return PreCheck.perform([openFolderCheck], async () => {
@@ -1012,146 +617,6 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.createVsCodeFolder", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      try {
-        await utils.createVscodeFolder(workspaceRoot);
-        Logger.infoNotify(
-          vscode.l10n.t("ESP-IDF vscode files have been added to the project.")
-        );
-      } catch (error) {
-        const errMsg = error.message || "Error creating .vscode folder";
-        Logger.errorNotify(errMsg, error, "extension createVsCodeFolder");
-        return;
-      }
-    });
-  });
-
-  registerIDFCommand("espIdf.createDevContainer", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      try {
-        await utils.createDevContainer(workspaceRoot.fsPath);
-        Logger.infoNotify(
-          vscode.l10n.t(
-            "ESP-IDF container files have been added to the project."
-          )
-        );
-      } catch (error) {
-        const errMsg = error.message || "Error creating .devcontainer folder";
-        Logger.errorNotify(errMsg, error, "extension createDevContainer");
-        return;
-      }
-    });
-  });
-
-  registerIDFCommand("espIdf.createNewProject", async () => {
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      workspaceRoot
-    ) as string;
-    const ProgressLocation =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Notifications
-        ? vscode.ProgressLocation.Notification
-        : vscode.ProgressLocation.Window;
-    let projectName: string;
-    let selectedFolder: vscode.Uri[] | undefined;
-    await vscode.window.withProgress(
-      {
-        cancellable: false,
-        location: ProgressLocation,
-        title: vscode.l10n.t("New Project"),
-      },
-      async (
-        progress: vscode.Progress<{ increment: number; message: string }>,
-        cancelToken: vscode.CancellationToken
-      ) => {
-        try {
-          progress.report({
-            message: "Waiting for project name",
-            increment: 10,
-          });
-          projectName = await vscode.window.showInputBox({
-            placeHolder: vscode.l10n.t("Enter ESP-IDF project name"),
-            value: "",
-          });
-          if (!projectName) {
-            return;
-          }
-          progress.report({
-            message: "Waiting for folder selection",
-            increment: 20,
-          });
-          selectedFolder = await vscode.window.showOpenDialog({
-            canSelectFolders: true,
-            canSelectFiles: false,
-            canSelectMany: false,
-          });
-          if (!selectedFolder) {
-            return;
-          }
-          progress.report({
-            message: "Creating ESP-IDF project...",
-            increment: 30,
-          });
-          await utils.createNewProject(projectName, selectedFolder[0]);
-        } catch (error) {
-          const errMsg = error.message || "Error creating ESP-IDF project";
-          return Logger.errorNotify(
-            errMsg,
-            error,
-            "extension createNewProject"
-          );
-        }
-      }
-    );
-
-    if (projectName && selectedFolder && selectedFolder[0]) {
-      const openItem = vscode.l10n.t(`Open {0}`, projectName);
-      const opt = await vscode.window.showInformationMessage(
-        vscode.l10n.t("ESP-IDF project {name} has been created", {
-          name: projectName,
-        }),
-        openItem
-      );
-      if (opt === openItem) {
-        vscode.commands.executeCommand(
-          "vscode.openFolder",
-          vscode.Uri.joinPath(selectedFolder[0], projectName),
-          true
-        );
-      }
-    }
-  });
-
-  registerIDFCommand("espIdf.createNewComponent", async () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      try {
-        const componentName = await vscode.window.showInputBox({
-          placeHolder: vscode.l10n.t("Enter ESP-IDF component name"),
-          value: "",
-        });
-        if (!componentName) {
-          return;
-        }
-        await utils.createNewComponent(componentName, workspaceRoot.fsPath);
-        Logger.infoNotify(
-          vscode.l10n.t(
-            `The ESP-IDF component {componentName} has been created`,
-            { componentName }
-          )
-        );
-      } catch (error) {
-        const errMsg = error.message || "Error creating ESP-IDF component";
-        return Logger.errorNotify(
-          errMsg,
-          error,
-          "extension createNewComponent"
-        );
-      }
-    });
-  });
-
   registerBuildCommands(context);
   registerFlashCommands(context);
   registerEraseFlashCommand(context);
@@ -1160,122 +625,12 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.buildFlashMonitor", () =>
     buildFlashAndMonitor(workspaceRoot)
   );
-  registerIDFCommand("espIdf.monitorQemu", createQemuMonitor);
 
   registerMenuconfigCommands(context);
 
-  registerIDFCommand("espIdf.saveDefSdkconfig", async () => {
-    const idfVersionCheck = await minIdfVersionCheck("5.0");
-    PreCheck.perform([idfVersionCheck, openFolderCheck], () => {
-      vscode.window.withProgress(
-        {
-          cancellable: true,
-          location: vscode.ProgressLocation.Notification,
-          title: vscode.l10n.t(
-            "ESP-IDF: Save Default Configuration (save-defconfig)"
-          ),
-        },
-        async (
-          progress: vscode.Progress<{ message: string; increment: number }>,
-          cancelToken: vscode.CancellationToken
-        ) => {
-          try {
-            await saveDefSdkconfig(workspaceRoot, cancelToken);
-          } catch (error) {
-            Logger.errorNotify(
-              error.message,
-              error,
-              "extension saveDefSdkconfig"
-            );
-          }
-        }
-      );
-    });
-  });
+  registerSetTargetCommand(context);
 
-  registerIDFCommand("espIdf.setTarget", (target?: string) => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(
-        workspaceRoot
-      );
-
-      if (!workspaceFolder) {
-        return;
-      }
-
-      if (target) {
-        // Check if target setting is already in progress
-        if (isSettingIDFTarget) {
-          Logger.info("setTargetInIDF is already running.");
-          return;
-        }
-        setIsSettingIDFTarget(true);
-
-        try {
-          // If a target is provided, set it directly
-          const targetsFromIdf = await getTargetsFromEspIdf(
-            workspaceFolder.uri
-          );
-          const selectedTarget = targetsFromIdf.find(
-            (t) => t.target === target
-          );
-
-          if (selectedTarget) {
-            await setTargetInIDF(workspaceFolder?.uri, selectedTarget);
-
-            // Update configuration like setIdfTarget does
-            const configurationTarget =
-              vscode.ConfigurationTarget.WorkspaceFolder;
-            const customExtraVars = readParameter(
-              "idf.customExtraVars",
-              workspaceFolder
-            ) as { [key: string]: string };
-            customExtraVars["IDF_TARGET"] = selectedTarget.target;
-            await writeParameter(
-              "idf.customExtraVars",
-              customExtraVars,
-              configurationTarget,
-              workspaceFolder.uri
-            );
-            await updateCurrentProfileIdfTarget(
-              selectedTarget.target,
-              workspaceFolder.uri
-            );
-
-            await getIdfTargetFromSdkconfig(
-              workspaceRoot,
-              statusBarItems["target"]
-            );
-          } else {
-            const listOfTargets = targetsFromIdf
-              .map((t) => t.target)
-              .join(", ");
-            vscode.window.showErrorMessage(
-              `Invalid target: ${target}. Please use one of the supported targets: ${listOfTargets}.`
-            );
-          }
-        } catch (error) {
-          Logger.errorNotify(error.message, error, "espIdf.setTarget command");
-        } finally {
-          setIsSettingIDFTarget(false);
-        }
-      } else {
-        // If no target is provided, show the selection dialog
-        const enterDeviceTargetMsg = vscode.l10n.t(
-          "Enter target name (IDF_TARGET)"
-        );
-        await setIdfTarget(enterDeviceTargetMsg, workspaceFolder);
-        await getIdfTargetFromSdkconfig(
-          workspaceRoot,
-          statusBarItems["target"]
-        );
-      }
-    });
-  });
-
-  registerIDFCommand("espIdf.installManager", async () => {
-    await ensureEimAndLaunch(workspaceRoot);
-  });
+  installManagerCommand(context);
 
   registerIDFCommand(
     "espIdf.cmakeListsEditor.start",
@@ -1333,80 +688,7 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
-  registerIDFCommand("espIdf.newProject.start", async () => {
-    if (NewProjectPanel.isCreatedAndHidden()) {
-      NewProjectPanel.createOrShow(context.extensionPath);
-      return;
-    }
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      workspaceRoot
-    ) as string;
-    const ProgressLocation =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Notifications
-        ? vscode.ProgressLocation.Notification
-        : vscode.ProgressLocation.Window;
-    vscode.window.withProgress(
-      {
-        cancellable: false,
-        location: ProgressLocation,
-        title: "ESP-IDF: New project",
-      },
-      async (
-        progress: vscode.Progress<{ increment: number; message: string }>,
-        cancelToken: vscode.CancellationToken
-      ) => {
-        try {
-          progress.report({ message: "Loading IDF setups...", increment: 10 });
-          let idfSetups = await getIdfSetups(workspaceRoot);
-          if (idfSetups.length === 0) {
-            return;
-          }
-          const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
-          if (currentIdfSetup) {
-            const isCurrentSetupInList = idfSetups.findIndex((idfSetup) => {
-              return (
-                idfSetup.idfPath === currentIdfSetup.idfPath &&
-                idfSetup.toolsPath === currentIdfSetup.toolsPath
-              );
-            });
-            if (isCurrentSetupInList === -1) {
-              idfSetups.push(currentIdfSetup);
-            }
-          }
-
-          let existingIdfSetups = await Promise.all(
-            idfSetups.map(async (setup) => {
-              return (await pathExists(setup.idfPath)) ? setup : null;
-            })
-          ).then((results) => results.filter((setup) => setup !== null));
-
-          if (!existingIdfSetups || existingIdfSetups.length === 0) {
-            vscode.window.showInformationMessage(
-              vscode.l10n.t("No ESP-IDF Setups found")
-            );
-            return;
-          }
-
-          progress.report({
-            message: "Loading ESP-IDF examples...",
-            increment: 10,
-          });
-          const newProjectArgs = await getNewProjectArgs(
-            progress,
-            workspaceRoot,
-            existingIdfSetups
-          );
-          if (newProjectArgs) {
-            NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
-          }
-        } catch (error) {
-          Logger.errorNotify(error.message, error, "extension newProject");
-        }
-      }
-    );
-  });
+  registerNewProjectWizardCmd(context);
 
   registerIDFCommand("espIdf.openIdfDocument", (docUri: vscode.Uri) => {
     vscode.workspace.openTextDocument(docUri.fsPath).then((doc) => {
@@ -1443,87 +725,6 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIdfSizeUICmd(context);
-
-  registerIDFCommand("espIdf.importProject", async () => {
-    const srcFolder = await vscode.window.showOpenDialog({
-      canSelectFolders: true,
-      canSelectFiles: false,
-      canSelectMany: false,
-    });
-    if (!srcFolder || !srcFolder.length) {
-      return;
-    }
-    const isIdfProject = utils.checkIsProjectCmakeLists(srcFolder[0].fsPath);
-    if (!isIdfProject) {
-      Logger.infoNotify(
-        vscode.l10n.t(`{srcFolder} is not an ESP-IDF project.`, {
-          srcFolder: srcFolder[0].fsPath,
-        })
-      );
-      return;
-    }
-    const items = [
-      {
-        label: vscode.l10n.t("Choose a container directory..."),
-        target: "another",
-      },
-    ];
-    if (workspaceRoot) {
-      items.push({
-        label: vscode.l10n.t(`Use current folder: {workspace}`, {
-          workspace: workspaceRoot.fsPath,
-        }),
-        target: "current",
-      });
-    }
-    const projectDirOption = await vscode.window.showQuickPick(items, {
-      placeHolder: vscode.l10n.t("Select a directory to use"),
-    });
-    if (!projectDirOption) {
-      return;
-    }
-    let destFolder: vscode.Uri;
-    if (projectDirOption.target === "another") {
-      const newFolder = await vscode.window.showOpenDialog({
-        canSelectFolders: true,
-        canSelectFiles: false,
-        canSelectMany: false,
-      });
-      if (!newFolder || !newFolder.length) {
-        return;
-      }
-      destFolder = newFolder[0];
-    } else if (workspaceRoot) {
-      destFolder = workspaceRoot;
-    }
-    if (!destFolder) {
-      return;
-    }
-    const projectName = await vscode.window.showInputBox({
-      placeHolder: vscode.l10n.t("Enter project name"),
-      value: "",
-    });
-    if (!projectName) {
-      return;
-    }
-    destFolder = vscode.Uri.file(path.join(destFolder.fsPath, projectName));
-    const doesProjectExists = await pathExists(destFolder.fsPath);
-    if (doesProjectExists) {
-      Logger.infoNotify(
-        vscode.l10n.t(`{destFolder} already exists.`, { destFolder })
-      );
-      return;
-    }
-    await utils.copyFromSrcProject(srcFolder[0].fsPath, destFolder);
-    await utils.updateProjectNameInCMakeLists(destFolder.fsPath, projectName);
-    const opt = await vscode.window.showInformationMessage(
-      vscode.l10n.t("ESP-IDF project has been imported"),
-      "Open"
-    );
-    if (opt === "Open") {
-      vscode.commands.executeCommand("vscode.openFolder", destFolder, true);
-    }
-  });
 
   registerIDFCommand("espIdf.setGcovConfig", async () => {
     PreCheck.perform([openFolderCheck], async () => {
@@ -1582,149 +783,9 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
-  registerIDFCommand("espIdf.openOCDCommand", () => {
-    PreCheck.perform(
-      [webIdeCheck, openFolderCheck],
-      openOCDManager.commandHandler
-    );
-  });
+  registerOpenOCDCommands(context);
 
-  registerIDFCommand(CommandKeys.OpenOcdAdapterStatusBar, () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      if (!workspaceRoot) {
-        return;
-      }
-
-      // Clear adapter serial (extension workspace state) and adapter location (settings.json)
-      clearAdapterSerial(workspaceRoot);
-
-      const cfg = vscode.workspace.getConfiguration("", workspaceRoot);
-      const extraVars =
-        cfg.get<{ [key: string]: any }>("idf.customExtraVars") ?? {};
-      if (extraVars["OPENOCD_USB_ADAPTER_LOCATION"]) {
-        const nextExtraVars = { ...extraVars };
-        delete nextExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
-        await cfg.update(
-          "idf.customExtraVars",
-          nextExtraVars,
-          vscode.ConfigurationTarget.WorkspaceFolder
-        );
-      }
-
-      // Stop OpenOCD if it is currently running to avoid keeping the old binding alive.
-      if (openOCDManager && openOCDManager.isRunning()) {
-        openOCDManager.stop();
-      }
-
-      updateOpenOcdAdapterStatusBarItem(workspaceRoot);
-    });
-  });
-
-  registerIDFCommand("espIdf.qemuCommand", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const notificationMode = readParameter(
-        "idf.notificationMode",
-        workspaceRoot
-      ) as string;
-      const ProgressLocation =
-        notificationMode === NotificationMode.All ||
-        notificationMode === NotificationMode.Notifications
-          ? vscode.ProgressLocation.Notification
-          : vscode.ProgressLocation.Window;
-      await vscode.window.withProgress(
-        {
-          cancellable: true,
-          location: ProgressLocation,
-          title: "ESP-IDF: Starting ESP-IDF QEMU",
-        },
-        async (
-          progress: vscode.Progress<{ message: string; increment: number }>,
-          cancelToken: vscode.CancellationToken
-        ) => {
-          try {
-            await qemuManager.commandHandler();
-          } catch (error) {
-            const msg = error.message
-              ? error.message
-              : "Error merging binaries for QEMU";
-            Logger.errorNotify(msg, error, "extension qemu");
-          }
-        }
-      );
-    });
-  });
-
-  registerIDFCommand("espIdf.qemuDebug", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const notificationMode = readParameter(
-        "idf.notificationMode",
-        workspaceRoot
-      ) as string;
-      const ProgressLocation =
-        notificationMode === NotificationMode.All ||
-        notificationMode === NotificationMode.Notifications
-          ? vscode.ProgressLocation.Notification
-          : vscode.ProgressLocation.Window;
-      await vscode.window.withProgress(
-        {
-          cancellable: true,
-          location: ProgressLocation,
-          title: vscode.l10n.t("ESP-IDF: Starting ESP-IDF QEMU Debug"),
-        },
-        async (
-          progress: vscode.Progress<{ message: string; increment: number }>,
-          cancelToken: vscode.CancellationToken
-        ) => {
-          try {
-            if (qemuManager.isRunning()) {
-              qemuManager.stop();
-              await utils.sleep(1000);
-            }
-            const monitorAfterDebug = readParameter(
-              "idf.qemuDebugMonitor",
-              workspaceRoot
-            ) as boolean;
-            let qemuMode = monitorAfterDebug
-              ? QemuLaunchMode.DebugMonitor
-              : QemuLaunchMode.Debug;
-            await qemuManager.start(qemuMode, workspaceRoot);
-            const gdbPath = await utils.getToolchainPath(workspaceRoot, "gdb");
-            const workspaceFolder = vscode.workspace.getWorkspaceFolder(
-              workspaceRoot
-            );
-            await vscode.debug.startDebugging(workspaceFolder, {
-              name: "GDB QEMU",
-              type: "gdbtarget",
-              request: "attach",
-              sessionID: "qemu.debug.session",
-              gdb: gdbPath,
-              initCommands: [
-                "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
-                "mon reset halt",
-                "maintenance flush register-cache",
-                "thb app_main",
-              ],
-              target: {
-                type: "remote",
-                host: "localhost",
-                port: "3333",
-              },
-            });
-            vscode.debug.onDidTerminateDebugSession(async (session) => {
-              if (session.configuration.sessionID === "qemu.debug.session") {
-                qemuManager.stop();
-              }
-            });
-          } catch (error) {
-            const msg = error.message
-              ? error.message
-              : vscode.l10n.t("Error launching QEMU debugging");
-            Logger.errorNotify(msg, error, "extension qemu debug");
-          }
-        }
-      );
-    });
-  });
+  registerQEMUCommands(context);
 
   registerIDFCommand(
     "espIdf.flashBinaryToPartition",
@@ -1997,228 +1058,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("esp.rainmaker.backend.connect", async () => {
-    if (RainmakerAPIClient.isLoggedIn()) {
-      return Logger.infoNotify(
-        vscode.l10n.t("Already logged-in, please sign-out first")
-      );
-    }
-
-    //ask to select login provider
-    const accountDetails = await PromptUserToLogin();
-    if (!accountDetails) {
-      return;
-    }
-
-    if (accountDetails.provider) {
-      RainmakerOAuthManager.openExternalOAuthURL(accountDetails.provider);
-      return;
-    }
-
-    if (!accountDetails.username || !accountDetails.password) {
-      return;
-    }
-
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      workspaceRoot
-    ) as string;
-    const ProgressLocation =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Notifications
-        ? vscode.ProgressLocation.Notification
-        : vscode.ProgressLocation.Window;
-    vscode.window.withProgress(
-      {
-        title: vscode.l10n.t(
-          "ESP-IDF: Please wait checking with Rainmaker Cloud"
-        ),
-        location: ProgressLocation,
-        cancellable: false,
-      },
-      async () => {
-        try {
-          await RainmakerAPIClient.login(
-            accountDetails.username,
-            accountDetails.password
-          );
-          await rainMakerTreeDataProvider.refresh();
-          Logger.infoNotify("Rainmaker Cloud Linking Success!");
-        } catch (error) {
-          return Logger.errorNotify(
-            vscode.l10n.t(
-              "Failed to login with Rainmaker Cloud, double check your id and password"
-            ),
-            error,
-            "extension rainmaker backend connect"
-          );
-        }
-      }
-    );
-  });
-
-  registerIDFCommand("esp.rainmaker.backend.logout", async () => {
-    const shallLogout = await vscode.window.showWarningMessage(
-      vscode.l10n.t(
-        "Would you like to unlink your ESP Rainmaker cloud account?"
-      ),
-      { modal: true },
-      { title: "Yes" },
-      { title: "Cancel", isCloseAffordance: true }
-    );
-    if (!shallLogout || shallLogout.title === "Cancel") {
-      return;
-    }
-    RainmakerAPIClient.logout();
-    rainMakerTreeDataProvider.refresh();
-  });
-
-  registerIDFCommand("esp.rainmaker.backend.sync", async () => {
-    rainMakerTreeDataProvider.refresh();
-  });
-
-  registerIDFCommand(
-    "esp.rainmaker.backend.remove_node",
-    async (item: RMakerItem) => {
-      if (!item) {
-        return;
-      }
-      const shallDelete = await vscode.window.showWarningMessage(
-        vscode.l10n.t(
-          "Would you like to delete this node from your ESP Rainmaker account?"
-        ),
-        { modal: true },
-        { title: "Yes" },
-        { title: "Cancel", isCloseAffordance: true }
-      );
-      if (!shallDelete || shallDelete.title === "Cancel") {
-        return;
-      }
-      const notificationMode = readParameter(
-        "idf.notificationMode",
-        workspaceRoot
-      ) as string;
-      const ProgressLocation =
-        notificationMode === NotificationMode.All ||
-        notificationMode === NotificationMode.Notifications
-          ? vscode.ProgressLocation.Notification
-          : vscode.ProgressLocation.Window;
-      vscode.window.withProgress(
-        {
-          title: vscode.l10n.t(
-            "ESP-IDF: Deleting node from your rainmaker account"
-          ),
-          location: ProgressLocation,
-        },
-        async () => {
-          try {
-            await RainmakerAPIClient.deleteNode(item.id);
-            rainMakerTreeDataProvider.refresh();
-          } catch (error) {
-            Logger.errorNotify(
-              vscode.l10n.t(
-                "Failed to delete node, maybe the node is already marked for delete, please try again after sometime"
-              ),
-              error,
-              "extension rainmaker backend remove node"
-            );
-          }
-        }
-      );
-    }
-  );
-  registerIDFCommand("esp.rainmaker.backend.add_node", async () => {
-    Logger.infoNotify(
-      vscode.l10n.t(
-        "Coming Soon!! until then you can add nodes using mobile app"
-      )
-    );
-  });
-  registerIDFCommand(
-    "esp.rainmaker.backend.update_node_param",
-    async (item: RMakerItem) => {
-      if (!item) {
-        return;
-      }
-      const idPayload = item.id.split("::");
-      const params = item.getMeta<RainmakerDeviceParamStructure>();
-
-      if (params.properties.indexOf("write") === -1) {
-        return Logger.infoNotify("Readonly Property");
-      }
-
-      let newParamValue;
-      if (params.data_type === "bool") {
-        newParamValue = await vscode.window.showQuickPick(["true", "false"], {
-          ignoreFocusOut: true,
-          placeHolder: "Select a new param value",
-        });
-      } else {
-        newParamValue = await vscode.window.showInputBox({
-          ignoreFocusOut: true,
-          placeHolder: "param value",
-          value: item.description.toString(),
-          prompt: "Enter the new param value",
-          validateInput: (value: string): string => {
-            return validateInputForRainmakerDeviceParam(
-              value,
-              params.data_type
-            );
-          },
-        });
-      }
-
-      if (!newParamValue) {
-        return;
-      }
-
-      newParamValue = convertTo(params.data_type, newParamValue);
-
-      const notificationMode = readParameter(
-        "idf.notificationMode",
-        workspaceRoot
-      ) as string;
-      const ProgressLocation =
-        notificationMode === NotificationMode.All ||
-        notificationMode === NotificationMode.Notifications
-          ? vscode.ProgressLocation.Notification
-          : vscode.ProgressLocation.Window;
-      vscode.window.withProgress(
-        {
-          title: "ESP-IDF: Syncing params, please wait",
-          location: ProgressLocation,
-        },
-        async () => {
-          try {
-            const nodeID = idPayload[0];
-            const deviceName = idPayload[1];
-            await RainmakerAPIClient.updateNodeParam(
-              nodeID,
-              deviceName,
-              params.name,
-              newParamValue
-            );
-            await rainMakerTreeDataProvider.refresh();
-            Logger.infoNotify("Sent the param update request to cloud");
-          } catch (error) {
-            let errorMsg = vscode.l10n.t(
-              "Failed to update the param, please try once more"
-            );
-            if (error.response) {
-              errorMsg = `${vscode.l10n.t(
-                "Failed to update param because, "
-              )} ${error.response.data.description}`;
-            }
-            Logger.errorNotify(
-              errorMsg,
-              error,
-              "extension rainmaker backend update node param"
-            );
-          }
-        }
-      );
-    }
-  );
+  registerRainMakerCommands(context);
 
   registerIDFCommand(
     "esp.webview.open.partition-table",
@@ -2471,51 +1311,6 @@ export async function activate(context: vscode.ExtensionContext) {
       Logger.errorNotify(error.message, error, "extension component manager");
     }
   });
-  vscode.window.registerUriHandler({
-    handleUri: async (uri: vscode.Uri) => {
-      const query = uri.query.split("=");
-      if (uri.path === "/rainmaker" && query[0] === "code") {
-        const code = query[1] || "";
-        try {
-          const notificationMode = readParameter(
-            "idf.notificationMode",
-            workspaceRoot
-          ) as string;
-          const ProgressLocation =
-            notificationMode === NotificationMode.All ||
-            notificationMode === NotificationMode.Notifications
-              ? vscode.ProgressLocation.Notification
-              : vscode.ProgressLocation.Window;
-          vscode.window.withProgress(
-            {
-              title: vscode.l10n.t(
-                "ESP-IDF: Please wait mapping your rainmaker cloud account with the VS Code Extension, this could take a little while"
-              ),
-              location: ProgressLocation,
-            },
-            async () => {
-              await RainmakerAPIClient.exchangeCodeForTokens(code);
-              await rainMakerTreeDataProvider.refresh();
-              Logger.infoNotify(
-                vscode.l10n.t(
-                  "Rainmaker Cloud is connected successfully (via OAuth)!"
-                )
-              );
-            }
-          );
-        } catch (error) {
-          return Logger.errorNotify(
-            vscode.l10n.t("Failed to sign-in with Rainmaker (via OAuth)"),
-            error,
-            "extension rainmaker Uri handler",
-            { meta: JSON.stringify(error) }
-          );
-        }
-        return;
-      }
-      Logger.warn(`Failed to handle URI Open, ${uri.toString()}`);
-    },
-  });
 
   // WALK-THROUGH
   let disposable = vscode.commands.registerCommand(
@@ -2695,7 +1490,7 @@ function checkAndNotifyMissingCompileCommands() {
   if (vscode.workspace.workspaceFolders) {
     vscode.workspace.workspaceFolders.forEach(async (folder) => {
       try {
-        const isIdfProject = utils.checkIsProjectCmakeLists(folder.uri.fsPath);
+        const isIdfProject = await checkIsProjectCmakeLists(folder.uri.fsPath);
         if (isIdfProject) {
           const buildDirPath = readParameter(
             "idf.buildPath",
@@ -2731,56 +1526,11 @@ function checkAndNotifyMissingCompileCommands() {
   }
 }
 
-function validateInputForRainmakerDeviceParam(
-  value: string,
-  type: string
-): string {
-  if (type === "string" && value === "") {
-    return vscode.l10n.t("Enter non empty string");
-  }
-  if (type === "int" && !value.match(/^[0-9]+$/)) {
-    return vscode.l10n.t("Enter a valid integer");
-  }
-  return;
-}
-
-function convertTo(type: string, value: string): any {
-  if (type === "bool") {
-    return value === "true" ? true : false;
-  }
-  if (type === "int") {
-    return parseInt(value);
-  }
-  return value;
-}
-
-function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {
-  const statusBarItem = openOCDManager.statusBarItem();
-  context.subscriptions.push(statusBarItem);
-}
-
-function registerQemuStatusBarItem(context: vscode.ExtensionContext) {
-  const statusBarItem = qemuManager.statusBarItem();
-  context.subscriptions.push(statusBarItem);
-}
-
 function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   appTraceTreeDataProvider = new AppTraceTreeDataProvider();
   appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
 
-  espIdfDocsResultTreeDataProvider = new DocSearchResultTreeDataProvider();
-
   commandTreeDataProvider = new CommandsProvider();
-
-  vscode.commands.registerCommand("espIdf.clearDocsSearchResult", () => {
-    espIdfDocsResultTreeDataProvider.clearResults();
-  });
-
-  idfSearchResults = vscode.window.createTreeView("idfSearchResults", {
-    treeDataProvider: espIdfDocsResultTreeDataProvider,
-  });
-
-  rainMakerTreeDataProvider = new ESPRainMakerTreeDataProvider();
 
   eFuseExplorer = new ESPEFuseTreeDataProvider();
 
@@ -2792,189 +1542,9 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
       "idfAppTraceArchive"
     ),
     commandTreeDataProvider.registerDataProviderForTree("idfCommands"),
-    rainMakerTreeDataProvider.registerDataProviderForTree("espRainmaker"),
     eFuseExplorer.registerDataProviderForTree("espEFuseExplorer"),
     partitionTableTreeDataProvider.registerDataProvider("idfPartitionExplorer")
   );
-}
-
-function createQemuMonitor() {
-  PreCheck.perform([openFolderCheck], async () => {
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      workspaceRoot
-    ) as string;
-    const ProgressLocation =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Notifications
-        ? vscode.ProgressLocation.Notification
-        : vscode.ProgressLocation.Window;
-    await vscode.window.withProgress(
-      {
-        cancellable: true,
-        location: ProgressLocation,
-        title: "ESP-IDF: Starting ESP-IDF QEMU Monitor",
-      },
-      async (
-        progress: vscode.Progress<{ message: string; increment: number }>,
-        cancelToken: vscode.CancellationToken
-      ) => {
-        try {
-          const isQemuLaunched = qemuManager.isRunning();
-          if (isQemuLaunched) {
-            qemuManager.stop();
-          }
-          await qemuManager.start(QemuLaunchMode.Monitor, workspaceRoot);
-        } catch (error) {
-          const msg = error.message
-            ? error.message
-            : "Error launching QEMU monitor";
-          Logger.errorNotify(msg, error, "extension qemu monitor");
-        }
-      }
-    );
-  });
-}
-
-async function ensureEimAndLaunch(workspaceRoot: vscode.Uri) {
-  const notificationMode = readParameter(
-    "idf.notificationMode",
-    workspaceRoot
-  ) as string;
-  const progressLocation =
-    notificationMode === NotificationMode.All ||
-    notificationMode === NotificationMode.Notifications
-      ? vscode.ProgressLocation.Notification
-      : vscode.ProgressLocation.Window;
-
-  await vscode.window.withProgress(
-    {
-      cancellable: true,
-      location: progressLocation,
-      title: vscode.l10n.t("ESP-IDF Install Manager"),
-    },
-    async (
-      progress: vscode.Progress<{ message: string; increment: number }>,
-      cancelToken: vscode.CancellationToken
-    ) => {
-      const forceCliMode = shouldForceCliMode();
-      const isSnapInstall = isVSCodeInstalledViaSnap();
-      const shouldUseCliMode = forceCliMode || isSnapInstall;
-      let eimPath = await checkEimExists(progress, cancelToken);
-      let canLaunchGui = false;
-
-      if (!eimPath) {
-        progress.report({
-          message: vscode.l10n.t(
-            "EIM executable not found. Please choose a download mirror."
-          ),
-          increment: 0,
-        });
-        const mirrorToUse = await vscode.window.showQuickPick(
-          ["Github", "Espressif (faster in China)", "Open Releases URL"],
-          {
-            placeHolder: vscode.l10n.t("Select mirror to use"),
-          }
-        );
-        if (!mirrorToUse) {
-          return;
-        }
-        if (mirrorToUse === "Open Releases URL") {
-          vscode.env.openExternal(
-            vscode.Uri.parse(ESP.URL.InstallManager.Releases)
-          );
-          return;
-        }
-        const useMirror = mirrorToUse === "Espressif (faster in China)";
-        eimPath = await downloadAndInstallEIM(
-          progress,
-          cancelToken,
-          useMirror,
-          shouldUseCliMode
-        );
-        if (!eimPath) {
-          return;
-        }
-        canLaunchGui = !shouldUseCliMode;
-      } else {
-        const eimSupportsGui =
-          !forceCliMode && (await isEimGuiCapable(eimPath));
-
-        if (isSnapInstall && eimSupportsGui) {
-          await showSnapEimNotification(eimPath);
-          return;
-        }
-
-        canLaunchGui = !shouldUseCliMode && eimSupportsGui;
-        Logger.info(
-          `EIM launch mode: ${
-            canLaunchGui ? "gui" : "cli wizard"
-          } (forceCliMode=${forceCliMode}, isSnapInstall=${isSnapInstall}, eimSupportsGui=${eimSupportsGui})`,
-          "openEIM"
-        );
-      }
-
-      const mode = canLaunchGui ? "gui" : "wizard";
-      const raw = readParameter("idf.eimExecutableArgs");
-      const existing = Array.isArray(raw) ? raw : [];
-      const merged = [
-        mode,
-        "--idf-features ide",
-        ...existing.filter(
-          (arg) =>
-            arg !== "gui" && arg !== "wizard" && arg !== "--idf-features ide"
-        ),
-      ];
-      await writeParameter(
-        "idf.eimExecutableArgs",
-        merged,
-        vscode.ConfigurationTarget.Global
-      );
-      await launchEimInTerminal(eimPath);
-    }
-  );
-}
-
-async function showSnapEimNotification(eimPath: string) {
-  const runCliLabel = vscode.l10n.t("Run EIM in Terminal");
-  const copyPathLabel = vscode.l10n.t("Copy EIM Path");
-
-  const message = vscode.l10n.t(
-    "VS Code installed via Snap cannot launch EIM's GUI due to sandbox restrictions. You can run EIM in CLI mode directly from the integrated terminal, or copy the path to run the GUI manually from a system terminal."
-  );
-
-  const action = await vscode.window.showWarningMessage(
-    message,
-    { modal: true },
-    runCliLabel,
-    copyPathLabel
-  );
-
-  if (action === runCliLabel) {
-    const raw = readParameter("idf.eimExecutableArgs");
-    const existing = Array.isArray(raw) ? raw : [];
-    const merged = [
-      "wizard",
-      "--idf-features ide",
-      ...existing.filter(
-        (arg) =>
-          arg !== "gui" && arg !== "wizard" && arg !== "--idf-features ide"
-      ),
-    ];
-    await writeParameter(
-      "idf.eimExecutableArgs",
-      merged,
-      vscode.ConfigurationTarget.Global
-    );
-    await launchEimInTerminal(eimPath);
-  } else if (action === copyPathLabel) {
-    await vscode.env.clipboard.writeText(eimPath);
-    vscode.window.showInformationMessage(
-      vscode.l10n.t(
-        "EIM path copied to clipboard. Open a system terminal and paste it to run."
-      )
-    );
-  }
 }
 
 export function deactivate() {

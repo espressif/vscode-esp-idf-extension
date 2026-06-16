@@ -39,7 +39,7 @@ export function getIntersection(
   });
 }
 
-export async function seachInEspDocs(
+export async function searchInEspDocs(
   searchString: string,
   workspaceFolder: Uri
 ) {

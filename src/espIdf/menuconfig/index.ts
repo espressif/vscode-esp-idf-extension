@@ -16,13 +16,19 @@
  * limitations under the License.
  */
 
-import { ExtensionContext } from "vscode";
+import { ExtensionContext, l10n } from "vscode";
 import { registerIDFCommand } from "../../common/registerCommand";
-import { openFolderCheck } from "../../common/PreCheck";
+import {
+  minIdfVersionCheck,
+  openFolderCheck,
+  PreCheck,
+} from "../../common/PreCheck";
 import { ConfserverProcess } from "./confserver/confServerProcess";
 import { Logger } from "../../common/logger";
 import { withProgressWrapper } from "../../common/withProgressWrapper";
 import { createClassicMenuconfig } from "./classicTerminal";
+import { addMenuConfigFileWatchers } from "./fileWatchers";
+import { saveDefSdkconfig } from "./saveDefConfig";
 
 export function registerMenuconfigCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.menuconfig.start", async () => {
@@ -70,4 +76,22 @@ export function registerMenuconfigCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.createClassicMenuconfig", () =>
     createClassicMenuconfig(context.extensionPath)
   );
+
+  registerIDFCommand(context, "espIdf.saveDefSdkconfig", async () => {
+    const idfVersionCheck = await minIdfVersionCheck("5.0");
+    await withProgressWrapper(
+      [idfVersionCheck, openFolderCheck],
+      l10n.t("ESP-IDF: Save Default Configuration (save-defconfig)"),
+      async (_progress, cancelToken, wsFolder) => {
+        try {
+          await saveDefSdkconfig(wsFolder.uri, cancelToken);
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error));
+          Logger.errorNotify(err.message, err, "saveDefSdkconfig");
+        }
+      }
+    );
+  });
+
+  addMenuConfigFileWatchers(context);
 }
