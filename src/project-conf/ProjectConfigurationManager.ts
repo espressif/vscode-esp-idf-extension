@@ -13,13 +13,12 @@ import {
   fileExists,
   readFileSync,
   readJson,
-  setCCppPropertiesJsonCompileCommands,
 } from "../utils";
 import { ESP } from "../config";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
 import { CommandKeys, commandDictionary } from "../cmdTreeView/cmdStore";
 import { createStatusBarItem } from "../statusBar";
-import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
+import { getIdfTargetFromSdkconfig, setCCppPropertiesJsonCompileCommands } from "../configuration/workspace";
 import { Logger } from "../common/logger";
 import { getProjectConfigurationElements } from "./index";
 import { configureClangSettings } from "../clang";

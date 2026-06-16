@@ -27,6 +27,7 @@ import {
   window,
   l10n,
   ThemeColor,
+  ExtensionContext,
 } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { ESP } from "../config";
@@ -37,6 +38,8 @@ import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { pathExists } from "fs-extra";
 import { getStoredAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 import { getEspIdfFromCMake } from "../utils";
+import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
+import { QemuManager } from "../qemu/qemuManager";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
 
@@ -87,7 +90,10 @@ export function updateStatusBarItemVisibility(cmdItem: CommandItem) {
   }
 }
 
-export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
+export async function createCmdsStatusBarItems(
+  context: ExtensionContext,
+  workspaceFolder: Uri
+) {
   const enableStatusBar = readParameter("idf.enableStatusBar") as boolean;
   if (!enableStatusBar) {
     return {};
@@ -288,6 +294,12 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     TreeItemCheckboxState.Unchecked
   );
   statusBarItems["hints"].hide();
+
+  OpenOCDManager.init();
+  QemuManager.init();
+  for (const key of Object.keys(statusBarItems)) {
+    context.subscriptions.push(statusBarItems[key]);
+  }
   return statusBarItems;
 }
 

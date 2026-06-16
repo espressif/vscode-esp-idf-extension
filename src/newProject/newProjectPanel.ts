@@ -20,7 +20,11 @@ import { IComponent } from "../espIdf/idfComponent/IdfComponent";
 import { copy, ensureDir, readFile, writeJSON } from "fs-extra";
 import * as utils from "../utils";
 import { IExample } from "./Example";
-import { setCurrentSettingsInTemplate } from "./utils";
+import {
+  copyFromSrcProject,
+  setCurrentSettingsInTemplate,
+  updateProjectNameInCMakeLists,
+} from "./utils";
 import { NotificationMode, readParameter } from "../configuration/idf";
 import { createClangdFile } from "../clang";
 import { IdfSetup } from "../eim/types";
@@ -125,7 +129,7 @@ export class NewProjectPanel {
               JSON.parse(message.template),
               message.selectedIdfTarget,
               message.openOcdConfigFiles,
-              newProjectArgs.workspaceFolder,
+              newProjectArgs.workspaceFolder
             );
           }
           break;
@@ -264,7 +268,8 @@ export class NewProjectPanel {
           }
           await ensureDir(newProjectPath, { mode: 0o775 });
           if (template && template.path !== "") {
-            await utils.copyFromSrcProject(
+            await copyFromSrcProject(
+              this.extensionPath,
               template.path,
               vscode.Uri.file(newProjectPath)
             );
@@ -274,15 +279,13 @@ export class NewProjectPanel {
               "templates",
               "template-app"
             );
-            await utils.copyFromSrcProject(
+            await copyFromSrcProject(
+              this.extensionPath,
               boilerplatePath,
               vscode.Uri.file(newProjectPath)
             );
           }
-          await utils.updateProjectNameInCMakeLists(
-            newProjectPath,
-            projectName
-          );
+          await updateProjectNameInCMakeLists(newProjectPath, projectName);
           const settingsJsonPath = path.join(
             newProjectPath,
             ".vscode",

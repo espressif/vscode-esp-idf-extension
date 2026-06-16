@@ -24,7 +24,7 @@ import { Logger } from "../../../common/logger";
 import {
   CustomTask,
   CustomTaskType,
-} from "../../../customTasks/customTaskProvider";
+} from "../../../taskManager/customTaskProvider";
 import { Uri } from "vscode";
 import { OutputChannel } from "../../../common/outputChannel";
 import {
