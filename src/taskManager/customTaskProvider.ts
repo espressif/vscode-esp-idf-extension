@@ -23,9 +23,9 @@ import {
   Uri,
 } from "vscode";
 import { readParameter } from "../configuration/idf";
-import { getWorkspaceFolderForTask, TaskManager } from "../taskManager/taskManager";
+import { getWorkspaceFolderForTask, TaskManager } from "./taskManager";
 import { configureEnvVariables } from "../common/prepareEnv";
-import { ShellOutputCapturingExecution } from "../taskManager/shellCaptureExecution";
+import { ShellOutputCapturingExecution } from "./shellCaptureExecution";
 
 export enum CustomTaskType {
   Custom = "custom",

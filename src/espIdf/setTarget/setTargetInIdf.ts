@@ -20,12 +20,13 @@ import { join } from "path";
 import { readParameter } from "../../configuration/idf";
 import { Logger } from "../../common/logger";
 import { OutputChannel } from "../../common/outputChannel";
-import { setCCppPropertiesJsonCompilerPath, spawn } from "../../utils";
+import { spawn } from "../../utils";
 import { ConfserverProcess } from "../menuconfig/confserver/confServerProcess";
 import { IdfTarget } from "./getTargets";
 import { getVirtualEnvPythonPath } from "../../configuration/env";
 import * as vscode from "vscode";
 import { configureEnvVariables } from "../../common/prepareEnv";
+import { setCCppPropertiesJsonCompilerPath } from "../../configuration/workspace";
 
 export async function setTargetInIDF(
   workspaceFolder: vscode.Uri,
@@ -88,7 +89,7 @@ export async function setTargetInIDF(
     );
     OutputChannel.appendLineAndShow(msg, "Set Target");
     Logger.infoNotify(msg);
-    setCCppPropertiesJsonCompilerPath(workspaceFolder);
+    await setCCppPropertiesJsonCompilerPath(workspaceFolder);
     return setTargetResult.toString();
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);

@@ -1,7 +1,7 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Thursday, 28th July 2022 4:13:17 pm
- * Copyright 2022 Espressif Systems (Shanghai) CO LTD
+ * File Created: Tuesday, 16th June 2026 5:26:53 pm
+ * Copyright 2026 Espressif Systems (Shanghai) CO LTD
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,289 +18,102 @@
 
 import {
   ConfigurationTarget,
-  Progress,
-  ProgressLocation,
-  WorkspaceFolder,
+  ExtensionContext,
   window,
   l10n,
-  QuickPickItemKind,
-  debug,
 } from "vscode";
+import { registerIDFCommand } from "../../common/registerCommand";
+import { openFolderCheck, PreCheck } from "../../common/PreCheck";
 import {
-  NotificationMode,
-  readParameter,
-  writeParameter,
-} from "../../configuration/idf";
+  isSettingIDFTarget,
+  setIdfTarget,
+  setIsSettingIDFTarget,
+} from "./main";
 import { Logger } from "../../common/logger";
-import { OutputChannel } from "../../common/outputChannel";
-import { selectOpenOcdConfigFiles } from "../openOcd/boardConfiguration";
-import { OpenOCDManager } from "../openOcd/openOcdManager";
-import { getTargetsFromEspIdf, IdfTarget } from "./getTargets";
+import { getTargetsFromEspIdf } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 import { 
   updateCurrentProfileIdfTarget,
-  updateCurrentProfileOpenOcdConfigs,
-  updateCurrentProfileCustomExtraVars 
 } from "../../project-conf";
-import { DevkitsCommand } from "./DevkitsCommand";
-import {
-  clearAdapterSerial,
-  storeAdapterSerial,
-  supportsSerialFromDetectConfig,
-} from "../openOcd/adapterSerial";
-import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { readParameter, writeParameter } from "../../configuration/idf";
+import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
+import { statusBarItems } from "../../statusBar";
+import { ESP } from "../../config";
 
-export let isSettingIDFTarget = false;
+export async function registerSetTargetCommand(context: ExtensionContext) {
+  registerIDFCommand(context, "espIdf.setTarget", (target?: string) => {
+    PreCheck.perform([openFolderCheck], async () => {
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      if (!wsFolder) {
+        return;
+      }
 
-export interface ISetTargetQuickPickItems {
-  label: string;
-  idfTarget: IdfTarget;
-  boardInfo?: {
-    location: string;
-    config_files: string[];
-    serial_number?: string;
-  };
-  description?: string;
-  isConnected?: boolean;
-  kind?: QuickPickItemKind;
-}
-
-export function setIsSettingIDFTarget(value: boolean) {
-  isSettingIDFTarget = value;
-}
-
-export async function setIdfTarget(
-  placeHolderMsg: string,
-  workspaceFolder: WorkspaceFolder
-) {
-  const configurationTarget = ConfigurationTarget.WorkspaceFolder;
-  if (!workspaceFolder) {
-    return;
-  }
-  if (isSettingIDFTarget) {
-    Logger.info("setTargetInIDF is already running.");
-    return;
-  }
-  setIsSettingIDFTarget(true);
-
-  const notificationMode = readParameter(
-    "idf.notificationMode",
-    workspaceFolder
-  ) as string;
-  const progressLocation =
-    notificationMode === NotificationMode.All ||
-    notificationMode === NotificationMode.Notifications
-      ? ProgressLocation.Notification
-      : ProgressLocation.Window;
-  await window.withProgress(
-    {
-      cancellable: false,
-      location: progressLocation,
-      title: l10n.t("ESP-IDF: Setting device target..."),
-    },
-    async (progress: Progress<{ message: string; increment: number }>) => {
-      try {
-        const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
-        let connectedBoards: ISetTargetQuickPickItems[] = [];
-        let openOCDVersion: string | undefined;
-
-        const isDebugging = debug.activeDebugSession !== undefined;
-
-        if (!isDebugging) {
-          try {
-            const openOCDManager = OpenOCDManager.init();
-            openOCDVersion = await openOCDManager.version();
-            const devkitsCmd = new DevkitsCommand(workspaceFolder.uri);
-            const modifiedEnv = await configureEnvVariables(
-              workspaceFolder.uri
-            );
-            const openOcdPath = await OpenOCDManager.getOpenOcdPath(
-              workspaceFolder.uri,
-              modifiedEnv
-            );
-            const scriptPath = await devkitsCmd.getScriptPath(openOcdPath);
-
-            if (scriptPath) {
-              const devkitsOutput = await devkitsCmd.runDevkitsScript(
-                openOCDVersion
-              );
-              if (devkitsOutput) {
-                const parsed = JSON.parse(devkitsOutput);
-                if (parsed && Array.isArray(parsed.boards)) {
-                  connectedBoards = parsed.boards.flatMap((b: any) => {
-                    const idfTarget = targetsFromIdf.find(
-                      (t) => t.target === b.target
-                    );
-                    if (!idfTarget) {
-                      return [];
-                    }
-                    return [
-                      {
-                        label: b.name,
-                        idfTarget,
-                        description: b.description,
-                        detail:
-                          l10n.t("Status: CONNECTED") +
-                          (b.location
-                            ? `   ${l10n.t("Location: {0}", b.location)}`
-                            : ""),
-                        isConnected: true,
-                        boardInfo: b,
-                      } as ISetTargetQuickPickItems,
-                    ];
-                  });
-                }
-              }
-            } else {
-              Logger.info(
-                "Devkit detection script not available. A default list of targets will be displayed instead."
-              );
-            }
-          } catch (e) {
-            const errMSg = e instanceof Error ? e.message : String(e);
-            Logger.info(
-              "No connected boards detected or error running DevkitsCommand: " +
-                errMSg
-            );
-          }
-        } else {
-          Logger.info(
-            "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually."
-          );
-        }
-        let quickPickItems: ISetTargetQuickPickItems[] = [];
-        const defaultBoards: ISetTargetQuickPickItems[] = targetsFromIdf.map(
-          (t) => ({
-            label: t.label,
-            idfTarget: t,
-            description: t.isPreview ? l10n.t("Preview target") : undefined,
-            isConnected: false,
-          })
-        );
-
-        quickPickItems =
-          connectedBoards.length > 0
-            ? [
-                ...connectedBoards,
-                {
-                  kind: QuickPickItemKind.Separator,
-                  label: l10n.t("Default Boards"),
-                  idfTarget: { label: "", target: "", isPreview: false },
-                },
-                ...defaultBoards,
-              ]
-            : defaultBoards;
-        const selectedTarget = await window.showQuickPick(quickPickItems, {
-          placeHolder: placeHolderMsg,
-          ignoreFocusOut: true,
-        });
-        if (!selectedTarget) {
+      if (target) {
+        // Check if target setting is already in progress
+        if (isSettingIDFTarget) {
+          Logger.info("setTargetInIDF is already running.");
           return;
         }
-        // Create a plain object copy to avoid proxy issues when modifying/deleting properties
-        const customExtraVarsRead = readParameter(
-          "idf.customExtraVars",
-          workspaceFolder
-        ) as { [key: string]: string };
-        const customExtraVars = { ...customExtraVarsRead };
+        setIsSettingIDFTarget(true);
 
-        // Clear stored adapter serial and location when target changes
-        clearAdapterSerial(workspaceFolder.uri);
-        delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
-
-        if (
-          selectedTarget.isConnected &&
-          selectedTarget.boardInfo?.serial_number &&
-          openOCDVersion &&
-          supportsSerialFromDetectConfig(openOCDVersion)
-        ) {
-          storeAdapterSerial(
-            workspaceFolder.uri,
-            selectedTarget.boardInfo.serial_number
+        try {
+          // If a target is provided, set it directly
+          const targetsFromIdf = await getTargetsFromEspIdf(
+            wsFolder.uri
           );
-          updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
-        }
-
-        if (selectedTarget.isConnected && selectedTarget.boardInfo) {
-          // Directly set OpenOCD configs for connected board
-          const configFiles = selectedTarget.boardInfo.config_files || [];
-          await writeParameter(
-            "idf.openOcdConfigs",
-            configFiles,
-            configurationTarget,
-            workspaceFolder.uri
+          const selectedTarget = targetsFromIdf.find(
+            (t) => t.target === target
           );
 
-          // Update project configuration with OpenOCD configs if a configuration is selected
-          await updateCurrentProfileOpenOcdConfigs(
-            configFiles,
-            workspaceFolder.uri
-          );
+          if (selectedTarget) {
+            await setTargetInIDF(wsFolder.uri, selectedTarget);
 
-          // Store USB location if available (will be used as fallback if serial is not found)
-          if (selectedTarget.boardInfo.location) {
-            const location = selectedTarget.boardInfo.location.replace(
-              "usb://",
-              ""
-            );
-            customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"] = location;
+            // Update configuration like setIdfTarget does
+            const configurationTarget = ConfigurationTarget.WorkspaceFolder;
+            const customExtraVars = readParameter(
+              "idf.customExtraVars",
+              wsFolder
+            ) as { [key: string]: string };
+            customExtraVars["IDF_TARGET"] = selectedTarget.target;
             await writeParameter(
               "idf.customExtraVars",
               customExtraVars,
               configurationTarget,
-              workspaceFolder.uri
+              wsFolder.uri
+            );
+            await updateCurrentProfileIdfTarget(
+              selectedTarget.target,
+              wsFolder.uri
             );
 
-            // Update project configuration with custom extra vars if a configuration is selected
-            await updateCurrentProfileCustomExtraVars(
-              { "OPENOCD_USB_ADAPTER_LOCATION": location },
-              workspaceFolder.uri
+            await getIdfTargetFromSdkconfig(
+              wsFolder.uri,
+              statusBarItems["target"]
+            );
+          } else {
+            const listOfTargets = targetsFromIdf
+              .map((t) => t.target)
+              .join(", ");
+            window.showErrorMessage(
+              `Invalid target: ${target}. Please use one of the supported targets: ${listOfTargets}.`
             );
           }
-        } else {
-          await selectOpenOcdConfigFiles(
-            workspaceFolder.uri,
-            selectedTarget.idfTarget.target
+        } catch (error) {
+          const errMsg = error instanceof Error ? error.message : String(error);
+          Logger.errorNotify(
+            errMsg,
+            error as Error,
+            "espIdf.setTarget command"
           );
+        } finally {
+          setIsSettingIDFTarget(false);
         }
-
-        await updateCurrentProfileIdfTarget(
-          selectedTarget.idfTarget.target,
-          workspaceFolder.uri
-        );
-
-        await setTargetInIDF(workspaceFolder.uri, selectedTarget.idfTarget);
-        customExtraVars["IDF_TARGET"] = selectedTarget.idfTarget.target;
-        await writeParameter(
-          "idf.customExtraVars",
-          customExtraVars,
-          configurationTarget,
-          workspaceFolder.uri
-        );
-
-        updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
-      } catch (err) {
-        const normalizedError =
-          err instanceof Error
-            ? err
-            : new Error(
-                err == null || String(err).trim() === ""
-                  ? l10n.t("Unknown error occurred while setting IDF target.")
-                  : String(err)
-              );
-        const errMsg = normalizedError.message;
-
-        if (errMsg.includes("are satisfied")) {
-          Logger.info(errMsg);
-          OutputChannel.appendLine(errMsg);
-        } else {
-          Logger.error(errMsg, normalizedError, "setIdfTarget");
-          OutputChannel.appendLine(errMsg);
-        }
-      } finally {
-        setIsSettingIDFTarget(false);
+      } else {
+        // If no target is provided, show the selection dialog
+        const enterDeviceTargetMsg = l10n.t("Enter target name (IDF_TARGET)");
+        await setIdfTarget(enterDeviceTargetMsg, wsFolder);
+        await getIdfTargetFromSdkconfig(wsFolder.uri, statusBarItems["target"]);
       }
-    }
-  );
+    });
+  });
 }

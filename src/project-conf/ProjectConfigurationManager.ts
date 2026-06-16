@@ -9,16 +9,15 @@ import {
   ConfigurationTarget,
   RelativePattern,
 } from "vscode";
-import {
-  fileExists,
-  readFileSync,
-  setCCppPropertiesJsonCompileCommands,
-} from "../utils";
+import { fileExists, readFileSync } from "../utils";
 import { ESP } from "../config";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
 import { CommandKeys, commandDictionary } from "../cmdTreeView/cmdStore";
 import { createStatusBarItem } from "../statusBar";
-import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
+import {
+  getIdfTargetFromSdkconfig,
+  setCCppPropertiesJsonCompileCommands,
+} from "../configuration/workspace";
 import { Logger } from "../common/logger";
 import { getProjectConfigurationElements } from "./presetsReader";
 import { createStarterPresetsFile } from "./presetsWriter";
@@ -382,8 +381,7 @@ export class ProjectConfigurationManager {
       statusBarItemTooltip,
       commandToUse,
       99,
-      commandDictionary[CommandKeys.SelectProjectConfiguration]
-        .checkboxState
+      commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
     );
   }
 
@@ -447,8 +445,7 @@ export class ProjectConfigurationManager {
       commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
       CommandKeys.SelectProjectConfiguration,
       99,
-      commandDictionary[CommandKeys.SelectProjectConfiguration]
-        .checkboxState
+      commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
     );
 
     // Update related configurations

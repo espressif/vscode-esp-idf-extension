@@ -189,93 +189,6 @@ export function updateStatus(
   }
 }
 
-export async function createVscodeFolder(curWorkspaceFsPath: vscode.Uri) {
-  const settingsDir = path.join(curWorkspaceFsPath.fsPath, ".vscode");
-  const vscodeTemplateFolder = path.join(templateDir, ".vscode");
-  await ensureDir(settingsDir);
-
-  const files = await readdir(vscodeTemplateFolder);
-
-  for (const f of files) {
-    const fPath = path.join(settingsDir, f);
-    const fSrcPath = path.join(vscodeTemplateFolder, f);
-    const fExists = await pathExists(fPath);
-    if (!fExists) {
-      await copy(fSrcPath, fPath);
-    }
-  }
-  await setCCppPropertiesJsonCompilerPath(curWorkspaceFsPath);
-}
-
-export async function createGitignoreFile(destinationDir: vscode.Uri) {
-  const gitignoreSrcPath = path.join(templateDir, ".gitignore");
-  const gitignoreDestPath = path.join(destinationDir.fsPath, ".gitignore");
-  const gitignoreExists = await pathExists(gitignoreSrcPath);
-  if (gitignoreExists) {
-    await copy(gitignoreSrcPath, gitignoreDestPath);
-  }
-}
-
-export async function setCCppPropertiesJsonCompilerPath(
-  curWorkspaceFsPath: vscode.Uri
-) {
-  const modifiedEnv = await configureEnvVariables(curWorkspaceFsPath);
-  const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
-  const gccTool = getToolchainToolName(idfTarget, "gcc");
-  const compilerAbsolutePath = await isBinInPath(gccTool, modifiedEnv);
-  if (!compilerAbsolutePath) {
-    return;
-  }
-  await updateCCppPropertiesJson(
-    curWorkspaceFsPath,
-    "compilerPath",
-    compilerAbsolutePath
-  );
-}
-
-export async function setCCppPropertiesJsonCompileCommands(
-  curWorkspaceFsPath: vscode.Uri
-) {
-  const buildDirPath = readParameter(
-    "idf.buildPath",
-    curWorkspaceFsPath
-  ) as string;
-  const compileCommandsPath = path.join(buildDirPath, "compile_commands.json");
-
-  await updateCCppPropertiesJson(
-    curWorkspaceFsPath,
-    "compileCommands",
-    compileCommandsPath
-  );
-}
-
-export async function updateCCppPropertiesJson(
-  workspaceUri: vscode.Uri,
-  fieldToUpdate: string,
-  newFieldValue: string
-) {
-  const cCppPropertiesJsonPath = path.join(
-    workspaceUri.fsPath,
-    ".vscode",
-    "c_cpp_properties.json"
-  );
-  const doesPathExists = await pathExists(cCppPropertiesJsonPath);
-  if (!doesPathExists) {
-    return;
-  }
-  const cCppPropertiesJson = await readJSON(cCppPropertiesJsonPath);
-  if (
-    cCppPropertiesJson &&
-    cCppPropertiesJson.configurations &&
-    cCppPropertiesJson.configurations.length
-  ) {
-    cCppPropertiesJson.configurations[0][fieldToUpdate] = newFieldValue;
-    await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
-      spaces: 2,
-    });
-  }
-}
-
 export async function getToolchainPath(
   workspaceUri: vscode.Uri,
   tool: string = "gcc"
@@ -308,52 +221,6 @@ export function getToolchainToolName(idfTarget: string, tool: string = "gcc") {
     default:
       return `riscv32-esp-elf-${tool}`;
   }
-}
-
-export function chooseTemplateDir() {
-  const templatesAvailable = fs.readdirSync(templateDir).filter((file) => {
-    return (
-      fs.statSync(path.join(templateDir, file)).isDirectory() &&
-      file !== ".vscode" &&
-      file !== ".devcontainer"
-    );
-  });
-  const templates = [];
-  templatesAvailable.forEach((templDir) => {
-    templates.push({ label: templDir, target: templDir });
-  });
-  return templates;
-}
-
-export function getDirectories(dirPath) {
-  return fs.readdirSync(dirPath).filter((file) => {
-    return fs.statSync(path.join(dirPath, file)).isDirectory();
-  });
-}
-
-export async function createSkeleton(
-  curWorkspacePath: vscode.Uri,
-  chosenTemplateDir: string
-) {
-  const templateDirToUse = path.join(templateDir, chosenTemplateDir);
-  await copyFromSrcProject(templateDirToUse, curWorkspacePath);
-}
-
-export async function createDevContainer(curWorkspaceFsPath: string) {
-  const containerDir = path.join(curWorkspaceFsPath, ".devcontainer");
-  const vscodeTemplateFolder = path.join(templateDir, ".devcontainer");
-  await ensureDir(containerDir);
-  await copy(vscodeTemplateFolder, containerDir);
-}
-
-export async function copyFromSrcProject(
-  srcDirPath: string,
-  destinationDir: vscode.Uri
-) {
-  await copy(srcDirPath, destinationDir.fsPath);
-  await createVscodeFolder(destinationDir);
-  await createDevContainer(destinationDir.fsPath);
-  await createGitignoreFile(destinationDir);
 }
 
 export function getVariableFromCMakeLists(workspacePath: string, key: string) {
@@ -553,19 +420,6 @@ export function checkSpacesInPath(pathStr: string) {
   return /\s+/g.test(pathStr);
 }
 
-export function checkIsProjectCmakeLists(dir: string) {
-  // Check if folder contain CMakeLists.txt with project(name) call.
-  const cmakeListFile = path.join(dir, "CMakeLists.txt");
-  if (fileExists(cmakeListFile)) {
-    const content = fs.readFileSync(cmakeListFile, "utf-8");
-    const projectMatches = content.match(/(project\(.*?\))/g);
-    if (projectMatches && projectMatches.length > 0) {
-      return true;
-    }
-  }
-  return false;
-}
-
 export function readProjectCMakeLists(dirPath: string) {
   const cmakeListFile = path.join(dirPath, "CMakeLists.txt");
   if (fileExists(cmakeListFile)) {
@@ -574,40 +428,6 @@ export function readProjectCMakeLists(dirPath: string) {
     if (projectMatches && projectMatches[1]) {
       return projectMatches[1];
     }
-  }
-}
-
-export async function updateProjectNameInCMakeLists(
-  dirPath: string,
-  newProjectName: string
-) {
-  const cmakeListFile = path.join(dirPath, "CMakeLists.txt");
-  if (fileExists(cmakeListFile)) {
-    let content = await readFile(cmakeListFile, "utf-8");
-    const projectMatches = content.match(/(project\(.*?\))/g);
-    if (projectMatches && projectMatches.length) {
-      content = content.replace(
-        /(project\(.*?\))/g,
-        `project(${newProjectName})`
-      );
-      await writeFile(cmakeListFile, content);
-    }
-  }
-}
-
-export function getSubProjects(dir: string): string[] {
-  const subDirs = getDirectories(dir);
-  if (checkIsProjectCmakeLists(dir)) {
-    return [dir];
-  } else {
-    const subProjectsPathArray = [];
-    subDirs.forEach((subDir) => {
-      const subProjectsPaths = getSubProjects(path.join(dir, subDir));
-      subProjectsPaths.forEach((subProjPath) => {
-        subProjectsPathArray.push(subProjPath);
-      });
-    });
-    return subProjectsPathArray;
   }
 }
 
@@ -906,70 +726,6 @@ export async function startPythonReqsProcess(
 export function getWebViewFavicon(extensionPath: string): vscode.Uri {
   return vscode.Uri.file(
     path.join(extensionPath, "media", "espressif_icon.png")
-  );
-}
-
-/**
- * Create a new ESP-IDF project in the current workspace.
- * @param {string} name - Name of the new project to create.
- * @param {string} targetDirectory - The directory where the project will be created.
- * @returns {Promise<vscode.Uri>} - The URI of the created project directory.
- */
-export async function createNewProject(
-  name: string,
-  targetDirectory: vscode.Uri
-) {
-  const destinationDir = vscode.Uri.joinPath(targetDirectory, name);
-  await mkdirp(destinationDir.fsPath);
-  await copyFromSrcProject(
-    path.join(extensionContext.extensionPath, "templates", "template-app"),
-    destinationDir
-  );
-  await updateProjectNameInCMakeLists(destinationDir.fsPath, name);
-  await configureClangSettings(destinationDir, false);
-  return destinationDir;
-}
-
-/**
- * Create a new ESP-IDF component in the current workspace.
- * @param {string} name - Name of the new component to create.
- * @param {string} currentDirectory - The current directory where the component will be created.
- */
-export async function createNewComponent(
-  name: string,
-  currentDirectory: string
-) {
-  const componentDirPath = path.join(currentDirectory, "components", name);
-  await mkdirp(componentDirPath);
-  const newComponentTemplatePath = path.join(
-    extensionContext.extensionPath,
-    "templates",
-    "new_component"
-  );
-  await copy(newComponentTemplatePath, componentDirPath);
-  const rename = async function (
-    oldName: string,
-    newName: string,
-    ...containerPath: string[]
-  ) {
-    const oldPath = path.join(...containerPath, oldName);
-    const newPath = path.join(...containerPath, newName);
-    await robustMove(oldPath, newPath);
-  };
-  const replaceContentInFile = async function (
-    replacementStr: string,
-    filePath: string
-  ) {
-    let sourceContent = await readFile(filePath, "utf8");
-    sourceContent = sourceContent.replace("new_component", replacementStr);
-    await writeFile(filePath, sourceContent);
-  };
-  await rename("new_component.h", `${name}.h`, componentDirPath, "include");
-  await rename("new_component.c", `${name}.c`, componentDirPath);
-  await replaceContentInFile(name, path.join(componentDirPath, `${name}.c`));
-  await replaceContentInFile(
-    name,
-    path.join(componentDirPath, "CMakeLists.txt")
   );
 }
 

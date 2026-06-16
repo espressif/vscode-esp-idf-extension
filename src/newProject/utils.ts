@@ -15,11 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { readJSON } from "fs-extra";
-import { setClangSettings } from "../clang/index";
+import {
+  copy,
+  ensureDir,
+  mkdirp,
+  pathExists,
+  readFile,
+  readJSON,
+  writeFile,
+} from "fs-extra";
+import { configureClangSettings, setClangSettings } from "../clang/index";
 import { IdfSetup } from "../eim/types";
 import { Uri } from "vscode";
 import { readParameter } from "../configuration/idf";
+import { join } from "path";
+import { readdir } from "fs/promises";
+import { setCCppPropertiesJsonCompilerPath } from "../configuration/workspace";
+import { robustMove } from "../utils";
+import { existsSync, readFileSync } from "fs";
 
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
@@ -71,4 +84,157 @@ export async function setCurrentSettingsInTemplate(
 
   await setClangSettings(settingsJson, workspace);
   return settingsJson;
+}
+
+export async function copyFromSrcProject(
+  extensionPath: string,
+  srcDirPath: string,
+  destinationDir: Uri
+) {
+  await copy(srcDirPath, destinationDir.fsPath);
+  await createVscodeFolder(extensionPath, destinationDir);
+  await createDevContainer(extensionPath, destinationDir.fsPath);
+  await createGitignoreFile(extensionPath, destinationDir);
+}
+
+export async function createVscodeFolder(
+  extensionPath: string,
+  curWorkspaceFsPath: Uri
+) {
+  const settingsDir = join(curWorkspaceFsPath.fsPath, ".vscode");
+  const vscodeTemplateFolder = join(extensionPath, "templates", ".vscode");
+  await ensureDir(settingsDir);
+
+  const files = await readdir(vscodeTemplateFolder);
+
+  for (const f of files) {
+    const fPath = join(settingsDir, f);
+    const fSrcPath = join(vscodeTemplateFolder, f);
+    const fExists = await pathExists(fPath);
+    if (!fExists) {
+      await copy(fSrcPath, fPath);
+    }
+  }
+  await setCCppPropertiesJsonCompilerPath(curWorkspaceFsPath);
+}
+
+export async function createGitignoreFile(
+  extensionPath: string,
+  destinationDir: Uri
+) {
+  const gitignoreSrcPath = join(extensionPath, "templates", ".gitignore");
+  const gitignoreDestPath = join(destinationDir.fsPath, ".gitignore");
+  const gitignoreExists = await pathExists(gitignoreSrcPath);
+  if (gitignoreExists) {
+    await copy(gitignoreSrcPath, gitignoreDestPath);
+  }
+}
+
+export async function createDevContainer(
+  extensionPath: string,
+  curWorkspaceFsPath: string
+) {
+  const containerDir = join(curWorkspaceFsPath, ".devcontainer");
+  const vscodeTemplateFolder = join(
+    extensionPath,
+    "templates",
+    ".devcontainer"
+  );
+  await ensureDir(containerDir);
+  await copy(vscodeTemplateFolder, containerDir);
+}
+
+/**
+ * Create a new ESP-IDF project in the current workspace.
+ * @param {string} name - Name of the new project to create.
+ * @param {string} targetDirectory - The directory where the project will be created.
+ * @returns {Promise<Uri>} - The URI of the created project directory.
+ */
+export async function createNewProject(
+  extensionPath: string,
+  name: string,
+  targetDirectory: Uri
+) {
+  const destinationDir = Uri.joinPath(targetDirectory, name);
+  await mkdirp(destinationDir.fsPath);
+  await copyFromSrcProject(
+    extensionPath,
+    join(extensionPath, "templates", "template-app"),
+    destinationDir
+  );
+  await updateProjectNameInCMakeLists(destinationDir.fsPath, name);
+  await configureClangSettings(destinationDir, false);
+  return destinationDir;
+}
+
+/**
+ * Create a new ESP-IDF component in the current workspace.
+ * @param {string} name - Name of the new component to create.
+ * @param {string} currentDirectory - The current directory where the component will be created.
+ */
+export async function createNewComponent(
+  extensionPath: string,
+  name: string,
+  currentDirectory: string
+) {
+  const componentDirPath = join(currentDirectory, "components", name);
+  await mkdirp(componentDirPath);
+  const newComponentTemplatePath = join(
+    extensionPath,
+    "templates",
+    "new_component"
+  );
+  await copy(newComponentTemplatePath, componentDirPath);
+  const rename = async function (
+    oldName: string,
+    newName: string,
+    ...containerPath: string[]
+  ) {
+    const oldPath = join(...containerPath, oldName);
+    const newPath = join(...containerPath, newName);
+    await robustMove(oldPath, newPath);
+  };
+  const replaceContentInFile = async function (
+    replacementStr: string,
+    filePath: string
+  ) {
+    let sourceContent = await readFile(filePath, "utf8");
+    sourceContent = sourceContent.replace("new_component", replacementStr);
+    await writeFile(filePath, sourceContent);
+  };
+  await rename("new_component.h", `${name}.h`, componentDirPath, "include");
+  await rename("new_component.c", `${name}.c`, componentDirPath);
+  await replaceContentInFile(name, join(componentDirPath, `${name}.c`));
+  await replaceContentInFile(name, join(componentDirPath, "CMakeLists.txt"));
+}
+
+export async function updateProjectNameInCMakeLists(
+  dirPath: string,
+  newProjectName: string
+) {
+  const cmakeListFile = join(dirPath, "CMakeLists.txt");
+  if (existsSync(cmakeListFile)) {
+    let content = await readFile(cmakeListFile, "utf-8");
+    const projectMatches = content.match(/(project\(.*?\))/g);
+    if (projectMatches && projectMatches.length) {
+      content = content.replace(
+        /(project\(.*?\))/g,
+        `project(${newProjectName})`
+      );
+      await writeFile(cmakeListFile, content);
+    }
+  }
+}
+
+export function checkIsProjectCmakeLists(dir: string) {
+  // Check if folder contain CMakeLists.txt with project(name) call.
+  const cmakeListFile = join(dir, "CMakeLists.txt");
+  if (existsSync(cmakeListFile)) {
+    const content = readFileSync(cmakeListFile, "utf-8");
+    const projectMatches = content.match(/(project\(.*?\))/g);
+    if (projectMatches && projectMatches.length > 0) {
+      return true;
+    }
+  }
+  return false;
 }

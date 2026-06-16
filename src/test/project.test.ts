@@ -20,14 +20,16 @@ import { readdir, readFile, readJson, remove } from "fs-extra";
 import { join, resolve } from "path";
 import { ExtensionContext, Uri } from "vscode";
 import { getExamplesList } from "../newProject/Example";
-import { setCurrentSettingsInTemplate } from "../newProject/utils";
 import {
   copyFromSrcProject,
   createVscodeFolder,
+  setCurrentSettingsInTemplate,
+  updateProjectNameInCMakeLists,
+} from "../newProject/utils";
+import {
   isBinInPath,
   readProjectCMakeLists,
   setExtensionContext,
-  updateProjectNameInCMakeLists,
 } from "../utils";
 import { IdfSetup } from "../eim/types";
 import { ProjectConfigStore } from "../project-conf";
@@ -35,7 +37,8 @@ import { ESP } from "../config";
 import { createMockMemento } from "./mockUtils";
 
 suite("Project tests", () => {
-  const absPath = (filename) => resolve(__dirname, "..", "..", filename);
+  const absPath = (filename: string) =>
+    resolve(__dirname, "..", "..", filename);
   const mockUpContext: ExtensionContext = {
     extensionPath: resolve(__dirname, "..", ".."),
     asAbsolutePath: absPath,
@@ -53,7 +56,10 @@ suite("Project tests", () => {
   });
 
   test("vscode folder creation", async () => {
-    await createVscodeFolder(Uri.file(targetFolder));
+    await createVscodeFolder(
+      mockUpContext.extensionPath,
+      Uri.file(targetFolder)
+    );
     const resultFiles = await readdir(join(targetFolder, ".vscode"));
     assert.equal(resultFiles.includes("c_cpp_properties.json"), true);
     assert.equal(resultFiles.includes("launch.json"), true);
@@ -97,7 +103,11 @@ suite("Project tests", () => {
   test("Test project creation", async () => {
     const templatePath = join(templateFolder, "template-app");
     const projectPath = join(wsFolder, "new-project");
-    await copyFromSrcProject(templatePath, Uri.file(projectPath));
+    await copyFromSrcProject(
+      mockUpContext.extensionPath,
+      templatePath,
+      Uri.file(projectPath)
+    );
     const resultRootFiles = await readdir(projectPath);
     const resultVscodeFiles = await readdir(join(projectPath, ".vscode"));
     const resultMainFiles = await readdir(join(projectPath, "main"));
@@ -124,10 +134,9 @@ suite("Project tests", () => {
   });
 
   test("get templates projects", async () => {
-    const templatesCategories = getExamplesList(
-      mockUpContext.extensionPath,
-      ["templates"]
-    );
+    const templatesCategories = getExamplesList(mockUpContext.extensionPath, [
+      "templates",
+    ]);
     assert.notEqual(templatesCategories, undefined);
     assert.notEqual(templatesCategories.examples, undefined);
     assert.notEqual(templatesCategories.examples.length, 0);
