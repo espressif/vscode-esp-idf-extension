@@ -26,6 +26,7 @@ import { withProgressWrapper } from "../../common/withProgressWrapper";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { openFolderCheck } from "../../common/PreCheck";
 import { Logger } from "../../common/logger";
+import { ESP } from "../../config";
 
 export async function addIdfReconfigureTask(workspace: Uri) {
   const modifiedEnv = await configureEnvVariables(workspace);
@@ -57,8 +58,9 @@ export function registerReconfigureCmd(context: ExtensionContext) {
     await withProgressWrapper(
       [openFolderCheck],
       "ESP-IDF: Reconfiguring ESP-IDF project",
-      async (progress, cancelToken, wsFolder) => {
+      async (progress, cancelToken) => {
         try {
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
           await addIdfReconfigureTask(wsFolder.uri);
           await TaskManager.runTasks();
           if (!cancelToken.isCancellationRequested) {

@@ -109,7 +109,8 @@ export async function buildFlashAndMonitor(
   await withProgressWrapper(
     [openFolderCheck],
     "ESP-IDF: Build, Flash & Monitor",
-    async (progress, cancelToken, taskWsFolder) => {
+    async (progress, cancelToken) => {
+      const taskWsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       progress.report({ message: "Building project...", increment: 20 });
       const flashType =
         resolveFlashTypeForTask(taskWsFolder, undefined) ?? ESP.FlashType.UART;

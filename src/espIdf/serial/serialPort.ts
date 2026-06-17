@@ -17,7 +17,6 @@
  */
 
 import { join } from "path";
-import * as vscode from "vscode";
 import { readParameter, writeParameter } from "../../configuration/idf";
 import { Logger } from "../../common/logger";
 import { spawn } from "../../utils";
@@ -28,6 +27,7 @@ import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../confi
 import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
 import { showInfoNotificationWithAction } from "../../common/customNotifications";
 import { configureEnvVariables } from "../../common/prepareEnv";
+import { ConfigurationTarget, FileStat, FileType, ProgressLocation, QuickPickItem, Uri, WorkspaceFolder, commands, l10n, window, workspace } from "vscode";
 
 export class SerialPort {
   /**
@@ -73,7 +73,7 @@ export class SerialPort {
 
   private static instance: SerialPort;
   public promptUserToSelect(
-    workspaceFolder: vscode.Uri,
+    workspaceFolder: Uri,
     useMonitorPort: boolean
   ) {
     return SerialPort.shared().displayList(workspaceFolder, useMonitorPort);
@@ -85,12 +85,12 @@ export class SerialPort {
    * @returns The detected port or undefined if no device found
    */
   public static async detectDefaultPort(
-    workspaceFolder: vscode.Uri
+    workspaceFolder: Uri
   ): Promise<string | undefined> {
-    return vscode.window.withProgress(
+    return window.withProgress(
       {
-        location: vscode.ProgressLocation.Notification,
-        title: vscode.l10n.t("Detecting Espressif device serial port..."),
+        location: ProgressLocation.Notification,
+        title: l10n.t("Detecting Espressif device serial port..."),
         cancellable: false,
       },
       async (progress) => {
@@ -162,7 +162,7 @@ export class SerialPort {
               }
               testedPorts++;
               progress.report({
-                message: vscode.l10n.t(
+                message: l10n.t(
                   "Testing port {0} ({1}/{2})",
                   currentPort,
                   testedPorts,
@@ -201,7 +201,7 @@ export class SerialPort {
 
           if (!foundWorkingPort) {
             progress.report({
-              message: vscode.l10n.t(
+              message: l10n.t(
                 "No serial port found for current IDF_TARGET: {0}",
                 expectedTarget
               ),
@@ -222,10 +222,10 @@ export class SerialPort {
   }
 
   private async displayList(
-    workspaceFolder: vscode.Uri,
+    workspaceFolder: Uri,
     useMonitorPort: boolean
   ) {
-    const msg = vscode.l10n.t(
+    const msg = l10n.t(
       "Select the available serial port where your device is connected."
     );
 
@@ -244,7 +244,7 @@ export class SerialPort {
 
       // Add the "detect" option at the beginning of the list
       const detectOption = {
-        description: vscode.l10n.t(
+        description: l10n.t(
           "Auto-detect port (let esptool.py find the device automatically)"
         ),
         label: "detect",
@@ -262,7 +262,7 @@ export class SerialPort {
       const allOptions = [detectOption, ...portOptions];
 
       // Create QuickPick and show currently selected port
-      const quickPick = vscode.window.createQuickPick<{
+      const quickPick = window.createQuickPick<{
         description: string;
         label: string;
         picked: boolean;
@@ -271,7 +271,7 @@ export class SerialPort {
       quickPick.items = allOptions;
       quickPick.activeItems = quickPick.items.filter((item) => item.picked);
 
-      const chosen = await new Promise<vscode.QuickPickItem | undefined>(
+      const chosen = await new Promise<QuickPickItem | undefined>(
         (resolve) => {
           quickPick.onDidAccept(() => {
             resolve(quickPick.selectedItems[0]);
@@ -301,14 +301,14 @@ export class SerialPort {
               workspaceFolder
             );
             const currentTarget = targetMatch ? targetMatch : "esp32";
-            const noPortFoundMsg = vscode.l10n.t(
+            const noPortFoundMsg = l10n.t(
               "No serial port found for current IDF_TARGET: {0}",
               currentTarget
             );
             await showInfoNotificationWithAction(
               noPortFoundMsg,
-              vscode.l10n.t("Detect"),
-              () => vscode.commands.executeCommand("espIdf.detectSerialPort")
+              l10n.t("Detect"),
+              () => commands.executeCommand("espIdf.detectSerialPort")
             );
           }
         } else {
@@ -342,7 +342,7 @@ export class SerialPort {
   }
 
   public async getListArray(
-    workspaceFolder: vscode.Uri,
+    workspaceFolder: Uri,
     skipEsptoolCall: boolean = false
   ) {
     return await this.list(workspaceFolder, skipEsptoolCall);
@@ -350,24 +350,24 @@ export class SerialPort {
 
   public async updatePortListStatus(
     l: string,
-    wsFolder: vscode.Uri,
+    wsFolder: Uri,
     useMonitorPort: boolean
   ) {
     const portSetting2Use = useMonitorPort ? "idf.monitorPort" : "idf.port";
     const settingsSavedLocation = await writeParameter(
       portSetting2Use,
       l,
-      vscode.ConfigurationTarget.WorkspaceFolder,
+      ConfigurationTarget.WorkspaceFolder,
       wsFolder
     );
-    const portHasBeenSelectedMsg = vscode.l10n.t("Port has been updated to ");
+    const portHasBeenSelectedMsg = l10n.t("Port has been updated to ");
     Logger.infoNotify(
       `${portHasBeenSelectedMsg}${l} in ${settingsSavedLocation}`
     );
   }
 
   private list(
-    workspaceFolder: vscode.Uri,
+    workspaceFolder: Uri,
     skipEsptoolCall: boolean
   ): Thenable<SerialPortDetails[]> {
     return new Promise(async (resolve, reject) => {
@@ -433,13 +433,13 @@ export class SerialPort {
             "esptool",
             "esptool.py"
           );
-          let stat: vscode.FileStat;
+          let stat: FileStat;
           try {
-            stat = await vscode.workspace.fs.stat(vscode.Uri.file(esptoolPath));
+            stat = await workspace.fs.stat(Uri.file(esptoolPath));
           } catch {
             throw new Error(`esptool.py does not exist at ${esptoolPath}`);
           }
-          if (stat.type !== vscode.FileType.File) {
+          if (stat.type !== FileType.File) {
             throw new Error(`esptool.py at ${esptoolPath} is not a file`);
           }
           async function processPorts(

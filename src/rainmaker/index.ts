@@ -41,7 +41,7 @@ export function registerRainMakerCommands(context: ExtensionContext) {
     await withProgressWrapper(
       [],
       l10n.t("ESP-IDF: Please wait checking with Rainmaker Cloud"),
-      async (_progress, cancelToken, wsFolder) => {
+      async (_progress, cancelToken) => {
         try {
           //ask to select login provider
           const accountDetails = await PromptUserToLogin();
@@ -72,8 +72,7 @@ export function registerRainMakerCommands(context: ExtensionContext) {
             "rainmaker backend connect"
           );
         }
-      },
-      { requireWorkspaceFolder: false }
+      }
     );
   });
 
@@ -117,7 +116,7 @@ export function registerRainMakerCommands(context: ExtensionContext) {
       await withProgressWrapper(
         [],
         l10n.t("ESP-IDF: Deleting node from your rainmaker account"),
-        async (_progress, cancelToken, wsFolder) => {
+        async (_progress, cancelToken) => {
           try {
             if (!item.id) {
               return;
@@ -133,8 +132,7 @@ export function registerRainMakerCommands(context: ExtensionContext) {
               "extension rainmaker backend remove node"
             );
           }
-        },
-        { requireWorkspaceFolder: false }
+        }
       );
     }
   );
@@ -189,7 +187,7 @@ export function registerRainMakerCommands(context: ExtensionContext) {
       await withProgressWrapper(
         [],
         "ESP-IDF: Syncing params, please wait",
-        async (_progress, cancelToken, wsFolder) => {
+        async (_progress, cancelToken) => {
           try {
             const nodeID = idPayload[0];
             const deviceName = idPayload[1];
@@ -216,8 +214,7 @@ export function registerRainMakerCommands(context: ExtensionContext) {
               "extension rainmaker backend update node param"
             );
           }
-        },
-        { requireWorkspaceFolder: false }
+        }
       );
     }
   );
@@ -233,7 +230,7 @@ export function registerRainMakerCommands(context: ExtensionContext) {
             l10n.t(
               "ESP-IDF: Please wait mapping your rainmaker cloud account with the VS Code Extension, this could take a little while"
             ),
-            async (_progress, cancelToken, wsFolder) => {
+            async (_progress, cancelToken) => {
               try {
                 await RainmakerAPIClient.exchangeCodeForTokens(code);
                 await rainMakerTreeDataProvider.refresh();
@@ -250,8 +247,7 @@ export function registerRainMakerCommands(context: ExtensionContext) {
                   { meta: JSON.stringify(error) }
                 );
               }
-            },
-            { requireWorkspaceFolder: false }
+            }
           );
           return;
         }

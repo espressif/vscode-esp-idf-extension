@@ -6,15 +6,11 @@
  * you may not use this file except in compliance with the License.
  */
 
-import { WorkspaceFolder } from "vscode";
+import { Uri, WorkspaceFolder } from "vscode";
 import { ESP } from "../config";
 import { readParameter } from "../configuration/idf";
 
-const ALLOWED_PARTITIONS = new Set([
-  "app",
-  "bootloader",
-  "partition-table",
-]);
+const ALLOWED_PARTITIONS = new Set(["app", "bootloader", "partition-table"]);
 
 export function normalizePartitionToUse(
   raw: ESP.BuildType | string | undefined
@@ -26,7 +22,7 @@ export function normalizePartitionToUse(
 }
 
 export function resolveFlashTypeForTask(
-  wsFolder: WorkspaceFolder | undefined,
+  wsFolder: WorkspaceFolder | Uri | undefined,
   explicit?: ESP.FlashType
 ): ESP.FlashType {
   if (explicit) {
@@ -36,7 +32,7 @@ export function resolveFlashTypeForTask(
 }
 
 export function resolvePartitionToUseForTask(
-  wsFolder: WorkspaceFolder | undefined,
+  wsFolder: WorkspaceFolder | Uri | undefined,
   explicit?: ESP.BuildType
 ): ESP.BuildType | undefined {
   if (explicit !== undefined) {

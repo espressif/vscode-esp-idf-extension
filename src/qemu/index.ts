@@ -24,13 +24,14 @@ import { openFolderCheck } from "../common/PreCheck";
 import { Logger } from "../common/logger";
 import { getToolchainPath, sleep } from "../utils";
 import { readParameter } from "../configuration/idf";
+import { ESP } from "../config";
 
 export function registerQEMUCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.qemuCommand", async () => {
     await withProgressWrapper(
       [openFolderCheck],
       "ESP-IDF: Starting ESP-IDF QEMU",
-      async (_progress, _cancelToken, wsFolder) => {
+      async (_progress, _cancelToken) => {
         try {
           QemuManager.init().commandHandler();
         } catch (error) {
@@ -45,12 +46,13 @@ export function registerQEMUCommands(context: ExtensionContext) {
     await withProgressWrapper(
       [openFolderCheck],
       l10n.t("ESP-IDF: Starting ESP-IDF QEMU Debug"),
-      async (_progress, _cancelToken, wsFolder) => {
+      async (_progress, _cancelToken) => {
         try {
           if (QemuManager.init().isRunning()) {
             QemuManager.init().stop();
             await sleep(1000);
           }
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
           const monitorAfterDebug = readParameter(
             "idf.qemuDebugMonitor",
             wsFolder.uri
@@ -96,12 +98,13 @@ export function registerQEMUCommands(context: ExtensionContext) {
     await withProgressWrapper(
       [openFolderCheck],
       l10n.t("ESP-IDF: Starting ESP-IDF QEMU Monitor"),
-      async (_progress, _cancelToken, wsFolder) => {
+      async (_progress, _cancelToken) => {
         try {
           const isQemuLaunched = QemuManager.init().isRunning();
           if (isQemuLaunched) {
             QemuManager.init().stop();
           }
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
           await QemuManager.init().start(QemuLaunchMode.Monitor, wsFolder.uri);
         } catch (error) {
           const msg = error instanceof Error ? error.message : String(error);

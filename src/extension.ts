@@ -16,15 +16,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { ConfserverProcess } from "./espIdf/menuconfig/confserver/confServerProcess";
-import { AppTraceManager } from "./espIdf/tracing/appTraceManager";
-import { AppTracePanel } from "./espIdf/tracing/appTracePanel";
-import { GdbHeapTraceManager } from "./espIdf/tracing/gdbHeapTraceManager";
-import {
-  AppTraceArchiveTreeDataProvider,
-  AppTraceArchiveItems,
-  TraceType,
-} from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
-import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
 import {
   NotificationMode,
   readParameter,
@@ -40,13 +31,11 @@ import { OutputChannel } from "./common/outputChannel";
 import { showInfoNotificationWithAction } from "./common/customNotifications";
 import * as utils from "./utils";
 import {
-  getSDKConfigFilePath,
   getIdfTargetFromSdkconfig,
   getProjectName,
   initSelectedWorkspace,
   updateIdfComponentsTree,
 } from "./configuration/workspace";
-import { SystemViewResultParser } from "./espIdf/tracing/system-view";
 import { Telemetry } from "./common/telemetry";
 import { registerRainMakerCommands } from "./rainmaker";
 import { CommandsProvider } from "./cmdTreeView/cmdTreeDataProvider";
@@ -57,10 +46,7 @@ import {
   espIdfCoverageRenderer,
 } from "./coverage/renderer";
 import { registerMonitorCommands } from "./espIdf/monitor";
-import { PartitionTableEditorPanel } from "./espIdf/partition-table";
-import { ESPEFuseTreeDataProvider } from "./efuse/view";
-import { ESPEFuseManager } from "./efuse";
-import { createFileSync, pathExists, readFile } from "fs-extra";
+import { pathExists, readFile } from "fs-extra";
 import { registerEspAdfCmd } from "./espAdf/espAdfDownload";
 import { ChangelogViewer } from "./changelog-viewer";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
@@ -69,33 +55,16 @@ import {
   getOpenOcdScripts,
   selectOpenOcdConfigFiles,
 } from "./espIdf/openOcd/boardConfiguration";
-import { clearAdapterSerial } from "./espIdf/openOcd/adapterSerial";
-import { generateConfigurationReport } from "./support";
+import { generateConfigurationReport } from "./support/main";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
 import { KconfigLangClient } from "./kconfig";
 import { configureProjectWithGcov } from "./coverage/configureProject";
 import { ComponentManagerUIPanel } from "./component-manager/panel";
-import {
-  PartitionItem,
-  PartitionTreeDataProvider,
-} from "./espIdf/partition-table/tree";
-import { flashBinaryToPartition } from "./espIdf/partition-table/partitionFlasher";
-import { WelcomePanel } from "./welcome/panel";
-import { getWelcomePageInitialValues } from "./welcome/welcomeInit";
-import {
-  setIdfTarget,
-  setIsSettingIDFTarget,
-  isSettingIDFTarget,
-} from "./espIdf/setTarget/main";
-import { setTargetInIDF } from "./espIdf/setTarget/setTargetInIdf";
-import { updateCurrentProfileIdfTarget } from "./project-conf";
 import { ExtensionConfigStore } from "./common/store";
 import { ProjectConfigStore } from "./project-conf";
 import { UnitTest } from "./espIdf/unitTest/adapter";
-import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 import { createSBOM, installEspSBOM } from "./espBom";
-import { selectIdfSetup } from "./eim/selectIdfSetup";
 import { registerReconfigureCmd } from "./espIdf/reconfigure/task";
 import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
 import { TroubleshootingPanel } from "./support/troubleshootPanel";
@@ -104,26 +73,23 @@ import {
   statusBarItems,
   updateOpenOcdAdapterStatusBarItem,
 } from "./statusBar";
-import { CommandKeys, commandDictionary } from "./cmdTreeView/cmdStore";
+import {
+  CommandKeys,
+  commandDictionary,
+  initCommandDictionary,
+} from "./cmdTreeView/cmdStore";
 import { asyncRemoveEspIdfSettings } from "./uninstall";
 import {
   clearSelectedProjectConfiguration,
   ProjectConfigurationManager,
 } from "./project-conf/ProjectConfigurationManager";
-import { readPartition } from "./espIdf/partition-table/partitionReader";
-import { getTargetsFromEspIdf } from "./espIdf/setTarget/getTargets";
 import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
 import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
-import {
-  minIdfVersionCheck,
-  openFolderCheck,
-  PreCheck,
-  webIdeCheck,
-} from "./common/PreCheck";
+import { openFolderCheck, PreCheck } from "./common/PreCheck";
 import { buildFlashAndMonitor } from "./buildFlashMonitor";
-import { getCurrentIdfSetup, loadIdfSetup } from "./eim/loadIdfSetup";
+import { loadIdfSetup } from "./eim/loadIdfSetup";
 import {
   checkAndPromptForClangdExtension,
   handleCompileCommandsUpdate,
@@ -154,34 +120,23 @@ import {
   OpenOCDManager,
 } from "./espIdf/openOcd/openOcdManager";
 import { registerSetTargetCommand } from "./espIdf/setTarget";
+import { registerAppTraceCommands } from "./espIdf/tracing";
+import { registerWelcomePanel } from "./welcome";
+import { registerProjectConfigCommands } from "./project-conf";
+import { registerDoctorCommand } from "./support";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
 
-// App Tracing
-let appTraceTreeDataProvider: AppTraceTreeDataProvider;
-let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
-let appTraceManager: AppTraceManager;
-let gdbHeapTraceManager: GdbHeapTraceManager;
-
-// Partition table
-let partitionTableTreeDataProvider: PartitionTreeDataProvider;
-
 // Commands Provider
 let commandTreeDataProvider: CommandsProvider;
-
-// ESP eFuse Explorer
-let eFuseExplorer: ESPEFuseTreeDataProvider;
-
-// Precheck methods and their messages
-
-let projectConfigManager: ProjectConfigurationManager | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
   Logger.init(context);
   resetIdfConfigurationSource();
   ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
+  initCommandDictionary();
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
 
   context.environmentVariableCollection.clear();
@@ -357,22 +312,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register Tree Provider for IDF Explorer
   registerTreeProvidersForIDFExplorer(context);
-  appTraceManager = new AppTraceManager(
-    appTraceTreeDataProvider,
-    appTraceArchiveTreeDataProvider
-  );
-  gdbHeapTraceManager = new GdbHeapTraceManager(
-    appTraceTreeDataProvider,
-    appTraceArchiveTreeDataProvider
-  );
 
   if (PreCheck.isWorkspaceFolderOpen()) {
-    await loadIdfSetup(vscode.workspace.workspaceFolders[0].uri);
+    await loadIdfSetup(vscode.workspace.workspaceFolders[0]);
     await createCmdsStatusBarItems(
       context,
       vscode.workspace.workspaceFolders[0].uri
     );
-    workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
+    workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"])?.uri;
     ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(workspaceRoot);
     await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
     if (statusBarItems && statusBarItems["port"]) {
@@ -392,11 +339,14 @@ export async function activate(context: vscode.ExtensionContext) {
       if (PreCheck.isWorkspaceFolderOpen()) {
         for (const ws of e.removed) {
           if (workspaceRoot && ws.uri === workspaceRoot) {
-            workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
-            await loadIdfSetup(workspaceRoot);
-            ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(
-              workspaceRoot
-            );
+            const wsFolder = initSelectedWorkspace(statusBarItems["workspace"]);
+            if (wsFolder) {
+              await loadIdfSetup(wsFolder);
+              ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(
+                wsFolder.uri
+              );
+              workspaceRoot = wsFolder.uri;
+            }
             await getIdfTargetFromSdkconfig(
               workspaceRoot,
               statusBarItems["target"]
@@ -451,11 +401,16 @@ export async function activate(context: vscode.ExtensionContext) {
           }
         }
         if (typeof workspaceRoot === "undefined") {
-          workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
-          await loadIdfSetup(workspaceRoot);
-          ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(
-            workspaceRoot
+          const workspaceFolder = initSelectedWorkspace(
+            statusBarItems["workspace"]
           );
+          if (workspaceFolder) {
+            workspaceRoot = workspaceFolder?.uri;
+            await loadIdfSetup(workspaceFolder);
+            ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(
+              workspaceFolder.uri
+            );
+          }
           await getIdfTargetFromSdkconfig(
             workspaceRoot,
             statusBarItems["target"]
@@ -467,16 +422,10 @@ export async function activate(context: vscode.ExtensionContext) {
           workspace: workspaceRoot,
         } as IOpenOCDConfig;
         OpenOCDManager.init().configureServer(openOCDConfig);
-        if (projectConfigManager) {
-          projectConfigManager.dispose();
-          projectConfigManager = undefined;
+        if (ProjectConfigurationManager.instance) {
+          ProjectConfigurationManager.instance.dispose();
         }
-        projectConfigManager = new ProjectConfigurationManager(
-          workspaceRoot,
-          context,
-          statusBarItems
-        );
-        context.subscriptions.push(projectConfigManager);
+        new ProjectConfigurationManager(workspaceRoot, context, statusBarItems);
       }
       ConfserverProcess.dispose();
     })
@@ -494,12 +443,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerCustomTaskCommand(context);
 
-  registerIDFCommand("espIdf.rmProjectConfStatusBar", async () => {
-    if (statusBarItems["projectConf"]) {
-      statusBarItems["projectConf"].dispose();
-      statusBarItems["projectConf"] = undefined;
-    }
-  });
+  registerProjectConfigCommands(context);
 
   vscode.workspace.onDidChangeConfiguration(async (e) => {
     const winFlag = process.platform === "win32" ? "Win" : "";
@@ -651,42 +595,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  registerIDFCommand("espIdf.welcome.start", async () => {
-    if (WelcomePanel.isCreatedAndHidden()) {
-      WelcomePanel.createOrShow(context.extensionPath, undefined);
-      return;
-    }
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      workspaceRoot
-    ) as string;
-    const ProgressLocation =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Notifications
-        ? vscode.ProgressLocation.Notification
-        : vscode.ProgressLocation.Window;
-    vscode.window.withProgress(
-      {
-        cancellable: false,
-        location: ProgressLocation,
-        title: "ESP-IDF: Welcome page",
-      },
-      async (
-        progress: vscode.Progress<{ increment: number; message: string }>,
-        cancelToken: vscode.CancellationToken
-      ) => {
-        try {
-          const welcomeArgs = await getWelcomePageInitialValues(progress);
-          if (!welcomeArgs) {
-            throw new Error("Error getting welcome page initial values");
-          }
-          WelcomePanel.createOrShow(context.extensionPath, welcomeArgs);
-        } catch (error) {
-          Logger.errorNotify(error.message, error, "extension welcome");
-        }
-      }
-    );
-  });
+  registerWelcomePanel(context);
 
   registerNewProjectWizardCmd(context);
 
@@ -704,37 +613,7 @@ export async function activate(context: vscode.ExtensionContext) {
     return await getIdfTargetFromSdkconfig(workspaceRoot);
   });
 
-  registerIDFCommand("espIdf.getOpenOcdConfigs", () => {
-    const openOcfConfigs = readParameter(
-      "idf.openOcdConfigs",
-      workspaceRoot
-    ) as string[];
-    let result = "";
-    openOcfConfigs.forEach((configFile) => {
-      result = result + " -f " + configFile;
-    });
-    return result.trim();
-  });
-
-  registerIDFCommand("espIdf.selectOpenOcdConfigFiles", async () =>
-    selectOpenOcdConfigFiles(workspaceRoot)
-  );
-
-  registerIDFCommand("espIdf.getOpenOcdScriptValue", async () => {
-    return await getOpenOcdScripts(workspaceRoot);
-  });
-
   registerIdfSizeUICmd(context);
-
-  registerIDFCommand("espIdf.setGcovConfig", async () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      try {
-        await configureProjectWithGcov(workspaceRoot);
-      } catch (error) {
-        Logger.errorNotify(error.message, error, "extension setGcovConfig");
-      }
-    });
-  });
 
   registerIDFCommand("espIdf.setClangSettings", async () => {
     PreCheck.perform([openFolderCheck], async () => {
@@ -747,451 +626,15 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.apptrace", () => {
-    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      const appTraceLabel =
-        typeof appTraceTreeDataProvider.appTraceButton.label === "string"
-          ? appTraceTreeDataProvider.appTraceButton.label.match(/start/gi)
-          : appTraceTreeDataProvider.appTraceButton.label.label.match(
-              /start/gi
-            );
-      if (appTraceLabel) {
-        await appTraceManager.start(workspaceRoot);
-      } else {
-        await appTraceManager.stop(workspaceRoot);
-      }
-    });
-  });
-
-  registerIDFCommand("espIdf.heaptrace", async () => {
-    const idfVersionCheck = await minIdfVersionCheck("4.2");
-    PreCheck.perform(
-      [idfVersionCheck, webIdeCheck, openFolderCheck],
-      async () => {
-        const heapTraceLabel =
-          typeof appTraceTreeDataProvider.heapTraceButton.label === "string"
-            ? appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)
-            : appTraceTreeDataProvider.heapTraceButton.label.label.match(
-                /start/gi
-              );
-        if (heapTraceLabel) {
-          await gdbHeapTraceManager.start(workspaceRoot);
-        } else {
-          await gdbHeapTraceManager.stop();
-        }
-      }
-    );
-  });
+  registerAppTraceCommands(context);
 
   registerOpenOCDCommands(context);
 
   registerQEMUCommands(context);
 
-  registerIDFCommand(
-    "espIdf.flashBinaryToPartition",
-    async (binPath: vscode.Uri) => {
-      if (!binPath) {
-        return;
-      }
-      let items = [];
-      const partitionsInDevice = partitionTableTreeDataProvider.getChildren();
-      if (!partitionsInDevice) {
-        vscode.window.showInformationMessage("No partition found");
-      } else {
-        for (let devicePartition of partitionsInDevice) {
-          const item = {
-            label: devicePartition.name,
-            target: devicePartition.offset,
-            description: devicePartition.description,
-          };
-          items.push(item);
-        }
-      }
-      items.push({
-        label: "Custom offset",
-        target: "custom",
-        description: "Enter a custom offset",
-      });
-      const partitionAction = await vscode.window.showQuickPick(items, {
-        placeHolder: vscode.l10n.t("Select a partition to use"),
-      });
-      if (!partitionAction) {
-        return;
-      }
-      if (partitionAction.target === "custom") {
-        const customOffset = await vscode.window.showInputBox({
-          placeHolder: vscode.l10n.t("Enter custom partition table offset"),
-          value: "",
-          validateInput: (text) => {
-            return /^(0x[0-9a-fA-F]+|[0-9]+)$/i.test(text)
-              ? null
-              : "The value is not a valid hexadecimal number";
-          },
-        });
-        if (!customOffset) {
-          return;
-        }
-        partitionAction.target = customOffset;
-      }
-      await flashBinaryToPartition(
-        partitionAction.target,
-        binPath.fsPath,
-        workspaceRoot
-      );
-    }
-  );
-
-  registerIDFCommand(
-    "espIdf.partition.actions",
-    (partitionNode: PartitionItem) => {
-      if (!partitionNode) {
-        return;
-      }
-      PreCheck.perform([openFolderCheck], async () => {
-        const partitionAction = await vscode.window.showQuickPick(
-          [
-            {
-              label: vscode.l10n.t("Read partition from device"),
-              target: "readPartition",
-            },
-            {
-              label: vscode.l10n.t(`Flash binary to this partition`),
-              target: "flashBinaryToPartition",
-            },
-          ],
-          { placeHolder: vscode.l10n.t("Select an action to use") }
-        );
-        if (!partitionAction) {
-          return;
-        }
-        if (partitionAction.target === "flashBinaryToPartition") {
-          const selectedFile = await vscode.window.showOpenDialog({
-            canSelectFolders: false,
-            canSelectFiles: true,
-            canSelectMany: false,
-            filters: { Binaries: ["bin"] },
-          });
-          if (selectedFile && selectedFile.length > 0) {
-            await flashBinaryToPartition(
-              partitionNode.offset,
-              selectedFile[0].fsPath,
-              workspaceRoot
-            );
-          }
-        } else if (partitionAction.target === "readPartition") {
-          await readPartition(
-            partitionNode.name,
-            partitionNode.offset,
-            partitionNode.size,
-            workspaceRoot
-          );
-        }
-      });
-    }
-  );
-
-  registerIDFCommand("espIdf.partition.table.refresh", () => {
-    PreCheck.perform([openFolderCheck], () => {
-      partitionTableTreeDataProvider.populatePartitionItems(workspaceRoot);
-    });
-  });
-
-  registerIDFCommand("espIdf.apptrace.archive.refresh", () => {
-    PreCheck.perform([openFolderCheck], () => {
-      appTraceArchiveTreeDataProvider.populateArchiveTree();
-    });
-  });
-
-  registerIDFCommand("espIdf.doctorCommand", async () => {
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      workspaceRoot
-    ) as string;
-    const ProgressLocation =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Notifications
-        ? vscode.ProgressLocation.Notification
-        : vscode.ProgressLocation.Window;
-    await vscode.window.withProgress(
-      {
-        cancellable: false,
-        location: ProgressLocation,
-        title: vscode.l10n.t("ESP-IDF Doctor"),
-      },
-      async (
-        progress: vscode.Progress<{ message: string; increment: number }>
-      ) => {
-        const reportedResult = initializeReportObject();
-        try {
-          await generateConfigurationReport(
-            context,
-            workspaceRoot,
-            reportedResult,
-            progress
-          );
-          await vscode.window.showTextDocument(
-            vscode.Uri.file(path.join(context.extensionPath, "report.txt"))
-          );
-        } catch (error) {
-          reportedResult.latestError = error;
-          const errMsg = error.message
-            ? error.message
-            : "Configuration report error";
-          Logger.error(errMsg, error, "extension DoctorCommand");
-          Logger.warnNotify(
-            vscode.l10n.t(
-              "Extension configuration report has been copied to clipboard with errors"
-            )
-          );
-          const reportOutput = await writeTextReport(reportedResult, context);
-          await vscode.env.clipboard.writeText(reportOutput);
-          await vscode.window.showTextDocument(
-            vscode.Uri.file(path.join(context.extensionPath, "report.txt"))
-          );
-          return reportedResult;
-        }
-      }
-    );
-  });
-
-  registerIDFCommand("espIdf.troubleshootPanel", async () => {
-    TroubleshootingPanel.createOrShow(context, workspaceRoot);
-  });
-
-  registerIDFCommand(
-    "espIdf.apptrace.archive.showReport",
-    (trace: AppTraceArchiveItems) => {
-      if (!trace) {
-        Logger.errorNotify(
-          vscode.l10n.t(
-            "Cannot call this command directly, click on any Trace to view its report!"
-          ),
-          new Error("INVALID_COMMAND"),
-          "extension apptrace showReport"
-        );
-        return;
-      }
-      PreCheck.perform([openFolderCheck], async () => {
-        if (trace.type === TraceType.HeapTrace) {
-          enum TracingViewType {
-            HeapTracingPlot,
-            SystemViewTracing,
-          }
-          //show option to render system trace view or heap trace
-          const placeHolder = vscode.l10n.t(
-            "Do you want to view Heap Trace plot or System View Trace"
-          );
-          const choice = await vscode.window.showQuickPick(
-            [
-              {
-                type: TracingViewType.SystemViewTracing,
-                label: "$(symbol-keyword) System View Tracing",
-                detail: vscode.l10n.t(
-                  "Show System View Tracing Plot (will open a webview window)"
-                ),
-              },
-              {
-                type: TracingViewType.HeapTracingPlot,
-                label: "$(graph) Heap Tracing",
-                detail: vscode.l10n.t("Open Old Heap/App Trace Panel"),
-              },
-            ],
-            {
-              placeHolder,
-              ignoreFocusOut: true,
-            }
-          );
-          if (!choice) {
-            return;
-          }
-          if (choice.type === TracingViewType.SystemViewTracing) {
-            return SystemViewResultParser.parseWithProgress(
-              trace,
-              context.extensionPath,
-              workspaceRoot
-            );
-          }
-        }
-
-        // For App Trace, directly open the file instead of showing the webview
-        if (trace.type === TraceType.AppTrace) {
-          try {
-            const textDocument = await vscode.workspace.openTextDocument(
-              trace.filePath
-            );
-            const column = vscode.window.activeTextEditor
-              ? vscode.window.activeTextEditor.viewColumn
-              : undefined;
-            await vscode.window.showTextDocument(textDocument, {
-              viewColumn: column || vscode.ViewColumn.One,
-            });
-            return;
-          } catch (error) {
-            Logger.errorNotify(
-              `Failed to open App Trace file: ${error.message}`,
-              error,
-              "extension apptrace showReport openFile"
-            );
-            return;
-          }
-        }
-
-        // For Heap Trace, show the webview as before
-        const currentEnvVars = getCurrentIdfConfiguration();
-        let espIdfPath = currentEnvVars["IDF_PATH"];
-        AppTracePanel.createOrShow(context, {
-          trace: {
-            fileName: trace.fileName,
-            filePath: trace.filePath,
-            type: trace.type,
-            workspacePath: workspaceRoot.fsPath,
-            idfPath: espIdfPath,
-          },
-        });
-      });
-    }
-  );
-
-  registerIDFCommand("espIdf.apptrace.customize", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      await AppTraceManager.saveConfiguration(workspaceRoot);
-    });
-  });
+  registerDoctorCommand(context);
 
   registerRainMakerCommands(context);
-
-  registerIDFCommand(
-    "esp.webview.open.partition-table",
-    async (args?: vscode.Uri) => {
-      let filePath = args?.fsPath;
-      if (!args) {
-        // try to get the partition table name from sdkconfig and if not found create one
-        try {
-          const sdkconfigFilePath = await getSDKConfigFilePath(workspaceRoot);
-          if (!sdkconfigFilePath || !(await pathExists(sdkconfigFilePath))) {
-            const buildProject = await vscode.window.showInformationMessage(
-              vscode.l10n.t(
-                `Partition table editor requires sdkconfig file. Build the project?`
-              ),
-              "Build"
-            );
-            if (buildProject === "Build") {
-              vscode.commands.executeCommand("espIdf.buildDevice");
-            }
-            return;
-          }
-          const isCustomPartitionTableEnabled = await utils.getConfigValueFromSDKConfig(
-            "CONFIG_PARTITION_TABLE_CUSTOM",
-            workspaceRoot
-          );
-          if (isCustomPartitionTableEnabled !== "y") {
-            const enableCustomPartitionTable = await vscode.window.showInformationMessage(
-              vscode.l10n.t(
-                "Custom Partition Table not enabled for the project"
-              ),
-              "Enable"
-            );
-            if (enableCustomPartitionTable === "Enable") {
-              await ConfserverProcess.initWithProgress(
-                workspaceRoot,
-                context.extensionPath
-              );
-
-              if (ConfserverProcess.exists()) {
-                const customPartitionTableEnableRequest = `{"version": 2, "set": { "PARTITION_TABLE_CUSTOM": true }}\n`;
-                ConfserverProcess.sendUpdatedValue(
-                  customPartitionTableEnableRequest
-                );
-                ConfserverProcess.saveGuiConfigValues();
-              }
-            } else {
-              throw new Error(
-                vscode.l10n.t(
-                  "Custom Partition Table not enabled for the project"
-                )
-              );
-            }
-          }
-
-          let partitionTableFilePath = await utils.getConfigValueFromSDKConfig(
-            "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME",
-            workspaceRoot
-          );
-          partitionTableFilePath = partitionTableFilePath.replace(/\"/g, "");
-          if (!utils.isStringNotEmpty(partitionTableFilePath)) {
-            throw new Error(
-              vscode.l10n.t(
-                "Empty CONFIG_PARTITION_TABLE_CUSTOM_FILENAME, please add a csv file to generate partition table"
-              )
-            );
-          }
-
-          partitionTableFilePath = path.join(
-            workspaceRoot.fsPath,
-            partitionTableFilePath
-          );
-          if (!utils.fileExists(partitionTableFilePath)) {
-            // inform user and create file.
-            Logger.infoNotify(
-              vscode.l10n.t(
-                `Partition Table File {partitionTableFilePath} doesn't exists, we are creating an empty file there`,
-                { partitionTableFilePath }
-              )
-            );
-            createFileSync(partitionTableFilePath);
-          }
-          filePath = partitionTableFilePath;
-        } catch (error) {
-          return Logger.errorNotify(
-            error.message,
-            error,
-            "extension partition table"
-          );
-        }
-      }
-      PartitionTableEditorPanel.show(context.extensionPath, filePath);
-    }
-  );
-  registerIDFCommand("esp.efuse.summary", async () => {
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      workspaceRoot
-    ) as string;
-    const ProgressLocation =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Notifications
-        ? vscode.ProgressLocation.Notification
-        : vscode.ProgressLocation.Window;
-    vscode.window.withProgress(
-      {
-        title: vscode.l10n.t("ESP-IDF: Getting eFuse summary for your chip"),
-        location: ProgressLocation,
-      },
-      async () => {
-        try {
-          const eFuse = new ESPEFuseManager(workspaceRoot);
-          const resp = await eFuse.summary();
-          eFuseExplorer.load(resp);
-          eFuseExplorer.refresh();
-        } catch (error) {
-          if (error.name === "IDF_VERSION_MIN_REQUIREMENT_ERROR") {
-            return Logger.errorNotify(error.message, error, "extension");
-          }
-          Logger.errorNotify(
-            vscode.l10n.t(
-              "Failed to get the eFuse Summary from the chip, please make sure you have selected a valid port"
-            ),
-            error,
-            "extension efuse summary"
-          );
-        }
-      }
-    );
-  });
-
-  registerIDFCommand("espIdf.efuse.clearResults", async () => {
-    eFuseExplorer.clearResults();
-  });
 
   registerIDFCommand("espIdf.ninja.summary", async () => {
     const notificationMode = readParameter(
@@ -1453,37 +896,8 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.removeEspIdfSettings", asyncRemoveEspIdfSettings);
 
   if (workspaceRoot && workspaceRoot.fsPath) {
-    projectConfigManager = new ProjectConfigurationManager(
-      workspaceRoot,
-      context,
-      statusBarItems
-    );
-    context.subscriptions.push(projectConfigManager);
+    new ProjectConfigurationManager(workspaceRoot, context, statusBarItems);
   }
-
-  registerIDFCommand("espIdf.projectConf", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      if (projectConfigManager) {
-        await projectConfigManager.selectProjectConfiguration();
-      } else {
-        vscode.window.showErrorMessage(
-          "Project Configuration Manager not initialized."
-        );
-      }
-    });
-  });
-
-  registerIDFCommand("espIdf.createProjectConfiguration", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      if (projectConfigManager) {
-        await projectConfigManager.createProjectConfiguration();
-      } else {
-        vscode.window.showErrorMessage(
-          "Project Configuration Manager not initialized."
-        );
-      }
-    });
-  });
 }
 
 function checkAndNotifyMissingCompileCommands() {
@@ -1527,23 +941,10 @@ function checkAndNotifyMissingCompileCommands() {
 }
 
 function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
-  appTraceTreeDataProvider = new AppTraceTreeDataProvider();
-  appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
-
   commandTreeDataProvider = new CommandsProvider();
 
-  eFuseExplorer = new ESPEFuseTreeDataProvider();
-
-  partitionTableTreeDataProvider = new PartitionTreeDataProvider();
-
   context.subscriptions.push(
-    appTraceTreeDataProvider.registerDataProviderForTree("idfAppTracer"),
-    appTraceArchiveTreeDataProvider.registerDataProviderForTree(
-      "idfAppTraceArchive"
-    ),
-    commandTreeDataProvider.registerDataProviderForTree("idfCommands"),
-    eFuseExplorer.registerDataProviderForTree("espEFuseExplorer"),
-    partitionTableTreeDataProvider.registerDataProvider("idfPartitionExplorer")
+    commandTreeDataProvider.registerDataProviderForTree("idfCommands")
   );
 }
 

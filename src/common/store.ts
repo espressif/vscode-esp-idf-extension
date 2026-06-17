@@ -23,10 +23,11 @@ import {
   workspace,
   WorkspaceFolder,
 } from "vscode";
+import { Logger } from "./logger";
 
 export class ExtensionConfigStore {
   private static self: ExtensionConfigStore;
-  private static readonly SELECTED_WORKSPACE_FOLDER =
+  public static readonly SELECTED_WORKSPACE_FOLDER =
     "SELECTED_WORKSPACE_FOLDER";
   /** Current key; must stay aligned with `CommandKeys.SelectFlashType` in cmdStore. */
   private static readonly SELECT_FLASH_TYPE_CHECKBOX_KEY =
@@ -76,8 +77,19 @@ export class ExtensionConfigStore {
   public clear(key: string) {
     return this.set(key, undefined);
   }
-  public getSelectedWorkspaceFolder(): WorkspaceFolder | undefined {
-    const fallback = workspace.workspaceFolders?.[0];
+  public getSelectedWorkspaceFolder(): WorkspaceFolder {
+    if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
+      const error = new Error("No workspace selected.");
+      Logger.errorNotify(
+          error.message,
+          error,
+          "getSelectedWorkspaceFolder",
+          undefined,
+          false
+        );
+      throw error;
+    }
+    const fallback = workspace.workspaceFolders[0];
     const storedUri = this.get<string>(
       ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
       ""

@@ -16,7 +16,13 @@
  * limitations under the License.
  */
 
-import * as vscode from "vscode";
+import {
+  CancellationToken,
+  Progress,
+  ProgressLocation,
+  WorkspaceFolder,
+  window,
+} from "vscode";
 import * as fs from "fs";
 import { join } from "path";
 import { NotificationMode, readParameter } from "../../configuration/idf";
@@ -29,27 +35,20 @@ import { getOpenOcdScripts } from "../openOcd/boardConfiguration";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
 export class DevkitsCommand {
-  private workspaceFolderUri: vscode.Uri;
-
-  constructor(workspaceFolder: vscode.Uri) {
-    this.workspaceFolderUri = workspaceFolder;
-  }
+  constructor(private workspaceFolder: WorkspaceFolder) {}
 
   public async runDevkitsScript(
     openOCDVersion: string,
     opts?: { silent?: boolean }
   ) {
     try {
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(
-        this.workspaceFolderUri
-      );
-      if (!workspaceFolder) {
+      if (!this.workspaceFolder) {
         throw new Error("No workspace folder found");
       }
 
-      const modifiedEnv = await configureEnvVariables(this.workspaceFolderUri);
+      const modifiedEnv = await configureEnvVariables(this.workspaceFolder.uri);
       const openOcdPath = await OpenOCDManager.getOpenOcdPath(
-        this.workspaceFolderUri,
+        this.workspaceFolder.uri,
         modifiedEnv
       );
       if (!openOcdPath) {
@@ -68,27 +67,25 @@ export class DevkitsCommand {
           "Could not locate esp_detect_config.py for the current OpenOCD installation"
         );
       }
-      
-      const openOcdScriptsPath = await getOpenOcdScripts(
-        this.workspaceFolderUri
-      );
+
+      const openOcdScriptsPath = await getOpenOcdScripts(this.workspaceFolder);
       if (!openOcdScriptsPath) {
         throw new Error("Could not get OpenOCD scripts path");
       }
-      
+
       const espConfigPath = join(openOcdScriptsPath, "esp-config.json");
-      
+
       const notificationMode = readParameter(
         "idf.notificationMode",
-        this.workspaceFolderUri
+        this.workspaceFolder
       ) as string;
-      
-      const ProgressLocation =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Notifications
-      ? vscode.ProgressLocation.Notification
-      : vscode.ProgressLocation.Window;
-      
+
+      const progressLocation =
+        notificationMode === NotificationMode.All ||
+        notificationMode === NotificationMode.Notifications
+          ? ProgressLocation.Notification
+          : ProgressLocation.Window;
+
       const pythonBinPath = getVirtualEnvPythonPath();
       if (!pythonBinPath) {
         throw new Error("Could not get Python binary path");
@@ -113,27 +110,27 @@ export class DevkitsCommand {
         return await execChildProcess(
           pythonBinPath,
           [scriptPath, "--esp-config", espConfigPath],
-          this.workspaceFolderUri.fsPath,
+          this.workspaceFolder.uri.fsPath,
           undefined,
           { env: modifiedEnv }
         );
       }
 
-      return await vscode.window.withProgress(
+      return await window.withProgress(
         {
           cancellable: true,
-          location: ProgressLocation,
+          location: progressLocation,
           title: "ESP-IDF: Running ESP Detect Config",
         },
         async (
-          progress: vscode.Progress<{ message: string; increment: number }>,
-          cancelToken: vscode.CancellationToken
+          progress: Progress<{ message: string; increment: number }>,
+          cancelToken: CancellationToken
         ) => {
           try {
             const result = await execChildProcess(
               pythonBinPath,
               [scriptPath, "--esp-config", espConfigPath],
-              this.workspaceFolderUri.fsPath,
+              this.workspaceFolder.uri.fsPath,
               OutputChannel.init(),
               { env: modifiedEnv },
               cancelToken
@@ -141,12 +138,13 @@ export class DevkitsCommand {
 
             OutputChannel.appendLine(result, "ESP Detect Config");
             OutputChannel.show();
-            vscode.window.showInformationMessage("ESP Detect Config completed");
+            window.showInformationMessage("ESP Detect Config completed");
             return result;
           } catch (error) {
-            const msg = error instanceof Error && error.message
-              ? error.message
-              : "Error running ESP Detect Config";
+            const msg =
+              error instanceof Error && error.message
+                ? error.message
+                : "Error running ESP Detect Config";
             Logger.error(msg, error as Error, "DevkitsCommand");
             OutputChannel.appendLine(msg, "ESP Detect Config");
             OutputChannel.show();
@@ -155,9 +153,10 @@ export class DevkitsCommand {
         }
       );
     } catch (error) {
-      const msg = error instanceof Error && error.message
-        ? error.message
-        : "Error running ESP Detect Config";
+      const msg =
+        error instanceof Error && error.message
+          ? error.message
+          : "Error running ESP Detect Config";
       if (opts?.silent) {
         Logger.error(msg, error as Error, "DevkitsCommand");
         throw error;

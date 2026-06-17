@@ -48,14 +48,15 @@ export function registerNewProjectWizardCmd(context: ExtensionContext) {
     await withProgressWrapper(
       [openFolderCheck],
       "ESP-IDF: New Project",
-      async (_progress, cancelToken, wsFolder) => {
+      async (_progress, cancelToken) => {
         try {
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
           _progress.report({ message: "Loading IDF setups...", increment: 10 });
-          let idfSetups = await getIdfSetups(wsFolder.uri);
+          let idfSetups = await getIdfSetups(wsFolder);
           if (idfSetups.length === 0) {
             return;
           }
-          const currentIdfSetup = await getCurrentIdfSetup(wsFolder.uri);
+          const currentIdfSetup = await getCurrentIdfSetup(wsFolder);
           if (currentIdfSetup) {
             const isCurrentSetupInList = idfSetups.findIndex((idfSetup) => {
               return (
@@ -85,7 +86,7 @@ export function registerNewProjectWizardCmd(context: ExtensionContext) {
           });
           const newProjectArgs = await getNewProjectArgs(
             _progress,
-            wsFolder.uri,
+            wsFolder,
             existingIdfSetups
           );
           if (newProjectArgs) {
@@ -139,9 +140,9 @@ export function registerNewProjectWizardCmd(context: ExtensionContext) {
 
   registerIDFCommand(context, "espIdf.createNewProject", async () => {
     await withProgressWrapper(
-      [openFolderCheck],
+      [],
       l10n.t("New Project"),
-      async (_progress, cancelToken, wsFolder) => {
+      async (_progress, cancelToken) => {
         try {
           _progress.report({
             message: "Waiting for project name",
@@ -196,7 +197,7 @@ export function registerNewProjectWizardCmd(context: ExtensionContext) {
           return Logger.errorNotify(
             errMsg,
             error as Error,
-            "extension createNewProject"
+            "createNewProject"
           );
         }
       }
@@ -232,7 +233,7 @@ export function registerNewProjectWizardCmd(context: ExtensionContext) {
         return Logger.errorNotify(
           errMsg,
           error as Error,
-          "extension createNewComponent"
+          "createNewComponent"
         );
       }
     });
