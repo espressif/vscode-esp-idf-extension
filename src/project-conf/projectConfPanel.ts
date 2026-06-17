@@ -28,7 +28,7 @@ import {
 } from "vscode";
 import { join } from "path";
 import { ESP } from "../config";
-import { getProjectConfigurationElements, saveProjectConfFile } from ".";
+import { getProjectConfigurationElements, saveProjectConfFile } from "./utils";
 import { IdfTarget } from "../espIdf/setTarget/getTargets";
 
 export class projectConfigurationPanel {

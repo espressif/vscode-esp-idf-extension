@@ -29,7 +29,7 @@ import {
   AppTraceButtonType,
   AppTraceTreeDataProvider,
 } from "./tree/appTraceTreeDataProvider";
-import { ConfigurationTarget, Uri, window } from "vscode";
+import { ConfigurationTarget, window, WorkspaceFolder } from "vscode";
 
 export interface IAppTraceManagerConfig {
   host: string;
@@ -39,7 +39,7 @@ export interface IAppTraceManagerConfig {
 }
 
 export class AppTraceManager extends EventEmitter {
-  public static async saveConfiguration(workspace: Uri) {
+  public static async saveConfiguration(workspace: WorkspaceFolder) {
     await this.promptUserForEditingApptraceConfig(
       "Data polling period for apptrace",
       "milliseconds",
@@ -107,7 +107,7 @@ export class AppTraceManager extends EventEmitter {
     placeholder: string,
     paramName: string,
     validatorFunction: (value: string) => string,
-    workspace: Uri
+    workspace: WorkspaceFolder
   ) {
     const savedConf = readParameter(paramName, workspace) as string;
     const userInput = await window.showInputBox({
@@ -140,7 +140,7 @@ export class AppTraceManager extends EventEmitter {
     this.shallContinueCheckingStatus = false;
   }
 
-  public async start(workspace: Uri) {
+  public async start(workspace: WorkspaceFolder) {
     try {
       if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
         this.treeDataProvider.showStopButton(AppTraceButtonType.AppTraceButton);
@@ -166,9 +166,9 @@ export class AppTraceManager extends EventEmitter {
     }
   }
 
-  private executeAppTraceStart(workspace: Uri) {
+  private executeAppTraceStart(workspace: WorkspaceFolder) {
     const fileName = `file:${sep}${sep}${join(
-      workspace.fsPath,
+      workspace.uri.fsPath,
       "trace",
       `trace_${new Date().getTime()}.trace`
     )}`.replace(/\\/g, "/");
@@ -210,7 +210,7 @@ export class AppTraceManager extends EventEmitter {
     });
   }
 
-  public async stop(workspace: Uri) {
+  public async stop(workspace: WorkspaceFolder) {
     if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
       this.shallContinueCheckingStatus = false;
       const stopHandler = this.sendCommandToTCLSession(
@@ -248,9 +248,9 @@ export class AppTraceManager extends EventEmitter {
     this.archiveDataProvider.refresh();
   }
 
-  private sendCommandToTCLSession(command: string, workspace: Uri): TCLClient {
-    if (!fileExists(join(workspace.fsPath, "trace"))) {
-      mkdirSync(join(workspace.fsPath, "trace"));
+  private sendCommandToTCLSession(command: string, workspace: WorkspaceFolder): TCLClient {
+    if (!fileExists(join(workspace.uri.fsPath, "trace"))) {
+      mkdirSync(join(workspace.uri.fsPath, "trace"));
     }
     const host = readParameter("openocd.tcl.host", workspace) as string;
     const port = readParameter("openocd.tcl.port", workspace) as number;
@@ -259,7 +259,7 @@ export class AppTraceManager extends EventEmitter {
     startTracingCommandHandler.sendCommandWithCapture(command);
     return startTracingCommandHandler;
   }
-  private appTracingStatusChecker(workspace: Uri, onStop: () => void): TCLClient {
+  private appTracingStatusChecker(workspace: WorkspaceFolder, onStop: () => void): TCLClient {
     const host = readParameter("openocd.tcl.host", workspace) as string;
     const port = readParameter("openocd.tcl.port", workspace) as number;
     const tclConnectionParams = { host, port };

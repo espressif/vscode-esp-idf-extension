@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { CancellationToken, l10n, Uri, workspace } from "vscode";
+import { CancellationToken, l10n, Uri, workspace, WorkspaceFolder } from "vscode";
 import { readParameter, readSerialPort } from "../configuration/idf";
 import { ESP } from "../config";
 import {
@@ -46,9 +46,9 @@ export async function flashMain(
   partitionToUse?: ESP.BuildType,
   captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
-  const wsFolder = workspace.getWorkspaceFolder(workspaceFolderUri);
+
   let flashType =
-    resolveFlashTypeForTask(wsFolder, flashTypeIn) ?? ESP.FlashType.UART;
+    resolveFlashTypeForTask(workspaceFolderUri, flashTypeIn) ?? ESP.FlashType.UART;
   try {
     await interruptMonitorWithDelay(workspaceFolderUri);
 

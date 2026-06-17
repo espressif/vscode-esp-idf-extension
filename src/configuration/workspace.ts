@@ -83,7 +83,7 @@ export function initSelectedWorkspace(status?: StatusBarItem) {
   if (status) {
     updateStatus(status, workspaceFolderInfo);
   }
-  return workspaceRoot.uri;
+  return workspaceRoot;
 }
 
 let idfDataProvider: IdfTreeDataProvider;

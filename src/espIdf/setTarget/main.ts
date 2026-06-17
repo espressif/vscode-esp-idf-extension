@@ -37,7 +37,7 @@ import { selectOpenOcdConfigFiles } from "../openOcd/boardConfiguration";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { getTargetsFromEspIdf, IdfTarget } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
-import { updateCurrentProfileIdfTarget } from "../../project-conf";
+import { updateCurrentProfileIdfTarget } from "../../project-conf/utils";
 import { DevkitsCommand } from "./DevkitsCommand";
 import { clearAdapterSerial, storeAdapterSerial, supportsSerialFromDetectConfig } from "../openOcd/adapterSerial";
 import { SerialPort } from "../serial/serialPort";
@@ -104,7 +104,7 @@ export async function setIdfTarget(
           try {
             const openOCDManager = OpenOCDManager.init();
             openOCDVersion = await openOCDManager.version();
-            const devkitsCmd = new DevkitsCommand(workspaceFolder.uri);
+            const devkitsCmd = new DevkitsCommand(workspaceFolder);
             const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
             const openOcdPath = await OpenOCDManager.getOpenOcdPath(
               workspaceFolder.uri,
@@ -215,7 +215,7 @@ export async function setIdfTarget(
             "idf.openOcdConfigs",
             configFiles,
             configurationTarget,
-            workspaceFolder.uri
+            workspaceFolder
           );
           // Store USB location if available (will be used as fallback if serial is not found)
           if (selectedTarget.boardInfo.location) {
@@ -227,7 +227,7 @@ export async function setIdfTarget(
           }
         } else {
           await selectOpenOcdConfigFiles(
-            workspaceFolder.uri,
+            workspaceFolder,
             selectedTarget.idfTarget.target
           );
         }
@@ -238,7 +238,7 @@ export async function setIdfTarget(
           "idf.customExtraVars",
           customExtraVars,
           configurationTarget,
-          workspaceFolder.uri
+          workspaceFolder
         );
         updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
         await updateCurrentProfileIdfTarget(

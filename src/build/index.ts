@@ -47,12 +47,12 @@ export async function build(
   await withProgressWrapper(
     [openFolderCheck],
     "ESP-IDF: Building project",
-    async (_progress, cancelToken, wsFolder) => {
+    async (_progress, cancelToken) => {
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       let resolvedFlashType = flashType;
       if (!resolvedFlashType) {
         const fromConfig = readParameter("idf.flashType", wsFolder);
-        const raw =
-          typeof fromConfig === "string" ? fromConfig.trim() : "";
+        const raw = typeof fromConfig === "string" ? fromConfig.trim() : "";
         resolvedFlashType = Object.values(ESP.FlashType).includes(
           raw as ESP.FlashType
         )

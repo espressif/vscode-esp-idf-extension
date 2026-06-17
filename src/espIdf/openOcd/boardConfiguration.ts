@@ -27,6 +27,7 @@ import {
   QuickPickItemKind,
   Uri,
   window,
+  WorkspaceFolder,
 } from "vscode";
 import { Logger } from "../../common/logger";
 import { defaultBoards } from "./defaultBoards";
@@ -59,11 +60,12 @@ interface BoardQuickPickItem extends QuickPickItem {
   };
 }
 
-export async function getOpenOcdScripts(workspace: Uri): Promise<string> {
-  const modifiedEnv = await configureEnvVariables(workspace);
-  const userExtraVars = readParameter("idf.customExtraVars", workspace) as {
-    [key: string]: string;
-  };
+export async function getOpenOcdScripts(workspaceFolder: WorkspaceFolder): Promise<string> {
+  const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
+  const userExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as { [key: string]: string };
   let openOcdScriptsPath: string;
   try {
     openOcdScriptsPath = modifiedEnv.hasOwnProperty("OPENOCD_SCRIPTS")
@@ -135,13 +137,13 @@ export async function getBoards(
 }
 
 export async function selectOpenOcdConfigFiles(
-  workspaceFolder: Uri,
+  workspaceFolder: WorkspaceFolder,
   idfTarget?: string
 ) {
   try {
     const openOcdScriptsPath = await getOpenOcdScripts(workspaceFolder);
     if (!idfTarget) {
-      idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder);
+      idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder.uri);
       if (!idfTarget) {
         commands.executeCommand("espIdf.setTarget");
         return;
@@ -159,9 +161,9 @@ export async function selectOpenOcdConfigFiles(
         const openOCDManager = OpenOCDManager.init();
         openOCDVersion = await openOCDManager.version();
         const devkitsCmd = new DevkitsCommand(workspaceFolder);
-        const modifiedEnv = await configureEnvVariables(workspaceFolder);
+        const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
         const openOcdPath = await OpenOCDManager.getOpenOcdPath(
-          workspaceFolder,
+          workspaceFolder.uri,
           modifiedEnv
         );
         const scriptPath = await devkitsCmd.getScriptPath(openOcdPath);
@@ -275,7 +277,7 @@ export async function selectOpenOcdConfigFiles(
             workspaceFolder
           ) as { [key: string]: string };
           const customExtraVars = { ...customExtraVarsRead };
-          clearAdapterSerial(workspaceFolder);
+          clearAdapterSerial(workspaceFolder.uri);
           delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
 
           if (
@@ -285,10 +287,10 @@ export async function selectOpenOcdConfigFiles(
             supportsSerialFromDetectConfig(openOCDVersion)
           ) {
             storeAdapterSerial(
-              workspaceFolder,
+              workspaceFolder.uri,
               selectedBoard.boardInfo.serial_number
             );
-            updateOpenOcdAdapterStatusBarItem(workspaceFolder);
+            updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
           }
 
           if (selectedBoard.isConnected && selectedBoard.boardInfo) {

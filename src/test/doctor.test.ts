@@ -38,7 +38,7 @@ import {
 import { getPythonPackages } from "../support/pythonPackages";
 import { getGitVersion } from "../support/gitVersion";
 import { writeTextReport } from "../support/writeReport";
-import { ProjectConfigStore } from "../project-conf";
+import { ProjectConfigStore } from "../project-conf/utils";
 import { createMockMemento } from "./mockUtils";
 import { Logger } from "../common/logger";
 
@@ -56,6 +56,10 @@ suite("Doctor Command tests", () => {
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
   setup(async () => {
     setExtensionContext(mockUpContext);
+    reportObj.workspaceFolder = join(
+      __dirname,
+      "../../testFiles/testWorkspace"
+    );
   });
 
   test("System information", () => {
@@ -125,10 +129,7 @@ suite("Doctor Command tests", () => {
       join(__dirname, "../../templates/.vscode/launch.json"),
       "utf8"
     );
-    await checkLaunchJson(
-      reportObj,
-      vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
-    );
+    await checkLaunchJson(reportObj);
     assert.equal(reportObj.launchJson, templateLaunchJson);
   });
 
@@ -137,10 +138,7 @@ suite("Doctor Command tests", () => {
       join(__dirname, "../../templates/.vscode/c_cpp_properties.json"),
       "utf8"
     );
-    await checkCCppPropertiesJson(
-      reportObj,
-      vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
-    );
+    await checkCCppPropertiesJson(reportObj);
     assert.equal(reportObj.cCppPropertiesJson, templateLaunchJson);
   });
 
@@ -234,7 +232,10 @@ suite("Doctor Command tests", () => {
   });
 
   function replaceUserPathInStr(strReport: string) {
-    const escapedHome = process.env.HOME?.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedHome = process.env.HOME?.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&"
+    );
     if (!escapedHome) {
       return strReport;
     }

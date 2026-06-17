@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 import { resolve } from "path";
 import { ESP } from "../../config";
 import { Logger } from "../../common/logger";
-import { ProjectConfigStore } from "../../project-conf";
+import { ProjectConfigStore } from "../../project-conf/utils";
 import { ProjectConfElement } from "../../project-conf/projectConfiguration";
 import { createMockMemento } from "../mockUtils";
 import {

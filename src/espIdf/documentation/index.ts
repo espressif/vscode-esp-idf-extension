@@ -25,6 +25,7 @@ import {
   DocSearchResult,
   DocSearchResultTreeDataProvider,
 } from "./docResultsTreeView";
+import { ESP } from "../../config";
 
 export function registerSearchDocsCommand(context: ExtensionContext) {
   const espIdfDocsResultTreeDataProvider = new DocSearchResultTreeDataProvider();
@@ -46,12 +47,13 @@ export function registerSearchDocsCommand(context: ExtensionContext) {
     await withProgressWrapper(
       [],
       "ESP-IDF: Documentation search results",
-      async (_progress, cancelToken, wsFolder) => {
+      async (_progress, cancelToken) => {
         try {
           const currentEditor = window.activeTextEditor;
           if (!currentEditor) {
             return;
           }
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
           let selection = currentEditor.document.getText(
             currentEditor.selection
           );

@@ -29,7 +29,7 @@ import {
   CategoryItemsFor,
   FieldsForCategory,
 } from "./item_generator";
-import { ESPEFuseSummary } from "..";
+import { ESPEFuseSummary } from "../manager";
 
 export class ESPEFuseTreeDataProvider
   implements TreeDataProvider<ESPEFuseTreeDataItem> {
