@@ -30,7 +30,7 @@ import {
 } from "vscode";
 import { NotificationMode, readParameter } from "../configuration/idf";
 import { initializeReportObject } from "./initReportObj";
-import { generateConfigurationReport } from ".";
+import { generateConfigurationReport } from "./main";
 import { Logger } from "../common/logger";
 import { writeTextReport } from "./writeReport";
 import { EOL } from "os";
@@ -40,9 +40,10 @@ export class TroubleshootingPanel {
   public static currentPanel: TroubleshootingPanel | undefined;
 
   public static createOrShow(context: ExtensionContext, workspace: Uri) {
-    const column = window.activeTextEditor
-      ? window.activeTextEditor.viewColumn
-      : ViewColumn.One;
+    const column =
+      window.activeTextEditor && window.activeTextEditor.viewColumn
+        ? window.activeTextEditor.viewColumn
+        : ViewColumn.One;
     if (TroubleshootingPanel.currentPanel) {
       TroubleshootingPanel.currentPanel.panel.reveal(column);
     } else {
@@ -146,7 +147,7 @@ export class TroubleshootingPanel {
       async (progress: Progress<{ message: string; increment: number }>) => {
         const reportedResult = initializeReportObject();
         try {
-          await generateConfigurationReport(context, workspace, reportedResult, progress);
+          await generateConfigurationReport(context, reportedResult, progress);
           const reportOutput = await writeTextReport(reportedResult, context);
           troubleshootOutput += reportOutput;
           await env.clipboard.writeText(troubleshootOutput);
@@ -160,11 +161,13 @@ export class TroubleshootingPanel {
             l10n.t("ESP-IDF Troubleshoot Report has been generated.")
           );
         } catch (error) {
-          reportedResult.latestError = error;
-          const errMsg = error.message
-            ? error.message
-            : "Configuration report error";
-          Logger.error(errMsg, error, "TroubleshootingPanel createTroubleshootingReport");
+          reportedResult.latestError = error as Error;
+          const errMsg = error instanceof Error ? error.message : String(error);
+          Logger.error(
+            errMsg,
+            error as Error,
+            "TroubleshootingPanel createTroubleshootingReport"
+          );
           Logger.warnNotify(
             l10n.t(
               "Extension configuration report has been copied to clipboard with errors"

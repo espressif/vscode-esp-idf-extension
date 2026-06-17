@@ -28,6 +28,7 @@ import {
   Uri,
   window,
   workspace,
+  WorkspaceFolder,
 } from "vscode";
 import { Logger } from "../common/logger";
 import { getIdfConfigurationSource } from "./idfConfigurationSource";
@@ -150,7 +151,7 @@ export async function writeParameter(
     | { [key: string]: any }
     | ConfigurationTarget,
   target: ConfigurationTarget,
-  wsFolderUri?: Uri
+  wsFolder?: WorkspaceFolder | Uri
 ) {
   const paramValue = addWinIfRequired(param);
   const conf = getIdfConfigurationSource();
@@ -168,19 +169,19 @@ export async function writeParameter(
     ) {
       return;
     }
-    if (!wsFolderUri) {
+    if (!wsFolder) {
       let workspaceFolder = await window.showWorkspaceFolderPick({
         placeHolder: `Pick Workspace Folder to which ${param} should be applied`,
       });
       if (!workspaceFolder) {
         return;
       }
-      wsFolderUri = workspaceFolder.uri;
+      wsFolder = workspaceFolder;
     }
-    await conf.updateScoped("", wsFolderUri, paramValue, newValue, target);
+    await conf.updateScoped("", wsFolder, paramValue, newValue, target);
 
     conf.refreshConfiguration();
-    return wsFolderUri.fsPath;
+    return wsFolder instanceof Uri ? wsFolder.fsPath : wsFolder.uri.fsPath;
   }
 }
 
@@ -189,7 +190,7 @@ export async function updateConfParameter(
   confParamDescription: string,
   currentValue: any,
   label: string,
-  workspaceFolderUri: Uri
+  workspaceFolder: WorkspaceFolder
 ) {
   const newValue = await window.showInputBox({
     placeHolder: confParamDescription,
@@ -215,7 +216,7 @@ export async function updateConfParameter(
     confParamName,
     valueToWrite,
     ConfigurationTarget.WorkspaceFolder,
-    workspaceFolderUri
+    workspaceFolder
   );
   const updateMessage = l10n.t(" has been updated");
   Logger.infoNotify(label + updateMessage);

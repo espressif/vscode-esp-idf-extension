@@ -6,14 +6,14 @@
  * you may not use this file except in compliance with the License.
  */
 
-import { ConfigurationTarget, l10n, Uri, window } from "vscode";
+import { ConfigurationTarget, l10n, window, WorkspaceFolder } from "vscode";
 import { readParameter, writeParameter } from "../configuration/idf";
 import { ESP } from "../config";
 
-export async function selectFlashMethod(workspaceFolderUri: Uri) {
+export async function selectFlashMethod(workspaceFolder: WorkspaceFolder) {
   let curflashType = readParameter(
     "idf.flashType",
-    workspaceFolderUri
+    workspaceFolder
   ) as ESP.FlashType;
   let newFlashType = (await window.showQuickPick(Object.keys(ESP.FlashType), {
     ignoreFocusOut: true,
@@ -28,7 +28,7 @@ export async function selectFlashMethod(workspaceFolderUri: Uri) {
     "idf.flashType",
     newFlashType,
     ConfigurationTarget.WorkspaceFolder,
-    workspaceFolderUri
+    workspaceFolder
   );
   window.showInformationMessage(`Flash method changed to ${newFlashType}.`);
   return newFlashType;

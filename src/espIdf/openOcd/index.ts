@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { ConfigurationTarget, ExtensionContext, workspace } from "vscode";
+import { ConfigurationTarget, ExtensionContext } from "vscode";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { OpenOCDManager } from "./openOcdManager";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../../common/PreCheck";
@@ -24,6 +24,11 @@ import { CommandKeys } from "../../cmdTreeView/cmdStore";
 import { ESP } from "../../config";
 import { clearAdapterSerial } from "./adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
+import { readParameter, writeParameter } from "../../configuration/idf";
+import {
+  getOpenOcdScripts,
+  selectOpenOcdConfigFiles,
+} from "./boardConfiguration";
 
 export function registerOpenOCDCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.openOCDCommand", async () => {
@@ -42,17 +47,15 @@ export function registerOpenOCDCommands(context: ExtensionContext) {
 
       // Clear adapter serial (extension workspace state) and adapter location (settings.json)
       clearAdapterSerial(wsFolder.uri);
-
-      const cfg = workspace.getConfiguration("", wsFolder.uri);
-      const extraVars =
-        cfg.get<{ [key: string]: any }>("idf.customExtraVars") ?? {};
+      const extraVars = readParameter("idf.customExtraVars", wsFolder) as { [key: string]: any };
       if (extraVars["OPENOCD_USB_ADAPTER_LOCATION"]) {
         const nextExtraVars = { ...extraVars };
         delete nextExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
-        await cfg.update(
+        await writeParameter(
           "idf.customExtraVars",
           nextExtraVars,
-          ConfigurationTarget.WorkspaceFolder
+          ConfigurationTarget.WorkspaceFolder,
+          wsFolder
         );
       }
 
@@ -63,5 +66,30 @@ export function registerOpenOCDCommands(context: ExtensionContext) {
 
       updateOpenOcdAdapterStatusBarItem(wsFolder.uri);
     });
+  });
+
+  registerIDFCommand(context, "espIdf.getOpenOcdConfigs", () => {
+    const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+    const openOcfConfigs = readParameter(
+      "idf.openOcdConfigs",
+      wsFolder
+    ) as string[];
+    let result = "";
+    openOcfConfigs.forEach((configFile) => {
+      result = result + " -f " + configFile;
+    });
+    return result.trim();
+  });
+
+  registerIDFCommand(context, "espIdf.selectOpenOcdConfigFiles", async () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      selectOpenOcdConfigFiles(wsFolder);
+    });
+  });
+
+  registerIDFCommand(context, "espIdf.getOpenOcdScriptValue", async () => {
+    const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+    return await getOpenOcdScripts(wsFolder);
   });
 }

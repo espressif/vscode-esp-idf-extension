@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { CancellationToken, l10n, Uri } from "vscode";
+import { CancellationToken, l10n, WorkspaceFolder } from "vscode";
 import { ESP } from "../config";
 import { throwCapturedTaskFailure } from "../taskManager/taskManager";
 import { selectFlashMethod } from "../flash/main";
@@ -31,7 +31,7 @@ import { uartEraseFlashCmd } from "./transports/uart/cmd";
 import { EraseFlashSession } from "./eraseFlashSession";
 
 export async function eraseFlashMain(
-  workspaceFolderUri: Uri,
+  workspaceFolder: WorkspaceFolder,
   cancelToken: CancellationToken,
   flashType?: ESP.FlashType,
   captureOutput?: boolean
@@ -42,14 +42,14 @@ export async function eraseFlashMain(
   EraseFlashSession.isErasing = true;
   try {
     if (!flashType) {
-      flashType = await selectFlashMethod(workspaceFolderUri);
+      flashType = await selectFlashMethod(workspaceFolder);
     }
-    await interruptMonitorWithDelay(workspaceFolderUri);
-    const isEncrypted = await isFlashEncryptionEnabled(workspaceFolderUri);
+    await interruptMonitorWithDelay(workspaceFolder.uri);
+    const isEncrypted = await isFlashEncryptionEnabled(workspaceFolder.uri);
 
     const secureBoot = await getConfigValueFromSDKConfig(
       "CONFIG_SECURE_BOOT",
-      workspaceFolderUri
+      workspaceFolder.uri
     );
     const isSecureBootEnabled = secureBoot === "y";
     if (isEncrypted || isSecureBootEnabled) {
@@ -63,7 +63,7 @@ export async function eraseFlashMain(
     let eraseFlashCmdResult: CustomExecutionTaskResult;
     if (flashType === ESP.FlashType.JTAG) {
       OutputChannel.appendLine("Erasing flash via JTAG...", "Erase flash");
-      eraseFlashCmdResult = await jtagEraseFlashCommand(workspaceFolderUri);
+      eraseFlashCmdResult = await jtagEraseFlashCommand(workspaceFolder.uri);
       if (!eraseFlashCmdResult.continueFlag) {
         await throwCapturedTaskFailure(eraseFlashCmdResult.executions);
         return eraseFlashCmdResult;
@@ -74,7 +74,7 @@ export async function eraseFlashMain(
       Logger.infoNotify(msg);
     } else {
       eraseFlashCmdResult = await uartEraseFlashCmd(
-        workspaceFolderUri,
+        workspaceFolder.uri,
         cancelToken,
         captureOutput
       );

@@ -18,14 +18,14 @@ export function registerEraseFlashCommand(context: ExtensionContext) {
     await withProgressWrapper(
       [webIdeCheck, openFolderCheck],
       l10n.t("ESP-IDF: Erasing device flash memory (erase_flash)"),
-      async (_progress, cancelToken, wsFolder) => {
-        const workspaceFolderUri = wsFolder.uri;
+      async (_progress, cancelToken) => {
+        const workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
         let flashType = readParameter(
           "idf.flashType",
-          workspaceFolderUri
+          workspaceFolder
         ) as ESP.FlashType;
 
-        await eraseFlashMain(workspaceFolderUri, cancelToken, flashType);
+        await eraseFlashMain(workspaceFolder, cancelToken, flashType);
       }
     );
   });

@@ -17,7 +17,7 @@
  */
 
 import { ESPEFuseTreeDataItem } from "./item";
-import { ESPEFuseSummary } from "..";
+import { ESPEFuseSummary } from "../manager";
 import { ThemeColor, ThemeIcon, TreeItemCollapsibleState } from "vscode";
 
 export function ConnectBoardItem(): ESPEFuseTreeDataItem {

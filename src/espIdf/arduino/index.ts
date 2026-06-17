@@ -26,6 +26,7 @@ import { join } from "path";
 import { dirExistPromise } from "../../utils";
 import { Logger } from "../../common/logger";
 import { openFolderCheck } from "../../common/PreCheck";
+import { ESP } from "../../config";
 
 export function registerAddArduinoAsComponentCmd(context: ExtensionContext) {
   registerIDFCommand(
@@ -35,8 +36,9 @@ export function registerAddArduinoAsComponentCmd(context: ExtensionContext) {
       await withProgressWrapper(
         [openFolderCheck],
         l10n.t("ESP-IDF: Arduino ESP32 as ESP-IDF component"),
-        async (_progress, cancelToken, wsFolder) => {
+        async (_progress, cancelToken) => {
           try {
+            const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
             const gitPath =
               (readParameter("idf.gitPath", wsFolder) as string) || "git";
             const currentEnvVars = getCurrentIdfConfiguration();

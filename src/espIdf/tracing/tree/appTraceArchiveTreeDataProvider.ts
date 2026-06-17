@@ -46,20 +46,31 @@ export class AppTraceArchiveItems extends TreeItem {
   public fileName: string;
   public filePath: string;
   public type: TraceType;
+
+  constructor(
+    label: string,
+    fileName: string,
+    filePath: string,
+    type: TraceType
+  ) {
+    super(label);
+    this.fileName = fileName;
+    this.filePath = filePath;
+    this.type = type;
+  }
 }
 
 // tslint:disable-next-line: max-classes-per-file
 export class AppTraceArchiveTreeDataProvider
   implements TreeDataProvider<AppTraceArchiveItems> {
   // tslint:disable-next-line: max-line-length
-  public OnDidChangeTreeData: EventEmitter<AppTraceArchiveItems | null> = new EventEmitter<
-    AppTraceArchiveItems | null
-  >();
+  public OnDidChangeTreeData: EventEmitter<AppTraceArchiveItems | null> = new EventEmitter<AppTraceArchiveItems | null>();
   public readonly onDidChangeTreeData: Event<AppTraceArchiveItems | null> = this
     .OnDidChangeTreeData.event;
-  public appTraceArchives: AppTraceArchiveItems[];
+  public appTraceArchives: Array<AppTraceArchiveItems>;
 
   constructor() {
+    this.appTraceArchives = Array<AppTraceArchiveItems>(0);
     this.populateArchiveTree();
   }
 
@@ -84,7 +95,11 @@ export class AppTraceArchiveTreeDataProvider
     if (storedWorkspaceFolder) {
       baseFolderPath = storedWorkspaceFolder.uri.fsPath;
     }
-    if (!baseFolderPath && workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
+    if (
+      !baseFolderPath &&
+      workspace.workspaceFolders &&
+      workspace.workspaceFolders.length > 0
+    ) {
       baseFolderPath = workspace.workspaceFolders[0].uri.fsPath;
     }
     if (!baseFolderPath) {
@@ -95,7 +110,7 @@ export class AppTraceArchiveTreeDataProvider
     if (existsSync(traceFolder)) {
       const traceLists = readdirSync(traceFolder);
       let appTraceCounter = 1;
-      const appTraceArchives = [];
+      const appTraceArchives: Array<AppTraceArchiveItems> = [];
       traceLists
         .filter((trace) => trace.endsWith(".trace"))
         .forEach((trace) => {
@@ -140,10 +155,12 @@ export class AppTraceArchiveTreeDataProvider
     type: TraceType
   ): AppTraceArchiveItems {
     const name = fileName.split("_");
-    const appTraceArchiveNode = new AppTraceArchiveItems(label);
-    appTraceArchiveNode.fileName = label;
-    appTraceArchiveNode.filePath = join(traceFolder, fileName);
-    appTraceArchiveNode.type = type;
+    const appTraceArchiveNode = new AppTraceArchiveItems(
+      label,
+      fileName,
+      join(traceFolder, fileName),
+      type
+    );
 
     // Only set command for Heap Trace items - App Trace items will open the file directly
     if (appTraceArchiveNode.type === TraceType.HeapTrace) {
@@ -174,8 +191,9 @@ export class AppTraceArchiveTreeDataProvider
     appTraceArchiveNode.description = `${this.sinceAgo(
       name[1].split(".trace")[0]
     )} ${traceSize.size}B`;
-    appTraceArchiveNode.tooltip = `${label} has ${traceSize.size
-      } bytes (${this.sinceAgo(name[1].split(".trace")[0])})`;
+    appTraceArchiveNode.tooltip = `${label} has ${
+      traceSize.size
+    } bytes (${this.sinceAgo(name[1].split(".trace")[0])})`;
     return appTraceArchiveNode;
   }
   private sinceAgo(epoch: string): string {

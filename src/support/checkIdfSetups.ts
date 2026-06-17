@@ -16,16 +16,16 @@
  * limitations under the License.
  */
 
-import { Uri } from "vscode";
 import { getIdfSetups } from "../eim/getExistingSetups";
 import { isIdfSetupValid } from "../eim/verifySetup";
 import { reportObj } from "./types";
 import { getEnvVariables } from "../eim/loadSettings";
+import { getWorkspaceFolder } from "./getWorkspaceFolder";
 
 export async function checkIDFSetups(
-  reportedResult: reportObj,
-  workspaceFolder: Uri
+  reportedResult: reportObj
 ) {
+  const workspaceFolder = getWorkspaceFolder();
   const idfSetups = await getIdfSetups(workspaceFolder);
 
   for (const idfSetup of idfSetups) {
