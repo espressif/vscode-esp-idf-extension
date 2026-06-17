@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import { l10n, Progress, window, Uri } from "vscode";
+import { l10n, Progress, window, WorkspaceFolder } from "vscode";
 import { getExamplesList, IExampleCategory } from "./Example";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
 import { SerialPort } from "../espIdf/serial/serialPort";
@@ -38,12 +38,12 @@ export interface INewProjectArgs {
   components: IComponent[];
   serialPortList: string[];
   templates: { [key: string]: IExampleCategory };
-  workspaceFolder: Uri;
+  workspaceFolder: WorkspaceFolder;
 }
 
 export async function getNewProjectArgs(
   progress: Progress<{ message: string; increment: number }>,
-  workspace: Uri,
+  workspaceFolder: WorkspaceFolder,
   idfSetups: IdfSetup[]
 ) {
   progress.report({ increment: 10, message: "Loading ESP-IDF setups list..." });
@@ -73,7 +73,7 @@ export async function getNewProjectArgs(
   const idfSetup = espIdfPathToUse.target;
   const customExtraVars = readParameter(
     "idf.customExtraVars",
-    workspace
+    workspaceFolder
   ) as { [key: string]: string };
   const espAdfPath = customExtraVars["ADF_PATH"];
   let templates: { [key: string]: IExampleCategory } = {};
@@ -105,7 +105,7 @@ export async function getNewProjectArgs(
   }
 
   const targetsFromIdf = await getTargetsFromEspIdf(
-    workspace,
+    workspaceFolder.uri,
     idfSetup.idfPath
   );
 
@@ -113,7 +113,7 @@ export async function getNewProjectArgs(
   let serialPortList: Array<string> = ["detect"];
   try {
     const serialPortListDetails = await SerialPort.shared().getListArray(
-      workspace,
+      workspaceFolder.uri,
       true
     );
     serialPortList.push(...serialPortListDetails.map((p) => p.comName));
@@ -124,7 +124,7 @@ export async function getNewProjectArgs(
     serialPortList = ["no port"];
   }
   progress.report({ increment: 10, message: "Loading ESP-IDF Boards list..." });
-  const openOcdScriptsPath = await getOpenOcdScripts(workspace);
+  const openOcdScriptsPath = await getOpenOcdScripts(workspaceFolder);
   let espBoards = await getBoards(openOcdScriptsPath);
 
   progress.report({ increment: 50, message: "Initializing wizard..." });
@@ -136,6 +136,6 @@ export async function getNewProjectArgs(
     idfTargets: targetsFromIdf,
     serialPortList,
     templates,
-    workspaceFolder: workspace,
+    workspaceFolder: workspaceFolder,
   } as INewProjectArgs;
 }

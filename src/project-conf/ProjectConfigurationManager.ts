@@ -9,7 +9,7 @@ import {
   ConfigurationTarget,
   RelativePattern,
 } from "vscode";
-import { fileExists, readFileSync } from "../utils";
+import { fileExists, readFileSync, readJson } from "../utils";
 import { ESP } from "../config";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
 import { CommandKeys, commandDictionary } from "../cmdTreeView/cmdStore";
@@ -46,6 +46,7 @@ export function clearSelectedProjectConfiguration(): void {
 export class ProjectConfigurationManager {
   private readonly cmakePresetsFilePath: string;
   private readonly cmakeUserPresetsFilePath: string;
+  public static instance: ProjectConfigurationManager | undefined = undefined;
   private configVersions: string[] = [];
   private cmakePresetsWatcher: FileSystemWatcher;
   private cmakeUserPresetsWatcher: FileSystemWatcher;
@@ -98,6 +99,8 @@ export class ProjectConfigurationManager {
     this.registerEventHandlers();
     // Initialize asynchronously and store the promise to prevent race conditions
     this.initPromise = this.initialize();
+    ProjectConfigurationManager.instance = this;
+    context.subscriptions.push(this);
   }
 
   private async initialize(): Promise<void> {
@@ -165,11 +168,12 @@ export class ProjectConfigurationManager {
         this.clearConfigurationState();
       }
     } catch (error) {
-      Logger.errorNotify(
-        `${l10n.t("Failed to parse project configuration files")}: ${
+      const errMsg = error instanceof Error ? `${l10n.t("Failed to parse project configuration files")}: ${
           error.message
-        }`,
-        error,
+        }` : String(error);
+      Logger.errorNotify(
+        errMsg,
+        error as Error,
         "ProjectConfigurationManager initialize"
       );
       this.suspendConfigurationState();
@@ -284,9 +288,10 @@ export class ProjectConfigurationManager {
         }
       }
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        `Error parsing configuration files: ${error.message}`,
-        error,
+        `Error parsing configuration files: ${errMsg}`,
+        error as Error,
         "ProjectConfigurationManager handleConfigFileChange"
       );
       this.suspendConfigurationState();
@@ -346,9 +351,10 @@ export class ProjectConfigurationManager {
         this.clearConfigurationState();
       }
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        `Error parsing newly created configuration file: ${error.message}`,
-        error,
+        `Error parsing newly created configuration file: ${errMsg}`,
+        error as Error,
         "ProjectConfigurationManager handleConfigFileCreate"
       );
       this.suspendConfigurationState();
@@ -527,9 +533,10 @@ export class ProjectConfigurationManager {
 
       await this.updateConfiguration(option.target);
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        `Error selecting configuration: ${error.message}`,
-        error,
+        `Error selecting configuration: ${errMsg}`,
+        error as Error,
         "ProjectConfigurationManager selectProjectConfiguration"
       );
     }
@@ -564,8 +571,9 @@ export class ProjectConfigurationManager {
           }
         }
       } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
         Logger.warn(
-          `Failed to parse legacy configuration file: ${error.message}`
+          `Failed to parse legacy configuration file: ${errMsg}`
         );
       }
     }
@@ -663,9 +671,10 @@ export class ProjectConfigurationManager {
         await this.performMigration(legacyFilePath);
       }
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        l10n.t("Failed to handle legacy migration: {0}", error.message),
-        error,
+        l10n.t("Failed to handle legacy migration: {0}", errMsg),
+        error as Error,
         "ProjectConfigurationManager handleLegacyMigrationDialog"
       );
     }
@@ -687,9 +696,10 @@ export class ProjectConfigurationManager {
         )
       );
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        l10n.t("Failed to migrate project configuration: {0}", error.message),
-        error,
+        l10n.t("Failed to migrate project configuration: {0}", errMsg),
+        error as Error,
         "ProjectConfigurationManager performMigration"
       );
     }
@@ -727,7 +737,7 @@ export class ProjectConfigurationManager {
     } catch (error) {
       Logger.errorNotify(
         l10n.t("Could not open {0}", fileName),
-        error,
+        error as Error,
         "ProjectConfigurationManager createProjectConfiguration"
       );
     }
@@ -776,7 +786,7 @@ export class ProjectConfigurationManager {
   private disposeConfigurationStatusBar(): void {
     if (this.statusBarItems["projectConf"]) {
       this.statusBarItems["projectConf"].dispose();
-      this.statusBarItems["projectConf"] = undefined;
+      delete this.statusBarItems["projectConf"];
     }
   }
 
@@ -786,5 +796,6 @@ export class ProjectConfigurationManager {
   public dispose(): void {
     this.cmakePresetsWatcher.dispose();
     this.cmakeUserPresetsWatcher.dispose();
+    ProjectConfigurationManager.instance = undefined;
   }
 }

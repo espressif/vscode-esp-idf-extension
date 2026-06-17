@@ -16,7 +16,14 @@
  * limitations under the License.
  */
 
-import { commands, ConfigurationTarget, l10n, Uri, window } from "vscode";
+import {
+  commands,
+  ConfigurationTarget,
+  l10n,
+  Uri,
+  window,
+  WorkspaceFolder,
+} from "vscode";
 import { ESP } from "../config";
 import { getIdfSetups } from "./getExistingSetups";
 import { IdfSetup } from "./types";
@@ -30,7 +37,9 @@ import { createHash } from "crypto";
 import { pathExists } from "fs-extra";
 import { IdfToolsManager } from "../idfToolsManager";
 
-export async function getCurrentIdfSetup(workspaceFolder: Uri): Promise<IdfSetup | undefined> {
+export async function getCurrentIdfSetup(
+  workspaceFolder: WorkspaceFolder
+): Promise<IdfSetup | undefined> {
   const idfSetups = await getIdfSetups(workspaceFolder);
   if (!idfSetups || idfSetups.length < 1) {
     return;
@@ -48,7 +57,7 @@ export async function getCurrentIdfSetup(workspaceFolder: Uri): Promise<IdfSetup
   return idfSetupToUse;
 }
 
-export async function loadIdfSetup(workspaceFolder: Uri) {
+export async function loadIdfSetup(workspaceFolder: WorkspaceFolder) {
   ESP.ProjectConfiguration.store.clear(
     ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
   );
@@ -130,7 +139,9 @@ function getIdfMd5sum(idfPath: string) {
   return `esp-idf-${md5Value}`;
 }
 
-export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
+export async function loadEnvVarsAsIdfSetup(
+  workspaceFolder: WorkspaceFolder
+): Promise<IdfSetup | undefined> {
   const customVarsSetting = readParameter(
     "idf.customExtraVars",
     workspaceFolder

@@ -23,7 +23,8 @@ export async function flash(
   await withProgressWrapper(
     [openFolderCheck],
     "ESP-IDF: Flashing project",
-    async (_progress, cancelToken, wsFolder) => {
+    async (_progress, cancelToken) => {
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       const resolvedEncryptPartitions =
         encryptPartitions !== undefined
           ? encryptPartitions

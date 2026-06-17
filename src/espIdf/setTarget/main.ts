@@ -108,10 +108,8 @@ export async function setIdfTarget(
           try {
             const openOCDManager = OpenOCDManager.init();
             openOCDVersion = await openOCDManager.version();
-            const devkitsCmd = new DevkitsCommand(workspaceFolder.uri);
-            const modifiedEnv = await configureEnvVariables(
-              workspaceFolder.uri
-            );
+            const devkitsCmd = new DevkitsCommand(workspaceFolder);
+            const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
             const openOcdPath = await OpenOCDManager.getOpenOcdPath(
               workspaceFolder.uri,
               modifiedEnv
@@ -226,7 +224,7 @@ export async function setIdfTarget(
             "idf.openOcdConfigs",
             configFiles,
             configurationTarget,
-            workspaceFolder.uri
+            workspaceFolder
           );
           // Store USB location if available (will be used as fallback if serial is not found)
           if (selectedTarget.boardInfo.location) {
@@ -250,7 +248,7 @@ export async function setIdfTarget(
           }
         } else {
           await selectOpenOcdConfigFiles(
-            workspaceFolder.uri,
+            workspaceFolder,
             selectedTarget.idfTarget.target
           );
         }
@@ -265,7 +263,7 @@ export async function setIdfTarget(
           "idf.customExtraVars",
           customExtraVars,
           configurationTarget,
-          workspaceFolder.uri
+          workspaceFolder
         );
         updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
       } catch (err) {

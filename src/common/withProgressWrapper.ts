@@ -18,21 +18,17 @@
 
 import {
   CancellationToken,
-  l10n,
   Progress,
   ProgressLocation,
   window,
   WorkspaceFolder,
 } from "vscode";
-import { Logger } from "./logger";
-import { openFolderCheck, PreCheck, PreCheckInput } from "./PreCheck";
+import { PreCheck, PreCheckInput } from "./PreCheck";
 import { NotificationMode, readParameter } from "../configuration/idf";
-import { ESP } from "../config";
 
 export type WithProgressTask<T = void> = (
   progress: Progress<{ message: string; increment: number }>,
-  token: CancellationToken,
-  workspaceFolder: WorkspaceFolder | undefined
+  token: CancellationToken
 ) => Promise<T>;
 
 export type WithProgressWrapperOptions = {
@@ -46,11 +42,6 @@ export type WithProgressWrapperOptions = {
    * selected workspace folder (for example build/flash against an explicit folder).
    */
   workspaceFolder?: WorkspaceFolder | undefined;
-  /**
-   * When true (default), a workspace folder must be resolved or the action is aborted with an error.
-   * When false, that check is skipped and the task receives undefined if no folder is available.
-   */
-  requireWorkspaceFolder?: boolean;
 };
 
 function progressLocationForNotificationSetting(
@@ -72,7 +63,6 @@ export async function withProgressWrapper<T = void>(
   task: WithProgressTask<T>,
   options?: WithProgressWrapperOptions
 ): Promise<T | undefined> {
-  const requireWorkspaceFolder = options?.requireWorkspaceFolder !== false;
   return PreCheck.perform(preChecks, async () => {
     if (options?.afterPreCheckProceed) {
       const proceed = await options.afterPreCheckProceed();
@@ -80,29 +70,14 @@ export async function withProgressWrapper<T = void>(
         return undefined as T;
       }
     }
-    const wsFolder =
-      options?.workspaceFolder ??
-      ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-    if (!wsFolder && requireWorkspaceFolder) {
-      PreCheck.perform([openFolderCheck], () => {
-        Logger.errorNotify(
-          l10n.t("Unable to resolve the workspace folder for this action."),
-          new Error("WORKSPACE_FOLDER_UNRESOLVED"),
-          "withProgressWrapper",
-          undefined,
-          false
-        );
-      });
-      return undefined as T;
-    }
-    const location = progressLocationForNotificationSetting(wsFolder);
+    const location = progressLocationForNotificationSetting(options?.workspaceFolder);
     return window.withProgress(
       {
         cancellable: true,
         location,
         title: progressTitle,
       },
-      async (progress, token) => task(progress, token, wsFolder)
+      async (progress, token) => task(progress, token)
     );
   });
 }

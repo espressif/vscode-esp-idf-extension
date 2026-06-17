@@ -67,7 +67,7 @@ export async function createEspIdfTerminal(
       ? shellExecutablePath
       : "bash";
 
-  const currentSetup = await getCurrentIdfSetup(workspaceFolder.uri);
+  const currentSetup = await getCurrentIdfSetup(workspaceFolder);
   if (!currentSetup) {
     Logger.errorNotify(
       l10n.t("Failed to load ESP-IDF setup for terminal activation"),

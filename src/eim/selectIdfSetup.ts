@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-import { commands, l10n, StatusBarItem, Uri, window } from "vscode";
+import { commands, l10n, StatusBarItem, window, WorkspaceFolder } from "vscode";
 import { getIdfSetups } from "../eim/getExistingSetups";
 import { saveSettings } from "../eim/verifySetup";
 
 export async function selectIdfSetup(
-  workspaceFolder: Uri,
+  workspaceFolder: WorkspaceFolder,
   espIdfStatusBar: StatusBarItem
 ) {
   let idfSetups = await getIdfSetups(workspaceFolder);

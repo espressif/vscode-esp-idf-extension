@@ -28,6 +28,7 @@ import {
 import { NotificationMode, readParameter } from "../configuration/idf";
 import { createClangdFile } from "../clang";
 import { IdfSetup } from "../eim/types";
+import { WorkspaceFolder } from "vscode";
 
 export class NewProjectPanel {
   public static currentPanel: NewProjectPanel | undefined;
@@ -214,7 +215,7 @@ export class NewProjectPanel {
     template: IExample,
     selectedIdfTarget: string,
     openOcdConfigs?: string,
-    workspaceFolder?: vscode.Uri
+    workspaceFolder?: WorkspaceFolder
   ) {
     const newProjectPath = path.join(projectDirectory, projectName);
     let isSkipped = false;

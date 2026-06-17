@@ -24,6 +24,7 @@ import { Logger } from "../common/logger";
 import { OutputChannel } from "../common/outputChannel";
 import { ESP } from "../config";
 import { espIdfCoverageRenderer } from "./renderer";
+import { configureProjectWithGcov } from "./configureProject";
 
 export function registerCoverageCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.genCoverage", () => {
@@ -68,4 +69,16 @@ export function registerCoverageCommands(context: ExtensionContext) {
         await previewReport(selected.uri);
       });
     });
+
+    registerIDFCommand(context,"espIdf.setGcovConfig", async () => {
+        PreCheck.perform([openFolderCheck], async () => {
+          try {
+            const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+            await configureProjectWithGcov(wsFolder.uri);
+          } catch (error) {
+            const errMsg = error instanceof Error ? error.message : String(error);
+            Logger.errorNotify(errMsg, error as Error, "extension setGcovConfig");
+          }
+        });
+      });
 }

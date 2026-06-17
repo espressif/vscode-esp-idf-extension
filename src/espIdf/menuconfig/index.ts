@@ -21,7 +21,6 @@ import { registerIDFCommand } from "../../common/registerCommand";
 import {
   minIdfVersionCheck,
   openFolderCheck,
-  PreCheck,
 } from "../../common/PreCheck";
 import { ConfserverProcess } from "./confserver/confServerProcess";
 import { Logger } from "../../common/logger";
@@ -29,13 +28,14 @@ import { withProgressWrapper } from "../../common/withProgressWrapper";
 import { createClassicMenuconfig } from "./classicTerminal";
 import { addMenuConfigFileWatchers } from "./fileWatchers";
 import { saveDefSdkconfig } from "./saveDefConfig";
+import { ESP } from "../../config";
 
 export function registerMenuconfigCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.menuconfig.start", async () => {
     await withProgressWrapper(
       [openFolderCheck],
       "ESP-IDF: SDK Configuration Editor",
-      async (_progress, cancelToken, wsFolder) => {
+      async (_progress, cancelToken) => {
         try {
           if (ConfserverProcess.exists()) {
             ConfserverProcess.loadExistingInstance();
@@ -45,6 +45,7 @@ export function registerMenuconfigCommands(context: ExtensionContext) {
           cancelToken.onCancellationRequested(() => {
             ConfserverProcess.dispose();
           });
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
           await ConfserverProcess.init(wsFolder.uri, context.extensionPath);
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error));
@@ -82,8 +83,9 @@ export function registerMenuconfigCommands(context: ExtensionContext) {
     await withProgressWrapper(
       [idfVersionCheck, openFolderCheck],
       l10n.t("ESP-IDF: Save Default Configuration (save-defconfig)"),
-      async (_progress, cancelToken, wsFolder) => {
+      async (_progress, cancelToken) => {
         try {
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
           await saveDefSdkconfig(wsFolder.uri, cancelToken);
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error));

@@ -32,7 +32,7 @@ import {
   setExtensionContext,
 } from "../utils";
 import { IdfSetup } from "../eim/types";
-import { ProjectConfigStore } from "../project-conf";
+import { ProjectConfigStore } from "../project-conf/utils";
 import { ESP } from "../config";
 import { createMockMemento } from "./mockUtils";
 

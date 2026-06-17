@@ -46,17 +46,14 @@ export function installManagerCommand(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.selectCurrentIdfVersion", () => {
     PreCheck.perform([openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      if (!wsFolder) {
-        return;
-      }
-      await selectIdfSetup(wsFolder.uri, statusBarItems["currentIdfVersion"]);
+      await selectIdfSetup(wsFolder, statusBarItems["currentIdfVersion"]);
     });
   });
   registerIDFCommand(context, "espIdf.installManager", async () => {
     await withProgressWrapper(
       [],
       l10n.t("ESP-IDF Install Manager"),
-      async (_progress, cancelToken, wsFolder) => {
+      async (_progress, cancelToken) => {
         const forceCliMode = shouldForceCliMode();
         const isSnapInstall = isVSCodeInstalledViaSnap();
         const shouldUseCliMode = forceCliMode || isSnapInstall;

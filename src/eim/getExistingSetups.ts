@@ -23,9 +23,9 @@ import { readParameter } from "../configuration/idf";
 import { Logger } from "../common/logger";
 import { compareVersion, getEspIdfFromCMake } from "../utils";
 import { loadIdfSetupsFromEspIdfJson } from "./migrationTool";
-import { Uri } from "vscode";
+import { WorkspaceFolder } from "vscode";
 
-export async function getIdfSetups(workspaceFolder: Uri) {
+export async function getIdfSetups(workspaceFolder?: WorkspaceFolder) {
   const customVars = readParameter("idf.customExtraVars", workspaceFolder) as {
     [key: string]: string;
   };

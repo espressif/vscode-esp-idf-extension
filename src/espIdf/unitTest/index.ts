@@ -30,14 +30,16 @@ import {
   copyTestAppProject,
   flashTestApp,
 } from "./configure";
+import { ESP } from "../../config";
 
 export function addUnitTestCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.unitTest.buildUnitTestApp", async () => {
     await withProgressWrapper(
       [openFolderCheck],
       l10n.t("ESP-IDF: Building unit test app"),
-      async (_progress, cancelToken, wsFolder) => {
+      async (_progress, cancelToken) => {
         try {
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
           let unitTestAppUri = Uri.joinPath(wsFolder.uri, "unity-app");
           const doesUnitTestAppExists = await pathExists(unitTestAppUri.fsPath);
           if (!doesUnitTestAppExists) {
@@ -62,8 +64,9 @@ export function addUnitTestCommands(context: ExtensionContext) {
     await withProgressWrapper(
       [openFolderCheck],
       l10n.t("ESP-IDF: Building unit test app and flashing"),
-      async (_progress, cancelToken, wsFolder) => {
+      async (_progress, cancelToken) => {
         try {
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
           let unitTestAppUri = Uri.joinPath(wsFolder.uri, "unity-app");
           const doesUnitTestAppExists = await pathExists(unitTestAppUri.fsPath);
           if (!doesUnitTestAppExists) {
@@ -91,8 +94,9 @@ export function addUnitTestCommands(context: ExtensionContext) {
       await withProgressWrapper(
         [openFolderCheck],
         l10n.t("ESP-IDF: Building unit test app and flashing"),
-        async (_progress, cancelToken, wsFolder) => {
+        async (_progress, cancelToken) => {
           try {
+            const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
             let unitTestAppUri = Uri.joinPath(wsFolder.uri, "unity-app");
             const doesUnitTestAppExists = await pathExists(
               unitTestAppUri.fsPath
@@ -112,7 +116,7 @@ export function addUnitTestCommands(context: ExtensionContext) {
             Logger.error(
               msg,
               error instanceof Error ? error : new Error(String(error)),
-              "buildFlashTestApp"
+              "buildFlashUnitTestApp"
             );
           }
         }

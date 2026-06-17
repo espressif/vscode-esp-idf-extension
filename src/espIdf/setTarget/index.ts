@@ -32,10 +32,8 @@ import {
 import { Logger } from "../../common/logger";
 import { getTargetsFromEspIdf } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
-import { 
-  updateCurrentProfileIdfTarget,
-} from "../../project-conf";
 import { readParameter, writeParameter } from "../../configuration/idf";
+import { updateCurrentProfileIdfTarget } from "../../project-conf/utils";
 import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
 import { statusBarItems } from "../../statusBar";
 import { ESP } from "../../config";
@@ -79,7 +77,7 @@ export async function registerSetTargetCommand(context: ExtensionContext) {
               "idf.customExtraVars",
               customExtraVars,
               configurationTarget,
-              wsFolder.uri
+              wsFolder
             );
             await updateCurrentProfileIdfTarget(
               selectedTarget.target,

@@ -89,7 +89,7 @@ export function registerConfigurationCommands(context: ExtensionContext) {
       "idf.notificationMode",
       notificationTarget.target,
       saveScope,
-      wsFolder?.uri
+      wsFolder
     );
     Logger.infoNotify(
       l10n.t(`Notification mode has changed to {mode}`, {
@@ -111,7 +111,7 @@ export function registerConfigurationCommands(context: ExtensionContext) {
           return;
         }
         ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(option.uri);
-        await loadIdfSetup(option.uri);
+        await loadIdfSetup(option);
         await getIdfTargetFromSdkconfig(option.uri, statusBarItems["target"]);
         if (statusBarItems && statusBarItems["port"]) {
           statusBarItems["port"].text =

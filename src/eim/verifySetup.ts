@@ -22,7 +22,7 @@ import { IdfSetup } from "./types";
 import { startPythonReqsProcess } from "../utils";
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import { join } from "path";
-import { ConfigurationTarget, StatusBarItem, Uri } from "vscode";
+import { ConfigurationTarget, StatusBarItem, Uri, WorkspaceFolder } from "vscode";
 import { readParameter, writeParameter } from "../configuration/idf";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { getEnvVariables } from "./loadSettings";
@@ -158,12 +158,12 @@ export async function checkPyVenv(
 
 export async function saveSettings(
   setupConf: IdfSetup,
-  workspaceFolderUri: Uri,
+  workspaceFolder: WorkspaceFolder,
   espIdfStatusBar: StatusBarItem
 ) {
   const rawCustomVars = readParameter(
     "idf.customExtraVars",
-    workspaceFolderUri
+    workspaceFolder
   );
   const customVars: { [key: string]: string } =
     rawCustomVars &&
@@ -179,14 +179,14 @@ export async function saveSettings(
     "idf.customExtraVars",
     customVars,
     ConfigurationTarget.WorkspaceFolder,
-    workspaceFolderUri
+    workspaceFolder
   );
 
   await writeParameter(
     "idf.currentSetup",
     setupConf.idfPath,
     ConfigurationTarget.WorkspaceFolder,
-    workspaceFolderUri
+    workspaceFolder
   );
 
   const envVars = await getEnvVariables(setupConf);

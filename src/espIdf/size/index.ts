@@ -23,19 +23,21 @@ import { openFolderCheck } from "../../common/PreCheck";
 import { withProgressWrapper } from "../../common/withProgressWrapper";
 import { IDFSizePanel } from "./idfSizePanel";
 import { IDFSize } from "./idfSize";
+import { ESP } from "../../config";
 
 export function registerIdfSizeUICmd(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.size", async () => {
     await withProgressWrapper(
       [openFolderCheck],
       l10n.t("ESP-IDF: Size"),
-      async (_progress, _cancelToken, workspaceRoot) => {
+      async (_progress, _cancelToken) => {
         try {
           if (IDFSizePanel.isCreatedAndHidden()) {
             IDFSizePanel.createOrShow(context);
             return;
           }
-          const idfSize = new IDFSize(workspaceRoot.uri);
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+          const idfSize = new IDFSize(wsFolder.uri);
           _cancelToken.onCancellationRequested(idfSize.cancel);
 
           const results = await idfSize.calculateWithProgress(

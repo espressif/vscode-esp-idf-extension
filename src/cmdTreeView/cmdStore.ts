@@ -142,7 +142,10 @@ export const advancedCommandDictionary = {
   },
 } as Record<AdvancedCommandKeys, IDFCommandDescription>;
 
-export const commandDictionary = {
+export let commandDictionary: Record<CommandKeys, IDFCommandDescription>;
+
+export function initCommandDictionary(): void {
+  commandDictionary = {
   [CommandKeys.pickWorkspace]: {
     checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
       CommandKeys.pickWorkspace,
@@ -295,4 +298,5 @@ export const commandDictionary = {
     iconId: "server-environment",
     tooltip: l10n.t("Start/Stop QEMU Server"),
   },
-} as Record<CommandKeys, IDFCommandDescription>;
+  };
+}

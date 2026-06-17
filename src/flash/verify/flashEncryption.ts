@@ -7,11 +7,12 @@ import {
   showQuickPickWithCustomActions,
 } from "../../common/customNotifications";
 import { ConfserverProcess } from "../../espIdf/menuconfig/confserver/confServerProcess";
-import { ESPEFuseManager } from "../../efuse";
+import { ESPEFuseManager } from "../../efuse/manager";
 import { getDocsUrl } from "../../espIdf/documentation/getDocsVersion";
 import * as utils from "../../utils";
 import * as vscode from "vscode";
 import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
+import { Uri, WorkspaceFolder } from "vscode";
 
 export enum FlashCheckResultType {
   Success,
@@ -46,7 +47,7 @@ async function getEncryptionMode(workspaceRoot: vscode.Uri): Promise<string> {
 
 export async function checkFlashEncryption(
   flashType: ESP.FlashType,
-  workspaceRoot: vscode.Uri
+  workspaceFolderUri: Uri
 ): Promise<FlashCheckResult> {
   Logger.info(`Using flash type: ${flashType}`, { tag: "Flash" });
 
@@ -65,7 +66,7 @@ export async function checkFlashEncryption(
               "idf.flashType",
               "UART",
               vscode.ConfigurationTarget.WorkspaceFolder,
-              workspaceRoot
+              workspaceFolderUri
             );
             const saveMessage = vscode.l10n.t(
               "Flashing method successfully changed to UART"
@@ -106,7 +107,7 @@ export async function checkFlashEncryption(
 
     const valueEncryptionEnabled = await utils.getConfigValueFromBuild(
       "SECURE_FLASH_ENC_ENABLED",
-      workspaceRoot
+      workspaceFolderUri
     );
     if (!valueEncryptionEnabled) {
       const errorMessage = vscode.l10n.t(
@@ -127,12 +128,12 @@ export async function checkFlashEncryption(
       };
     }
 
-    const idfTarget = await getIdfTargetFromSdkconfig(workspaceRoot);
-    const eFuse = new ESPEFuseManager(workspaceRoot);
+    const idfTarget = await getIdfTargetFromSdkconfig(workspaceFolderUri);
+    const eFuse = new ESPEFuseManager(workspaceFolderUri);
 
     const notificationMode = readParameter(
       "idf.notificationMode",
-      workspaceRoot
+      workspaceFolderUri
     ) as string;
     const ProgressLocation =
       notificationMode === NotificationMode.All ||
@@ -194,7 +195,7 @@ export async function checkFlashEncryption(
     const fieldEncription =
       idfTarget === "esp32" ? "FLASH_CRYPT_CNT" : "SPI_BOOT_CRYPT_CNT";
 
-    const encryptionMode = await getEncryptionMode(workspaceRoot);
+    const encryptionMode = await getEncryptionMode(workspaceFolderUri);
 
     if (data && data[fieldEncription]) {
       if (
@@ -205,7 +206,7 @@ export async function checkFlashEncryption(
       ) {
         const documentationUrl = await getDocsUrl(
           ESP.URL.Docs.FLASH_ENCRYPTION,
-          workspaceRoot
+          workspaceFolderUri
         );
 
         Logger.info(
