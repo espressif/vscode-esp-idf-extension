@@ -49,9 +49,10 @@ export async function getOpenOcdHintsYmlPath(
 
     return hintsPath;
   } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
     Logger.errorNotify(
-      `Error determining OpenOCD hints path: ${error.message}`,
-      error,
+      `Error determining OpenOCD hints path: ${errMsg}`,
+      error as Error,
       "getOpenOcdHintsYmlPath"
     );
     return null;

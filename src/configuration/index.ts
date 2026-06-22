@@ -42,6 +42,9 @@ import {
 import { handleCompileCommandsUpdate } from "../clang/checkClangExtension";
 import { espIdfCoverageRenderer } from "../coverage/renderer";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
+import { OpenOCDErrorMonitor } from "../espIdf/hints/openocdhint";
+import { ProjectConfigurationManager } from "../project-conf/ProjectConfigurationManager";
+import { configureForWorkspace } from "../common/workspaceChange";
 
 export function registerConfigurationCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.selectConfTarget", async () => {
@@ -110,67 +113,7 @@ export function registerConfigurationCommands(context: ExtensionContext) {
           Logger.infoNotify(noFolderMsg);
           return;
         }
-        ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(option.uri);
-        await loadIdfSetup(option);
-        await getIdfTargetFromSdkconfig(option.uri, statusBarItems["target"]);
-        if (statusBarItems && statusBarItems["port"]) {
-          statusBarItems["port"].text =
-            `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
-            readParameter("idf.port", option.uri);
-        }
-        const monitorPort = readParameter(
-          "idf.monitorPort",
-          option.uri
-        ) as string;
-        if (statusBarItems && statusBarItems["monitorPort"]) {
-          if (monitorPort === "") {
-            statusBarItems["monitorPort"].hide();
-            statusBarItems["monitorPort"].text = "";
-          } else {
-            statusBarItems["monitorPort"].show();
-            statusBarItems["monitorPort"].text = `$(${
-              commandDictionary[CommandKeys.SelectMonitorSerialPort].iconId
-            }) ${monitorPort}`;
-          }
-        }
-
-        updateIdfComponentsTree(option.uri);
-        const workspaceFolderInfo = {
-          clickCommand: "espIdf.pickAWorkspaceFolder",
-          currentWorkSpace: option.name,
-          tooltip: option.uri.fsPath,
-        };
-        updateStatus(statusBarItems["workspace"], workspaceFolderInfo);
-        if (statusBarItems["projectConf"]) {
-          statusBarItems["projectConf"].dispose();
-          delete statusBarItems["projectConf"];
-          const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
-            ESP.ProjectConfiguration.SELECTED_CONFIG
-          );
-          ESP.ProjectConfiguration.store.clear(selectedConfig);
-          ESP.ProjectConfiguration.store.clear(
-            ESP.ProjectConfiguration.SELECTED_CONFIG
-          );
-        }
-        const currentEnvVars = getCurrentIdfConfiguration();
-
-        const idfVersion = await getEspIdfFromCMake(currentEnvVars["IDF_PATH"]);
-        if (statusBarItems["currentIdfVersion"]) {
-          statusBarItems["currentIdfVersion"].text = idfVersion
-            ? `$(${
-                commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-              }) ESP-IDF v${idfVersion}`
-            : `$(${
-                commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-              }) ESP-IDF InvalidSetup`;
-        }
-        const openOCDConfig: IOpenOCDConfig = {
-          workspace: option.uri,
-        } as IOpenOCDConfig;
-        OpenOCDManager.init().configureServer(openOCDConfig);
-        ConfserverProcess.dispose();
-        espIdfCoverageRenderer.setForWorkspace(option.uri);
-        handleCompileCommandsUpdate(option.uri, context);
+        await configureForWorkspace(context,option);
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         Logger.errorNotify(errorMsg, error as Error, "pickAWorkspaceFolder");
