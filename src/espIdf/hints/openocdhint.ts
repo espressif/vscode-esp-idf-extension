@@ -17,7 +17,7 @@ import { readFile } from "fs-extra";
 import { Logger } from "../../common/logger";
 import { getOpenOcdHintsYmlPath } from "./utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
-import { ErrorHintProvider } from "./index";
+import { ErrorHintProvider } from "./provider";
 import { PreCheck } from "../../common/PreCheck";
 import { Disposable, Uri } from "vscode";
 
@@ -38,84 +38,83 @@ export class OpenOCDErrorMonitor {
   private errorHintProvider: ErrorHintProvider;
   private hintsData: OpenOCDHint[] = [];
   private errorBuffer: string[] = [];
-  private workspaceRoot: Uri;
   private debounceTimer: NodeJS.Timeout | null = null;
   private openOCDLogWatcher: Disposable | null = null;
   private readonly DEBOUNCE_TIME = 300; // ms
 
-  private constructor(
-    errorHintProvider: ErrorHintProvider,
-    workspaceRoot: Uri
-  ) {
+  private constructor(errorHintProvider: ErrorHintProvider) {
     this.errorHintProvider = errorHintProvider;
-    this.workspaceRoot = workspaceRoot;
+  }
+
+  public static async updateWorkspaceFolder(workspaceRoot: Uri) {
+    if (OpenOCDErrorMonitor.instance) {
+      await OpenOCDErrorMonitor.instance.setHintsData(workspaceRoot);
+    }
   }
 
   public static init(
-    errorHintProvider: ErrorHintProvider,
-    workspaceRoot: Uri
+    errorHintProvider: ErrorHintProvider
   ): OpenOCDErrorMonitor {
     if (!OpenOCDErrorMonitor.instance) {
-      OpenOCDErrorMonitor.instance = new OpenOCDErrorMonitor(
-        errorHintProvider,
-        workspaceRoot
-      );
+      OpenOCDErrorMonitor.instance = new OpenOCDErrorMonitor(errorHintProvider);
     }
     return OpenOCDErrorMonitor.instance;
   }
 
-  public async initialize(): Promise<void> {
+  public async initialize(workspaceFolderUri: Uri): Promise<void> {
     try {
-      // Check OpenOCD version first
-      const openOCDManager = OpenOCDManager.init();
-      const version = await openOCDManager.version(true);
-
-      if (!version) {
-        Logger.info(
-          "Could not determine OpenOCD version. Hints file won't be loaded."
-        );
-        return;
-      }
-
-      // Skip initialization if openOCD version is not supporting hints
-      const minRequiredVersion = "v0.12.0-esp32-20250226";
-      if (
-        !PreCheck.openOCDVersionValidator(minRequiredVersion, version)
-      ) {
-        Logger.info(
-          `OpenOCD version ${version} doesn't support hints. Minimum required: ${minRequiredVersion}`
-        );
-        return;
-      }
-
-      const openOcdHintsPath = await getOpenOcdHintsYmlPath(this.workspaceRoot);
-
-      if (openOcdHintsPath) {
-        try {
-          const fileContents = await readFile(openOcdHintsPath, "utf-8");
-          this.hintsData = yaml.load(fileContents) as OpenOCDHint[];
-          Logger.info(`Loaded OpenOCD hints from ${openOcdHintsPath}`);
-        } catch (error) {
-          Logger.errorNotify(
-            `Error processing OpenOCD hints file: ${error.message}`,
-            error,
-            "OpenOCDErrorMonitor initialize"
-          );
-          this.hintsData = [];
-        }
-      } else {
-        Logger.info(`OpenOCD hints file not found at ${openOcdHintsPath}`);
-        this.hintsData = [];
-      }
-
+      await this.setHintsData(workspaceFolderUri);
       // Start monitoring OpenOCD output
       this.watchOpenOCDStatus();
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        `Error initializing OpenOCD error monitor: ${error.message}`,
-        error,
+        `Error initializing OpenOCD error monitor: ${errMsg}`,
+        error as Error,
         "OpenOCDErrorMonitor initialize"
       );
+    }
+  }
+
+  public async setHintsData(workspaceFolderUri: Uri) {
+    // Check OpenOCD version first
+    const openOCDManager = OpenOCDManager.init();
+    const version = await openOCDManager.version(true);
+
+    if (!version) {
+      Logger.info(
+        "Could not determine OpenOCD version. Hints file won't be loaded."
+      );
+      return;
+    }
+
+    // Skip initialization if openOCD version is not supporting hints
+    const minRequiredVersion = "v0.12.0-esp32-20250226";
+    if (!PreCheck.openOCDVersionValidator(minRequiredVersion, version)) {
+      Logger.info(
+        `OpenOCD version ${version} doesn't support hints. Minimum required: ${minRequiredVersion}`
+      );
+      return;
+    }
+    const openOcdHintsPath = await getOpenOcdHintsYmlPath(workspaceFolderUri);
+
+    if (openOcdHintsPath) {
+      try {
+        const fileContents = await readFile(openOcdHintsPath, "utf-8");
+        this.hintsData = yaml.load(fileContents) as OpenOCDHint[];
+        Logger.info(`Loaded OpenOCD hints from ${openOcdHintsPath}`);
+      } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        Logger.errorNotify(
+          `Error processing OpenOCD hints file: ${errMsg}`,
+          error as Error,
+          "OpenOCDErrorMonitor setHintsData"
+        );
+        this.hintsData = [];
+      }
+    } else {
+      Logger.info(`OpenOCD hints file not found at ${openOcdHintsPath}`);
+      this.hintsData = [];
     }
   }
 
@@ -148,8 +147,8 @@ export class OpenOCDErrorMonitor {
       const content = data
         ? data.toString()
         : error instanceof Error
-          ? error.message
-          : String(error);
+        ? error.message
+        : String(error);
       this.processOutput(content);
     };
 
@@ -274,9 +273,10 @@ export class OpenOCDErrorMonitor {
         }
       }
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        `Error analyzing OpenOCD output: ${error.message}`,
-        error,
+        `Error analyzing OpenOCD output: ${errMsg}`,
+        error as Error,
         "analyzeErrors"
       );
     }
@@ -313,9 +313,10 @@ export class OpenOCDErrorMonitor {
         reference
       );
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        `Error showing OpenOCD error hint: ${error.message}`,
-        error,
+        `Error showing OpenOCD error hint: ${errMsg}`,
+        error as Error,
         "showErrorHint"
       );
     }

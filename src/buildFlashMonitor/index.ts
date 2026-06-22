@@ -24,6 +24,7 @@ import {
   Uri,
   workspace,
   WorkspaceFolder,
+  ExtensionContext,
 } from "vscode";
 import { openFolderCheck } from "../common/PreCheck";
 import { withProgressWrapper } from "../common/withProgressWrapper";
@@ -38,6 +39,21 @@ import {
 } from "../flash/resolveFlashContext";
 import { CustomExecutionTaskResult } from "../taskManager/types";
 import { monitorMain } from "../espIdf/monitor/main";
+import { registerIDFCommand } from "../common/registerCommand";
+
+export async function registerBuildFlashMonitorCommands(
+  context: ExtensionContext
+) {
+  registerIDFCommand(context, "espIdf.buildFlashMonitor", () => {
+    const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+    buildFlashAndMonitor(wsFolder.uri);
+  });
+
+  registerIDFCommand(context, "espIdf.buildAppFlashAppMonitor", () => {
+    const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+    buildFlashAndMonitor(wsFolder.uri, undefined, ESP.PartitionType.App);
+  });
+}
 
 /**
  * Build, then flash, then open the serial monitor — same ordering as
