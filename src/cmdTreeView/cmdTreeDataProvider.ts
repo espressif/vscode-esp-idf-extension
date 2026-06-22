@@ -18,6 +18,7 @@
 import {
   Event,
   EventEmitter,
+  ExtensionContext,
   ProviderResult,
   ThemeIcon,
   TreeDataProvider,
@@ -41,7 +42,9 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
   readonly onDidChangeTreeData: Event<CommandItem | undefined | void> = this
     ._onDidChangeTreeData.event;
 
-  constructor() {}
+  constructor(context: ExtensionContext) {
+    context.subscriptions.push(this.registerDataProviderForTree("idfCommands"));
+  }
 
   getTreeItem(element: CommandItem): TreeItem | Thenable<TreeItem> {
     return element;
@@ -57,8 +60,6 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
   refresh(item?: CommandItem): void {
     this._onDidChangeTreeData.fire(item);
   }
-
-
 
   private getAdvancedCommands() {
     const cmdItemList: CommandItem[] = [];

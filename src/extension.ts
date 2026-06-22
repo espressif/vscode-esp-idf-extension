@@ -16,16 +16,8 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { ConfserverProcess } from "./espIdf/menuconfig/confserver/confServerProcess";
-import {
-  NotificationMode,
-  readParameter,
-  writeParameter,
-} from "./configuration/idf";
+import { readParameter, writeParameter } from "./configuration/idf";
 import { resetIdfConfigurationSource } from "./configuration/idfConfigurationSource";
-import {
-  getCurrentIdfConfiguration,
-  getVirtualEnvPythonPath,
-} from "./configuration/env";
 import { Logger } from "./common/logger";
 import { OutputChannel } from "./common/outputChannel";
 import { showInfoNotificationWithAction } from "./common/customNotifications";
@@ -33,7 +25,6 @@ import * as utils from "./utils";
 import {
   getIdfTargetFromSdkconfig,
   getProjectName,
-  initSelectedWorkspace,
   updateIdfComponentsTree,
 } from "./configuration/workspace";
 import { Telemetry } from "./common/telemetry";
@@ -50,24 +41,12 @@ import { pathExists, readFile } from "fs-extra";
 import { registerEspAdfCmd } from "./espAdf/espAdfDownload";
 import { ChangelogViewer } from "./changelog-viewer";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
-import { NVSPartitionTable } from "./espIdf/nvs/partitionTable/panel";
-import {
-  getOpenOcdScripts,
-  selectOpenOcdConfigFiles,
-} from "./espIdf/openOcd/boardConfiguration";
-import { generateConfigurationReport } from "./support/main";
-import { initializeReportObject } from "./support/initReportObj";
-import { writeTextReport } from "./support/writeReport";
 import { KconfigLangClient } from "./kconfig";
-import { configureProjectWithGcov } from "./coverage/configureProject";
 import { ComponentManagerUIPanel } from "./component-manager/panel";
 import { ExtensionConfigStore } from "./common/store";
 import { ProjectConfigStore } from "./project-conf/utils";
 import { UnitTest } from "./espIdf/unitTest/adapter";
-import { createSBOM, installEspSBOM } from "./espBom";
 import { registerReconfigureCmd } from "./espIdf/reconfigure/task";
-import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
-import { TroubleshootingPanel } from "./support/troubleshootPanel";
 import {
   createCmdsStatusBarItems,
   statusBarItems,
@@ -84,11 +63,9 @@ import {
   ProjectConfigurationManager,
 } from "./project-conf/ProjectConfigurationManager";
 import { configureClangSettings } from "./clang";
-import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
-import { updateHintsStatusBarItem } from "./statusBar";
 import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
 import { openFolderCheck, PreCheck } from "./common/PreCheck";
-import { buildFlashAndMonitor } from "./buildFlashMonitor";
+import { registerBuildFlashMonitorCommands } from "./buildFlashMonitor";
 import { loadIdfSetup } from "./eim/loadIdfSetup";
 import {
   checkAndPromptForClangdExtension,
@@ -115,21 +92,22 @@ import { installManagerCommand } from "./eim";
 import { checkIsProjectCmakeLists } from "./newProject/utils";
 import { registerQEMUCommands } from "./qemu";
 import { registerOpenOCDCommands } from "./espIdf/openOcd";
-import {
-  IOpenOCDConfig,
-  OpenOCDManager,
-} from "./espIdf/openOcd/openOcdManager";
 import { registerSetTargetCommand } from "./espIdf/setTarget";
 import { registerAppTraceCommands } from "./espIdf/tracing";
 import { registerWelcomePanel } from "./welcome";
 import { registerProjectConfigCommands } from "./project-conf";
 import { registerDoctorCommand } from "./support";
+import { registerNinjaSummaryCommand } from "./ninja";
+import { registerEspBomCommands } from "./espBom";
+import { registerNVSCommand } from "./espIdf/nvs";
+import { registerHintsCommands } from "./espIdf/hints";
+import {
+  registerOnDidWorkspaceFolderChanges,
+  useFirstWorkspaceFolder,
+} from "./common/workspaceChange";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
-
-// Commands Provider
-let commandTreeDataProvider: CommandsProvider;
 
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
@@ -300,8 +278,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerDebugCommands(context);
 
-  // Register Tree Provider for IDF Explorer
-  registerTreeProvidersForIDFExplorer(context);
+  new CommandsProvider(context);
 
   if (PreCheck.isWorkspaceFolderOpen()) {
     await loadIdfSetup(vscode.workspace.workspaceFolders[0]);
@@ -309,117 +286,15 @@ export async function activate(context: vscode.ExtensionContext) {
       context,
       vscode.workspace.workspaceFolders[0].uri
     );
-    workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"])?.uri;
-    ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(workspaceRoot);
-    await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
-    if (statusBarItems && statusBarItems["port"]) {
-      statusBarItems["port"].text =
-        `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
-        readParameter("idf.port", workspaceRoot);
-    }
-    espIdfCoverageRenderer.setForWorkspace(workspaceRoot);
-    handleCompileCommandsUpdate(workspaceRoot, context);
+    await useFirstWorkspaceFolder(context);
   }
   let unitTestController = new UnitTest(context);
 
   addCmakeFileSystemWatcher(context);
 
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeWorkspaceFolders(async (e) => {
-      if (PreCheck.isWorkspaceFolderOpen()) {
-        for (const ws of e.removed) {
-          if (workspaceRoot && ws.uri === workspaceRoot) {
-            const wsFolder = initSelectedWorkspace(statusBarItems["workspace"]);
-            if (wsFolder) {
-              await loadIdfSetup(wsFolder);
-              ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(
-                wsFolder.uri
-              );
-              workspaceRoot = wsFolder.uri;
-            }
-            await getIdfTargetFromSdkconfig(
-              workspaceRoot,
-              statusBarItems["target"]
-            );
-            if (statusBarItems && statusBarItems["port"]) {
-              statusBarItems["port"].text =
-                `$(${
-                  commandDictionary[CommandKeys.SelectSerialPort].iconId
-                }) ` + readParameter("idf.port", workspaceRoot);
-            }
-            const monitorPort = readParameter("idf.monitorPort", workspaceRoot);
-            if (statusBarItems && statusBarItems["monitorPort"]) {
-              if (monitorPort === "") {
-                statusBarItems["monitorPort"].hide();
-                statusBarItems["monitorPort"].text = "";
-              } else {
-                statusBarItems["monitorPort"].show();
-                statusBarItems["monitorPort"].text = `$(${
-                  commandDictionary[CommandKeys.SelectMonitorSerialPort].iconId
-                }) ${monitorPort}`;
-              }
-            }
-            if (statusBarItems["projectConf"]) {
-              statusBarItems["projectConf"].dispose();
-              statusBarItems["projectConf"] = undefined;
-              const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
-                ESP.ProjectConfiguration.SELECTED_CONFIG
-              );
-              ESP.ProjectConfiguration.store.clear(selectedConfig);
-              ESP.ProjectConfiguration.store.clear(
-                ESP.ProjectConfiguration.SELECTED_CONFIG
-              );
-            }
-            const currentEnvVars = getCurrentIdfConfiguration();
-            const idfVersion = await utils.getEspIdfFromCMake(
-              currentEnvVars["IDF_PATH"]
-            );
-            if (statusBarItems["currentIdfVersion"]) {
-              statusBarItems["currentIdfVersion"].text = idfVersion
-                ? `$(${
-                    commandDictionary[CommandKeys.SelectCurrentIdfVersion]
-                      .iconId
-                  }) ESP-IDF v${idfVersion}`
-                : `$(${
-                    commandDictionary[CommandKeys.SelectCurrentIdfVersion]
-                      .iconId
-                  }) ESP-IDF InvalidSetup`;
-            }
-            espIdfCoverageRenderer.setForWorkspace(workspaceRoot);
-            handleCompileCommandsUpdate(workspaceRoot, context);
-            break;
-          }
-        }
-        if (typeof workspaceRoot === "undefined") {
-          const workspaceFolder = initSelectedWorkspace(
-            statusBarItems["workspace"]
-          );
-          if (workspaceFolder) {
-            workspaceRoot = workspaceFolder?.uri;
-            await loadIdfSetup(workspaceFolder);
-            ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(
-              workspaceFolder.uri
-            );
-          }
-          await getIdfTargetFromSdkconfig(
-            workspaceRoot,
-            statusBarItems["target"]
-          );
-          espIdfCoverageRenderer.setForWorkspace(workspaceRoot);
-          handleCompileCommandsUpdate(workspaceRoot, context);
-        }
-        const openOCDConfig: IOpenOCDConfig = {
-          workspace: workspaceRoot,
-        } as IOpenOCDConfig;
-        OpenOCDManager.init().configureServer(openOCDConfig);
-        if (ProjectConfigurationManager.instance) {
-          ProjectConfigurationManager.instance.dispose();
-        }
-        new ProjectConfigurationManager(workspaceRoot, context, statusBarItems);
-      }
-      ConfserverProcess.dispose();
-    })
-  );
+  await registerHintsCommands(context);
+
+  registerOnDidWorkspaceFolderChanges(context);
 
   registerFullCleanCmd(context);
 
@@ -570,9 +445,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerEraseFlashCommand(context);
   registerMonitorCommands(context);
   registerIdfTerminalCommand(context);
-  registerIDFCommand("espIdf.buildFlashMonitor", () =>
-    buildFlashAndMonitor(workspaceRoot)
-  );
+  registerBuildFlashMonitorCommands(context);
 
   registerMenuconfigCommands(context);
 
@@ -640,117 +513,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerRainMakerCommands(context);
 
-  registerIDFCommand("espIdf.ninja.summary", async () => {
-    const notificationMode = readParameter(
-      "idf.notificationMode",
-      workspaceRoot
-    ) as string;
-    const ProgressLocation =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Notifications
-        ? vscode.ProgressLocation.Notification
-        : vscode.ProgressLocation.Window;
-    vscode.window.withProgress(
-      {
-        title: "ESP-IDF: Getting ninja build summary",
-        location: ProgressLocation,
-      },
-      async () => {
-        try {
-          const pythonBinPath = await getVirtualEnvPythonPath();
-          const ninjaSummaryScript = path.join(
-            context.extensionPath,
-            "external",
-            "chromium",
-            "ninja-build-summary.py"
-          );
-          const buildDir = readParameter(
-            "idf.buildPath",
-            workspaceRoot
-          ) as string;
-          const args = [ninjaSummaryScript, "-C", buildDir];
-          const summaryResult = await utils.execChildProcess(
-            pythonBinPath,
-            args,
-            workspaceRoot.fsPath,
-            OutputChannel.init()
-          );
-          const ninjaBuildMsg = `Ninja build summary - ${Date().toLocaleString()}`;
-          OutputChannel.appendLine(ninjaBuildMsg);
-          Logger.info(ninjaBuildMsg);
-          OutputChannel.appendLine(summaryResult);
-          Logger.info(summaryResult);
-          OutputChannel.show();
-        } catch (error) {
-          Logger.errorNotify(
-            vscode.l10n.t("Ninja build summary found an error"),
-            error,
-            "extension ninja summary"
-          );
-        }
-      }
-    );
-  });
+  registerNinjaSummaryCommand(context);
 
-  registerIDFCommand("espIdf.createSbom", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const notificationMode = readParameter(
-        "idf.notificationMode",
-        this.curWorkspace
-      ) as string;
-      const ProgressLocation =
-        notificationMode === NotificationMode.All ||
-        notificationMode === NotificationMode.Notifications
-          ? vscode.ProgressLocation.Notification
-          : vscode.ProgressLocation.Window;
-      vscode.window.withProgress(
-        {
-          title: vscode.l10n.t("ESP-IDF: Create SBOM summary"),
-          location: ProgressLocation,
-        },
-        async () => {
-          try {
-            await installEspSBOM(workspaceRoot);
-            await createSBOM(workspaceRoot);
-          } catch (err) {
-            return Logger.errorNotify(err.message, err, "extension sbom");
-          }
-        }
-      );
-    });
-  });
+  registerEspBomCommands(context);
 
-  registerIDFCommand(
-    "espIdf.webview.nvsPartitionEditor",
-    async (args?: vscode.Uri) => {
-      let filePath = args?.fsPath;
-      if (!args) {
-        try {
-          const nvsFileName = await vscode.window.showInputBox({
-            placeHolder: "Enter NVS CSV file name",
-            value: "",
-          });
-          if (!nvsFileName) {
-            return;
-          }
-          filePath = path.join(
-            workspaceRoot.fsPath,
-            `${nvsFileName.replace(".csv", "")}.csv`
-          );
-        } catch (error) {
-          const errMsg = error.message
-            ? error.message
-            : "Error at NVS Partition Editor";
-          Logger.errorNotify(errMsg, error, "extension nvsPartitionEditor");
-        }
-      }
-      NVSPartitionTable.createOrShow(
-        context.extensionPath,
-        filePath,
-        workspaceRoot
-      );
-    }
-  );
+  registerNVSCommand(context);
+
   registerIDFCommand("esp.component-manager.ui.show", async () => {
     try {
       ComponentManagerUIPanel.show(context.extensionPath, workspaceRoot);
@@ -788,111 +556,6 @@ export async function activate(context: vscode.ExtensionContext) {
       "espressif.esp-idf-extension#espIdf.walkthrough.basic-usage"
     );
   }
-  // Hints Viewer
-  if (PreCheck.isWorkspaceFolderOpen()) {
-    const treeDataProvider = new ErrorHintProvider(context);
-
-    const treeView = vscode.window.createTreeView("espIdf.errorHints", {
-      treeDataProvider: treeDataProvider,
-      showCollapseAll: true,
-    });
-
-    treeView.title = "Error Hints";
-
-    // Add the tree view to disposables
-    context.subscriptions.push(treeView);
-
-    // Register commands for clearing error hints
-    registerIDFCommand("espIdf.errorHints.clearAll", () => {
-      treeDataProvider.clearErrorHints(true); // Clear both build and OpenOCD errors
-      updateHintsStatusBarItem(false);
-    });
-
-    registerIDFCommand("espIdf.errorHints.clearBuildErrors", () => {
-      treeDataProvider.clearErrorHints(false); // Clear only build errors
-      updateHintsStatusBarItem(false);
-    });
-
-    registerIDFCommand("espIdf.errorHints.clearOpenOCDErrors", () => {
-      treeDataProvider.clearOpenOCDErrorsOnly(); // Clear only OpenOCD errors
-      updateHintsStatusBarItem(false);
-    });
-
-    const openOCDErrorMonitor = OpenOCDErrorMonitor.init(
-      treeDataProvider,
-      workspaceRoot
-    );
-    await openOCDErrorMonitor.initialize();
-
-    // Register disposal of the monitor
-    context.subscriptions.push({
-      dispose: () => {
-        openOCDErrorMonitor.dispose();
-      },
-    });
-
-    // Register command to manually search for errors
-    registerIDFCommand("espIdf.searchError", async () => {
-      const errorMsg = await vscode.window.showInputBox({
-        placeHolder: "Enter the error message",
-      });
-      if (errorMsg) {
-        treeDataProvider.searchError(errorMsg, workspaceRoot);
-        await vscode.commands.executeCommand("espIdf.errorHints.focus");
-      }
-    });
-
-    // Function to process all ESP-IDF diagnostics from the problems panel
-    const processEspIdfDiagnostics = async () => {
-      // Get all diagnostics from all files that have source "esp-idf"
-      const espIdfDiagnostics: Array<{
-        uri: vscode.Uri;
-        diagnostic: vscode.Diagnostic;
-      }> = [];
-
-      // Collect all diagnostics from all files that have source "esp-idf"
-      vscode.languages.getDiagnostics().forEach(([uri, diagnostics]) => {
-        diagnostics
-          .filter(
-            (d) =>
-              d.source === "esp-idf" &&
-              d.severity === vscode.DiagnosticSeverity.Error
-          )
-          .forEach((diagnostic) => {
-            espIdfDiagnostics.push({ uri, diagnostic });
-          });
-      });
-
-      // Only clear build errors if no ESP-IDF diagnostics
-      if (espIdfDiagnostics.length === 0) {
-        treeDataProvider.clearErrorHints(false); // Don't clear OpenOCD errors
-        return;
-      }
-
-      // Process all errors and collect hints
-      for (const { diagnostic } of espIdfDiagnostics) {
-        await treeDataProvider.searchError(diagnostic.message, workspaceRoot);
-      }
-    };
-
-    // Attach a listener to the diagnostics collection
-    vscode.languages.onDidChangeDiagnostics((_event) => {
-      processEspIdfDiagnostics();
-    });
-
-    // Register the HintHoverProvider
-    context.subscriptions.push(
-      vscode.languages.registerHoverProvider(
-        { pattern: "**" },
-        new HintHoverProvider(treeDataProvider)
-      )
-    );
-
-    // Subscribe to changes in the hints tree and update the status bar item
-    treeDataProvider.onDidChangeTreeData(() => {
-      updateHintsStatusBarItem(treeDataProvider.hasHints());
-    });
-  }
 
   checkAndNotifyMissingCompileCommands();
 
@@ -908,11 +571,11 @@ function checkAndNotifyMissingCompileCommands() {
   if (vscode.workspace.workspaceFolders) {
     vscode.workspace.workspaceFolders.forEach(async (folder) => {
       try {
-        const isIdfProject = await checkIsProjectCmakeLists(folder.uri.fsPath);
+        const isIdfProject = checkIsProjectCmakeLists(folder.uri.fsPath);
         if (isIdfProject) {
           const buildDirPath = readParameter(
             "idf.buildPath",
-            workspaceRoot
+            folder.uri
           ) as string;
           const compileCommandsPath = path.join(
             buildDirPath,
@@ -942,14 +605,6 @@ function checkAndNotifyMissingCompileCommands() {
       }
     });
   }
-}
-
-function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
-  commandTreeDataProvider = new CommandsProvider();
-
-  context.subscriptions.push(
-    commandTreeDataProvider.registerDataProviderForTree("idfCommands")
-  );
 }
 
 export function deactivate() {
