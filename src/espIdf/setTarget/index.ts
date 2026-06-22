@@ -252,6 +252,11 @@ export async function setIdfTarget(
           );
         }
 
+        await updateCurrentProfileIdfTarget(
+          selectedTarget.idfTarget.target,
+          workspaceFolder.uri
+        );
+
         await setTargetInIDF(workspaceFolder, selectedTarget.idfTarget);
         customExtraVars["IDF_TARGET"] = selectedTarget.idfTarget.target;
         await writeParameter(
@@ -262,13 +267,6 @@ export async function setIdfTarget(
         );
 
         updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
-
-        // Update project configuration with IDF_TARGET if a configuration is selected
-        // Note: IDF_TARGET goes in cacheVariables, not environment
-        await updateCurrentProfileIdfTarget(
-          selectedTarget.idfTarget.target,
-          workspaceFolder.uri
-        );
       } catch (err) {
         const errMsg =
           err instanceof Error
