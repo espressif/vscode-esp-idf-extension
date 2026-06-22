@@ -64,28 +64,6 @@ function optString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-export function initSelectedWorkspace(status?: StatusBarItem) {
-  const workspaceRoot =
-    workspace.workspaceFolders &&
-    workspace.workspaceFolders.length
-      ? workspace.workspaceFolders[0]
-      : undefined;
-  if (!workspaceRoot) {
-    return;
-  }
-  updateIdfComponentsTree(workspaceRoot.uri);
-  const workspaceFolderInfo = {
-    clickCommand: "espIdf.pickAWorkspaceFolder",
-    currentWorkSpace: workspaceRoot.name,
-    tooltip: workspaceRoot.uri.fsPath,
-    text: "${file-directory}",
-  };
-  if (status) {
-    updateStatus(status, workspaceFolderInfo);
-  }
-  return workspaceRoot;
-}
-
 let idfDataProvider: IdfTreeDataProvider;
 export function updateIdfComponentsTree(workspaceFolder: Uri) {
   if (typeof idfDataProvider === "undefined") {

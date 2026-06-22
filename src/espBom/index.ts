@@ -1,7 +1,7 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Tuesday, 9th January 2024 3:40:14 pm
- * Copyright 2024 Espressif Systems (Shanghai) CO LTD
+ * File Created: Thursday, 18th June 2026 2:59:57 pm
+ * Copyright 2026 Espressif Systems (Shanghai) CO LTD
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,111 +16,29 @@
  * limitations under the License.
  */
 
-import { Uri } from "vscode";
-import { canAccessFile, execChildProcess } from "../utils";
-import { readParameter } from "../configuration/idf";
-import { OutputChannel } from "../common/outputChannel";
-import { join } from "path";
-import { pathExists, lstat, constants } from "fs-extra";
+import { ExtensionContext, l10n } from "vscode";
+import { ESP } from "../config";
+import { registerIDFCommand } from "../common/registerCommand";
+import { withProgressWrapper } from "../common/withProgressWrapper";
+import { openFolderCheck } from "../common/PreCheck";
+import { createSBOM, installEspSBOM } from "./main";
 import { Logger } from "../common/logger";
-import { addProcessTask, TaskManager } from "../taskManager/taskManager";
-import { getVirtualEnvPythonPath } from "../configuration/env";
-import { configureEnvVariables } from "../common/prepareEnv";
 
-export async function createSBOM(workspaceUri: Uri) {
-  try {
-    const projectDescriptionJson = join(
-      workspaceUri.fsPath,
-      "build",
-      "project_description.json"
-    );
-    const projectDescriptionExists = await pathExists(projectDescriptionJson);
-    if (!projectDescriptionExists) {
-      return Logger.infoNotify(
-        `${projectDescriptionJson} doesn't exists for ESP-IDF SBOM tasks.`
-      );
-    }
-    const modifiedEnv = await configureEnvVariables(workspaceUri);
-    const sbomFilePath = readParameter(
-      "idf.sbomFilePath",
-      workspaceUri
-    ) as string;
-    const sbomFileExists = await pathExists(sbomFilePath);
-    if (sbomFileExists) {
-      const sbomFileAccess = canAccessFile(sbomFilePath, constants.W_OK);
-      const sbomFilePathStats = await lstat(sbomFilePath);
-      if (sbomFilePathStats.isDirectory() || !sbomFileAccess) {
-        return Logger.infoNotify(
-          `${sbomFilePath} is not valid. Please update idf.sbomFilePath to a writable file path.`
-        );
+export function registerEspBomCommands(context: ExtensionContext) {
+  registerIDFCommand(context, "espIdf.createSbom", async () => {
+    await withProgressWrapper(
+      [openFolderCheck],
+      l10n.t("ESP-IDF: Create SBOM summary"),
+      async (_progress, cancelToken) => {
+        try {
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+          await installEspSBOM(wsFolder.uri);
+          await createSBOM(wsFolder.uri);
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          return Logger.errorNotify(errorMessage, err as Error, "sbom");
+        }
       }
-    }
-    const command = "esp-idf-sbom";
-    const argsCreating = [
-      "create",
-      projectDescriptionJson,
-      "--output-file",
-      sbomFilePath,
-    ];
-    addProcessTask(
-      "SBOM Create",
-      workspaceUri,
-      command,
-      argsCreating,
-      workspaceUri.fsPath,
-      modifiedEnv
     );
-
-    const argsChecking = ["check", sbomFilePath];
-    addProcessTask(
-      "SBOM Check",
-      workspaceUri,
-      command,
-      argsChecking,
-      workspaceUri.fsPath,
-      modifiedEnv
-    );
-    await TaskManager.runTasks();
-  } catch (error) {
-    const msg = error instanceof Error && error.message
-      ? error.message
-      : "Error create SBOM Report or check vulnerabilities.";
-    Logger.errorNotify(msg, error as Error, "createSBOM");
-  }
-}
-
-export async function installEspSBOM(workspace: Uri) {
-  const pythonBinPath = getVirtualEnvPythonPath();
-  if (!pythonBinPath) {
-    return Logger.infoNotify(
-      "Python environment is not set up. Please set up Python environment to use ESP-IDF SBOM features."
-    );
-  }
-  const modifiedEnv = await configureEnvVariables(workspace);
-  try {
-    const showResult = await execChildProcess(
-      pythonBinPath,
-      ["-m", "pip", "show", "esp-idf-sbom"],
-      workspace.fsPath,
-      OutputChannel.init(),
-      { env: modifiedEnv }
-    );
-    OutputChannel.appendLine(showResult);
-  } catch (error) {
-    const installResult = await execChildProcess(
-      pythonBinPath,
-      [
-        "-m",
-        "pip",
-        "install",
-        "esp-idf-sbom",
-        "--extra-index-url",
-        "https://dl.espressif.com/pypi",
-      ],
-      workspace.fsPath,
-      OutputChannel.init(),
-      { env: modifiedEnv }
-    );
-    OutputChannel.appendLine(installResult);
-  }
+  });
 }
