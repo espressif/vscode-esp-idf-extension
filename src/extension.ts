@@ -86,6 +86,9 @@ import { registerOnDidChangeConfiguration } from "./common/configurationChange";
 import { registerTaskCommands } from "./common/taskCommands";
 import { registerComponentManagerCmd } from "./component-manager";
 import { ExtensionContext } from "vscode";
+import { registerConfigurationCommands } from "./configuration";
+import { registerPartitionTableCommands } from "./espIdf/partition-table";
+import { registerEfuseCommands } from "./efuse";
 
 export async function activate(context: ExtensionContext) {
   // Always load Logger first
@@ -130,11 +133,13 @@ export async function activate(context: ExtensionContext) {
   registerOnDidWorkspaceFolderChanges(context);
   registerFullCleanCmd(context);
   registerAddArduinoAsComponentCmd(context);
+  registerConfigurationCommands(context);
   registerEspAdfCmd(context);
   registerSerialPortCmds(context);
   registerReconfigureCmd(context);
   registerCustomTaskCommand(context);
   registerProjectConfigCommands(context);
+  registerPartitionTableCommands(context);
   registerOnDidChangeConfiguration(context);
   registerCoverageCommands(context);
   registerTaskCommands(context);
@@ -145,6 +150,7 @@ export async function activate(context: ExtensionContext) {
   registerEraseFlashCommand(context);
   registerMonitorCommands(context);
   registerIdfTerminalCommand(context);
+  registerEfuseCommands(context);
   registerBuildFlashMonitorCommands(context);
   registerMenuconfigCommands(context);
   registerSetTargetCommand(context);
