@@ -18,8 +18,8 @@
 
 import { Uri } from "vscode";
 import { readParameter } from "../../configuration/idf";
-import { getConfigValueFromSDKConfig } from "../../utils";
 import { Logger } from "../../common/logger";
+import { getConfigValueFromSDKConfig } from "../../configuration/workspace";
 
 export async function getMonitorBaudRate(workspacePath: Uri) {
   let sdkMonitorBaudRate = "";
