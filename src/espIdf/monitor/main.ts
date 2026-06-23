@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 import { interruptMonitorWithDelay } from "./interruptMonitorWithDelay";
-import { getConfigValueFromSDKConfig } from "../../utils";
 import { Uri, WorkspaceFolder } from "vscode";
 import { loadMonitorLaunchConfig } from "./launchConfig";
 import { logInvalidConfigReason } from "./configValidation";
 import { IDFMonitor } from "./terminal";
 import { readParameter } from "../../configuration/idf";
 import { isFlashEncryptionEnabled } from "../../flash/verify/flashEncryption";
+import { getConfigValueFromSDKConfig } from "../../configuration/workspace";
 
 export async function monitorMain(
   workspaceFolder: WorkspaceFolder,

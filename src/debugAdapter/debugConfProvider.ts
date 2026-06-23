@@ -25,6 +25,7 @@ import {
 } from "vscode";
 import { readParameter } from "../configuration/idf";
 import {
+  getConfigValueFromSDKConfig,
   getIdfTargetFromSdkconfig,
   getProjectElfFilePath,
 } from "../configuration/workspace";
@@ -33,7 +34,7 @@ import { pathExists } from "fs-extra";
 import { verifyAppBinary } from "./verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../common/logger";
-import { getConfigValueFromSDKConfig, getToolchainPath } from "../utils";
+import { getToolchainPath } from "../utils";
 import { ESP } from "../config";
 import { buildFlashAndMonitor } from "../buildFlashMonitor";
 import { monitorMain } from "../espIdf/monitor/main";
