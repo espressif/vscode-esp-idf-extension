@@ -89,10 +89,11 @@ import { ExtensionContext } from "vscode";
 
 export async function activate(context: ExtensionContext) {
   // Always load Logger first
+  OutputChannel.init();
   Logger.init(context);
   resetIdfConfigurationSource();
-  ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
   initCommandDictionary();
+  ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
 
   context.environmentVariableCollection.clear();
@@ -105,6 +106,7 @@ export async function activate(context: ExtensionContext) {
     clearSelectedProjectConfiguration();
   }
 
+  ESP.Rainmaker.store = RainmakerStore.init(context);
   Telemetry.init((readParameter("idf.telemetry") as boolean) || false);
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
   if (PreCheck.isRunningInVSCodeFork()) {
@@ -113,8 +115,6 @@ export async function activate(context: ExtensionContext) {
   if (!(await checkIfActivateExtension())) {
     return;
   }
-  OutputChannel.init();
-  ESP.Rainmaker.store = RainmakerStore.init(context);
   KconfigLangClient.startKconfigLangServer(context);
   activateLanguageTool(context);
   registerDebugCommands(context);

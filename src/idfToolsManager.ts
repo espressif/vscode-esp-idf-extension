@@ -62,7 +62,10 @@ export async function getToolsJsonPath(
 }
 
 export class IdfToolsManager {
-  public static async createIdfToolsManager(extensionPath: string, idfPath: string) {
+  public static async createIdfToolsManager(
+    extensionPath: string,
+    idfPath: string
+  ) {
     const platformInfo = PlatformInformation.GetPlatformInformation();
     const toolsJsonPath = await getToolsJsonPath(extensionPath, idfPath);
     const toolsObj = await readJSON(toolsJsonPath);
