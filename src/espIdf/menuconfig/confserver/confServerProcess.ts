@@ -20,13 +20,12 @@ import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
 import { Logger } from "../../../common/logger";
 import { OutputChannel } from "../../../common/outputChannel";
-import { delConfigFile, isStringNotEmpty } from "../../../utils";
 import { KconfigMenuLoader } from "../kconfigMenus/loader";
 import { Menu } from "../Menu";
 import { MenuConfigPanel } from "../panel/panel";
 import { getVirtualEnvPythonPath } from "../../../configuration/env";
 import { configureEnvVariables } from "../../../common/prepareEnv";
-import { getSDKConfigFilePath } from "../../../configuration/workspace";
+import { delConfigFile, getSDKConfigFilePath } from "../../../configuration/workspace";
 import {
   parseConfserverJsonChunk,
   ConfserverJsonStreamResult,
@@ -285,7 +284,7 @@ export class ConfserverProcess {
 
       getSdkconfigProcess.stderr.on("data", (data) => {
         const chunk = data.toString();
-        if (isStringNotEmpty(chunk)) {
+        if (!!chunk.trim()) {
           stderrAccumulator += chunk;
           logSdkConfigEditorSubprocessLine(chunk);
         }
@@ -497,7 +496,7 @@ export class ConfserverProcess {
         "WARNING:",
       ];
 
-      if (isStringNotEmpty(dataStr)) {
+      if (!!dataStr.trim()) {
         const regexPattern = new RegExp(ignoreList.join("|"));
         if (regexPattern.test(dataStr)) {
           Logger.info(dataStr);

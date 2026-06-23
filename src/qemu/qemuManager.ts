@@ -143,8 +143,9 @@ export class QemuManager extends EventEmitter {
     return !!this.qemuTerminal;
   }
 
-  public async getQemuExecutable(idfPath: string) {
+  public async getQemuExecutable(extensionPath: string, idfPath: string) {
     const idfToolsManagerInstance = await IdfToolsManager.createIdfToolsManager(
+      extensionPath,
       idfPath
     );
     const packages = await idfToolsManagerInstance.getPackageList([
@@ -176,12 +177,13 @@ export class QemuManager extends EventEmitter {
     return qemuDictionary;
   }
 
-  public async start(mode: QemuLaunchMode, workspaceFolder: Uri) {
+  public async start(extensionPath: string, mode: QemuLaunchMode, workspaceFolder: Uri) {
     if (this.isRunning()) {
       return;
     }
     const modifiedEnv = await configureEnvVariables(workspaceFolder);
     const qemuExecutableDict = await this.getQemuExecutable(
+      extensionPath,
       modifiedEnv.IDF_PATH
     );
     const qemuExecutable = qemuExecutableDict[modifiedEnv.IDF_TARGET] || "";

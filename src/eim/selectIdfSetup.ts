@@ -21,6 +21,7 @@ import { getIdfSetups } from "../eim/getExistingSetups";
 import { saveSettings } from "../eim/verifySetup";
 
 export async function selectIdfSetup(
+  extensionPath: string,
   workspaceFolder: WorkspaceFolder,
   espIdfStatusBar: StatusBarItem
 ) {
@@ -56,6 +57,7 @@ export async function selectIdfSetup(
     return;
   }
   await saveSettings(
+    extensionPath,
     selectedIdfSetupOption.target,
     workspaceFolder,
     espIdfStatusBar

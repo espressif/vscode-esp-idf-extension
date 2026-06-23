@@ -9,7 +9,6 @@ import {
   commands,
   ConfigurationTarget,
 } from "vscode";
-import { fileExists, readFileSync, readJson } from "../utils";
 import { ESP } from "../config";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
 import { CommandKeys, commandDictionary } from "../cmdTreeView/cmdStore";
@@ -24,6 +23,7 @@ import { configureClangSettings } from "../clang";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { clearAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../statusBar";
+import { existsSync, readFileSync } from "fs";
 
 export function clearSelectedProjectConfiguration(): void {
   if (ESP.ProjectConfiguration.store) {
@@ -77,7 +77,7 @@ export class ProjectConfigurationManager {
   }
 
   private initialize(): void {
-    if (!fileExists(this.configFilePath)) {
+    if (!existsSync(this.configFilePath)) {
       // File doesn't exist - this is normal for projects without multiple configurations
       this.configVersions = [];
 
@@ -102,7 +102,7 @@ export class ProjectConfigurationManager {
     }
 
     try {
-      const configContent = readFileSync(this.configFilePath);
+      const configContent = readFileSync(this.configFilePath, "utf-8");
 
       // Handle edge case: File exists but is empty
       if (!configContent || configContent.trim() === "") {
@@ -189,7 +189,7 @@ export class ProjectConfigurationManager {
 
   private async handleConfigFileChange(): Promise<void> {
     try {
-      const configData = await readJson(this.configFilePath);
+      const configData = JSON.parse(readFileSync(this.configFilePath, "utf-8"));
       const currentVersions = Object.keys(configData);
 
       // Find added versions
@@ -277,7 +277,7 @@ export class ProjectConfigurationManager {
 
   private async handleConfigFileCreate(): Promise<void> {
     try {
-      const configData = await readJson(this.configFilePath);
+      const configData = JSON.parse(readFileSync(this.configFilePath, "utf-8"));
       this.configVersions = Object.keys(configData);
 
       // If we have versions, check if current selection is valid

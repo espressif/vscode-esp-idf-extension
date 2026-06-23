@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { ExtensionContext, workspace, WorkspaceFolder } from "vscode";
+import { ExtensionContext, l10n, workspace, WorkspaceFolder } from "vscode";
 import { PreCheck } from "./PreCheck";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { statusBarItems } from "../statusBar";
@@ -37,11 +37,8 @@ import {
 import { OpenOCDErrorMonitor } from "../espIdf/hints/openocdhint";
 import { loadIdfSetup } from "../eim/loadIdfSetup";
 import { ExtensionConfigStore } from "./store";
-import { updateStatus } from "../utils";
 
-export function registerOnDidWorkspaceFolderChanges(
-  context: ExtensionContext
-) {
+export function registerOnDidWorkspaceFolderChanges(context: ExtensionContext) {
   context.subscriptions.push(
     workspace.onDidChangeWorkspaceFolders(async (e) => {
       if (PreCheck.isWorkspaceFolderOpen()) {
@@ -72,7 +69,7 @@ export async function configureForWorkspace(
   workspaceFolder: WorkspaceFolder
 ) {
   ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(workspaceFolder.uri);
-  const idfSetup = await loadIdfSetup(workspaceFolder);
+  const idfSetup = await loadIdfSetup(context.extensionPath, workspaceFolder);
   await getIdfTargetFromSdkconfig(
     workspaceFolder.uri,
     statusBarItems["target"]
@@ -99,13 +96,10 @@ export async function configureForWorkspace(
   }
 
   updateIdfComponentsTree(workspaceFolder.uri);
-  const workspaceFolderInfo = {
-    clickCommand: "espIdf.pickAWorkspaceFolder",
-    currentWorkSpace: workspaceFolder.name,
-    tooltip: workspaceFolder.uri.fsPath,
-    text: "${file-directory}",
-  };
-  updateStatus(statusBarItems["workspace"], workspaceFolderInfo);
+  statusBarItems["workspace"].text = `$(file-submodule)`;
+  statusBarItems["workspace"].tooltip =
+    l10n.t("ESP-IDF: Current Project") + workspaceFolder.uri.fsPath;
+  statusBarItems["workspace"].command = "espIdf.pickAWorkspaceFolder";
   if (statusBarItems["projectConf"]) {
     statusBarItems["projectConf"].dispose();
     delete statusBarItems["projectConf"];

@@ -21,7 +21,6 @@ import * as os from "os";
 import { delimiter, join, resolve } from "path";
 import * as vscode from "vscode";
 import { ESP } from "../config";
-import { setExtensionContext } from "../utils";
 import { initializeReportObject } from "../support/initReportObj";
 import { getConfigurationAccess } from "../support/configurationAccess";
 import { getEspIdfVersion } from "../support/espIdfVersion";
@@ -55,7 +54,6 @@ suite("Doctor Command tests", () => {
   Logger.init(mockUpContext);
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
   setup(async () => {
-    setExtensionContext(mockUpContext);
     reportObj.workspaceFolder = join(
       __dirname,
       "../../testFiles/testWorkspace"

@@ -22,7 +22,7 @@ import { registerIDFCommand } from "../common/registerCommand";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { openFolderCheck } from "../common/PreCheck";
 import { Logger } from "../common/logger";
-import { getToolchainPath, sleep } from "../utils";
+import { getToolchainPath } from "../utils";
 import { readParameter } from "../configuration/idf";
 import { ESP } from "../config";
 
@@ -50,7 +50,7 @@ export function registerQEMUCommands(context: ExtensionContext) {
         try {
           if (QemuManager.init().isRunning()) {
             QemuManager.init().stop();
-            await sleep(1000);
+            await new Promise((resolve) => setTimeout(resolve, 1000));
           }
           const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
           const monitorAfterDebug = readParameter(
@@ -60,7 +60,7 @@ export function registerQEMUCommands(context: ExtensionContext) {
           let qemuMode = monitorAfterDebug
             ? QemuLaunchMode.DebugMonitor
             : QemuLaunchMode.Debug;
-          await QemuManager.init().start(qemuMode, wsFolder.uri);
+          await QemuManager.init().start(context.extensionPath,qemuMode, wsFolder.uri);
           const gdbPath = await getToolchainPath(wsFolder.uri, "gdb");
           const workspaceFolder = workspace.getWorkspaceFolder(wsFolder.uri);
           await debug.startDebugging(workspaceFolder, {
@@ -105,7 +105,7 @@ export function registerQEMUCommands(context: ExtensionContext) {
             QemuManager.init().stop();
           }
           const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          await QemuManager.init().start(QemuLaunchMode.Monitor, wsFolder.uri);
+          await QemuManager.init().start(context.extensionPath, QemuLaunchMode.Monitor, wsFolder.uri);
         } catch (error) {
           const msg = error instanceof Error ? error.message : String(error);
           Logger.errorNotify(msg, error as Error, "qemu monitor");

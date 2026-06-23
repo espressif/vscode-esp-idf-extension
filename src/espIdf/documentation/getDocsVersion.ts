@@ -26,7 +26,7 @@ import { tmpdir } from "os";
 import { basename, join } from "path";
 import jsonic from "jsonic";
 import { Logger } from "../../common/logger";
-import { extensionContext, getEspIdfFromCMake } from "../../utils";
+import { getEspIdfFromCMake } from "../../utils";
 import { Uri } from "vscode";
 import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
 import axios from "axios";
@@ -86,6 +86,7 @@ export function getDocsLocaleLang() {
 }
 
 export async function getDocsIndex(
+  extensionPath: string,
   baseUrl: string,
   idfVersion: string,
   idfTarget: string
@@ -97,7 +98,7 @@ export async function getDocsIndex(
   const indexName = `esp_idf_docs_index_lang_${docLang}_espIdfVersion_${idfVersion}${
     idfTarget ? `_target_${idfTarget}` : ""
   }.json`;
-  const indexPath = join(extensionContext.extensionPath, indexName);
+  const indexPath = join(extensionPath, indexName);
   const indexExists = await pathExists(indexPath);
 
   if (indexExists) {

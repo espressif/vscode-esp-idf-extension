@@ -19,8 +19,9 @@ import { PlatformInformation } from "./PlatformInformation";
 import * as utils from "./utils";
 import { Logger } from "./common/logger";
 import { OutputChannel } from "./common/outputChannel";
-import { readJSON } from "fs-extra";
+import { pathExists, readJSON } from "fs-extra";
 import { ESP } from "./config";
+import { getEspIdfFromCMake } from "./utils";
 
 export interface IEspIdfTool {
   actual: string;
@@ -43,10 +44,27 @@ class PackageError extends Error {
   }
 }
 
+export async function getToolsJsonPath(
+  extensionPath: string,
+  idfPath: string
+): Promise<string> {
+  const espIdfVersion = await getEspIdfFromCMake(idfPath);
+  let jsonToUse: string = path.join(idfPath, "tools", "tools.json");
+  const toolsJsonExists = await pathExists(jsonToUse);
+  if (!toolsJsonExists) {
+    const idfToolsJsonToUse =
+      espIdfVersion.localeCompare("4.0") < 0
+        ? "fallback-tools.json"
+        : "tools.json";
+    jsonToUse = path.join(extensionPath, idfToolsJsonToUse);
+  }
+  return jsonToUse;
+}
+
 export class IdfToolsManager {
-  public static async createIdfToolsManager(idfPath: string) {
+  public static async createIdfToolsManager(extensionPath: string, idfPath: string) {
     const platformInfo = PlatformInformation.GetPlatformInformation();
-    const toolsJsonPath = await utils.getToolsJsonPath(idfPath);
+    const toolsJsonPath = await getToolsJsonPath(extensionPath, idfPath);
     const toolsObj = await readJSON(toolsJsonPath);
     const idfToolsManager = new IdfToolsManager(
       toolsObj,
