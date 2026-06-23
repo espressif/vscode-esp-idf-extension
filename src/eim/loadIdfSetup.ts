@@ -20,7 +20,6 @@ import {
   commands,
   ConfigurationTarget,
   l10n,
-  Uri,
   window,
   WorkspaceFolder,
 } from "vscode";
@@ -57,11 +56,11 @@ export async function getCurrentIdfSetup(
   return idfSetupToUse;
 }
 
-export async function loadIdfSetup(workspaceFolder: WorkspaceFolder) {
+export async function loadIdfSetup(extensionPath: string, workspaceFolder: WorkspaceFolder) {
   ESP.ProjectConfiguration.store.clear(
     ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
   );
-  const idfEnvSetup = await loadEnvVarsAsIdfSetup(workspaceFolder);
+  const idfEnvSetup = await loadEnvVarsAsIdfSetup(extensionPath, workspaceFolder);
   if (idfEnvSetup) {
     Logger.info("Using environment variables to configure extension");
     return idfEnvSetup;
@@ -90,8 +89,8 @@ export async function loadIdfSetup(workspaceFolder: WorkspaceFolder) {
       });
     } else {
       for (const idfSetup of idfSetups) {
-        const envVars = await getEnvVariables(idfSetup);
-        const [isValid] = await isIdfSetupValid(envVars);
+        const envVars = await getEnvVariables(extensionPath, idfSetup);
+        const [isValid] = await isIdfSetupValid(extensionPath, envVars);
         if (isValid) {
           idfSetupToUse = idfSetup;
           break;
@@ -120,7 +119,7 @@ export async function loadIdfSetup(workspaceFolder: WorkspaceFolder) {
     ConfigurationTarget.Global
   );
 
-  const envVars = await getEnvVariables(idfSetupToUse);
+  const envVars = await getEnvVariables(extensionPath, idfSetupToUse);
 
   ESP.ProjectConfiguration.store.set(
     ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
@@ -140,6 +139,7 @@ function getIdfMd5sum(idfPath: string) {
 }
 
 export async function loadEnvVarsAsIdfSetup(
+  extensionPath: string,
   workspaceFolder: WorkspaceFolder
 ): Promise<IdfSetup | undefined> {
   const customVarsSetting = readParameter(
@@ -190,6 +190,7 @@ export async function loadEnvVarsAsIdfSetup(
   }
   if (!customVars[normalizedPathName]) {
     const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+      extensionPath,
       idfPath
     );
     customVars[
@@ -245,7 +246,7 @@ export async function loadEnvVarsAsIdfSetup(
     );
   }
 
-  const [isValid, reason] = await isIdfSetupValid(envVarsForValidation);
+  const [isValid, reason] = await isIdfSetupValid(extensionPath, envVarsForValidation);
 
   if (!isValid) {
     Logger.infoNotify(

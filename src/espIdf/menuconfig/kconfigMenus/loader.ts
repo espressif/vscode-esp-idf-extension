@@ -18,11 +18,11 @@
 
 import { join } from "path";
 import { readParameter } from "../../../configuration/idf";
-import { readFileSync } from "../../../utils";
 import { formatHelpText } from "./helpTextFormatter";
 import { Menu, menuType } from "../Menu";
 import { Uri } from "vscode";
 import { ConfserverValuesResponse } from "./kconfigMenuUpdater";
+import { readFileSync } from "fs";
 
 export class KconfigMenuLoader {
   public static updateValues(
@@ -70,8 +70,8 @@ export class KconfigMenuLoader {
       this.workspaceFolder
     ) as string;
     const kconfigMenusPath = join(buildDirPath, "config", "kconfig_menus.json");
-    const kconfigJson = JSON.parse(readFileSync(kconfigMenusPath));
-
+    const kconfigJson = JSON.parse(readFileSync(kconfigMenusPath, "utf-8"));
+    
     const configs: Menu[] = [];
     for (const config of kconfigJson) {
       const menu: Menu = this.mapJsonToMenuObject(config);

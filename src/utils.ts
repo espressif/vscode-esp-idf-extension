@@ -13,49 +13,26 @@
 // limitations under the License.
 
 import * as childProcess from "child_process";
-import * as crypto from "crypto";
-import * as fs from "fs";
+import { accessSync, constants } from "fs";
 import {
   copy,
-  ensureDir,
-  mkdirp,
   move,
   pathExists,
-  readdir,
   readFile,
-  readJSON,
   remove,
   stat,
-  writeFile,
-  writeJSON,
 } from "fs-extra";
-import { marked } from "marked";
-import { EOL, platform } from "os";
+import { EOL } from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 import { readParameter } from "./configuration/idf";
 import { Logger } from "./common/logger";
 import { OutputChannel } from "./common/outputChannel";
 import { ESP } from "./config";
-import * as sanitizedHtml from "sanitize-html";
-import { isFlashEncryptionEnabled } from "./flash/verify/flashEncryption";
-import { configureClangSettings } from "./clang";
 import { configureEnvVariables } from "./common/prepareEnv";
-import { getSDKConfigFilePath } from "./configuration/workspace";
-
-const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
-
-export let extensionContext: vscode.ExtensionContext;
-let templateDir: string = path.join(
-  vscode.extensions.getExtension(ESP.extensionID).extensionPath,
-  "templates"
-);
-export function setExtensionContext(context: vscode.ExtensionContext): void {
-  extensionContext = context;
-}
 
 export const packageJson = vscode.extensions.getExtension(ESP.extensionID)
-  .packageJSON;
+  ?.packageJSON;
 
 export interface ISpawnOptions extends childProcess.SpawnOptions {
   /** Cancellation token to cancel the spawn */
@@ -99,7 +76,7 @@ export function spawn(
     options.cwd = options.cwd || path.resolve(path.join(__dirname, ".."));
     const child = childProcess.spawn(command, args, options);
     let timeoutHandler = undefined;
-    if (options.timeout > 0) {
+    if (typeof options.timeout === "number" && options.timeout > 0) {
       timeoutHandler = setTimeout(() => {
         child.kill();
       }, options.timeout);
@@ -111,8 +88,8 @@ export function spawn(
       });
     }
 
-    child.stdout.on("data", sendToOutputChannel);
-    child.stderr.on("data", sendToOutputChannel);
+    child.stdout?.on("data", sendToOutputChannel);
+    child.stderr?.on("data", sendToOutputChannel);
 
     child.on("error", (error) => {
       if (timeoutHandler) {
@@ -149,43 +126,18 @@ export function canAccessFile(
 ): boolean {
   try {
     // tslint:disable-next-line: no-bitwise
-    mode = mode || fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK;
-    fs.accessSync(filePath, mode);
+    mode = mode || constants.R_OK | constants.W_OK | constants.X_OK;
+    accessSync(filePath, mode);
     return true;
   } catch (error) {
     Logger.error(
       `Cannot access filePath: ${filePath} with mode: ${mode} and expectedValue: ${expectedValue}`,
-      error,
+      error as Error,
       "src utils canAccessFile",
       undefined,
       false
     );
     return false;
-  }
-}
-
-export async function sleep(ms: number): Promise<any> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-export function updateStatus(
-  status: vscode.StatusBarItem,
-  info: {
-    currentWorkSpace: string;
-    tooltip: string;
-    clickCommand: string;
-  }
-): void {
-  status.text = info ? `$(file-submodule)` : void 0;
-  status.tooltip = info ? `${currentFolderMsg} ${info.tooltip}` : void 0;
-  status.command = info ? info.clickCommand : void 0;
-
-  if (info) {
-    status.show();
-  } else {
-    status.hide();
   }
 }
 
@@ -201,7 +153,7 @@ export async function getToolchainPath(
   } catch (error) {
     Logger.errorNotify(
       `${tool} is not found in current IDF setup`,
-      error,
+      error as Error,
       "utils getToolchainPath"
     );
     return;
@@ -221,69 +173,6 @@ export function getToolchainToolName(idfTarget: string, tool: string = "gcc") {
     default:
       return `riscv32-esp-elf-${tool}`;
   }
-}
-
-export function getVariableFromCMakeLists(workspacePath: string, key: string) {
-  const cmakeListsFilePath = path.join(workspacePath, "CMakeLists.txt");
-  if (!canAccessFile(cmakeListsFilePath, fs.constants.R_OK)) {
-    throw new Error("CMakeLists.txt file doesn't exists or can't be read");
-  }
-  const cmakeListsContent = readFileSync(cmakeListsFilePath);
-  const regexExp = new RegExp(`(?:set|SET)\\(${key} (.*)\\)`);
-  const match = cmakeListsContent.match(regexExp);
-  return match ? match[1] : "";
-}
-
-export async function getConfigValueFromSDKConfig(
-  key: string,
-  workspacePath: vscode.Uri
-): Promise<string> {
-  const sdkconfigFilePath = await getSDKConfigFilePath(workspacePath);
-  if (
-    !sdkconfigFilePath ||
-    !canAccessFile(sdkconfigFilePath, fs.constants.R_OK)
-  ) {
-    throw new Error("sdkconfig file doesn't exists or can't be read");
-  }
-  const configs = readFileSync(sdkconfigFilePath);
-  const re = new RegExp(`${key}=(.*)?`);
-  const match = configs.match(re);
-  return match ? match[1] : "";
-}
-
-export async function delConfigFile(workspaceRoot: vscode.Uri) {
-  const sdkconfigFile = await getSDKConfigFilePath(workspaceRoot);
-  fs.unlinkSync(sdkconfigFile);
-}
-
-export function fileExists(filePath) {
-  return fs.existsSync(filePath);
-}
-
-export function readFileSync(filePath) {
-  return fs.readFileSync(filePath, "utf-8");
-}
-
-export function doesPathExists(inputPath: string) {
-  return pathExists(inputPath);
-}
-export function readJson(jsonPath: string) {
-  return readJSON(jsonPath);
-}
-
-export function writeJson(jsonPath: string, object: any) {
-  return writeJSON(jsonPath, object, {
-    spaces: 2,
-  });
-}
-
-export function isJson(jsonString: string) {
-  try {
-    JSON.parse(jsonString);
-  } catch (error) {
-    return false;
-  }
-  return true;
 }
 
 export function execChildProcess(
@@ -367,38 +256,12 @@ export function execChildProcess(
   });
 }
 
-export async function getToolsJsonPath(newIdfPath: string) {
-  const espIdfVersion = await getEspIdfFromCMake(newIdfPath);
-  let jsonToUse: string = path.join(newIdfPath, "tools", "tools.json");
-  await pathExists(jsonToUse).then((exists) => {
-    if (!exists) {
-      const idfToolsJsonToUse =
-        espIdfVersion.localeCompare("4.0") < 0
-          ? "fallback-tools.json"
-          : "tools.json";
-      jsonToUse = path.join(extensionContext.extensionPath, idfToolsJsonToUse);
-    }
-  });
-  return jsonToUse;
-}
-
-export function readDirPromise(dirPath) {
-  return new Promise<string[]>((resolve, reject) => {
-    fs.readdir(dirPath, (err, files) => {
-      if (err) {
-        reject(err);
-      }
-      resolve(files);
-    });
-  });
-}
-
-export function dirExistPromise(dirPath) {
+export function dirExistPromise(dirPath: string): Promise<boolean> {
   return new Promise<boolean>((resolve, reject) => {
     if (!dirPath) {
       return resolve(false);
     }
-    fs.stat(dirPath, (err, stats) => {
+    stat(dirPath, (err, stats) => {
       if (err) {
         return resolve(false);
       } else {
@@ -409,26 +272,6 @@ export function dirExistPromise(dirPath) {
       }
     });
   });
-}
-
-export function isStringNotEmpty(str: string) {
-  // Check if there is at least 1 alphanumeric character in the string.
-  return !!str.trim();
-}
-
-export function checkSpacesInPath(pathStr: string) {
-  return /\s+/g.test(pathStr);
-}
-
-export function readProjectCMakeLists(dirPath: string) {
-  const cmakeListFile = path.join(dirPath, "CMakeLists.txt");
-  if (fileExists(cmakeListFile)) {
-    const content = fs.readFileSync(cmakeListFile, "utf-8");
-    const projectMatches = content.match(/project\(([^)\s]+)/i);
-    if (projectMatches && projectMatches[1]) {
-      return projectMatches[1];
-    }
-  }
 }
 
 export async function getEspIdfFromCMake(espIdfPath: string) {
@@ -449,8 +292,8 @@ export async function getEspIdfFromCMake(espIdfPath: string) {
     return "x.x";
   }
   const versionFileContent = await readFile(versionFilePath, "utf8");
-  let versionMatches: RegExpExecArray;
-  let espVersion = {};
+  let versionMatches: RegExpExecArray | null;
+  let espVersion: { [key: string]: string } = {};
   const cmakeVersionRegex = new RegExp(
     /\s*set\s*\(\s*IDF_VERSION_([A-Z]{5})\s+(\d+)/gm
   );
@@ -490,135 +333,11 @@ export async function checkGitExists(workingDir: string, gitPath: string) {
   } catch (error) {
     Logger.errorNotify(
       "Git is not found in current environment",
-      error,
+      error as Error,
       "utils checkGitExists"
     );
     return "Not found";
   }
-}
-
-export async function cleanDirtyGitRepository(
-  workingDir: string,
-  gitPath: string
-) {
-  try {
-    const gitBinariesExists = await pathExists(gitPath);
-    if (!gitBinariesExists) {
-      return;
-    }
-    const workingDirUri = vscode.Uri.file(workingDir);
-    const modifiedEnv = await configureEnvVariables(workingDirUri);
-    const resetResult = await execChildProcess(
-      gitPath,
-      ["reset", "--hard", "--recurse-submodule"],
-      workingDir,
-      OutputChannel.init(),
-      { env: modifiedEnv, cwd: workingDir }
-    );
-    OutputChannel.init().appendLine(resetResult + EOL);
-    Logger.info(resetResult + EOL);
-  } catch (error) {
-    const errMsg = error.message ? error.message : "Error resetting repository";
-    Logger.errorNotify(errMsg, error, "utils cleanDirtyGitRepository");
-  }
-}
-
-export async function fixFileModeGitRepository(
-  workingDir: string,
-  gitPath: string
-) {
-  try {
-    const gitBinariesExists = await pathExists(gitPath);
-    if (!gitBinariesExists) {
-      return;
-    }
-    const workingDirUri = vscode.Uri.file(workingDir);
-    const modifiedEnv = await configureEnvVariables(workingDirUri);
-    const fixFileModeResult = await execChildProcess(
-      gitPath,
-      ["config", "--local", "core.fileMode", "false"],
-      workingDir,
-      OutputChannel.init(),
-      { env: modifiedEnv, cwd: workingDir }
-    );
-    const fixSubmodulesFileModeResult = await execChildProcess(
-      gitPath,
-      [
-        "submodule",
-        "foreach",
-        "--recursive",
-        "git",
-        "config",
-        "--local",
-        "core.fileMode",
-        "false",
-      ],
-      workingDir,
-      OutputChannel.init(),
-      { env: modifiedEnv, cwd: workingDir }
-    );
-    OutputChannel.init().appendLine(
-      fixFileModeResult + EOL + fixSubmodulesFileModeResult + EOL
-    );
-    Logger.info(fixFileModeResult + EOL + fixSubmodulesFileModeResult + EOL);
-  } catch (error) {
-    const errMsg = error.message
-      ? error.message
-      : "Error fixing FileMode in repository";
-    Logger.errorNotify(errMsg, error, "utils fixFileModeGitRepository");
-  }
-}
-
-export function buildPromiseChain<TItem, TPromise>(
-  items: TItem[],
-  promiseBuilder: (TItem: TItem) => Promise<TPromise>
-): Promise<TPromise> {
-  let promiseChain: Promise<TPromise> = Promise.resolve<TPromise>(null);
-  for (const item of items) {
-    promiseChain = promiseChain.then(() => {
-      return promiseBuilder(item);
-    });
-  }
-  return promiseChain;
-}
-
-export function fileNameFromUrl(urlToParse: string) {
-  const matches = urlToParse.match(/\/([^\/?#]+)[^\/]*$/);
-  if (matches.length > 1) {
-    return matches[1];
-  }
-  return null;
-}
-
-export function validateFileSizeAndChecksum(
-  filePath: string,
-  expectedHash: string,
-  expectedFileSize: number
-) {
-  return new Promise<boolean>(async (resolve, reject) => {
-    const algo = "sha256";
-    const shashum = crypto.createHash(algo);
-    await pathExists(filePath).then((doesFileExists) => {
-      if (doesFileExists) {
-        const fileSize = fs.statSync(filePath).size;
-        const readStream = fs.createReadStream(filePath);
-        let fileChecksum: string;
-        readStream.on("data", (data: crypto.BinaryLike) => {
-          shashum.update(data);
-        });
-        readStream.on("end", () => {
-          fileChecksum = shashum.digest("hex");
-          const isChecksumEqual = fileChecksum === expectedHash;
-          const isSizeEqual = fileSize === expectedFileSize;
-          const comparisonResult = isChecksumEqual && isSizeEqual;
-          resolve(comparisonResult);
-        });
-        readStream.on("error", (e) => reject(e));
-      } else {
-        reject(false);
-      }
-    });
-  });
 }
 
 export async function getAllBinPathInEnvPath(
@@ -627,8 +346,8 @@ export async function getAllBinPathInEnvPath(
 ) {
   let pathNameInEnv: string = Object.keys(process.env).find(
     (k) => k.toUpperCase() == "PATH"
-  );
-  const pathDirs = env[pathNameInEnv].split(path.delimiter);
+  ) || "PATH";
+  const pathDirs = env[pathNameInEnv]?.split(path.delimiter) || [];
   const foundBinaries: string[] = [];
   for (const pathDir of pathDirs) {
     let binaryPath = path.join(pathDir, binaryName);
@@ -638,7 +357,7 @@ export async function getAllBinPathInEnvPath(
     const doesPathExists = await pathExists(binaryPath);
     if (doesPathExists) {
       const pathStats = await stat(binaryPath);
-      if (pathStats.isFile() && canAccessFile(binaryPath, fs.constants.X_OK)) {
+      if (pathStats.isFile() && canAccessFile(binaryPath, constants.X_OK)) {
         foundBinaries.push(binaryPath);
       }
     }
@@ -660,8 +379,8 @@ export async function isBinInPath(
 ): Promise<string> {
   let pathNameInEnv: string = Object.keys(process.env).find(
     (k) => k.toUpperCase() == "PATH"
-  );
-  const pathDirs = env[pathNameInEnv].split(path.delimiter);
+  ) || "PATH";
+  const pathDirs = env[pathNameInEnv]?.split(path.delimiter) || [];
   for (const pathDir of pathDirs) {
     let binaryPath = path.join(pathDir, binaryName);
     if (process.platform === "win32" && !binaryName.endsWith(".exe")) {
@@ -676,51 +395,12 @@ export async function isBinInPath(
         }
       }
       const pathStats = await stat(binaryPath);
-      if (pathStats.isFile() && canAccessFile(binaryPath, fs.constants.X_OK)) {
+      if (pathStats.isFile() && canAccessFile(binaryPath, constants.X_OK)) {
         return binaryPath;
       }
     }
   }
   return "";
-}
-
-export async function startPythonReqsProcess(
-  pythonBinPath: string,
-  espIdfPath: string,
-  espIdfToolsPath: string,
-  requirementsPath: string
-) {
-  const reqFilePath = path.join(
-    espIdfPath,
-    "tools",
-    "check_python_dependencies.py"
-  );
-  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
-    Object.assign({}, process.env)
-  );
-  modifiedEnv.IDF_PATH = espIdfPath;
-  const fullEspIdfVersion = await getEspIdfFromCMake(espIdfPath);
-  const majorMinorMatches = fullEspIdfVersion.match(/([0-9]+\.[0-9]+).*/);
-  const espIdfVersion =
-    majorMinorMatches && majorMinorMatches.length > 0
-      ? majorMinorMatches[1]
-      : "x.x";
-  const constrainsFile = path.join(
-    espIdfToolsPath,
-    `espidf.constraints.v${espIdfVersion}.txt`
-  );
-  const constrainsFileExists = await pathExists(constrainsFile);
-  let checkPyArgs = [reqFilePath, "-r", requirementsPath];
-  if (constrainsFileExists) {
-    checkPyArgs = checkPyArgs.concat(["--constraint", constrainsFile]);
-  }
-  return execChildProcess(
-    pythonBinPath,
-    checkPyArgs,
-    extensionContext.extensionPath,
-    OutputChannel.init(),
-    { env: modifiedEnv, cwd: extensionContext.extensionPath }
-  );
 }
 
 export function getWebViewFavicon(extensionPath: string): vscode.Uri {
@@ -753,57 +433,6 @@ export function compareVersion(v1: string, v2: string) {
 }
 
 /**
- * Parse markdown into html and fix images with panel paths
- * @param {string} content - String with markdown content
- * @param {string} projectPath - Project absolute path where images are
- * @param {vscode.WebviewPanel} - Webview panel for webviewURI generation
- */
-export function markdownToWebviewHtml(
-  content: string,
-  projectPath: string,
-  panel: vscode.WebviewPanel
-) {
-  const rendererObj = new marked.Renderer();
-  let contentStr = marked(content, {
-    baseUrl: null,
-    breaks: true,
-    gfm: true,
-    pedantic: false,
-    renderer: rendererObj,
-    smartLists: true,
-    smartypants: false,
-  });
-  let cleanHtml = sanitizedHtml(contentStr);
-  const srcLinkRegex = new RegExp(/src\s*=\s*"(.+?)"/g);
-  let match: RegExpExecArray;
-  while ((match = srcLinkRegex.exec(cleanHtml)) !== null) {
-    const unresolvedPath = match[1];
-    const absPath = `src="${panel.webview.asWebviewUri(
-      vscode.Uri.file(path.resolve(projectPath, unresolvedPath))
-    )}"`;
-    cleanHtml = cleanHtml.replace(match[0], absPath);
-  }
-  const srcEncodedRegex = new RegExp(/&lt;img src=&quot;(.*?)&quot;\s?&gt;/g);
-  let encodedMatch: RegExpExecArray;
-  while ((encodedMatch = srcEncodedRegex.exec(cleanHtml)) !== null) {
-    const pathToResolve = encodedMatch[0].match(
-      /(?:src=&quot;)(.*?)(?:&quot;)/
-    );
-    const height = encodedMatch[0].match(/(?:height=&quot;)(.*?)(?:&quot;)/);
-    const width = encodedMatch[0].match(/(?:width=&quot;)(.*?)(?:&quot;)/);
-    const altText = encodedMatch[0].match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
-    const absPath = `<img src="${panel.webview.asWebviewUri(
-      vscode.Uri.file(path.resolve(projectPath, pathToResolve[1]))
-    )}" ${height && height.length > 0 ? `height="${height[1]}"` : ""} ${
-      width && width.length > 0 ? `width="${width[1]}"` : ""
-    } ${altText && altText.length > 0 ? `alt="${altText[1]}"` : ""} >`;
-    cleanHtml = cleanHtml.replace(encodedMatch[0], absPath);
-  }
-  cleanHtml = cleanHtml.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-  return cleanHtml;
-}
-
-/**
  * Robust move function that handles Windows EPERM errors
  * Falls back to copy + remove if rename fails
  */
@@ -819,11 +448,12 @@ export async function robustMove(
       await move(source, destination);
       return; // Success, exit the function
     } catch (error) {
+      const err = error as NodeJS.ErrnoException;
       // On Windows, EPERM errors are common when moving directories
-      if (error.code === "EPERM" || error.code === "EACCES") {
+      if (err.code === "EPERM" || err.code === "EACCES") {
         if (attempt === maxRetries) {
           // Last attempt, use fallback method
-          const fallbackMsg = `Move operation failed with ${error.code} after ${maxRetries} attempts, falling back to copy + remove...`;
+          const fallbackMsg = `Move operation failed with ${err.code} after ${maxRetries} attempts, falling back to copy + remove...`;
           OutputChannel.init().appendLine(fallbackMsg);
           Logger.info(fallbackMsg);
 
@@ -844,45 +474,18 @@ export async function robustMove(
           return;
         } else {
           // Retry with delay
-          const retryMsg = `Move operation failed with ${error.code}, retrying in ${retryDelay}ms (attempt ${attempt}/${maxRetries})...`;
+          const retryMsg = `Move operation failed with ${err.code}, retrying in ${retryDelay}ms (attempt ${attempt}/${maxRetries})...`;
           OutputChannel.init().appendLine(retryMsg);
           Logger.error(retryMsg, new Error(retryMsg), "robustMove");
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
       } else {
         // Re-throw other errors immediately
-        const msg = error && error.message ? error.message : "Unknown error";
-        Logger.error(msg, error, "robustMove");
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        Logger.error(errorMessage, error as Error, "robustMove");
       }
     }
   }
-}
-
-export function getUserShell() {
-  const shell = vscode.env.shell;
-
-  // list of shells to check
-  const shells = ["powershell", "cmd", "bash", "zsh", "pwsh"];
-
-  // if user's shell is in the list, return it
-  for (let i = 0; i < shells.length; i++) {
-    if (shell && shell.includes(shells[i])) {
-      return shells[i];
-    }
-  }
-
-  // if no match, pick one based on user's OS
-  const userOS = platform();
-  if (userOS === "win32") {
-    return "powershell";
-  } else if (userOS === "darwin") {
-    return "zsh";
-  } else if (userOS === "linux") {
-    return "bash";
-  }
-
-  // if no match, return null
-  return null;
 }
 
 export async function getConfigValueFromBuild(
@@ -902,34 +505,7 @@ export async function getConfigValueFromBuild(
       throw new Error(`The key ${configKey} was not found in ${jsonFilePath}.`);
     }
   } catch (error) {
-    throw new Error(`Failed to read or parse the JSON file: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to read or parse the JSON file: ${errorMessage}`);
   }
-}
-
-/**
- * Determines if the monitor reset should be disabled.
- * If flash encryption is enabled for release mode, we add --no-reset flag for monitoring
- * because by default monitoring command resets the device which is not recommended.
- * Reset should happen by Bootloader itself once it completes encrypting all artifacts.
- *
- * @returns {Promise<boolean>} True if monitor reset should be disabled, false otherwise.
- */
-export async function shouldDisableMonitorReset(
-  workspaceUri: vscode.Uri
-): Promise<boolean> {
-  const configNoReset = readParameter("idf.monitorNoReset", workspaceUri);
-
-  if (configNoReset === true) {
-    return true;
-  }
-
-  if (await isFlashEncryptionEnabled(workspaceUri)) {
-    const valueReleaseModeEnabled = await getConfigValueFromSDKConfig(
-      "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE",
-      workspaceUri
-    );
-    return valueReleaseModeEnabled === "y";
-  }
-
-  return false;
 }

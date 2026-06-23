@@ -31,8 +31,10 @@ import {
   flashTestApp,
 } from "./configure";
 import { ESP } from "../../config";
+import { UnitTest } from "./adapter";
 
 export function addUnitTestCommands(context: ExtensionContext) {
+  new UnitTest(context);
   registerIDFCommand(context, "espIdf.unitTest.buildUnitTestApp", async () => {
     await withProgressWrapper(
       [openFolderCheck],

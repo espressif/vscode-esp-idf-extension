@@ -25,7 +25,7 @@ import { readPartition } from "./partitionReader";
 import { ESP } from "../../config";
 import { getSDKConfigFilePath } from "../../configuration/workspace";
 import { createFileSync, existsSync, pathExists } from "fs-extra";
-import { getConfigValueFromSDKConfig, isStringNotEmpty } from "../../utils";
+import { getConfigValueFromSDKConfig } from "../../utils";
 import { ConfserverProcess } from "../menuconfig/confserver/confServerProcess";
 import { join } from "path";
 import { Logger } from "../../common/logger";
@@ -208,7 +208,7 @@ export function registerPartitionTableCommands(context: ExtensionContext) {
             wsFolder.uri
           );
           partitionTableFilePath = partitionTableFilePath.replace(/\"/g, "");
-          if (!isStringNotEmpty(partitionTableFilePath)) {
+          if (!(!!partitionTableFilePath.trim())) {
             throw new Error(
               l10n.t(
                 "Empty CONFIG_PARTITION_TABLE_CUSTOM_FILENAME, please add a csv file to generate partition table"

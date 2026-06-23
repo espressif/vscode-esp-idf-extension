@@ -97,12 +97,16 @@ export async function getPythonEnvPath(
   return (await pathExists(python3Path)) ? python3Path : "";
 }
 
-export async function getEnvVariablesFromIdfSetup(idfSetup: IdfSetup) {
+export async function getEnvVariablesFromIdfSetup(
+  extensionPath: string,
+  idfSetup: IdfSetup
+) {
   let envVars: { [key: string]: string } = {};
   envVars["IDF_PATH"] = idfSetup.idfPath;
   envVars["IDF_TOOLS_PATH"] = idfSetup.toolsPath;
   envVars["ESP_IDF_VERSION"] = idfSetup.version;
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+    extensionPath,
     idfSetup.idfPath
   );
   const normalizedPathName: string =

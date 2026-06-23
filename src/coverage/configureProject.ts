@@ -17,7 +17,6 @@
  */
 
 import {
-  extensionContext,
   getConfigValueFromSDKConfig,
   getEspIdfFromCMake,
 } from "../utils";
@@ -38,7 +37,7 @@ import {
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { getCurrentIdfConfiguration } from "../configuration/env";
 
-export async function configureProjectWithGcov(workspacePath: Uri) {
+export async function configureProjectWithGcov(extensionPath: string, workspacePath: Uri) {
   const appTraceDestTrax = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_DEST_TRAX",
     workspacePath
@@ -117,7 +116,7 @@ export async function configureProjectWithGcov(workspacePath: Uri) {
         });
         await ConfserverProcess.init(
           workspacePath,
-          extensionContext.extensionPath
+          extensionPath
         );
       }
     );

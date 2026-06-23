@@ -16,33 +16,31 @@
  * limitations under the License.
  */
 
-import { workspace } from "vscode";
+import { ExtensionContext, workspace } from "vscode";
 import { readParameter } from "../configuration/idf";
+import { activationModeConfigKey } from "../common/activation";
 import {
   registerEspressifMcpServers,
   unregisterEspressifMcpServers,
 } from "./espressifMcpServers";
 
-export function registerMCPServers() {
+export function registerMCPServers(context: ExtensionContext) {
   if (shouldRegisterEspressifMcpServers()) {
     registerEspressifMcpServers();
-  } else {
-    unregisterEspressifMcpServers();
   }
-}
 
-export const activationModeConfigKey = "idf.extensionActivationMode";
-
-export function normalizeActivationMode(
-  value: unknown
-): "detect" | "always" | "never" {
-  if (value === "always") {
-    return "always";
-  }
-  if (value === "never") {
-    return "never";
-  }
-  return "detect";
+  context.subscriptions.push(
+    workspace.onDidChangeConfiguration((e) => {
+      if (!e.affectsConfiguration(activationModeConfigKey)) {
+        return;
+      }
+      if (shouldRegisterEspressifMcpServers()) {
+        registerEspressifMcpServers();
+      } else {
+        unregisterEspressifMcpServers();
+      }
+    })
+  );
 }
 
 export function shouldRegisterEspressifMcpServers(): boolean {

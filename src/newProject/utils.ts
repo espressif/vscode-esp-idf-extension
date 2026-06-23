@@ -26,13 +26,15 @@ import {
 } from "fs-extra";
 import { configureClangSettings, setClangSettings } from "../clang/index";
 import { IdfSetup } from "../eim/types";
-import { Uri } from "vscode";
+import { Uri, WebviewPanel } from "vscode";
 import { readParameter } from "../configuration/idf";
-import { join } from "path";
+import { join, resolve } from "path";
 import { readdir } from "fs/promises";
 import { setCCppPropertiesJsonCompilerPath } from "../configuration/workspace";
 import { robustMove } from "../utils";
 import { existsSync, readFileSync } from "fs";
+import { marked } from "marked";
+import sanitizedHtml from "sanitize-html";
 
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
@@ -237,4 +239,58 @@ export function checkIsProjectCmakeLists(dir: string) {
     }
   }
   return false;
+}
+
+/**
+ * Parse markdown into html and fix images with panel paths
+ * @param {string} content - String with markdown content
+ * @param {string} projectPath - Project absolute path where images are
+ * @param {vscode.WebviewPanel} - Webview panel for webviewURI generation
+ */
+export function markdownToWebviewHtml(
+  content: string,
+  projectPath: string,
+  panel: WebviewPanel
+) {
+  const rendererObj = new marked.Renderer();
+  let contentStr = marked(content, {
+    baseUrl: undefined,
+    breaks: true,
+    gfm: true,
+    pedantic: false,
+    renderer: rendererObj,
+    smartLists: true,
+    smartypants: false,
+  });
+  let cleanHtml = sanitizedHtml(contentStr);
+  const srcLinkRegex = new RegExp(/src\s*=\s*"(.+?)"/g);
+  let match: RegExpExecArray | null;
+  while ((match = srcLinkRegex.exec(cleanHtml)) !== null) {
+    const unresolvedPath = match[1];
+    const absPath = `src="${panel.webview.asWebviewUri(
+      Uri.file(resolve(projectPath, unresolvedPath))
+    )}"`;
+    cleanHtml = cleanHtml.replace(match[0], absPath);
+  }
+  const srcEncodedRegex = new RegExp(/&lt;img src=&quot;(.*?)&quot;\s?&gt;/g);
+  let encodedMatch: RegExpExecArray | null;
+  while ((encodedMatch = srcEncodedRegex.exec(cleanHtml)) !== null) {
+    const pathToResolve = encodedMatch[0].match(
+      /(?:src=&quot;)(.*?)(?:&quot;)/
+    );
+    if (!pathToResolve || pathToResolve.length < 2) {
+      continue;
+    }
+    const height = encodedMatch[0].match(/(?:height=&quot;)(.*?)(?:&quot;)/);
+    const width = encodedMatch[0].match(/(?:width=&quot;)(.*?)(?:&quot;)/);
+    const altText = encodedMatch[0].match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
+    const absPath = `<img src="${panel.webview.asWebviewUri(
+      Uri.file(resolve(projectPath, pathToResolve[1]))
+    )}" ${height && height.length > 0 ? `height="${height[1]}"` : ""} ${
+      width && width.length > 0 ? `width="${width[1]}"` : ""
+    } ${altText && altText.length > 0 ? `alt="${altText[1]}"` : ""} >`;
+    cleanHtml = cleanHtml.replace(encodedMatch[0], absPath);
+  }
+  cleanHtml = cleanHtml.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+  return cleanHtml;
 }

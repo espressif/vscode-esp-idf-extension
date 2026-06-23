@@ -21,29 +21,11 @@ import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { Logger } from "../common/logger";
 import { ESP } from "../config";
-import { statusBarItems } from "../statusBar";
-import { loadIdfSetup } from "../eim/loadIdfSetup";
-import {
-  getIdfTargetFromSdkconfig,
-  updateIdfComponentsTree,
-} from "./workspace";
-import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import {
   chooseConfigurationTarget,
   readParameter,
   writeParameter,
 } from "./idf";
-import { getEspIdfFromCMake, updateStatus } from "../utils";
-import { getCurrentIdfConfiguration } from "./env";
-import {
-  IOpenOCDConfig,
-  OpenOCDManager,
-} from "../espIdf/openOcd/openOcdManager";
-import { handleCompileCommandsUpdate } from "../clang/checkClangExtension";
-import { espIdfCoverageRenderer } from "../coverage/renderer";
-import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
-import { OpenOCDErrorMonitor } from "../espIdf/hints/openocdhint";
-import { ProjectConfigurationManager } from "../project-conf/ProjectConfigurationManager";
 import { configureForWorkspace } from "../common/workspaceChange";
 
 export function registerConfigurationCommands(context: ExtensionContext) {
