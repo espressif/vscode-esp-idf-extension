@@ -46,7 +46,11 @@ export function installManagerCommand(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.selectCurrentIdfVersion", () => {
     PreCheck.perform([openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      await selectIdfSetup(wsFolder, statusBarItems["currentIdfVersion"]);
+      await selectIdfSetup(
+        context.extensionPath,
+        wsFolder,
+        statusBarItems["currentIdfVersion"]
+      );
     });
   });
   registerIDFCommand(context, "espIdf.installManager", async () => {

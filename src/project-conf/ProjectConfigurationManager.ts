@@ -9,7 +9,6 @@ import {
   ConfigurationTarget,
   RelativePattern,
 } from "vscode";
-import { fileExists, readFileSync, readJson } from "../utils";
 import { ESP } from "../config";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
 import { CommandKeys, commandDictionary } from "../cmdTreeView/cmdStore";
@@ -28,6 +27,7 @@ import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { clearAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../statusBar";
 import { readParameter } from "../configuration/idf";
+import { existsSync, readFileSync } from "fs";
 
 export function clearSelectedProjectConfiguration(): void {
   if (ESP.ProjectConfiguration.store) {
@@ -104,8 +104,8 @@ export class ProjectConfigurationManager {
   }
 
   private async initialize(): Promise<void> {
-    const cmakePresetsExists = fileExists(this.cmakePresetsFilePath);
-    const cmakeUserPresetsExists = fileExists(this.cmakeUserPresetsFilePath);
+    const cmakePresetsExists = existsSync(this.cmakePresetsFilePath);
+    const cmakeUserPresetsExists = existsSync(this.cmakeUserPresetsFilePath);
 
     if (!cmakePresetsExists && !cmakeUserPresetsExists) {
       // Neither CMakePresets.json nor CMakeUserPresets.json exists - check for legacy file
@@ -551,12 +551,12 @@ export class ProjectConfigurationManager {
       "esp_idf_project_configuration.json"
     ).fsPath;
 
-    if (fileExists(legacyFilePath)) {
+    if (existsSync(legacyFilePath)) {
       // Legacy file exists - show status bar with migration option
       this.configVersions = [];
 
       try {
-        const legacyContent = readFileSync(legacyFilePath);
+        const legacyContent = readFileSync(legacyFilePath, "utf-8");
         if (legacyContent && legacyContent.trim() !== "") {
           const legacyData = JSON.parse(legacyContent);
           const legacyConfigNames = Object.keys(legacyData);
@@ -650,7 +650,7 @@ export class ProjectConfigurationManager {
     legacyFilePath: Uri
   ): Promise<void> {
     try {
-      const legacyContent = readFileSync(legacyFilePath.fsPath);
+      const legacyContent = readFileSync(legacyFilePath.fsPath, "utf-8");
       const legacyData = JSON.parse(legacyContent);
       const legacyConfigNames = Object.keys(legacyData);
 

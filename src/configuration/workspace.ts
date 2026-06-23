@@ -12,20 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { promises } from "fs";
+import { constants, promises, readFileSync, unlinkSync } from "fs";
 import { join, isAbsolute } from "path";
-import { commands, l10n, StatusBarItem, Uri, window, workspace } from "vscode";
+import { commands, l10n, StatusBarItem, Uri, window } from "vscode";
 import { Logger } from "../common/logger";
 import { readParameter } from "./idf";
 import { showInfoNotificationWithAction } from "../common/customNotifications";
 import { isSettingIDFTarget } from "../espIdf/setTarget/main";
-import { pathExists, readFile, writeFile } from "fs-extra";
-import {
-  getConfigValueFromSDKConfig,
-  getToolchainToolName,
-  isBinInPath,
-  updateStatus,
-} from "../utils";
+import { pathExists, readFile } from "fs-extra";
+import { canAccessFile, getToolchainToolName, isBinInPath } from "../utils";
 import { IdfTreeDataProvider } from "../espIdf/idfComponent/treeDataProvider";
 import { configureEnvVariables } from "../common/prepareEnv";
 import { parse, ParseError } from "jsonc-parser";
@@ -231,6 +226,25 @@ export async function getSDKConfigFilePath(
     Logger.error(errMsg, error as Error, "workspaceConfig getSdkconfigPath");
     return join(workspacePath.fsPath, "sdkconfig");
   }
+}
+
+export async function delConfigFile(workspaceRoot: Uri) {
+  const sdkconfigFile = await getSDKConfigFilePath(workspaceRoot);
+  unlinkSync(sdkconfigFile);
+}
+
+export async function getConfigValueFromSDKConfig(
+  key: string,
+  workspacePath: Uri
+): Promise<string> {
+  const sdkconfigFilePath = await getSDKConfigFilePath(workspacePath);
+  if (!sdkconfigFilePath || !canAccessFile(sdkconfigFilePath, constants.R_OK)) {
+    throw new Error("sdkconfig file doesn't exists or can't be read");
+  }
+  const configs = readFileSync(sdkconfigFilePath, "utf-8");
+  const re = new RegExp(`${key}=(.*)?`);
+  const match = configs.match(re);
+  return match ? match[1] : "";
 }
 
 /**

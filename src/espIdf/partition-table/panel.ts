@@ -26,9 +26,9 @@ import {
 } from "vscode";
 import { join } from "path";
 import { ESP } from "../../config";
-import { readFileSync } from "../../utils";
 import { writeFile } from "fs-extra";
 import { Logger } from "../../common/logger";
+import { readFileSync } from "fs";
 
 export class PartitionTableEditorPanel {
   private static instance: PartitionTableEditorPanel | undefined;
@@ -108,7 +108,7 @@ export class PartitionTableEditorPanel {
   }
   private async getCSVFrom(filepath: string): Promise<string> {
     if (filepath.endsWith("csv")) {
-      return readFileSync(filepath);
+      return readFileSync(filepath, "utf-8");
     }
     return "";
   }

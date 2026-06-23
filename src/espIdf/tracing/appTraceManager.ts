@@ -17,11 +17,10 @@
  */
 
 import { EventEmitter } from "events";
-import { mkdirSync } from "fs";
+import { existsSync, mkdirSync } from "fs";
 import { join, sep } from "path";
 import { readParameter, writeParameter } from "../../configuration/idf";
 import { Logger } from "../../common/logger";
-import { fileExists } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { TCLClient } from "../openOcd/tcl/tclClient";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
@@ -249,7 +248,7 @@ export class AppTraceManager extends EventEmitter {
   }
 
   private sendCommandToTCLSession(command: string, workspace: WorkspaceFolder): TCLClient {
-    if (!fileExists(join(workspace.uri.fsPath, "trace"))) {
+    if (!existsSync(join(workspace.uri.fsPath, "trace"))) {
       mkdirSync(join(workspace.uri.fsPath, "trace"));
     }
     const host = readParameter("openocd.tcl.host", workspace) as string;

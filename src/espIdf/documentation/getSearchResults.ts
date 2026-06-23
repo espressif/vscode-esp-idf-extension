@@ -40,6 +40,7 @@ export function getIntersection(
 }
 
 export async function searchInEspDocs(
+  extensionPath: string,
   searchString: string,
   workspaceFolder: Uri
 ) {
@@ -66,7 +67,12 @@ export async function searchInEspDocs(
     targetToUse = idfTarget;
   }
   const baseUrl = getDocsBaseUrl(docVersion.name, targetToUse);
-  const docIndex = await getDocsIndex(baseUrl, docVersion.name, targetToUse);
+  const docIndex = await getDocsIndex(
+    extensionPath,
+    baseUrl,
+    docVersion.name,
+    targetToUse
+  );
 
   const termsToSearch = searchString.trim().split(" ");
 
@@ -102,7 +108,11 @@ function getResultsForTerm(baseUrl: string, term: string, docIndex: any) {
   const titleResults = getUrlsFromTerm(baseUrl, term, "titleterms", docIndex);
   const termResults = getUrlsFromTerm(baseUrl, term, "terms", docIndex);
 
-  return new Array<IDocResult>(...objUrlResults, ...titleResults, ...termResults);
+  return new Array<IDocResult>(
+    ...objUrlResults,
+    ...titleResults,
+    ...termResults
+  );
 }
 
 function getUrlsFromTerm(

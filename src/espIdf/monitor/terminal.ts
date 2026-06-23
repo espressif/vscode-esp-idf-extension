@@ -19,15 +19,41 @@
 import { MonitorConfig } from "./types";
 import { configureEnvVariables } from "../../common/prepareEnv";
 import { ESP } from "../../config";
-import { getUserShell } from "../../utils";
-import { window, Terminal, env, debug, l10n } from "vscode";
-import { WSServer } from "../communications/ws";
+import { window, Terminal, env, debug } from "vscode";
 import {
   buildIdfMonitorQuotedInvokeTokens,
   buildIdfMonitorTerminalSendSequence,
   monitorShellKindFromUserShell,
   resolveMonitorBaudRate,
 } from "./argsBuilder";
+import { platform } from "os";
+
+export function getUserShell() {
+  const shell = env.shell;
+
+  // list of shells to check
+  const shells = ["powershell", "cmd", "bash", "zsh", "pwsh"];
+
+  // if user's shell is in the list, return it
+  for (let i = 0; i < shells.length; i++) {
+    if (shell && shell.includes(shells[i])) {
+      return shells[i];
+    }
+  }
+
+  // if no match, pick one based on user's OS
+  const userOS = platform();
+  if (userOS === "win32") {
+    return "powershell";
+  } else if (userOS === "darwin") {
+    return "zsh";
+  } else if (userOS === "linux") {
+    return "bash";
+  }
+
+  // if no match, return null
+  return null;
+}
 
 export class IDFMonitor {
   public static config: MonitorConfig;

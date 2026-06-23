@@ -19,7 +19,7 @@
 import { pathExists } from "fs-extra";
 import { Logger } from "../common/logger";
 import { IdfSetup } from "./types";
-import { startPythonReqsProcess } from "../utils";
+import { execChildProcess, getEspIdfFromCMake } from "../utils";
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import { join } from "path";
 import { ConfigurationTarget, StatusBarItem, Uri, WorkspaceFolder } from "vscode";
@@ -27,6 +27,7 @@ import { readParameter, writeParameter } from "../configuration/idf";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { getEnvVariables } from "./loadSettings";
 import { ESP } from "../config";
+import { OutputChannel } from "../common/outputChannel";
 
 export function pathVarFromEnvVars(envVars: {
   [key: string]: string;
@@ -48,6 +49,7 @@ export function pathVarFromEnvVars(envVars: {
  * @returns {[boolean, string]} Tuple: True if IDF Setup is valid, False otherwise, and fail reason
  */
 export async function isIdfSetupValid(
+  extensionPath: string,
   envVars: { [key: string]: string },
   logToChannel = true
 ): Promise<[boolean, string]> {
@@ -61,6 +63,7 @@ export async function isIdfSetupValid(
     }
 
     const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+      extensionPath,
       envVars["IDF_PATH"]
     );
 
@@ -157,6 +160,7 @@ export async function checkPyVenv(
 }
 
 export async function saveSettings(
+  extensionPath: string,
   setupConf: IdfSetup,
   workspaceFolder: WorkspaceFolder,
   espIdfStatusBar: StatusBarItem
@@ -189,7 +193,7 @@ export async function saveSettings(
     workspaceFolder
   );
 
-  const envVars = await getEnvVariables(setupConf);
+  const envVars = await getEnvVariables(extensionPath, setupConf);
 
   if (setupConf.python) {
     envVars["PYTHON"] = setupConf.python;
@@ -210,4 +214,43 @@ export async function saveSettings(
     }) ESP-IDF v${setupConf.version}`;
   }
   Logger.infoNotify("ESP-IDF has been configured");
+}
+
+export async function startPythonReqsProcess(
+  pythonBinPath: string,
+  espIdfPath: string,
+  espIdfToolsPath: string,
+  requirementsPath: string
+) {
+  const reqFilePath = join(
+    espIdfPath,
+    "tools",
+    "check_python_dependencies.py"
+  );
+  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+    Object.assign({}, process.env)
+  );
+  modifiedEnv.IDF_PATH = espIdfPath;
+  const fullEspIdfVersion = await getEspIdfFromCMake(espIdfPath);
+  const majorMinorMatches = fullEspIdfVersion.match(/([0-9]+\.[0-9]+).*/);
+  const espIdfVersion =
+    majorMinorMatches && majorMinorMatches.length > 0
+      ? majorMinorMatches[1]
+      : "x.x";
+  const constrainsFile = join(
+    espIdfToolsPath,
+    `espidf.constraints.v${espIdfVersion}.txt`
+  );
+  const constrainsFileExists = await pathExists(constrainsFile);
+  let checkPyArgs = [reqFilePath, "-r", requirementsPath];
+  if (constrainsFileExists) {
+    checkPyArgs = checkPyArgs.concat(["--constraint", constrainsFile]);
+  }
+  return execChildProcess(
+    pythonBinPath,
+    checkPyArgs,
+    espIdfPath,
+    OutputChannel.init(),
+    { env: modifiedEnv, cwd: espIdfPath }
+  );
 }

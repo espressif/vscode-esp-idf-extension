@@ -1,7 +1,18 @@
 import * as vscode from "vscode";
 import { Logger } from "./common/logger";
 import { OutputChannel } from "./common/outputChannel";
-import { ESP } from "./config";
+import { registerIDFCommand } from "./common/registerCommand";
+
+export function registerRemoveEspIdfSettingsCommand(
+  context: vscode.ExtensionContext
+) {
+  // Remove ESP-IDF settings
+  registerIDFCommand(
+    context,
+    "espIdf.removeEspIdfSettings",
+    asyncRemoveEspIdfSettings
+  );
+}
 
 export async function asyncRemoveEspIdfSettings() {
   const config = vscode.workspace.getConfiguration();

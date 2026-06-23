@@ -18,10 +18,10 @@ import { OutputChannel } from "../common/outputChannel";
 import { INewProjectArgs } from "./newProjectInit";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
 import { copy, ensureDir, readFile } from "fs-extra";
-import * as utils from "../utils";
 import { IExample } from "./Example";
 import {
   copyFromSrcProject,
+  markdownToWebviewHtml,
   setCurrentSettingsInTemplate,
   updateProjectNameInCMakeLists,
 } from "./utils";
@@ -30,6 +30,7 @@ import { createClangdFile } from "../clang";
 import { updateJsonPreservingComments } from "../jsonc/updateJsonPreservingComments";
 import { IdfSetup } from "../eim/types";
 import { WorkspaceFolder } from "vscode";
+import { dirExistPromise } from "../utils";
 
 export class NewProjectPanel {
   public static currentPanel: NewProjectPanel | undefined;
@@ -240,7 +241,7 @@ export class NewProjectPanel {
         token: vscode.CancellationToken
       ) => {
         try {
-          const projectDirExists = await utils.dirExistPromise(
+          const projectDirExists = await dirExistPromise(
             projectDirectory
           );
           if (!projectDirExists) {
@@ -253,7 +254,7 @@ export class NewProjectPanel {
             isSkipped = true;
             return;
           }
-          const projectNameExists = await utils.dirExistPromise(newProjectPath);
+          const projectNameExists = await dirExistPromise(newProjectPath);
           if (projectNameExists) {
             const overwriteProject = await vscode.window.showInformationMessage(
               `${newProjectPath} already exists. Overwrite content?`,
@@ -308,7 +309,7 @@ export class NewProjectPanel {
             const componentsPath = path.join(newProjectPath, "components");
             await ensureDir(componentsPath, { mode: 0o775 });
             for (const comp of components) {
-              const doesComponentExists = await utils.dirExistPromise(
+              const doesComponentExists = await dirExistPromise(
                 comp.path
               );
               if (doesComponentExists) {
@@ -372,7 +373,7 @@ export class NewProjectPanel {
     try {
       const pathToUse = vscode.Uri.file(path.join(projectPath, "README.md"));
       const readMeContent = await readFile(pathToUse.fsPath);
-      const contentStr = utils.markdownToWebviewHtml(
+      const contentStr = markdownToWebviewHtml(
         readMeContent.toString(),
         projectPath,
         this.panel

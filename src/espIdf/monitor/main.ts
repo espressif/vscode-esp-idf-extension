@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 import { interruptMonitorWithDelay } from "./interruptMonitorWithDelay";
-import { shouldDisableMonitorReset } from "../../utils";
-import { WorkspaceFolder } from "vscode";
+import { getConfigValueFromSDKConfig } from "../../utils";
+import { Uri, WorkspaceFolder } from "vscode";
 import { loadMonitorLaunchConfig } from "./launchConfig";
 import { logInvalidConfigReason } from "./configValidation";
 import { IDFMonitor } from "./terminal";
 import { readParameter } from "../../configuration/idf";
+import { isFlashEncryptionEnabled } from "../../flash/verify/flashEncryption";
 
 export async function monitorMain(
   workspaceFolder: WorkspaceFolder,
@@ -48,4 +49,32 @@ export async function monitorMain(
     ) as number;
     await new Promise((resolve) => setTimeout(resolve, monitorDelay));
   }
+}
+
+/**
+ * Determines if the monitor reset should be disabled.
+ * If flash encryption is enabled for release mode, we add --no-reset flag for monitoring
+ * because by default monitoring command resets the device which is not recommended.
+ * Reset should happen by Bootloader itself once it completes encrypting all artifacts.
+ *
+ * @returns {Promise<boolean>} True if monitor reset should be disabled, false otherwise.
+ */
+export async function shouldDisableMonitorReset(
+  workspaceUri: Uri
+): Promise<boolean> {
+  const configNoReset = readParameter("idf.monitorNoReset", workspaceUri);
+
+  if (configNoReset === true) {
+    return true;
+  }
+
+  if (await isFlashEncryptionEnabled(workspaceUri)) {
+    const valueReleaseModeEnabled = await getConfigValueFromSDKConfig(
+      "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE",
+      workspaceUri
+    );
+    return valueReleaseModeEnabled === "y";
+  }
+
+  return false;
 }
