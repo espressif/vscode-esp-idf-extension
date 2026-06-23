@@ -71,10 +71,8 @@ const WEBVIEW_COMMANDS = new Set([
   "componentManager",
 ]);
 
-let disposable: vscode.Disposable | undefined;
-
 export function activateLanguageTool(context: vscode.ExtensionContext) {
-  disposable = vscode.lm.registerTool("espIdfCommands", {
+  const disposable = vscode.lm.registerTool("espIdfCommands", {
     async invoke(
       options: {
         input: {
@@ -541,12 +539,5 @@ function getWebviewDescription(commandName: string): string {
       return "Component Manager - Browse and install ESP-IDF components";
     default:
       return "interface";
-  }
-}
-
-export function deactivateLanguageTool() {
-  if (disposable) {
-    disposable.dispose();
-    disposable = undefined;
   }
 }

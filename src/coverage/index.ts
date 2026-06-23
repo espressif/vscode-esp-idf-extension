@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 12th June 2026 6:37:43 pm
  * Copyright 2026 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,57 +28,57 @@ import { configureProjectWithGcov } from "./configureProject";
 
 export function registerCoverageCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.genCoverage", () => {
-      return PreCheck.perform([openFolderCheck], async () => {
-        try {
-          const covRenderer = espIdfCoverageRenderer.get();
-          if (!covRenderer) {
-            Logger.infoNotify(l10n.t("No workspace selected."));
-            return;
-          }
-          await covRenderer.renderCoverage();
-        } catch (e) {
-          const errMsg = e instanceof Error ? e.message : String(e);
-          Logger.errorNotify(
-            "Error building gcov data from gcda files.\nCheck the ESP-IDF output for more details.",
-            e as Error,
-            "extension genCoverage"
-          );
-          OutputChannel.appendLine(
-            errMsg +
-              "\nError building gcov data from gcda files.\n\n" +
-              "Review the code coverage tutorial https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/coverage.html \n" +
-              "or ESP-IDF documentation: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage \n"
-          );
-        }
-      });
-    });
-  
-    registerIDFCommand(context, "espIdf.removeCoverage", () => {
-      return PreCheck.perform([openFolderCheck], async () => {
-        await espIdfCoverageRenderer.get()?.removeCoverage();
-      });
-    });
-  
-    registerIDFCommand(context, "espIdf.getCoverageReport", () => {
-      return PreCheck.perform([openFolderCheck], async () => {
-        const selected = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-        if (!selected) {
+    return PreCheck.perform([openFolderCheck], async () => {
+      try {
+        const covRenderer = espIdfCoverageRenderer.get();
+        if (!covRenderer) {
           Logger.infoNotify(l10n.t("No workspace selected."));
           return;
         }
-        await previewReport(selected.uri);
-      });
+        await covRenderer.renderCoverage();
+      } catch (e) {
+        const errMsg = e instanceof Error ? e.message : String(e);
+        Logger.errorNotify(
+          "Error building gcov data from gcda files.\nCheck the ESP-IDF output for more details.",
+          e as Error,
+          "extension genCoverage"
+        );
+        OutputChannel.appendLine(
+          errMsg +
+            "\nError building gcov data from gcda files.\n\n" +
+            "Review the code coverage tutorial https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/coverage.html \n" +
+            "or ESP-IDF documentation: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage \n"
+        );
+      }
     });
+  });
 
-    registerIDFCommand(context,"espIdf.setGcovConfig", async () => {
-        PreCheck.perform([openFolderCheck], async () => {
-          try {
-            const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-            await configureProjectWithGcov(wsFolder.uri);
-          } catch (error) {
-            const errMsg = error instanceof Error ? error.message : String(error);
-            Logger.errorNotify(errMsg, error as Error, "extension setGcovConfig");
-          }
-        });
-      });
+  registerIDFCommand(context, "espIdf.removeCoverage", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      await espIdfCoverageRenderer.get()?.removeCoverage();
+    });
+  });
+
+  registerIDFCommand(context, "espIdf.getCoverageReport", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      const selected = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      if (!selected) {
+        Logger.infoNotify(l10n.t("No workspace selected."));
+        return;
+      }
+      await previewReport(context.extensionPath, selected.uri);
+    });
+  });
+
+  registerIDFCommand(context, "espIdf.setGcovConfig", async () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      try {
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        await configureProjectWithGcov(context.extensionPath, wsFolder.uri);
+      } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        Logger.errorNotify(errMsg, error as Error, "extension setGcovConfig");
+      }
+    });
+  });
 }

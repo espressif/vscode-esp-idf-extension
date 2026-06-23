@@ -22,7 +22,6 @@ import {
   window,
 } from "vscode";
 import {
-  extensionContext,
   getToolchainToolName,
   getWebViewFavicon,
 } from "../utils";
@@ -177,7 +176,7 @@ export async function generateCoverageForEditors(
 }
 
 let gcovHtmlPanel: WebviewPanel | undefined = undefined;
-export async function previewReport(dirPath: Uri) {
+export async function previewReport(extensionPath: string, dirPath: Uri) {
   try {
     const column =
       window.activeTextEditor && window.activeTextEditor.viewColumn
@@ -194,7 +193,7 @@ export async function previewReport(dirPath: Uri) {
       "GCC Code Coverage Report",
       column
     );
-    gcovHtmlPanel.iconPath = getWebViewFavicon(extensionContext.extensionPath);
+    gcovHtmlPanel.iconPath = getWebViewFavicon(extensionPath);
     gcovHtmlPanel.webview.html = reportHtml;
     gcovHtmlPanel.onDidDispose(() => (gcovHtmlPanel = undefined));
   } catch (e) {

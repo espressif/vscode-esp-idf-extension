@@ -63,7 +63,7 @@ export function registerSearchDocsCommand(context: ExtensionContext) {
             );
             selection = currentEditor.document.getText(range);
           }
-          const searchResults = await searchInEspDocs(selection, wsFolder.uri);
+          const searchResults = await searchInEspDocs(context.extensionPath, selection, wsFolder.uri);
           espIdfDocsResultTreeDataProvider.getResults(
             searchResults,
             idfSearchResults

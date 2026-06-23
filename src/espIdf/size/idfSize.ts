@@ -19,7 +19,6 @@
 import { Logger } from "../../common/logger";
 import {
   compareVersion,
-  fileExists,
   getEspIdfFromCMake,
   spawn,
 } from "../../utils";
@@ -28,6 +27,7 @@ import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../confi
 import type { IDFSizeCalculateResult } from "./types";
 import { CancellationToken, l10n, Progress, Uri } from "vscode";
 import { join } from "path";
+import { existsSync } from "fs";
 
 export class IDFSize {
   private readonly workspaceFolderUri: Uri;
@@ -49,7 +49,7 @@ export class IDFSize {
     }
 
     const mapFilePath = await getProjectMapFilePath(this.workspaceFolderUri);
-    const isBuilt = fileExists(mapFilePath);
+    const isBuilt = existsSync(mapFilePath);
     if (!isBuilt) {
       throw new Error(
         l10n.t(
@@ -103,7 +103,7 @@ export class IDFSize {
   }
 
   public async isBuiltAlready() {
-    return fileExists(await getProjectMapFilePath(this.workspaceFolderUri));
+    return existsSync(await getProjectMapFilePath(this.workspaceFolderUri));
   }
 
   private async idfCommandInvoker(

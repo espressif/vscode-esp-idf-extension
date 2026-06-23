@@ -21,6 +21,7 @@ import { join, resolve } from "path";
 import { ExtensionContext, Uri } from "vscode";
 import { getExamplesList } from "../newProject/Example";
 import {
+  checkIsProjectCmakeLists,
   copyFromSrcProject,
   createVscodeFolder,
   setCurrentSettingsInTemplate,
@@ -28,8 +29,6 @@ import {
 } from "../newProject/utils";
 import {
   isBinInPath,
-  readProjectCMakeLists,
-  setExtensionContext,
 } from "../utils";
 import { IdfSetup } from "../eim/types";
 import { ProjectConfigStore } from "../project-conf/utils";
@@ -51,9 +50,6 @@ suite("Project tests", () => {
     ? join(process.env.GITHUB_WORKSPACE, "project-test")
     : join(process.env.HOME, "workspace", "project-test");
   const targetFolder = join(wsFolder, "targetProject");
-  setup(async () => {
-    setExtensionContext(mockUpContext);
-  });
 
   test("vscode folder creation", async () => {
     await createVscodeFolder(
@@ -123,10 +119,10 @@ suite("Project tests", () => {
   test("Update project name", async () => {
     const projectPath = join(wsFolder, "new-project");
     const prevName = "template-app";
-    const currProjectName = readProjectCMakeLists(projectPath);
+    const currProjectName = checkIsProjectCmakeLists(projectPath);
     const newName = "test-project";
     await updateProjectNameInCMakeLists(projectPath, newName);
-    const newProjectName = readProjectCMakeLists(projectPath);
+    const newProjectName = checkIsProjectCmakeLists(projectPath);
     assert.notEqual(currProjectName, undefined);
     assert.notEqual(newProjectName, undefined);
     assert.equal(currProjectName, `${prevName}`);

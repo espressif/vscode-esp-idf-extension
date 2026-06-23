@@ -8,7 +8,6 @@
 
 import { Uri } from "vscode";
 import { readParameter } from "../../configuration/idf";
-import { sleep } from "../../utils";
 import { ESP } from "../../config";
 import { IDFMonitor } from "./terminal";
 
@@ -21,6 +20,6 @@ export async function interruptMonitorWithDelay(
       "idf.monitorDelay",
       workspaceFolderUri
     ) as number;
-    await sleep(monitorDelay);
+    await new Promise((resolve) => setTimeout(resolve, monitorDelay));
   }
 }

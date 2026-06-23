@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { l10n, Uri, workspace } from "vscode";
+import { ExtensionContext, l10n, Uri, workspace, window } from "vscode";
 import { isBinInPath } from "../utils";
 import { pathExists, writeJSON, writeFile } from "fs-extra";
 import { readParameter } from "../configuration/idf";
@@ -25,6 +25,21 @@ import { Logger } from "../common/logger";
 import { parse } from "jsonc-parser";
 import { EOL } from "os";
 import { configureEnvVariables } from "../common/prepareEnv";
+import { registerIDFCommand } from "../common/registerCommand";
+import { openFolderCheck, PreCheck } from "../common/PreCheck";
+import { ESP } from "../config";
+
+export function registerClangCommands(context: ExtensionContext) {
+  registerIDFCommand(context, "espIdf.setClangSettings", async () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      await configureClangSettings(wsFolder.uri, true);
+      window.showInformationMessage(
+        l10n.t("ESP-IDF: Clang settings have been configured for the project.")
+      );
+    });
+  });
+}
 
 export async function validateEspClangExists(workspaceFolder: Uri) {
   const modifiedEnv = await configureEnvVariables(workspaceFolder);
