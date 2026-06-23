@@ -14,14 +14,7 @@
 
 import * as childProcess from "child_process";
 import { accessSync, constants } from "fs";
-import {
-  copy,
-  move,
-  pathExists,
-  readFile,
-  remove,
-  stat,
-} from "fs-extra";
+import { copy, move, pathExists, readFile, remove, stat } from "fs-extra";
 import { EOL } from "os";
 import * as path from "path";
 import * as vscode from "vscode";
@@ -344,9 +337,8 @@ export async function getAllBinPathInEnvPath(
   binaryName: string,
   env: NodeJS.ProcessEnv
 ) {
-  let pathNameInEnv: string = Object.keys(process.env).find(
-    (k) => k.toUpperCase() == "PATH"
-  ) || "PATH";
+  let pathNameInEnv: string =
+    Object.keys(process.env).find((k) => k.toUpperCase() == "PATH") || "PATH";
   const pathDirs = env[pathNameInEnv]?.split(path.delimiter) || [];
   const foundBinaries: string[] = [];
   for (const pathDir of pathDirs) {
@@ -377,9 +369,8 @@ export async function isBinInPath(
   env: NodeJS.ProcessEnv,
   containerDir?: string[]
 ): Promise<string> {
-  let pathNameInEnv: string = Object.keys(process.env).find(
-    (k) => k.toUpperCase() == "PATH"
-  ) || "PATH";
+  let pathNameInEnv: string =
+    Object.keys(process.env).find((k) => k.toUpperCase() == "PATH") || "PATH";
   const pathDirs = env[pathNameInEnv]?.split(path.delimiter) || [];
   for (const pathDir of pathDirs) {
     let binaryPath = path.join(pathDir, binaryName);
@@ -481,7 +472,8 @@ export async function robustMove(
         }
       } else {
         // Re-throw other errors immediately
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         Logger.error(errorMessage, error as Error, "robustMove");
       }
     }

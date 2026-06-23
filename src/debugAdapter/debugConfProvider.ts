@@ -26,6 +26,7 @@ import {
 import { readParameter } from "../configuration/idf";
 import {
   getProjectDescriptionJson,
+  getConfigValueFromSDKConfig,
   getProjectElfFilePath,
 } from "../configuration/workspace";
 import { dirname, join } from "path";
@@ -33,11 +34,7 @@ import { pathExists, readFile } from "fs-extra";
 import { verifyAppBinary } from "./verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../common/logger";
-import {
-  execChildProcess,
-  getConfigValueFromSDKConfig,
-  getToolchainPath,
-} from "../utils";
+import { execChildProcess, getToolchainPath } from "../utils";
 import { ESP } from "../config";
 import { buildFlashAndMonitor } from "../buildFlashMonitor";
 import { monitorMain } from "../espIdf/monitor/main";

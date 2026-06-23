@@ -1,4 +1,8 @@
-import { NotificationMode, readParameter, writeParameter} from "../../configuration/idf";
+import {
+  NotificationMode,
+  readParameter,
+  writeParameter,
+} from "../../configuration/idf";
 import { Logger } from "../../common/logger";
 import { OutputChannel } from "../../common/outputChannel";
 import { ESP } from "../../config";
@@ -7,10 +11,21 @@ import {
   showQuickPickWithCustomActions,
 } from "../../common/customNotifications";
 import { ConfserverProcess } from "../../espIdf/menuconfig/confserver/confServerProcess";
-import { ESPEFuseManager, ESPEFuseSummary } from "../../efuse/manager";
+import { ESPEFuseManager } from "../../efuse/manager";
 import { getDocsUrl } from "../../espIdf/documentation/getDocsVersion";
-import { getConfigValueFromSDKConfig, getIdfTargetFromSdkconfig } from "../../configuration/workspace";
-import { CancellationToken, ConfigurationTarget, l10n, Progress, ProgressLocation, Uri, window } from "vscode";
+import {
+  getConfigValueFromSDKConfig,
+  getIdfTargetFromSdkconfig,
+} from "../../configuration/workspace";
+import {
+  CancellationToken,
+  ConfigurationTarget,
+  l10n,
+  Progress,
+  ProgressLocation,
+  Uri,
+  window,
+} from "vscode";
 import { getConfigValueFromBuild } from "../../utils";
 
 export enum FlashCheckResultType {
@@ -223,12 +238,8 @@ export async function checkFlashEncryption(
           l10n.t("In {0}:", encryptionMode) +
           "\n" +
           (encryptionMode === l10n.t("Development Mode")
-            ? l10n.t(
-                "Development Mode: Allows re-flashing with plaintext data"
-              )
-            : l10n.t(
-                "Release Mode: Permanently disables plaintext flashing"
-              )) +
+            ? l10n.t("Development Mode: Allows re-flashing with plaintext data")
+            : l10n.t("Release Mode: Permanently disables plaintext flashing")) +
           "\n\n" +
           l10n.t(
             'The flash encryption process requires two steps:\n1. First, you need to confirm by typing "{0}" in the input box at the top of the screen\n2. After flashing completes, you MUST reset your device\n3. Then flash again to enable encryption',
@@ -272,9 +283,7 @@ export async function checkFlashEncryption(
             ? "BURN DEV"
             : "BURN RELEASE";
         if (userInput !== expectedValue) {
-          const cancelMessage = l10n.t(
-            "Flash encryption cancelled by user"
-          );
+          const cancelMessage = l10n.t("Flash encryption cancelled by user");
           Logger.info(cancelMessage, { tag: "Flash Encryption" });
           OutputChannel.appendLineAndShow(cancelMessage, "Flash Encryption");
           return {
@@ -292,7 +301,9 @@ export async function checkFlashEncryption(
         const infoMessage = l10n.t(
           "Proceeding with flash encryption. Remember to reset your device after the first flash."
         );
-        showInfoNotificationWithLink(infoMessage, documentationUrl);
+        if (documentationUrl) {
+          showInfoNotificationWithLink(infoMessage, documentationUrl);
+        }
         OutputChannel.appendLineAndShow(infoMessage, "Flash Encryption");
         Logger.info(infoMessage, { tag: "Flash Encryption" });
         return {
@@ -365,7 +376,8 @@ export async function checkFlashEncryption(
       };
     }
   } catch (error) {
-    const errMsg = error instanceof Error && error.message ? error.message : "Unknown error";
+    const errMsg =
+      error instanceof Error && error.message ? error.message : "Unknown error";
     if (errMsg === "Operation cancelled by user") {
       const cancelMessage = l10n.t("eFuse check cancelled by user");
       Logger.info(cancelMessage, { tag: "Flash Encryption" });
