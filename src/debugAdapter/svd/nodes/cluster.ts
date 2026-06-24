@@ -35,7 +35,7 @@ export interface ClusterOptions {
 export class Cluster extends PeripheralBaseNode {
   private children: Register[];
   public readonly name: string;
-  public readonly description?: string;
+  public readonly svdDescription?: string;
   public readonly offset: number;
   public readonly size: number;
   public readonly resetValue: number;
@@ -47,7 +47,7 @@ export class Cluster extends PeripheralBaseNode {
   ) {
     super(parent);
     this.name = options.name;
-    this.description = options.description;
+    this.svdDescription = options.description;
     this.offset = options.addressOffset;
     this.accessType = options.accessType || AccessType.ReadWrite;
     this.size = options.size || parent.size;
@@ -66,7 +66,7 @@ export class Cluster extends PeripheralBaseNode {
         : TreeItemCollapsibleState.Collapsed
     );
     item.contextValue = "cluster";
-    item.tooltip = this.description || undefined;
+    item.tooltip = this.svdDescription || undefined;
 
     return item;
   }

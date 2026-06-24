@@ -59,8 +59,8 @@ export class Peripheral extends PeripheralBaseNode {
     Register | Cluster
   >;
   public readonly name: string;
+  public readonly svdDescription: string;
   public readonly baseAddress: number;
-  public readonly description: string;
   public readonly groupName: string;
   public readonly totalLength: number;
   public readonly accessType: AccessType;
@@ -80,7 +80,7 @@ export class Peripheral extends PeripheralBaseNode {
     this.name = options.name;
     this.baseAddress = options.baseAddress;
     this.totalLength = options.totalLength;
-    this.description = options.description;
+    this.svdDescription = options.description;
     this.groupName = options.groupName || "";
     this.resetValue = options.resetValue || 0;
     this.size = options.size || 32;
@@ -101,7 +101,7 @@ export class Peripheral extends PeripheralBaseNode {
         : TreeItemCollapsibleState.Collapsed
     );
     item.contextValue = this.pinned ? "peripheral.pinned" : "peripheral";
-    item.tooltip = this.description || undefined;
+    item.tooltip = this.svdDescription || undefined;
     if (this.pinned) {
       item.iconPath = new ThemeIcon("pinned");
     }
