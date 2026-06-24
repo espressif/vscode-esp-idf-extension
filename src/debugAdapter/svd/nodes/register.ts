@@ -43,7 +43,7 @@ export interface PeripheralRegisterOptions {
 export class Register extends PeripheralBaseNode {
   public children: Field[];
   public readonly name: string;
-  public readonly description?: string;
+  public readonly svdDescription?: string;
   public readonly offset: number;
   public readonly accessType: AccessType;
   public readonly size: number;
@@ -62,7 +62,7 @@ export class Register extends PeripheralBaseNode {
   ) {
     super(parent);
     this.name = options.name;
-    this.description = options.description;
+    this.svdDescription = options.description;
     this.offset = options.addressOffset;
     this.accessType = options.accessType || parent.accessType;
     this.size = options.size || parent.size;
@@ -159,7 +159,7 @@ export class Register extends PeripheralBaseNode {
     }
 
     mds.appendMarkdown("\n____\n\n");
-    mds.appendMarkdown(this.description);
+    mds.appendMarkdown(this.svdDescription);
 
     mds.appendMarkdown("\n_____\n\n");
 
