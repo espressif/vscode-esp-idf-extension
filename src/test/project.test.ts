@@ -21,15 +21,13 @@ import { join, resolve } from "path";
 import { ExtensionContext, Uri } from "vscode";
 import { getExamplesList } from "../newProject/Example";
 import {
-  checkIsProjectCmakeLists,
   copyFromSrcProject,
   createVscodeFolder,
+  readProjectCMakeLists,
   setCurrentSettingsInTemplate,
   updateProjectNameInCMakeLists,
 } from "../newProject/utils";
-import {
-  isBinInPath,
-} from "../utils";
+import { isBinInPath } from "../utils";
 import { IdfSetup } from "../eim/types";
 import { ProjectConfigStore } from "../project-conf/utils";
 import { ESP } from "../config";
@@ -48,7 +46,9 @@ suite("Project tests", () => {
   const templateFolder = join(mockUpContext.extensionPath, "templates");
   const wsFolder = process.env.GITHUB_WORKSPACE
     ? join(process.env.GITHUB_WORKSPACE, "project-test")
-    : join(process.env.HOME, "workspace", "project-test");
+    : process.env.HOME
+    ? join(process.env.HOME, "workspace", "project-test")
+    : join(__dirname, "..", "..", "project-test");
   const targetFolder = join(wsFolder, "targetProject");
 
   test("vscode folder creation", async () => {
@@ -119,10 +119,10 @@ suite("Project tests", () => {
   test("Update project name", async () => {
     const projectPath = join(wsFolder, "new-project");
     const prevName = "template-app";
-    const currProjectName = checkIsProjectCmakeLists(projectPath);
+    const currProjectName = readProjectCMakeLists(projectPath);
     const newName = "test-project";
     await updateProjectNameInCMakeLists(projectPath, newName);
-    const newProjectName = checkIsProjectCmakeLists(projectPath);
+    const newProjectName = readProjectCMakeLists(projectPath);
     assert.notEqual(currProjectName, undefined);
     assert.notEqual(newProjectName, undefined);
     assert.equal(currProjectName, `${prevName}`);
@@ -140,6 +140,7 @@ suite("Project tests", () => {
   });
 
   test("get examples projects", async () => {
+    assert.notEqual(process.env.IDF_PATH, undefined);
     const examplesCategories = getExamplesList(process.env.IDF_PATH);
     assert.notEqual(examplesCategories, undefined);
     assert.notEqual(examplesCategories.subcategories, undefined);

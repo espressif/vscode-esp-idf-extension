@@ -31,7 +31,7 @@ import { KconfigLangClient } from "./kconfig";
 import { ExtensionConfigStore } from "./common/store";
 import { ProjectConfigStore } from "./project-conf/utils";
 import { registerReconfigureCmd } from "./espIdf/reconfigure/task";
-import { createCmdsStatusBarItems, statusBarItems } from "./statusBar";
+import { statusBarItems } from "./statusBar";
 import { initCommandDictionary } from "./cmdTreeView/cmdStore";
 import { registerRemoveEspIdfSettingsCommand } from "./uninstall";
 import {
@@ -94,9 +94,9 @@ export async function activate(context: ExtensionContext) {
   OutputChannel.init();
   Logger.init(context);
   resetIdfConfigurationSource();
-  initCommandDictionary();
   ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
+  initCommandDictionary();
   ESP.Rainmaker.store = RainmakerStore.init(context);
   clearSelectedProjectConfiguration();
   Telemetry.init((readParameter("idf.telemetry") as boolean) || false);
@@ -114,7 +114,6 @@ export async function activate(context: ExtensionContext) {
   if (PreCheck.isWorkspaceFolderOpen()) {
     await useFirstWorkspaceFolder(context);
     const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-    await createCmdsStatusBarItems(context, wsFolder.uri);
     new ProjectConfigurationManager(wsFolder.uri, context, statusBarItems);
   }
   addCmakeFileSystemWatcher(context);
