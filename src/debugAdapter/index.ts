@@ -33,7 +33,7 @@ import {
   registerImageViewCommands,
 } from "./commands/registerDebugAdapterCommands";
 
-export async function registerDebugCommands(context: ExtensionContext) {
+export function registerDebugCommands(context: ExtensionContext) {
   const sessionFlags = {
     isOpenOCDLaunchedByDebug: { value: false },
     isDebugRestarted: { value: false },
