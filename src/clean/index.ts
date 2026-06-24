@@ -25,10 +25,9 @@ import { OutputChannel } from "../common/outputChannel";
 import { Logger } from "../common/logger";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
 import { join } from "path";
-import { constants } from "fs/promises";
+import { constants, rm } from "fs/promises";
 import { FlashSession } from "../flash/shared/flashSession";
 import { BuildTask } from "../build/buildTask";
-import del from "del";
 import { pathExists } from "fs-extra";
 import { ESP } from "../config";
 
@@ -77,7 +76,7 @@ export function registerFullCleanCmd(context: ExtensionContext) {
       }
 
       try {
-        await del(buildDir, { force: true });
+        await rm(buildDir, { recursive: true, force: true });
         const extraPathsToClean = readParameter(
           "idf.extraCleanPaths",
           selectWorkspaceFolder
@@ -87,7 +86,7 @@ export function registerFullCleanCmd(context: ExtensionContext) {
             const fullPath = join(selectWorkspaceFolder.uri.fsPath, extraPath);
             const doesExtraPathExist = await pathExists(fullPath);
             if (doesExtraPathExist) {
-              await del(fullPath, { force: true });
+              await rm(fullPath, { recursive: true, force: true });
             }
           }
         }
@@ -95,7 +94,7 @@ export function registerFullCleanCmd(context: ExtensionContext) {
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         OutputChannel.appendLineAndShow(errorMsg);
-        Logger.errorNotify(errorMsg, error as Error, "extension fullClean");
+        Logger.errorNotify(errorMsg, error as Error, "fullClean");
       }
     });
   });

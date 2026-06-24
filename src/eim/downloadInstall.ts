@@ -33,12 +33,12 @@ import {
 } from "fs-extra";
 import { CancellationToken, env, Progress, UIKind, window } from "vscode";
 import { OutputChannel } from "../common/outputChannel";
-import del from "del";
 import { dirExistPromise, isBinInPath, spawn } from "../utils";
 import * as yauzl from "yauzl";
 import { Logger } from "../common/logger";
 import { getEimIdfJson } from "./getExistingSetups";
 import { readParameter } from "../configuration/idf";
+import { rm } from "fs/promises";
 
 type EimShellProfileTarget = {
   path: string;
@@ -615,7 +615,7 @@ export async function installZipFile(
         const dirExists = await dirExistPromise(absolutePath);
         if (dirExists) {
           try {
-            await del(absolutePath, { force: true });
+            await rm(absolutePath, { recursive: true, force: true });
           } catch (err) {
             OutputChannel.appendLine(
               `Error deleting previous ${absolutePath}: ${err.message}`
