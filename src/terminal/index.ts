@@ -27,7 +27,7 @@ import { join } from "path";
 import { Logger } from "../common/logger";
 import { ESP } from "../config";
 
-export async function registerIdfTerminalCommand(context: ExtensionContext) {
+export function registerIdfTerminalCommand(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.createIdfTerminal", () => {
     PreCheck.perform([openFolderCheck], async () => {
       await createEspIdfTerminal(context.extensionPath, "ESP-IDF Terminal");

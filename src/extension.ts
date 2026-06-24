@@ -32,7 +32,7 @@ import { ExtensionConfigStore } from "./common/store";
 import { ProjectConfigStore } from "./project-conf";
 import { UnitTest } from "./espIdf/unitTest/adapter";
 import { registerReconfigureCmd } from "./espIdf/reconfigure/task";
-import { createCmdsStatusBarItems, statusBarItems } from "./statusBar";
+import { statusBarItems } from "./statusBar";
 import { initCommandDictionary } from "./cmdTreeView/cmdStore";
 import { registerRemoveEspIdfSettingsCommand } from "./uninstall";
 import {
@@ -95,7 +95,6 @@ export async function activate(context: ExtensionContext) {
   OutputChannel.init();
   Logger.init(context);
   resetIdfConfigurationSource();
-  initCommandDictionary();
   ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
 
@@ -109,6 +108,7 @@ export async function activate(context: ExtensionContext) {
     clearSelectedProjectConfiguration();
   }
 
+  initCommandDictionary();
   ESP.Rainmaker.store = RainmakerStore.init(context);
   Telemetry.init((readParameter("idf.telemetry") as boolean) || false);
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
@@ -125,7 +125,6 @@ export async function activate(context: ExtensionContext) {
   if (PreCheck.isWorkspaceFolderOpen()) {
     await useFirstWorkspaceFolder(context);
     const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-    await createCmdsStatusBarItems(context, wsFolder.uri);
     new ProjectConfigurationManager(wsFolder.uri, context, statusBarItems);
   }
   addCmakeFileSystemWatcher(context);
