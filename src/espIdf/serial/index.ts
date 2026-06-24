@@ -24,7 +24,7 @@ import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
 import { showInfoNotificationWithAction } from "../../common/customNotifications";
 import { ESP } from "../../config";
 
-export async function registerSerialPortCmds(context: ExtensionContext) {
+export function registerSerialPortCmds(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.selectPort", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();

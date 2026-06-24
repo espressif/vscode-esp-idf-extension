@@ -41,7 +41,7 @@ import { CustomExecutionTaskResult } from "../taskManager/types";
 import { monitorMain } from "../espIdf/monitor/main";
 import { registerIDFCommand } from "../common/registerCommand";
 
-export async function registerBuildFlashMonitorCommands(
+export function registerBuildFlashMonitorCommands(
   context: ExtensionContext
 ) {
   registerIDFCommand(context, "espIdf.buildFlashMonitor", () => {

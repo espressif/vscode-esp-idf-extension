@@ -19,7 +19,7 @@
 import { ExtensionContext, l10n, workspace, WorkspaceFolder } from "vscode";
 import { PreCheck } from "./PreCheck";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
-import { statusBarItems } from "../statusBar";
+import { createCmdsStatusBarItems, statusBarItems } from "../statusBar";
 import { readParameter } from "../configuration/idf";
 import {
   getIdfTargetFromSdkconfig,
@@ -142,6 +142,9 @@ export async function useFirstWorkspaceFolder(context: ExtensionContext) {
       ? workspace.workspaceFolders[0]
       : undefined;
   if (wsFolder) {
+    if (Object.keys(statusBarItems).length === 0) {
+      await createCmdsStatusBarItems(context, wsFolder.uri);
+    }
     await configureForWorkspace(context, wsFolder);
   }
 }
