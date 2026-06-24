@@ -46,7 +46,6 @@ export abstract class BasePeripheral extends TreeItem {
 export abstract class PeripheralBaseNode extends BasePeripheral {
   public format: NumberFormat;
   public pinned: boolean;
-  public readonly name: string;
   public session: DebugSession;
 
   constructor(protected readonly parent?: PeripheralBaseNode) {

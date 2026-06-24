@@ -45,7 +45,7 @@ export interface FieldOptions {
 
 export class Field extends PeripheralBaseNode {
   public readonly name: string;
-  public readonly description: string;
+  public readonly svdDescription: string;
   public readonly offset: number;
   public readonly width: number;
   public readonly accessType: AccessType;
@@ -59,7 +59,7 @@ export class Field extends PeripheralBaseNode {
     super(parent);
 
     this.name = options.name;
-    this.description = options.description;
+    this.svdDescription = options.description;
     this.offset = options.offset;
     this.width = options.width;
 
@@ -165,7 +165,7 @@ export class Field extends PeripheralBaseNode {
     }
 
     mds.appendMarkdown("\n____\n\n");
-    mds.appendMarkdown(this.description);
+    mds.appendMarkdown(this.svdDescription);
 
     mds.appendMarkdown("\n_____\n\n");
 
