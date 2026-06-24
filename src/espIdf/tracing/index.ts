@@ -38,7 +38,7 @@ import { SystemViewResultParser } from "./system-view";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
 import { AppTracePanel } from "./appTracePanel";
 
-export async function registerAppTraceCommands(context: ExtensionContext) {
+export function registerAppTraceCommands(context: ExtensionContext) {
   let appTraceTreeDataProvider = new AppTraceTreeDataProvider();
   let appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
   const appTraceManager = new AppTraceManager(

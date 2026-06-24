@@ -36,7 +36,7 @@ export async function getEspAdf(workspace?: Uri) {
   await adfInstaller.getRepository("ADF_PATH", workspace);
 }
 
-export async function registerEspAdfCmd(context: ExtensionContext) {
+export function registerEspAdfCmd(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.getEspAdf", async () => {
     return PreCheck.perform([openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();

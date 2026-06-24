@@ -38,7 +38,7 @@ import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
 import { statusBarItems } from "../../statusBar";
 import { ESP } from "../../config";
 
-export async function registerSetTargetCommand(context: ExtensionContext) {
+export function registerSetTargetCommand(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.setTarget", (target?: string) => {
     PreCheck.perform([openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();

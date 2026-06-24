@@ -23,7 +23,7 @@ import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { Logger } from "../common/logger";
 import { registerIDFCommand } from "../common/registerCommand";
 
-export async function addCmakeFileSystemWatcher(context: ExtensionContext) {
+export function addCmakeFileSystemWatcher(context: ExtensionContext) {
   // Add delete or update new sources in CMakeLists.txt of same folder
   const newSrcWatcher = workspace.createFileSystemWatcher(
     "**/*.{c,cpp,cc,S}",

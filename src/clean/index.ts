@@ -32,7 +32,7 @@ import del from "del";
 import { pathExists } from "fs-extra";
 import { ESP } from "../config";
 
-export async function registerFullCleanCmd(context: ExtensionContext) {
+export function registerFullCleanCmd(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.fullClean", () => {
     PreCheck.perform([openFolderCheck], async () => {
       const selectWorkspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
