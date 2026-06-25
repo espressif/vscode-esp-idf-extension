@@ -107,7 +107,7 @@ export class CDTDebugConfigurationProvider
         config.program = elfFilePath;
       }
       if (!config.gdb) {
-        config.gdb = await getToolchainPath(folder.uri, "gdb");
+        config.gdb = await getToolchainPath("gdb");
       }
       if (
         config.sessionID !== "core-dump.debug.session.ws" &&

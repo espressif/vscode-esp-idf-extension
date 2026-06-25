@@ -19,6 +19,17 @@ import { join } from "path";
 import { reportObj } from "./types";
 import { Uri, workspace } from "vscode";
 import { getCurrentIdfConfiguration } from "../configuration/env";
+import { isBinInPath } from "../utils";
+
+export function getIdfSetupVarsForReport(envVars: { [key: string]: string }) {
+  const setupVars: { [key: string]: string } = {};
+  for (const [key, value] of Object.entries(envVars)) {
+    if (process.env[key] !== value) {
+      setupVars[key] = value;
+    }
+  }
+  return setupVars;
+}
 
 export async function getConfigurationSettings(
   reportedResult: reportObj,
@@ -59,27 +70,34 @@ export async function getConfigurationSettings(
     ? join(idfPythonEnvPath, ...pyDir)
     : "";
 
+  const gitPath = await isBinInPath("git", currentEnvVars);
+
+  const systemPath =
+    (process.platform === "win32" ? process.env.Path : process.env.PATH) || "";
+
+  const customExtraPaths = currentEnvVars["PATH"].replace(systemPath, "");
+
   reportedResult.configurationSettings = {
-    espAdfPath: userExtraVars["ADF_PATH"],
+    customTerminalExecutable: conf.get("idf.customTerminalExecutable") || "",
+    customTerminalExecutableArgs:
+      conf.get("idf.customTerminalExecutableArgs") || [],
+    customOpenOcdPath: conf.get("idf.customOpenOCDPath") || "",
+    flashType: conf.get("idf.flashType") || "",
+    flashPartitionToUse: conf.get("idf.flashPartitionToUse") || "",
+    customExtraPaths: customExtraPaths,
     espIdfPath: idfPathDir,
-    customTerminalExecutable: conf.get("idf.customTerminalExecutable"),
-    customTerminalExecutableArgs: conf.get("idf.customTerminalExecutableArgs"),
-    customOpenOcdPath: conf.get("idf.customOpenOCDPath"),
-    flashType: conf.get("idf.flashType"),
-    flashPartitionToUse: conf.get("idf.flashPartitionToUse"),
-    customExtraPaths: currentEnvVars["PATH"],
-    idfExtraVars: currentEnvVars,
+    espAdfPath: userExtraVars["ADF_PATH"] || "",
+    idfExtraVars: getIdfSetupVarsForReport(currentEnvVars),
     userExtraVars: userExtraVars,
-    notificationMode: conf.get("idf.notificationMode"),
     pythonBinPath: venvPythonPath,
+    gitPath: gitPath || "",
     pythonPackages: [],
-    serialPort: conf.get("idf.port" + winFlag),
+    serialPort: conf.get("idf.port" + winFlag) || "",
     openOCDDebugLevel: conf.get("idf.openOcdDebugLevel") || "2",
     openOcdConfigs: conf.get("idf.openOcdConfigs") || [],
     openOcdLaunchArgs: conf.get("idf.openOcdLaunchArgs") || [],
     toolsPath: idfToolsPath,
-    systemEnvPath:
-      process.platform === "win32" ? process.env.Path : process.env.PATH,
-    gitPath: conf.get("idf.gitPath" + winFlag),
+    systemEnvPath: systemPath,
+    notificationMode: conf.get("idf.notificationMode") || "",
   };
 }

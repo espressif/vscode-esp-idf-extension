@@ -35,7 +35,6 @@ import {
   checkLaunchJson,
 } from "../support/checkVscodeFiles";
 import { getPythonPackages } from "../support/pythonPackages";
-import { getGitVersion } from "../support/gitVersion";
 import { writeTextReport } from "../support/writeReport";
 import { ProjectConfigStore } from "../project-conf/utils";
 import { createMockMemento } from "./mockUtils";
@@ -194,11 +193,6 @@ suite("Doctor Command tests", () => {
     }
   });
 
-  test("Match git version", async () => {
-    await getGitVersion(reportObj, mockUpContext);
-    assert.equal(reportObj.gitVersion.result, process.env.GIT_VERSION);
-  });
-
   test("Match ESP-IDF version", async () => {
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH || "";
     await getEspIdfVersion(reportObj);
@@ -296,7 +290,7 @@ suite("Doctor Command tests", () => {
     expectedOutput += `OpenOCD log level (idf.openOcdDebugLevel) ${reportObj.configurationSettings.openOCDDebugLevel}${os.EOL}`;
     expectedOutput += `OpenOCD launch arguments (idf.openOcdLaunchArgs) ${reportObj.configurationSettings.openOcdLaunchArgs}${os.EOL}`;
     expectedOutput += `ESP-IDF Tools Path ${reportObj.configurationSettings.toolsPath}${os.EOL}`;
-    expectedOutput += `Git Path (idf.gitPath) ${reportObj.configurationSettings.gitPath}${os.EOL}`;
+    expectedOutput += `Git Path (ESP-IDF Project Setup Variables PATH) ${reportObj.configurationSettings.gitPath}${os.EOL}`;
     expectedOutput += `Notification Mode (idf.notificationMode) ${reportObj.configurationSettings.notificationMode}${os.EOL}`;
     expectedOutput += `Flash type (idf.flashType) ${reportObj.configurationSettings.flashType}${os.EOL}`;
     expectedOutput += `Flash partition to use (idf.flashPartitionToUse) ${reportObj.configurationSettings.flashPartitionToUse}${os.EOL}`;

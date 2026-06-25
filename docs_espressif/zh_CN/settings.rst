@@ -48,14 +48,8 @@ Visual Studio Code 允许你在不同级别配置设置：**全局（用户设�
       - EIM 可执行文件参数（默认：``["gui", "--idf-features ide"]``）。该值会由扩展根据检测到的 EIM 启动模式自动更新。作用域：Application。
     * - **idf.currentSetup**
       - 当前 ESP-IDF 设置标识。作用域：Resource。
-    * - **idf.gitPath**
-      - Git 可执行文件路径（默认：``/usr/bin/git``）。作用域：Application。
-    * - **idf.gitPathWin**
-      - Windows 下 Git 可执行文件路径（默认：``${env:programfiles}\\Git\\cmd\\git.exe``）。作用域：Application。
     * - **idf.extensionActivationMode**
       - 控制扩展激活模式：``"detect"``（默认）、``"always"`` 或 ``"never"``。
-
-**idf.gitPath**（Windows 下为 **idf.gitPathWin**）在扩展中用于克隆 ESP-IDF 或 ESP-ADF、ESP-MDF、Arduino-ESP32 等支持的框架。
 
 串口
 ----

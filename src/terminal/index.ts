@@ -20,12 +20,12 @@ import { ExtensionContext, l10n, TerminalLocation, window } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { readParameter } from "../configuration/idf";
-import { configureEnvVariables } from "../common/prepareEnv";
 import { getCurrentIdfSetup } from "../eim/loadIdfSetup";
 import { pathExists } from "fs-extra";
 import { join } from "path";
 import { Logger } from "../common/logger";
 import { ESP } from "../config";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 
 export function registerIdfTerminalCommand(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.createIdfTerminal", () => {
@@ -84,7 +84,7 @@ export async function createEspIdfTerminal(
     return;
   }
 
-  const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
+  const modifiedEnv = getCurrentIdfConfiguration();
   const espIdfTerminal = window.createTerminal({
     name: terminalName,
     env: modifiedEnv,

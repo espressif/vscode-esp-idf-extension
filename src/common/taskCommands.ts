@@ -42,15 +42,13 @@ export function registerTaskCommands(context: ExtensionContext) {
 
   registerIDFCommand(context, "espIdf.getToolchainGdb", () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      return await getToolchainPath(wsFolder.uri, "gdb");
+      return await getToolchainPath("gdb");
     });
   });
 
   registerIDFCommand(context, "espIdf.getToolchainGcc", () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      return await getToolchainPath(wsFolder.uri, "gcc");
+      return await getToolchainPath("gcc");
     });
   });
 

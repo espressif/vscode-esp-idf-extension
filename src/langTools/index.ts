@@ -17,13 +17,13 @@ import { isSettingIDFTarget, setIsSettingIDFTarget } from "../espIdf/setTarget/m
 import {
   OutputCapturingExecution,
 } from "../taskManager/customExecution";
-import { configureEnvVariables } from "../common/prepareEnv";
 import { flashMain } from "../flash/main";
 import { isFlashRelatedTaskExitCode74 } from "../flash/shared/errHandling";
 import { eraseFlashMain } from "../eraseFlash/main";
 import { buildFlashAndMonitorCapture } from "../buildFlashMonitor";
 import { monitorMain } from "../espIdf/monitor/main";
 import { ShellOutputCapturingExecution } from "../taskManager/shellCaptureExecution";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 
 // Map of command names to their corresponding VS Code command IDs
 const COMMAND_MAP: Record<string, string> = {
@@ -143,7 +143,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       ) {
         partitionToUse = undefined;
       }
-      const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
+      const modifiedEnv = getCurrentIdfConfiguration();
 
       let continueFlag = true;
       let taskExecutions: IdfTaskExecution[] = [];

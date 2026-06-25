@@ -23,8 +23,7 @@ import {
   TaskManager,
 } from "../taskManager/taskManager";
 import { readParameter } from "../configuration/idf";
-import { configureEnvVariables } from "../common/prepareEnv";
-import { getVirtualEnvPythonPath } from "../configuration/env";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 import { join } from "path";
 import { getProjectName } from "../configuration/workspace";
 
@@ -50,7 +49,7 @@ export async function runSizeTaskIfEnabled(
   if (!pythonCommand) {
     throw new Error("Python path not found in environment");
   }
-  const modifiedEnv = await configureEnvVariables(workspace);
+  const modifiedEnv = getCurrentIdfConfiguration();
   const idfPath = modifiedEnv["IDF_PATH"];
   if (!idfPath) {
     throw new Error("IDF_PATH not found in environment");

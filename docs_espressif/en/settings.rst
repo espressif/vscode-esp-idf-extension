@@ -48,14 +48,8 @@ Setup & Installation
       - Arguments for the EIM executable (default: ``["gui", "--idf-features ide"]``). This value is updated automatically by the extension based on the detected EIM launch mode. Scope: Application.
     * - **idf.currentSetup**
       - Current ESP-IDF setup identifier. Scope: Resource.
-    * - **idf.gitPath**
-      - Path to the Git executable (default: ``/usr/bin/git``). Scope: Application.
-    * - **idf.gitPathWin**
-      - Path to the Git executable in Windows (default: ``${env:programfiles}\\Git\\cmd\\git.exe``). Scope: Application.
     * - **idf.extensionActivationMode**
       - Controls extension activation mode: ``"detect"`` (default), ``"always"``, or ``"never"``.
-
-**idf.gitPath** (or **idf.gitPathWin** on Windows) is used by the extension to clone ESP-IDF or additional supported frameworks such as ESP-ADF, ESP-MDF and Arduino-ESP32.
 
 Serial Port
 -----------

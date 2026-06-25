@@ -17,9 +17,29 @@ import { readFile, pathExists } from "fs-extra";
 import { Logger } from "../../common/logger";
 import * as utils from "../../utils";
 import { getOpenOcdHintsYmlPath, resolveIdfHintsYmlPath } from "./utils";
-import * as vscode from "vscode";
+import {
+  Event,
+  EventEmitter,
+  ExtensionContext,
+  HoverProvider,
+  l10n,
+  Position,
+  TextDocument,
+  ThemeIcon,
+  TreeDataProvider,
+  TreeItem,
+  TreeItemCollapsibleState,
+  Uri,
+  Range,
+  CancellationToken,
+  Hover,
+  ProviderResult,
+  languages,
+  DiagnosticSeverity,
+  MarkdownString
+} from "vscode";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 
 /**
  * Class representing a pair of regular expression and its corresponding hint.
@@ -44,7 +64,7 @@ class ReHintPair {
   }
 }
 
-export class ErrorHintTreeItem extends vscode.TreeItem {
+export class ErrorHintTreeItem extends TreeItem {
   constructor(
     public readonly label: string,
     public readonly type: "error" | "hint" | "reference",
@@ -54,8 +74,8 @@ export class ErrorHintTreeItem extends vscode.TreeItem {
     super(
       label,
       children.length > 0
-        ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.None
+        ? TreeItemCollapsibleState.Expanded
+        : TreeItemCollapsibleState.None
     );
 
     // Set different appearances based on the type
@@ -69,35 +89,34 @@ export class ErrorHintTreeItem extends vscode.TreeItem {
       this.label = `💡 ${label}`;
       this.tooltip = label;
     } else if (type === "reference") {
-      this.label = vscode.l10n.t(`🔗 Reference Documentation`);
-      this.tooltip = vscode.l10n.t(`Open {0}`, label);
+      this.label = l10n.t(`🔗 Reference Documentation`);
+      this.tooltip = l10n.t(`Open {0}`, label);
       this.command = {
         command: "vscode.open",
-        title: vscode.l10n.t("Open Reference"),
-        arguments: [vscode.Uri.parse(label)],
+        title: l10n.t("Open Reference"),
+        arguments: [Uri.parse(label)],
       };
-      this.iconPath = new vscode.ThemeIcon("link-external");
+      this.iconPath = new ThemeIcon("link-external");
     }
   }
 }
 
-export class ErrorHintProvider
-  implements vscode.TreeDataProvider<ErrorHintTreeItem> {
-  private _onDidChangeTreeData: vscode.EventEmitter<
+export class ErrorHintProvider implements TreeDataProvider<ErrorHintTreeItem> {
+  private _onDidChangeTreeData: EventEmitter<
     ErrorHintTreeItem | undefined | null | void
-  > = new vscode.EventEmitter<ErrorHintTreeItem | undefined | null | void>();
+  > = new EventEmitter<ErrorHintTreeItem | undefined | null | void>();
 
-  readonly onDidChangeTreeData: vscode.Event<
+  readonly onDidChangeTreeData: Event<
     ErrorHintTreeItem | undefined | null | void
   > = this._onDidChangeTreeData.event;
 
   private buildErrorData: ErrorHintTreeItem[] = [];
   private openocdErrorData: ErrorHintTreeItem[] = [];
 
-  constructor(private context: vscode.ExtensionContext) {}
+  constructor(private context: ExtensionContext) {}
 
   // Get tree item for display
-  getTreeItem(element: ErrorHintTreeItem): vscode.TreeItem {
+  getTreeItem(element: ErrorHintTreeItem): TreeItem {
     return element;
   }
 
@@ -159,9 +178,11 @@ export class ErrorHintProvider
 
       return true;
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        `Error showing OpenOCD error hint: ${error.message}`,
-        error,
+        `Error showing OpenOCD error hint: ${errorMessage}`,
+        error as Error,
         "ErrorHintProvider showOpenOCDErrorHint"
       );
       return false;
@@ -169,13 +190,10 @@ export class ErrorHintProvider
   }
 
   // Method to search for error hints
-  public async searchError(
-    errorMsg: string,
-    workspace: vscode.Uri
-  ): Promise<boolean> {
+  public async searchError(errorMsg: string, workspace: Uri): Promise<boolean> {
     this.buildErrorData = [];
 
-    const modifiedEnv = await configureEnvVariables(workspace);
+    const modifiedEnv = getCurrentIdfConfiguration();
     const espIdfPath = modifiedEnv["IDF_PATH"];
 
     const version = await utils.getEspIdfFromCMake(espIdfPath);
@@ -207,9 +225,11 @@ export class ErrorHintProvider
         );
       }
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       Logger.error(
-        `Failed to initialize OpenOCDManager or get version: ${error.message}`,
-        error,
+        `Failed to initialize OpenOCDManager or get version: ${errorMessage}`,
+        error as Error,
         "ErrorHintProvider searchError"
       );
     }
@@ -228,9 +248,11 @@ export class ErrorHintProvider
             (await this.processHints(errorMsg, reHintsPairArray)) ||
             meaningfulHintFound;
         } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
           Logger.errorNotify(
-            `Error processing ESP-IDF hints file (line ${error.mark?.line}): ${error.message}`,
-            error,
+            `Error processing ESP-IDF hints file (line ${error.mark?.line}): ${errorMessage}`,
+            error as Error,
             "ErrorHintProvider searchError"
           );
         }
@@ -251,9 +273,11 @@ export class ErrorHintProvider
             (await this.processHints(errorMsg, reHintsPairArray)) ||
             meaningfulHintFound;
         } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
           Logger.errorNotify(
-            `Error processing OpenOCD hints file (line ${error.mark?.line}): ${error.message}`,
-            error,
+            `Error processing OpenOCD hints file (line ${error.mark?.line}): ${errorMessage}`,
+            error as Error,
             "ErrorHintProvider searchError"
           );
         }
@@ -270,9 +294,12 @@ export class ErrorHintProvider
       this._onDidChangeTreeData.fire();
       return meaningfulHintFound;
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
       Logger.errorNotify(
-        `Error processing hints file: ${error.message}`,
-        error,
+        `Error processing hints file: ${errorMessage}`,
+        error as Error,
         "ErrorHintProvider searchError"
       );
       return false;
@@ -618,21 +645,21 @@ export class ErrorHintProvider
   }
 }
 
-export class HintHoverProvider implements vscode.HoverProvider {
+export class HintHoverProvider implements HoverProvider {
   constructor(private hintProvider: ErrorHintProvider) {}
 
   provideHover(
-    document: vscode.TextDocument,
-    position: vscode.Position,
-    token: vscode.CancellationToken
-  ): vscode.ProviderResult<vscode.Hover> {
+    document: TextDocument,
+    position: Position,
+    token: CancellationToken
+  ): ProviderResult<Hover> {
     // Get all diagnostics for this document
-    const diagnostics = vscode.languages
+    const diagnostics = languages
       .getDiagnostics(document.uri)
       .filter(
         (diagnostic) =>
           diagnostic.source === "esp-idf" &&
-          diagnostic.severity === vscode.DiagnosticSeverity.Error
+          diagnostic.severity === DiagnosticSeverity.Error
       );
 
     // No ESP-IDF diagnostics found for this document
@@ -648,9 +675,9 @@ export class HintHoverProvider implements vscode.HoverProvider {
 
       // Expand the range slightly to make it easier to hover
       const lineText = document.lineAt(range.start.line).text;
-      const expandedRange = new vscode.Range(
-        new vscode.Position(range.start.line, 0),
-        new vscode.Position(range.end.line, lineText.length)
+      const expandedRange = new Range(
+        new Position(range.start.line, 0),
+        new Position(range.end.line, lineText.length)
       );
 
       // Check if position is within the expanded range
@@ -666,7 +693,7 @@ export class HintHoverProvider implements vscode.HoverProvider {
             hoverMessage += `\n\n[Reference Documentation](${hintInfo.ref})`;
           }
           // We found a hint, return it with markdown formatting
-          return new vscode.Hover(new vscode.MarkdownString(`${hoverMessage}`));
+          return new Hover(new MarkdownString(`${hoverMessage}`));
         }
       }
     }

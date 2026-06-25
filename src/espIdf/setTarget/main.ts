@@ -39,10 +39,13 @@ import { getTargetsFromEspIdf, IdfTarget } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 import { updateCurrentProfileIdfTarget } from "../../project-conf/utils";
 import { DevkitsCommand } from "./DevkitsCommand";
-import { clearAdapterSerial, storeAdapterSerial, supportsSerialFromDetectConfig } from "../openOcd/adapterSerial";
-import { SerialPort } from "../serial/serialPort";
+import {
+  clearAdapterSerial,
+  storeAdapterSerial,
+  supportsSerialFromDetectConfig,
+} from "../openOcd/adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 
 export let isSettingIDFTarget = false;
 
@@ -105,7 +108,7 @@ export async function setIdfTarget(
             const openOCDManager = OpenOCDManager.init();
             openOCDVersion = await openOCDManager.version();
             const devkitsCmd = new DevkitsCommand(workspaceFolder);
-            const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
+            const modifiedEnv = getCurrentIdfConfiguration();
             const openOcdPath = await OpenOCDManager.getOpenOcdPath(
               workspaceFolder.uri,
               modifiedEnv
@@ -204,7 +207,10 @@ export async function setIdfTarget(
           openOCDVersion &&
           supportsSerialFromDetectConfig(openOCDVersion)
         ) {
-          storeAdapterSerial(workspaceFolder.uri, selectedTarget.boardInfo.serial_number);
+          storeAdapterSerial(
+            workspaceFolder.uri,
+            selectedTarget.boardInfo.serial_number
+          );
           updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
         }
 

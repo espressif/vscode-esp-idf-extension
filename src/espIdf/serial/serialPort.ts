@@ -26,8 +26,7 @@ import * as SerialPortLib from "serialport";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
 import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
 import { showInfoNotificationWithAction } from "../../common/customNotifications";
-import { configureEnvVariables } from "../../common/prepareEnv";
-import { ConfigurationTarget, FileStat, FileType, ProgressLocation, QuickPickItem, Uri, WorkspaceFolder, commands, l10n, window, workspace } from "vscode";
+import { ConfigurationTarget, FileStat, FileType, ProgressLocation, QuickPickItem, Uri, commands, l10n, window, workspace } from "vscode";
 
 export class SerialPort {
   /**
@@ -95,7 +94,7 @@ export class SerialPort {
       },
       async (progress) => {
         try {
-          const modifiedEnv = await configureEnvVariables(workspaceFolder);
+          const modifiedEnv = getCurrentIdfConfiguration();
           const idfPath = modifiedEnv["IDF_PATH"];
           const pythonBinPath = getVirtualEnvPythonPath();
           if (!pythonBinPath) {

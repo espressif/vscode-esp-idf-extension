@@ -31,11 +31,11 @@ import { assertMinimumOpenOcdVersionForJtag } from "./transports/jtag/assertMini
 import { uartFlashCommandMain } from "./transports/uart/uartFlashCmd";
 import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 import { resolveFlashTypeForTask } from "./resolveFlashContext";
-import { configureEnvVariables } from "../common/prepareEnv";
 import { throwCapturedTaskFailure } from "../taskManager/taskManager";
 import { CustomExecutionTaskResult } from "../taskManager/types";
 import { FlashSession } from "./shared/flashSession";
 import { handleFlashCommandCatch } from "./shared/errHandling";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 export { selectFlashMethod } from "./selectFlashMethod";
 
 export async function flashMain(
@@ -91,7 +91,7 @@ export async function flashMain(
       "idf.flashBaudRate",
       workspaceFolderUri
     ) as string;
-    const modifiedEnv = await configureEnvVariables(workspaceFolderUri);
+    const modifiedEnv = getCurrentIdfConfiguration();
     const canFlash = await verifyCanFlash(
       flashBaudRate,
       port,

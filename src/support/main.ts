@@ -20,7 +20,6 @@ import { Logger } from "../common/logger";
 import { reportObj } from "./types";
 import { getConfigurationSettings } from "./configurationSettings";
 import { getConfigurationAccess } from "./configurationAccess";
-import { getGitVersion } from "./gitVersion";
 import { getEspIdfVersion } from "./espIdfVersion";
 import { getPythonVersion } from "./pythonVersion";
 import { getPipVersion } from "./pipVersion";
@@ -37,6 +36,7 @@ import {
 } from "./projectConfiguration";
 import { checkIDFSetups } from "./checkIdfSetups";
 import { getWorkspaceFolder } from "./getWorkspaceFolder";
+import { isBinInPath } from "../utils";
 
 export async function generateConfigurationReport(
   context: vscode.ExtensionContext,
@@ -72,13 +72,8 @@ export async function generateConfigurationReport(
   });
   checkSpacesInSettings(reportedResult);
   progress.report({
-    message: "Checking git version...",
-    increment: 27,
-  });
-  await getGitVersion(reportedResult, context);
-  progress.report({
     message: "Checking ESP-IDF version...",
-    increment: 33,
+    increment: 30,
   });
   await getEspIdfVersion(reportedResult);
   progress.report({

@@ -23,8 +23,7 @@ import { OutputChannel } from "../../../common/outputChannel";
 import { KconfigMenuLoader } from "../kconfigMenus/loader";
 import { Menu } from "../Menu";
 import { MenuConfigPanel } from "../panel/panel";
-import { getVirtualEnvPythonPath } from "../../../configuration/env";
-import { configureEnvVariables } from "../../../common/prepareEnv";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../../configuration/env";
 import { delConfigFile, getSDKConfigFilePath } from "../../../configuration/workspace";
 import {
   parseConfserverJsonChunk,
@@ -101,7 +100,7 @@ export class ConfserverProcess {
   }
 
   public static async init(workspaceFolder: Uri, extensionPath: string) {
-    const modifiedEnv = await configureEnvVariables(workspaceFolder);
+    const modifiedEnv = getCurrentIdfConfiguration();
     if (!ConfserverProcess.instance) {
       const pythonBinPath = await resolveExistingPythonBinaryForIdfPy();
       ConfserverProcess.instance = new ConfserverProcess(
@@ -233,7 +232,7 @@ export class ConfserverProcess {
     progress.report({ increment: 10, message: "Deleting current values..." });
     ConfserverProcess.instance.areValuesSaved = true;
     const currWorkspace = ConfserverProcess.instance.workspaceFolder;
-    const modifiedEnv = await configureEnvVariables(currWorkspace);
+    const modifiedEnv = getCurrentIdfConfiguration();
     const idfRoot = modifiedEnv["IDF_PATH"];
     if (!idfRoot) {
       throw new Error("IDF_PATH is not set in the environment.");
