@@ -24,7 +24,7 @@ import { exec } from "child_process";
 import { IGcovOutput } from "./gcovData";
 import { Logger } from "../common/logger";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
-import { configureEnvVariables } from "../common/prepareEnv";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 
 export async function getGcdaPaths(workspaceFolder: Uri) {
   const gcdaPaths: Set<string> = new Set();
@@ -63,7 +63,7 @@ export async function getGcovData(workspaceFolder: Uri) {
   }
 
   return new Promise<IGcovOutput[]>(async (resolve, reject) => {
-    const modifiedEnv = await configureEnvVariables(workspaceFolder);
+    const modifiedEnv = getCurrentIdfConfiguration();
     exec(
       command,
       {

@@ -20,9 +20,8 @@ import { l10n, Progress, ProgressLocation, Uri, window } from "vscode";
 import { NotificationMode, readParameter, readSerialPort } from "../../configuration/idf";
 import { Logger } from "../../common/logger";
 import { spawn } from "../../utils";
-import { getVirtualEnvPythonPath } from "../../configuration/env";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
 import { ensureDir } from "fs-extra";
-import { configureEnvVariables } from "../../common/prepareEnv";
 
 export async function readPartition(
   name: string,
@@ -47,7 +46,7 @@ export async function readPartition(
     },
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
-        const modifiedEnv = await configureEnvVariables(workspaceFolder);
+        const modifiedEnv = getCurrentIdfConfiguration();
         const serialPort = await readSerialPort(workspaceFolder, false);
         if (!serialPort) {
           return Logger.warnNotify(

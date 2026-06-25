@@ -673,18 +673,6 @@
             "default": true,
             "scope": "resource",
             "description": "%param.saveLastProjectConfiguration%"
-          },
-          "idf.gitPath": {
-            "type": "string",
-            "description": "%param.gitPath.title%",
-            "scope": "application",
-            "default": "/usr/bin/git"
-          },
-          "idf.gitPathWin": {
-            "type": "string",
-            "description": "%param.gitPath.title%",
-            "scope": "application",
-            "default": "${env:programfiles}\\Git\\cmd\\git.exe"
           }
         }
       },

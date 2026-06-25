@@ -17,7 +17,6 @@
  */
 
 import { MonitorConfig } from "./types";
-import { configureEnvVariables } from "../../common/prepareEnv";
 import { ESP } from "../../config";
 import { window, Terminal, env, debug } from "vscode";
 import {
@@ -27,6 +26,7 @@ import {
   resolveMonitorBaudRate,
 } from "./argsBuilder";
 import { platform } from "os";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 
 export function getUserShell() {
   const shell = env.shell;
@@ -64,9 +64,7 @@ export class IDFMonitor {
   }
 
   static async start() {
-    const modifiedEnv = await configureEnvVariables(
-      this.config.workspaceFolder.uri
-    );
+    const modifiedEnv = getCurrentIdfConfiguration();
     if (!IDFMonitor.terminal) {
       IDFMonitor.terminal = window.createTerminal({
         name: `ESP-IDF Monitor ${this.config.wsPort ? "(--ws enabled)" : ""}`,

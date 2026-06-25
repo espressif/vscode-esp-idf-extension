@@ -70,7 +70,7 @@ export async function writeTextReport(
   output += `OpenOCD log level (idf.openOcdDebugLevel) ${reportedResult.configurationSettings.openOCDDebugLevel}${EOL}`;
   output += `OpenOCD launch arguments (idf.openOcdLaunchArgs) ${reportedResult.configurationSettings.openOcdLaunchArgs}${EOL}`;
   output += `ESP-IDF Tools Path ${reportedResult.configurationSettings.toolsPath}${EOL}`;
-  output += `Git Path (idf.gitPath) ${reportedResult.configurationSettings.gitPath}${EOL}`;
+  output += `Git Path (ESP-IDF Project Setup Variables PATH) ${reportedResult.configurationSettings.gitPath}${EOL}`;
   output += `Notification Mode (idf.notificationMode) ${reportedResult.configurationSettings.notificationMode}${EOL}`;
   output += `Flash type (idf.flashType) ${reportedResult.configurationSettings.flashType}${EOL}`;
   output += `Flash partition to use (idf.flashPartitionToUse) ${reportedResult.configurationSettings.flashPartitionToUse}${EOL}`;
@@ -112,11 +112,6 @@ export async function writeTextReport(
   output += `Spaces in Virtual environment Python path (computed) ${reportedResult.configurationSpacesValidation.pythonBinPath}${EOL}`;
   output += `Spaces in ESP-IDF Tools Path ${reportedResult.configurationSpacesValidation.toolsPath}${EOL}`;
   output += `----------------------------------------------------------- Executables Versions -----------------------------------------------------------${EOL}`;
-  output += `Git version ${
-    reportedResult.gitVersion.result
-      ? reportedResult.gitVersion.result
-      : reportedResult.gitVersion.output
-  }${EOL}`;
   output += `ESP-IDF version ${
     reportedResult.espIdfVersion.result
       ? reportedResult.espIdfVersion.result
@@ -253,11 +248,11 @@ export function replaceUserPath(report: reportObj): reportObj {
   // Replacing all home paths (based on OS) with '...' using es6 syntax. Can be replaced with one line using .replaceAll() when we will update the version of ECMAScript to 2021 or higher
   const parsedReport = replaceUserPathInStr(strReport);
 
-  return JSON.parse(parsedReport);
+  return parsedReport ? JSON.parse(parsedReport) : report;
 }
 
 function replaceUserPathInStr(strReport: string) {
-  if (process.env.windir) {
+  if (process.env.HOMEPATH) {
     const homePath = process.env.HOMEPATH;
     // Escape the path for regex, but keep backslashes as is
     const escapedPath = homePath.replace(/[.*+?^${}()|[\]\\]/g, (match) => {
@@ -272,7 +267,7 @@ function replaceUserPathInStr(strReport: string) {
     const pattern = `(${escapedPath}|${posixPath})`;
     const re = new RegExp(pattern, "g");
     return strReport.replace(re, "<HOMEPATH>");
-  } else {
+  } else if (process.env.HOME) {
     // For non-Windows systems, escape HOME path for regex
     const escapedHome = process.env.HOME.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const re = new RegExp(escapedHome, "g");

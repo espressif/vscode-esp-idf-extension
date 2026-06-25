@@ -206,8 +206,7 @@ For more information about ``devcontainer.json``, please refer to the comments.
         /* Machine specific settings that should be copied into the container
         */
         "settings": {
-            "terminal.integrated.defaultProfile.linux": "bash",
-            "idf.gitPath": "/usr/bin/git"
+            "terminal.integrated.defaultProfile.linux": "bash"
         },
         /* An array of extensions that should be installed into the container. */
         "extensions": ["espressif.esp-idf-extension"],

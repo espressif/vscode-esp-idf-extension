@@ -22,7 +22,7 @@ import { readParameter } from "./configuration/idf";
 import { Logger } from "./common/logger";
 import { OutputChannel } from "./common/outputChannel";
 import { ESP } from "./config";
-import { configureEnvVariables } from "./common/prepareEnv";
+import { getCurrentIdfConfiguration } from "./configuration/env";
 
 export const packageJson = vscode.extensions.getExtension(ESP.extensionID)
   ?.packageJSON;
@@ -134,11 +134,8 @@ export function canAccessFile(
   }
 }
 
-export async function getToolchainPath(
-  workspaceUri: vscode.Uri,
-  tool: string = "gcc"
-) {
-  const modifiedEnv = await configureEnvVariables(workspaceUri);
+export async function getToolchainPath(tool: string = "gcc") {
+  const modifiedEnv = getCurrentIdfConfiguration();
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool = getToolchainToolName(idfTarget, tool);
   try {
@@ -176,18 +173,25 @@ export function execChildProcess(
   opts?: childProcess.ExecFileOptions,
   cancelToken?: vscode.CancellationToken
 ): Promise<string> {
-  const execOpts: childProcess.ExecFileOptions = opts
-    ? opts
-    : {
-        cwd: workingDirectory,
-        maxBuffer: 500 * 1024,
-      };
+  const execOpts: childProcess.ExecFileOptionsWithStringEncoding = {
+    cwd: workingDirectory,
+    maxBuffer: 500 * 1024,
+    ...(opts ?? {}),
+    encoding:
+      opts?.encoding && opts.encoding !== "buffer"
+        ? (opts.encoding as BufferEncoding)
+        : "utf8",
+  };
   return new Promise<string>((resolve, reject) => {
     childProcess.execFile(
       command,
       args,
       execOpts,
-      (error: Error | null, stdout: string, stderr: string) => {
+      (
+        error: childProcess.ExecFileException | null,
+        stdout: string,
+        stderr: string
+      ) => {
         if (cancelToken && cancelToken.isCancellationRequested) {
           return reject(new Error("Process cancelled by user"));
         }

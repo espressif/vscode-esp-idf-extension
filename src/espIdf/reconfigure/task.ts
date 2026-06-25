@@ -19,8 +19,7 @@
 import { ExtensionContext, Uri } from "vscode";
 import { join } from "path";
 import { addProcessTask, TaskManager } from "../../taskManager/taskManager";
-import { getVirtualEnvPythonPath } from "../../configuration/env";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
 import { buildIdfPyConfigSubcommandArgs } from "../common/idfPySubCmdBuilder";
 import { withProgressWrapper } from "../../common/withProgressWrapper";
 import { registerIDFCommand } from "../../common/registerCommand";
@@ -29,7 +28,7 @@ import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
 
 export async function addIdfReconfigureTask(workspace: Uri) {
-  const modifiedEnv = await configureEnvVariables(workspace);
+  const modifiedEnv = getCurrentIdfConfiguration();
   const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
   const reconfigureArgs = buildIdfPyConfigSubcommandArgs(
     idfPy,

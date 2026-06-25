@@ -34,9 +34,11 @@ import { statusBarItems } from "../statusBar";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { isBinInPath } from "../utils";
 import { IdfToolsManager } from "../idfToolsManager";
-import { configureEnvVariables } from "../common/prepareEnv";
 import { join } from "path";
-import { getVirtualEnvPythonPath } from "../configuration/env";
+import {
+  getCurrentIdfConfiguration,
+  getVirtualEnvPythonPath,
+} from "../configuration/env";
 
 export enum QemuLaunchMode {
   Debug,
@@ -119,7 +121,7 @@ export class QemuManager extends EventEmitter {
       "idf.qemuExtraArgs",
       workspaceFolder
     ) as string[];
-    const modifiedEnv = await configureEnvVariables(workspaceFolder);
+    const modifiedEnv = getCurrentIdfConfiguration();
     const idfPathDir = modifiedEnv["IDF_PATH"];
     const idfPy = join(idfPathDir, "tools", "idf.py");
     let launchArgs = [idfPy, "-B", buildPath, "qemu"];
@@ -177,11 +179,15 @@ export class QemuManager extends EventEmitter {
     return qemuDictionary;
   }
 
-  public async start(extensionPath: string, mode: QemuLaunchMode, workspaceFolder: Uri) {
+  public async start(
+    extensionPath: string,
+    mode: QemuLaunchMode,
+    workspaceFolder: Uri
+  ) {
     if (this.isRunning()) {
       return;
     }
-    const modifiedEnv = await configureEnvVariables(workspaceFolder);
+    const modifiedEnv = getCurrentIdfConfiguration();
     const qemuExecutableDict = await this.getQemuExecutable(
       extensionPath,
       modifiedEnv.IDF_PATH

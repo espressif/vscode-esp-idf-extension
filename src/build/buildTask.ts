@@ -19,13 +19,13 @@
 import { ensureDir, pathExists } from "fs-extra";
 import { join } from "path";
 import { addProcessTask } from "../taskManager/taskManager";
-import { configureEnvVariables } from "../common/prepareEnv";
 import { ESP } from "../config";
 import type { OutputCapturingExecution } from "../taskManager/customExecution";
 import type { ProcessExecution, Uri } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { runValidationBeforeBuild } from "./validation";
 import { enqueueCompileTaskIfNoCache } from "./cmakeConfigure";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 
 export class BuildTask {
   public static isBuilding: boolean;
@@ -63,7 +63,7 @@ export class BuildTask {
     ]
   > {
     try {
-      const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
+      const modifiedEnv = getCurrentIdfConfiguration();
       const buildDirPath = readParameter(
         "idf.buildPath",
         this.currentWorkspace

@@ -16,17 +16,17 @@
  * limitations under the License.
  */
 import { Uri } from "vscode";
-import { configureEnvVariables } from "../../../common/prepareEnv";
 import { resolveEsptoolInvocation } from "../../../flash/shared/esptool/resolveEsptoolInvocation";
 import { addProcessTask } from "../../../taskManager/taskManager";
 import { buildUartEraseFlashArgs } from "./eraseFlashUartArgs";
+import { getCurrentIdfConfiguration } from "../../../configuration/env";
 
 export async function createEraseFlashProcessTask(
   workspace: Uri,
   port: string,
   captureOutput?: boolean
 ) {
-  const modifiedEnv = await configureEnvVariables(workspace);
+  const modifiedEnv = getCurrentIdfConfiguration();
   const {
     pythonPath: pythonBinPath,
     esptoolScriptPath,

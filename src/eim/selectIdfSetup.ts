@@ -16,14 +16,13 @@
  * limitations under the License.
  */
 
-import { commands, l10n, StatusBarItem, window, WorkspaceFolder } from "vscode";
+import { commands, l10n, window, WorkspaceFolder } from "vscode";
 import { getIdfSetups } from "../eim/getExistingSetups";
 import { saveSettings } from "../eim/verifySetup";
 
 export async function selectIdfSetup(
   extensionPath: string,
-  workspaceFolder: WorkspaceFolder,
-  espIdfStatusBar: StatusBarItem
+  workspaceFolder: WorkspaceFolder
 ) {
   let idfSetups = await getIdfSetups(workspaceFolder);
   if (!idfSetups || (idfSetups && idfSetups.length === 0)) {
@@ -59,8 +58,7 @@ export async function selectIdfSetup(
   await saveSettings(
     extensionPath,
     selectedIdfSetupOption.target,
-    workspaceFolder,
-    espIdfStatusBar
+    workspaceFolder
   );
   return selectedIdfSetupOption.target;
 }
