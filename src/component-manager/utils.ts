@@ -21,7 +21,6 @@ import { CancellationToken, Uri, l10n } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { join } from "path";
 import { EOL } from "os";
-import { configureEnvVariables } from "../common/prepareEnv";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 
 export async function addDependency(
@@ -34,7 +33,7 @@ export async function addDependency(
     const currentEnvVars = getCurrentIdfConfiguration();
     const idfPathDir = currentEnvVars["IDF_PATH"];
     const idfPy = join(idfPathDir, "tools", "idf.py");
-    const modifiedEnv = await configureEnvVariables(workspace);
+    const modifiedEnv = getCurrentIdfConfiguration();
     const pythonBinPath = getVirtualEnvPythonPath();
     if (
       !existsSync(idfPathDir) ||
@@ -88,7 +87,7 @@ export async function createProject(
     const currentEnvVars = getCurrentIdfConfiguration();
     const idfPathDir = currentEnvVars["IDF_PATH"];
     const idfPy = join(idfPathDir, "tools", "idf.py");
-    const modifiedEnv = await configureEnvVariables(workspace);
+    const modifiedEnv = getCurrentIdfConfiguration();
     const pythonBinPath = getVirtualEnvPythonPath();
 
     if (

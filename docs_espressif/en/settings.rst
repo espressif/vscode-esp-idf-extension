@@ -50,14 +50,8 @@ Setup & Installation
       - Path to the currently selected ESP-IDF directory. Scope: Resource.
     * - **idf.saveLastProjectConfiguration**
       - Restore the project configuration that was selected last when the workspace is reopened (default: ``true``). When disabled, no configuration is selected on startup. Scope: Resource.
-    * - **idf.gitPath**
-      - Path to the Git executable (default: ``/usr/bin/git``). Scope: Application.
-    * - **idf.gitPathWin**
-      - Path to the Git executable in Windows (default: ``${env:programfiles}\\Git\\cmd\\git.exe``). Scope: Application.
     * - **idf.extensionActivationMode**
       - Controls extension activation mode: ``"detect"`` (default), ``"always"``, or ``"never"``.
-
-**idf.gitPath** (or **idf.gitPathWin** on Windows) is used by the extension to clone ESP-IDF or additional supported frameworks such as ESP-ADF, ESP-MDF and Arduino-ESP32.
 
 Serial Port
 -----------

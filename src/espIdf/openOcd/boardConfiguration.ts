@@ -32,7 +32,6 @@ import {
 import { Logger } from "../../common/logger";
 import { defaultBoards } from "./defaultBoards";
 import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
-import { configureEnvVariables } from "../../common/prepareEnv";
 import { DevkitsCommand } from "../setTarget/DevkitsCommand";
 import { OpenOCDManager } from "./openOcdManager";
 import {
@@ -45,6 +44,7 @@ import {
   updateCurrentProfileCustomExtraVars,
   updateCurrentProfileOpenOcdConfigs,
 } from "../../project-conf";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 
 export interface IdfBoard {
   name: string;
@@ -65,7 +65,7 @@ interface BoardQuickPickItem extends QuickPickItem {
 }
 
 export async function getOpenOcdScripts(workspaceFolder: WorkspaceFolder): Promise<string> {
-  const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
+  const modifiedEnv = getCurrentIdfConfiguration();
   const userExtraVars = readParameter(
     "idf.customExtraVars",
     workspaceFolder
@@ -173,7 +173,7 @@ export async function selectOpenOcdConfigFiles(
         const openOCDManager = OpenOCDManager.init();
         openOCDVersion = await openOCDManager.version();
         const devkitsCmd = new DevkitsCommand(workspaceFolder);
-        const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
+        const modifiedEnv = getCurrentIdfConfiguration();
         const openOcdPath = await OpenOCDManager.getOpenOcdPath(
           workspaceFolder.uri,
           modifiedEnv
@@ -401,3 +401,4 @@ export async function selectOpenOcdConfigFiles(
     return;
   }
 }
+

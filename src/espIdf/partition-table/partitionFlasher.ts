@@ -25,8 +25,7 @@ import {
 } from "../../configuration/idf";
 import { Logger } from "../../common/logger";
 import { spawn } from "../../utils";
-import { getVirtualEnvPythonPath } from "../../configuration/env";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
 
 export async function flashBinaryToPartition(
   offset: string,
@@ -50,7 +49,7 @@ export async function flashBinaryToPartition(
     },
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
-        const modifiedEnv = await configureEnvVariables(workspaceFolder);
+        const modifiedEnv = getCurrentIdfConfiguration();
         const serialPort = await readSerialPort(workspaceFolder, false);
         if (!serialPort) {
           return Logger.warnNotify(

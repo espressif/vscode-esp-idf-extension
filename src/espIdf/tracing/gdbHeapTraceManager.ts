@@ -30,7 +30,7 @@ import {
   AppTraceButtonType,
   AppTraceTreeDataProvider,
 } from "./tree/appTraceTreeDataProvider";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 
 export class GdbHeapTraceManager {
   private treeDataProvider: AppTraceTreeDataProvider;
@@ -66,7 +66,7 @@ export class GdbHeapTraceManager {
           throw new Error(`${buildDirPath} doesn't exist. Build first.`);
         }
         await this.createGdbinitFile(fileName, buildDirPath);
-        const modifiedEnv = await configureEnvVariables(workspace);
+        const modifiedEnv = getCurrentIdfConfiguration();
         const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
         const gdbTool = getToolchainToolName(idfTarget, "gdb");
         const isGdbToolInPath = await isBinInPath(

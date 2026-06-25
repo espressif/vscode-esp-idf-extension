@@ -23,13 +23,12 @@ import { OutputChannel } from "../../common/outputChannel";
 import { spawn } from "../../utils";
 import { ConfserverProcess } from "../menuconfig/confserver/confServerProcess";
 import { IdfTarget } from "./getTargets";
-import { getVirtualEnvPythonPath } from "../../configuration/env";
-import * as vscode from "vscode";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
+import { l10n, Uri } from "vscode";
 import { setCCppPropertiesJsonCompilerPath } from "../../configuration/workspace";
 
 export async function setTargetInIDF(
-  workspaceFolder: vscode.Uri,
+  workspaceFolder: Uri,
   selectedTarget: IdfTarget
 ) {
   try {
@@ -40,7 +39,7 @@ export async function setTargetInIDF(
       "idf.buildPath",
       workspaceFolder
     ) as string;
-    const modifiedEnv = await configureEnvVariables(workspaceFolder);
+    const modifiedEnv = getCurrentIdfConfiguration();
     const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
     delete modifiedEnv.IDF_TARGET;
     const enableCCache = readParameter(
@@ -83,7 +82,7 @@ export async function setTargetInIDF(
       silent: false,
     });
     Logger.info(setTargetResult.toString());
-    const msg = vscode.l10n.t(
+    const msg = l10n.t(
       "Target {0} Set Successfully.",
       selectedTarget.target.toLocaleUpperCase()
     );

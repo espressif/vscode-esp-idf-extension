@@ -19,7 +19,7 @@ import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { Uri } from "vscode";
 import { Logger } from "../../common/logger";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 
 export interface IdfTarget {
   label: string;
@@ -32,7 +32,7 @@ export async function getTargetsFromEspIdf(
   workspaceFolder: Uri,
   givenIdfPathDir?: string
 ) {
-  const modifiedEnv = await configureEnvVariables(workspaceFolder);
+  const modifiedEnv = getCurrentIdfConfiguration();
   const idfPathDir = givenIdfPathDir
     ? givenIdfPathDir
     : modifiedEnv["IDF_PATH"];
@@ -81,7 +81,7 @@ export async function getTargetsFromEspIdf(
   } catch (error) {
     Logger.errorNotify(
       `Error while getting targets from ESP-IDF: ${error}`,
-      error,
+      error as Error,
       "getTargetsFromEspIdf"
     );
     return resultTargetArray;

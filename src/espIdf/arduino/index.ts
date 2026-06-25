@@ -19,8 +19,6 @@
 import { ExtensionContext, l10n } from "vscode";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { withProgressWrapper } from "../../common/withProgressWrapper";
-import { readParameter } from "../../configuration/idf";
-import { getCurrentIdfConfiguration } from "../../configuration/env";
 import { ArduinoComponentInstaller } from "./addArduinoComponent";
 import { join } from "path";
 import { dirExistPromise } from "../../utils";
@@ -39,14 +37,8 @@ export function registerAddArduinoAsComponentCmd(context: ExtensionContext) {
         async (_progress, cancelToken) => {
           try {
             const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-            const gitPath =
-              (readParameter("idf.gitPath", wsFolder) as string) || "git";
-            const currentEnvVars = getCurrentIdfConfiguration();
-            let idfPath = currentEnvVars["IDF_PATH"];
             const arduinoComponentManager = new ArduinoComponentInstaller(
-              idfPath,
               wsFolder.uri.fsPath,
-              gitPath
             );
             cancelToken.onCancellationRequested(() => {
               arduinoComponentManager.cancel();

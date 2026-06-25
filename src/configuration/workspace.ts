@@ -22,9 +22,9 @@ import { isSettingIDFTarget } from "../espIdf/setTarget/main";
 import { pathExists, readFile } from "fs-extra";
 import { canAccessFile, getToolchainToolName, isBinInPath } from "../utils";
 import { IdfTreeDataProvider } from "../espIdf/idfComponent/treeDataProvider";
-import { configureEnvVariables } from "../common/prepareEnv";
 import { parse, ParseError } from "jsonc-parser";
 import { updateJsonPreservingComments } from "../jsonc/updateJsonPreservingComments";
+import { getCurrentIdfConfiguration } from "./env";
 
 /** Parsed subset of build/project_description.json; fields are optional for partial or evolving schemas. */
 export interface IProjectDescription {
@@ -373,7 +373,7 @@ export async function getIdfTargetFromSdkconfig(
 export async function setCCppPropertiesJsonCompilerPath(
   curWorkspaceFsPath: Uri
 ) {
-  const modifiedEnv = await configureEnvVariables(curWorkspaceFsPath);
+  const modifiedEnv = getCurrentIdfConfiguration();
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool = getToolchainToolName(idfTarget, "gcc");
   const compilerAbsolutePath = await isBinInPath(gccTool, modifiedEnv);

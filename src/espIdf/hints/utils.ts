@@ -1,10 +1,10 @@
-import * as path from "path";
+import { isAbsolute, join } from "path";
 import { pathExists } from "fs-extra";
 import { Logger } from "../../common/logger";
 import { readParameter } from "../../configuration/idf";
-import { configureEnvVariables } from "../../common/prepareEnv";
 import { Uri } from "vscode";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 
 /**
  * Gets the path to the OpenOCD hints YAML file for the specified version.
@@ -15,7 +15,7 @@ import { OpenOCDManager } from "../openOcd/openOcdManager";
 export async function getOpenOcdHintsYmlPath(
   workspace: Uri
 ): Promise<string | null> {
-  const modifiedEnv = await configureEnvVariables(workspace);
+  const modifiedEnv = getCurrentIdfConfiguration();
   const openOcdPath = await OpenOCDManager.getOpenOcdPath(
       workspace,
       modifiedEnv
@@ -28,7 +28,7 @@ export async function getOpenOcdHintsYmlPath(
     return null;
   }
   try {
-    const hintsPath = path.join(
+    const hintsPath = join(
       openOcdPath,
       "..",
       "..",
@@ -63,7 +63,7 @@ export async function resolveIdfHintsYmlPath(
   espIdfPath: string,
   workspace: Uri
 ): Promise<string> {
-  const legacy = path.join(
+  const legacy = join(
     espIdfPath,
     "tools",
     "idf_py_actions",
@@ -71,11 +71,11 @@ export async function resolveIdfHintsYmlPath(
   );
   let buildDir = readParameter("idf.buildPath", workspace) as string;
   if (!buildDir) {
-    buildDir = path.join(workspace.fsPath, "build");
-  } else if (!path.isAbsolute(buildDir)) {
-    buildDir = path.join(workspace.fsPath, buildDir);
+    buildDir = join(workspace.fsPath, "build");
+  } else if (!isAbsolute(buildDir)) {
+    buildDir = join(workspace.fsPath, buildDir);
   }
-  const aggregated = path.join(buildDir, "hints.yml");
+  const aggregated = join(buildDir, "hints.yml");
   if (await pathExists(aggregated)) {
     return aggregated;
   }

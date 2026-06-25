@@ -19,20 +19,18 @@ import { ESP } from "../config";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 
 export class AdfCloning extends AbstractCloning {
-  constructor(gitBinPath: string = "git") {
+  constructor() {
     super(
       "https://github.com/espressif/esp-adf.git",
       "ESP-ADF",
       "master",
-      gitBinPath,
       "https://gitee.com/EspressifSystems/esp-adf.git"
     );
   }
 }
 
 export async function getEspAdf(workspace?: Uri) {
-  const gitPath = (readParameter("idf.gitPath", workspace) as string) || "git";
-  const adfInstaller = new AdfCloning(gitPath);
+  const adfInstaller = new AdfCloning();
   await adfInstaller.getRepository("ADF_PATH", workspace);
 }
 

@@ -21,8 +21,7 @@ import { addProcessTask, TaskManager } from "../../taskManager/taskManager";
 import { Logger } from "../../common/logger";
 import { join } from "path";
 import { pathExists } from "fs-extra";
-import { getVirtualEnvPythonPath } from "../../configuration/env";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
 
 export async function saveDefSdkconfig(
   workspaceFolder: Uri,
@@ -35,7 +34,7 @@ export async function saveDefSdkconfig(
       TaskManager.disposeListeners();
     });
   }
-  const modifiedEnv = await configureEnvVariables(workspaceFolder);
+  const modifiedEnv = getCurrentIdfConfiguration();
   const saveDefConfArgs = [
     join(modifiedEnv["IDF_PATH"], "tools", "idf.py"),
     "save-defconfig",

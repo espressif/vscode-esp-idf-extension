@@ -32,11 +32,10 @@ import {
 import { readParameter } from "../../configuration/idf";
 import { Logger } from "../../common/logger";
 import { CSV2JSON } from "../../views/partition-table/util";
-import { getVirtualEnvPythonPath } from "../../configuration/env";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
 import { createFlashModel } from "../../flash/transports/uart/flashModelBuilder";
 import { formatAsPartitionSize } from "./partitionReader";
 import { spawn } from "../../utils";
-import { configureEnvVariables } from "../../common/prepareEnv";
 
 export interface PartitionItem extends TreeItem {
   name: string;
@@ -78,7 +77,7 @@ export class PartitionTreeDataProvider
   public async populatePartitionItems(workspace: Uri) {
     this.partitionItems = Array<PartitionItem>(0);
     try {
-      const modifiedEnv = await configureEnvVariables(workspace);
+      const modifiedEnv = getCurrentIdfConfiguration();
       const serialPort = readParameter("idf.port", workspace) as string;
       if (!serialPort) {
         return Logger.warnNotify(

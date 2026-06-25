@@ -43,6 +43,7 @@ import {
 import { ESP } from "../config";
 import { OutputChannel } from "./outputChannel";
 import { UnitTest } from "../espIdf/unitTest/adapter";
+import { updateCurrentIdfEnvVar } from "../configuration/env";
 
 export function registerOnDidChangeConfiguration(context: ExtensionContext) {
   context.subscriptions.push(
@@ -87,6 +88,7 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
               customExtraVars[envVar],
               { applyAtProcessCreation: true }
             );
+            updateCurrentIdfEnvVar(envVar, customExtraVars[envVar]);
           }
         }
         await getIdfTargetFromSdkconfig(
@@ -128,7 +130,10 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
       } else if (e.affectsConfiguration("idf.unitTestFilePattern")) {
         const cancelTokenSource = new CancellationTokenSource();
         try {
-          if (UnitTest.unitTestController && UnitTest.unitTestController.refreshHandler) {
+          if (
+            UnitTest.unitTestController &&
+            UnitTest.unitTestController.refreshHandler
+          ) {
             await UnitTest.unitTestController.refreshHandler(
               cancelTokenSource.token
             );
@@ -147,6 +152,21 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
         }
       } else if (coverageRendererSettingsAffected(e, workspaceRoot.uri)) {
         espIdfCoverageRenderer.refreshOptionsFromWorkspace();
+      } else if (e.affectsConfiguration("idf.sdkconfigFilePath")) {
+        const sdkconfigFilePath = readParameter(
+          "idf.sdkconfigFilePath",
+          workspaceRoot
+        ) as string;
+        if (sdkconfigFilePath) {
+          updateCurrentIdfEnvVar("SDKCONFIG", sdkconfigFilePath);
+        }
+      } else if (e.affectsConfiguration("idf.enableIdfComponentManager")) {
+        const enableIdfComponentManager = readParameter(
+          "idf.enableIdfComponentManager",
+          workspaceRoot
+        ) as boolean;
+        const enabled = enableIdfComponentManager ? "1" : "0";
+        updateCurrentIdfEnvVar("IDF_COMPONENT_MANAGER", enabled);
       }
     })
   );
