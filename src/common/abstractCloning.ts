@@ -15,7 +15,7 @@ import { spawn, ChildProcess } from "child_process";
 import { join, basename } from "path";
 import treeKill from "tree-kill";
 import { Logger } from "./logger";
-import { checkGitExists, dirExistPromise, execChildProcess } from "../utils";
+import { checkGitExists, dirExistPromise, execChildProcess, isBinInPath } from "../utils";
 import { OutputChannel } from "./outputChannel";
 import {
   CancellationToken,
@@ -42,7 +42,6 @@ export class AbstractCloning {
     githubRepository: string,
     private name: string,
     private branchToUse: string,
-    private gitBinPath: string = "git",
     giteeRepository?: string
   ) {
     this.GITHUB_REPO = githubRepository;
@@ -63,6 +62,7 @@ export class AbstractCloning {
   }
 
   public downloadByCloning(
+    gitPath: string,
     installDir: string,
     progress?: Progress<{ message?: string; increment?: number }>,
     recursiveDownload: boolean = true,
@@ -83,7 +83,7 @@ export class AbstractCloning {
       } with URL ${repoToUse}`
     );
     return this.spawnWithProgress(
-      this.gitBinPath,
+      gitPath,
       args,
       installDir,
       progress
@@ -187,12 +187,13 @@ export class AbstractCloning {
         cancelToken: CancellationToken
       ) => {
         try {
+          let gitPath = await isBinInPath("git", currentEnvVars);
           const gitVersion = await checkGitExists(
             installDirPath,
-            this.gitBinPath
+            gitPath
           );
           if (!gitVersion || gitVersion === "Not found") {
-            throw new Error("Git is not found in idf.gitPath or PATH");
+            throw new Error("Git is not found in PATH");
           }
           cancelToken.onCancellationRequested((e) => {
             this.cancel();
@@ -201,13 +202,14 @@ export class AbstractCloning {
             recursiveDownload = mirrorOption.target !== ESP.IdfMirror.Espressif;
           }
           await this.downloadByCloning(
+            gitPath,
             installDirPath,
             progress,
             recursiveDownload,
             mirrorOption.target
           );
           if (mirrorOption.target === ESP.IdfMirror.Espressif) {
-            await this.updateSubmodules(resultingPath, progress);
+            await this.updateSubmodules(gitPath, resultingPath, progress);
           }
           const target = readParameter("idf.saveScope") as ConfigurationTarget;
           customExtraVars[configurationId] = resultingPath;
@@ -226,19 +228,8 @@ export class AbstractCloning {
     );
   }
 
-  public downloadSubmodules(
-    repoRootDir: string,
-    progress?: Progress<{ message?: string; increment?: number }>
-  ) {
-    return this.spawnWithProgress(
-      this.gitBinPath,
-      ["submodule", "update", "--init", "--depth", "1", "--progress"],
-      repoRootDir,
-      progress
-    );
-  }
-
   public async updateSubmodules(
+    gitPath: string,
     repoPath: string,
     progress?: Progress<{ message?: string; increment?: number }>
   ) {
@@ -263,13 +254,13 @@ export class AbstractCloning {
       "esp-components",
     ];
     await execChildProcess(
-      this.gitBinPath,
+      gitPath,
       ["submodule", "init"],
       repoPath,
       OutputChannel.init()
     );
     const gitModules = await execChildProcess(
-      this.gitBinPath,
+      gitPath,
       ["config", "-f", ".gitmodules", "--list"],
       repoPath,
       OutputChannel.init()
@@ -317,7 +308,7 @@ export class AbstractCloning {
         }
 
         await execChildProcess(
-          this.gitBinPath,
+          gitPath,
           ["config", `submodule.${subPath}.url`, subUrl],
           repoPath,
           OutputChannel.init()
@@ -325,13 +316,13 @@ export class AbstractCloning {
       }
     }
     await this.spawnWithProgress(
-      this.gitBinPath,
+      gitPath,
       ["submodule", "update", "--progress"],
       repoPath,
       progress
     );
     await this.spawnWithProgress(
-      this.gitBinPath,
+      gitPath,
       ["submodule", "foreach", "git", "submodule", "update"],
       repoPath,
       progress
@@ -384,44 +375,5 @@ export class AbstractCloning {
         return resolve();
       });
     });
-  }
-
-  public async getSubmodules(repoRootDir: string) {
-    const repoNameMatch = /[^/]*$/.exec(repoRootDir);
-    const repoName = repoNameMatch ? repoNameMatch[0] : repoRootDir;
-    OutputChannel.appendLine(`Downloading ${repoName} submodules`);
-    const notificationMode = readParameter("idf.notificationMode") as string;
-    const progressLocation =
-      notificationMode === NotificationMode.All ||
-      notificationMode === NotificationMode.Notifications
-        ? ProgressLocation.Notification
-        : ProgressLocation.Window;
-    await window.withProgress(
-      {
-        cancellable: true,
-        location: progressLocation,
-        title: `Checking out ${repoName} submodules`,
-      },
-      async (
-        progress: Progress<{ message: string; increment: number }>,
-        cancelToken: CancellationToken
-      ) => {
-        try {
-          cancelToken.onCancellationRequested((e) => {
-            this.cancel();
-          });
-          await this.downloadSubmodules(repoRootDir, progress);
-          Logger.infoNotify(`${repoName} submodules checked out successfully`);
-        } catch (error) {
-          const msg = error instanceof Error ? error.message : String(error);
-          OutputChannel.appendLine(msg);
-          Logger.errorNotify(
-            msg,
-            error instanceof Error ? error : new Error(msg),
-            "AbstractCloning getSubmodules"
-          );
-        }
-      }
-    );
   }
 }

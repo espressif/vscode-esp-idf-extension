@@ -6,8 +6,7 @@
 	"customizations": {
 		"vscode": {
 			"settings": {
-				"terminal.integrated.defaultProfile.linux": "bash",
-				"idf.gitPath": "/usr/bin/git"
+				"terminal.integrated.defaultProfile.linux": "bash"
 			},
 			"extensions": [
 				"espressif.esp-idf-extension",

@@ -18,16 +18,15 @@
 
 import { join } from "path";
 import { l10n, Uri } from "vscode";
-import { configureEnvVariables } from "../common/prepareEnv";
 import { readParameter, readSerialPort } from "../configuration/idf";
 import { Logger } from "../common/logger";
-import { getVirtualEnvPythonPath } from "../configuration/env";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 import { pathExists } from "fs-extra";
 import { createFlashModel } from "../flash/transports/uart/flashModelBuilder";
 import { spawn } from "../utils";
 
 export async function verifyAppBinary(workspaceFolder: Uri) {
-  const modifiedEnv = await configureEnvVariables(workspaceFolder);
+  const modifiedEnv = getCurrentIdfConfiguration();
   const serialPort = await readSerialPort(workspaceFolder, false);
   if (!serialPort) {
     Logger.warnNotify(

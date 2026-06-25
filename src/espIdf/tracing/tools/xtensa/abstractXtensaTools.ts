@@ -16,28 +16,28 @@
  * limitations under the License.
  */
 
-import * as vscode from "vscode";
+import { Uri } from "vscode";
 import { Logger } from "../../../../common/logger";
 import { getToolchainToolName, spawn } from "../../../../utils";
 import { getIdfTargetFromSdkconfig } from "../../../../configuration/workspace";
-import { configureEnvVariables } from "../../../../common/prepareEnv";
+import { getCurrentIdfConfiguration } from "../../../../configuration/env";
 
 export abstract class XtensaTools {
-  protected readonly workspaceRoot: vscode.Uri;
+  protected readonly workspaceRoot: Uri;
 
-  constructor(workspaceRoot: vscode.Uri, private toolName: string) {
+  constructor(workspaceRoot: Uri, private toolName: string) {
     this.workspaceRoot = workspaceRoot;
   }
   
-  protected async call(args: string[]): Promise<Buffer> {
-    const env = await configureEnvVariables(this.workspaceRoot);
+  protected async call(args: string[]) {
+    const env = getCurrentIdfConfiguration();
     const toolName = await this.toolNameForTarget(this.toolName);
     try {
       return await spawn(toolName, args, { env });
     } catch (error) {
       Logger.errorNotify(
         `Make sure ${this.toolName} is set in the Path with proper permission`,
-        error,
+        error as Error,
         "XtensaTools call"
       );
     }

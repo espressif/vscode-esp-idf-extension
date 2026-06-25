@@ -22,9 +22,8 @@ import { join } from "path";
 import { pathExists } from "fs-extra";
 import { Logger } from "../common/logger";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
-import { configureEnvVariables } from "../common/prepareEnv";
 import { selectedDFUAdapterId } from "../flash/transports/dfu/helpers";
-import { getVirtualEnvPythonPath } from "../configuration/env";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 import { addProcessTask, type IdfTaskExecution } from "../taskManager/taskManager";
 
 export async function appendDfuExecution(
@@ -60,7 +59,7 @@ export async function appendDfuExecution(
     return false;
   }
 
-  const modifiedEnv = await configureEnvVariables(workspace);
+  const modifiedEnv = getCurrentIdfConfiguration();
   const idfPathDir = modifiedEnv["IDF_PATH"];
   if (!idfPathDir) {
     throw new Error("IDF_PATH not found in environment");

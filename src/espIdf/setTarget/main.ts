@@ -44,9 +44,8 @@ import {
   storeAdapterSerial,
   supportsSerialFromDetectConfig,
 } from "../openOcd/adapterSerial";
-import { SerialPort } from "../serial/serialPort";
 import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 
 export let isSettingIDFTarget = false;
 
@@ -109,7 +108,7 @@ export async function setIdfTarget(
             const openOCDManager = OpenOCDManager.init();
             openOCDVersion = await openOCDManager.version();
             const devkitsCmd = new DevkitsCommand(workspaceFolder);
-            const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
+            const modifiedEnv = getCurrentIdfConfiguration();
             const openOcdPath = await OpenOCDManager.getOpenOcdPath(
               workspaceFolder.uri,
               modifiedEnv

@@ -19,8 +19,7 @@
 import { Uri } from "vscode";
 import { OutputChannel } from "../../../common/outputChannel";
 import { execChildProcess } from "../../../utils";
-import { getVirtualEnvPythonPath } from "../../../configuration/env";
-import { configureEnvVariables } from "../../../common/prepareEnv";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../../configuration/env";
 
 export async function installWebsocketClient(workspace: Uri) {
   const pythonBinPath = getVirtualEnvPythonPath();
@@ -30,7 +29,7 @@ export async function installWebsocketClient(workspace: Uri) {
     );
     return;
   }
-  const modifiedEnv = await configureEnvVariables(workspace);
+  const modifiedEnv = getCurrentIdfConfiguration();
   try {
     const showResult = await execChildProcess(
       pythonBinPath,

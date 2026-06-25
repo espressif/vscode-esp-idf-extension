@@ -24,8 +24,7 @@ import { join } from "path";
 import { pathExists, lstat, constants } from "fs-extra";
 import { Logger } from "../common/logger";
 import { addProcessTask, TaskManager } from "../taskManager/taskManager";
-import { getVirtualEnvPythonPath } from "../configuration/env";
-import { configureEnvVariables } from "../common/prepareEnv";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 
 export async function createSBOM(workspaceUri: Uri) {
   try {
@@ -40,7 +39,7 @@ export async function createSBOM(workspaceUri: Uri) {
         `${projectDescriptionJson} doesn't exists for ESP-IDF SBOM tasks.`
       );
     }
-    const modifiedEnv = await configureEnvVariables(workspaceUri);
+    const modifiedEnv = getCurrentIdfConfiguration();
     const sbomFilePath = readParameter(
       "idf.sbomFilePath",
       workspaceUri
@@ -96,7 +95,7 @@ export async function installEspSBOM(workspace: Uri) {
       "Python environment is not set up. Please set up Python environment to use ESP-IDF SBOM features."
     );
   }
-  const modifiedEnv = await configureEnvVariables(workspace);
+  const modifiedEnv = getCurrentIdfConfiguration();
   try {
     const showResult = await execChildProcess(
       pythonBinPath,

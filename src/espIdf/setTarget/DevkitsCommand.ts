@@ -27,12 +27,11 @@ import * as fs from "fs";
 import { join } from "path";
 import { NotificationMode, readParameter } from "../../configuration/idf";
 import { Logger } from "../../common/logger";
-import { getVirtualEnvPythonPath } from "../../configuration/env";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { execChildProcess } from "../../utils";
 import { OutputChannel } from "../../common/outputChannel";
 import { getOpenOcdScripts } from "../openOcd/boardConfiguration";
-import { configureEnvVariables } from "../../common/prepareEnv";
 
 export class DevkitsCommand {
   constructor(private workspaceFolder: WorkspaceFolder) {}
@@ -46,7 +45,7 @@ export class DevkitsCommand {
         throw new Error("No workspace folder found");
       }
 
-      const modifiedEnv = await configureEnvVariables(this.workspaceFolder.uri);
+      const modifiedEnv = getCurrentIdfConfiguration();
       const openOcdPath = await OpenOCDManager.getOpenOcdPath(
         this.workspaceFolder.uri,
         modifiedEnv

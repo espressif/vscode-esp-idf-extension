@@ -22,12 +22,14 @@ import { IdfSetup } from "./types";
 import { execChildProcess, getEspIdfFromCMake } from "../utils";
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import { join } from "path";
-import { ConfigurationTarget, StatusBarItem, Uri, WorkspaceFolder } from "vscode";
+import { ConfigurationTarget, WorkspaceFolder } from "vscode";
 import { readParameter, writeParameter } from "../configuration/idf";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { getEnvVariables } from "./loadSettings";
 import { ESP } from "../config";
 import { OutputChannel } from "../common/outputChannel";
+import { statusBarItems } from "../statusBar";
+import { expandEnvVariablesForIdfSetup } from "../common/prepareEnv";
 
 export function pathVarFromEnvVars(envVars: {
   [key: string]: string;
@@ -162,30 +164,8 @@ export async function checkPyVenv(
 export async function saveSettings(
   extensionPath: string,
   setupConf: IdfSetup,
-  workspaceFolder: WorkspaceFolder,
-  espIdfStatusBar: StatusBarItem
+  workspaceFolder: WorkspaceFolder
 ) {
-  const rawCustomVars = readParameter(
-    "idf.customExtraVars",
-    workspaceFolder
-  );
-  const customVars: { [key: string]: string } =
-    rawCustomVars &&
-    typeof rawCustomVars === "object" &&
-    !Array.isArray(rawCustomVars)
-      ? { ...(rawCustomVars as { [key: string]: string }) }
-      : {};
-  delete customVars["IDF_PATH"];
-  delete customVars["IDF_TOOLS_PATH"];
-  delete customVars["IDF_PYTHON_ENV_PATH"];
-
-  await writeParameter(
-    "idf.customExtraVars",
-    customVars,
-    ConfigurationTarget.WorkspaceFolder,
-    workspaceFolder
-  );
-
   await writeParameter(
     "idf.currentSetup",
     setupConf.idfPath,
@@ -199,17 +179,17 @@ export async function saveSettings(
     envVars["PYTHON"] = setupConf.python;
   }
 
+  const expandedEnvVars = await expandEnvVariablesForIdfSetup(
+    envVars,
+    workspaceFolder
+  );
+
   ESP.ProjectConfiguration.store.set(
     ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
-    envVars
+    expandedEnvVars,
   );
-  await writeParameter(
-    "idf.gitPath",
-    setupConf.gitPath,
-    ConfigurationTarget.Global
-  );
-  if (espIdfStatusBar) {
-    espIdfStatusBar.text = `$(${
+  if (statusBarItems["currentIdfVersion"]) {
+    statusBarItems["currentIdfVersion"].text = `$(${
       commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
     }) ESP-IDF v${setupConf.version}`;
   }

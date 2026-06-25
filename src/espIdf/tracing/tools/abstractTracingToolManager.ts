@@ -19,7 +19,6 @@
 import { join } from "path";
 import { Uri } from "vscode";
 import { canAccessFile, spawn } from "../../../utils";
-import { configureEnvVariables } from "../../../common/prepareEnv";
 import { getCurrentIdfConfiguration } from "../../../configuration/env";
 
 export abstract class AbstractTracingToolManager {
@@ -42,7 +41,7 @@ export abstract class AbstractTracingToolManager {
     args?: string[],
     option?: any
   ) {
-    const modifiedEnv = await configureEnvVariables(this.workspaceRoot);
+    const modifiedEnv = getCurrentIdfConfiguration();
     option.env = option.env || modifiedEnv;
     return await spawn(command, args, option);
   }

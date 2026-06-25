@@ -38,7 +38,7 @@ import {
   supportsAdapterUsbLocationCommand,
   supportsSerialFromDetectConfig,
 } from "./adapterSerial";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 
 export interface IOpenOCDConfig {
   workspace: vscode.Uri;
@@ -91,7 +91,7 @@ export class OpenOCDManager extends EventEmitter {
     if (!this.workspace) {
       return "no+workspace";
     }
-    const modifiedEnv = await configureEnvVariables(this.workspace);
+    const modifiedEnv = getCurrentIdfConfiguration();
     const openOcdPath = await OpenOCDManager.getOpenOcdPath(
       this.workspace,
       modifiedEnv
@@ -210,7 +210,7 @@ export class OpenOCDManager extends EventEmitter {
         "No workspace folder found. Please open a workspace to launch OpenOCD server."
       );
     }
-    const modifiedEnv = await configureEnvVariables(this.workspace);
+    const modifiedEnv = getCurrentIdfConfiguration();
     const openOcdPath = await OpenOCDManager.getOpenOcdPath(
       this.workspace,
       modifiedEnv

@@ -40,7 +40,6 @@ import { readParameter, writeParameter } from "../configuration/idf";
 import { showSnapEimNotification } from "./showSnapEimNotification";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { selectIdfSetup } from "./selectIdfSetup";
-import { statusBarItems } from "../statusBar";
 
 export function installManagerCommand(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.selectCurrentIdfVersion", () => {
@@ -48,8 +47,7 @@ export function installManagerCommand(context: ExtensionContext) {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       await selectIdfSetup(
         context.extensionPath,
-        wsFolder,
-        statusBarItems["currentIdfVersion"]
+        wsFolder
       );
     });
   });

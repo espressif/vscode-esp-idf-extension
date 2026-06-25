@@ -38,9 +38,6 @@ export function checkSpacesInSettings(reportedResult: reportObj) {
   reportedResult.configurationSpacesValidation.toolsPath = checkSpacesInPath(
     reportedResult.configurationSettings.toolsPath
   );
-  reportedResult.configurationSpacesValidation.gitPath = checkSpacesInPath(
-    reportedResult.configurationSettings.gitPath
-  );
 
   reportedResult.configurationSpacesValidation.customExtraPaths = {};
   if (

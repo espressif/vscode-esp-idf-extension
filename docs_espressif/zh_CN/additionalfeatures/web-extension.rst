@@ -33,7 +33,6 @@ You can also configure a github ESP-IDF project for Codespaces with the ESP-IDF 
       "vscode": {
         "settings": {
           "terminal.integrated.defaultProfile.linux": "bash",
-          "idf.gitPath": "/usr/bin/git",
           "idf.showOnboardingOnInit": false,
           "extensions.ignoreRecommendations": true
         },

@@ -285,7 +285,7 @@ export class CDTDebugConfigurationProvider
         config.program = elfFilePath;
       }
       if (!config.gdb) {
-        config.gdb = await getToolchainPath(folder.uri, "gdb");
+        config.gdb = await getToolchainPath("gdb");
       }
       // config.gdb may still hold an unresolved ${command:...} variable at this point.
       const gdbPath = config.gdb.includes("${")

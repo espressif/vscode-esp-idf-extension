@@ -24,10 +24,10 @@ import { join } from "path";
 import { Logger } from "../common/logger";
 import { parse } from "jsonc-parser";
 import { EOL } from "os";
-import { configureEnvVariables } from "../common/prepareEnv";
 import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { ESP } from "../config";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 
 export function registerClangCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.setClangSettings", async () => {
@@ -41,8 +41,8 @@ export function registerClangCommands(context: ExtensionContext) {
   });
 }
 
-export async function validateEspClangExists(workspaceFolder: Uri) {
-  const modifiedEnv = await configureEnvVariables(workspaceFolder);
+export async function validateEspClangExists() {
+  const modifiedEnv = getCurrentIdfConfiguration();
 
   const espClangdPath = await isBinInPath("clangd", modifiedEnv, ["esp-clang"]);
   if (espClangdPath && espClangdPath.includes("esp-clang")) {
@@ -56,7 +56,7 @@ export async function setClangSettings(
   workspaceFolder: Uri,
   showError = false
 ) {
-  const espClangPath = await validateEspClangExists(workspaceFolder);
+  const espClangPath = await validateEspClangExists();
   if (!espClangPath) {
     if (showError) {
       const error = new Error(
@@ -99,7 +99,7 @@ export async function configureClangSettings(
     } catch (error) {
       Logger.errorNotify(
         "Failed to parse settings.json. Ensure it has valid JSON syntax.",
-        error,
+        error as Error,
         "clang index configureClangSettings"
       );
       return;
@@ -122,7 +122,7 @@ export async function createClangdFile(workspaceFolder: Uri) {
     Logger.info(".clangd file already exists. Skipping creation.");
     return;
   }
-  const espClangPath = await validateEspClangExists(workspaceFolder);
+  const espClangPath = await validateEspClangExists();
   if (!espClangPath) {
     return;
   }
@@ -134,7 +134,7 @@ export async function createClangdFile(workspaceFolder: Uri) {
   } catch (error) {
     Logger.errorNotify(
       "Failed to create .clangd file.",
-      error,
+      error as Error,
       "clang index createClangdFile"
     );
   }

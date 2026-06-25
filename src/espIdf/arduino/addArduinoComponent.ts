@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { checkGitExists, getEspIdfFromCMake } from "../../utils";
+import { checkGitExists, getEspIdfFromCMake, isBinInPath } from "../../utils";
 import { spawn, ChildProcess } from "child_process";
 import treeKill from "tree-kill";
 import { join } from "path";
@@ -23,21 +23,16 @@ import { ensureDir } from "fs-extra";
 import { Logger } from "../../common/logger";
 import { OutputChannel } from "../../common/outputChannel";
 import { ESP } from "../../config";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 
 export class ArduinoComponentInstaller {
   private cloneProcess: ChildProcess | undefined;
-  private espIdfPath: string;
   private readonly projectDir: string;
-  private gitBinPath: string;
 
   constructor(
-    espIdfPath: string,
     projectDir: string,
-    gitBinPath: string = "git"
   ) {
-    this.espIdfPath = espIdfPath;
     this.projectDir = projectDir;
-    this.gitBinPath = gitBinPath;
   }
 
   public cancel() {
@@ -54,8 +49,8 @@ export class ArduinoComponentInstaller {
     }
   }
 
-  public async cloneArduinoInComponentsFolder(branchToUse: string) {
-    const gitVersion = await checkGitExists(this.projectDir, this.gitBinPath);
+  public async cloneArduinoInComponentsFolder(branchToUse: string, gitPath: string) {
+    const gitVersion = await checkGitExists(this.projectDir, gitPath);
     if (!gitVersion || gitVersion === "Not found") {
       return;
     }
@@ -63,7 +58,7 @@ export class ArduinoComponentInstaller {
     await ensureDir(componentsDir);
     return new Promise<void>((resolve, reject) => {
       this.cloneProcess = spawn(
-        this.gitBinPath,
+        gitPath,
         [
           "clone",
           "--recursive",
@@ -100,8 +95,8 @@ export class ArduinoComponentInstaller {
     });
   }
 
-  private async checkIdfVersion() {
-    const idfVersion = await getEspIdfFromCMake(this.espIdfPath);
+  private async checkIdfVersion(idfPath: string): Promise<string> {
+    const idfVersion = await getEspIdfFromCMake(idfPath);
     const majorMinorMatches = idfVersion.match(/([0-9]+\.[0-9]+).*/);
     const espIdfVersion =
       majorMinorMatches && majorMinorMatches.length > 0
@@ -114,8 +109,11 @@ export class ArduinoComponentInstaller {
   }
 
   public async addArduinoAsComponent() {
-    const branchToUse = await this.checkIdfVersion();
+    const currentEnvVars = getCurrentIdfConfiguration();
+    let idfPath = currentEnvVars["IDF_PATH"];
+    let gitPath = await isBinInPath("git", currentEnvVars);
+    const branchToUse = await this.checkIdfVersion(idfPath);
     await ensureDir(this.projectDir);
-    await this.cloneArduinoInComponentsFolder(branchToUse);
+    await this.cloneArduinoInComponentsFolder(branchToUse, gitPath);
   }
 }

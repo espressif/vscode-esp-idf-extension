@@ -32,6 +32,38 @@ export function getCurrentIdfEnvVar(name: string): string | undefined {
   return undefined;
 }
 
+export function updateCurrentIdfEnvVar(name: string, value: string): void {
+  const currentEnvVars = getCurrentIdfConfiguration();
+  switch (name) {
+    case "IDF_PATH":
+    case "IDF_TOOLS_PATH":
+    case "IDF_PYTHON_ENV_PATH":
+      break;
+    case "SDKCONFIG":
+      if (value === "") {
+        delete currentEnvVars.SDKCONFIG;
+      } else {
+        currentEnvVars.SDKCONFIG = value;
+      }
+      break;
+    case "IDF_COMPONENT_MANAGER":
+      if (value === "1") {
+        currentEnvVars.IDF_COMPONENT_MANAGER = "1";
+      } else {
+        delete currentEnvVars.IDF_COMPONENT_MANAGER;
+      }
+      break;
+    default:
+      if (value !== "") {
+        currentEnvVars[name] = value;
+      }
+  }
+  ESP.ProjectConfiguration.store.set(
+    ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+    currentEnvVars
+  );
+}
+
 export function getVirtualEnvPythonPath() {
   const currentEnvVars = getCurrentIdfConfiguration();
   if (currentEnvVars["IDF_PYTHON_ENV_PATH"]) {

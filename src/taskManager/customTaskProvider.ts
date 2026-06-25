@@ -24,8 +24,8 @@ import {
 } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { getWorkspaceFolderForTask, TaskManager } from "./taskManager";
-import { configureEnvVariables } from "../common/prepareEnv";
 import { ShellOutputCapturingExecution } from "./shellCaptureExecution";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 
 export enum CustomTaskType {
   Custom = "custom",
@@ -88,7 +88,7 @@ export class CustomTask {
     if (!command) {
       return;
     }
-    const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
+    const modifiedEnv = getCurrentIdfConfiguration();
     const options: ShellExecutionOptions = {
       cwd: this.currentWorkspace.fsPath,
       env: modifiedEnv,

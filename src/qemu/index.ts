@@ -61,7 +61,7 @@ export function registerQEMUCommands(context: ExtensionContext) {
             ? QemuLaunchMode.DebugMonitor
             : QemuLaunchMode.Debug;
           await QemuManager.init().start(context.extensionPath,qemuMode, wsFolder.uri);
-          const gdbPath = await getToolchainPath(wsFolder.uri, "gdb");
+          const gdbPath = await getToolchainPath("gdb");
           const workspaceFolder = workspace.getWorkspaceFolder(wsFolder.uri);
           await debug.startDebugging(workspaceFolder, {
             name: "GDB QEMU",
