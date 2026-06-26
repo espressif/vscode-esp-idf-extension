@@ -32,6 +32,7 @@ import { IdfSetup } from "../eim/types";
 import { ProjectConfigStore } from "../project-conf/utils";
 import { ESP } from "../config";
 import { createMockMemento } from "./mockUtils";
+import { setCCppPropertiesJsonCompilerPath } from "../configuration/workspace";
 
 suite("Project tests", () => {
   const absPath = (filename: string) =>
@@ -90,6 +91,7 @@ suite("Project tests", () => {
     const targetCCppPropertiesJsonJson = await readJson(
       join(targetFolder, ".vscode", "c_cpp_properties.json")
     );
+    await setCCppPropertiesJsonCompilerPath(Uri.file(targetFolder));
     assert.equal(
       JSON.stringify(templateCCppPropertiesJsonJson),
       JSON.stringify(targetCCppPropertiesJsonJson)
