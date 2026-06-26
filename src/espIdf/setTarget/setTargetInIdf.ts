@@ -23,7 +23,7 @@ import { OutputChannel } from "../../common/outputChannel";
 import { spawn } from "../../utils";
 import { ConfserverProcess } from "../menuconfig/confserver/confServerProcess";
 import { IdfTarget } from "./getTargets";
-import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath, updateCurrentIdfEnvVar } from "../../configuration/env";
 import { l10n, Uri } from "vscode";
 import { setCCppPropertiesJsonCompilerPath } from "../../configuration/workspace";
 
@@ -88,6 +88,7 @@ export async function setTargetInIDF(
     );
     OutputChannel.appendLineAndShow(msg, "Set Target");
     Logger.infoNotify(msg);
+    updateCurrentIdfEnvVar("IDF_TARGET", selectedTarget.target);
     await setCCppPropertiesJsonCompilerPath(workspaceFolder);
     return setTargetResult.toString();
   } catch (error) {
