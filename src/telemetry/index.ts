@@ -19,11 +19,13 @@
 import TelemetryReporter from "@vscode/extension-telemetry";
 import { extensions } from "vscode";
 import { Logger } from "../logger/logger";
+import { exceptionFingerprint } from "./exceptionFingerprint";
 
 export class Telemetry {
   private static reporter?: TelemetryReporter;
   private static instance: Telemetry;
   private static enabled: boolean;
+  private static reportedExceptions = new Set<string>();
   public static init(isEnabled: boolean) {
     if (!this.instance) {
       this.instance = new Telemetry(isEnabled);
@@ -45,6 +47,7 @@ export class Telemetry {
     }
   }
   public static dispose() {
+    this.reportedExceptions.clear();
     this.reporter?.dispose();
   }
 
@@ -79,16 +82,24 @@ export class Telemetry {
       [key: string]: number;
     }
   ) {
-    if (this.enabled) {
-      try {
-        return this.reporter?.sendTelemetryException(
-          error,
-          properties,
-          measurements
-        );
-      } catch (error) {
-        Logger.telemetryError("Failed to sendException", error);
-      }
+    if (!this.enabled) {
+      return;
+    }
+
+    const fingerprint = exceptionFingerprint(error, properties);
+    if (this.reportedExceptions.has(fingerprint)) {
+      return;
+    }
+    this.reportedExceptions.add(fingerprint);
+
+    try {
+      return this.reporter?.sendTelemetryException(
+        error,
+        properties,
+        measurements
+      );
+    } catch (error) {
+      Logger.telemetryError("Failed to sendException", error);
     }
   }
 }
