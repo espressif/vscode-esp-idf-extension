@@ -31,4 +31,17 @@ suite("exceptionFingerprint Tests", () => {
       exceptionFingerprint(new Error("second"), properties)
     );
   });
+
+  test("null and undefined errors produce stable fingerprints", () => {
+    const properties = { category: "test" };
+
+    assert.equal(
+      exceptionFingerprint(null, properties),
+      exceptionFingerprint(undefined, properties)
+    );
+    assert.equal(
+      exceptionFingerprint(null, properties),
+      "Error\0\0test\0"
+    );
+  });
 });

@@ -86,20 +86,20 @@ export class Telemetry {
       return;
     }
 
-    const fingerprint = exceptionFingerprint(error, properties);
-    if (this.reportedExceptions.has(fingerprint)) {
-      return;
-    }
-    this.reportedExceptions.add(fingerprint);
-
     try {
+      const fingerprint = exceptionFingerprint(error, properties);
+      if (this.reportedExceptions.has(fingerprint)) {
+        return;
+      }
+      this.reportedExceptions.add(fingerprint);
+
       return this.reporter?.sendTelemetryException(
         error,
         properties,
         measurements
       );
-    } catch (error) {
-      Logger.telemetryError("Failed to sendException", error);
+    } catch (telemetryError) {
+      Logger.telemetryError("Failed to sendException", telemetryError);
     }
   }
 }

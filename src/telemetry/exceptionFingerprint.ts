@@ -1,10 +1,11 @@
 export function exceptionFingerprint(
-  error: Error,
+  error: unknown,
   properties?: { [key: string]: string }
 ): string {
+  const err = error as Error | null | undefined;
   return [
-    error.name || "Error",
-    error.message,
+    err?.name || "Error",
+    err?.message ?? String(error ?? ""),
     properties?.category ?? "",
     properties?.command ?? "",
   ].join("\0");
