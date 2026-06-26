@@ -72,10 +72,12 @@ export async function getConfigurationSettings(
 
   const gitPath = await isBinInPath("git", currentEnvVars);
 
-  const systemPath =
-    (process.platform === "win32" ? process.env.Path : process.env.PATH) || "";
-
-  const customExtraPaths = currentEnvVars["PATH"].replace(systemPath, "");
+  let pathNameInEnv: string =
+    Object.keys(process.env).find((k) => k.toUpperCase() == "PATH") || "PATH";
+  const systemPath = process.env[pathNameInEnv] || "";
+  const customExtraPaths = (
+    currentEnvVars[pathNameInEnv] || systemPath
+  ).replace(systemPath, "");
 
   reportedResult.configurationSettings = {
     customTerminalExecutable: conf.get("idf.customTerminalExecutable") || "",

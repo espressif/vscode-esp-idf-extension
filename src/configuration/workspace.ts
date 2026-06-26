@@ -24,7 +24,7 @@ import { canAccessFile, getToolchainToolName, isBinInPath } from "../utils";
 import { IdfTreeDataProvider } from "../espIdf/idfComponent/treeDataProvider";
 import { parse, ParseError } from "jsonc-parser";
 import { updateJsonPreservingComments } from "../jsonc/updateJsonPreservingComments";
-import { getCurrentIdfConfiguration } from "./env";
+import { getCurrentIdfConfiguration, updateCurrentIdfEnvVar } from "./env";
 
 /** Parsed subset of build/project_description.json; fields are optional for partial or evolving schemas. */
 export interface IProjectDescription {
@@ -356,6 +356,7 @@ export async function getIdfTargetFromSdkconfig(
     if (statusItem) {
       statusItem.text = "$(chip) " + idfTarget;
     }
+    updateCurrentIdfEnvVar("IDF_TARGET", idfTarget);
     return idfTarget;
   } catch (error) {
     const customExtraVars = readParameter(
@@ -366,6 +367,7 @@ export async function getIdfTargetFromSdkconfig(
     if (statusItem) {
       statusItem.text = `$(chip) ${idfTarget}`;
     }
+    updateCurrentIdfEnvVar("IDF_TARGET", idfTarget);
     return idfTarget;
   }
 }
