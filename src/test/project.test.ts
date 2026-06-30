@@ -80,12 +80,26 @@ suite("Project tests", () => {
   });
 
   test("cCppPropertiesJson.json content", async () => {
+    const currentIdfConfig = Object.entries(process.env).reduce(
+      (acc, [key, value]) => {
+        if (typeof value === "string") {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+    currentIdfConfig.IDF_TARGET = currentIdfConfig.IDF_TARGET || "esp32";
+    ESP.ProjectConfiguration.store.set(
+      ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+      currentIdfConfig
+    );
     const templateCCppPropertiesJsonJson = await readJson(
       join(templateFolder, ".vscode", "c_cpp_properties.json")
     );
     const compilerAbsolutePath = await isBinInPath(
       "xtensa-esp32-elf-gcc",
-      process.env
+      currentIdfConfig
     );
     templateCCppPropertiesJsonJson.configurations[0].compilerPath = compilerAbsolutePath;
     const targetCCppPropertiesJsonJson = await readJson(
