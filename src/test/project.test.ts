@@ -32,7 +32,7 @@ import { IdfSetup } from "../eim/types";
 import { ProjectConfigStore } from "../project-conf/utils";
 import { ESP } from "../config";
 import { createMockMemento } from "./mockUtils";
-import { setCCppPropertiesJsonCompilerPath } from "../configuration/workspace";
+import { updateCCppPropertiesJson } from "../configuration/workspace";
 
 suite("Project tests", () => {
   const absPath = (filename: string) =>
@@ -80,32 +80,22 @@ suite("Project tests", () => {
   });
 
   test("cCppPropertiesJson.json content", async () => {
-    const currentIdfConfig = Object.entries(process.env).reduce(
-      (acc, [key, value]) => {
-        if (typeof value === "string") {
-          acc[key] = value;
-        }
-        return acc;
-      },
-      {} as Record<string, string>
-    );
-    currentIdfConfig.IDF_TARGET = currentIdfConfig.IDF_TARGET || "esp32";
-    ESP.ProjectConfiguration.store.set(
-      ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
-      currentIdfConfig
-    );
     const templateCCppPropertiesJsonJson = await readJson(
       join(templateFolder, ".vscode", "c_cpp_properties.json")
     );
     const compilerAbsolutePath = await isBinInPath(
       "xtensa-esp32-elf-gcc",
-      currentIdfConfig
+      process.env
     );
     templateCCppPropertiesJsonJson.configurations[0].compilerPath = compilerAbsolutePath;
     const targetCCppPropertiesJsonJson = await readJson(
       join(targetFolder, ".vscode", "c_cpp_properties.json")
     );
-    await setCCppPropertiesJsonCompilerPath(Uri.file(targetFolder));
+    await updateCCppPropertiesJson(
+      Uri.file(targetFolder),
+      "compilerPath",
+      compilerAbsolutePath
+    );
     assert.equal(
       JSON.stringify(templateCCppPropertiesJsonJson),
       JSON.stringify(targetCCppPropertiesJsonJson)
