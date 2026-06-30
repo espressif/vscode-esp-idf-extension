@@ -88,13 +88,13 @@ suite("Project tests", () => {
       process.env
     );
     templateCCppPropertiesJsonJson.configurations[0].compilerPath = compilerAbsolutePath;
-    const targetCCppPropertiesJsonJson = await readJson(
-      join(targetFolder, ".vscode", "c_cpp_properties.json")
-    );
     await updateCCppPropertiesJson(
       Uri.file(targetFolder),
       "compilerPath",
       compilerAbsolutePath
+    );
+    const targetCCppPropertiesJsonJson = await readJson(
+      join(targetFolder, ".vscode", "c_cpp_properties.json")
     );
     assert.equal(
       JSON.stringify(templateCCppPropertiesJsonJson),
