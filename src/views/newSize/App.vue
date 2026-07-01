@@ -10,11 +10,19 @@ import ArchiveItem from "./components/ArchiveItem.vue";
 import FileTable from "./components/FileTable.vue";
 import SizeFilter from "./components/SizeFilter.vue";
 import { IDFSizeArchive } from "../../espIdf/size/types";
+import {
+  sectionCapacityTotal,
+  sectionShowsUsagePercent,
+} from "../../espIdf/size/layoutUtils";
 
 const store = useNewSizeStore();
 
 const { archives, isOverviewEnabled, overviewData, searchText } = storeToRefs(
   store
+);
+
+const sectionsWithUsagePercent = computed(() =>
+  overviewData.value.layout.filter(sectionShowsUsagePercent)
 );
 
 const filteredArchives = computed<{ [key: string]: IDFSizeArchive }>(() => {
@@ -52,11 +60,11 @@ onMounted(() => {
           <div v-if="isOverviewEnabled">
             <Overview />
             <ProgressBar
-              v-for="section in overviewData.layout"
+              v-for="section in sectionsWithUsagePercent"
               :key="section.name"
               :name="section.name"
               :usedData="section.used"
-              :totalData="section.total ? section.total : section.used + section.free"
+              :totalData="sectionCapacityTotal(section)"
             />
           </div>
           <div v-else>
