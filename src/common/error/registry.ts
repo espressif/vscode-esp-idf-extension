@@ -76,7 +76,7 @@ registerNewErrorInRegistry({
   code: ErrorCode.IdfTargetNotSet,
   severity: ErrorSeverity.Error,
   userMessage:
-    'IDF target is not set. Use "ESP-IDF: Set Espressif Device Target".',
+    'IDF target is not set.',
   logMessage: "IDF_TARGET is not set in the environment variables.",
   actions: [
     {
@@ -122,8 +122,8 @@ registerNewErrorInRegistry({
 registerNewErrorInRegistry({
   code: ErrorCode.FILE_NOT_FOUND,
   severity: ErrorSeverity.Error,
-  userMessage: "The requested file could not be found.",
-  logMessage: "File not found during command execution.",
+  userMessage: "The file {filePath} could not be found.",
+  logMessage: "File not found: {filePath}.",
   actions: [
     {
       label: "Open File…",
@@ -136,8 +136,8 @@ registerNewErrorInRegistry({
 registerNewErrorInRegistry({
   code: ErrorCode.FILE_PERMISSION_DENIED,
   severity: ErrorSeverity.Error,
-  userMessage: "Permission denied when accessing the file.",
-  logMessage: "File permission denied.",
+  userMessage: "Permission denied when accessing {filePath}.",
+  logMessage: "File permission denied: {filePath}.",
   actions: [
     {
       label: "Retry as Admin",
@@ -193,8 +193,9 @@ registerNewErrorInRegistry({
 registerNewErrorInRegistry({
   code: ErrorCode.INVALID_CONFIGURATION,
   severity: ErrorSeverity.Error,
-  userMessage: "Extension configuration is invalid. Please review settings.",
-  logMessage: "Invalid extension configuration detected.",
+  userMessage:
+    "Extension setting {setting} is invalid. Please review your configuration.",
+  logMessage: "Invalid extension configuration: {setting}.",
   actions: [
     {
       label: "Open Settings",
@@ -210,8 +211,8 @@ registerNewErrorInRegistry({
 registerNewErrorInRegistry({
   code: ErrorCode.MISSING_DEPENDENCY,
   severity: ErrorSeverity.Error,
-  userMessage: "A required dependency is missing.",
-  logMessage: "Missing dependency.",
+  userMessage: "Required dependency {dependency} is missing.",
+  logMessage: "Missing dependency: {dependency}.",
   actions: [
     {
       label: "Show Details",
@@ -226,8 +227,9 @@ registerNewErrorInRegistry({
 registerNewErrorInRegistry({
   code: ErrorCode.PARSE_ERROR,
   severity: ErrorSeverity.Error,
-  userMessage: "Failed to parse the file. Please check the syntax.",
-  logMessage: "Parse error encountered.",
+  userMessage:
+    "Failed to parse {filePath}. Please check the syntax.",
+  logMessage: "Parse error in {filePath}.",
   actions: [],
 });
 

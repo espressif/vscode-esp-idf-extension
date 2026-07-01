@@ -56,6 +56,46 @@ export function idfToolNotFound(toolName: string): KnownError {
   );
 }
 
+export function fileNotFound(filePath: string): KnownError {
+  return new KnownError(
+    ErrorCode.FILE_NOT_FOUND,
+    `File not found: ${filePath}`,
+    { filePath }
+  );
+}
+
+export function filePermissionDenied(filePath: string): KnownError {
+  return new KnownError(
+    ErrorCode.FILE_PERMISSION_DENIED,
+    `Permission denied when accessing: ${filePath}`,
+    { filePath }
+  );
+}
+
+export function invalidConfiguration(setting: string): KnownError {
+  return new KnownError(
+    ErrorCode.INVALID_CONFIGURATION,
+    `Invalid extension configuration: ${setting}`,
+    { setting }
+  );
+}
+
+export function missingDependency(dependency: string): KnownError {
+  return new KnownError(
+    ErrorCode.MISSING_DEPENDENCY,
+    `Missing dependency: ${dependency}`,
+    { dependency }
+  );
+}
+
+export function parseError(filePath: string): KnownError {
+  return new KnownError(
+    ErrorCode.PARSE_ERROR,
+    `Failed to parse: ${filePath}`,
+    { filePath }
+  );
+}
+
 export function alreadyBuilding(): KnownError {
   return new KnownError(
     ErrorCode.AlreadyBuilding,
