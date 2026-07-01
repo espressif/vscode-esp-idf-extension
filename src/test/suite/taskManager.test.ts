@@ -8,6 +8,8 @@
 
 import * as assert from "assert";
 import * as vscode from "vscode";
+import { isKnownError } from "../../common/error/knownError";
+import { ErrorCode } from "../../common/error/types";
 import { OutputCapturingExecution } from "../../taskManager/customExecution";
 import {
   collectExecutions,
@@ -52,7 +54,7 @@ suite("taskManager helpers", () => {
       ]);
     });
 
-    test("throws stderr when task failed with stderr", async () => {
+    test("throws KnownError with stderr metadata when task failed with stderr", async () => {
       await assert.rejects(
         throwCapturedTaskFailure([
           {
@@ -63,11 +65,13 @@ suite("taskManager helpers", () => {
           } as unknown as IdfTaskExecution,
         ]),
         (e: unknown) =>
-          e instanceof Error && e.message === "  cmake error  "
+          isKnownError(e) &&
+          e.code === ErrorCode.TaskFailedWithOutput &&
+          e.metadata?.stderr === "  cmake error  "
       );
     });
 
-    test("throws stdout when stderr is empty", async () => {
+    test("throws KnownError with stdout metadata when stderr is empty", async () => {
       await assert.rejects(
         throwCapturedTaskFailure([
           {
@@ -78,11 +82,14 @@ suite("taskManager helpers", () => {
             }),
           } as unknown as IdfTaskExecution,
         ]),
-        (e: unknown) => e instanceof Error && e.message === "ninja failed"
+        (e: unknown) =>
+          isKnownError(e) &&
+          e.code === ErrorCode.TaskFailedWithOutput &&
+          e.metadata?.stdout === "ninja failed"
       );
     });
 
-    test("throws exit code when stdout and stderr are blank", async () => {
+    test("throws KnownError with exit code when stdout and stderr are blank", async () => {
       await assert.rejects(
         throwCapturedTaskFailure([
           {
@@ -94,7 +101,11 @@ suite("taskManager helpers", () => {
             }),
           } as unknown as IdfTaskExecution,
         ]),
-        (e: Error) => e.message === "Task exited with code 7"
+        (e: unknown) =>
+          isKnownError(e) &&
+          e.code === ErrorCode.TaskFailedWithOutput &&
+          e.message === "Task failed with exit code 7" &&
+          e.metadata?.exitCode === 7
       );
     });
 
