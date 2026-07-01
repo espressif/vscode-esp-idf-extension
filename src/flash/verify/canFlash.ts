@@ -18,7 +18,7 @@
 
 import { ESP } from "../../config";
 import { commands, l10n, Uri } from "vscode";
-import { BuildTask } from "../../build/buildTask";
+import { BuildSession } from "../../build/buildSession";
 import { FlashSession } from "../shared/flashSession";
 import { Logger } from "../../common/logger";
 import { OutputChannel } from "../../common/outputChannel";
@@ -36,7 +36,7 @@ export async function verifyCanFlash(
   workspace: Uri
 ): Promise<boolean> {
   let continueFlag = true;
-  if (BuildTask.isBuilding || FlashSession.isFlashing) {
+  if (BuildSession.isActive || FlashSession.isFlashing) {
     const waitProcessIsFinishedMsg = l10n.t("Wait for ESP-IDF task to finish");
     OutputChannel.show();
     OutputChannel.appendLineAndShow(waitProcessIsFinishedMsg, "Flash");

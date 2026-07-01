@@ -79,7 +79,7 @@ export class Logger {
       Telemetry.sendException(error, {
         givenMessage: message,
         errorMessage: error.message,
-        errorStack: error.stack,
+        errorStack: error.stack || metadata?.stack,
         category,
         capturedBy: "Logger",
         command: metadata?.command
@@ -88,7 +88,7 @@ export class Logger {
     winston.log("error", message, {
       ...metadata,
       message: error.message,
-      stack: error.stack,
+      stack: error.stack || metadata?.stack,
       category,
     });
   }
@@ -97,7 +97,7 @@ export class Logger {
     Logger.checkInitialized();
     winston.log("error", message, {
       errorMessage: `[Telemetry]: ${message}`,
-      stack: error.stack,
+      stack: error.stack || metadata?.stack,
       metadata,
     });
   }
