@@ -2415,6 +2415,10 @@
           "command": {
             "type": "string",
             "description": "Command to Be Executed"
+          },
+          "taskId": {
+            "type": "string",
+            "description": "Internal ESP-IDF task identifier"
           }
         },
         "required": [

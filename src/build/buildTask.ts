@@ -28,30 +28,15 @@ import { enqueueCompileTaskIfNoCache } from "./cmakeConfigure";
 import { getCurrentIdfConfiguration } from "../configuration/env";
 
 export class BuildTask {
-  public static isBuilding: boolean;
   private currentWorkspace: Uri;
 
   constructor(workspaceUri: Uri) {
     this.currentWorkspace = workspaceUri;
   }
 
-  /** Synchronous mutual exclusion for the build pipeline; false if a build is already active. */
-  public static tryReserveBuild(): boolean {
-    if (BuildTask.isBuilding) {
-      return false;
-    }
-    BuildTask.isBuilding = true;
-    return true;
-  }
-
-  /** Clears the slot when the pipeline aborts before TaskManager-driven cleanup. */
-  public static releaseBuildReservation(): void {
-    BuildTask.isBuilding = false;
-  }
-
   /**
-   * @remarks `buildMain` must call `tryReserveBuild()` synchronously before the first
-   * `await` in this pipeline; this method does not acquire the slot itself.
+   * @remarks {@link BuildSession.acquire} must be called in {@link buildMain}
+   * before this pipeline runs.
    */
   public async build(
     buildType?: ESP.BuildType,
@@ -62,55 +47,50 @@ export class BuildTask {
       OutputCapturingExecution | ProcessExecution
     ]
   > {
-    try {
-      const modifiedEnv = getCurrentIdfConfiguration();
-      const buildDirPath = readParameter(
-        "idf.buildPath",
-        this.currentWorkspace
-      ) as string;
-      await ensureDir(buildDirPath);
-      const { cmakeBin, ninjaBin } = await runValidationBeforeBuild(
-        modifiedEnv,
-        this.currentWorkspace
-      );
+    const modifiedEnv = getCurrentIdfConfiguration();
+    const buildDirPath = readParameter(
+      "idf.buildPath",
+      this.currentWorkspace
+    ) as string;
+    await ensureDir(buildDirPath);
+    const { cmakeBin, ninjaBin } = await runValidationBeforeBuild(
+      modifiedEnv,
+      this.currentWorkspace
+    );
 
-      const cmakeCachePath = join(buildDirPath, "CMakeCache.txt");
-      const cmakeCacheExists = await pathExists(cmakeCachePath);
+    const cmakeCachePath = join(buildDirPath, "CMakeCache.txt");
+    const cmakeCacheExists = await pathExists(cmakeCachePath);
 
-      let compileExecution:
-        | OutputCapturingExecution
-        | ProcessExecution
-        | undefined;
-      if (!cmakeCacheExists) {
-        compileExecution = await enqueueCompileTaskIfNoCache(
-          this.currentWorkspace,
-          buildDirPath,
-          modifiedEnv,
-          cmakeBin,
-          captureOutput
-        );
-      }
-
-      const buildArgs =
-        (readParameter("idf.ninjaArgs", this.currentWorkspace) as Array<
-          string
-        >) || [];
-      if (buildType && buildArgs.indexOf(buildType) === -1) {
-        buildArgs.push(buildType);
-      }
-      const buildExecution = addProcessTask(
-        "Build",
+    let compileExecution:
+      | OutputCapturingExecution
+      | ProcessExecution
+      | undefined;
+    if (!cmakeCacheExists) {
+      compileExecution = await enqueueCompileTaskIfNoCache(
         this.currentWorkspace,
-        ninjaBin,
-        buildArgs,
         buildDirPath,
         modifiedEnv,
-        { captureOutput }
+        cmakeBin,
+        captureOutput
       );
-      return [compileExecution, buildExecution];
-    } catch (error) {
-      BuildTask.releaseBuildReservation();
-      throw error;
     }
+
+    const buildArgs =
+      (readParameter("idf.ninjaArgs", this.currentWorkspace) as Array<
+        string
+      >) || [];
+    if (buildType && buildArgs.indexOf(buildType) === -1) {
+      buildArgs.push(buildType);
+    }
+    const buildExecution = addProcessTask(
+      "Build",
+      this.currentWorkspace,
+      ninjaBin,
+      buildArgs,
+      buildDirPath,
+      modifiedEnv,
+      { captureOutput }
+    );
+    return [compileExecution, buildExecution];
   }
 }

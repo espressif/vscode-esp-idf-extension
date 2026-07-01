@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
 import { Logger } from "../common/logger";
+import { isKnownError } from "../common/error/knownError";
+import { ErrorCode } from "../common/error/types";
 import { OutputChannel } from "../common/outputChannel";
 import { ESP } from "../config";
 import { buildMain } from "../build/buildMain";
@@ -298,18 +300,27 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             new vscode.LanguageModelTextPart(feedback),
           ]);
         } catch (error) {
+          if (isKnownError(error)) {
+            if (error.code === ErrorCode.AlreadyBuilding) {
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart("Already a build is running!"),
+              ]);
+            }
+            if (error.code === ErrorCode.BuildTerminated) {
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart("Build is Terminated"),
+              ]);
+            }
+            if (error.code === ErrorCode.FlashInProgress) {
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart(
+                  "Wait for ESP-IDF flash to finish"
+                ),
+              ]);
+            }
+          }
           const errorMessage =
             error instanceof Error ? error.message : String(error);
-          if (errorMessage === "ALREADY_BUILDING") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart("Already a build is running!"),
-            ]);
-          }
-          if (errorMessage === "BUILD_TERMINATED") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart("Build is Terminated"),
-            ]);
-          }
           if (errorMessage === "ALREADY_FLASHING") {
             return new vscode.LanguageModelToolResult([
               new vscode.LanguageModelTextPart(
