@@ -23,6 +23,7 @@ import {
   ShellExecution,
   Task,
   TaskDefinition,
+  TaskExecution,
   TaskPanelKind,
   TaskPresentationOptions,
   TaskRevealKind,
@@ -38,6 +39,8 @@ import { Logger } from "../common/logger";
 import type { CaptureableTaskExecution } from "./types";
 import { OutputCapturingExecution } from "./customExecution";
 import { ShellOutputCapturingExecution } from "./shellCaptureExecution";
+import { KnownError } from "../common/error/knownError";
+import { ErrorCode } from "../common/error/types";
 
 export interface IdfTaskDefinition extends TaskDefinition {
   command?: string;
@@ -100,20 +103,17 @@ export async function throwCapturedTaskFailure(
       | ShellOutputCapturingExecution
       | CaptureableTaskExecution).getOutput();
     if (executionOutput && !executionOutput.success) {
-      if (executionOutput.stderr?.trim()) {
-        throw new Error(executionOutput.stderr);
-      }
-      if (executionOutput.stdout?.trim()) {
-        throw new Error(executionOutput.stdout);
-      }
-      const taskExitError = new Error(
-        `Task exited with code ${executionOutput.exitCode}`
+      const knownError = new KnownError(
+        ErrorCode.TaskFailedWithOutput,
+        `Task failed with exit code ${executionOutput.exitCode}`,
+        {
+          stdout: executionOutput.stdout,
+          stderr: executionOutput.stderr,
+          exitCode: executionOutput.exitCode,
+          success: executionOutput.success,
+        }
       );
-      if (typeof executionOutput.exitCode === "number") {
-        (taskExitError as Error & { exitCode: number }).exitCode =
-          executionOutput.exitCode;
-      }
-      throw taskExitError;
+      throw knownError;
     }
   }
 }
@@ -127,6 +127,7 @@ export function getWorkspaceFolderForTask(
 export class TaskManager {
   private static tasks: Task[] = [];
   private static disposables: Disposable[] = [];
+  private static activeRunReject: ((error: Error) => void) | undefined;
   private static taskResults: Array<{
     taskId: string;
     exitCode?: number;
@@ -134,6 +135,90 @@ export class TaskManager {
     output?: any;
     error?: Error;
   }> = [];
+
+  private static getTaskDefinitionId(
+    definition: TaskDefinition
+  ): string | undefined {
+    return (definition as IdfTaskDefinition).taskId;
+  }
+
+  /**
+   * VS Code may omit custom definition fields (e.g. taskId) on the execution task.
+   * Match the queue head (in-flight task) by id or display name.
+   */
+  private static executionMatchesPending(
+    execution: TaskExecution,
+    pendingId: string | undefined
+  ): boolean {
+    if (!execution || pendingId === undefined) {
+      return false;
+    }
+    const endedId = TaskManager.getTaskDefinitionId(execution.task.definition);
+    if (endedId === pendingId) {
+      return true;
+    }
+    const inFlight = TaskManager.tasks[0];
+    if (!inFlight) {
+      return false;
+    }
+    const inFlightId = TaskManager.getTaskDefinitionId(inFlight.definition);
+    if (inFlightId !== pendingId) {
+      return false;
+    }
+    return execution.task.name === inFlight.name;
+  }
+
+  private static getInFlightTask(pendingId: string): Task | undefined {
+    const inFlight = TaskManager.tasks[0];
+    if (
+      inFlight &&
+      TaskManager.getTaskDefinitionId(inFlight.definition) === pendingId
+    ) {
+      return inFlight;
+    }
+    return TaskManager.tasks.find(
+      (task) => TaskManager.getTaskDefinitionId(task.definition) === pendingId
+    );
+  }
+
+  private static taskUsesProcessExecution(task: Task): boolean {
+    return (
+      task.execution instanceof ProcessExecution ||
+      task.execution instanceof ShellExecution
+    );
+  }
+
+  private static async resolveExitCodeForPendingTask(
+    pendingId: string,
+    processExitCode: number | undefined
+  ): Promise<number> {
+    if (typeof processExitCode === "number") {
+      return processExitCode;
+    }
+    const pendingTask = TaskManager.getInFlightTask(pendingId);
+    if (pendingTask && "getOutput" in pendingTask.execution) {
+      const output = await (
+        pendingTask.execution as {
+          getOutput: () => Promise<{
+            success: boolean;
+            exitCode?: number;
+          }>;
+        }
+      ).getOutput();
+      return output.success ? 0 : (output.exitCode ?? 1);
+    }
+    return 0;
+  }
+
+  private static clearActiveRunReject(): void {
+    TaskManager.activeRunReject = undefined;
+  }
+
+  private static rejectActiveRun(error: Error): void {
+    const reject = TaskManager.activeRunReject;
+    TaskManager.clearActiveRunReject();
+    reject?.(error);
+  }
 
   public static addTask(
     name: string,
@@ -190,6 +275,7 @@ export class TaskManager {
   }
 
   public static disposeListeners() {
+    TaskManager.rejectActiveRun(new Error("Task run disposed"));
     for (const disposable of TaskManager.disposables) {
       disposable.dispose();
     }
@@ -200,138 +286,163 @@ export class TaskManager {
   public static cancelTasks() {
     for (const task of TaskManager.tasks) {
       const execution = tasks.taskExecutions.find((t) => {
-        // Match the exact taskId we use in our definitions.
-        return t.task.definition.taskId === task.definition.taskId;
+        const runningId = TaskManager.getTaskDefinitionId(t.task.definition);
+        const queuedId = TaskManager.getTaskDefinitionId(task.definition);
+        return runningId === queuedId || t.task.name === task.name;
       });
       if (execution) {
         execution.terminate();
       }
     }
     TaskManager.tasks = [];
+    TaskManager.rejectActiveRun(new Error("BUILD_TERMINATED"));
   }
 
   public static runTasks(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      let taskDisposable: Disposable | undefined;
-      const disposeTaskListener = () => {
-        if (taskDisposable) {
-          taskDisposable.dispose();
-          const i = TaskManager.disposables.indexOf(taskDisposable);
-          if (i !== -1) {
-            TaskManager.disposables.splice(i, 1);
+      let processEndDisposable: Disposable | undefined;
+      let taskEndDisposable: Disposable | undefined;
+      const processExitCodes = new Map<string, number | undefined>();
+
+      const disposeTaskListeners = () => {
+        if (processEndDisposable) {
+          processEndDisposable.dispose();
+          const processIndex =
+            TaskManager.disposables.indexOf(processEndDisposable);
+          if (processIndex !== -1) {
+            TaskManager.disposables.splice(processIndex, 1);
           }
-          taskDisposable = undefined;
+          processEndDisposable = undefined;
+        }
+        if (taskEndDisposable) {
+          taskEndDisposable.dispose();
+          const taskIndex = TaskManager.disposables.indexOf(taskEndDisposable);
+          if (taskIndex !== -1) {
+            TaskManager.disposables.splice(taskIndex, 1);
+          }
+          taskEndDisposable = undefined;
         }
       };
 
-      /** Task id we expect `onDidEndTaskProcess` to report for the in-flight execution (set before each `executeTask`). */
       let pendingTaskMatchId: string | undefined;
+      const handledCompletionIds = new Set<string>();
 
-      try {
-        if (TaskManager.tasks.length === 0) {
+      const finishRun = (error?: Error) => {
+        disposeTaskListeners();
+        TaskManager.tasks = [];
+        TaskManager.clearActiveRunReject();
+        if (error) {
+          reject(error);
+        } else {
           resolve();
+        }
+      };
+
+      const rejectTaskRun = (error: unknown) => {
+        finishRun(error instanceof Error ? error : new Error(String(error)));
+      };
+
+      TaskManager.activeRunReject = rejectTaskRun;
+
+      const startNextTask = () => {
+        if (TaskManager.tasks.length === 0) {
+          finishRun();
+          return;
+        }
+        pendingTaskMatchId = TaskManager.getTaskDefinitionId(
+          TaskManager.tasks[0].definition
+        );
+        Promise.resolve(tasks.executeTask(TaskManager.tasks[0])).then(
+          undefined,
+          rejectTaskRun
+        );
+      };
+
+      const handleTaskFinished = async (execution: TaskExecution) => {
+        if (!TaskManager.executionMatchesPending(execution, pendingTaskMatchId)) {
           return;
         }
 
-        taskDisposable = tasks.onDidEndTaskProcess((e) => {
+        const matchedTaskId = pendingTaskMatchId!;
+        if (handledCompletionIds.has(matchedTaskId)) {
+          return;
+        }
+        handledCompletionIds.add(matchedTaskId);
+
+        const inFlightTask = TaskManager.getInFlightTask(matchedTaskId);
+        let processExitCode = processExitCodes.get(matchedTaskId);
+        if (
+          processExitCode === undefined &&
+          inFlightTask &&
+          TaskManager.taskUsesProcessExecution(inFlightTask)
+        ) {
+          await new Promise<void>((r) => setImmediate(r));
+          processExitCode = processExitCodes.get(matchedTaskId);
+        }
+        processExitCodes.delete(matchedTaskId);
+
+        const exitCode = await TaskManager.resolveExitCodeForPendingTask(
+          matchedTaskId,
+          processExitCode
+        );
+
+        TaskManager.taskResults.push({
+          taskId: matchedTaskId,
+          exitCode,
+          taskName: execution.task.name,
+        });
+
+        const taskIndex = TaskManager.tasks.findIndex(
+          (task) =>
+            TaskManager.getTaskDefinitionId(task.definition) === matchedTaskId
+        );
+        if (taskIndex !== -1) {
+          TaskManager.tasks.splice(taskIndex, 1);
+        }
+
+        if (exitCode !== 0) {
+          const taskExitError = new Error(
+            `Task ${execution.task.name} exited with code ${exitCode}`
+          );
+          (taskExitError as Error & { exitCode: number }).exitCode = exitCode;
+          rejectTaskRun(taskExitError);
+          return;
+        }
+
+        startNextTask();
+      };
+
+      try {
+        if (TaskManager.tasks.length === 0) {
+          finishRun();
+          return;
+        }
+
+        processEndDisposable = tasks.onDidEndTaskProcess((e) => {
           try {
             if (
-              !e.execution ||
-              pendingTaskMatchId === undefined ||
-              e.execution.task.definition.taskId !== pendingTaskMatchId
+              !TaskManager.executionMatchesPending(
+                e.execution,
+                pendingTaskMatchId
+              )
             ) {
               return;
             }
-            const taskResult = {
-              taskId: e.execution.task.definition.taskId,
-              exitCode: e.exitCode,
-              taskName: e.execution.task.name,
-            };
-            TaskManager.taskResults.push(taskResult);
-
-            // Remove the completed task from the array (regardless of success or failure)
-            const taskIndex = TaskManager.tasks.findIndex(
-              (task) => task.definition.taskId === pendingTaskMatchId
-            );
-            if (taskIndex !== -1) {
-              TaskManager.tasks.splice(taskIndex, 1);
-            }
-
-            if (e.exitCode !== 0) {
-              // Task has already ended (this handler runs after end); queued tasks
-              // are dropped without terminate() because they are not running yet.
-              disposeTaskListener();
-              TaskManager.tasks = [];
-              TaskManager.disposeListeners();
-              const taskExitError = new Error(
-                `Task ${e.execution.task.name} exited with code ${e.exitCode}`
-              );
-              if (typeof e.exitCode === "number") {
-                (taskExitError as Error & { exitCode: number }).exitCode =
-                  e.exitCode;
-              }
-              reject(taskExitError);
-              return;
-            }
-            if (TaskManager.tasks.length === 0) {
-              disposeTaskListener();
-              resolve();
-              return;
-            }
-            try {
-              pendingTaskMatchId = (TaskManager.tasks[0]
-                .definition as IdfTaskDefinition).taskId;
-              Promise.resolve(tasks.executeTask(TaskManager.tasks[0])).then(
-                undefined,
-                (err) => {
-                  disposeTaskListener();
-                  TaskManager.cancelTasks();
-                  TaskManager.disposeListeners();
-                  reject(err instanceof Error ? err : new Error(String(err)));
-                }
-              );
-            } catch (err) {
-              disposeTaskListener();
-              TaskManager.cancelTasks();
-              TaskManager.disposeListeners();
-              reject(err instanceof Error ? err : new Error(String(err)));
-            }
+            const matchedTaskId = pendingTaskMatchId!;
+            processExitCodes.set(matchedTaskId, e.exitCode);
           } catch (listenerErr) {
-            disposeTaskListener();
-            TaskManager.cancelTasks();
-            TaskManager.disposeListeners();
-            reject(
-              listenerErr instanceof Error
-                ? listenerErr
-                : new Error(String(listenerErr))
-            );
+            rejectTaskRun(listenerErr);
           }
         });
-        TaskManager.disposables.push(taskDisposable);
 
-        try {
-          pendingTaskMatchId = (TaskManager.tasks[0]
-            .definition as IdfTaskDefinition).taskId;
-          Promise.resolve(tasks.executeTask(TaskManager.tasks[0])).then(
-            undefined,
-            (err) => {
-              disposeTaskListener();
-              TaskManager.cancelTasks();
-              TaskManager.disposeListeners();
-              reject(err instanceof Error ? err : new Error(String(err)));
-            }
-          );
-        } catch (err) {
-          disposeTaskListener();
-          TaskManager.cancelTasks();
-          TaskManager.disposeListeners();
-          reject(err instanceof Error ? err : new Error(String(err)));
-        }
+        taskEndDisposable = tasks.onDidEndTask((e) => {
+          void handleTaskFinished(e.execution).catch(rejectTaskRun);
+        });
+
+        TaskManager.disposables.push(processEndDisposable, taskEndDisposable);
+        startNextTask();
       } catch (err) {
-        disposeTaskListener();
-        TaskManager.cancelTasks();
-        TaskManager.disposeListeners();
-        reject(err instanceof Error ? err : new Error(String(err)));
+        rejectTaskRun(err);
       }
     });
   }

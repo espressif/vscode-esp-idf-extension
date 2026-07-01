@@ -26,6 +26,7 @@ import { flashMain } from "../../flash/main";
 import { CustomExecutionTaskResult } from "../../taskManager/types";
 import { OutputChannel } from "../../common/outputChannel";
 import { Logger } from "../../common/logger";
+import { isKnownError } from "../../common/error/knownError";
 import { getFileList, getTestComponents } from "./utils";
 
 export async function configureUnityApp(
@@ -103,12 +104,18 @@ export async function buildTestApp(
   if (!flashType) {
     flashType = ESP.FlashType.UART;
   }
-  const buildCmdResults = await buildMain(
-    unitTestAppDirPath,
-    cancelToken,
-    flashType
-  );
-  return buildCmdResults;
+  try {
+    return await buildMain(
+      unitTestAppDirPath,
+      cancelToken,
+      flashType
+    );
+  } catch (error) {
+    if (isKnownError(error)) {
+      return { continueFlag: false, executions: [] };
+    }
+    throw error;
+  }
 }
 
 export async function flashTestApp(

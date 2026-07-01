@@ -27,7 +27,7 @@ import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerPro
 import { join } from "path";
 import { constants, rm } from "fs/promises";
 import { FlashSession } from "../flash/shared/flashSession";
-import { BuildTask } from "../build/buildTask";
+import { BuildSession } from "../build/buildSession";
 import { pathExists } from "fs-extra";
 import { ESP } from "../config";
 
@@ -67,7 +67,7 @@ export function registerFullCleanCmd(context: ExtensionContext) {
         OutputChannel.appendLineAndShow(errStr);
         return Logger.warnNotify(errStr);
       }
-      if (BuildTask.isBuilding || FlashSession.isFlashing) {
+      if (BuildSession.isActive || FlashSession.isFlashing) {
         const errStr = l10n.t(
           `There is a build or flash task running. Wait for it to finish or cancel them before clean.`
         );
