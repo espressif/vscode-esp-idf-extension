@@ -16,7 +16,7 @@ import {
   getProjectElfFilePath,
 } from "../../configuration/workspace";
 import { FlashSession } from "../../flash/shared/flashSession";
-import { BuildTask } from "../../build/buildTask";
+import { BuildSession } from "../../build/buildSession";
 import { getMonitorBaudRate } from "./getMonitorBaudRate";
 import { MonitorConfig } from "./types";
 import { canAccessFile, getEspIdfFromCMake, getToolchainToolName } from "../../utils";
@@ -45,7 +45,7 @@ export async function loadMonitorLaunchConfig(
   noReset: boolean,
   wsPort?: number
 ): Promise<LoadMonitorLaunchConfigResult> {
-  if (BuildTask.isBuilding || FlashSession.isFlashing) {
+  if (BuildSession.isActive || FlashSession.isFlashing) {
     return { ok: false, reason: "one_task_at_time" };
   }
 

@@ -17,8 +17,13 @@
  */
 
 import { BuildTask } from "./buildTask";
+import { BuildSession } from "./buildSession";
 import { FlashSession } from "../flash/shared/flashSession";
 import { Logger } from "../common/logger";
+import {
+  buildTerminated,
+  flashInProgress,
+} from "../common/error/knownError";
 import {
   collectExecutions,
   TaskManager,
@@ -30,10 +35,9 @@ import { ESP } from "../config";
 import { OutputChannel } from "../common/outputChannel";
 import { CustomExecutionTaskResult } from "../taskManager/types";
 import { buildFinishFlashCmd } from "./buildFinishFlashCmd";
-import { cleanupBuildState } from "./buildHelpers";
 import { appendDfuExecution } from "./dfuExecution";
 import { runSizeTaskIfEnabled } from "./sizeExecution";
-import { CancellationToken, Disposable, l10n, Uri } from "vscode";
+import { CancellationToken, Disposable, Uri } from "vscode";
 
 /**
  * Runs the ESP-IDF build pipeline: optional pre/post custom tasks, CMake/ninja
@@ -44,6 +48,10 @@ import { CancellationToken, Disposable, l10n, Uri } from "vscode";
  * build path succeeded; `executions` collects task executions (including
  * captured output where used) for follow-up checks or
  * {@link throwCapturedTaskFailure}.
+ *
+ * @throws {KnownError} On validation failures, concurrent build/flash conflicts,
+ * task failures, or user cancellation. Callers that need a soft failure result
+ * should catch {@link isKnownError} and map to `{ continueFlag: false }`.
  */
 export async function buildMain(
   workspace: Uri,
@@ -56,30 +64,15 @@ export async function buildMain(
   const customTask = new CustomTask(workspace);
   let executions = collectExecutions();
   let cancelSubscription: Disposable | undefined;
+  let failure: unknown;
+  let session: BuildSession | undefined;
 
   try {
     if (FlashSession.isFlashing) {
-      const waitProcessIsFinishedMsg = l10n.t(
-        "Wait for ESP-IDF flash to finish"
-      );
-      Logger.errorNotify(
-        waitProcessIsFinishedMsg,
-        new Error("One_Task_At_A_Time"),
-        "buildMain.buildCommand"
-      );
-      return { continueFlag: false, executions };
+      throw flashInProgress();
     }
-    if (!BuildTask.tryReserveBuild()) {
-      const waitProcessIsFinishedMsg = l10n.t(
-        "Wait for ESP-IDF build to finish"
-      );
-      Logger.errorNotify(
-        waitProcessIsFinishedMsg,
-        new Error("One_Task_At_A_Time"),
-        "buildMain.buildCommand"
-      );
-      return { continueFlag: false, executions };
-    }
+    session = BuildSession.acquire();
+    TaskManager.clearTaskResults();
     cancelSubscription = cancelToken.onCancellationRequested(() => {
       TaskManager.cancelTasks();
     });
@@ -124,7 +117,16 @@ export async function buildMain(
     if (!buildResult || !sizeResult) {
       await throwCapturedTaskFailure(executions);
     }
-    if (buildResult && sizeResult && !cancelToken.isCancellationRequested) {
+    if (
+      cancelToken.isCancellationRequested &&
+      !(buildResult && sizeResult)
+    ) {
+      throw buildTerminated();
+    }
+    if (!(buildResult && sizeResult)) {
+      return { continueFlag: false, executions };
+    }
+    if (!cancelToken.isCancellationRequested) {
       updateIdfComponentsTree(workspace);
       Logger.infoNotify("Build Successful");
       const flashCmd = await buildFinishFlashCmd(workspace);
@@ -132,34 +134,16 @@ export async function buildMain(
         OutputChannel.appendLine(flashCmd, "Build");
       }
     }
-    return {
-      continueFlag:
-        buildResult && sizeResult && !cancelToken.isCancellationRequested,
-      executions,
-    };
+    return { continueFlag: true, executions };
   } catch (error) {
-    if (error instanceof Error && error.message === "ALREADY_BUILDING") {
-      Logger.errorNotify(
-        "Already a build is running!",
-        error,
-        "buildMain.buildCommand"
-      );
-    } else if (error instanceof Error && error.message === "BUILD_TERMINATED") {
-      Logger.warnNotify("Build is Terminated");
-    } else {
-      const errorInstance =
-        error instanceof Error ? error : new Error(String(error));
-      Logger.errorNotify(
-        "Something went wrong while trying to build the project",
-        errorInstance,
-        "buildMain.buildCommand",
-        undefined,
-        false
-      );
-    }
-    return { continueFlag: false, executions };
+    failure = error;
   } finally {
     cancelSubscription?.dispose();
-    cleanupBuildState();
+    session?.end();
   }
+
+  if (failure !== undefined) {
+    throw failure;
+  }
+  return { continueFlag: true, executions };
 }

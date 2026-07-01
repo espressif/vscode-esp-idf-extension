@@ -7,43 +7,50 @@
  */
 
 import * as assert from "assert";
-import { BuildTask } from "../../build/buildTask";
+import { BuildSession } from "../../build/buildSession";
 import {
   applySdkconfigDefaultsAndCcacheArgs,
   replaceBuildDirArg,
 } from "../../build/buildHelpers";
 import { reserveBuildSlotOrThrow } from "../../build/validation";
+import { isKnownError } from "../../common/error/knownError";
+import { ErrorCode } from "../../common/error/types";
 
 suite("Build", () => {
   teardown(() => {
-    BuildTask.releaseBuildReservation();
+    BuildSession.endActiveForTests();
   });
 
   suite("build slot reservation", () => {
-    test("tryReserveBuild acquires then rejects second caller", () => {
-      assert.strictEqual(BuildTask.tryReserveBuild(), true);
-      assert.strictEqual(BuildTask.isBuilding, true);
-      assert.strictEqual(BuildTask.tryReserveBuild(), false);
+    test("acquire rejects second caller", () => {
+      BuildSession.acquire();
+      assert.strictEqual(BuildSession.isActive, true);
+      assert.throws(
+        () => BuildSession.acquire(),
+        (e: unknown) =>
+          isKnownError(e) && e.code === ErrorCode.AlreadyBuilding
+      );
     });
 
-    test("releaseBuildReservation allows a new acquire", () => {
-      assert.strictEqual(BuildTask.tryReserveBuild(), true);
-      BuildTask.releaseBuildReservation();
-      assert.strictEqual(BuildTask.isBuilding, false);
-      assert.strictEqual(BuildTask.tryReserveBuild(), true);
+    test("end allows a new acquire", () => {
+      const session = BuildSession.acquire();
+      session.end();
+      assert.strictEqual(BuildSession.isActive, false);
+      assert.doesNotThrow(() => BuildSession.acquire());
     });
 
     test("reserveBuildSlotOrThrow throws when slot is held", () => {
-      assert.strictEqual(BuildTask.tryReserveBuild(), true);
+      BuildSession.acquire();
       assert.throws(
         () => reserveBuildSlotOrThrow(),
-        (e: Error) => e.message === "ALREADY_BUILDING"
+        (e: unknown) =>
+          isKnownError(e) && e.code === ErrorCode.AlreadyBuilding
       );
     });
 
     test("reserveBuildSlotOrThrow succeeds when slot is free", () => {
       reserveBuildSlotOrThrow();
-      assert.strictEqual(BuildTask.isBuilding, true);
+      assert.strictEqual(BuildSession.isActive, true);
     });
   });
 

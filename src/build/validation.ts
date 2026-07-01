@@ -17,16 +17,19 @@
  */
 
 import { Logger } from "../common/logger";
-import { BuildTask } from "./buildTask";
+import {
+  idfToolNotFound,
+  KnownError,
+} from "../common/error/knownError";
+import { ErrorCode } from "../common/error/types";
+import { BuildSession } from "./buildSession";
 import { getToolchainToolName, isBinInPath } from "../utils";
 import { readParameter } from "../configuration/idf";
 import { Uri, workspace } from "vscode";
 
 /** Synchronous acquire for callers outside `buildMain` (e.g. tests). */
 export function reserveBuildSlotOrThrow(): void {
-  if (!BuildTask.tryReserveBuild()) {
-    throw new Error("ALREADY_BUILDING");
-  }
+  BuildSession.acquire();
 }
 
 export async function runValidationBeforeBuild(
@@ -49,22 +52,25 @@ export async function runValidationBeforeBuild(
   }
   const canAccessCMake = await isBinInPath("cmake", envVariables);
   if (canAccessCMake === "") {
-    throw new Error("CMake executable not found");
+    throw idfToolNotFound("cmake");
   }
 
   const canAccessNinja = await isBinInPath("ninja", envVariables);
   if (canAccessNinja === "") {
-    throw new Error("Ninja executable not found");
+    throw idfToolNotFound("ninja");
   }
 
   const idfTarget = envVariables["IDF_TARGET"];
   if (!idfTarget) {
-    throw new Error("IDF_TARGET is not set in the environment variables.");
+    throw new KnownError(
+      ErrorCode.IdfTargetNotSet,
+      "IDF_TARGET is not set in the environment variables."
+    );
   }
   const toolchainPath = getToolchainToolName(idfTarget, "gcc");
   const canAccessGcc = await isBinInPath(toolchainPath, envVariables);
   if (canAccessGcc === "") {
-    throw new Error("GCC executable not found in the toolchain path");
+    throw idfToolNotFound(toolchainPath);
   }
 
   return { cmakeBin: canAccessCMake, ninjaBin: canAccessNinja };
