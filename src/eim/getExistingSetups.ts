@@ -20,7 +20,7 @@ import { pathExists, readJson } from "fs-extra";
 import { join } from "path";
 import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
-import { EspIdfJson, IdfSetup } from "./types";
+import { EspIdfJson, IdfSetup, InstallationStatus } from "./types";
 import { compareVersion, getEspIdfFromCMake } from "../utils";
 import { loadIdfSetupsFromEspIdfJson } from "./migrationTool";
 import { ESP } from "../config";
@@ -86,17 +86,29 @@ export async function loadIdfSetupsFromEimIdfJson() {
     espIdfJson.idfInstalled &&
     Object.keys(espIdfJson.idfInstalled).length
   ) {
+    const isVersion3 =
+      espIdfJson.version &&
+      compareVersion(espIdfJson.version, "3.0") >= 0;
+
     for (let idfInstalled of espIdfJson.idfInstalled) {
+      if (
+        isVersion3 &&
+        idfInstalled.status &&
+        idfInstalled.status !== InstallationStatus.Finished
+      ) {
+        continue;
+      }
+
       const idfVersion = await getEspIdfFromCMake(idfInstalled.path);
       let setupConf: IdfSetup = {
-        activationScript: idfInstalled.activationScript,
+        activationScript: idfInstalled.activationScript || "",
         id: idfInstalled.id,
         idfPath: idfInstalled.path,
         isValid: false,
         gitPath: espIdfJson.gitPath,
         version: idfVersion,
         toolsPath: idfInstalled.idfToolsPath,
-        python: idfInstalled.python,
+        python: idfInstalled.python || "",
         sysPythonPath: "",
       } as IdfSetup;
       idfSetups.push(setupConf);

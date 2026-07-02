@@ -2,19 +2,27 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 11th December 2024 2:32:14 pm
  * Copyright 2024 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+export enum InstallationStatus {
+  InProgress = "in_progress",
+  Failed = "failed",
+  Finished = "finished",
+  BeingRepaired = "being_repaired",
+  Broken = "broken",
+}
 
 export interface IdfSetup {
   id: string;
@@ -29,22 +37,24 @@ export interface IdfSetup {
 }
 
 export interface EspIdfJson {
-  $schema: string;
-  $id: string;
-  _comment: string;
-  _warning: string;
+  $schema?: string;
+  $id?: string;
+  _comment?: string;
+  _warning?: string;
   gitPath: string;
-  idfToolsPath: string;
+  idfToolsPath?: string;
   idfSelectedId: string;
   idfInstalled: IdfInstalled[];
-  eimPath: string;
+  eimPath?: string;
+  version?: string;
 }
 
 export interface IdfInstalled {
-  activationScript: string;
+  activationScript?: string;
   id: string;
   idfToolsPath: string;
   name: string;
   path: string;
-  python: string;
+  python?: string;
+  status?: InstallationStatus;
 }
