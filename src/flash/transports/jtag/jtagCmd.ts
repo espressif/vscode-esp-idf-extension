@@ -16,60 +16,36 @@
  * limitations under the License.
  */
 
-import { FlashSession } from "../../shared/flashSession";
+import { connectOpenOcdForJtag } from "../../../espIdf/openOcd/jtagPreflight";
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
 import { readParameter } from "../../../configuration/idf";
-import { OpenOCDManager } from "../../../espIdf/openOcd/openOcdManager";
 import { Logger } from "../../../common/logger";
 import {
   CustomTask,
   CustomTaskType,
 } from "../../../taskManager/customTaskProvider";
-import { Uri } from "vscode";
+import { CancellationToken, Disposable, Uri } from "vscode";
 import { OutputChannel } from "../../../common/outputChannel";
 import {
   collectExecutions,
   TaskManager,
-  throwCapturedTaskFailure,
 } from "../../../taskManager/taskManager";
 import { jtagFlash } from "./flashTclClient";
 import type { CustomExecutionTaskResult } from "../../../taskManager/types";
+import { throwFlashCapturedTaskFailure } from "../../shared/flashTaskFailure";
 
 export async function jtagFlashCommandMain(
+  cancelToken: CancellationToken,
   workspace: Uri,
   buildDirPath: string
 ): Promise<CustomExecutionTaskResult> {
-  if (FlashSession.isFlashing) {
-    throw new Error("ALREADY_FLASHING");
-  }
-  FlashSession.isFlashing = true;
   let client: TCLClient | undefined;
+  let cancelSubscription: Disposable | undefined;
   try {
-    const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
-    if (!isOpenOCDLaunched) {
-      const errStr =
-        "Can't perform JTAG flash, because OpenOCD server is not running!";
-      OutputChannel.appendLineAndShow(errStr, "Flash");
-      Logger.warnNotify(errStr);
-      return { continueFlag: false, executions: [] };
-    }
-    const host = readParameter("openocd.tcl.host", workspace) as string;
-    const port = readParameter("openocd.tcl.port", workspace) as number;
-    client = new TCLClient({ host, port });
-
-    // Add verification step before flashing
-    let isReady = false;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      isReady = await client.verifyOpenOCDReady();
-      if (isReady) break;
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-    if (!isReady) {
-      const errStr = "OpenOCD is not ready to accept commands. Please try again.";
-      OutputChannel.appendLineAndShow(errStr, "JTAG Flash");
-      Logger.warnNotify(errStr);
-      return { continueFlag: false, executions: [] };
-    }
+    client = await connectOpenOcdForJtag(workspace);
+    cancelSubscription = cancelToken.onCancellationRequested(() => {
+      client?.stop();
+    });
 
     const forceUNIXPathSeparator = readParameter(
       "openocd.jtag.command.force_unix_path_separator",
@@ -98,7 +74,7 @@ export async function jtagFlashCommandMain(
       ...openOCDJTagFlashArguments
     );
     if (!flashExecution.continueFlag) {
-      await throwCapturedTaskFailure(flashExecution.executions);
+      await throwFlashCapturedTaskFailure(flashExecution.executions);
       return {
         continueFlag: false,
         executions: [...collectExecutions(preFlashExecution), ...flashExecution.executions],
@@ -120,7 +96,7 @@ export async function jtagFlashCommandMain(
       ],
     };
   } finally {
-    FlashSession.isFlashing = false;
+    cancelSubscription?.dispose();
     client?.stop();
   }
 }

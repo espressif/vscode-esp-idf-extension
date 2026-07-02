@@ -26,6 +26,9 @@ import { ErrorSeverity } from "../customNotifications";
 /**
  * Global registry of default descriptors for each known error code.
  * Commands can override these per-command via CommandErrorMapping.
+ *
+ * When adding a new error: (1) add ErrorCode, (2) register here,
+ * (3) add a known() factory with metadata only. Never put user-facing copy in factories.
  */
 const errorRegistry = new Map<ErrorCode, KnownErrorDescriptor>();
 
@@ -114,6 +117,176 @@ registerNewErrorInRegistry({
       execute: () => commands.executeCommand("workbench.action.terminal.focus"),
     },
   ],
+});
+
+// ──────────────────────────── Flash errors ───────────────────────────
+
+const flashOutputChannel = "Flash";
+
+registerNewErrorInRegistry({
+  code: ErrorCode.AlreadyFlashing,
+  severity: ErrorSeverity.Warning,
+  userMessage: "Already one flash process is running!",
+  logMessage: "Attempted to start a flash while another flash is in progress.",
+  actions: [],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.FlashTerminated,
+  severity: ErrorSeverity.Warning,
+  userMessage: "Flashing has been stopped!",
+  logMessage: "Flash was terminated by user cancellation.",
+  actions: [],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.IdfTaskInProgress,
+  severity: ErrorSeverity.Warning,
+  userMessage: "Wait for ESP-IDF task to finish",
+  logMessage: "Attempted to flash while another ESP-IDF task is in progress.",
+  actions: [],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.BuildRequiredBeforeFlash,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "Build is required before Flashing, {buildDirPath} can't be accessed",
+  logMessage: "Flash blocked: build directory not accessible: {buildDirPath}.",
+  actions: [],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.FlasherArgsMissing,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "flasher_args.json file is missing from the build directory, can't proceed, please build properly!",
+  logMessage: "flasher_args.json missing from build directory.",
+  actions: [],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.NoSerialPort,
+  severity: ErrorSeverity.Warning,
+  userMessage: "No serial port found for current IDF_TARGET: {idfTarget}",
+  logMessage: "No serial port found for IDF_TARGET {idfTarget}.",
+  actions: [],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.NoPortSelected,
+  severity: ErrorSeverity.Error,
+  userMessage: "Select a port before flashing",
+  logMessage: "Flash blocked: no serial port selected.",
+  actions: [],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.NoBaudRateSelected,
+  severity: ErrorSeverity.Error,
+  userMessage: "Select a baud rate before flashing",
+  logMessage: "Flash blocked: no flash baud rate configured.",
+  actions: [],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.NoDfuDeviceFound,
+  severity: ErrorSeverity.Error,
+  userMessage: "No DFU capable USB device available found",
+  logMessage: "No DFU-capable USB device found.",
+  actions: [],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.NoDfuDeviceSelected,
+  severity: ErrorSeverity.Info,
+  userMessage: "No DFU was selected",
+  logMessage: "DFU flash cancelled: no device selected.",
+  actions: [],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.NoDfuDevicePathFound,
+  severity: ErrorSeverity.Error,
+  userMessage: "No DFU device path found",
+  logMessage: "DFU device path could not be resolved from selection.",
+  actions: [],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.SectionBinNotAccessible,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "Flash binary file {binFilePath} doesn't exist or can't be accessed!",
+  logMessage:
+    "Flash binary section file {binFilePath} is missing or not readable.",
+  actions: [],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.EsptoolNotAccessible,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "Make sure you have the esptool.py installed and set in $PATH with proper permission",
+  logMessage: "esptool.py is missing or not accessible.",
+  actions: [],
+  outputChannel: flashOutputChannel,
+});
+
+const launchOpenOcdAction = {
+  label: "Launch OpenOCD",
+  execute: () => commands.executeCommand("espIdf.openOCDCommand"),
+};
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdLaunchDeclined,
+  severity: ErrorSeverity.Info,
+  userMessage: "OpenOCD was not launched.",
+  logMessage: "JTAG operation cancelled: user declined to launch OpenOCD.",
+  actions: [launchOpenOcdAction],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdNotRunning,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "Can't perform JTAG flash, because OpenOCD server is not running!",
+  logMessage: "OpenOCD server is not running after launch attempt.",
+  actions: [launchOpenOcdAction],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdNotReady,
+  severity: ErrorSeverity.Warning,
+  userMessage: "OpenOCD is not ready to accept commands. Please try again.",
+  logMessage: "OpenOCD TCL server did not become ready within retry limit.",
+  actions: [launchOpenOcdAction],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdVersionTooLow,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "Minimum OpenOCD version {minVersion} is required while you have {currentVersion} version installed",
+  logMessage:
+    "OpenOCD version {currentVersion} is below required minimum {minVersion}.",
+  actions: [launchOpenOcdAction],
+  outputChannel: flashOutputChannel,
 });
 
 

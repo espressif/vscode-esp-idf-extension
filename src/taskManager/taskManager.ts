@@ -39,7 +39,7 @@ import { Logger } from "../common/logger";
 import type { CaptureableTaskExecution } from "./types";
 import { OutputCapturingExecution } from "./customExecution";
 import { ShellOutputCapturingExecution } from "./shellCaptureExecution";
-import { KnownError } from "../common/error/knownError";
+import { known } from "../common/error/knownError";
 import { ErrorCode } from "../common/error/types";
 
 export interface IdfTaskDefinition extends TaskDefinition {
@@ -103,17 +103,12 @@ export async function throwCapturedTaskFailure(
       | ShellOutputCapturingExecution
       | CaptureableTaskExecution).getOutput();
     if (executionOutput && !executionOutput.success) {
-      const knownError = new KnownError(
-        ErrorCode.TaskFailedWithOutput,
-        `Task failed with exit code ${executionOutput.exitCode}`,
-        {
-          stdout: executionOutput.stdout,
-          stderr: executionOutput.stderr,
-          exitCode: executionOutput.exitCode,
-          success: executionOutput.success,
-        }
-      );
-      throw knownError;
+      throw known(ErrorCode.TaskFailedWithOutput, {
+        stdout: executionOutput.stdout,
+        stderr: executionOutput.stderr,
+        exitCode: executionOutput.exitCode,
+        success: executionOutput.success,
+      });
     }
   }
 }

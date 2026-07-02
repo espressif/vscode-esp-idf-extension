@@ -1,6 +1,6 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * Copyright 2025 Espressif Systems (Shanghai) CO LTD
+ * Copyright 2026 Espressif Systems (Shanghai) CO LTD
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,18 @@
  * limitations under the License.
  */
 
-import { PreCheck } from "../../../common/PreCheck";
-import { OpenOCDManager } from "../../../espIdf/openOcd/openOcdManager";
-import { Logger } from "../../../common/logger";
+import { PreCheck } from "../../common/PreCheck";
+import { openOcdVersionTooLow } from "../../common/error/knownError";
 
 /** Minimum OpenOCD build required for JTAG flash and JTAG erase in this extension. */
 export const MIN_OPENOCD_VERSION_FOR_JTAG = "v0.10.0-esp32-20201125";
 
-export async function assertMinimumOpenOcdVersionForJtag(): Promise<boolean> {
-  const openOCDManager = OpenOCDManager.init();
-  const currentVersion = await openOCDManager.version();
+export function assertOpenOcdVersionMeetsJtagMinimum(currentVersion: string): void {
   const ok = PreCheck.openOCDVersionValidator(
     MIN_OPENOCD_VERSION_FOR_JTAG,
     currentVersion
   );
   if (!ok) {
-    Logger.infoNotify(
-      `Minimum OpenOCD version ${MIN_OPENOCD_VERSION_FOR_JTAG} is required while you have ${currentVersion} version installed`
-    );
+    throw openOcdVersionTooLow(currentVersion, MIN_OPENOCD_VERSION_FOR_JTAG);
   }
-  return ok;
 }

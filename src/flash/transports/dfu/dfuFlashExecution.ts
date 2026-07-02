@@ -21,6 +21,7 @@ import { addProcessTask } from "../../../taskManager/taskManager";
 import { resolveEsptoolInvocation } from "../../shared/esptool/resolveEsptoolInvocation";
 import { dfuFlashingArgs } from "./getDFUArgs";
 import { assertFlashSectionsReadable } from "../../shared/verifyFlashBins";
+import { noDfuDeviceSelected } from "../../../common/error/knownError";
 
 export async function createDfuFlashProcessTask(
   workspace: Uri,
@@ -39,7 +40,7 @@ export async function createDfuFlashProcessTask(
     buildDirPath
   );
   if (!dfuResult) {
-    throw new Error("NO_DFU_DEVICE_SELECTED");
+    throw noDfuDeviceSelected();
   }
   return addProcessTask(
     "Flash",

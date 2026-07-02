@@ -129,12 +129,19 @@ export async function flashTestApp(
   if (!flashType) {
     flashType = ESP.FlashType.UART;
   }
-  await flashMain(
-    unitTestAppDirPath,
-    cancelToken,
-    flashType,
-    false
-  );
+  try {
+    await flashMain(
+      unitTestAppDirPath,
+      cancelToken,
+      flashType,
+      false
+    );
+  } catch (error) {
+    if (isKnownError(error)) {
+      return;
+    }
+    throw error;
+  }
 }
 
 export async function buildFlashTestApp(

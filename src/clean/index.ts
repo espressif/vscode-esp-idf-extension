@@ -67,7 +67,7 @@ export function registerFullCleanCmd(context: ExtensionContext) {
         OutputChannel.appendLineAndShow(errStr);
         return Logger.warnNotify(errStr);
       }
-      if (BuildSession.isActive || FlashSession.isFlashing) {
+      if (BuildSession.isActive || FlashSession.isActive) {
         const errStr = l10n.t(
           `There is a build or flash task running. Wait for it to finish or cancel them before clean.`
         );

@@ -18,10 +18,9 @@
 
 import { Logger } from "../common/logger";
 import {
+  idfTargetNotSet,
   idfToolNotFound,
-  KnownError,
 } from "../common/error/knownError";
-import { ErrorCode } from "../common/error/types";
 import { BuildSession } from "./buildSession";
 import { getToolchainToolName, isBinInPath } from "../utils";
 import { readParameter } from "../configuration/idf";
@@ -62,10 +61,7 @@ export async function runValidationBeforeBuild(
 
   const idfTarget = envVariables["IDF_TARGET"];
   if (!idfTarget) {
-    throw new KnownError(
-      ErrorCode.IdfTargetNotSet,
-      "IDF_TARGET is not set in the environment variables."
-    );
+    throw idfTargetNotSet();
   }
   const toolchainPath = getToolchainToolName(idfTarget, "gcc");
   const canAccessGcc = await isBinInPath(toolchainPath, envVariables);
