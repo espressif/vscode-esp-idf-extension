@@ -40,6 +40,7 @@ import {
 import { CustomExecutionTaskResult } from "../taskManager/types";
 import { monitorMain } from "../espIdf/monitor/main";
 import { registerIDFCommand } from "../common/registerCommand";
+import { isKnownError } from "../common/error/knownError";
 
 export function registerBuildFlashMonitorCommands(
   context: ExtensionContext
@@ -89,14 +90,22 @@ export async function buildFlashAndMonitorCapture(
 
   const encryptPartitions = await isFlashEncryptionEnabled(workspaceFolder.uri);
 
-  const flashResult = await flashMain(
-    workspaceFolder.uri,
-    token,
-    flashType,
-    encryptPartitions,
-    partitionToUse,
-    captureOutput
-  );
+  let flashResult: CustomExecutionTaskResult;
+  try {
+    flashResult = await flashMain(
+      workspaceFolder.uri,
+      token,
+      flashType,
+      encryptPartitions,
+      partitionToUse,
+      captureOutput
+    );
+  } catch (error) {
+    if (isKnownError(error)) {
+      return { continueFlag: false, executions };
+    }
+    throw error;
+  }
   executions.push(...flashResult.executions);
   if (!flashResult.continueFlag) {
     return { continueFlag: false, executions };

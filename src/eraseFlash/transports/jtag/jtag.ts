@@ -17,12 +17,11 @@
  */
 
 import { Uri } from "vscode";
-import { OutputChannel } from "../../../common/outputChannel";
-import { OpenOCDManager } from "../../../espIdf/openOcd/openOcdManager";
-import { readParameter } from "../../../configuration/idf";
-import { Logger } from "../../../common/logger";
+import {
+  assertMinimumOpenOcdVersionForJtag,
+  connectOpenOcdForJtag,
+} from "../../../espIdf/openOcd/jtagPreflight";
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
-import { assertMinimumOpenOcdVersionForJtag } from "../../../flash/transports/jtag/assertMinimumOpenOcdVersionForJtag";
 import { eraseFlashTelnetCommand } from "./tclClientCmd";
 import {
   collectExecutions,
@@ -33,64 +32,26 @@ import { CustomExecutionTaskResult } from "../../../taskManager/types";
 export async function jtagEraseFlashCommand(
   workspaceFolder: Uri
 ): Promise<CustomExecutionTaskResult> {
-  if (!(await assertMinimumOpenOcdVersionForJtag())) {
-    return { continueFlag: false, executions: [] };
-  }
-  const openOCDManager = OpenOCDManager.init();
-  const isOpenOCDLaunched = await openOCDManager.promptUserToLaunchOpenOCDServer();
-  if (!isOpenOCDLaunched) {
-    const errStr =
-      "Can't perform Erase JTAG, because OpenOCD server is not running!";
-    OutputChannel.appendLineAndShow(errStr, "Erase Flash");
-    Logger.warnNotify(errStr);
-    return { continueFlag: false, executions: [] };
-  }
-  const host = readParameter(
-    "openocd.tcl.host",
-    workspaceFolder
-  ) as string;
-  const port = readParameter(
-    "openocd.tcl.port",
-    workspaceFolder
-  ) as number;
-  const client = new TCLClient({ host, port });
-
-  const maxOpenOcdReadyAttempts = 3;
-  let attempt = 0;
-  let isReady = false;
-  while (attempt < maxOpenOcdReadyAttempts && !isReady) {
-    attempt += 1;
-    isReady = await client.verifyOpenOCDReady();
-    if (!isReady) {
-      Logger.warn(
-        `OpenOCD TCL readiness check failed (attempt ${attempt}/${maxOpenOcdReadyAttempts}).`,
-        { context: "jtagEraseFlashCommand verifyOpenOCDReady" }
-      );
-      if (attempt < maxOpenOcdReadyAttempts) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
+  await assertMinimumOpenOcdVersionForJtag();
+  let client: TCLClient | undefined;
+  try {
+    client = await connectOpenOcdForJtag(workspaceFolder);
+    const eraseResult = await eraseFlashTelnetCommand(
+      client,
+      "halt; flash erase_sector 0 0 last; reset"
+    );
+    if (!eraseResult.continueFlag) {
+      await throwCapturedTaskFailure(eraseResult.executions);
+      return {
+        continueFlag: false,
+        executions: collectExecutions(...eraseResult.executions),
+      };
     }
-  }
-  if (!isReady) {
-    const errStr = "OpenOCD is not ready to accept commands. Please try again.";
-    OutputChannel.appendLineAndShow(errStr, "Erase Flash");
-    Logger.warnNotify(errStr);
-    return { continueFlag: false, executions: [] };
-  }
-
-  const eraseResult = await eraseFlashTelnetCommand(
-    client,
-    "halt; flash erase_sector 0 0 last; reset"
-  );
-  if (!eraseResult.continueFlag) {
-    await throwCapturedTaskFailure(eraseResult.executions);
     return {
-      continueFlag: false,
+      continueFlag: true,
       executions: collectExecutions(...eraseResult.executions),
     };
+  } finally {
+    client?.stop();
   }
-  return {
-    continueFlag: true,
-    executions: collectExecutions(...eraseResult.executions),
-  };
 }

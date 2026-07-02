@@ -19,6 +19,7 @@ import { constants } from "fs";
 import { join } from "path";
 import { getVirtualEnvPythonPath } from "../../../configuration/env";
 import { canAccessFile } from "../../../utils";
+import { esptoolNotAccessible, missingDependency } from "../../../common/error/knownError";
 
 export type EsptoolInvocation = {
   pythonPath: string;
@@ -36,11 +37,11 @@ export async function resolveEsptoolInvocation(
     "esptool.py"
   );
   if (!canAccessFile(esptoolScriptPath, constants.R_OK)) {
-    throw new Error("SCRIPT_PERMISSION_ERROR");
+    throw esptoolNotAccessible();
   }
   const pythonPath = await getVirtualEnvPythonPath();
   if (!pythonPath) {
-    throw new Error("Python path not found in environment");
+    throw missingDependency("Python");
   }
   return { pythonPath, esptoolScriptPath };
 }

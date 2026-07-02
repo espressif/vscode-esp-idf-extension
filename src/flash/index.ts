@@ -16,38 +16,63 @@
  * limitations under the License.
  */
 
-import { ExtensionContext, l10n } from "vscode";
+import { commands, ExtensionContext, l10n } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../common/PreCheck";
 import { ESP } from "../config";
 import { flash } from "./flashProject";
 import { selectFlashMethod } from "./selectFlashMethod";
 import { Logger } from "../common/logger";
+import { ErrorCode, CommandErrorMapping } from "../common/error/types";
+import { ErrorSeverity } from "../common/customNotifications";
+
+const flashCommandErrorMapping: CommandErrorMapping = {
+  [ErrorCode.TaskFailedWithOutput]: {
+    severity: ErrorSeverity.Error,
+    userMessage: "Flash task failed. Check the terminal output for details.",
+    logMessage: "Flash task failed with captured output.",
+    actions: [
+      {
+        label: "View Terminal Output",
+        execute: () => commands.executeCommand("workbench.action.terminal.focus"),
+      },
+    ],
+    outputChannel: "Flash",
+  },
+};
+
+function registerFlashCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any
+) {
+  registerIDFCommand(context, name, callback, flashCommandErrorMapping);
+}
 
 export function registerFlashCommands(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.jtag_flash", () =>
+  registerFlashCommand(context, "espIdf.jtag_flash", () =>
     flash(false, ESP.FlashType.JTAG)
   );
-  registerIDFCommand(context, "espIdf.flashDFU", () =>
+  registerFlashCommand(context, "espIdf.flashDFU", () =>
     flash(false, ESP.FlashType.DFU)
   );
-  registerIDFCommand(context, "espIdf.flashUart", () =>
+  registerFlashCommand(context, "espIdf.flashUart", () =>
     flash(undefined, ESP.FlashType.UART)
   );
-  registerIDFCommand(context, "espIdf.flashDevice", () => flash(undefined));
-  registerIDFCommand(context, "espIdf.flashAndEncryptDevice", () =>
+  registerFlashCommand(context, "espIdf.flashDevice", () => flash(undefined));
+  registerFlashCommand(context, "espIdf.flashAndEncryptDevice", () =>
     flash(true)
   );
 
-  registerIDFCommand(context, "espIdf.flashAppUart", () =>
+  registerFlashCommand(context, "espIdf.flashAppUart", () =>
     flash(undefined, ESP.FlashType.UART, ESP.BuildType.App)
   );
 
-  registerIDFCommand(context, "espIdf.flashBootloaderUart", () =>
+  registerFlashCommand(context, "espIdf.flashBootloaderUart", () =>
     flash(undefined, ESP.FlashType.UART, ESP.BuildType.Bootloader)
   );
 
-  registerIDFCommand(context, "espIdf.flashPartitionTableUart", () =>
+  registerFlashCommand(context, "espIdf.flashPartitionTableUart", () =>
     flash(undefined, ESP.FlashType.UART, ESP.BuildType.PartitionTable)
   );
 

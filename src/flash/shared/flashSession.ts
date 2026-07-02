@@ -15,6 +15,41 @@
  * limitations under the License.
  */
 
+import { alreadyFlashing } from "../../common/error/knownError";
+import { TaskManager } from "../../taskManager/taskManager";
+
+/**
+ * Global flash pipeline session. Only the caller that {@link acquire}s a
+ * session may {@link end} it, so concurrent rejected flashes cannot tear down
+ * an in-flight pipeline.
+ */
 export class FlashSession {
-  public static isFlashing: boolean;
+  private static active: FlashSession | undefined;
+
+  static get isActive(): boolean {
+    return FlashSession.active !== undefined;
+  }
+
+  static acquire(): FlashSession {
+    if (FlashSession.active) {
+      throw alreadyFlashing();
+    }
+    const session = new FlashSession();
+    FlashSession.active = session;
+    return session;
+  }
+
+  /** @internal Test helper to reset global session state. */
+  static endActiveForTests(): void {
+    FlashSession.active?.end();
+    FlashSession.active = undefined;
+  }
+
+  end(): void {
+    if (FlashSession.active !== this) {
+      return;
+    }
+    TaskManager.disposeListeners();
+    FlashSession.active = undefined;
+  }
 }

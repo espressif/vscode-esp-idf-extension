@@ -50,6 +50,27 @@ export enum ErrorCode {
   BuildTerminated = 'BuildTerminated',
   FlashInProgress = 'FlashInProgress',
   ToolchainNotFound = 'ToolchainNotFound',
+
+  // Flash
+  AlreadyFlashing = 'AlreadyFlashing',
+  FlashTerminated = 'FlashTerminated',
+  IdfTaskInProgress = 'IdfTaskInProgress',
+  BuildRequiredBeforeFlash = 'BuildRequiredBeforeFlash',
+  FlasherArgsMissing = 'FlasherArgsMissing',
+  NoSerialPort = 'NoSerialPort',
+  NoPortSelected = 'NoPortSelected',
+  NoBaudRateSelected = 'NoBaudRateSelected',
+  NoDfuDeviceFound = 'NoDfuDeviceFound',
+  NoDfuDeviceSelected = 'NoDfuDeviceSelected',
+  NoDfuDevicePathFound = 'NoDfuDevicePathFound',
+  SectionBinNotAccessible = 'SectionBinNotAccessible',
+  EsptoolNotAccessible = 'EsptoolNotAccessible',
+
+  // OpenOCD / JTAG
+  OpenOcdLaunchDeclined = 'OpenOcdLaunchDeclined',
+  OpenOcdNotRunning = 'OpenOcdNotRunning',
+  OpenOcdNotReady = 'OpenOcdNotReady',
+  OpenOcdVersionTooLow = 'OpenOcdVersionTooLow',
 }
 
 /**
@@ -65,6 +86,8 @@ export interface KnownErrorDescriptor {
   logMessage: string;
   /** Recovery actions offered to the user */
   actions: NotificationButton[];
+  /** When set, user message is also written to this output channel category */
+  outputChannel?: string;
 }
 
 /**

@@ -45,7 +45,7 @@ export async function loadMonitorLaunchConfig(
   noReset: boolean,
   wsPort?: number
 ): Promise<LoadMonitorLaunchConfigResult> {
-  if (BuildSession.isActive || FlashSession.isFlashing) {
+  if (BuildSession.isActive || FlashSession.isActive) {
     return { ok: false, reason: "one_task_at_time" };
   }
 

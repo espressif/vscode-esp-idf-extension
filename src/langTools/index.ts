@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { Logger } from "../common/logger";
 import { isKnownError } from "../common/error/knownError";
-import { ErrorCode } from "../common/error/types";
+import { resolveKnownErrorUserMessage } from "../common/error/resolve";
 import { OutputChannel } from "../common/outputChannel";
 import { ESP } from "../config";
 import { buildMain } from "../build/buildMain";
@@ -20,7 +20,6 @@ import {
   OutputCapturingExecution,
 } from "../taskManager/customExecution";
 import { flashMain } from "../flash/main";
-import { isFlashRelatedTaskExitCode74 } from "../flash/shared/errHandling";
 import { eraseFlashMain } from "../eraseFlash/main";
 import { buildFlashAndMonitorCapture } from "../buildFlashMonitor";
 import { monitorMain } from "../espIdf/monitor/main";
@@ -301,73 +300,19 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
           ]);
         } catch (error) {
           if (isKnownError(error)) {
-            if (error.code === ErrorCode.AlreadyBuilding) {
+            const userMessage = resolveKnownErrorUserMessage(error);
+            if (userMessage) {
               return new vscode.LanguageModelToolResult([
-                new vscode.LanguageModelTextPart("Already a build is running!"),
-              ]);
-            }
-            if (error.code === ErrorCode.BuildTerminated) {
-              return new vscode.LanguageModelToolResult([
-                new vscode.LanguageModelTextPart("Build is Terminated"),
-              ]);
-            }
-            if (error.code === ErrorCode.FlashInProgress) {
-              return new vscode.LanguageModelToolResult([
-                new vscode.LanguageModelTextPart(
-                  "Wait for ESP-IDF flash to finish"
-                ),
+                new vscode.LanguageModelTextPart(userMessage),
               ]);
             }
           }
           const errorMessage =
             error instanceof Error ? error.message : String(error);
-          if (errorMessage === "ALREADY_FLASHING") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart(
-                "Already one flash process is running!"
-              ),
-            ]);
-          }
           if (errorMessage === "ALREADY_ERASING") {
             return new vscode.LanguageModelToolResult([
               new vscode.LanguageModelTextPart(
                 "An erase-flash operation is already in progress."
-              ),
-            ]);
-          }
-          if (errorMessage === "NO_DFU_DEVICE_SELECTED") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart("No DFU was selected"),
-            ]);
-          }
-          if (isFlashRelatedTaskExitCode74(error, errorMessage)) {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart(
-                "No DFU capable USB device available found"
-              ),
-            ]);
-          }
-          if (errorMessage === "FLASH_TERMINATED") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart("Flashing has been stopped!"),
-            ]);
-          }
-          if (errorMessage === "SECTION_BIN_FILE_NOT_ACCESSIBLE") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart(
-                "Flash (.bin) files don't exists or can't be accessed!"
-              ),
-            ]);
-          }
-          if (
-            (error instanceof Error &&
-              "code" in error &&
-              error.code === "ENOENT") ||
-            errorMessage === "SCRIPT_PERMISSION_ERROR"
-          ) {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart(
-                "Make sure you have the esptool.py installed and set in $PATH with proper permission"
               ),
             ]);
           }

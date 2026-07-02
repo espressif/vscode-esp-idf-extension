@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { join } from "path";
-import { CancellationToken, Disposable, Uri } from "vscode";
+import { CancellationToken, Uri } from "vscode";
 import { Logger } from "../../../common/logger";
 import {
   collectExecutions,
@@ -32,7 +32,6 @@ import {
 import { ESP } from "../../../config";
 import { OutputChannel } from "../../../common/outputChannel";
 import { CustomExecutionTaskResult } from "../../../taskManager/types";
-import { FlashSession } from "../../shared/flashSession";
 
 export async function uartFlashCommandMain(
   cancelToken: CancellationToken,
@@ -47,73 +46,51 @@ export async function uartFlashCommandMain(
   captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
-  if (FlashSession.isFlashing) {
-    throw new Error("ALREADY_FLASHING");
-  }
-  let ownsFlashSession = false;
-  let cancelSubscription: Disposable | undefined;
-  try {
-    FlashSession.isFlashing = true;
-    ownsFlashSession = true;
-    cancelSubscription = cancelToken.onCancellationRequested(() => {
-      if (!ownsFlashSession) {
-        return;
-      }
-      TaskManager.cancelTasks();
-      FlashSession.isFlashing = false;
-    });
-    const model = await createFlashModel(
-      flasherArgsJsonPath,
-      port,
-      flashBaudRate
-    );
-    const customTask = new CustomTask(workspace);
-    const preFlashExecution = await customTask.addCustomTask(
-      CustomTaskType.PreFlash,
-      captureOutput
-    );
-    const flashExecution =
-      flashType === ESP.FlashType.DFU
-        ? await createDfuFlashProcessTask(
-            workspace,
-            buildDirPath,
-            model,
-            modifiedEnv,
-            captureOutput
-          )
-        : await createUartFlashProcessTask(
-            workspace,
-            model,
-            modifiedEnv,
-            buildDirPath,
-            encryptPartitions,
-            partitionToUse,
-            captureOutput
-          );
-    const postFlashExecution = await customTask.addCustomTask(
-      CustomTaskType.PostFlash,
-      captureOutput
-    );
-    const flashResult = await TaskManager.runTasksWithBoolean();
+  const model = await createFlashModel(
+    flasherArgsJsonPath,
+    port,
+    flashBaudRate
+  );
+  const customTask = new CustomTask(workspace);
+  const preFlashExecution = await customTask.addCustomTask(
+    CustomTaskType.PreFlash,
+    captureOutput
+  );
+  const flashExecution =
+    flashType === ESP.FlashType.DFU
+      ? await createDfuFlashProcessTask(
+          workspace,
+          buildDirPath,
+          model,
+          modifiedEnv,
+          captureOutput
+        )
+      : await createUartFlashProcessTask(
+          workspace,
+          model,
+          modifiedEnv,
+          buildDirPath,
+          encryptPartitions,
+          partitionToUse,
+          captureOutput
+        );
+  const postFlashExecution = await customTask.addCustomTask(
+    CustomTaskType.PostFlash,
+    captureOutput
+  );
+  const flashResult = await TaskManager.runTasksWithBoolean();
 
-    if (!cancelToken.isCancellationRequested && flashResult) {
-      const msg = "Flash Done ⚡️";
-      OutputChannel.appendLineAndShow(msg, "Flash");
-      Logger.infoNotify(msg);
-    }
-    return {
-      continueFlag: flashResult,
-      executions: collectExecutions(
-        preFlashExecution,
-        flashExecution,
-        postFlashExecution
-      ),
-    };
-  } finally {
-    cancelSubscription?.dispose();
-    if (ownsFlashSession) {
-      FlashSession.isFlashing = false;
-    }
-    TaskManager.disposeListeners();
+  if (!cancelToken.isCancellationRequested && flashResult) {
+    const msg = "Flash Done ⚡️";
+    OutputChannel.appendLineAndShow(msg, "Flash");
+    Logger.infoNotify(msg);
   }
+  return {
+    continueFlag: flashResult,
+    executions: collectExecutions(
+      preFlashExecution,
+      flashExecution,
+      postFlashExecution
+    ),
+  };
 }
