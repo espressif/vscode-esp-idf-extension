@@ -15,24 +15,24 @@
  * limitations under the License.
  */
 
-import { constants } from "fs";
-import { join } from "path";
-import { canAccessFile } from "../../utils";
-import { sectionBinNotAccessible } from "../../common/error/knownError";
-import { FlashModel } from "../transports/uart/types/flashModel";
+import { ErrorCode } from "../../common/error/types";
+import { isKnownError, noDfuDeviceFound } from "../../common/error/knownError";
+import { throwCapturedTaskFailure } from "../../taskManager/taskManager";
+import type { CustomExecutionTaskResult } from "../../taskManager/types";
 
-export function assertFlashSectionsReadable(
-  buildDirPath: string,
-  model: FlashModel
-): void {
-  for (const flashFile of model.flashSections) {
+export async function throwFlashCapturedTaskFailure(
+  executions: CustomExecutionTaskResult["executions"]
+): Promise<void> {
+  try {
+    await throwCapturedTaskFailure(executions);
+  } catch (error) {
     if (
-      !canAccessFile(
-        join(buildDirPath, flashFile.binFilePath),
-        constants.R_OK
-      )
+      isKnownError(error) &&
+      error.code === ErrorCode.TaskFailedWithOutput &&
+      error.metadata?.exitCode === 74
     ) {
-      throw sectionBinNotAccessible(flashFile.binFilePath);
+      throw noDfuDeviceFound();
     }
+    throw error;
   }
 }

@@ -20,8 +20,8 @@ import { ErrorCode } from "./types";
 
 /**
  * Base class for all known/expected errors in the extension.
- * Throwing a KnownError tells the error handler to look up
- * its ErrorCode in the registry for user messaging and actions.
+ * User-facing text lives in error/registry.ts; {@link message} is a technical
+ * fallback for logs and unregistered codes.
  */
 export class KnownError extends Error {
   public readonly isKnownError = true as const;
@@ -33,7 +33,6 @@ export class KnownError extends Error {
   ) {
     super(message);
     this.name = 'KnownError';
-    // Fix prototype chain for instanceof checks
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
@@ -48,68 +47,130 @@ export function isKnownError(error: unknown): error is KnownError {
   );
 }
 
+function formatTechnicalMessage(
+  code: ErrorCode,
+  metadata?: Record<string, unknown>
+): string {
+  if (!metadata || Object.keys(metadata).length === 0) {
+    return `[${code}]`;
+  }
+  return `[${code}] ${JSON.stringify(metadata)}`;
+}
+
+export function known(
+  code: ErrorCode,
+  metadata?: Record<string, unknown>
+): KnownError {
+  return new KnownError(code, formatTechnicalMessage(code, metadata), metadata);
+}
+
 export function idfToolNotFound(toolName: string): KnownError {
-  return new KnownError(
-    ErrorCode.IdfToolNotFound,
-    `${toolName} executable not found`,
-    { toolName }
-  );
+  return known(ErrorCode.IdfToolNotFound, { toolName });
 }
 
 export function fileNotFound(filePath: string): KnownError {
-  return new KnownError(
-    ErrorCode.FILE_NOT_FOUND,
-    `File not found: ${filePath}`,
-    { filePath }
-  );
+  return known(ErrorCode.FILE_NOT_FOUND, { filePath });
 }
 
 export function filePermissionDenied(filePath: string): KnownError {
-  return new KnownError(
-    ErrorCode.FILE_PERMISSION_DENIED,
-    `Permission denied when accessing: ${filePath}`,
-    { filePath }
-  );
+  return known(ErrorCode.FILE_PERMISSION_DENIED, { filePath });
 }
 
 export function invalidConfiguration(setting: string): KnownError {
-  return new KnownError(
-    ErrorCode.INVALID_CONFIGURATION,
-    `Invalid extension configuration: ${setting}`,
-    { setting }
-  );
+  return known(ErrorCode.INVALID_CONFIGURATION, { setting });
 }
 
 export function missingDependency(dependency: string): KnownError {
-  return new KnownError(
-    ErrorCode.MISSING_DEPENDENCY,
-    `Missing dependency: ${dependency}`,
-    { dependency }
-  );
+  return known(ErrorCode.MISSING_DEPENDENCY, { dependency });
 }
 
 export function parseError(filePath: string): KnownError {
-  return new KnownError(
-    ErrorCode.PARSE_ERROR,
-    `Failed to parse: ${filePath}`,
-    { filePath }
-  );
+  return known(ErrorCode.PARSE_ERROR, { filePath });
 }
 
 export function alreadyBuilding(): KnownError {
-  return new KnownError(
-    ErrorCode.AlreadyBuilding,
-    "Attempted to start a build while another build is in progress"
-  );
+  return known(ErrorCode.AlreadyBuilding);
 }
 
 export function buildTerminated(): KnownError {
-  return new KnownError(ErrorCode.BuildTerminated, "Build was terminated");
+  return known(ErrorCode.BuildTerminated);
 }
 
 export function flashInProgress(): KnownError {
-  return new KnownError(
-    ErrorCode.FlashInProgress,
-    "Wait for ESP-IDF flash to finish before building"
-  );
+  return known(ErrorCode.FlashInProgress);
+}
+
+export function alreadyFlashing(): KnownError {
+  return known(ErrorCode.AlreadyFlashing);
+}
+
+export function flashTerminated(): KnownError {
+  return known(ErrorCode.FlashTerminated);
+}
+
+export function idfTaskInProgress(): KnownError {
+  return known(ErrorCode.IdfTaskInProgress);
+}
+
+export function idfTargetNotSet(): KnownError {
+  return known(ErrorCode.IdfTargetNotSet);
+}
+
+export function buildRequiredBeforeFlash(buildDirPath: string): KnownError {
+  return known(ErrorCode.BuildRequiredBeforeFlash, { buildDirPath });
+}
+
+export function flasherArgsMissing(): KnownError {
+  return known(ErrorCode.FlasherArgsMissing);
+}
+
+export function noSerialPort(idfTarget: string): KnownError {
+  return known(ErrorCode.NoSerialPort, { idfTarget });
+}
+
+export function noPortSelected(): KnownError {
+  return known(ErrorCode.NoPortSelected);
+}
+
+export function noBaudRateSelected(): KnownError {
+  return known(ErrorCode.NoBaudRateSelected);
+}
+
+export function noDfuDeviceFound(): KnownError {
+  return known(ErrorCode.NoDfuDeviceFound);
+}
+
+export function noDfuDeviceSelected(): KnownError {
+  return known(ErrorCode.NoDfuDeviceSelected);
+}
+
+export function noDfuDevicePathFound(): KnownError {
+  return known(ErrorCode.NoDfuDevicePathFound);
+}
+
+export function sectionBinNotAccessible(binFilePath: string): KnownError {
+  return known(ErrorCode.SectionBinNotAccessible, { binFilePath });
+}
+
+export function esptoolNotAccessible(): KnownError {
+  return known(ErrorCode.EsptoolNotAccessible);
+}
+
+export function openOcdLaunchDeclined(): KnownError {
+  return known(ErrorCode.OpenOcdLaunchDeclined);
+}
+
+export function openOcdNotRunning(): KnownError {
+  return known(ErrorCode.OpenOcdNotRunning);
+}
+
+export function openOcdNotReady(): KnownError {
+  return known(ErrorCode.OpenOcdNotReady);
+}
+
+export function openOcdVersionTooLow(
+  currentVersion: string,
+  minVersion: string
+): KnownError {
+  return known(ErrorCode.OpenOcdVersionTooLow, { currentVersion, minVersion });
 }

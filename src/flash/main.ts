@@ -16,28 +16,44 @@
  * limitations under the License.
  */
 
-import { CancellationToken, l10n, Uri, workspace, WorkspaceFolder } from "vscode";
+import { CancellationToken, Disposable, Uri } from "vscode";
 import { readParameter, readSerialPort } from "../configuration/idf";
 import { ESP } from "../config";
 import {
   checkFlashEncryption,
   FlashCheckResultType,
 } from "./verify/flashEncryption";
-import { Logger } from "../common/logger";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { verifyCanFlash } from "./verify/canFlash";
 import { jtagFlashCommandMain } from "./transports/jtag/jtagCmd";
-import { assertMinimumOpenOcdVersionForJtag } from "./transports/jtag/assertMinimumOpenOcdVersionForJtag";
 import { uartFlashCommandMain } from "./transports/uart/uartFlashCmd";
 import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 import { resolveFlashTypeForTask } from "./resolveFlashContext";
-import { throwCapturedTaskFailure } from "../taskManager/taskManager";
+import { TaskManager } from "../taskManager/taskManager";
 import { CustomExecutionTaskResult } from "../taskManager/types";
 import { FlashSession } from "./shared/flashSession";
-import { handleFlashCommandCatch } from "./shared/errHandling";
 import { getCurrentIdfConfiguration } from "../configuration/env";
+import { BuildSession } from "../build/buildSession";
+import {
+  alreadyBuilding,
+  flashTerminated,
+  noSerialPort,
+} from "../common/error/knownError";
+import { throwFlashCapturedTaskFailure } from "./shared/flashTaskFailure";
+import { assertMinimumOpenOcdVersionForJtag } from "../espIdf/openOcd/jtagPreflight";
 export { selectFlashMethod } from "./selectFlashMethod";
 
+/**
+ * Runs the ESP-IDF flash pipeline for UART, DFU, or JTAG transports.
+ *
+ * @returns A {@link CustomExecutionTaskResult}: `continueFlag` is whether the
+ * flash path succeeded; `executions` collects task executions for follow-up
+ * checks or {@link throwFlashCapturedTaskFailure}.
+ *
+ * @throws {KnownError} On validation failures, concurrent build/flash conflicts,
+ * task failures, or user cancellation. Callers that need a soft failure result
+ * should catch {@link isKnownError} and map to `{ continueFlag: false }`.
+ */
 export async function flashMain(
   workspaceFolderUri: Uri,
   cancelToken: CancellationToken,
@@ -46,9 +62,16 @@ export async function flashMain(
   partitionToUse?: ESP.BuildType,
   captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
-
-  let flashType =
+  const flashType =
     resolveFlashTypeForTask(workspaceFolderUri, flashTypeIn) ?? ESP.FlashType.UART;
+  let session: FlashSession | undefined;
+  let cancelSubscription: Disposable | undefined;
+  let failure: unknown;
+  let flashCmdResult: CustomExecutionTaskResult = {
+    continueFlag: false,
+    executions: [],
+  };
+
   try {
     await interruptMonitorWithDelay(workspaceFolderUri);
 
@@ -73,13 +96,7 @@ export async function flashMain(
     if (flashType === ESP.FlashType.UART) {
       const uartPort = await readSerialPort(workspaceFolderUri, false);
       if (!uartPort) {
-        Logger.warnNotify(
-          l10n.t(
-            "No serial port found for current IDF_TARGET: {0}",
-            await getIdfTargetFromSdkconfig(workspaceFolderUri)
-          )
-        );
-        return { continueFlag: false, executions: [] };
+        throw noSerialPort(await getIdfTargetFromSdkconfig(workspaceFolderUri));
       }
       port = uartPort;
     }
@@ -92,7 +109,7 @@ export async function flashMain(
       workspaceFolderUri
     ) as string;
     const modifiedEnv = getCurrentIdfConfiguration();
-    const canFlash = await verifyCanFlash(
+    await verifyCanFlash(
       flashBaudRate,
       port,
       flashType,
@@ -100,20 +117,31 @@ export async function flashMain(
       buildDirPath,
       workspaceFolderUri
     );
-    if (!canFlash) {
-      return { continueFlag: false, executions: [] };
-    }
 
-    let flashCmdResult: CustomExecutionTaskResult;
     if (flashType === ESP.FlashType.JTAG) {
-      if (!(await assertMinimumOpenOcdVersionForJtag())) {
-        return { continueFlag: false, executions: [] };
+      await assertMinimumOpenOcdVersionForJtag();
+      if (BuildSession.isActive) {
+        throw alreadyBuilding();
       }
+      session = FlashSession.acquire();
+      TaskManager.clearTaskResults();
+      cancelSubscription = cancelToken.onCancellationRequested(() => {
+        TaskManager.cancelTasks();
+      });
       flashCmdResult = await jtagFlashCommandMain(
+        cancelToken,
         workspaceFolderUri,
         buildDirPath
       );
     } else {
+      if (BuildSession.isActive) {
+        throw alreadyBuilding();
+      }
+      session = FlashSession.acquire();
+      TaskManager.clearTaskResults();
+      cancelSubscription = cancelToken.onCancellationRequested(() => {
+        TaskManager.cancelTasks();
+      });
       flashCmdResult = await uartFlashCommandMain(
         cancelToken,
         flashBaudRate,
@@ -127,24 +155,29 @@ export async function flashMain(
         captureOutput
       );
     }
+
     if (!flashCmdResult.continueFlag) {
-      try {
-        await throwCapturedTaskFailure(flashCmdResult.executions);
-      } catch (failure) {
-        if (handleFlashCommandCatch(failure, flashType)) {
-          FlashSession.isFlashing = false;
-        }
-        return {
-          continueFlag: false,
-          executions: flashCmdResult.executions,
-        };
-      }
+      await throwFlashCapturedTaskFailure(flashCmdResult.executions);
+    }
+    if (
+      cancelToken.isCancellationRequested &&
+      !flashCmdResult.continueFlag
+    ) {
+      throw flashTerminated();
+    }
+    if (!flashCmdResult.continueFlag) {
+      return { continueFlag: false, executions: flashCmdResult.executions };
     }
     return flashCmdResult;
   } catch (error) {
-    if (handleFlashCommandCatch(error, flashType)) {
-      FlashSession.isFlashing = false;
-    }
-    return { continueFlag: false, executions: [] };
+    failure = error;
+  } finally {
+    cancelSubscription?.dispose();
+    session?.end();
   }
+
+  if (failure !== undefined) {
+    throw failure;
+  }
+  return flashCmdResult;
 }
