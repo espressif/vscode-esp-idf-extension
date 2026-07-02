@@ -68,7 +68,7 @@ export async function buildMain(
   let session: BuildSession | undefined;
 
   try {
-    if (FlashSession.isFlashing) {
+    if (FlashSession.isActive) {
       throw flashInProgress();
     }
     session = BuildSession.acquire();

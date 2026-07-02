@@ -11,7 +11,10 @@ import { mkdtempSync, writeFileSync, rmSync } from "fs";
 import { join, resolve } from "path";
 import { tmpdir } from "os";
 import { ESP } from "../../config";
+import { ErrorCode } from "../../common/error/types";
+import { isKnownError } from "../../common/error/knownError";
 import { assertFlashSectionsReadable } from "../../flash/shared/verifyFlashBins";
+import { FlashSession } from "../../flash/shared/flashSession";
 import { selectedDFUAdapterId } from "../../flash/transports/dfu/helpers";
 import {
   buildBaseWriteFlashArgs,
@@ -360,7 +363,7 @@ suite("Flash", () => {
       }
     });
 
-    test("throws SECTION_BIN_FILE_NOT_ACCESSIBLE when a bin is missing", () => {
+    test("throws SectionBinNotAccessible when a bin is missing", () => {
       const dir = mkdtempSync(join(tmpdir(), "esp-idf-flash-test-"));
       try {
         writeFileSync(join(dir, "present.bin"), "");
@@ -378,11 +381,47 @@ suite("Flash", () => {
         assert.throws(
           () => assertFlashSectionsReadable(dir, model),
           (e: unknown) =>
-            e instanceof Error && e.message === "SECTION_BIN_FILE_NOT_ACCESSIBLE"
+            isKnownError(e) &&
+            e.code === ErrorCode.SectionBinNotAccessible &&
+            e.metadata?.binFilePath === "missing.bin"
         );
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }
+    });
+  });
+
+  suite("FlashSession", () => {
+    teardown(() => {
+      FlashSession.endActiveForTests();
+    });
+
+    setup(() => {
+      FlashSession.endActiveForTests();
+    });
+
+    test("acquire sets isActive and rejects concurrent acquire", () => {
+      FlashSession.acquire();
+      assert.strictEqual(FlashSession.isActive, true);
+      assert.throws(
+        () => FlashSession.acquire(),
+        (e: unknown) =>
+          isKnownError(e) && e.code === ErrorCode.AlreadyFlashing
+      );
+    });
+
+    test("end clears active session and allows a new acquire", () => {
+      const session = FlashSession.acquire();
+      session.end();
+      assert.strictEqual(FlashSession.isActive, false);
+      assert.doesNotThrow(() => FlashSession.acquire());
+    });
+
+    test("foreign end does not clear another session", () => {
+      FlashSession.acquire();
+      const foreign = Object.create(FlashSession.prototype) as FlashSession;
+      foreign.end();
+      assert.strictEqual(FlashSession.isActive, true);
     });
   });
 });

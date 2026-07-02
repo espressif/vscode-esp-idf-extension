@@ -18,6 +18,10 @@
 import * as vscode from "vscode";
 import { execChildProcess } from "../../../utils";
 import { OutputChannel } from "../../../common/outputChannel";
+import {
+  noDfuDevicePathFound,
+  noDfuDeviceSelected,
+} from "../../../common/error/knownError";
 
 function deviceLabel(selectedDevice: string) {
   const regex = /:\d+]/g;
@@ -94,10 +98,10 @@ export async function selectDfuDevice(arrDfuDevices: string[]) {
   if (selectedDfuDevice) {
     const pathMatch = selectedDfuDevice.detail.match(/path="([^"]+)"/);
     if (!pathMatch?.[1]) {
-      throw new Error("NO_DFU_DEVICE_PATH_FOUND");
+      throw noDfuDevicePathFound();
     }
     return pathMatch[1];
   } else {
-    throw new Error("NO_DFU_DEVICE_SELECTED");
+    throw noDfuDeviceSelected();
   }
 }

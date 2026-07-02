@@ -21,51 +21,10 @@ import {
   showNotificationWithMultipleActions,
 } from "../customNotifications";
 import { Logger } from "../logger";
+import { OutputChannel } from "../outputChannel";
 import { isKnownError, KnownError } from "./knownError";
-import { getErrorDescriptor } from "./registry";
-import { CommandErrorMapping, KnownErrorDescriptor } from "./types";
-
-function interpolate(
-  template: string,
-  metadata?: Record<string, unknown>
-): string {
-  return template.replace(/\{(\w+)\}/g, (_, key) =>
-    metadata?.[key] !== undefined ? String(metadata[key]) : `{${key}}`
-  );
-}
-
-/**
- * Resolve the full descriptor for a KnownError, applying any
- * command-level overrides on top of the global defaults.
- */
-function resolveDescriptor(
-  error: KnownError,
-  commandOverrides?: CommandErrorMapping
-): KnownErrorDescriptor | undefined {
-  const base = getErrorDescriptor(error.code);
-  const override = commandOverrides?.[error.code];
-
-  if (!base && !override) {
-    return undefined;
-  }
-
-  const userMessage = interpolate(
-    override?.userMessage ?? base?.userMessage ?? error.message,
-    error.metadata
-  );
-  const logMessage = interpolate(
-    override?.logMessage ?? base?.logMessage ?? error.message,
-    error.metadata
-  );
-
-  return {
-    code: error.code,
-    severity: override?.severity ?? base?.severity ?? ErrorSeverity.Error,
-    userMessage,
-    logMessage,
-    actions: override?.actions ?? base?.actions ?? [],
-  };
-}
+import { resolveKnownErrorDescriptor } from "./resolve";
+import { CommandErrorMapping } from "./types";
 
 /**
  * Central error handler. All command errors funnel through here.
@@ -82,13 +41,12 @@ export async function handleError(
   };
   // ── Known errors ──────────────────────────────────────────────
   if (isKnownError(error)) {
-    const descriptor = resolveDescriptor(error, commandOverrides);
+    const descriptor = resolveKnownErrorDescriptor(error, commandOverrides);
     mergedMetadata = {
       ...mergedMetadata,
       ...(error instanceof KnownError ? error.metadata : {}),
     };
     if (descriptor) {
-      // Log with appropriate level
       const logMsg = `[${commandId}] ${descriptor.logMessage} (code: ${descriptor.code})`;
       if (descriptor.severity === ErrorSeverity.Warning) {
         Logger.warn(logMsg, mergedMetadata);
@@ -98,14 +56,19 @@ export async function handleError(
         Logger.info(logMsg, mergedMetadata);
       }
 
-      // Notify the user
+      if (descriptor.outputChannel) {
+        OutputChannel.appendLineAndShow(
+          descriptor.userMessage,
+          descriptor.outputChannel
+        );
+      }
+
       await showNotificationWithMultipleActions(
         descriptor.userMessage,
         descriptor.actions,
         descriptor.severity
       );
     } else {
-      // KnownError with an unregistered code — treat as semi-unknown
       Logger.errorNotify(
         `[${commandId}] Unregistered KnownError code: ${error.code}`,
         error,
