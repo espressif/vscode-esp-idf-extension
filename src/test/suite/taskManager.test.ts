@@ -104,8 +104,9 @@ suite("taskManager helpers", () => {
         (e: unknown) =>
           isKnownError(e) &&
           e.code === ErrorCode.TaskFailedWithOutput &&
-          e.message === "Task failed with exit code 7" &&
-          e.metadata?.exitCode === 7
+          e.metadata?.exitCode === 7 &&
+          e.metadata?.stdout === "  " &&
+          e.metadata?.stderr === ""
       );
     });
 
