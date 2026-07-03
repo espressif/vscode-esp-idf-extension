@@ -123,7 +123,7 @@ export function getVirtualEnvPythonPath() {
     const pyDir =
       process.platform === "win32"
         ? ["Scripts", "python.exe"]
-        : ["bin", "python3"];
+        : ["bin", "python"];
     return join(currentEnvVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
   }
 }

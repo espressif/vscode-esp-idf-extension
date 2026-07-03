@@ -75,15 +75,27 @@ export async function getEnvVariablesFromActivationScript(
         .replace(new RegExp(`(^${delimiter}|${delimiter}$)`, "g"), "");
     }
 
-    const pyDir =
-      process.platform === "win32"
-        ? ["Scripts", "python.exe"]
-        : ["bin", "python3"];
-    const python3Path = join(envDict["IDF_PYTHON_ENV_PATH"], ...pyDir);
-    if (process.platform !== "win32" && !(await pathExists(python3Path))) {
-      envDict["PYTHON"] = join(envDict["IDF_PYTHON_ENV_PATH"], "bin", "python");
+    if (process.platform === "win32") {
+      envDict["PYTHON"] = join(
+        envDict["IDF_PYTHON_ENV_PATH"],
+        "Scripts",
+        "python.exe"
+      );
     } else {
-      envDict["PYTHON"] = python3Path;
+      // Prefer 'python' to match the EIM activation script, which hardcodes
+      // /venv/bin/python in the idf.py shell function. idf.py caches
+      // sys.executable at cmake configure time, so the binary name used here
+      // must match the one the activation script invokes, otherwise every
+      // terminal run produces a "python/python3 mismatch" error.
+      const pythonPath = join(envDict["IDF_PYTHON_ENV_PATH"], "bin", "python");
+      const python3Path = join(
+        envDict["IDF_PYTHON_ENV_PATH"],
+        "bin",
+        "python3"
+      );
+      envDict["PYTHON"] = (await pathExists(pythonPath))
+        ? pythonPath
+        : python3Path;
     }
 
     return envDict;
