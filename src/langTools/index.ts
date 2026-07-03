@@ -309,13 +309,6 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
           }
           const errorMessage =
             error instanceof Error ? error.message : String(error);
-          if (errorMessage === "ALREADY_ERASING") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart(
-                "An erase-flash operation is already in progress."
-              ),
-            ]);
-          }
           const sanitizedMessage = `Failed to execute command "${commandName}": ${errorMessage}`;
           const errorForLog =
             error instanceof Error ? error : new Error(String(error));

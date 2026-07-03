@@ -9,6 +9,9 @@
 import * as assert from "assert";
 import { isJtagEraseFlashResponseSuccess } from "../../eraseFlash/transports/jtag/eraseFlashJtagResponse";
 import { buildUartEraseFlashArgs } from "../../eraseFlash/transports/uart/eraseFlashUartArgs";
+import { EraseFlashSession } from "../../eraseFlash/eraseFlashSession";
+import { ErrorCode } from "../../common/error/types";
+import { isKnownError } from "../../common/error/knownError";
 
 suite("eraseFlash", () => {
   suite("isJtagEraseFlashResponseSuccess", () => {
@@ -48,6 +51,42 @@ suite("eraseFlash", () => {
           "erase_flash",
         ]
       );
+    });
+  });
+
+  suite("EraseFlashSession", () => {
+    teardown(() => {
+      EraseFlashSession.endActiveForTests();
+    });
+
+    setup(() => {
+      EraseFlashSession.endActiveForTests();
+    });
+
+    test("acquire sets isActive and rejects concurrent acquire", () => {
+      EraseFlashSession.acquire();
+      assert.strictEqual(EraseFlashSession.isActive, true);
+      assert.throws(
+        () => EraseFlashSession.acquire(),
+        (e: unknown) =>
+          isKnownError(e) && e.code === ErrorCode.AlreadyErasing
+      );
+    });
+
+    test("end clears active session and allows a new acquire", () => {
+      const session = EraseFlashSession.acquire();
+      session.end();
+      assert.strictEqual(EraseFlashSession.isActive, false);
+      assert.doesNotThrow(() => EraseFlashSession.acquire());
+    });
+
+    test("foreign end does not clear another session", () => {
+      EraseFlashSession.acquire();
+      const foreign = Object.create(
+        EraseFlashSession.prototype
+      ) as EraseFlashSession;
+      foreign.end();
+      assert.strictEqual(EraseFlashSession.isActive, true);
     });
   });
 });
