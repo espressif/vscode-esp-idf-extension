@@ -18,12 +18,17 @@
 import { interruptMonitorWithDelay } from "./interruptMonitorWithDelay";
 import { Uri, WorkspaceFolder } from "vscode";
 import { loadMonitorLaunchConfig } from "./launchConfig";
-import { logInvalidConfigReason } from "./configValidation";
 import { IDFMonitor } from "./terminal";
 import { readParameter } from "../../configuration/idf";
 import { isFlashEncryptionEnabled } from "../../flash/verify/flashEncryption";
 import { getConfigValueFromSDKConfig } from "../../configuration/workspace";
 
+/**
+ * Launches the ESP-IDF serial monitor for the workspace.
+ *
+ * @throws {KnownError} On validation failures or when another ESP-IDF task is
+ * in progress. Callers that need a soft failure should catch {@link isKnownError}.
+ */
 export async function monitorMain(
   workspaceFolder: WorkspaceFolder,
   noResetMonitor?: boolean
@@ -33,13 +38,9 @@ export async function monitorMain(
     typeof noResetMonitor !== "undefined"
       ? noResetMonitor
       : await shouldDisableMonitorReset(workspaceFolder.uri);
-  const loaded = await loadMonitorLaunchConfig(workspaceFolder, noReset);
-  logInvalidConfigReason(loaded);
-  if (loaded.ok === false) {
-    return;
-  }
+  const { config } = await loadMonitorLaunchConfig(workspaceFolder, noReset);
 
-  IDFMonitor.updateConfiguration(loaded.config);
+  IDFMonitor.updateConfiguration(config);
   await interruptMonitorWithDelay(workspaceFolder.uri);
   await IDFMonitor.start();
   if (noReset) {

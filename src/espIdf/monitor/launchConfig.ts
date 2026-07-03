@@ -9,6 +9,7 @@
 import { join } from "path";
 import { R_OK } from "constants";
 import { WorkspaceFolder } from "vscode";
+import { pathExists } from "fs-extra";
 import { readParameter, readSerialPort } from "../../configuration/idf";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
 import {
@@ -17,36 +18,39 @@ import {
 } from "../../configuration/workspace";
 import { FlashSession } from "../../flash/shared/flashSession";
 import { BuildSession } from "../../build/buildSession";
+import { EraseFlashSession } from "../../eraseFlash/eraseFlashSession";
 import { getMonitorBaudRate } from "./getMonitorBaudRate";
 import { MonitorConfig } from "./types";
 import { canAccessFile, getEspIdfFromCMake, getToolchainToolName } from "../../utils";
+import { Logger } from "../../common/logger";
+import {
+  fileNotFound,
+  idfTargetNotSet,
+  idfTaskInProgress,
+  idfToolNotFound,
+  invalidConfiguration,
+  invalidIdfVersion,
+  IdfTaskName,
+  isKnownError,
+  missingDependency,
+  noPortSelected,
+} from "../../common/error/knownError";
 
-export type MonitorLaunchFailureReason =
-  | "one_task_at_time"
-  | "no_port"
-  | "no_python"
-  | "no_idf_path"
-  | "idf_version_error"
-  | "no_idf_monitor"
-  | "no_idf_target"
-  | "elf_path_error";
-
-export type LoadMonitorLaunchConfigResult =
-  | { ok: true; config: MonitorConfig; idfPath: string }
-  | {
-      ok: false;
-      reason: MonitorLaunchFailureReason;
-      /** e.g. idf_monitor.py path when reason is no_idf_monitor; error text for idf_version_error / elf_path_error */
-      detail?: string;
-    };
+const UNRESOLVED_IDF_VERSION = "x.x";
 
 export async function loadMonitorLaunchConfig(
   workspaceFolder: WorkspaceFolder,
   noReset: boolean,
   wsPort?: number
-): Promise<LoadMonitorLaunchConfigResult> {
-  if (BuildSession.isActive || FlashSession.isActive) {
-    return { ok: false, reason: "one_task_at_time" };
+): Promise<{ config: MonitorConfig; idfPath: string }> {
+  if (BuildSession.isActive) {
+    throw idfTaskInProgress(IdfTaskName.Build);
+  }
+  if (FlashSession.isActive) {
+    throw idfTaskInProgress(IdfTaskName.Flash);
+  }
+  if (EraseFlashSession.isActive) {
+    throw idfTaskInProgress(IdfTaskName.EraseFlash);
   }
 
   const serialPort = await readSerialPort(workspaceFolder.uri, false);
@@ -56,55 +60,61 @@ export async function loadMonitorLaunchConfig(
   ) as string;
   const port = monitorPort ? monitorPort : serialPort;
   if (!port) {
-    return { ok: false, reason: "no_port" };
+    throw noPortSelected();
   }
 
   const pythonBinPath = getVirtualEnvPythonPath();
   if (!pythonBinPath || !canAccessFile(pythonBinPath, R_OK)) {
-    return { ok: false, reason: "no_python" };
+    throw missingDependency("Python");
   }
 
   const currentEnvVars = getCurrentIdfConfiguration();
   const idfPath = currentEnvVars["IDF_PATH"];
   if (!idfPath) {
-    return { ok: false, reason: "no_idf_path" };
+    throw invalidConfiguration("IDF_PATH");
   }
   let idfVersion: string;
   try {
     idfVersion = await getEspIdfFromCMake(idfPath);
   } catch (error) {
-    return {
-      ok: false,
-      reason: "idf_version_error",
-      detail:
-        error instanceof Error ? error.message : "getEspIdfFromCMake failed",
-    };
+    const detail =
+      error instanceof Error ? error.message : "getEspIdfFromCMake failed";
+    throw invalidIdfVersion(idfPath, detail);
+  }
+  if (idfVersion === UNRESOLVED_IDF_VERSION) {
+    throw invalidIdfVersion(idfPath);
   }
   const sdkMonitorBaudRate = await getMonitorBaudRate(workspaceFolder.uri);
   const idfMonitorToolPath = join(idfPath, "tools", "idf_monitor.py");
   if (!canAccessFile(idfMonitorToolPath, R_OK)) {
-    return {
-      ok: false,
-      reason: "no_idf_monitor",
-      detail: idfMonitorToolPath,
-    };
+    throw idfToolNotFound("idf_monitor.py");
   }
 
   const idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder.uri);
   if (!idfTarget) {
-    return { ok: false, reason: "no_idf_target" };
+    throw idfTargetNotSet();
   }
 
   let elfFilePath: string;
   try {
     elfFilePath = await getProjectElfFilePath(workspaceFolder.uri);
+    if (!(await pathExists(elfFilePath))) {
+      throw fileNotFound(elfFilePath);
+    }
   } catch (error) {
-    return {
-      ok: false,
-      reason: "elf_path_error",
-      detail:
-        error instanceof Error ? error.message : "getProjectElfFilePath failed",
-    };
+    if (isKnownError(error)) {
+      throw error;
+    }
+    const errStr =
+      error instanceof Error
+        ? error.message
+        : "Failed to get project ELF file path";
+    Logger.error(
+      errStr,
+      error as Error,
+      "monitor launchConfig getProjectElfFilePath"
+    );
+    throw fileNotFound(errStr);
   }
   const toolchainPrefix = getToolchainToolName(idfTarget, "");
   const shellPath = readParameter(
@@ -142,5 +152,5 @@ export async function loadMonitorLaunchConfig(
     wsPort,
   };
 
-  return { ok: true, config, idfPath };
+  return { config, idfPath };
 }

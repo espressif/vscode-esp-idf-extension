@@ -113,7 +113,14 @@ export async function buildFlashAndMonitorCapture(
 
   onBeforeMonitor?.();
 
-  await monitorMain(workspaceFolder);
+  try {
+    await monitorMain(workspaceFolder, monitorNoReset);
+  } catch (error) {
+    if (isKnownError(error)) {
+      return { continueFlag: false, executions };
+    }
+    throw error;
+  }
 
   return { continueFlag: true, executions };
 }

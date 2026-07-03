@@ -17,6 +17,13 @@ import {
   quotePathForShell,
   resolveMonitorBaudRate,
 } from "../../espIdf/monitor/argsBuilder";
+import { ErrorCode } from "../../common/error/types";
+import {
+  idfTaskInProgress,
+  IdfTaskName,
+  isKnownError,
+} from "../../common/error/knownError";
+import { resolveKnownErrorUserMessage } from "../../common/error/resolve";
 
 const baseUnquotedInput = {
   port: "COM1",
@@ -43,7 +50,10 @@ suite("Monitor argsBuilder", () => {
       );
     });
     test("cmd uses double quotes", () => {
-      assert.strictEqual(quotePathForShell(`C:\\a b\\c`, "cmd"), `"C:\\a b\\c"`);
+      assert.strictEqual(
+        quotePathForShell(`C:\\a b\\c`, "cmd"),
+        `"C:\\a b\\c"`
+      );
     });
     test("posix wraps in single quotes", () => {
       assert.strictEqual(quotePathForShell("/a/b", "posix"), "'/a/b'");
@@ -52,7 +62,10 @@ suite("Monitor argsBuilder", () => {
 
   suite("monitorShellKindFromUserShell", () => {
     test("maps known shells", () => {
-      assert.strictEqual(monitorShellKindFromUserShell("powershell"), "powershell");
+      assert.strictEqual(
+        monitorShellKindFromUserShell("powershell"),
+        "powershell"
+      );
       assert.strictEqual(monitorShellKindFromUserShell("pwsh"), "pwsh");
       assert.strictEqual(monitorShellKindFromUserShell("cmd"), "cmd");
       assert.strictEqual(monitorShellKindFromUserShell("bash"), "posix");
@@ -179,7 +192,10 @@ suite("Monitor argsBuilder", () => {
         ...baseUnquotedInput,
         shellKind: "posix",
       });
-      assert.strictEqual(tokens[0], quotePathForShell("/venv/bin/python", "posix"));
+      assert.strictEqual(
+        tokens[0],
+        quotePathForShell("/venv/bin/python", "posix")
+      );
       assert.ok(tokens.join(" ").includes("-p COM1"));
     });
   });
@@ -219,5 +235,20 @@ suite("Monitor argsBuilder", () => {
         `export IDF_PATH=${quotePathForShell("/esp/idf", "posix")}`
       );
     });
+  });
+});
+
+suite("monitor launch cross-guards", () => {
+  test("idfTaskInProgress carries taskName for cross-task guards", () => {
+    const error = idfTaskInProgress(IdfTaskName.Build);
+    assert.strictEqual(error.metadata?.taskName, IdfTaskName.Build);
+    assert.strictEqual(
+      resolveKnownErrorUserMessage(error),
+      "Wait for ESP-IDF build to finish."
+    );
+    assert.strictEqual(
+      isKnownError(error) && error.code === ErrorCode.IdfTaskInProgress,
+      true
+    );
   });
 });

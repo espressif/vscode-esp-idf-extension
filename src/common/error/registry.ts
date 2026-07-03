@@ -90,6 +90,14 @@ registerNewErrorInRegistry({
 });
 
 registerNewErrorInRegistry({
+  code: ErrorCode.InvalidIdfVersion,
+  severity: ErrorSeverity.Error,
+  userMessage: "Failed to read ESP-IDF version from {idfPath}.",
+  logMessage: "Failed to read ESP-IDF version from {idfPath}: {detail}.",
+  actions: [],
+});
+
+registerNewErrorInRegistry({
   code: ErrorCode.BuildTerminated,
   severity: ErrorSeverity.Warning,
   userMessage: "Build was terminated.",
@@ -144,10 +152,9 @@ registerNewErrorInRegistry({
 registerNewErrorInRegistry({
   code: ErrorCode.IdfTaskInProgress,
   severity: ErrorSeverity.Warning,
-  userMessage: "Wait for ESP-IDF task to finish",
-  logMessage: "Attempted to flash while another ESP-IDF task is in progress.",
+  userMessage: "Wait for ESP-IDF {taskName} to finish.",
+  logMessage: "Attempted to start a task while {taskName} is in progress.",
   actions: [],
-  outputChannel: flashOutputChannel,
 });
 
 registerNewErrorInRegistry({
@@ -182,10 +189,9 @@ registerNewErrorInRegistry({
 registerNewErrorInRegistry({
   code: ErrorCode.NoPortSelected,
   severity: ErrorSeverity.Error,
-  userMessage: "Select a port before flashing",
-  logMessage: "Flash blocked: no serial port selected.",
+  userMessage: "Select a serial port.",
+  logMessage: "No serial port selected.",
   actions: [],
-  outputChannel: flashOutputChannel,
 });
 
 registerNewErrorInRegistry({
@@ -328,6 +334,57 @@ registerNewErrorInRegistry({
   logMessage: "Erase flash blocked: flash encryption or secure boot is enabled.",
   actions: [],
   outputChannel: eraseFlashOutputChannel,
+});
+
+// ──────────────────────────── Monitor errors ─────────────────────────
+
+const monitorOutputChannel = "Monitor";
+
+registerNewErrorInRegistry({
+  code: ErrorCode.MonitorWsPortInUse,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "Port {wsPort} is not available. Change idf.wssPort to use a different port.",
+  logMessage: "WebSocket monitor port {wsPort} is already in use.",
+  actions: [],
+  outputChannel: monitorOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.MonitorWsPortNotConfigured,
+  severity: ErrorSeverity.Error,
+  userMessage: "WebSocket port (idf.wssPort) is not configured.",
+  logMessage: "WebSocket monitor port (idf.wssPort) is not configured.",
+  actions: [],
+  outputChannel: monitorOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.WebsocketClientInstallFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Failed to install websocket client dependencies.",
+  logMessage: "Failed to install websocket_client: {detail}.",
+  actions: [],
+  outputChannel: monitorOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.MonitorCoreDumpElfGenerationFailed,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "Failed to generate ELF from core dump. Close the core-dump monitor terminal manually.",
+  logMessage: "Core dump ELF generation failed.",
+  actions: [],
+  outputChannel: monitorOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.MonitorDebugLaunchFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Failed to launch debugger for postmortem ({context}).",
+  logMessage: "Monitor postmortem debug launch failed ({context}): {detail}.",
+  actions: [],
+  outputChannel: monitorOutputChannel,
 });
 
 // ──────────────────────────── File errors ────────────────────────────

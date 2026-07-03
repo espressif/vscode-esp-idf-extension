@@ -23,8 +23,8 @@ import { EraseFlashSession } from "../eraseFlash/eraseFlashSession";
 import { Logger } from "../common/logger";
 import {
   buildTerminated,
-  eraseInProgress,
-  flashInProgress,
+  idfTaskInProgress,
+  IdfTaskName,
 } from "../common/error/knownError";
 import {
   collectExecutions,
@@ -71,10 +71,10 @@ export async function buildMain(
 
   try {
     if (FlashSession.isActive) {
-      throw flashInProgress();
+      throw idfTaskInProgress(IdfTaskName.Flash);
     }
     if (EraseFlashSession.isActive) {
-      throw eraseInProgress();
+      throw idfTaskInProgress(IdfTaskName.EraseFlash);
     }
     session = BuildSession.acquire();
     TaskManager.clearTaskResults();
