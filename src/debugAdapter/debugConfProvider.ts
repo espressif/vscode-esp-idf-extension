@@ -71,7 +71,15 @@ export class CDTDebugConfigurationProvider
       folder
     );
     if (debugConfiguration.buildFlashMonitor) {
-      await buildFlashAndMonitor(folder.uri, true);
+      try {
+        await buildFlashAndMonitor(folder.uri, true);
+      } catch (error) {
+        if (isKnownError(error)) {
+          await handleError("espIdf.buildFlashMonitor", error);
+          return debugConfiguration;
+        }
+        throw error;
+      }
     } else if (
       debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
       debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
