@@ -32,10 +32,10 @@ import { getConfigValueFromSDKConfig } from "../configuration/workspace";
 import { BuildSession } from "../build/buildSession";
 import { FlashSession } from "../flash/shared/flashSession";
 import {
-  alreadyBuilding,
-  alreadyFlashing,
   eraseBlockedBySecureConfig,
   eraseTerminated,
+  idfTaskInProgress,
+  IdfTaskName,
 } from "../common/error/knownError";
 import { assertMinimumOpenOcdVersionForJtag } from "../espIdf/openOcd/jtagPreflight";
 
@@ -78,10 +78,10 @@ export async function eraseFlashMain(
     }
 
     if (BuildSession.isActive) {
-      throw alreadyBuilding();
+      throw idfTaskInProgress(IdfTaskName.Build);
     }
     if (FlashSession.isActive) {
-      throw alreadyFlashing();
+      throw idfTaskInProgress(IdfTaskName.Flash);
     }
 
     if (flashType === ESP.FlashType.JTAG) {

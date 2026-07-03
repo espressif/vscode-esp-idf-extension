@@ -27,12 +27,11 @@ import { join } from "path";
 import { getProjectElfFilePath } from "../../configuration/workspace";
 import { getDfuList } from "../transports/dfu/helpers";
 import {
-  alreadyBuilding,
-  alreadyFlashing,
   buildRequiredBeforeFlash,
-  eraseInProgress,
   fileNotFound,
   flasherArgsMissing,
+  idfTaskInProgress,
+  IdfTaskName,
   isKnownError,
   noBaudRateSelected,
   noDfuDeviceFound,
@@ -48,13 +47,13 @@ export async function verifyCanFlash(
   workspace: Uri
 ): Promise<void> {
   if (BuildSession.isActive) {
-    throw alreadyBuilding();
+    throw idfTaskInProgress(IdfTaskName.Build);
   }
   if (FlashSession.isActive) {
-    throw alreadyFlashing();
+    throw idfTaskInProgress(IdfTaskName.Flash);
   }
   if (EraseFlashSession.isActive) {
-    throw eraseInProgress();
+    throw idfTaskInProgress(IdfTaskName.EraseFlash);
   }
   if (!(await pathExists(buildDirPath))) {
     throw buildRequiredBeforeFlash(buildDirPath);

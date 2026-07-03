@@ -38,6 +38,8 @@ import { execChildProcess, getToolchainPath } from "../utils";
 import { ESP } from "../config";
 import { buildFlashAndMonitor } from "../buildFlashMonitor";
 import { monitorMain } from "../espIdf/monitor/main";
+import { handleError } from "../common/error/handler";
+import { isKnownError } from "../common/error/knownError";
 
 /** ESP-IDF generated gdbinit files, in `idf.py gdb` order. */
 const GDBINIT_FILE_NAMES = [
@@ -253,7 +255,15 @@ export class CDTDebugConfigurationProvider
       debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
       useMonitorWithDebug
     ) {
-      await monitorMain(folder, true);
+      try {
+        await monitorMain(folder, true);
+      } catch (error) {
+        if (isKnownError(error)) {
+          await handleError("espIdf.monitorDevice", error);
+          return debugConfiguration;
+        }
+        throw error;
+      }
     }
     const openOCDManager = OpenOCDManager.init();
     if (

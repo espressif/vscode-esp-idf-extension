@@ -18,6 +18,9 @@
 import * as assert from "assert";
 import {
   alreadyBuilding,
+  idfTaskInProgress,
+  invalidIdfVersion,
+  IdfTaskName,
   sectionBinNotAccessible,
 } from "../../common/error/knownError";
 import {
@@ -51,6 +54,20 @@ suite("error resolve", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(sectionBinNotAccessible("missing.bin")),
         "Flash binary file missing.bin doesn't exist or can't be accessed!"
+      );
+    });
+
+    test("interpolates taskName for IdfTaskInProgress", () => {
+      assert.strictEqual(
+        resolveKnownErrorUserMessage(idfTaskInProgress(IdfTaskName.Build)),
+        "Wait for ESP-IDF build to finish."
+      );
+    });
+
+    test("interpolates idfPath for InvalidIdfVersion", () => {
+      assert.strictEqual(
+        resolveKnownErrorUserMessage(invalidIdfVersion("/esp/idf")),
+        "Failed to read ESP-IDF version from /esp/idf."
       );
     });
 

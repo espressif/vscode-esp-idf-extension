@@ -20,14 +20,15 @@ import { Uri } from "vscode";
 import { OutputChannel } from "../../../common/outputChannel";
 import { execChildProcess } from "../../../utils";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../../configuration/env";
+import {
+  missingDependency,
+  websocketClientInstallFailed,
+} from "../../../common/error/knownError";
 
 export async function installWebsocketClient(workspace: Uri) {
   const pythonBinPath = getVirtualEnvPythonPath();
   if (!pythonBinPath) {
-    OutputChannel.appendLine(
-      "Python environment not found. Please set up Python to use the websocket monitor features."
-    );
-    return;
+    throw missingDependency("Python");
   }
   const modifiedEnv = getCurrentIdfConfiguration();
   try {
@@ -43,20 +44,28 @@ export async function installWebsocketClient(workspace: Uri) {
     OutputChannel.appendLine(
       "Installing the websocket_client package for IDE integration!"
     );
-    const installResult = await execChildProcess(
-      pythonBinPath,
-      [
-        "-m",
-        "pip",
-        "install",
-        "websocket_client",
-        "--extra-index-url",
-        "https://dl.espressif.com/pypi",
-      ],
-      workspace.fsPath,
-      OutputChannel.init(),
-      { env: modifiedEnv }
-    );
-    OutputChannel.appendLine(installResult);
+    try {
+      const installResult = await execChildProcess(
+        pythonBinPath,
+        [
+          "-m",
+          "pip",
+          "install",
+          "websocket_client",
+          "--extra-index-url",
+          "https://dl.espressif.com/pypi",
+        ],
+        workspace.fsPath,
+        OutputChannel.init(),
+        { env: modifiedEnv }
+      );
+      OutputChannel.appendLine(installResult);
+    } catch (installError) {
+      const detail =
+        installError instanceof Error
+          ? installError.message
+          : String(installError);
+      throw websocketClientInstallFailed(detail);
+    }
   }
 }

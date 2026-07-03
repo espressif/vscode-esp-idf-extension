@@ -108,12 +108,29 @@ export function flashTerminated(): KnownError {
   return known(ErrorCode.FlashTerminated);
 }
 
-export function idfTaskInProgress(): KnownError {
-  return known(ErrorCode.IdfTaskInProgress);
+export function idfTaskInProgress(taskName: string): KnownError {
+  return known(ErrorCode.IdfTaskInProgress, { taskName });
 }
+
+export const IdfTaskName = {
+  Build: "build",
+  Flash: "flash",
+  EraseFlash: "erase flash",
+  Monitor: "monitor",
+} as const;
 
 export function idfTargetNotSet(): KnownError {
   return known(ErrorCode.IdfTargetNotSet);
+}
+
+export function invalidIdfVersion(
+  idfPath: string,
+  detail?: string
+): KnownError {
+  return known(
+    ErrorCode.InvalidIdfVersion,
+    detail ? { idfPath, detail } : { idfPath }
+  );
 }
 
 export function buildRequiredBeforeFlash(buildDirPath: string): KnownError {
@@ -189,4 +206,33 @@ export function eraseTerminated(): KnownError {
 
 export function eraseBlockedBySecureConfig(): KnownError {
   return known(ErrorCode.EraseBlockedBySecureConfig);
+}
+
+export function monitorWsPortInUse(wsPort: number): KnownError {
+  return known(ErrorCode.MonitorWsPortInUse, { wsPort });
+}
+
+export function monitorWsPortNotConfigured(): KnownError {
+  return known(ErrorCode.MonitorWsPortNotConfigured);
+}
+
+export function websocketClientInstallFailed(detail?: string): KnownError {
+  return known(
+    ErrorCode.WebsocketClientInstallFailed,
+    detail ? { detail } : undefined
+  );
+}
+
+export function monitorCoreDumpElfGenerationFailed(): KnownError {
+  return known(ErrorCode.MonitorCoreDumpElfGenerationFailed);
+}
+
+export function monitorDebugLaunchFailed(
+  context: "gdb_stub" | "core_dump",
+  detail?: string
+): KnownError {
+  return known(
+    ErrorCode.MonitorDebugLaunchFailed,
+    detail ? { context, detail } : { context }
+  );
 }

@@ -19,6 +19,7 @@
 import { MonitorConfig } from "./types";
 import { ESP } from "../../config";
 import { window, Terminal, env, debug } from "vscode";
+import { Logger } from "../../common/logger";
 import {
   buildIdfMonitorQuotedInvokeTokens,
   buildIdfMonitorTerminalSendSequence,
@@ -133,7 +134,13 @@ export class IDFMonitor {
         IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
         IDFMonitor.terminal.sendText(`exit`);
       }
-    } catch (error) {}
+    } catch (error) {
+      Logger.error(
+        "Failed to dispose IDF monitor terminal",
+        error as Error,
+        "IDFMonitor.dispose"
+      );
+    }
   }
 
   private static isDebugSessionActive(): boolean {
