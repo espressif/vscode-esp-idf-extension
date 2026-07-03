@@ -15,6 +15,41 @@
  * limitations under the License.
  */
 
+import { alreadyErasing } from "../common/error/knownError";
+import { TaskManager } from "../taskManager/taskManager";
+
+/**
+ * Global erase-flash pipeline session. Only the caller that {@link acquire}s a
+ * session may {@link end} it, so concurrent rejected erases cannot tear down
+ * an in-flight pipeline.
+ */
 export class EraseFlashSession {
-  public static isErasing: boolean;
+  private static active: EraseFlashSession | undefined;
+
+  static get isActive(): boolean {
+    return EraseFlashSession.active !== undefined;
+  }
+
+  static acquire(): EraseFlashSession {
+    if (EraseFlashSession.active) {
+      throw alreadyErasing();
+    }
+    const session = new EraseFlashSession();
+    EraseFlashSession.active = session;
+    return session;
+  }
+
+  /** @internal Test helper to reset global session state. */
+  static endActiveForTests(): void {
+    EraseFlashSession.active?.end();
+    EraseFlashSession.active = undefined;
+  }
+
+  end(): void {
+    if (EraseFlashSession.active !== this) {
+      return;
+    }
+    TaskManager.disposeListeners();
+    EraseFlashSession.active = undefined;
+  }
 }

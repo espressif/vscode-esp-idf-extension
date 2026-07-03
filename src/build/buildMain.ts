@@ -19,9 +19,11 @@
 import { BuildTask } from "./buildTask";
 import { BuildSession } from "./buildSession";
 import { FlashSession } from "../flash/shared/flashSession";
+import { EraseFlashSession } from "../eraseFlash/eraseFlashSession";
 import { Logger } from "../common/logger";
 import {
   buildTerminated,
+  eraseInProgress,
   flashInProgress,
 } from "../common/error/knownError";
 import {
@@ -70,6 +72,9 @@ export async function buildMain(
   try {
     if (FlashSession.isActive) {
       throw flashInProgress();
+    }
+    if (EraseFlashSession.isActive) {
+      throw eraseInProgress();
     }
     session = BuildSession.acquire();
     TaskManager.clearTaskResults();
