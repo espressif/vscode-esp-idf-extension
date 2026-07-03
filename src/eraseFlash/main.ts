@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-import { CancellationToken, l10n, WorkspaceFolder } from "vscode";
+import { CancellationToken, Disposable, WorkspaceFolder } from "vscode";
 import { ESP } from "../config";
-import { throwCapturedTaskFailure } from "../taskManager/taskManager";
+import { throwCapturedTaskFailure, TaskManager } from "../taskManager/taskManager";
 import { selectFlashMethod } from "../flash/main";
 import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
 import { CustomExecutionTaskResult } from "../taskManager/types";
@@ -29,49 +29,86 @@ import { jtagEraseFlashCommand } from "./transports/jtag/jtag";
 import { uartEraseFlashCmd } from "./transports/uart/cmd";
 import { EraseFlashSession } from "./eraseFlashSession";
 import { getConfigValueFromSDKConfig } from "../configuration/workspace";
+import { BuildSession } from "../build/buildSession";
+import { FlashSession } from "../flash/shared/flashSession";
+import {
+  alreadyBuilding,
+  alreadyFlashing,
+  eraseBlockedBySecureConfig,
+  eraseTerminated,
+} from "../common/error/knownError";
+import { assertMinimumOpenOcdVersionForJtag } from "../espIdf/openOcd/jtagPreflight";
 
+/**
+ * Runs the ESP-IDF erase-flash pipeline for UART or JTAG transports.
+ *
+ * @throws {KnownError} On validation failures, concurrent build/flash/erase
+ * conflicts, task failures, or user cancellation. Callers that need a soft
+ * failure result should catch {@link isKnownError} and map to
+ * `{ continueFlag: false }`.
+ */
 export async function eraseFlashMain(
   workspaceFolder: WorkspaceFolder,
   cancelToken: CancellationToken,
   flashType?: ESP.FlashType,
   captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
-  if (EraseFlashSession.isErasing) {
-    throw new Error("ALREADY_ERASING");
-  }
-  EraseFlashSession.isErasing = true;
+  let session: EraseFlashSession | undefined;
+  let cancelSubscription: Disposable | undefined;
+  let failure: unknown;
+  let eraseFlashCmdResult: CustomExecutionTaskResult = {
+    continueFlag: false,
+    executions: [],
+  };
+
   try {
     if (!flashType) {
       flashType = await selectFlashMethod(workspaceFolder);
     }
     await interruptMonitorWithDelay(workspaceFolder.uri);
-    const isEncrypted = await isFlashEncryptionEnabled(workspaceFolder.uri);
 
+    const isEncrypted = await isFlashEncryptionEnabled(workspaceFolder.uri);
     const secureBoot = await getConfigValueFromSDKConfig(
       "CONFIG_SECURE_BOOT",
       workspaceFolder.uri
     );
     const isSecureBootEnabled = secureBoot === "y";
     if (isEncrypted || isSecureBootEnabled) {
-      Logger.warnNotify(
-        l10n.t(
-          "Flash encryption or secure boot is enabled on the sdkconfig. Erasing flash will permanently remove the encryption keys and may render the device unusable."
-        )
-      );
-      return { continueFlag: false, executions: [] };
+      throw eraseBlockedBySecureConfig();
     }
-    let eraseFlashCmdResult: CustomExecutionTaskResult;
+
+    if (BuildSession.isActive) {
+      throw alreadyBuilding();
+    }
+    if (FlashSession.isActive) {
+      throw alreadyFlashing();
+    }
+
+    if (flashType === ESP.FlashType.JTAG) {
+      await assertMinimumOpenOcdVersionForJtag();
+    }
+
+    session = EraseFlashSession.acquire();
+    TaskManager.clearTaskResults();
+    cancelSubscription = cancelToken.onCancellationRequested(() => {
+      TaskManager.cancelTasks();
+    });
+
     if (flashType === ESP.FlashType.JTAG) {
       OutputChannel.appendLine("Erasing flash via JTAG...", "Erase flash");
-      eraseFlashCmdResult = await jtagEraseFlashCommand(workspaceFolder.uri);
+      eraseFlashCmdResult = await jtagEraseFlashCommand(
+        cancelToken,
+        workspaceFolder.uri
+      );
       if (!eraseFlashCmdResult.continueFlag) {
         await throwCapturedTaskFailure(eraseFlashCmdResult.executions);
-        return eraseFlashCmdResult;
       }
-      const msg =
-        "JTAG erase flash finished. Check Output channel to see results.";
-      OutputChannel.appendLine(msg, "Erase flash");
-      Logger.infoNotify(msg);
+      if (eraseFlashCmdResult.continueFlag) {
+        const msg =
+          "JTAG erase flash finished. Check Output channel to see results.";
+        OutputChannel.appendLine(msg, "Erase flash");
+        Logger.infoNotify(msg);
+      }
     } else {
       eraseFlashCmdResult = await uartEraseFlashCmd(
         workspaceFolder.uri,
@@ -82,12 +119,29 @@ export async function eraseFlashMain(
         await throwCapturedTaskFailure(eraseFlashCmdResult.executions);
       }
     }
+
+    if (
+      cancelToken.isCancellationRequested &&
+      !eraseFlashCmdResult.continueFlag
+    ) {
+      throw eraseTerminated();
+    }
+    if (!eraseFlashCmdResult.continueFlag) {
+      return {
+        continueFlag: false,
+        executions: eraseFlashCmdResult.executions,
+      };
+    }
     return eraseFlashCmdResult;
   } catch (error) {
-    const errMsg = error instanceof Error ? error.message : String(error);
-    Logger.error(errMsg, error as Error, "eraseFlashCommand");
-    return { continueFlag: false, executions: [] };
+    failure = error;
   } finally {
-    EraseFlashSession.isErasing = false;
+    cancelSubscription?.dispose();
+    session?.end();
   }
+
+  if (failure !== undefined) {
+    throw failure;
+  }
+  return eraseFlashCmdResult;
 }

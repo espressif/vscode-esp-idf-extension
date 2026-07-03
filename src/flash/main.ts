@@ -36,11 +36,13 @@ import { getCurrentIdfConfiguration } from "../configuration/env";
 import { BuildSession } from "../build/buildSession";
 import {
   alreadyBuilding,
+  eraseInProgress,
   flashTerminated,
   noSerialPort,
 } from "../common/error/knownError";
 import { throwFlashCapturedTaskFailure } from "./shared/flashTaskFailure";
 import { assertMinimumOpenOcdVersionForJtag } from "../espIdf/openOcd/jtagPreflight";
+import { EraseFlashSession } from "../eraseFlash/eraseFlashSession";
 export { selectFlashMethod } from "./selectFlashMethod";
 
 /**
@@ -123,6 +125,9 @@ export async function flashMain(
       if (BuildSession.isActive) {
         throw alreadyBuilding();
       }
+      if (EraseFlashSession.isActive) {
+        throw eraseInProgress();
+      }
       session = FlashSession.acquire();
       TaskManager.clearTaskResults();
       cancelSubscription = cancelToken.onCancellationRequested(() => {
@@ -136,6 +141,9 @@ export async function flashMain(
     } else {
       if (BuildSession.isActive) {
         throw alreadyBuilding();
+      }
+      if (EraseFlashSession.isActive) {
+        throw eraseInProgress();
       }
       session = FlashSession.acquire();
       TaskManager.clearTaskResults();

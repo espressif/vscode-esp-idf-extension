@@ -174,3 +174,19 @@ export function openOcdVersionTooLow(
 ): KnownError {
   return known(ErrorCode.OpenOcdVersionTooLow, { currentVersion, minVersion });
 }
+
+export function alreadyErasing(): KnownError {
+  return known(ErrorCode.AlreadyErasing);
+}
+
+export function eraseInProgress(): KnownError {
+  return known(ErrorCode.EraseInProgress);
+}
+
+export function eraseTerminated(): KnownError {
+  return known(ErrorCode.EraseTerminated);
+}
+
+export function eraseBlockedBySecureConfig(): KnownError {
+  return known(ErrorCode.EraseBlockedBySecureConfig);
+}

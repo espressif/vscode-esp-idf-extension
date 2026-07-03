@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { CancellationToken, l10n, Uri } from "vscode";
+import { CancellationToken, Uri } from "vscode";
 import { createEraseFlashProcessTask } from "./task";
 import { collectExecutions, TaskManager } from "../../../taskManager/taskManager";
 import { OutputChannel } from "../../../common/outputChannel";
@@ -24,46 +24,32 @@ import { Logger } from "../../../common/logger";
 import { CustomExecutionTaskResult } from "../../../taskManager/types";
 import { readSerialPort } from "../../../configuration/idf";
 import { getIdfTargetFromSdkconfig } from "../../../configuration/workspace";
+import { noSerialPort } from "../../../common/error/knownError";
 
 export async function uartEraseFlashCmd(
   workspaceFolderUri: Uri,
   cancelToken: CancellationToken,
   captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
-  cancelToken.onCancellationRequested(() => {
-    TaskManager.cancelTasks();
-    TaskManager.disposeListeners();
-    return;
-  });
   const port = await readSerialPort(workspaceFolderUri, false);
   if (!port) {
-    Logger.warnNotify(
-      l10n.t(
-        "No serial port found for current IDF_TARGET: {0}",
-        await getIdfTargetFromSdkconfig(workspaceFolderUri)
-      )
-    );
-    return { continueFlag: false, executions: [] };
+    throw noSerialPort(await getIdfTargetFromSdkconfig(workspaceFolderUri));
   }
   const eraseFlashExecution = await createEraseFlashProcessTask(
     workspaceFolderUri,
     port,
     captureOutput
   );
-  try {
-    const eraseFlashResult = await TaskManager.runTasksWithBoolean();
-    if (eraseFlashResult && !cancelToken.isCancellationRequested) {
-      const msg = "⚡️ Erase flash done";
-      OutputChannel.appendLine(msg, "Erase flash");
-      Logger.infoNotify(msg);
-      OutputChannel.appendLine("Flash memory content has been erased.");
-      Logger.infoNotify("Flash memory content has been erased.");
-    }
-    return {
-      continueFlag: eraseFlashResult,
-      executions: collectExecutions(eraseFlashExecution),
-    };
-  } finally {
-    TaskManager.disposeListeners();
+  const eraseFlashResult = await TaskManager.runTasksWithBoolean();
+  if (eraseFlashResult && !cancelToken.isCancellationRequested) {
+    const msg = "⚡️ Erase flash done";
+    OutputChannel.appendLine(msg, "Erase flash");
+    Logger.infoNotify(msg);
+    OutputChannel.appendLine("Flash memory content has been erased.");
+    Logger.infoNotify("Flash memory content has been erased.");
   }
+  return {
+    continueFlag: eraseFlashResult,
+    executions: collectExecutions(eraseFlashExecution),
+  };
 }

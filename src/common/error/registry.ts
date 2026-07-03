@@ -289,6 +289,46 @@ registerNewErrorInRegistry({
   outputChannel: flashOutputChannel,
 });
 
+// ──────────────────────────── Erase flash errors ─────────────────────
+
+const eraseFlashOutputChannel = "Erase flash";
+
+registerNewErrorInRegistry({
+  code: ErrorCode.AlreadyErasing,
+  severity: ErrorSeverity.Warning,
+  userMessage: "An erase-flash operation is already in progress.",
+  logMessage: "Attempted to start erase flash while another erase is in progress.",
+  actions: [],
+  outputChannel: eraseFlashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.EraseInProgress,
+  severity: ErrorSeverity.Warning,
+  userMessage: "Wait for erase flash to finish before building or flashing.",
+  logMessage: "Attempted build or flash while erase flash is in progress.",
+  actions: [],
+  outputChannel: eraseFlashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.EraseTerminated,
+  severity: ErrorSeverity.Warning,
+  userMessage: "Erase flash has been stopped!",
+  logMessage: "Erase flash was terminated by user cancellation.",
+  actions: [],
+  outputChannel: eraseFlashOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.EraseBlockedBySecureConfig,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "Flash encryption or secure boot is enabled. Erasing flash will permanently remove encryption keys and may render the device unusable.",
+  logMessage: "Erase flash blocked: flash encryption or secure boot is enabled.",
+  actions: [],
+  outputChannel: eraseFlashOutputChannel,
+});
 
 // ──────────────────────────── File errors ────────────────────────────
 
