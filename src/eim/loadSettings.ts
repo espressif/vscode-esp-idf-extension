@@ -93,9 +93,11 @@ export async function getEnvVariablesFromActivationScript(
         "bin",
         "python3"
       );
-      envDict["PYTHON"] = (await pathExists(pythonPath))
-        ? pythonPath
-        : python3Path;
+      if (await pathExists(pythonPath)) {
+        envDict["PYTHON"] = pythonPath;
+      } else if (await pathExists(python3Path)) {
+        envDict["PYTHON"] = python3Path;
+      }
     }
 
     return envDict;

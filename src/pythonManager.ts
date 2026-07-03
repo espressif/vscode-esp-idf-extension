@@ -14,7 +14,7 @@
 
 import { CancellationToken } from "vscode";
 import * as utils from "./utils";
-import { pathExists } from "fs-extra";
+import { pathExists, pathExistsSync } from "fs-extra";
 import { Logger } from "./logger/logger";
 import { join } from "path";
 import { OutputChannel } from "./logger/outputChannel";
@@ -120,11 +120,17 @@ export function getVirtualEnvPythonPath() {
     return currentEnvVars["PYTHON"];
   }
   if (currentEnvVars["IDF_PYTHON_ENV_PATH"]) {
-    const pyDir =
-      process.platform === "win32"
-        ? ["Scripts", "python.exe"]
-        : ["bin", "python"];
-    return join(currentEnvVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
+    if (process.platform === "win32") {
+      return join(currentEnvVars["IDF_PYTHON_ENV_PATH"], "Scripts", "python.exe");
+    }
+    const pythonPath = join(currentEnvVars["IDF_PYTHON_ENV_PATH"], "bin", "python");
+    if (pathExistsSync(pythonPath)) {
+      return pythonPath;
+    }
+    const python3Path = join(currentEnvVars["IDF_PYTHON_ENV_PATH"], "bin", "python3");
+    if (pathExistsSync(python3Path)) {
+      return python3Path;
+    }
   }
 }
 
