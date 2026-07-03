@@ -40,14 +40,43 @@ import {
 import { CustomExecutionTaskResult } from "../taskManager/types";
 import { monitorMain } from "../espIdf/monitor/main";
 import { registerIDFCommand } from "../common/registerCommand";
-import { isKnownError } from "../common/error/knownError";
+import { ErrorCode, CommandErrorMapping } from "../common/error/types";
+import { ErrorSeverity } from "../common/customNotifications";
+
+export const buildFlashMonitorCommandErrorMapping: CommandErrorMapping = {
+  [ErrorCode.TaskFailedWithOutput]: {
+    severity: ErrorSeverity.Error,
+    userMessage:
+      "Build, flash, or monitor task failed. Check the terminal output for details.",
+    logMessage: "Build-flash-monitor task failed with captured output.",
+    actions: [
+      {
+        label: "View Terminal Output",
+        execute: () => commands.executeCommand("workbench.action.terminal.focus"),
+      },
+    ],
+  },
+};
+
+function registerBuildFlashMonitorCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any
+) {
+  registerIDFCommand(
+    context,
+    name,
+    callback,
+    buildFlashMonitorCommandErrorMapping
+  );
+}
 
 export function registerBuildFlashMonitorCommands(
   context: ExtensionContext
 ) {
-  registerIDFCommand(context, "espIdf.buildFlashMonitor", () => {
+  registerBuildFlashMonitorCommand(context, "espIdf.buildFlashMonitor", async () => {
     const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-    buildFlashAndMonitor(wsFolder.uri);
+    await buildFlashAndMonitor(wsFolder.uri);
   });
 }
 
@@ -56,6 +85,10 @@ export function registerBuildFlashMonitorCommands(
  * {@link buildFlashAndMonitor} — with optional captured task output for LM tools.
  * Callers supply pre-resolved flash type, partition, and encryption flag (same as
  * `readParameter` / tool-input resolution in language tools).
+ *
+ * @throws {KnownError} When build, flash, or monitor validation or task execution
+ * fails. Callers that need a soft failure result should catch {@link isKnownError}
+ * and map to `{ continueFlag: false }`.
  */
 export async function buildFlashAndMonitorCapture(
   workspaceFolder: WorkspaceFolder,
@@ -90,22 +123,14 @@ export async function buildFlashAndMonitorCapture(
 
   const encryptPartitions = await isFlashEncryptionEnabled(workspaceFolder.uri);
 
-  let flashResult: CustomExecutionTaskResult;
-  try {
-    flashResult = await flashMain(
-      workspaceFolder.uri,
-      token,
-      flashType,
-      encryptPartitions,
-      partitionToUse,
-      captureOutput
-    );
-  } catch (error) {
-    if (isKnownError(error)) {
-      return { continueFlag: false, executions };
-    }
-    throw error;
-  }
+  const flashResult = await flashMain(
+    workspaceFolder.uri,
+    token,
+    flashType,
+    encryptPartitions,
+    partitionToUse,
+    captureOutput
+  );
   executions.push(...flashResult.executions);
   if (!flashResult.continueFlag) {
     return { continueFlag: false, executions };
@@ -113,14 +138,7 @@ export async function buildFlashAndMonitorCapture(
 
   onBeforeMonitor?.();
 
-  try {
-    await monitorMain(workspaceFolder, monitorNoReset);
-  } catch (error) {
-    if (isKnownError(error)) {
-      return { continueFlag: false, executions };
-    }
-    throw error;
-  }
+  await monitorMain(workspaceFolder, monitorNoReset);
 
   return { continueFlag: true, executions };
 }
