@@ -16,11 +16,8 @@
  * limitations under the License.
  */
 
-import { Uri } from "vscode";
-import {
-  assertMinimumOpenOcdVersionForJtag,
-  connectOpenOcdForJtag,
-} from "../../../espIdf/openOcd/jtagPreflight";
+import { CancellationToken, Disposable, Uri } from "vscode";
+import { connectOpenOcdForJtag } from "../../../espIdf/openOcd/jtagPreflight";
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
 import { eraseFlashTelnetCommand } from "./tclClientCmd";
 import {
@@ -30,12 +27,16 @@ import {
 import { CustomExecutionTaskResult } from "../../../taskManager/types";
 
 export async function jtagEraseFlashCommand(
+  cancelToken: CancellationToken,
   workspaceFolder: Uri
 ): Promise<CustomExecutionTaskResult> {
-  await assertMinimumOpenOcdVersionForJtag();
   let client: TCLClient | undefined;
+  let cancelSubscription: Disposable | undefined;
   try {
     client = await connectOpenOcdForJtag(workspaceFolder);
+    cancelSubscription = cancelToken.onCancellationRequested(() => {
+      client?.stop();
+    });
     const eraseResult = await eraseFlashTelnetCommand(
       client,
       "halt; flash erase_sector 0 0 last; reset"
@@ -52,6 +53,7 @@ export async function jtagEraseFlashCommand(
       executions: collectExecutions(...eraseResult.executions),
     };
   } finally {
+    cancelSubscription?.dispose();
     client?.stop();
   }
 }

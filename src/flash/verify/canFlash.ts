@@ -20,6 +20,7 @@ import { ESP } from "../../config";
 import { commands, Uri } from "vscode";
 import { BuildSession } from "../../build/buildSession";
 import { FlashSession } from "../shared/flashSession";
+import { EraseFlashSession } from "../../eraseFlash/eraseFlashSession";
 import { Logger } from "../../common/logger";
 import { pathExists } from "fs-extra";
 import { join } from "path";
@@ -29,6 +30,7 @@ import {
   alreadyBuilding,
   alreadyFlashing,
   buildRequiredBeforeFlash,
+  eraseInProgress,
   fileNotFound,
   flasherArgsMissing,
   isKnownError,
@@ -50,6 +52,9 @@ export async function verifyCanFlash(
   }
   if (FlashSession.isActive) {
     throw alreadyFlashing();
+  }
+  if (EraseFlashSession.isActive) {
+    throw eraseInProgress();
   }
   if (!(await pathExists(buildDirPath))) {
     throw buildRequiredBeforeFlash(buildDirPath);
