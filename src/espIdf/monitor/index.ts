@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { commands, env, ExtensionContext, l10n, UIKind } from "vscode";
+import { commands, env, ExtensionContext, UIKind } from "vscode";
 import { registerIDFCommand } from "../../common/registerCommand";
 import {
   minIdfVersionCheck,
@@ -26,65 +26,46 @@ import {
 } from "../../common/PreCheck";
 import { readParameter } from "../../configuration/idf";
 import { IDFWebCommandKeys } from "../../cmdTreeView/cmdStore";
-import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
 import { installWebsocketClient } from "./websocket/checkWebsocketClient";
 import { monitorMain } from "./main";
 import { startWithWebSocket } from "./websocket";
+import { CommandErrorMapping } from "../../common/error/types";
+
+function registerMonitorCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any,
+  errorMapping?: CommandErrorMapping
+) {
+  registerIDFCommand(context, name, callback, errorMapping);
+}
 
 export function registerMonitorCommands(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.monitorDevice", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      // Re route to ESP-IDF Web extension if using Codespaces or Browser
+  registerMonitorCommand(context, "espIdf.monitorDevice", async () => {
+    await PreCheck.perform([openFolderCheck], async () => {
       if (env.uiKind === UIKind.Web) {
         commands.executeCommand(IDFWebCommandKeys.Monitor);
         return;
       }
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      if (!wsFolder) {
-        Logger.error(
-          l10n.t("No workspace folder selected."),
-          new Error("No workspace folder selected"),
-          "monitor registerMonitorCommands monitorDevice"
-        );
-        return;
-      }
       await monitorMain(wsFolder);
     });
   });
 
-  registerIDFCommand(context, "espIdf.launchWSServerAndMonitor", async () => {
+  registerMonitorCommand(context, "espIdf.launchWSServerAndMonitor", async () => {
     const idfVersionCheck = await minIdfVersionCheck("4.3");
-    PreCheck.perform(
+    await PreCheck.perform(
       [idfVersionCheck, webIdeCheck, openFolderCheck],
       async () => {
         const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-        if (!wsFolder) {
-          Logger.error(
-            l10n.t("No workspace folder selected."),
-            new Error("No workspace folder selected"),
-            "monitor registerMonitorCommands launchWSServerAndMonitor"
-          );
-          return;
-        }
         const wsPort = readParameter("idf.wssPort", wsFolder) as number;
         const noReset = readParameter(
           "idf.monitorNoReset",
           wsFolder
         ) as boolean;
 
-        try {
-          await installWebsocketClient(wsFolder.uri);
-        } catch (error) {
-          const errorInstance =
-            error instanceof Error ? error : new Error(String(error));
-          Logger.error(
-            l10n.t("Failed to install websocket client dependencies"),
-            errorInstance,
-            "monitor registerMonitorCommands launchWSServerAndMonitor"
-          );
-          return;
-        }
+        await installWebsocketClient(wsFolder.uri);
         await startWithWebSocket(wsFolder, noReset, wsPort);
       }
     );

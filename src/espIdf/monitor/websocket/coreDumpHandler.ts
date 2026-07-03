@@ -22,9 +22,15 @@ import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "../../core-dump";
 import { getProjectName } from "../../../configuration/workspace";
 import { IdfMonitorWebSocketServer } from ".";
 import { IDFMonitor } from "../terminal";
-import { Logger } from "../../../common/logger";
+import { handleError } from "../../../common/error/handler";
+import {
+  isKnownError,
+  monitorCoreDumpElfGenerationFailed,
+  monitorDebugLaunchFailed,
+} from "../../../common/error/knownError";
 
 const CORE_DUMP_SESSION_ID = "core-dump.debug.session.ws";
+const LAUNCH_WS_MONITOR_COMMAND = "espIdf.launchWSServerAndMonitor";
 
 export interface WsCoreDumpHandlerContext {
   wsFolder: WorkspaceFolder;
@@ -72,43 +78,43 @@ export function handleWsCoreDumpDetected(
             progELFFilePath: resp.prog,
             pythonBinPath,
             workspaceUri: wsFolder.uri,
-          })) === true
+          })) !== true
         ) {
-          progress.report({
-            message: l10n.t(
-              "Successfully created ELF file from the info received (espcoredump.py)"
-            ),
-          });
-          const workspaceFolder = workspace.getWorkspaceFolder(wsFolder.uri);
-          registerWsMonitorDebugCleanup(CORE_DUMP_SESSION_ID, () => {
-            IdfMonitorWebSocketServer.done();
-            IDFMonitor.dispose();
-            IdfMonitorWebSocketServer.close();
-          });
-          await debug.startDebugging(workspaceFolder, {
-            name: "Core Dump Debug",
-            sessionID: CORE_DUMP_SESSION_ID,
-            type: "gdbtarget",
-            request: "attach",
-            gdb: gdbPath,
-            program: resp.prog,
-            logFile: `${join(wsFolder.uri.fsPath, "coredump.log")}`,
-            target: {
-              connectCommands: [`core ${coreElfFilePath}`],
-            },
-          });
-        } else {
-          Logger.warnNotify(
-            l10n.t(
-              "Failed to generate the ELF file from the info received, please close the core-dump monitor terminal manually"
-            )
-          );
+          throw monitorCoreDumpElfGenerationFailed();
         }
+        progress.report({
+          message: l10n.t(
+            "Successfully created ELF file from the info received (espcoredump.py)"
+          ),
+        });
+        const workspaceFolder = workspace.getWorkspaceFolder(wsFolder.uri);
+        registerWsMonitorDebugCleanup(CORE_DUMP_SESSION_ID, () => {
+          IdfMonitorWebSocketServer.done();
+          IDFMonitor.dispose();
+          IdfMonitorWebSocketServer.close();
+        });
+        await debug.startDebugging(workspaceFolder, {
+          name: "Core Dump Debug",
+          sessionID: CORE_DUMP_SESSION_ID,
+          type: "gdbtarget",
+          request: "attach",
+          gdb: gdbPath,
+          program: resp.prog,
+          logFile: `${join(wsFolder.uri.fsPath, "coredump.log")}`,
+          target: {
+            connectCommands: [`core ${coreElfFilePath}`],
+          },
+        });
       } catch (error) {
-        Logger.errorNotify(
-          l10n.t("Failed to launch debugger for postmortem"),
-          error as Error,
-          "extension launchWSServerAndMonitor coredump"
+        if (isKnownError(error)) {
+          await handleError(LAUNCH_WS_MONITOR_COMMAND, error);
+          return;
+        }
+        const detail =
+          error instanceof Error ? error.message : String(error);
+        await handleError(
+          LAUNCH_WS_MONITOR_COMMAND,
+          monitorDebugLaunchFailed("core_dump", detail)
         );
       }
     }

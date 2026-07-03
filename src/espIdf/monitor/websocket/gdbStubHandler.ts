@@ -12,9 +12,11 @@ import { registerWsMonitorDebugCleanup } from "./monitorDebugCleanup";
 import { GDBStubResponse } from "../../communications/ws";
 import { IdfMonitorWebSocketServer } from ".";
 import { IDFMonitor } from "../terminal";
-import { Logger } from "../../../common/logger";
+import { handleError } from "../../../common/error/handler";
+import { monitorDebugLaunchFailed } from "../../../common/error/knownError";
 
 const GDB_STUB_SESSION_ID = "gdbstub.debug.session.ws";
+const LAUNCH_WS_MONITOR_COMMAND = "espIdf.launchWSServerAndMonitor";
 
 export interface WsGdbStubHandlerContext {
   wsFolder: WorkspaceFolder;
@@ -46,10 +48,11 @@ export async function handleWsGdbStubDetected(
       IdfMonitorWebSocketServer.close();
     });
   } catch (error) {
-    Logger.errorNotify(
-      "Failed to launch debugger for postmortem",
-      error as Error,
-      "extension launchWSServerAndMonitor gdbstub"
+    const detail =
+      error instanceof Error ? error.message : String(error);
+    await handleError(
+      LAUNCH_WS_MONITOR_COMMAND,
+      monitorDebugLaunchFailed("gdb_stub", detail)
     );
   }
 }

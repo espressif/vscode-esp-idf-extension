@@ -35,9 +35,9 @@ import { FlashSession } from "./shared/flashSession";
 import { getCurrentIdfConfiguration } from "../configuration/env";
 import { BuildSession } from "../build/buildSession";
 import {
-  alreadyBuilding,
-  eraseInProgress,
   flashTerminated,
+  idfTaskInProgress,
+  IdfTaskName,
   noSerialPort,
 } from "../common/error/knownError";
 import { throwFlashCapturedTaskFailure } from "./shared/flashTaskFailure";
@@ -123,10 +123,10 @@ export async function flashMain(
     if (flashType === ESP.FlashType.JTAG) {
       await assertMinimumOpenOcdVersionForJtag();
       if (BuildSession.isActive) {
-        throw alreadyBuilding();
+        throw idfTaskInProgress(IdfTaskName.Build);
       }
       if (EraseFlashSession.isActive) {
-        throw eraseInProgress();
+        throw idfTaskInProgress(IdfTaskName.EraseFlash);
       }
       session = FlashSession.acquire();
       TaskManager.clearTaskResults();
@@ -140,10 +140,10 @@ export async function flashMain(
       );
     } else {
       if (BuildSession.isActive) {
-        throw alreadyBuilding();
+        throw idfTaskInProgress(IdfTaskName.Build);
       }
       if (EraseFlashSession.isActive) {
-        throw eraseInProgress();
+        throw idfTaskInProgress(IdfTaskName.EraseFlash);
       }
       session = FlashSession.acquire();
       TaskManager.clearTaskResults();
