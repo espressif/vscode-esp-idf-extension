@@ -16,17 +16,22 @@
  * limitations under the License.
  */
 
-import { l10n, WorkspaceFolder } from "vscode";
+import { WorkspaceFolder } from "vscode";
 import { WSServer } from "../../communications/ws";
 import { IDFMonitor } from "../terminal";
 import { interruptMonitorWithDelay } from "../interruptMonitorWithDelay";
 import { handleWsCoreDumpDetected } from "./coreDumpHandler";
 import { handleWsGdbStubDetected } from "./gdbStubHandler";
-import { Logger } from "../../../common/logger";
-import { logInvalidConfigReason } from "../configValidation";
 import { loadMonitorLaunchConfig } from "../launchConfig";
+import { handleError } from "../../../common/error/handler";
+import {
+  monitorWsPortInUse,
+  monitorWsPortNotConfigured,
+} from "../../../common/error/knownError";
 
 export let IdfMonitorWebSocketServer: WSServer;
+
+const LAUNCH_WS_MONITOR_COMMAND = "espIdf.launchWSServerAndMonitor";
 
 export async function startWithWebSocket(
   wsFolder: WorkspaceFolder,
@@ -38,12 +43,8 @@ export async function startWithWebSocket(
     noReset,
     wsPort
   );
-  logInvalidConfigReason(monitorConfigResult);
-  if (monitorConfigResult.ok === false) {
-    return;
-  }
   if (typeof monitorConfigResult.config.wsPort === "undefined") {
-    return;
+    throw monitorWsPortNotConfigured();
   }
   if (IdfMonitorWebSocketServer) {
     IdfMonitorWebSocketServer.close();
@@ -79,19 +80,15 @@ export async function startWithWebSocket(
     .on("close", () => {
       IdfMonitorWebSocketServer.close();
     })
-    .on("error", (err) => {
-      let message = err?.message ?? String(err);
+    .on("error", async (err) => {
       if (err?.message?.includes("EADDRINUSE")) {
-        message = l10n.t(
-          `Your port {wsPort} is not available, use (idf.wssPort) to change to different port`,
-          { wsPort: monitorConfigResult.config.wsPort }
+        await handleError(
+          LAUNCH_WS_MONITOR_COMMAND,
+          monitorWsPortInUse(monitorConfigResult.config.wsPort as number)
         );
+      } else {
+        await handleError(LAUNCH_WS_MONITOR_COMMAND, err);
       }
-      Logger.errorNotify(
-        message,
-        err instanceof Error ? err : new Error(String(err)),
-        "extension launchWSServerAndMonitor error event"
-      );
       IdfMonitorWebSocketServer.close();
     });
   IdfMonitorWebSocketServer.start();

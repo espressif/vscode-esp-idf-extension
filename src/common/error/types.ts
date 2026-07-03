@@ -47,6 +47,7 @@ export enum ErrorCode {
   AlreadyBuilding = 'AlreadyBuilding',
   IdfToolNotFound = 'IdfToolNotFound',
   IdfTargetNotSet = 'IdfTargetNotSet',
+  InvalidIdfVersion = 'InvalidIdfVersion',
   BuildTerminated = 'BuildTerminated',
   FlashInProgress = 'FlashInProgress',
   ToolchainNotFound = 'ToolchainNotFound',
@@ -77,6 +78,13 @@ export enum ErrorCode {
   EraseInProgress = 'EraseInProgress',
   EraseTerminated = 'EraseTerminated',
   EraseBlockedBySecureConfig = 'EraseBlockedBySecureConfig',
+
+  // Monitor
+  MonitorWsPortInUse = 'MonitorWsPortInUse',
+  MonitorWsPortNotConfigured = 'MonitorWsPortNotConfigured',
+  WebsocketClientInstallFailed = 'WebsocketClientInstallFailed',
+  MonitorCoreDumpElfGenerationFailed = 'MonitorCoreDumpElfGenerationFailed',
+  MonitorDebugLaunchFailed = 'MonitorDebugLaunchFailed',
 }
 
 /**
