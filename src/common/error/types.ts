@@ -79,6 +79,10 @@ export enum ErrorCode {
   EraseTerminated = 'EraseTerminated',
   EraseBlockedBySecureConfig = 'EraseBlockedBySecureConfig',
 
+  // Menuconfig
+  ConfserverProcessFailed = 'ConfserverProcessFailed',
+  ConfserverProtocolError = 'ConfserverProtocolError',
+
   // Monitor
   MonitorWsPortInUse = 'MonitorWsPortInUse',
   MonitorWsPortNotConfigured = 'MonitorWsPortNotConfigured',

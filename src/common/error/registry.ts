@@ -22,6 +22,7 @@ import {
   KnownErrorDescriptor,
 } from "./types";
 import { ErrorSeverity } from "../customNotifications";
+import { OutputChannel } from "../outputChannel";
 
 /**
  * Global registry of default descriptors for each known error code.
@@ -385,6 +386,36 @@ registerNewErrorInRegistry({
   logMessage: "Monitor postmortem debug launch failed ({context}): {detail}.",
   actions: [],
   outputChannel: monitorOutputChannel,
+});
+
+// ──────────────────────────── Menuconfig errors ────────────────────────
+
+const menuconfigOutputChannel = "SDK Configuration Editor";
+
+registerNewErrorInRegistry({
+  code: ErrorCode.ConfserverProcessFailed,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "SDK Configuration editor process failed during {phase}.",
+  logMessage:
+    "Confserver process failed during {phase} (exitCode: {exitCode}, detail: {detail}).",
+  actions: [
+    {
+      label: "View Output",
+      execute: () => OutputChannel.show(),
+    },
+  ],
+  outputChannel: menuconfigOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.ConfserverProtocolError,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "SDK Configuration editor returned an error: {detail}.",
+  logMessage: "Confserver protocol error: {detail}.",
+  actions: [],
+  outputChannel: menuconfigOutputChannel,
 });
 
 // ──────────────────────────── File errors ────────────────────────────

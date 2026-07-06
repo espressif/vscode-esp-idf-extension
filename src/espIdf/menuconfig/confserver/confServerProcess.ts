@@ -20,10 +20,12 @@ import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
 import { Logger } from "../../../common/logger";
 import { OutputChannel } from "../../../common/outputChannel";
+import { handleError } from "../../../common/error/handler";
+import { confserverProcessFailed } from "../../../common/error/knownError";
 import { KconfigMenuLoader } from "../kconfigMenus/loader";
 import { Menu } from "../Menu";
 import { MenuConfigPanel } from "../panel/panel";
-import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../../configuration/env";
+import { getCurrentIdfConfiguration } from "../../../configuration/env";
 import { delConfigFile, getSDKConfigFilePath } from "../../../configuration/workspace";
 import {
   parseConfserverJsonChunk,
@@ -49,18 +51,10 @@ import {
 import { NotificationMode, readParameter } from "../../../configuration/idf";
 import { join } from "path";
 import { buildIdfPyConfigSubcommandArgs } from "../../common/idfPySubCmdBuilder";
-import { pathExists } from "fs-extra";
+import { menuconfigCommandErrorMapping } from "../errorMapping";
+import { requireIdfPath, resolvePythonForIdfPy } from "../validation";
 
-const PYTHON_BINARY_NOT_FOUND_MSG =
-  "Python binary path not found. Please check your Python configuration.";
-
-async function resolveExistingPythonBinaryForIdfPy(): Promise<string> {
-  const pythonBinPath = getVirtualEnvPythonPath();
-  if (!pythonBinPath || !(await pathExists(pythonBinPath))) {
-    throw new Error(PYTHON_BINARY_NOT_FOUND_MSG);
-  }
-  return pythonBinPath;
-}
+const CONFSERVER_COMMAND_ID = "espIdf.menuconfig.confserver";
 
 function logSdkConfigEditorSubprocessLine(chunk: string): void {
   OutputChannel.appendLine(chunk, "SDK Configuration Editor");
@@ -102,7 +96,7 @@ export class ConfserverProcess {
   public static async init(workspaceFolder: Uri, extensionPath: string) {
     const modifiedEnv = getCurrentIdfConfiguration();
     if (!ConfserverProcess.instance) {
-      const pythonBinPath = await resolveExistingPythonBinaryForIdfPy();
+      const pythonBinPath = await resolvePythonForIdfPy();
       ConfserverProcess.instance = new ConfserverProcess(
         workspaceFolder,
         extensionPath,
@@ -110,8 +104,12 @@ export class ConfserverProcess {
         pythonBinPath
       );
     }
-    await new Promise<void>((resolve) => {
-      ConfserverProcess.instance!.emitter.once("valuesLoaded", () => resolve());
+    await new Promise<void>((resolve, reject) => {
+      const emitter = ConfserverProcess.instance!.emitter;
+      emitter.once("valuesLoaded", () => resolve());
+      emitter.once("valuesLoadFailed", (error: unknown) => {
+        reject(error instanceof Error ? error : new Error(String(error)));
+      });
     });
     ConfserverProcess.instance.sdkconfigResolvedPath = await getSDKConfigFilePath(
       workspaceFolder
@@ -233,12 +231,9 @@ export class ConfserverProcess {
     ConfserverProcess.instance.areValuesSaved = true;
     const currWorkspace = ConfserverProcess.instance.workspaceFolder;
     const modifiedEnv = getCurrentIdfConfiguration();
-    const idfRoot = modifiedEnv["IDF_PATH"];
-    if (!idfRoot) {
-      throw new Error("IDF_PATH is not set in the environment.");
-    }
+    const idfRoot = requireIdfPath(modifiedEnv);
     const idfPyPath = join(idfRoot, "tools", "idf.py");
-    const pythonBinPath = await resolveExistingPythonBinaryForIdfPy();
+    const pythonBinPath = await resolvePythonForIdfPy();
     const reconfigureArgs = buildIdfPyConfigSubcommandArgs(
       idfPyPath,
       "reconfigure",
@@ -292,13 +287,8 @@ export class ConfserverProcess {
         logSdkConfigEditorSubprocessLine(data.toString());
       });
       getSdkconfigProcess.on("error", (err) => {
-        Logger.error(
-          err.message,
-          err,
-          "ConfserverProcess setDefaultValues spawn"
-        );
         finishFailure(
-          err instanceof Error ? err : new Error(String(err))
+          confserverProcessFailed("reconfigure", { detail: err.message })
         );
       });
       getSdkconfigProcess.on("exit", (code, signal) => {
@@ -306,14 +296,14 @@ export class ConfserverProcess {
           return;
         }
         if (code !== 0) {
-          const errorMsg = `When loading default values: exit code ${code}, signal ${signal ?? "none"}${stderrAccumulator ? `\n${stderrAccumulator.trim()}` : ""}`;
-          OutputChannel.appendLine(errorMsg, "SDK Configuration Editor");
-          Logger.error(
-            errorMsg,
-            new Error(errorMsg),
-            "ConfserverProcess setDefaultValues"
+          const detail = stderrAccumulator.trim() || undefined;
+          finishFailure(
+            confserverProcessFailed("reconfigure", {
+              exitCode: code ?? undefined,
+              signal,
+              detail,
+            })
           );
-          finishFailure(new Error(errorMsg));
           return;
         }
         void finishSuccess();
@@ -390,10 +380,7 @@ export class ConfserverProcess {
     this.workspaceFolder = workspaceFolder;
     this.extensionPath = extensionPath;
     this.emitter = new EventEmitter();
-    const idfRoot = modifiedEnv["IDF_PATH"];
-    if (!idfRoot) {
-      throw new Error("IDF_PATH is not set in the environment.");
-    }
+    const idfRoot = requireIdfPath(modifiedEnv);
 
     modifiedEnv.PYTHONUNBUFFERED = "0";
     const idfPath = join(idfRoot, "tools", "idf.py");
@@ -440,7 +427,6 @@ export class ConfserverProcess {
     this.receivedDataBuffer = streamResult.remainingBuffer;
     if (streamResult.latestJson) {
       if (this.jsonListener) {
-        ConfserverProcess.instance?.emitter.emit("valuesLoaded");
         this.jsonListener(streamResult.latestJson);
       } else {
         this.printError(
@@ -450,26 +436,34 @@ export class ConfserverProcess {
     }
   }
 
-  private initMenuConfigPanel(values: string) {
-    const configLoader = new KconfigMenuLoader(this.workspaceFolder);
-    // Kconfig configurations are built into JS Objects (Interface Menu)
-    // without values and visibility. Those are lazy loaded from confServerProcess
-    const configObjects = configLoader.initMenuconfigServer();
-    const { menus, parsed } = ConfserverProcess.applyConfserverJsonToMenus(
-      configObjects,
-      values
-    );
-    this.kconfigsMenus = menus;
+  private initMenuConfigPanel(values: string): void {
+    void this.loadMenuConfigPanel(values);
+  }
 
-    if (parsed && parsed.version) {
-      ConfserverProcess.confserverVersion = parsed.version;
+  private async loadMenuConfigPanel(values: string): Promise<void> {
+    try {
+      const configLoader = new KconfigMenuLoader(this.workspaceFolder);
+      const configObjects = await configLoader.initMenuconfigServer();
+      const { menus, parsed } = ConfserverProcess.applyConfserverJsonToMenus(
+        configObjects,
+        values
+      );
+      this.kconfigsMenus = menus;
+
+      if (parsed && parsed.version) {
+        ConfserverProcess.confserverVersion = parsed.version;
+      }
+
+      ConfserverProcess.instance?.emitter.emit("valuesLoaded");
+      MenuConfigPanel.createOrShow(
+        this.extensionPath,
+        this.workspaceFolder,
+        this.kconfigsMenus
+      );
+    } catch (error) {
+      ConfserverProcess.instance?.emitter.emit("valuesLoadFailed", error);
+      ConfserverProcess.dispose();
     }
-
-    MenuConfigPanel.createOrShow(
-      this.extensionPath,
-      this.workspaceFolder,
-      this.kconfigsMenus
-    );
   }
 
   private setupConfigServer() {
@@ -506,14 +500,27 @@ export class ConfserverProcess {
       }
     });
     this.confServerProcess?.on("error", (err) => {
-      err.stack
-        ? this.printError(err.message + "\n" + err.stack)
-        : this.printError(err.message);
+      const detail = err.stack ? `${err.message}\n${err.stack}` : err.message;
+      this.printError(detail);
+      void handleError(
+        CONFSERVER_COMMAND_ID,
+        confserverProcessFailed("startup", { detail }),
+        undefined,
+        menuconfigCommandErrorMapping
+      );
     });
     this.confServerProcess?.on("exit", (code, signal) => {
       if (code !== 0) {
-        this.printError(
-          `SDK Configuration editor confserver process exited with code: ${code}`
+        const msg = `SDK Configuration editor confserver process exited with code: ${code}`;
+        this.printError(msg);
+        void handleError(
+          CONFSERVER_COMMAND_ID,
+          confserverProcessFailed("runtime", {
+            exitCode: code ?? undefined,
+            signal,
+          }),
+          undefined,
+          menuconfigCommandErrorMapping
         );
       }
       ConfserverProcess.dispose();
