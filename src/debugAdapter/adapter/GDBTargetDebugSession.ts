@@ -23,6 +23,10 @@ import { SerialPort, ReadlineParser } from "serialport";
 import { Socket } from "net";
 import { createEnvValues, getGdbCwd } from "./util";
 import { OpenOCDManager } from "../../espIdf/openOcd/openOcdManager";
+import { openOcdNotRunning } from "../../common/error/knownError";
+import { resolveKnownErrorUserMessage } from "../../common/error/resolve";
+import { CommandErrorMapping, ErrorCode } from "../../common/error/types";
+import { ErrorSeverity } from "../../common/customNotifications";
 
 interface UARTArguments {
   // Path to the serial port connected to the UART on the board.
@@ -104,6 +108,16 @@ export interface TargetLaunchRequestArguments
   // Optional commands to issue between loading image and resuming target
   preRunCommands?: string[];
 }
+
+const debugOpenOcdErrorMapping: CommandErrorMapping = {
+  [ErrorCode.OpenOcdNotRunning]: {
+    severity: ErrorSeverity.Warning,
+    userMessage:
+      "OpenOCD is not running. Please start OpenOCD before launching the debug session.",
+    logMessage: "OpenOCD server is not running before debug session launch.",
+    actions: [],
+  },
+};
 
 export class GDBTargetDebugSession extends GDBDebugSession {
   protected gdbserver?: ChildProcess;
@@ -476,8 +490,10 @@ export class GDBTargetDebugSession extends GDBDebugSession {
       ) {
         const openOCDManager = OpenOCDManager.init();
         if (!openOCDManager.isRunning()) {
-          const errorMsg =
-            "OpenOCD is not running. Please start OpenOCD before launching the debug session.";
+          const errorMsg = resolveKnownErrorUserMessage(
+            openOcdNotRunning(),
+            debugOpenOcdErrorMapping
+          );
           this.sendEvent(new OutputEvent(`❌ ${errorMsg}`, "stderr"));
           this.sendErrorResponse(response, 1, errorMsg);
           return;

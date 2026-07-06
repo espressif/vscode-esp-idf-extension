@@ -281,7 +281,15 @@ export class CDTDebugConfigurationProvider
       debugConfiguration.sessionID !== "qemu.debug.session" &&
       debugConfiguration.runOpenOCD !== false
     ) {
-      await openOCDManager.start({ launchedByDebug: true });
+      try {
+        await openOCDManager.start({ launchedByDebug: true });
+      } catch (error) {
+        if (isKnownError(error)) {
+          await handleError("debug.resolveConfiguration", error);
+          return debugConfiguration;
+        }
+        throw error;
+      }
     }
     return debugConfiguration;
   }
@@ -307,7 +315,7 @@ export class CDTDebugConfigurationProvider
       }
       // config.gdb may still hold an unresolved ${command:...} variable at this point.
       const gdbPath = config.gdb.includes("${")
-        ? await getToolchainPath(folder.uri, "gdb")
+        ? await getToolchainPath("gdb")
         : config.gdb;
 
       const buildDirPath = readParameter("idf.buildPath", folder) as string;

@@ -84,6 +84,10 @@ export function missingDependency(dependency: string): KnownError {
   return known(ErrorCode.MISSING_DEPENDENCY, { dependency });
 }
 
+export function noWorkspaceOpen(): KnownError {
+  return known(ErrorCode.NO_WORKSPACE_OPEN);
+}
+
 export function parseError(filePath: string): KnownError {
   return known(ErrorCode.PARSE_ERROR, { filePath });
 }
@@ -190,6 +194,26 @@ export function openOcdVersionTooLow(
   minVersion: string
 ): KnownError {
   return known(ErrorCode.OpenOcdVersionTooLow, { currentVersion, minVersion });
+}
+
+export function openOcdStartFailed(detail: string): KnownError {
+  return known(ErrorCode.OpenOcdStartFailed, { detail });
+}
+
+export function openOcdProcessExited(exitCode: number): KnownError {
+  return known(ErrorCode.OpenOcdProcessExited, { exitCode });
+}
+
+export function openOcdNoBoardsForTarget(target: string): KnownError {
+  return known(ErrorCode.OpenOcdNoBoardsForTarget, { target });
+}
+
+export function openOcdBoardSelectionFailed(detail: string): KnownError {
+  return known(ErrorCode.OpenOcdBoardSelectionFailed, { detail });
+}
+
+export function openOcdHintsLoadFailed(detail: string): KnownError {
+  return known(ErrorCode.OpenOcdHintsLoadFailed, { detail });
 }
 
 export function alreadyErasing(): KnownError {

@@ -15,8 +15,11 @@
 import * as yaml from "js-yaml";
 import { readFile, pathExists } from "fs-extra";
 import { Logger } from "../../common/logger";
+import { handleError } from "../../common/error/handler";
+import { parseError } from "../../common/error/knownError";
 import * as utils from "../../utils";
 import { getOpenOcdHintsYmlPath, resolveIdfHintsYmlPath } from "./utils";
+import { openOcdHintsCommandErrorMapping } from "./errorMapping";
 import {
   Event,
   EventEmitter,
@@ -180,7 +183,7 @@ export class ErrorHintProvider implements TreeDataProvider<ErrorHintTreeItem> {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      Logger.errorNotify(
+      Logger.error(
         `Error showing OpenOCD error hint: ${errorMessage}`,
         error as Error,
         "ErrorHintProvider showOpenOCDErrorHint"
@@ -275,10 +278,16 @@ export class ErrorHintProvider implements TreeDataProvider<ErrorHintTreeItem> {
         } catch (error) {
           const errorMessage =
             error instanceof Error ? error.message : String(error);
-          Logger.errorNotify(
+          Logger.error(
             `Error processing OpenOCD hints file (line ${error.mark?.line}): ${errorMessage}`,
             error as Error,
             "ErrorHintProvider searchError"
+          );
+          void handleError(
+            "espIdf.errorHints",
+            parseError(openOcdHintsPath),
+            undefined,
+            openOcdHintsCommandErrorMapping
           );
         }
       } else if (openOcdHintsPath) {
