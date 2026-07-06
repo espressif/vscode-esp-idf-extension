@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { CancellationToken, Disposable, Uri } from "vscode";
+import { CancellationToken, Disposable, Uri, workspace } from "vscode";
 import { readParameter, readSerialPort } from "../configuration/idf";
 import { ESP } from "../config";
 import {
@@ -28,7 +28,7 @@ import { verifyCanFlash } from "./verify/canFlash";
 import { jtagFlashCommandMain } from "./transports/jtag/jtagCmd";
 import { uartFlashCommandMain } from "./transports/uart/uartFlashCmd";
 import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
-import { resolveFlashTypeForTask } from "./resolveFlashContext";
+import { ensureFlashTypeForTask } from "./resolveFlashContext";
 import { TaskManager } from "../taskManager/taskManager";
 import { CustomExecutionTaskResult } from "../taskManager/types";
 import { FlashSession } from "./shared/flashSession";
@@ -64,8 +64,10 @@ export async function flashMain(
   partitionToUse?: ESP.BuildType,
   captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
-  const flashType =
-    resolveFlashTypeForTask(workspaceFolderUri, flashTypeIn) ?? ESP.FlashType.UART;
+  const wsFolder =
+    workspace.getWorkspaceFolder(workspaceFolderUri) ??
+    ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+  const flashType = await ensureFlashTypeForTask(wsFolder, flashTypeIn);
   let session: FlashSession | undefined;
   let cancelSubscription: Disposable | undefined;
   let failure: unknown;

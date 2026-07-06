@@ -10,9 +10,19 @@ import * as assert from "assert";
 import { mkdtempSync, writeFileSync, rmSync } from "fs";
 import { join, resolve } from "path";
 import { tmpdir } from "os";
+import * as vscode from "vscode";
 import { ESP } from "../../config";
 import { ErrorCode } from "../../common/error/types";
 import { isKnownError } from "../../common/error/knownError";
+import {
+  ensureFlashTypeForTask,
+  isValidFlashType,
+  setSelectFlashMethodForTests,
+} from "../../flash/resolveFlashContext";
+import {
+  resetIdfConfigurationSource,
+  setIdfConfigurationSource,
+} from "../../configuration/idfConfigurationSource";
 import { assertFlashSectionsReadable } from "../../flash/shared/verifyFlashBins";
 import { FlashSession } from "../../flash/shared/flashSession";
 import { selectedDFUAdapterId } from "../../flash/transports/dfu/helpers";
@@ -24,6 +34,28 @@ import {
 } from "../../flash/transports/uart/flashArgsBuilder";
 import { createFlashModel } from "../../flash/transports/uart/flashModelBuilder";
 import { FlashModel } from "../../flash/transports/uart/types/flashModel";
+
+const testWorkspaceFolder = {
+  uri: vscode.Uri.file("/test/workspace"),
+  name: "test",
+  index: 0,
+} as vscode.WorkspaceFolder;
+
+function createFakeIdfSource(getValues: Record<string, unknown> = {}) {
+  return {
+    getScoped(_section: string, _scope: unknown, key: string) {
+      return Object.prototype.hasOwnProperty.call(getValues, key)
+        ? getValues[key]
+        : undefined;
+    },
+    inspectGlobal() {
+      return undefined;
+    },
+    updateScoped: async () => undefined,
+    updateGlobal: async () => undefined,
+    refreshConfiguration: () => undefined,
+  };
+}
 
 function makeFlashModel(partial: Partial<FlashModel> = {}): FlashModel {
   const base: FlashModel = {
@@ -422,6 +454,107 @@ suite("Flash", () => {
       const foreign = Object.create(FlashSession.prototype) as FlashSession;
       foreign.end();
       assert.strictEqual(FlashSession.isActive, true);
+    });
+  });
+
+  suite("resolveFlashContext", () => {
+    teardown(() => {
+      resetIdfConfigurationSource();
+      setSelectFlashMethodForTests(undefined);
+    });
+
+    suite("isValidFlashType", () => {
+      test("accepts UART, JTAG, and DFU", () => {
+        assert.strictEqual(isValidFlashType(ESP.FlashType.UART), true);
+        assert.strictEqual(isValidFlashType(ESP.FlashType.JTAG), true);
+        assert.strictEqual(isValidFlashType(ESP.FlashType.DFU), true);
+        assert.strictEqual(isValidFlashType("  UART  "), true);
+      });
+
+      test("rejects empty and unknown values", () => {
+        assert.strictEqual(isValidFlashType(""), false);
+        assert.strictEqual(isValidFlashType("INVALID"), false);
+        assert.strictEqual(isValidFlashType(undefined), false);
+      });
+    });
+
+    suite("ensureFlashTypeForTask", () => {
+      test("returns explicit flash type without reading config", async () => {
+        setIdfConfigurationSource(
+          createFakeIdfSource({ "idf.flashType": "DFU" })
+        );
+        let prompted = false;
+        setSelectFlashMethodForTests(async () => {
+          prompted = true;
+          return ESP.FlashType.UART;
+        });
+
+        const flashType = await ensureFlashTypeForTask(
+          testWorkspaceFolder,
+          ESP.FlashType.JTAG
+        );
+
+        assert.strictEqual(flashType, ESP.FlashType.JTAG);
+        assert.strictEqual(prompted, false);
+      });
+
+      test("returns configured flash type without prompting", async () => {
+        setIdfConfigurationSource(
+          createFakeIdfSource({ "idf.flashType": "UART" })
+        );
+        let prompted = false;
+        setSelectFlashMethodForTests(async () => {
+          prompted = true;
+          return ESP.FlashType.JTAG;
+        });
+
+        const flashType = await ensureFlashTypeForTask(testWorkspaceFolder);
+
+        assert.strictEqual(flashType, ESP.FlashType.UART);
+        assert.strictEqual(prompted, false);
+      });
+
+      test("prompts when flash type is unset and uses the selection", async () => {
+        setIdfConfigurationSource(createFakeIdfSource({}));
+        setSelectFlashMethodForTests(async () => ESP.FlashType.UART);
+
+        const flashType = await ensureFlashTypeForTask(testWorkspaceFolder);
+
+        assert.strictEqual(flashType, ESP.FlashType.UART);
+      });
+
+      test("prompts when flash type is invalid and uses the selection", async () => {
+        setIdfConfigurationSource(
+          createFakeIdfSource({ "idf.flashType": "INVALID" })
+        );
+        setSelectFlashMethodForTests(async () => ESP.FlashType.DFU);
+
+        const flashType = await ensureFlashTypeForTask(testWorkspaceFolder);
+
+        assert.strictEqual(flashType, ESP.FlashType.DFU);
+      });
+
+      test("throws FlashTypeNotSelected when prompt is dismissed", async () => {
+        setIdfConfigurationSource(createFakeIdfSource({}));
+        setSelectFlashMethodForTests(async () => undefined);
+
+        await assert.rejects(
+          () => ensureFlashTypeForTask(testWorkspaceFolder),
+          (e: unknown) =>
+            isKnownError(e) && e.code === ErrorCode.FlashTypeNotSelected
+        );
+      });
+
+      test("throws FlashTypeNotSelected when prompt returns empty string", async () => {
+        setIdfConfigurationSource(createFakeIdfSource({}));
+        setSelectFlashMethodForTests(async () => "" as ESP.FlashType);
+
+        await assert.rejects(
+          () => ensureFlashTypeForTask(testWorkspaceFolder),
+          (e: unknown) =>
+            isKnownError(e) && e.code === ErrorCode.FlashTypeNotSelected
+        );
+      });
     });
   });
 });
