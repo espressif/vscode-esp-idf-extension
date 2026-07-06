@@ -90,6 +90,18 @@ const flashCommandErrorMapping: CommandErrorMapping = {
     ],
     outputChannel: "Flash",
   },
+  [ErrorCode.FlashTypeNotSelected]: {
+    severity: ErrorSeverity.Error,
+    userMessage: "Select a flash method before flashing.",
+    logMessage: "Flash blocked: idf.flashType is not configured.",
+    actions: [
+      {
+        label: "Select Flash Method",
+        execute: () => commands.executeCommand("espIdf.selectFlashMethod"),
+      },
+    ],
+    outputChannel: "Flash",
+  },
 };
 
 function registerFlashCommand(
