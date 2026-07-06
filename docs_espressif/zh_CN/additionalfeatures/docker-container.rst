@@ -30,7 +30,13 @@ Docker 桌面应用程序
 
 .. note::
 
-    Docker 的默认安装路径是 C 盘，如果 C 盘空间不足，请使用 ``mklink`` 命令将其移动到其他磁盘。
+    Docker 的默认安装路径是 C 盘，如果 C 盘空间不足，请使用:
+
+    .. code-block::
+    
+        Start-Process 'Docker Desktop Installer.exe' -Wait -ArgumentList 'install', '--accept-license' , '--installation-dir=<path>'
+    
+    命令将其安装到其他磁盘位置 ``<path>`` 。
 
 在 Windows 系统中为 Docker 安装 Ubuntu
 --------------------------------------
