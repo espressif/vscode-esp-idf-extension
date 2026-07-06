@@ -61,6 +61,7 @@ export enum ErrorCode {
   NoSerialPort = 'NoSerialPort',
   NoPortSelected = 'NoPortSelected',
   NoBaudRateSelected = 'NoBaudRateSelected',
+  FlashTypeNotSelected = 'FlashTypeNotSelected',
   NoDfuDeviceFound = 'NoDfuDeviceFound',
   NoDfuDeviceSelected = 'NoDfuDeviceSelected',
   NoDfuDevicePathFound = 'NoDfuDevicePathFound',

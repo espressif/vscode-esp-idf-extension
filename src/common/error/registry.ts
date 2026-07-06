@@ -206,6 +206,20 @@ registerNewErrorInRegistry({
 });
 
 registerNewErrorInRegistry({
+  code: ErrorCode.FlashTypeNotSelected,
+  severity: ErrorSeverity.Error,
+  userMessage: "Select a flash method before flashing.",
+  logMessage: "Flash blocked: idf.flashType is not configured.",
+  actions: [
+    {
+      label: "Select Flash Method",
+      execute: () => commands.executeCommand("espIdf.selectFlashMethod"),
+    },
+  ],
+  outputChannel: flashOutputChannel,
+});
+
+registerNewErrorInRegistry({
   code: ErrorCode.NoDfuDeviceFound,
   severity: ErrorSeverity.Error,
   userMessage: "No DFU capable USB device available found",
