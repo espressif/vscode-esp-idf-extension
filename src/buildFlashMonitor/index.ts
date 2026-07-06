@@ -34,7 +34,7 @@ import { ESP } from "../config";
 import { buildMain } from "../build/buildMain";
 import { flashMain } from "../flash/main";
 import {
-  resolveFlashTypeForTask,
+  ensureFlashTypeForTask,
   resolvePartitionToUseForTask,
 } from "../flash/resolveFlashContext";
 import { CustomExecutionTaskResult } from "../taskManager/types";
@@ -53,6 +53,17 @@ export const buildFlashMonitorCommandErrorMapping: CommandErrorMapping = {
       {
         label: "View Terminal Output",
         execute: () => commands.executeCommand("workbench.action.terminal.focus"),
+      },
+    ],
+  },
+  [ErrorCode.FlashTypeNotSelected]: {
+    severity: ErrorSeverity.Error,
+    userMessage: "Select a flash method before flashing.",
+    logMessage: "Build-flash-monitor blocked: idf.flashType is not configured.",
+    actions: [
+      {
+        label: "Select Flash Method",
+        execute: () => commands.executeCommand("espIdf.selectFlashMethod"),
       },
     ],
   },
@@ -157,8 +168,7 @@ export async function buildFlashAndMonitor(
     async (progress, cancelToken) => {
       const taskWsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       progress.report({ message: "Building project...", increment: 20 });
-      const flashType =
-        resolveFlashTypeForTask(taskWsFolder, undefined) ?? ESP.FlashType.UART;
+      const flashType = await ensureFlashTypeForTask(taskWsFolder, undefined);
       const partitionToUse = resolvePartitionToUseForTask(
         taskWsFolder,
         undefined

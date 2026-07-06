@@ -157,6 +157,10 @@ export function noBaudRateSelected(): KnownError {
   return known(ErrorCode.NoBaudRateSelected);
 }
 
+export function flashTypeNotSelected(): KnownError {
+  return known(ErrorCode.FlashTypeNotSelected);
+}
+
 export function noDfuDeviceFound(): KnownError {
   return known(ErrorCode.NoDfuDeviceFound);
 }

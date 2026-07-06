@@ -9,8 +9,35 @@
 import { Uri, WorkspaceFolder } from "vscode";
 import { ESP } from "../config";
 import { readParameter } from "../configuration/idf";
+import { flashTypeNotSelected } from "../common/error/knownError";
+import { selectFlashMethod } from "./selectFlashMethod";
 
 const ALLOWED_PARTITIONS = new Set(["app", "bootloader", "partition-table"]);
+
+let selectFlashMethodForTests:
+  | ((workspaceFolder: WorkspaceFolder) => Promise<ESP.FlashType | undefined>)
+  | undefined;
+
+export function setSelectFlashMethodForTests(
+  fn:
+    | ((workspaceFolder: WorkspaceFolder) => Promise<ESP.FlashType | undefined>)
+    | undefined
+): void {
+  selectFlashMethodForTests = fn;
+}
+
+export function isValidFlashType(value: unknown): value is ESP.FlashType {
+  const raw = typeof value === "string" ? value.trim() : "";
+  return Object.values(ESP.FlashType).includes(raw as ESP.FlashType);
+}
+
+function readConfiguredFlashType(
+  wsFolder: WorkspaceFolder | Uri | undefined
+): ESP.FlashType | undefined {
+  const fromConfig = readParameter("idf.flashType", wsFolder);
+  const raw = typeof fromConfig === "string" ? fromConfig.trim() : "";
+  return isValidFlashType(raw) ? raw : undefined;
+}
 
 export function normalizePartitionToUse(
   raw: ESP.BuildType | string | undefined
@@ -25,10 +52,32 @@ export function resolveFlashTypeForTask(
   wsFolder: WorkspaceFolder | Uri | undefined,
   explicit?: ESP.FlashType
 ): ESP.FlashType {
-  if (explicit) {
+  if (isValidFlashType(explicit)) {
     return explicit;
   }
-  return readParameter("idf.flashType", wsFolder) as ESP.FlashType;
+  return readConfiguredFlashType(wsFolder) ?? ("" as ESP.FlashType);
+}
+
+export async function ensureFlashTypeForTask(
+  wsFolder: WorkspaceFolder,
+  explicit?: ESP.FlashType
+): Promise<ESP.FlashType> {
+  if (isValidFlashType(explicit)) {
+    return explicit;
+  }
+
+  const configured = readConfiguredFlashType(wsFolder);
+  if (configured) {
+    return configured;
+  }
+
+  const prompt = selectFlashMethodForTests ?? selectFlashMethod;
+  const selected = await prompt(wsFolder);
+  if (isValidFlashType(selected)) {
+    return selected;
+  }
+
+  throw flashTypeNotSelected();
 }
 
 export function resolvePartitionToUseForTask(
