@@ -16,13 +16,11 @@
  * limitations under the License.
  */
 
-import { join } from "path";
-import { readParameter } from "../../../configuration/idf";
 import { formatHelpText } from "./helpTextFormatter";
 import { Menu, menuType } from "../Menu";
 import { Uri } from "vscode";
 import { ConfserverValuesResponse } from "./kconfigMenuUpdater";
-import { readFileSync } from "fs";
+import { requireKconfigMenusJson } from "../validation";
 
 export class KconfigMenuLoader {
   public static updateValues(
@@ -64,16 +62,11 @@ export class KconfigMenuLoader {
 
   constructor(private workspaceFolder: Uri) {}
 
-  public initMenuconfigServer(): Menu[] {
-    const buildDirPath = readParameter(
-      "idf.buildPath",
-      this.workspaceFolder
-    ) as string;
-    const kconfigMenusPath = join(buildDirPath, "config", "kconfig_menus.json");
-    const kconfigJson = JSON.parse(readFileSync(kconfigMenusPath, "utf-8"));
-    
+  public async initMenuconfigServer(): Promise<Menu[]> {
+    const kconfigJson = await requireKconfigMenusJson(this.workspaceFolder);
+
     const configs: Menu[] = [];
-    for (const config of kconfigJson) {
+    for (const config of kconfigJson as unknown[]) {
       const menu: Menu = this.mapJsonToMenuObject(config);
       configs.push(menu);
     }

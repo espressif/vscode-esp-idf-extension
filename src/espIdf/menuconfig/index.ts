@@ -23,74 +23,59 @@ import {
   openFolderCheck,
 } from "../../common/PreCheck";
 import { ConfserverProcess } from "./confserver/confServerProcess";
-import { Logger } from "../../common/logger";
 import { withProgressWrapper } from "../../common/withProgressWrapper";
 import { createClassicMenuconfig } from "./classicTerminal";
 import { addMenuConfigFileWatchers } from "./fileWatchers";
 import { saveDefSdkconfig } from "./saveDefConfig";
 import { ESP } from "../../config";
+import { menuconfigCommandErrorMapping } from "./errorMapping";
+
+function registerMenuconfigCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any
+) {
+  registerIDFCommand(context, name, callback, menuconfigCommandErrorMapping);
+}
 
 export function registerMenuconfigCommands(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.menuconfig.start", async () => {
+  registerMenuconfigCommand(context, "espIdf.menuconfig.start", async () => {
     await withProgressWrapper(
       [openFolderCheck],
       "ESP-IDF: SDK Configuration Editor",
       async (_progress, cancelToken) => {
-        try {
-          if (ConfserverProcess.exists()) {
-            ConfserverProcess.loadExistingInstance();
-            return;
-          }
-          ConfserverProcess.registerProgress(_progress);
-          cancelToken.onCancellationRequested(() => {
-            ConfserverProcess.dispose();
-          });
-          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          await ConfserverProcess.init(wsFolder.uri, context.extensionPath);
-        } catch (error) {
-          const err = error instanceof Error ? error : new Error(String(error));
-          Logger.errorNotify(
-            err.message,
-            err,
-            "registerMenuconfigCommands menuconfig start"
-          );
+        if (ConfserverProcess.exists()) {
+          ConfserverProcess.loadExistingInstance();
+          return;
         }
+        ConfserverProcess.registerProgress(_progress);
+        cancelToken.onCancellationRequested(() => {
+          ConfserverProcess.dispose();
+        });
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        await ConfserverProcess.init(wsFolder.uri, context.extensionPath);
       }
     );
   });
 
-  registerIDFCommand(context, "espIdf.disposeConfserverProcess", () => {
-    try {
-      if (ConfserverProcess.exists()) {
-        ConfserverProcess.dispose();
-      }
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-      Logger.errorNotify(
-        err.message,
-        err,
-        "registerMenuconfigCommands disposeConfserverProcess"
-      );
+  registerMenuconfigCommand(context, "espIdf.disposeConfserverProcess", () => {
+    if (ConfserverProcess.exists()) {
+      ConfserverProcess.dispose();
     }
   });
 
-  registerIDFCommand(context, "espIdf.createClassicMenuconfig", () =>
+  registerMenuconfigCommand(context, "espIdf.createClassicMenuconfig", () =>
     createClassicMenuconfig(context.extensionPath)
   );
 
-  registerIDFCommand(context, "espIdf.saveDefSdkconfig", async () => {
+  registerMenuconfigCommand(context, "espIdf.saveDefSdkconfig", async () => {
     const idfVersionCheck = await minIdfVersionCheck("5.0");
     await withProgressWrapper(
       [idfVersionCheck, openFolderCheck],
       l10n.t("ESP-IDF: Save Default Configuration (save-defconfig)"),
       async (_progress, cancelToken) => {
-        try {
-          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          await saveDefSdkconfig(wsFolder.uri, cancelToken);
-        } catch (error) {
-          const err = error instanceof Error ? error : new Error(String(error));
-          Logger.errorNotify(err.message, err, "saveDefSdkconfig");
-        }
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        await saveDefSdkconfig(wsFolder.uri, cancelToken);
       }
     );
   });
