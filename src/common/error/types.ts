@@ -72,6 +72,11 @@ export enum ErrorCode {
   OpenOcdNotRunning = 'OpenOcdNotRunning',
   OpenOcdNotReady = 'OpenOcdNotReady',
   OpenOcdVersionTooLow = 'OpenOcdVersionTooLow',
+  OpenOcdStartFailed = 'OpenOcdStartFailed',
+  OpenOcdProcessExited = 'OpenOcdProcessExited',
+  OpenOcdNoBoardsForTarget = 'OpenOcdNoBoardsForTarget',
+  OpenOcdBoardSelectionFailed = 'OpenOcdBoardSelectionFailed',
+  OpenOcdHintsLoadFailed = 'OpenOcdHintsLoadFailed',
 
   // Erase flash
   AlreadyErasing = 'AlreadyErasing',

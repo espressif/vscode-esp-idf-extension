@@ -15,19 +15,16 @@
  * limitations under the License.
  */
 
-import { Uri, window } from "vscode";
+import { Uri } from "vscode";
 import { readParameter } from "../../configuration/idf";
-import {
-  openOcdLaunchDeclined,
-  openOcdNotReady,
-  openOcdNotRunning,
-} from "../../common/error/knownError";
-import { OpenOCDManager } from "./openOcdManager";
+import { openOcdNotReady } from "../../common/error/knownError";
 import { TCLClient } from "./tcl/tclClient";
 import {
   assertOpenOcdVersionMeetsJtagMinimum,
   MIN_OPENOCD_VERSION_FOR_JTAG,
 } from "./jtagPreflightVersion";
+import { OpenOCDManager } from "./openOcdManager";
+import { ensureOpenOcdServerRunning } from "./openOcdLaunch";
 
 export {
   MIN_OPENOCD_VERSION_FOR_JTAG,
@@ -40,31 +37,6 @@ const OPENOCD_READY_RETRY_DELAY_MS = 1000;
 export async function assertMinimumOpenOcdVersionForJtag(): Promise<void> {
   const currentVersion = await OpenOCDManager.init().version();
   assertOpenOcdVersionMeetsJtagMinimum(currentVersion);
-}
-
-async function ensureOpenOcdServerRunning(workspace: Uri): Promise<void> {
-  const host = readParameter("openocd.tcl.host", workspace) as string;
-  const port = readParameter("openocd.tcl.port", workspace) as number;
-  const probeClient = new TCLClient({ host, port });
-
-  if (await probeClient.isOpenOCDServerRunning()) {
-    return;
-  }
-
-  const resp = await window.showInformationMessage(
-    "OpenOCD is not running, do you want to launch it?",
-    { modal: true },
-    { title: "Yes" },
-    { title: "Cancel", isCloseAffordance: true }
-  );
-  if (!resp || resp.title !== "Yes") {
-    throw openOcdLaunchDeclined();
-  }
-
-  await OpenOCDManager.init().start();
-  if (!(await probeClient.isOpenOCDServerRunning())) {
-    throw openOcdNotRunning();
-  }
 }
 
 async function waitForOpenOcdReady(client: TCLClient): Promise<void> {

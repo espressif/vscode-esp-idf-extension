@@ -21,10 +21,12 @@ import { join } from "path";
 import { env, Uri, window } from "vscode";
 import { readParameter } from "../../configuration/idf";
 import { Logger } from "../../common/logger";
+import { handleError } from "../../common/error/handler";
+import { isKnownError } from "../../common/error/knownError";
 import { OutputChannel } from "../../common/outputChannel";
 import { getToolchainToolName, isBinInPath } from "../../utils";
 import { getProjectElfFilePath } from "../../configuration/workspace";
-import { OpenOCDManager } from "../openOcd/openOcdManager";
+import { ensureOpenOcdServerRunning } from "../openOcd/openOcdLaunch";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import {
   AppTraceButtonType,
@@ -49,79 +51,82 @@ export class GdbHeapTraceManager {
 
   public async start(workspace: Uri) {
     try {
-      const isOpenOcdLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
-      if (isOpenOcdLaunched) {
-        this.showStopButton();
-        ensureDir(join(workspace.fsPath, "trace"));
-        const fileName = `file://${join(workspace.fsPath, "trace").replace(
-          /\\/g,
-          "/"
-        )}/htrace_${new Date().getTime()}.svdat`;
-        const buildDirPath = readParameter(
-          "idf.buildPath",
-          workspace
-        ) as string;
-        const buildExists = await pathExists(buildDirPath);
-        if (!buildExists) {
-          throw new Error(`${buildDirPath} doesn't exist. Build first.`);
-        }
-        await this.createGdbinitFile(fileName, buildDirPath);
-        const modifiedEnv = getCurrentIdfConfiguration();
-        const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
-        const gdbTool = getToolchainToolName(idfTarget, "gdb");
-        const isGdbToolInPath = await isBinInPath(
-          gdbTool,
-          modifiedEnv
-        );
-        if (!isGdbToolInPath) {
-          throw new Error(`${gdbTool} is not available in PATH.`);
-        }
-        const elfFilePath = await getProjectElfFilePath(workspace);
-        const elfFileExists = await pathExists(elfFilePath);
-        if (!elfFileExists) {
-          throw new Error(`${elfFilePath} doesn't exist.`);
-        }
-        this.childProcess = spawn(
-          `${gdbTool} -x ${this.gdbinitFileName} "${elfFilePath}"`,
-          [],
-          {
-            cwd: buildDirPath,
-            env: modifiedEnv,
-            shell: env.shell,
-          }
-        );
-
-        this.childProcess.stdout?.on("data", (data) => {
-          Logger.info(data.toString());
-          this.errorHandler(data.toString());
-        });
-
-        this.childProcess.stderr?.on("data", (data) => {
-          Logger.info(data.toString());
-          this.errorHandler(data.toString());
-        });
-
-        this.childProcess.on("error", (err) => {
-          Logger.errorNotify(
-            err.message,
-            err,
-            "GdbHeapTraceManager start error"
-          );
-          this.stop();
-        });
-
-        this.childProcess.on("exit", (code, signal) => {
-          if (code && code !== 0) {
-            const errMsg = `Heap tracing process exited with code ${code} and signal ${signal}`;
-            Logger.errorNotify(
-              errMsg,
-              new Error(errMsg),
-              "GdbHeapTraceManager start exit"
-            );
-          }
-        });
+      await ensureOpenOcdServerRunning(workspace);
+      this.showStopButton();
+      ensureDir(join(workspace.fsPath, "trace"));
+      const fileName = `file://${join(workspace.fsPath, "trace").replace(
+        /\\/g,
+        "/"
+      )}/htrace_${new Date().getTime()}.svdat`;
+      const buildDirPath = readParameter(
+        "idf.buildPath",
+        workspace
+      ) as string;
+      const buildExists = await pathExists(buildDirPath);
+      if (!buildExists) {
+        throw new Error(`${buildDirPath} doesn't exist. Build first.`);
       }
+      await this.createGdbinitFile(fileName, buildDirPath);
+      const modifiedEnv = getCurrentIdfConfiguration();
+      const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
+      const gdbTool = getToolchainToolName(idfTarget, "gdb");
+      const isGdbToolInPath = await isBinInPath(
+        gdbTool,
+        modifiedEnv
+      );
+      if (!isGdbToolInPath) {
+        throw new Error(`${gdbTool} is not available in PATH.`);
+      }
+      const elfFilePath = await getProjectElfFilePath(workspace);
+      const elfFileExists = await pathExists(elfFilePath);
+      if (!elfFileExists) {
+        throw new Error(`${elfFilePath} doesn't exist.`);
+      }
+      this.childProcess = spawn(
+        `${gdbTool} -x ${this.gdbinitFileName} "${elfFilePath}"`,
+        [],
+        {
+          cwd: buildDirPath,
+          env: modifiedEnv,
+          shell: env.shell,
+        }
+      );
+
+      this.childProcess.stdout?.on("data", (data) => {
+        Logger.info(data.toString());
+        this.errorHandler(data.toString());
+      });
+
+      this.childProcess.stderr?.on("data", (data) => {
+        Logger.info(data.toString());
+        this.errorHandler(data.toString());
+      });
+
+      this.childProcess.on("error", (err) => {
+        Logger.errorNotify(
+          err.message,
+          err,
+          "GdbHeapTraceManager start error"
+        );
+        this.stop();
+      });
+
+      this.childProcess.on("exit", (code, signal) => {
+        if (code && code !== 0) {
+          const errMsg = `Heap tracing process exited with code ${code} and signal ${signal}`;
+          Logger.errorNotify(
+            errMsg,
+            new Error(errMsg),
+            "GdbHeapTraceManager start exit"
+          );
+        }
+      });
     } catch (error) {
+      if (isKnownError(error)) {
+        await handleError("espIdf.heaptrace", error);
+        this.stop();
+        return;
+      }
       const msg = error instanceof Error && error.message
         ? error.message
         : "Error starting GDB Heap Tracing";

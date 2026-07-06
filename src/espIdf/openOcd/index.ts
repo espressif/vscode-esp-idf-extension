@@ -29,14 +29,20 @@ import {
   getOpenOcdScripts,
   selectOpenOcdConfigFiles,
 } from "./boardConfiguration";
+import { openOcdCommandErrorMapping } from "./errorMapping";
 
 export function registerOpenOCDCommands(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.openOCDCommand", async () => {
-    PreCheck.perform(
-      [webIdeCheck, openFolderCheck],
-      OpenOCDManager.init().commandHandler
-    );
-  });
+  registerIDFCommand(
+    context,
+    "espIdf.openOCDCommand",
+    async () => {
+      PreCheck.perform(
+        [webIdeCheck, openFolderCheck],
+        OpenOCDManager.init().commandHandler
+      );
+    },
+    openOcdCommandErrorMapping
+  );
 
   registerIDFCommand(context, CommandKeys.OpenOcdAdapterStatusBar, () => {
     PreCheck.perform([openFolderCheck], async () => {
@@ -81,12 +87,17 @@ export function registerOpenOCDCommands(context: ExtensionContext) {
     return result.trim();
   });
 
-  registerIDFCommand(context, "espIdf.selectOpenOcdConfigFiles", async () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      selectOpenOcdConfigFiles(wsFolder);
-    });
-  });
+  registerIDFCommand(
+    context,
+    "espIdf.selectOpenOcdConfigFiles",
+    async () => {
+      PreCheck.perform([openFolderCheck], async () => {
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        await selectOpenOcdConfigFiles(wsFolder);
+      });
+    },
+    openOcdCommandErrorMapping
+  );
 
   registerIDFCommand(context, "espIdf.getOpenOcdScriptValue", async () => {
     const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
