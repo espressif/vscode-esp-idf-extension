@@ -23,8 +23,12 @@ import * as vscode from "vscode";
 import { readParameter } from "../../configuration/idf";
 import { Logger } from "../../common/logger";
 import { OutputChannel } from "../../common/outputChannel";
+import { handleError } from "../../common/error/handler";
+import {
+  openOcdProcessExited,
+  openOcdStartFailed,
+} from "../../common/error/knownError";
 import { isBinInPath, spawn as sspawn } from "../../utils";
-import { TCLClient, TCLConnection } from "./tcl/tclClient";
 import { ESP } from "../../config";
 import {
   statusBarItems,
@@ -39,6 +43,9 @@ import {
   supportsSerialFromDetectConfig,
 } from "./adapterSerial";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
+import { validateOpenOcdStartPrerequisites, requireOpenOcdWorkspace } from "./validation";
+import { openOcdCommandErrorMapping } from "./errorMapping";
+import { ensureOpenOcdServerRunning } from "./openOcdLaunch";
 
 export interface IOpenOCDConfig {
   workspace: vscode.Uri;
@@ -80,6 +87,7 @@ export class OpenOCDManager extends EventEmitter {
   private statusBar: vscode.StatusBarItem | undefined;
   private workspace: vscode.Uri | undefined;
   private encounteredErrors: boolean = false;
+  private startFailureNotified: boolean = false;
 
   private constructor() {
     super();
@@ -142,25 +150,15 @@ export class OpenOCDManager extends EventEmitter {
     if (!pick) {
       return false;
     }
-    try {
-      switch (pick.label) {
-        case "Start OpenOCD":
-          await OpenOCDManager.instance.start();
-          break;
-        case "Stop OpenOCD":
-          OpenOCDManager.instance.stop();
-          break;
-        default:
-          break;
-      }
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : "Unknown error";
-      Logger.error(
-        msg,
-        error instanceof Error ? error : new Error("Unknown error"),
-        "OpenOCDManager commandHandler"
-      );
-      OutputChannel.appendLine(msg, "OpenOCD");
+    switch (pick.label) {
+      case "Start OpenOCD":
+        await OpenOCDManager.instance.start();
+        break;
+      case "Stop OpenOCD":
+        OpenOCDManager.instance.stop();
+        break;
+      default:
+        break;
     }
     return true;
   }
@@ -175,51 +173,21 @@ export class OpenOCDManager extends EventEmitter {
     return typeof this.server !== "undefined" && !this.server.killed;
   }
 
-  public async promptUserToLaunchOpenOCDServer(): Promise<boolean> {
-    const host = readParameter("openocd.tcl.host", this.workspace) as string;
-    const port = readParameter("openocd.tcl.port", this.workspace) as number;
-    const tclConnectionParams: TCLConnection = { host, port };
-    const tclClient = new TCLClient(tclConnectionParams);
-    if (!(await tclClient.isOpenOCDServerRunning())) {
-      const resp = await vscode.window.showInformationMessage(
-        "OpenOCD is not running, do you want to launch it?",
-        { modal: true },
-        { title: "Yes" },
-        { title: "Cancel", isCloseAffordance: true }
-      );
-      if (resp && resp.title === "Yes") {
-        await OpenOCDManager.init().start();
-        return await tclClient.isOpenOCDServerRunning();
-      }
-      return false;
-    }
-    return true;
+  public async promptUserToLaunchOpenOCDServer(): Promise<void> {
+    const workspace = requireOpenOcdWorkspace(this.workspace);
+    await ensureOpenOcdServerRunning(workspace);
   }
 
   public async start() {
     if (this.isRunning()) {
       return;
     }
-    if (!this.workspace) {
-      throw new Error(
-        "No workspace folder found. Please open a workspace to launch OpenOCD server."
-      );
-    }
+    this.startFailureNotified = false;
     const modifiedEnv = getCurrentIdfConfiguration();
-    const openOcdPath = await OpenOCDManager.getOpenOcdPath(
-      this.workspace,
-      modifiedEnv
-    );
-    if (!openOcdPath) {
-      throw new Error(
-        "Invalid OpenOCD bin path or access is denied for the user"
-      );
-    }
-    if (typeof modifiedEnv.OPENOCD_SCRIPTS === "undefined") {
-      throw new Error(
-        "OPENOCD_SCRIPTS environment variable is missing. Please set it in idf.customExtraVars or in your system environment variables."
-      );
-    }
+    const workspace = requireOpenOcdWorkspace(this.workspace);
+    this.workspace = workspace;
+    const openOcdPath = await OpenOCDManager.getOpenOcdPath(workspace, modifiedEnv);
+    validateOpenOcdStartPrerequisites(workspace, openOcdPath, modifiedEnv);
 
     const versionString = await this.version(true);
     const useLocationCommand = supportsAdapterUsbLocationCommand(versionString);
@@ -261,15 +229,6 @@ export class OpenOCDManager extends EventEmitter {
         "idf.openOcdConfigs",
         this.workspace
       ) as string[];
-
-      if (
-        typeof openOcdConfigFilesList === "undefined" ||
-        openOcdConfigFilesList.length < 1
-      ) {
-        throw new Error(
-          "Invalid OpenOCD Config files. Check idf.openOcdConfigs configuration value."
-        );
-      }
 
       const openOcdDebugLevelRaw = readParameter(
         "idf.openOcdDebugLevel",
@@ -338,6 +297,15 @@ export class OpenOCDManager extends EventEmitter {
         Logger.error(errorMsg + `\n❌ ${errStr}`, err, "OpenOCDManager stderr");
         OutputChannel.appendLine(`❌ ${errStr}`, "OpenOCD");
         this.emit("error", err, this.chan);
+        if (!this.startFailureNotified) {
+          this.startFailureNotified = true;
+          void handleError(
+            "espIdf.openOCDCommand",
+            openOcdStartFailed(matchArr.join(" ")),
+            undefined,
+            openOcdCommandErrorMapping
+          );
+        }
       }
       OutputChannel.appendLine(errStr, "OpenOCD");
       Logger.info(errStr);
@@ -378,6 +346,15 @@ export class OpenOCDManager extends EventEmitter {
           `OpenOCD Exit with non-zero error code ${code}`,
           "OpenOCD"
         );
+        if (!this.startFailureNotified) {
+          this.startFailureNotified = true;
+          void handleError(
+            "espIdf.openOCDCommand",
+            openOcdProcessExited(code),
+            undefined,
+            openOcdCommandErrorMapping
+          );
+        }
       }
       this.stop();
     });
@@ -389,6 +366,7 @@ export class OpenOCDManager extends EventEmitter {
     if (this.server && !this.server.killed) {
       this.server.kill("SIGKILL");
       this.server = undefined;
+      this.startFailureNotified = false;
       this.updateStatusText("❌ OpenOCD Server (Stopped)");
       const endMsg = "[Stopped] : OpenOCD Server";
       OutputChannel.appendLine(endMsg, "OpenOCD");

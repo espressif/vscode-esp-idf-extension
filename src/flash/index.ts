@@ -39,6 +39,57 @@ const flashCommandErrorMapping: CommandErrorMapping = {
     ],
     outputChannel: "Flash",
   },
+  [ErrorCode.OpenOcdNotRunning]: {
+    severity: ErrorSeverity.Warning,
+    userMessage:
+      "Can't perform JTAG flash, because OpenOCD server is not running!",
+    logMessage: "OpenOCD server is not running after launch attempt.",
+    actions: [
+      {
+        label: "Launch OpenOCD",
+        execute: () => commands.executeCommand("espIdf.openOCDCommand"),
+      },
+    ],
+    outputChannel: "Flash",
+  },
+  [ErrorCode.OpenOcdNotReady]: {
+    severity: ErrorSeverity.Warning,
+    userMessage: "OpenOCD is not ready to accept commands. Please try again.",
+    logMessage: "OpenOCD TCL server did not become ready within retry limit.",
+    actions: [
+      {
+        label: "Launch OpenOCD",
+        execute: () => commands.executeCommand("espIdf.openOCDCommand"),
+      },
+    ],
+    outputChannel: "Flash",
+  },
+  [ErrorCode.OpenOcdVersionTooLow]: {
+    severity: ErrorSeverity.Warning,
+    userMessage:
+      "Minimum OpenOCD version {minVersion} is required while you have {currentVersion} version installed",
+    logMessage:
+      "OpenOCD version {currentVersion} is below required minimum {minVersion}.",
+    actions: [
+      {
+        label: "Launch OpenOCD",
+        execute: () => commands.executeCommand("espIdf.openOCDCommand"),
+      },
+    ],
+    outputChannel: "Flash",
+  },
+  [ErrorCode.OpenOcdLaunchDeclined]: {
+    severity: ErrorSeverity.Info,
+    userMessage: "OpenOCD was not launched.",
+    logMessage: "JTAG flash cancelled: user declined to launch OpenOCD.",
+    actions: [
+      {
+        label: "Launch OpenOCD",
+        execute: () => commands.executeCommand("espIdf.openOCDCommand"),
+      },
+    ],
+    outputChannel: "Flash",
+  },
 };
 
 function registerFlashCommand(

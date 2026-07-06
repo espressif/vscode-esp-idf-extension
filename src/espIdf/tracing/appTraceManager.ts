@@ -21,6 +21,9 @@ import { existsSync, mkdirSync } from "fs";
 import { join, sep } from "path";
 import { readParameter, writeParameter } from "../../configuration/idf";
 import { Logger } from "../../common/logger";
+import { handleError } from "../../common/error/handler";
+import { isKnownError } from "../../common/error/knownError";
+import { ensureOpenOcdServerRunning } from "../openOcd/openOcdLaunch";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { TCLClient } from "../openOcd/tcl/tclClient";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
@@ -141,22 +144,25 @@ export class AppTraceManager extends EventEmitter {
 
   public async start(workspace: WorkspaceFolder) {
     try {
-      if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
-        this.treeDataProvider.showStopButton(AppTraceButtonType.AppTraceButton);
-        this.treeDataProvider.updateDescription(
-          AppTraceButtonType.AppTraceButton,
-          ""
-        );
+      await ensureOpenOcdServerRunning(workspace.uri);
+      this.treeDataProvider.showStopButton(AppTraceButtonType.AppTraceButton);
+      this.treeDataProvider.updateDescription(
+        AppTraceButtonType.AppTraceButton,
+        ""
+      );
 
-        // Send reset command first to ensure proper initialization, then start app trace
-        const resetHandler = this.sendCommandToTCLSession("reset", workspace);
-        resetHandler.on("response", () => {
-          // Reset completed, now start app trace
-          this.executeAppTraceStart(workspace);
-          resetHandler.stop();
-        });
-      }
+      // Send reset command first to ensure proper initialization, then start app trace
+      const resetHandler = this.sendCommandToTCLSession("reset", workspace);
+      resetHandler.on("response", () => {
+        // Reset completed, now start app trace
+        this.executeAppTraceStart(workspace);
+        resetHandler.stop();
+      });
     } catch (error) {
+      if (isKnownError(error)) {
+        await handleError("espIdf.apptrace", error);
+        return;
+      }
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -210,7 +216,8 @@ export class AppTraceManager extends EventEmitter {
   }
 
   public async stop(workspace: WorkspaceFolder) {
-    if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
+    try {
+      await ensureOpenOcdServerRunning(workspace.uri);
       this.shallContinueCheckingStatus = false;
       const stopHandler = this.sendCommandToTCLSession(
         "esp apptrace stop",
@@ -237,7 +244,11 @@ export class AppTraceManager extends EventEmitter {
           openOCDManager.stop();
         }
       });
-    } else {
+    } catch (error) {
+      if (isKnownError(error)) {
+        await handleError("espIdf.apptrace", error);
+        return;
+      }
       this.treeDataProvider.updateDescription(
         AppTraceButtonType.AppTraceButton,
         "[Terminated]"
