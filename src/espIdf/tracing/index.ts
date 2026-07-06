@@ -24,6 +24,8 @@ import {
   PreCheck,
   webIdeCheck,
 } from "../../common/PreCheck";
+import { traceInvalidCommand } from "../../common/error/knownError";
+import { CommandErrorMapping } from "../../common/error/types";
 import { AppTraceManager } from "./appTraceManager";
 import { GdbHeapTraceManager } from "./gdbHeapTraceManager";
 import {
@@ -33,10 +35,23 @@ import {
 } from "./tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
 import { ESP } from "../../config";
-import { Logger } from "../../common/logger";
 import { SystemViewResultParser } from "./system-view";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
 import { AppTracePanel } from "./appTracePanel";
+import {
+  appTraceCommandErrorMapping,
+  heapTraceCommandErrorMapping,
+  traceArchiveCommandErrorMapping,
+} from "./errorMapping";
+
+function registerTracingCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any,
+  errorMapping?: CommandErrorMapping
+) {
+  registerIDFCommand(context, name, callback, errorMapping);
+}
 
 export function registerAppTraceCommands(context: ExtensionContext) {
   let appTraceTreeDataProvider = new AppTraceTreeDataProvider();
@@ -56,70 +71,73 @@ export function registerAppTraceCommands(context: ExtensionContext) {
       "idfAppTraceArchive"
     )
   );
-  registerIDFCommand(context, "espIdf.apptrace", () => {
-    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      const appTraceLabel =
-        typeof appTraceTreeDataProvider.appTraceButton.label === "string"
-          ? appTraceTreeDataProvider.appTraceButton.label.match(/start/gi)
-          : appTraceTreeDataProvider.appTraceButton.label?.label.match(
-              /start/gi
-            );
-      if (appTraceLabel) {
-        await appTraceManager.start(wsFolder);
-      } else {
-        await appTraceManager.stop(wsFolder);
-      }
-    });
-  });
-
-  registerIDFCommand(context, "espIdf.heaptrace", async () => {
-    const idfVersionCheck = await minIdfVersionCheck("4.2");
-    PreCheck.perform(
-      [idfVersionCheck, webIdeCheck, openFolderCheck],
-      async () => {
-        const heapTraceLabel =
-          typeof appTraceTreeDataProvider.heapTraceButton.label === "string"
-            ? appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)
-            : appTraceTreeDataProvider.heapTraceButton.label?.label.match(
+  registerTracingCommand(
+    context,
+    "espIdf.apptrace",
+    () => {
+      PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        const appTraceLabel =
+          typeof appTraceTreeDataProvider.appTraceButton.label === "string"
+            ? appTraceTreeDataProvider.appTraceButton.label.match(/start/gi)
+            : appTraceTreeDataProvider.appTraceButton.label?.label.match(
                 /start/gi
               );
-        if (heapTraceLabel) {
-          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          await gdbHeapTraceManager.start(wsFolder.uri);
+        if (appTraceLabel) {
+          await appTraceManager.start(wsFolder);
         } else {
-          await gdbHeapTraceManager.stop();
+          await appTraceManager.stop(wsFolder);
         }
-      }
-    );
-  });
+      });
+    },
+    appTraceCommandErrorMapping
+  );
 
-  registerIDFCommand(context, "espIdf.apptrace.customize", () => {
+  registerTracingCommand(
+    context,
+    "espIdf.heaptrace",
+    async () => {
+      const idfVersionCheck = await minIdfVersionCheck("4.2");
+      PreCheck.perform(
+        [idfVersionCheck, webIdeCheck, openFolderCheck],
+        async () => {
+          const heapTraceLabel =
+            typeof appTraceTreeDataProvider.heapTraceButton.label === "string"
+              ? appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)
+              : appTraceTreeDataProvider.heapTraceButton.label?.label.match(
+                  /start/gi
+                );
+          if (heapTraceLabel) {
+            const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+            await gdbHeapTraceManager.start(wsFolder.uri);
+          } else {
+            await gdbHeapTraceManager.stop();
+          }
+        }
+      );
+    },
+    heapTraceCommandErrorMapping
+  );
+
+  registerTracingCommand(context, "espIdf.apptrace.customize", () => {
     PreCheck.perform([openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       await AppTraceManager.saveConfiguration(wsFolder);
     });
   });
 
-  registerIDFCommand(context, "espIdf.apptrace.archive.refresh", () => {
+  registerTracingCommand(context, "espIdf.apptrace.archive.refresh", () => {
     PreCheck.perform([openFolderCheck], () => {
       appTraceArchiveTreeDataProvider.populateArchiveTree();
     });
   });
 
-  registerIDFCommand(
+  registerTracingCommand(
     context,
     "espIdf.apptrace.archive.showReport",
     (trace: AppTraceArchiveItems) => {
       if (!trace) {
-        Logger.errorNotify(
-          l10n.t(
-            "Cannot call this command directly, click on any Trace to view its report!"
-          ),
-          new Error("INVALID_COMMAND"),
-          "extension apptrace showReport"
-        );
-        return;
+        throw traceInvalidCommand();
       }
       PreCheck.perform([openFolderCheck], async () => {
         const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
@@ -128,7 +146,6 @@ export function registerAppTraceCommands(context: ExtensionContext) {
             HeapTracingPlot,
             SystemViewTracing,
           }
-          //show option to render system trace view or heap trace
           const placeHolder = l10n.t(
             "Do you want to view Heap Trace plot or System View Trace"
           );
@@ -164,34 +181,19 @@ export function registerAppTraceCommands(context: ExtensionContext) {
           }
         }
 
-        // For App Trace, directly open the file instead of showing the webview
         if (trace.type === TraceType.AppTrace) {
-          try {
-            const textDocument = await workspace.openTextDocument(
-              trace.filePath
-            );
-            const column = window.activeTextEditor
-              ? window.activeTextEditor.viewColumn
-              : undefined;
-            await window.showTextDocument(textDocument, {
-              viewColumn: column || ViewColumn.One,
-            });
-            return;
-          } catch (error) {
-            const errMsg =
-              error instanceof Error ? error.message : String(error);
-            Logger.errorNotify(
-              `Failed to open App Trace file: ${errMsg}`,
-              error as Error,
-              "extension apptrace showReport openFile"
-            );
-            return;
-          }
+          const textDocument = await workspace.openTextDocument(trace.filePath);
+          const column = window.activeTextEditor
+            ? window.activeTextEditor.viewColumn
+            : undefined;
+          await window.showTextDocument(textDocument, {
+            viewColumn: column || ViewColumn.One,
+          });
+          return;
         }
 
-        // For Heap Trace, show the webview as before
         const currentEnvVars = getCurrentIdfConfiguration();
-        let espIdfPath = currentEnvVars["IDF_PATH"];
+        const espIdfPath = currentEnvVars["IDF_PATH"];
         AppTracePanel.createOrShow(context, {
           trace: {
             fileName: trace.fileName,
@@ -202,6 +204,7 @@ export function registerAppTraceCommands(context: ExtensionContext) {
           },
         });
       });
-    }
+    },
+    traceArchiveCommandErrorMapping
   );
 }
