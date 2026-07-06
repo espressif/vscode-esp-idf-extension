@@ -78,6 +78,12 @@ export enum ErrorCode {
   OpenOcdBoardSelectionFailed = 'OpenOcdBoardSelectionFailed',
   OpenOcdHintsLoadFailed = 'OpenOcdHintsLoadFailed',
 
+  // Tracing
+  TraceTclFailed = 'TraceTclFailed',
+  HeapTraceNotSupported = 'HeapTraceNotSupported',
+  TraceGdbProcessFailed = 'TraceGdbProcessFailed',
+  TraceInvalidCommand = 'TraceInvalidCommand',
+
   // Erase flash
   AlreadyErasing = 'AlreadyErasing',
   EraseInProgress = 'EraseInProgress',

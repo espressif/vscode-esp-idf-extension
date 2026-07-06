@@ -21,12 +21,15 @@ import AnsiToHtml from "ansi-to-html";
 import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../../common/logger";
+import { handleError } from "../../common/error/handler";
+import { isKnownError, noWorkspaceOpen, fileNotFound } from "../../common/error/knownError";
 import { getWebViewFavicon } from "../../utils";
 import { LogTraceProc } from "./tools/logTraceProc";
 import { SysviewTraceProc } from "./tools/sysviewTraceProc";
 import { Addr2Line } from "./tools/xtensa/addr2line";
 import { ReadElf } from "./tools/xtensa/readelf";
 import { getProjectElfFilePath } from "../../configuration/workspace";
+import { traceArchiveCommandErrorMapping } from "./errorMapping";
 
 export class AppTracePanel {
   public static createOrShow(
@@ -113,17 +116,7 @@ export class AppTracePanel {
               })
               .catch((error) => {
                 this.sendCommandToWebview("calculateFailed", { error });
-                error.message
-                  ? Logger.errorNotify(
-                      error.message,
-                      error,
-                      "AppTracePanel parseTraceLogData"
-                    )
-                  : Logger.errorNotify(
-                      `Failed to process the trace data`,
-                      error,
-                      "AppTracePanel parseTraceLogData"
-                    );
+                void this.handlePanelError(error);
               });
             break;
           case "calculateHeapTrace":
@@ -135,17 +128,7 @@ export class AppTracePanel {
               })
               .catch((error) => {
                 this.sendCommandToWebview("calculateFailed", { error });
-                error.message
-                  ? Logger.errorNotify(
-                      error.message,
-                      error,
-                      "AppTracePanel parseHeapTraceData"
-                    )
-                  : Logger.errorNotify(
-                      `Failed to process the heap trace data`,
-                      error,
-                      "AppTracePanel parseHeapTraceData"
-                    );
+                void this.handlePanelError(error);
               });
             break;
           case "resolveAddresses":
@@ -186,24 +169,40 @@ export class AppTracePanel {
       });
       // editor.revealRange(selectionRange, vscode.TextEditorRevealType.InCenter);
     } catch (error) {
-      const errMsg = error instanceof Error ? error.message : String(error);
-      Logger.errorNotify(
-        errMsg,
-        error as Error,
-        "AppTracePanel openFileAtLineNumber"
-      );
+      void this.handlePanelError(error);
     }
   }
+
+  private async handlePanelError(error: unknown): Promise<void> {
+    if (isKnownError(error)) {
+      await handleError(
+        "espIdf.apptrace.archive.showReport",
+        error,
+        undefined,
+        traceArchiveCommandErrorMapping
+      );
+      return;
+    }
+    const err = error instanceof Error ? error : new Error(String(error));
+    Logger.error(err.message, err, "AppTracePanel");
+    await handleError(
+      "espIdf.apptrace.archive.showReport",
+      fileNotFound(this._traceData?.trace?.filePath ?? "unknown"),
+      undefined,
+      traceArchiveCommandErrorMapping
+    );
+  }
+
   private async readElf(): Promise<string[][]> {
     const workspaceRoot = vscode.workspace.workspaceFolders?.length
       ? vscode.workspace.workspaceFolders[0].uri
       : undefined;
     if (!workspaceRoot) {
-      throw new Error("Workspace folder is not open");
+      throw noWorkspaceOpen();
     }
     const elfFile = await getProjectElfFilePath(workspaceRoot);
     if (!elfFile) {
-      throw new Error("Select Elf file to process the addresses");
+      throw fileNotFound("project ELF");
     }
     const readElf = new ReadElf(workspaceRoot, elfFile);
     const resp = await readElf.run();
@@ -248,7 +247,7 @@ export class AppTracePanel {
         ? vscode.workspace.workspaceFolders[0].uri
         : undefined;
       if (!workspaceRoot) {
-        throw new Error("Workspace folder is not open");
+        throw noWorkspaceOpen();
       }
       if (!addresses) {
         return;
@@ -279,12 +278,7 @@ export class AppTracePanel {
       await Promise.all(promises);
       this.sendCommandToWebview("addressesResolved", addresses);
     } catch (error) {
-      const errMsg = error instanceof Error ? error.message : String(error);
-      Logger.errorNotify(
-        errMsg,
-        error as Error,
-        "AppTracePanel resolveAddresses"
-      );
+      void this.handlePanelError(error);
     }
   }
   private async parseTraceLogData(): Promise<string> {
@@ -292,7 +286,7 @@ export class AppTracePanel {
       ? vscode.workspace.workspaceFolders[0].uri
       : undefined;
     if (!workspaceRoot) {
-      throw new Error("Workspace folder is not open");
+      throw noWorkspaceOpen();
     }
     const logTraceProc = new LogTraceProc(
       workspaceRoot,
@@ -307,7 +301,7 @@ export class AppTracePanel {
       ? vscode.workspace.workspaceFolders[0].uri
       : undefined;
     if (!workspaceRoot) {
-      throw new Error("Workspace folder is not open");
+      throw noWorkspaceOpen();
     }
     const sysviewTraceProc = new SysviewTraceProc(
       workspaceRoot,
