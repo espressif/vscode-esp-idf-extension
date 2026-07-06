@@ -18,11 +18,13 @@
 
 import { AppTraceArchiveItems } from "../tree/appTraceArchiveTreeDataProvider";
 import { window, ProgressLocation, Uri } from "vscode";
-import { Logger } from "../../../common/logger";
+import { handleError } from "../../../common/error/handler";
+import { isKnownError, parseError } from "../../../common/error/knownError";
 import { SystemViewPanel } from "./panel";
 import { SysviewTraceProc } from "../tools/sysviewTraceProc";
 import { NotificationMode, readParameter } from "../../../configuration/idf";
 import { getProjectElfFilePath } from "../../../configuration/workspace";
+import { traceArchiveCommandErrorMapping } from "../errorMapping";
 
 export class SystemViewResultParser {
   public static parseWithProgress(
@@ -50,19 +52,34 @@ export class SystemViewResultParser {
           const json = await this.parseSVDATToJSON(trace.filePath, workspaceUri);
           SystemViewPanel.show(extensionPath, json);
         } catch (error) {
-          Logger.errorNotify(
-            "Failed to parse JSON from SVDAT file, make sure you've the proper version of sysviewtrace_proc.py installed and it supports JSON format output with (-j) flag",
-            error as Error,
-            "SystemViewResultParser parseWithProgress"
+          if (isKnownError(error)) {
+            await handleError(
+              "espIdf.apptrace.archive.showReport",
+              error,
+              undefined,
+              traceArchiveCommandErrorMapping
+            );
+            return;
+          }
+          await handleError(
+            "espIdf.apptrace.archive.showReport",
+            parseError(trace.filePath),
+            undefined,
+            traceArchiveCommandErrorMapping
           );
         }
       }
     );
   }
+
   private static async parseSVDATToJSON(filePath: string, workspaceUri: Uri): Promise<any> {
     const elfFilePath = await getProjectElfFilePath(workspaceUri);
     const sysView = new SysviewTraceProc(workspaceUri, filePath, elfFilePath);
     const resp = await sysView.parse();
-    return JSON.parse(resp.toString());
+    try {
+      return JSON.parse(resp.toString());
+    } catch (_error) {
+      throw parseError(filePath);
+    }
   }
 }

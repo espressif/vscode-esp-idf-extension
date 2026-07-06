@@ -216,6 +216,30 @@ export function openOcdHintsLoadFailed(detail: string): KnownError {
   return known(ErrorCode.OpenOcdHintsLoadFailed, { detail });
 }
 
+export type TraceTclPhase = "reset" | "start" | "status" | "stop";
+
+export function traceTclFailed(
+  detail: string,
+  phase: TraceTclPhase = "start"
+): KnownError {
+  return known(ErrorCode.TraceTclFailed, { detail, phase });
+}
+
+export function heapTraceNotSupported(): KnownError {
+  return known(ErrorCode.HeapTraceNotSupported);
+}
+
+export function traceGdbProcessFailed(metadata?: {
+  exitCode?: number;
+  detail?: string;
+}): KnownError {
+  return known(ErrorCode.TraceGdbProcessFailed, metadata);
+}
+
+export function traceInvalidCommand(): KnownError {
+  return known(ErrorCode.TraceInvalidCommand);
+}
+
 export function alreadyErasing(): KnownError {
   return known(ErrorCode.AlreadyErasing);
 }
