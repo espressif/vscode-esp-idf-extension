@@ -16,23 +16,62 @@
  * limitations under the License.
  */
 
-import { ExtensionContext, l10n, TerminalLocation, window } from "vscode";
+import {
+  commands,
+  ExtensionContext,
+  Terminal,
+  TerminalLocation,
+} from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
-import { readParameter } from "../configuration/idf";
-import { getCurrentIdfSetup } from "../eim/loadIdfSetup";
-import { pathExists } from "fs-extra";
-import { join } from "path";
-import { Logger } from "../common/logger";
+import { ErrorSeverity } from "../common/customNotifications";
+import { CommandErrorMapping, ErrorCode } from "../common/error/types";
+import { noWorkspaceOpen } from "../common/error/knownError";
 import { ESP } from "../config";
-import { getCurrentIdfConfiguration } from "../configuration/env";
+import { createEspIdfTerminalMain } from "./main";
+
+export const terminalCommandErrorMapping: CommandErrorMapping = {
+  [ErrorCode.INVALID_CONFIGURATION]: {
+    severity: ErrorSeverity.Error,
+    userMessage:
+      "No ESP-IDF setup is selected. Please select an ESP-IDF version.",
+    logMessage: "ESP-IDF setup not found for terminal activation.",
+    actions: [
+      {
+        label: "Select ESP-IDF Version",
+        execute: () =>
+          commands.executeCommand("espIdf.selectCurrentIdfVersion"),
+      },
+    ],
+    outputChannel: "Terminal",
+  },
+  [ErrorCode.FILE_NOT_FOUND]: {
+    severity: ErrorSeverity.Error,
+    userMessage:
+      "Required file {filePath} could not be found for terminal activation.",
+    logMessage: "Terminal activation file not found: {filePath}.",
+    actions: [],
+    outputChannel: "Terminal",
+  },
+};
 
 export function registerIdfTerminalCommand(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.createIdfTerminal", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      await createEspIdfTerminal(context.extensionPath, "ESP-IDF Terminal");
-    });
-  });
+  registerIDFCommand(
+    context,
+    "espIdf.createIdfTerminal",
+    async () => {
+      await PreCheck.perform([openFolderCheck], async () => {
+        const workspaceFolder =
+          ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        await createEspIdfTerminalMain(
+          workspaceFolder,
+          context.extensionPath,
+          "ESP-IDF Terminal"
+        );
+      });
+    },
+    terminalCommandErrorMapping
+  );
 }
 
 export async function createEspIdfTerminal(
@@ -40,79 +79,17 @@ export async function createEspIdfTerminal(
   terminalName: string,
   initialCommand?: string,
   location?: TerminalLocation
-) {
-  const workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+): Promise<Terminal> {
+  const workspaceFolder =
+    ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
   if (!workspaceFolder) {
-    Logger.infoNotify(l10n.t("Open a folder first."));
-    return;
+    throw noWorkspaceOpen();
   }
-  const shellExecutableArgs = readParameter(
-    "idf.customTerminalExecutableArgs",
-    workspaceFolder
-  ) as string[];
-  let shellArgs: string[] = [];
-  if (process.platform === "win32") {
-    shellArgs = ["-ExecutionPolicy", "Bypass"];
-  } else if (shellExecutableArgs && shellExecutableArgs.length) {
-    shellArgs = shellExecutableArgs;
-  }
-  let shellExecutablePath = readParameter(
-    "idf.customTerminalExecutable",
-    workspaceFolder
-  ) as string;
-  const shellPath =
-    process.platform === "win32"
-      ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
-      : shellExecutablePath
-      ? shellExecutablePath
-      : "bash";
-
-  const currentSetup = await getCurrentIdfSetup(workspaceFolder);
-  if (!currentSetup) {
-    Logger.errorNotify(
-      l10n.t("Failed to load ESP-IDF setup for terminal activation"),
-      new Error("ESP-IDF setup load failed"),
-      "extension createEspIdfTerminal load setup"
-    );
-    return;
-  }
-
-  if (!currentSetup.idfPath || !(await pathExists(currentSetup.idfPath))) {
-    Logger.info(
-      `Creating ESP-IDF terminal with IDF_PATH: ${currentSetup.idfPath}`
-    );
-    return;
-  }
-
-  const modifiedEnv = getCurrentIdfConfiguration();
-  const espIdfTerminal = window.createTerminal({
-    name: terminalName,
-    env: modifiedEnv,
-    cwd: workspaceFolder.uri.fsPath || currentSetup.idfPath || process.cwd(),
-    strictEnv: true,
-    shellArgs,
-    shellPath,
-    location,
-  });
-  const activationScriptPathExists = await pathExists(
-    currentSetup.activationScript
+  return createEspIdfTerminalMain(
+    workspaceFolder,
+    extensionPath,
+    terminalName,
+    initialCommand,
+    location
   );
-
-  if (process.platform === "win32") {
-    const activationScriptPath = activationScriptPathExists
-      ? currentSetup.activationScript
-      : join(extensionPath, "export.ps1");
-    espIdfTerminal.sendText(`& '${activationScriptPath.replace(/'/g, "''")}'`);
-  } else if (activationScriptPathExists) {
-    espIdfTerminal.sendText(
-      `. '${currentSetup.activationScript.replace(/'/g, "''")}'`
-    );
-  }
-
-  if (initialCommand) {
-    espIdfTerminal.sendText(initialCommand);
-  }
-
-  espIdfTerminal.show();
-  return espIdfTerminal;
 }
