@@ -236,3 +236,20 @@ export function monitorDebugLaunchFailed(
     detail ? { context, detail } : { context }
   );
 }
+
+export type ConfserverProcessPhase = "startup" | "reconfigure" | "runtime";
+
+export function confserverProcessFailed(
+  phase: ConfserverProcessPhase,
+  metadata?: {
+    exitCode?: number;
+    signal?: string | null;
+    detail?: string;
+  }
+): KnownError {
+  return known(ErrorCode.ConfserverProcessFailed, { phase, ...metadata });
+}
+
+export function confserverProtocolError(detail: string): KnownError {
+  return known(ErrorCode.ConfserverProtocolError, { detail });
+}

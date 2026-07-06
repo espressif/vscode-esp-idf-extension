@@ -17,11 +17,15 @@
  */
 
 import { CancellationToken, Uri } from "vscode";
-import { addProcessTask, TaskManager } from "../../taskManager/taskManager";
+import {
+  addProcessTask,
+  TaskManager,
+  throwCapturedTaskFailure,
+} from "../../taskManager/taskManager";
 import { Logger } from "../../common/logger";
 import { join } from "path";
-import { pathExists } from "fs-extra";
-import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
+import { requireIdfPath, resolvePythonForIdfPy } from "./validation";
 
 export async function saveDefSdkconfig(
   workspaceFolder: Uri,
@@ -35,16 +39,12 @@ export async function saveDefSdkconfig(
     });
   }
   const modifiedEnv = getCurrentIdfConfiguration();
+  const idfPath = requireIdfPath(modifiedEnv);
+  const pythonBinPath = await resolvePythonForIdfPy();
   const saveDefConfArgs = [
-    join(modifiedEnv["IDF_PATH"], "tools", "idf.py"),
+    join(idfPath, "tools", "idf.py"),
     "save-defconfig",
   ];
-  const pythonBinPath = getVirtualEnvPythonPath();
-  if (!pythonBinPath || !await pathExists(pythonBinPath)) {
-    throw new Error(
-      `Virtual environment Python path doesn't exist. Configure the extension first.`
-    );
-  }
   const saveDefSdkconfigExecution = addProcessTask(
     "Save Default SDKCONFIG",
     workspaceFolder,
@@ -52,10 +52,11 @@ export async function saveDefSdkconfig(
     saveDefConfArgs,
     workspaceFolder.fsPath,
     modifiedEnv,
-    { captureOutput }
+    { captureOutput: captureOutput || true }
   );
   try {
     await TaskManager.runTasks();
+    await throwCapturedTaskFailure([saveDefSdkconfigExecution]);
     if (!cancelToken?.isCancellationRequested) {
       Logger.infoNotify("def-config has been generated");
     }

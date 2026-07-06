@@ -15,11 +15,18 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../../../common/logger";
+import { handleError } from "../../../common/error/handler";
+import {
+  confserverProtocolError,
+  parseError,
+} from "../../../common/error/knownError";
 import { getWebViewFavicon } from "../../../utils";
 import { ConfserverProcess } from "../confserver/confServerProcess";
 import { Menu } from "../Menu";
 import { NotificationMode, readParameter } from "../../../configuration/idf";
 import { createMenuconfigPanelController } from "./controller";
+import { menuconfigCommandErrorMapping } from "../errorMapping";
+import { kconfigMenusPath } from "../validation";
 
 export class MenuConfigPanel {
   public static currentPanel: MenuConfigPanel | undefined;
@@ -166,16 +173,32 @@ export class MenuConfigPanel {
   }
 
   private updateConfigValues(values: string) {
-    // This function will be executed when confServerProcess
-    // receives a new JSON with values.
-    const jsonValues = JSON.parse(values);
+    let jsonValues: {
+      values: Record<string, unknown>;
+      error?: string;
+    };
+    try {
+      jsonValues = JSON.parse(values);
+    } catch {
+      void handleError(
+        "espIdf.menuconfig.panel",
+        parseError(kconfigMenusPath(this.curWorkspaceFolder)),
+        undefined,
+        menuconfigCommandErrorMapping
+      );
+      return;
+    }
     if (Object.keys(jsonValues.values).length <= 0) {
       return;
     }
 
     if (jsonValues.error) {
-      const err = new Error(`Invalid data error: ${jsonValues.error}`);
-      Logger.error(err.message, err, "MenuconfigPanel updateConfigValues");
+      void handleError(
+        "espIdf.menuconfig.panel",
+        confserverProtocolError(jsonValues.error),
+        undefined,
+        menuconfigCommandErrorMapping
+      );
       return;
     }
     const updatedMenus = ConfserverProcess.updateValues(values);
@@ -244,14 +267,11 @@ export class MenuConfigPanel {
         try {
           await ConfserverProcess.setDefaultValues(extensionPath, progress);
         } catch (error) {
-          const errMsg =
-            error && typeof error === "object" && "message" in error
-              ? (error as Error).message
-              : String(error);
-          Logger.errorNotify(
-            errMsg,
-            error as Error,
-            "MenuConfigPanel setDefaultValues"
+          await handleError(
+            "espIdf.menuconfig.setDefault",
+            error,
+            undefined,
+            menuconfigCommandErrorMapping
           );
         }
       }
