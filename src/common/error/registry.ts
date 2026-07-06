@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-import { commands, window } from "vscode";
+import { commands, env, Uri, window } from "vscode";
 import {
   ErrorCode,
   KnownErrorDescriptor,
 } from "./types";
 import { ErrorSeverity } from "../customNotifications";
 import { OutputChannel } from "../outputChannel";
+import { ESP } from "../../config";
 
 /**
  * Global registry of default descriptors for each known error code.
@@ -252,50 +253,6 @@ registerNewErrorInRegistry({
   outputChannel: flashOutputChannel,
 });
 
-const launchOpenOcdAction = {
-  label: "Launch OpenOCD",
-  execute: () => commands.executeCommand("espIdf.openOCDCommand"),
-};
-
-registerNewErrorInRegistry({
-  code: ErrorCode.OpenOcdLaunchDeclined,
-  severity: ErrorSeverity.Info,
-  userMessage: "OpenOCD was not launched.",
-  logMessage: "JTAG operation cancelled: user declined to launch OpenOCD.",
-  actions: [launchOpenOcdAction],
-  outputChannel: flashOutputChannel,
-});
-
-registerNewErrorInRegistry({
-  code: ErrorCode.OpenOcdNotRunning,
-  severity: ErrorSeverity.Warning,
-  userMessage:
-    "Can't perform JTAG flash, because OpenOCD server is not running!",
-  logMessage: "OpenOCD server is not running after launch attempt.",
-  actions: [launchOpenOcdAction],
-  outputChannel: flashOutputChannel,
-});
-
-registerNewErrorInRegistry({
-  code: ErrorCode.OpenOcdNotReady,
-  severity: ErrorSeverity.Warning,
-  userMessage: "OpenOCD is not ready to accept commands. Please try again.",
-  logMessage: "OpenOCD TCL server did not become ready within retry limit.",
-  actions: [launchOpenOcdAction],
-  outputChannel: flashOutputChannel,
-});
-
-registerNewErrorInRegistry({
-  code: ErrorCode.OpenOcdVersionTooLow,
-  severity: ErrorSeverity.Warning,
-  userMessage:
-    "Minimum OpenOCD version {minVersion} is required while you have {currentVersion} version installed",
-  logMessage:
-    "OpenOCD version {currentVersion} is below required minimum {minVersion}.",
-  actions: [launchOpenOcdAction],
-  outputChannel: flashOutputChannel,
-});
-
 // ──────────────────────────── Erase flash errors ─────────────────────
 
 const eraseFlashOutputChannel = "Erase flash";
@@ -386,6 +343,136 @@ registerNewErrorInRegistry({
   logMessage: "Monitor postmortem debug launch failed ({context}): {detail}.",
   actions: [],
   outputChannel: monitorOutputChannel,
+});
+
+// ──────────────────────────── OpenOCD errors ─────────────────────────
+
+const openOcdOutputChannel = "OpenOCD";
+
+const launchOpenOcdAction = {
+  label: "Launch OpenOCD",
+  execute: () => commands.executeCommand("espIdf.openOCDCommand"),
+};
+
+const selectOpenOcdConfigsAction = {
+  label: "Select Board Configs",
+  execute: () => commands.executeCommand("espIdf.selectOpenOcdConfigFiles"),
+};
+
+const viewOpenOcdOutputAction = {
+  label: "View OpenOCD Output",
+  execute: () => OutputChannel.show(),
+};
+
+const openOcdTroubleshootingFaqAction = {
+  label: "Troubleshooting FAQ",
+  execute: () =>
+    env.openExternal(Uri.parse(ESP.URL.OpenOcdTroubleshootingFaq)),
+};
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdLaunchDeclined,
+  severity: ErrorSeverity.Info,
+  userMessage: "OpenOCD was not launched.",
+  logMessage: "User declined to launch OpenOCD.",
+  actions: [launchOpenOcdAction],
+  outputChannel: openOcdOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdNotRunning,
+  severity: ErrorSeverity.Warning,
+  userMessage: "OpenOCD server is not running.",
+  logMessage: "OpenOCD server is not running after launch attempt.",
+  actions: [launchOpenOcdAction],
+  outputChannel: openOcdOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdNotReady,
+  severity: ErrorSeverity.Warning,
+  userMessage: "OpenOCD is not ready to accept commands. Please try again.",
+  logMessage: "OpenOCD TCL server did not become ready within retry limit.",
+  actions: [launchOpenOcdAction],
+  outputChannel: openOcdOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdVersionTooLow,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "Minimum OpenOCD version {minVersion} is required while you have {currentVersion} version installed",
+  logMessage:
+    "OpenOCD version {currentVersion} is below required minimum {minVersion}.",
+  actions: [launchOpenOcdAction],
+  outputChannel: openOcdOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdStartFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "OpenOCD server failed to start: {detail}",
+  logMessage: "OpenOCD server failed to start: {detail}",
+  actions: [
+    viewOpenOcdOutputAction,
+    selectOpenOcdConfigsAction,
+    openOcdTroubleshootingFaqAction,
+  ],
+  outputChannel: openOcdOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdProcessExited,
+  severity: ErrorSeverity.Error,
+  userMessage: "OpenOCD exited with error code {exitCode}.",
+  logMessage: "OpenOCD process exited with non-zero code {exitCode}.",
+  actions: [
+    viewOpenOcdOutputAction,
+    openOcdTroubleshootingFaqAction,
+  ],
+  outputChannel: openOcdOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdNoBoardsForTarget,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "No OpenOCD boards found for target {target}. Check your OPENOCD_SCRIPTS environment variable.",
+  logMessage: "No OpenOCD boards found for target {target}.",
+  actions: [
+    {
+      label: "Open Settings",
+      execute: () =>
+        commands.executeCommand(
+          "workbench.action.openSettings",
+          "idf.customExtraVars"
+        ),
+    },
+  ],
+  outputChannel: openOcdOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdBoardSelectionFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Failed to select OpenOCD configuration files: {detail}",
+  logMessage: "OpenOCD board selection failed: {detail}",
+  actions: [selectOpenOcdConfigsAction],
+  outputChannel: openOcdOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdHintsLoadFailed,
+  severity: ErrorSeverity.Warning,
+  userMessage: "Failed to load OpenOCD error hints: {detail}",
+  logMessage: "OpenOCD hints load failed: {detail}",
+  actions: [
+    {
+      label: "View Error Hints",
+      execute: () => commands.executeCommand("espIdf.errorHints.focus"),
+    },
+  ],
+  outputChannel: openOcdOutputChannel,
 });
 
 // ──────────────────────────── Menuconfig errors ────────────────────────

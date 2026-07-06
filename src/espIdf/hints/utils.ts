@@ -50,7 +50,7 @@ export async function getOpenOcdHintsYmlPath(
     return hintsPath;
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
-    Logger.errorNotify(
+    Logger.error(
       `Error determining OpenOCD hints path: ${errMsg}`,
       error as Error,
       "getOpenOcdHintsYmlPath"

@@ -15,7 +15,13 @@
 import * as yaml from "js-yaml";
 import { readFile } from "fs-extra";
 import { Logger } from "../../common/logger";
+import { handleError } from "../../common/error/handler";
+import {
+  openOcdHintsLoadFailed,
+  parseError,
+} from "../../common/error/knownError";
 import { getOpenOcdHintsYmlPath } from "./utils";
+import { openOcdHintsCommandErrorMapping } from "./errorMapping";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { ErrorHintProvider } from "./provider";
 import { PreCheck } from "../../common/PreCheck";
@@ -68,10 +74,11 @@ export class OpenOCDErrorMonitor {
       this.watchOpenOCDStatus();
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
-      Logger.errorNotify(
-        `Error initializing OpenOCD error monitor: ${errMsg}`,
-        error as Error,
-        "OpenOCDErrorMonitor initialize"
+      void handleError(
+        "espIdf.errorHints",
+        openOcdHintsLoadFailed(errMsg),
+        undefined,
+        openOcdHintsCommandErrorMapping
       );
     }
   }
@@ -105,10 +112,16 @@ export class OpenOCDErrorMonitor {
         Logger.info(`Loaded OpenOCD hints from ${openOcdHintsPath}`);
       } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
-        Logger.errorNotify(
+        Logger.error(
           `Error processing OpenOCD hints file: ${errMsg}`,
           error as Error,
           "OpenOCDErrorMonitor setHintsData"
+        );
+        void handleError(
+          "espIdf.errorHints",
+          parseError(openOcdHintsPath),
+          undefined,
+          openOcdHintsCommandErrorMapping
         );
         this.hintsData = [];
       }
@@ -274,7 +287,7 @@ export class OpenOCDErrorMonitor {
       }
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
-      Logger.errorNotify(
+      Logger.error(
         `Error analyzing OpenOCD output: ${errMsg}`,
         error as Error,
         "analyzeErrors"
@@ -314,7 +327,7 @@ export class OpenOCDErrorMonitor {
       );
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
-      Logger.errorNotify(
+      Logger.error(
         `Error showing OpenOCD error hint: ${errMsg}`,
         error as Error,
         "showErrorHint"

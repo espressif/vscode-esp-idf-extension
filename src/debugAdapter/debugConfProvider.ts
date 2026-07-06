@@ -103,7 +103,15 @@ export class CDTDebugConfigurationProvider
       debugConfiguration.sessionID !== "qemu.debug.session" &&
       debugConfiguration.runOpenOCD !== false
     ) {
-      await openOCDManager.start();
+      try {
+        await openOCDManager.start();
+      } catch (error) {
+        if (isKnownError(error)) {
+          await handleError("debug.resolveConfiguration", error);
+          return debugConfiguration;
+        }
+        throw error;
+      }
     }
     return debugConfiguration;
   }
