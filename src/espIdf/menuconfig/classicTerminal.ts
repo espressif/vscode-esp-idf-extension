@@ -16,20 +16,15 @@
  * limitations under the License.
  */
 
-import { l10n, TerminalLocation } from "vscode";
+import { TerminalLocation } from "vscode";
 import { openFolderCheck, PreCheck } from "../../common/PreCheck";
 import { ESP } from "../../config";
 import { readParameter } from "../../configuration/idf";
 import { createEspIdfTerminal } from "../../terminal";
-import { Logger } from "../../common/logger";
 
 export async function createClassicMenuconfig(extensionPath: string) {
   PreCheck.perform([openFolderCheck], async () => {
     const workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-    if (!workspaceFolder) {
-        Logger.infoNotify(l10n.t("Open a folder first."));
-        return;
-      }
     // Get build directory and sdkconfig file from settings
     const buildDirPath = readParameter(
       "idf.buildPath",
