@@ -16,8 +16,13 @@
  * limitations under the License.
  */
 
+import { constants } from "fs";
 import { join } from "path";
 import { Uri } from "vscode";
+import {
+  fileNotFound,
+  idfToolNotFound,
+} from "../../../common/error/knownError";
 import { canAccessFile, spawn } from "../../../utils";
 import { getCurrentIdfConfiguration } from "../../../configuration/env";
 
@@ -52,13 +57,17 @@ export abstract class AbstractTracingToolManager {
     return join(idfPathDir, "tools", "esp_app_trace");
   }
 
-  protected preCheck(filePaths: string[], mode: number): boolean {
-    let didPassAll = true;
-    filePaths.forEach((filePath) => {
+  protected requireAccessible(filePaths: string[], mode: number): void {
+    for (const filePath of filePaths) {
       if (!canAccessFile(filePath, mode)) {
-        didPassAll = false;
+        throw fileNotFound(filePath);
       }
-    });
-    return didPassAll;
+    }
+  }
+
+  protected requireExecutableTool(toolPath: string, toolName: string): void {
+    if (!canAccessFile(toolPath, constants.X_OK)) {
+      throw idfToolNotFound(toolName);
+    }
   }
 }

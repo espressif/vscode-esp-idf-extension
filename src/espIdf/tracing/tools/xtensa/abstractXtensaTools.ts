@@ -17,7 +17,7 @@
  */
 
 import { Uri } from "vscode";
-import { Logger } from "../../../../common/logger";
+import { idfToolNotFound } from "../../../../common/error/knownError";
 import { getToolchainToolName, spawn } from "../../../../utils";
 import { getIdfTargetFromSdkconfig } from "../../../../configuration/workspace";
 import { getCurrentIdfConfiguration } from "../../../../configuration/env";
@@ -35,16 +35,12 @@ export abstract class XtensaTools {
     try {
       return await spawn(toolName, args, { env });
     } catch (error) {
-      Logger.errorNotify(
-        `Make sure ${this.toolName} is set in the Path with proper permission`,
-        error as Error,
-        "XtensaTools call"
-      );
+      throw idfToolNotFound(toolName);
     }
   }
 
-  private async  toolNameForTarget(toolName: string) {
-    let idfTarget = await getIdfTargetFromSdkconfig(this.workspaceRoot);
+  private async toolNameForTarget(toolName: string) {
+    const idfTarget = await getIdfTargetFromSdkconfig(this.workspaceRoot);
     const toolNameResult = getToolchainToolName(idfTarget, toolName);
     return toolNameResult ? toolNameResult : `unknown-tracing-tool`;
   }

@@ -19,6 +19,7 @@
 import { constants, existsSync } from "fs";
 import { basename, dirname, join } from "path";
 import * as vscode from "vscode";
+import { fileNotFound } from "../../../common/error/knownError";
 
 import { AbstractTracingToolManager } from "./abstractTracingToolManager";
 
@@ -59,19 +60,12 @@ export class SysviewTraceProc extends AbstractTracingToolManager {
   }
 
   public async parse(): Promise<Buffer> {
-    if (!this.traceFilePath || !this.preCheck([this.traceFilePath], constants.R_OK)) {
-      throw new Error("Trace file does not exists or not accessible");
+    if (!this.traceFilePath) {
+      throw fileNotFound("");
     }
-    if (
-      !this.preCheck(
-        [join(this.appTraceToolsPath(), "sysviewtrace_proc.py")],
-        constants.X_OK
-      )
-    ) {
-      throw new Error(
-        "sysviewtrace_proc.py tool is not found or not accessible"
-      );
-    }
+    this.requireAccessible([this.traceFilePath], constants.R_OK);
+    const toolPath = join(this.appTraceToolsPath(), "sysviewtrace_proc.py");
+    this.requireExecutableTool(toolPath, "sysviewtrace_proc.py");
     const args = ["sysviewtrace_proc.py", "-j"];
     if (this.elfFilePath) {
       // -b expects a filesystem path (not file://), matching IDF / Eclipse usage

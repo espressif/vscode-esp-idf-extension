@@ -475,6 +475,56 @@ registerNewErrorInRegistry({
   outputChannel: openOcdOutputChannel,
 });
 
+// ──────────────────────────── Tracing errors ───────────────────────────
+
+const tracingOutputChannel = "Tracing";
+
+const viewTracingOutputAction = {
+  label: "View Tracing Output",
+  execute: () => OutputChannel.show(),
+};
+
+registerNewErrorInRegistry({
+  code: ErrorCode.TraceTclFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "App trace failed during {phase}: {detail}",
+  logMessage: "App trace TCL failure during {phase}: {detail}",
+  actions: [
+    launchOpenOcdAction,
+    viewTracingOutputAction,
+  ],
+  outputChannel: tracingOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.HeapTraceNotSupported,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "Could not perform heap tracing. Enable heap tracing in your firmware configuration.",
+  logMessage: "Heap trace functions not defined in firmware.",
+  actions: [],
+  outputChannel: tracingOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.TraceGdbProcessFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Heap trace GDB process failed: {detail}",
+  logMessage: "Heap trace GDB process failed (exitCode: {exitCode}, detail: {detail}).",
+  actions: [viewTracingOutputAction],
+  outputChannel: tracingOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.TraceInvalidCommand,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "Cannot call this command directly. Click on a trace in the archive to view its report.",
+  logMessage: "Trace report command invoked without a trace argument.",
+  actions: [],
+  outputChannel: tracingOutputChannel,
+});
+
 // ──────────────────────────── Menuconfig errors ────────────────────────
 
 const menuconfigOutputChannel = "SDK Configuration Editor";
