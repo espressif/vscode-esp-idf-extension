@@ -17,52 +17,75 @@
  */
 
 import { join } from "path";
-import { l10n, Uri } from "vscode";
+import { Uri } from "vscode";
 import { readParameter, readSerialPort } from "../configuration/idf";
 import { Logger } from "../common/logger";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 import { pathExists } from "fs-extra";
 import { createFlashModel } from "../flash/transports/uart/flashModelBuilder";
 import { spawn } from "../utils";
+import {
+  esptoolNotAccessible,
+  flasherArgsMissing,
+  invalidConfiguration,
+  isKnownError,
+  known,
+  missingDependency,
+  noSerialPort,
+} from "../common/error/knownError";
+import { ErrorCode } from "../common/error/types";
 
-export async function verifyAppBinary(workspaceFolder: Uri) {
+let readSerialPortForTests:
+  | ((workspaceFolder: Uri, allowPrompt: boolean) => Promise<string>)
+  | undefined;
+
+export function setReadSerialPortForTests(
+  fn:
+    | ((workspaceFolder: Uri, allowPrompt: boolean) => Promise<string>)
+    | undefined
+): void {
+  readSerialPortForTests = fn;
+}
+
+async function loadSerialPort(workspaceFolder: Uri): Promise<string> {
+  if (readSerialPortForTests) {
+    return readSerialPortForTests(workspaceFolder, false);
+  }
+  return readSerialPort(workspaceFolder, false);
+}
+
+export async function verifyAppBinary(workspaceFolder: Uri): Promise<void> {
   const modifiedEnv = getCurrentIdfConfiguration();
-  const serialPort = await readSerialPort(workspaceFolder, false);
+  const serialPort = await loadSerialPort(workspaceFolder);
   if (!serialPort) {
-    Logger.warnNotify(
-      l10n.t(
-        "No serial port found for current IDF_TARGET: {0}",
-        modifiedEnv["IDF_TARGET"] || "default"
-      )
-    );
-    return false;
+    throw noSerialPort(modifiedEnv["IDF_TARGET"] || "default");
   }
   const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolder) as string;
   const pythonBinPath = getVirtualEnvPythonPath();
   if (!pythonBinPath) {
-    Logger.info(
-      "Python environment is not set up. Please set up Python environment to verify app binary."
-    );
-    return false;
+    throw missingDependency("Python");
+  }
+  const idfPath = modifiedEnv["IDF_PATH"];
+  if (!idfPath) {
+    throw esptoolNotAccessible();
   }
   const esptoolPath = join(
-    modifiedEnv["IDF_PATH"],
+    idfPath,
     "components",
     "esptool_py",
     "esptool",
     "esptool.py"
   );
+  if (!(await pathExists(esptoolPath))) {
+    throw esptoolNotAccessible();
+  }
   const buildDirPath = readParameter(
     "idf.buildPath",
     workspaceFolder
   ) as string;
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
-  const flasherArgsJsonPathExists = await pathExists(flasherArgsJsonPath);
-  if (!flasherArgsJsonPathExists) {
-    Logger.info(
-      `${flasherArgsJsonPath} doesn't exist. Build the project first`
-    );
-    return false;
+  if (!(await pathExists(flasherArgsJsonPath))) {
+    throw flasherArgsMissing();
   }
   const model = await createFlashModel(
     flasherArgsJsonPath,
@@ -87,29 +110,30 @@ export async function verifyAppBinary(workspaceFolder: Uri) {
       }
     );
     Logger.info(cmdResult.toString());
-    if (
-      cmdResult.toString().indexOf("verify FAILED (digest mismatch)") !== -1
-    ) {
-      return false;
-    } else if (
-      cmdResult.toString().indexOf("verify OK (digest matched)") !== -1
-    ) {
-      return true;
+    const output = cmdResult.toString();
+    if (output.indexOf("verify FAILED (digest mismatch)") !== -1) {
+      throw invalidConfiguration("verifyAppBinBeforeDebug");
     }
-    return false;
+    if (output.indexOf("verify OK (digest matched)") !== -1) {
+      return;
+    }
+    throw known(ErrorCode.TaskFailedWithOutput, {
+      detail: "Unexpected esptool verify_flash output",
+    });
   } catch (error) {
+    if (isKnownError(error)) {
+      throw error;
+    }
     if (
-      error &&
       error instanceof Error &&
-      error.message &&
       error.message.indexOf("verify FAILED (digest mismatch)") !== -1
     ) {
-      return false;
+      throw invalidConfiguration("verifyAppBinBeforeDebug");
     }
-    const msg = error && error instanceof Error && error.message
-      ? error.message
-      : "Something wrong while verifying app binary.";
-    Logger.errorNotify(msg, error as Error, "verifyAppBinary");
-    return false;
+    const msg =
+      error instanceof Error && error.message
+        ? error.message
+        : "App binary verification failed.";
+    throw known(ErrorCode.TaskFailedWithOutput, { detail: msg });
   }
 }

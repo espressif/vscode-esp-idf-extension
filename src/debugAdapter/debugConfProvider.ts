@@ -21,41 +21,48 @@ import {
   DebugConfiguration,
   DebugConfigurationProvider,
   WorkspaceFolder,
-  window,
 } from "vscode";
 import { readParameter } from "../configuration/idf";
 import {
   getConfigValueFromSDKConfig,
   getIdfTargetFromSdkconfig,
-  getProjectElfFilePath,
 } from "../configuration/workspace";
 import { join } from "path";
 import { pathExists } from "fs-extra";
-import { verifyAppBinary } from "./verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../common/logger";
-import { getToolchainPath } from "../utils";
-import { ESP } from "../config";
 import { buildFlashAndMonitor } from "../buildFlashMonitor";
 import { monitorMain } from "../espIdf/monitor/main";
 import { handleError } from "../common/error/handler";
-import { isKnownError } from "../common/error/knownError";
+import { fileNotFound, isKnownError } from "../common/error/knownError";
+import { ErrorSeverity } from "../common/customNotifications";
+import { debugCommandErrorMapping } from "./errorMapping";
+import { ErrorCode } from "../common/error/types";
+import {
+  requireBuildDirPath,
+  requireWorkspaceFolderForDebug,
+  resolveDebugGdb,
+  resolveDebugProgram,
+  verifyAppBeforeDebug,
+} from "./validation";
 
-async function getOrPickWorkspaceFolder(
-  folder: WorkspaceFolder | undefined
-): Promise<WorkspaceFolder> {
-  if (!folder) {
-    folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-    if (!folder) {
-      folder = await window.showWorkspaceFolderPick({
-        placeHolder: "Pick a workspace folder to start a debug session.",
-      });
-      if (!folder) {
-        throw new Error("No folder was selected to start debug session");
-      }
-    }
+async function handleDebugConfigurationError(error: unknown): Promise<undefined> {
+  if (isKnownError(error)) {
+    await handleError(
+      "debug.resolveConfiguration",
+      error,
+      undefined,
+      debugCommandErrorMapping
+    );
+    return undefined;
   }
-  return folder;
+  const msg = error instanceof Error ? error.message : String(error);
+  Logger.error(
+    msg,
+    error as Error,
+    "CDTDebugConfigurationProvider resolveDebugConfiguration"
+  );
+  return undefined;
 }
 
 export class CDTDebugConfigurationProvider
@@ -65,7 +72,11 @@ export class CDTDebugConfigurationProvider
     debugConfiguration: DebugConfiguration,
     token?: CancellationToken
   ) {
-    folder = await getOrPickWorkspaceFolder(folder);
+    try {
+      folder = await requireWorkspaceFolderForDebug(folder);
+    } catch (error) {
+      return handleDebugConfigurationError(error);
+    }
     const useMonitorWithDebug = readParameter(
       "idf.launchMonitorOnDebugSession",
       folder
@@ -107,7 +118,12 @@ export class CDTDebugConfigurationProvider
         await openOCDManager.start();
       } catch (error) {
         if (isKnownError(error)) {
-          await handleError("debug.resolveConfiguration", error);
+          await handleError(
+            "debug.resolveConfiguration",
+            error,
+            undefined,
+            debugCommandErrorMapping
+          );
           return debugConfiguration;
         }
         throw error;
@@ -121,20 +137,9 @@ export class CDTDebugConfigurationProvider
     token?: CancellationToken
   ): Promise<DebugConfiguration | undefined> {
     try {
-      folder = await getOrPickWorkspaceFolder(folder);
-      if (!config.program) {
-        const elfFilePath = await getProjectElfFilePath(folder.uri);
-        const elfFileExists = await pathExists(elfFilePath);
-        if (!elfFileExists) {
-          throw new Error(
-            `${elfFilePath} doesn't exist. Build this project first.`
-          );
-        }
-        config.program = elfFilePath;
-      }
-      if (!config.gdb) {
-        config.gdb = await getToolchainPath("gdb");
-      }
+      folder = await requireWorkspaceFolderForDebug(folder);
+      config.program = await resolveDebugProgram(config, folder);
+      config.gdb = await resolveDebugGdb(config);
       if (
         config.sessionID !== "core-dump.debug.session.ws" &&
         config.sessionID !== "gdbstub.debug.session.ws" &&
@@ -150,10 +155,7 @@ export class CDTDebugConfigurationProvider
           folder.uri
         );
         if (isAppReproducibleBuildEnabled === "y") {
-          const buildDirPath = readParameter("idf.buildPath", folder) as string;
-          if (!buildDirPath) {
-            throw new Error("Failed to get build directory path.");
-          }
+          const buildDirPath = requireBuildDirPath(folder);
           const gdbinitPrefixMap = join(buildDirPath, "gdbinit", "prefix_map");
           const gdbinitPrefixMapExists = await pathExists(gdbinitPrefixMap);
           if (gdbinitPrefixMapExists) {
@@ -166,8 +168,23 @@ export class CDTDebugConfigurationProvider
             if (prefix_map_gdbinitExists) {
               config.initCommands.push(`source ${prefix_map_gdbinit}`);
             } else {
-              window.showInformationMessage(
-                `CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found.`
+              const missingPath = gdbinitPrefixMap;
+              await handleError(
+                "debug.resolveConfiguration",
+                fileNotFound(missingPath),
+                undefined,
+                {
+                  ...debugCommandErrorMapping,
+                  [ErrorCode.FILE_NOT_FOUND]: {
+                    severity: ErrorSeverity.Warning,
+                    userMessage:
+                      "CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found at {filePath}.",
+                    logMessage:
+                      "Reproducible build gdbinit prefix map not found: {filePath}.",
+                    actions: [],
+                    outputChannel: "Debug",
+                  },
+                }
               );
             }
           }
@@ -193,7 +210,6 @@ export class CDTDebugConfigurationProvider
           | "esp32c4"
           | "esp32c5"
           | "esp32c61";
-        // Mapping of idfTarget to corresponding CPU watchpoint numbers
         const idfTargetWatchpointMap: Record<IdfTarget, number> = {
           esp32: 2,
           esp32s2: 2,
@@ -243,17 +259,10 @@ export class CDTDebugConfigurationProvider
         };
       }
       if (folder && folder.uri && config.verifyAppBinBeforeDebug) {
-        const isSameAppBinary = await verifyAppBinary(folder.uri);
-        if (!isSameAppBinary) {
-          throw new Error(
-            `Current app binary is different from your project. Flash first.`
-          );
-        }
+        await verifyAppBeforeDebug(folder.uri);
       }
     } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      Logger.error(msg, error as Error, "CDTDebugConfigurationProvider resolveDebugConfiguration");
-      return undefined;
+      return handleDebugConfigurationError(error);
     }
     return config;
   }

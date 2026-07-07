@@ -30,17 +30,24 @@ import { Register } from "./nodes/register";
 import { Cluster } from "./nodes/cluster";
 import { EnumeratedValue, EnumerationMap } from "./common";
 import { Field } from "./nodes/field";
+import { parseError } from "../../common/error/knownError";
 
 export class SVDParser {
   private static peripheralMap = {};
   private static enumTypeValuesMap = {};
   private static gapThreshold: number = 16;
+  private static currentSvdFilePath = "";
+
+  private static svdParseError(): never {
+    throw parseError(SVDParser.currentSvdFilePath);
+  }
 
   public static async parse(
     session: DebugSession,
     svdFilePath: string,
     gapThreshold: number
   ) {
+    SVDParser.currentSvdFilePath = svdFilePath;
     SVDParser.gapThreshold = gapThreshold;
     SVDParser.enumTypeValuesMap = {};
     SVDParser.peripheralMap = {};
@@ -49,7 +56,7 @@ export class SVDParser {
     return new Promise<Peripheral[]>((resolve, reject) => {
       parseString(svdData, async (err, result) => {
         if (err) {
-          return reject(err);
+          return reject(parseError(svdFilePath));
         }
 
         const peripheralMap = {};
@@ -146,9 +153,7 @@ export class SVDParser {
         offset = lsb;
       } else {
         // tslint:disable-next-line:max-line-length
-        throw new Error(
-          `Unable to parse SVD file: field ${f.name[0]} must have either bitOffset and bitWidth elements, bitRange Element, or msb and lsb elements.`
-        );
+        throw SVDParser.svdParseError();
       }
 
       let valueMap: EnumerationMap = null;
@@ -158,9 +163,7 @@ export class SVDParser {
         if (eValues.$ && eValues.$.derivedFrom) {
           const found = SVDParser.enumTypeValuesMap[eValues.$.derivedFrom];
           if (!found) {
-            throw new Error(
-              `Invalid derivedFrom=${eValues.$.derivedFrom} for enumeratedValues of field ${f.name[0]}`
-            );
+            throw SVDParser.svdParseError();
           }
           valueMap = found;
         } else {
@@ -205,16 +208,14 @@ export class SVDParser {
 
       if (f.dim) {
         if (!f.dimIncrement) {
-          throw new Error(
-            `Unable to parse SVD file: field ${f.name[0]} has dim element, with no dimIncrement element.`
-          );
+          throw SVDParser.svdParseError();
         }
 
         const count = parseInteger(f.dim[0]);
         const increment = parseInteger(f.dimIncrement[0]);
         let index = [];
         if (f.dimIndex) {
-          index = parseDimIndex(f.dimIndex[0], count);
+          index = parseDimIndex(f.dimIndex[0], count, SVDParser.currentSvdFilePath);
         } else {
           for (let i = 0; i < count; i++) {
             index.push(`${i}`);
@@ -266,9 +267,7 @@ export class SVDParser {
 
       if (c.dim) {
         if (!c.dimIncrement) {
-          throw new Error(
-            `Unable to parse SVD file: cluster ${c.name[0]} has dim element, with no dimIncrement element.`
-          );
+          throw SVDParser.svdParseError();
         }
 
         const count = parseInteger(c.dim[0]);
@@ -276,7 +275,7 @@ export class SVDParser {
 
         let index = [];
         if (c.dimIndex) {
-          index = parseDimIndex(c.dimIndex[0], count);
+          index = parseDimIndex(c.dimIndex[0], count, SVDParser.currentSvdFilePath);
         } else {
           for (let i = 0; i < count; i++) {
             index.push(`${i}`);
@@ -391,9 +390,7 @@ export class SVDParser {
         const from =
           registerMap[derivedFrom] || this.peripheralMap[derivedFrom];
         if (!from) {
-          throw new Error(
-            `Invalid 'derivedFrom' key "${derivedFrom}" in register ${reg.name[0]}`
-          );
+          throw SVDParser.svdParseError();
         }
         const combined = { ...from, ...reg };
         delete combined.$.derivedFrom;
@@ -418,13 +415,13 @@ export class SVDParser {
       }
       if (reg.dim) {
         if (!reg.dimIncrement) {
-          throw new Error("Register has dim element without dimIncrement");
+          throw SVDParser.svdParseError();
         }
         const count = parseInteger(reg.dim[0]);
         const increment = parseInteger(reg.dimIncrement[0]);
         let dimIndex = [];
         if (reg.dimIndex) {
-          dimIndex = parseDimIndex(reg.dimIndex[0], count);
+          dimIndex = parseDimIndex(reg.dimIndex[0], count, SVDParser.currentSvdFilePath);
         } else {
           for (let i = 0; i < count; i++) {
             dimIndex.push(`${i}`);

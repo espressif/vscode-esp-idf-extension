@@ -24,6 +24,7 @@ import {
   TreeItemLabel,
   window,
 } from "vscode";
+import { parseError } from "../../../common/error/knownError";
 import { Cluster } from "./cluster";
 import { AddrRange, NodeSetting, NumberFormat } from "../common";
 import { PeripheralBaseNode } from "./base";
@@ -345,10 +346,7 @@ export class Register extends PeripheralBaseNode {
           this.currentValue = buffer.readUInt32LE(0);
           break;
         default:
-          window.showErrorMessage(
-            `Register ${this.name} has invalid size: ${this.size}. Should be 8, 16 or 32.`
-          );
-          break;
+          throw parseError(`svd.register.${this.name}`);
       }
     } catch (error) {
       return Promise.reject(error);
