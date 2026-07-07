@@ -48,6 +48,7 @@ export enum ErrorCode {
   IdfToolNotFound = 'IdfToolNotFound',
   IdfTargetNotSet = 'IdfTargetNotSet',
   InvalidIdfVersion = 'InvalidIdfVersion',
+  InvalidIdfTarget = 'InvalidIdfTarget',
   BuildTerminated = 'BuildTerminated',
   FlashInProgress = 'FlashInProgress',
   ToolchainNotFound = 'ToolchainNotFound',
