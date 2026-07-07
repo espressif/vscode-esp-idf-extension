@@ -21,7 +21,6 @@ import {
 import { SerialPort } from "../espIdf/serial/serialPort";
 import { showInfoNotificationWithAction } from "../common/customNotifications";
 import {
-  commands,
   ConfigurationScope,
   ConfigurationTarget,
   l10n,
@@ -33,6 +32,8 @@ import {
 import { Logger } from "../common/logger";
 import { getIdfConfigurationSource } from "./idfConfigurationSource";
 import { getCurrentIdfConfiguration } from "./env";
+import { isKnownError } from "../common/error/knownError";
+import { ErrorCode } from "../common/error/types";
 
 export enum NotificationMode {
   Silent = "Silent",
@@ -330,8 +331,8 @@ export async function readSerialPort(
 
   if (port === "detect") {
     Logger.info("Port set to 'detect', running auto-detection...");
-    const detectedPort = await SerialPort.detectDefaultPort(workspaceFolder);
-    if (detectedPort) {
+    try {
+      const detectedPort = await SerialPort.detectDefaultPort(workspaceFolder);
       Logger.info(`Auto-detected port: ${detectedPort}`);
       await SerialPort.shared().updatePortListStatus(
         detectedPort,
@@ -339,15 +340,12 @@ export async function readSerialPort(
         useMonitorPort
       );
       return detectedPort;
-    } else {
-      Logger.warn("Auto-detection failed, no compatible device found");
-      // Do not await this function so it doesn't block progress update
-      showInfoNotificationWithAction(
-        l10n.t("Serial port auto-detection failed, no compatible device found"),
-        l10n.t("Detect"),
-        () => commands.executeCommand("espIdf.detectSerialPort")
-      );
-      return "";
+    } catch (error) {
+      if (isKnownError(error) && error.code === ErrorCode.NoSerialPort) {
+        Logger.warn("Auto-detection failed, no compatible device found");
+        return "";
+      }
+      throw error;
     }
   }
 

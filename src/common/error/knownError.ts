@@ -149,6 +149,10 @@ export function noSerialPort(idfTarget: string): KnownError {
   return known(ErrorCode.NoSerialPort, { idfTarget });
 }
 
+export function noSerialPortsAvailable(): KnownError {
+  return known(ErrorCode.NoSerialPortsAvailable);
+}
+
 export function noPortSelected(): KnownError {
   return known(ErrorCode.NoPortSelected);
 }

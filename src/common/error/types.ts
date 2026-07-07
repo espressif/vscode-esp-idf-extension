@@ -59,6 +59,7 @@ export enum ErrorCode {
   BuildRequiredBeforeFlash = 'BuildRequiredBeforeFlash',
   FlasherArgsMissing = 'FlasherArgsMissing',
   NoSerialPort = 'NoSerialPort',
+  NoSerialPortsAvailable = 'NoSerialPortsAvailable',
   NoPortSelected = 'NoPortSelected',
   NoBaudRateSelected = 'NoBaudRateSelected',
   FlashTypeNotSelected = 'FlashTypeNotSelected',
