@@ -26,6 +26,28 @@ import { readParameter } from "../configuration/idf";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 import { join } from "path";
 import { getProjectName } from "../configuration/workspace";
+import {
+  invalidConfiguration,
+  missingDependency,
+} from "../common/error/knownError";
+
+let getVirtualEnvPythonPathForTests: (() => string | undefined) | undefined;
+
+/** @internal Test helper to stub Python path resolution. */
+export function setSizeExecutionTestHooks(
+  hooks?: {
+    getVirtualEnvPythonPath?: () => string | undefined;
+  }
+): void {
+  getVirtualEnvPythonPathForTests = hooks?.getVirtualEnvPythonPath;
+}
+
+function resolveVirtualEnvPythonPath(): string | undefined {
+  if (getVirtualEnvPythonPathForTests) {
+    return getVirtualEnvPythonPathForTests();
+  }
+  return getVirtualEnvPythonPath();
+}
 
 export async function runSizeTaskIfEnabled(
   executions: Exclude<MaybeIdfTaskExecution, undefined>[],
@@ -41,22 +63,21 @@ export async function runSizeTaskIfEnabled(
   }
   const buildDirPath = readParameter("idf.buildPath", workspace) as string;
   if (!buildDirPath) {
-    throw new Error("Build path not found");
+    throw invalidConfiguration("idf.buildPath");
   }
   const projectName = await getProjectName(workspace);
   const mapFilePath = join(buildDirPath, `${projectName}.map`);
-  const pythonCommand = await getVirtualEnvPythonPath();
+  const pythonCommand = resolveVirtualEnvPythonPath();
   if (!pythonCommand) {
-    throw new Error("Python path not found in environment");
+    throw missingDependency("Python");
   }
   const modifiedEnv = getCurrentIdfConfiguration();
   const idfPath = modifiedEnv["IDF_PATH"];
   if (!idfPath) {
-    throw new Error("IDF_PATH not found in environment");
+    throw invalidConfiguration("IDF_PATH");
   }
   const idfSizePath = join(idfPath, "tools", "idf_size.py");
   const args = [idfSizePath, mapFilePath];
-
 
   const sizeExecution = addProcessTask(
     "Size",
