@@ -189,6 +189,15 @@ registerNewErrorInRegistry({
 });
 
 registerNewErrorInRegistry({
+  code: ErrorCode.NoSerialPortsAvailable,
+  severity: ErrorSeverity.Warning,
+  userMessage: "No serial ports found.",
+  logMessage: "No serial ports found on this system.",
+  actions: [],
+  outputChannel: "Serial port",
+});
+
+registerNewErrorInRegistry({
   code: ErrorCode.NoPortSelected,
   severity: ErrorSeverity.Error,
   userMessage: "Select a serial port.",

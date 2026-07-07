@@ -16,61 +16,56 @@
  * limitations under the License.
  */
 
-import { commands, ExtensionContext, l10n } from "vscode";
+import { ExtensionContext } from "vscode";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../../common/PreCheck";
 import { SerialPort } from "./serialPort";
-import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
-import { showInfoNotificationWithAction } from "../../common/customNotifications";
 import { ESP } from "../../config";
+import { CommandErrorMapping } from "../../common/error/types";
+import { serialCommandErrorMapping } from "./errorMapping";
+
+function registerSerialCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any,
+  errorMapping: CommandErrorMapping = serialCommandErrorMapping
+) {
+  registerIDFCommand(context, name, callback, errorMapping);
+}
 
 export function registerSerialPortCmds(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.selectPort", () => {
-    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+  registerSerialCommand(context, "espIdf.selectPort", async () => {
+    return PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       if (!wsFolder) {
         return;
       }
-      SerialPort.shared().promptUserToSelect(wsFolder.uri, false);
+      await SerialPort.shared().promptUserToSelect(wsFolder.uri, false);
     });
   });
 
-  registerIDFCommand(context, "espIdf.selectMonitorPort", () => {
-    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+  registerSerialCommand(context, "espIdf.selectMonitorPort", async () => {
+    return PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       if (!wsFolder) {
         return;
       }
-      SerialPort.shared().promptUserToSelect(wsFolder.uri, true);
+      await SerialPort.shared().promptUserToSelect(wsFolder.uri, true);
     });
   });
 
-  registerIDFCommand(context, "espIdf.detectSerialPort", () => {
-    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+  registerSerialCommand(context, "espIdf.detectSerialPort", async () => {
+    return PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       if (!wsFolder) {
         return;
       }
       const detectedPort = await SerialPort.detectDefaultPort(wsFolder.uri);
-      if (detectedPort) {
-        await SerialPort.shared().updatePortListStatus(
-          detectedPort,
-          wsFolder.uri,
-          false
-        );
-      } else {
-        const targetMatch = await getIdfTargetFromSdkconfig(wsFolder.uri);
-        const currentTarget = targetMatch ? targetMatch : "esp32";
-        const noPortFoundMsg = l10n.t(
-          "No serial port found for current IDF_TARGET: {0}",
-          currentTarget
-        );
-        await showInfoNotificationWithAction(
-          noPortFoundMsg,
-          l10n.t("Detect"),
-          () => commands.executeCommand("espIdf.detectSerialPort")
-        );
-      }
+      await SerialPort.shared().updatePortListStatus(
+        detectedPort,
+        wsFolder.uri,
+        false
+      );
     });
   });
 }
