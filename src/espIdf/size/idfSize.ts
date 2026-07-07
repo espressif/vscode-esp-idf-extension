@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-import { Logger } from "../../common/logger";
 import {
   compareVersion,
   getEspIdfFromCMake,
@@ -24,10 +23,21 @@ import {
 } from "../../utils";
 import { getProjectMapFilePath } from "../../configuration/workspace";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
+import { readParameter } from "../../configuration/idf";
 import type { IDFSizeCalculateResult } from "./types";
 import { CancellationToken, l10n, Progress, Uri } from "vscode";
 import { join } from "path";
 import { existsSync } from "fs";
+import {
+  fileNotFound,
+  invalidConfiguration,
+  invalidIdfVersion,
+  isKnownError,
+  known,
+  missingDependency,
+  parseError,
+} from "../../common/error/knownError";
+import { ErrorCode } from "../../common/error/types";
 
 export class IDFSize {
   private readonly workspaceFolderUri: Uri;
@@ -41,25 +51,25 @@ export class IDFSize {
   public async calculateWithProgress(
     progress: Progress<{ message: string; increment: number }>,
     cancelToken?: CancellationToken
-  ): Promise<IDFSizeCalculateResult> {
+  ): Promise<IDFSizeCalculateResult | undefined> {
     if (this.isCanceled || cancelToken?.isCancellationRequested) {
-      throw new Error(
-        l10n.t("Cannot proceed with size analysis on a canceled context")
-      );
+      return;
     }
 
-    const mapFilePath = await getProjectMapFilePath(this.workspaceFolderUri);
-    const isBuilt = existsSync(mapFilePath);
-    if (!isBuilt) {
-      throw new Error(
-        l10n.t(
-          "Build is required for a size analysis, build your project first"
-        )
-      );
+    const mapFilePath = await this.resolveMapFilePath();
+    if (!existsSync(mapFilePath)) {
+      throw fileNotFound(mapFilePath);
     }
 
     const espIdfPath = this.idfPath();
-    const version = await getEspIdfFromCMake(espIdfPath);
+    let version: string;
+    try {
+      version = await getEspIdfFromCMake(espIdfPath);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      throw invalidIdfVersion(espIdfPath, detail);
+    }
+
     const formatArgs =
       compareVersion(version, "5.3.0") >= 0
         ? ["--format", "json2"]
@@ -73,6 +83,7 @@ export class IDFSize {
     const [overview, archives, files] = await Promise.all([
       this.idfCommandInvoker(
         ["idf_size.py", mapFilePath, ...formatArgs],
+        mapFilePath,
         cancelToken
       ).then((result) => {
         bumpProgress(l10n.t("Gathering Overview"));
@@ -80,6 +91,7 @@ export class IDFSize {
       }),
       this.idfCommandInvoker(
         ["idf_size.py", mapFilePath, "--archives", ...formatArgs],
+        mapFilePath,
         cancelToken
       ).then((result) => {
         bumpProgress(l10n.t("Gathering Archive List"));
@@ -87,6 +99,7 @@ export class IDFSize {
       }),
       this.idfCommandInvoker(
         ["idf_size.py", mapFilePath, "--file", ...formatArgs],
+        mapFilePath,
         cancelToken
       ).then((result) => {
         bumpProgress(l10n.t("Calculating File Sizes for all the archives"));
@@ -94,7 +107,32 @@ export class IDFSize {
       }),
     ]);
 
+    if (
+      this.isCanceled ||
+      cancelToken?.isCancellationRequested ||
+      overview === undefined ||
+      archives === undefined ||
+      files === undefined
+    ) {
+      return;
+    }
+
     return { archives, files, overview } as IDFSizeCalculateResult;
+  }
+
+  private async resolveMapFilePath(): Promise<string> {
+    const buildDirPath = readParameter(
+      "idf.buildPath",
+      this.workspaceFolderUri
+    ) as string;
+    if (!buildDirPath) {
+      throw invalidConfiguration("idf.buildPath");
+    }
+    try {
+      return await getProjectMapFilePath(this.workspaceFolderUri);
+    } catch {
+      throw fileNotFound(join(buildDirPath, "project_description.json"));
+    }
   }
 
   private idfPath(): string {
@@ -108,35 +146,40 @@ export class IDFSize {
 
   private async idfCommandInvoker(
     args: string[],
+    mapFilePath: string,
     cancelToken?: CancellationToken
   ) {
+    if (this.isCanceled || cancelToken?.isCancellationRequested) {
+      return;
+    }
+
     const idfPath = this.idfPath();
+    const pythonBinPath = getVirtualEnvPythonPath();
+    if (!pythonBinPath) {
+      throw missingDependency("Python");
+    }
+
     try {
-      const pythonBinPath = getVirtualEnvPythonPath();
-      if (!pythonBinPath) {
-        throw new Error(
-          l10n.t("Python binary for the current ESP-IDF environment not found")
-        );
-      }
       const buffOut = await spawn(pythonBinPath, args, {
         cwd: join(idfPath, "tools"),
         silent: true,
         cancelToken,
       });
       const buffStr = buffOut.toString();
-      const buffObj = JSON.parse(buffStr);
-      return buffObj;
+      try {
+        return JSON.parse(buffStr);
+      } catch {
+        throw parseError(mapFilePath);
+      }
     } catch (error) {
-      const throwableError = new Error(
-        l10n.t("Error encountered while calling idf_size.py")
-      );
+      if (isKnownError(error)) {
+        throw error;
+      }
+      if (this.isCanceled || cancelToken?.isCancellationRequested) {
+        return;
+      }
       const msg = error instanceof Error ? error.message : String(error);
-      Logger.error(
-        msg,
-        error instanceof Error ? error : new Error(msg),
-        "IDFSize idfCommandInvoker"
-      );
-      throw throwableError;
+      throw known(ErrorCode.TaskFailedWithOutput, { detail: msg });
     }
   }
 }

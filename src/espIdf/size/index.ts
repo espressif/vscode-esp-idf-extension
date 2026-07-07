@@ -16,22 +16,24 @@
  * limitations under the License.
  */
 
-import { commands, ExtensionContext, l10n, window } from "vscode";
-import { Logger } from "../../common/logger";
+import { ExtensionContext, l10n } from "vscode";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { openFolderCheck } from "../../common/PreCheck";
 import { withProgressWrapper } from "../../common/withProgressWrapper";
 import { IDFSizePanel } from "./idfSizePanel";
 import { IDFSize } from "./idfSize";
 import { ESP } from "../../config";
+import { sizeCommandErrorMapping } from "./errorMapping";
 
 export function registerIdfSizeUICmd(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.size", async () => {
-    await withProgressWrapper(
-      [openFolderCheck],
-      l10n.t("ESP-IDF: Size"),
-      async (_progress, _cancelToken) => {
-        try {
+  registerIDFCommand(
+    context,
+    "espIdf.size",
+    async () => {
+      await withProgressWrapper(
+        [openFolderCheck],
+        l10n.t("ESP-IDF: Size"),
+        async (_progress, _cancelToken) => {
           if (IDFSizePanel.isCreatedAndHidden()) {
             IDFSizePanel.createOrShow(context);
             return;
@@ -44,37 +46,12 @@ export function registerIdfSizeUICmd(context: ExtensionContext) {
             _progress,
             _cancelToken
           );
-          if (!_cancelToken.isCancellationRequested) {
+          if (results && !_cancelToken.isCancellationRequested) {
             IDFSizePanel.createOrShow(context, results);
           }
-        } catch (error) {
-          const msg: string =
-            error instanceof Error ? error.message : JSON.stringify(error);
-          if (
-            msg.indexOf("project_description.json doesn't exist.") !== -1 ||
-            msg.indexOf("Build is required for a size analysis") !== -1
-          ) {
-            const buildProject = await window.showInformationMessage(
-              `ESP-IDF Size requires to build the project first. Build the project?`,
-              "Build"
-            );
-            if (buildProject === "Build") {
-              commands.executeCommand("espIdf.buildDevice");
-            }
-            Logger.error(
-              msg,
-              error as Error,
-              "extension IDFSizePanel build files"
-            );
-            return;
-          }
-          Logger.errorNotify(
-            msg,
-            error as Error,
-            "extension IDFSizePanel calculate"
-          );
         }
-      }
-    );
-  });
+      );
+    },
+    sizeCommandErrorMapping
+  );
 }
