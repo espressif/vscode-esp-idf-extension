@@ -29,21 +29,33 @@ import { HexTreeItem, HexViewProvider } from "../hexViewProvider";
 import { CDTDebugConfigurationProvider } from "../debugConfProvider";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../../common/PreCheck";
-import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
 import { ImageViewPanel } from "../imageViewPanel";
 import {
   DebugVariableCommandContext,
   isImageVariableCommandContextReady,
   isVariableCommandContextReady,
-  notifyCommandError,
 } from "./variableCommandContext";
+import { debugCommandErrorMapping } from "../errorMapping";
+import {
+  fileNotFound,
+  invalidConfiguration,
+  noWorkspaceOpen,
+} from "../../common/error/knownError";
+
+function registerDebugCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any
+) {
+  registerIDFCommand(context, name, callback, debugCommandErrorMapping);
+}
 
 export function registerHexViewCommands(
   context: ExtensionContext,
   hexViewProvider: HexViewProvider
 ) {
-  registerIDFCommand(
+  registerDebugCommand(
     context,
     "espIdf.hexView.deleteElement",
     (item: HexTreeItem) => {
@@ -53,7 +65,7 @@ export function registerHexViewCommands(
     }
   );
 
-  registerIDFCommand(
+  registerDebugCommand(
     context,
     "espIdf.hexView.copyValue",
     (item: HexTreeItem) => {
@@ -68,7 +80,7 @@ export function registerHexViewCommands(
     }
   );
 
-  registerIDFCommand(
+  registerDebugCommand(
     context,
     "espIdf.viewAsHex",
     (debugContext: DebugVariableCommandContext) => {
@@ -76,28 +88,19 @@ export function registerHexViewCommands(
         if (!isVariableCommandContextReady(debugContext)) {
           return;
         }
-        try {
-          const value = debugContext.variable.value;
-          const numericValue = parseInt(value, 10);
-          if (isNaN(numericValue)) {
-            Logger.errorNotify(
-              l10n.t("The value {value} is not a number.", { value }),
-              new Error("Value is not a number"),
-              "extension espIdf.viewAsHex"
-            );
-            return;
-          }
-          hexViewProvider.addElement(debugContext.variable.name, numericValue);
-        } catch (e) {
-          notifyCommandError(e, "extension espIdf.viewAsHex");
+        const value = debugContext.variable.value;
+        const numericValue = parseInt(value, 10);
+        if (isNaN(numericValue)) {
+          throw invalidConfiguration("espIdf.viewAsHex.variableValue");
         }
+        hexViewProvider.addElement(debugContext.variable.name, numericValue);
       });
     }
   );
 }
 
 export function registerImageViewCommands(context: ExtensionContext) {
-  registerIDFCommand(
+  registerDebugCommand(
     context,
     "espIdf.viewVariableAsImage",
     (debugContext: DebugVariableCommandContext) => {
@@ -105,42 +108,34 @@ export function registerImageViewCommands(context: ExtensionContext) {
         if (!isImageVariableCommandContextReady(debugContext)) {
           return;
         }
-        try {
-          ImageViewPanel.show(context.extensionPath);
-          ImageViewPanel.handleVariableAsImage(debugContext);
-        } catch (e) {
-          notifyCommandError(e, "extension espIdf.viewVariableAsImage");
-        }
+        ImageViewPanel.show(context.extensionPath);
+        await ImageViewPanel.handleVariableAsImage(debugContext);
       });
     }
   );
 
-  registerIDFCommand(context, "espIdf.openImageViewer", () => {
+  registerDebugCommand(context, "espIdf.openImageViewer", () => {
     return PreCheck.perform([openFolderCheck], () => {
       ImageViewPanel.show(context.extensionPath);
     });
   });
 
-  registerIDFCommand(context, "espIdf.loadImageFromFile", async () => {
+  registerDebugCommand(context, "espIdf.loadImageFromFile", async () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      try {
-        const fileUri = await window.showOpenDialog({
-          canSelectMany: false,
-          openLabel: "Select LVGL C file with image data",
-          filters: {
-            "C files": ["c", "h"],
-            "All files": ["*"],
-          },
-        });
+      const fileUri = await window.showOpenDialog({
+        canSelectMany: false,
+        openLabel: "Select LVGL C file with image data",
+        filters: {
+          "C files": ["c", "h"],
+          "All files": ["*"],
+        },
+      });
 
-        if (fileUri?.[0]) {
-          await ImageViewPanel.loadImageFromFile(
-            context.extensionPath,
-            fileUri[0].fsPath
-          );
-        }
-      } catch (error) {
-        notifyCommandError(error, "extension espIdf.loadImageFromFile");
+      if (fileUri?.[0]) {
+        await ImageViewPanel.loadImageFromFile(
+          context.extensionPath,
+          fileUri[0].fsPath
+        );
       }
     });
   });
@@ -157,12 +152,7 @@ async function startFirstGdbTargetConfiguration(
     "configurations"
   ) as DebugConfiguration[];
   if (!configurations?.length) {
-    await window.showInformationMessage(
-      l10n.t(
-        `No gdbtarget configuration found in launch.json.\nDelete launch.json and use the 'ESP-IDF: Add vscode Configuration Folder' command.`
-      )
-    );
-    return;
+    throw invalidConfiguration("launch.configurations");
   }
   for (const conf of configurations) {
     if (conf.type !== "gdbtarget") {
@@ -173,36 +163,24 @@ async function startFirstGdbTargetConfiguration(
       conf
     );
     if (!resolvedConf) {
-      await window.showErrorMessage(
-        l10n.t(
-          "Could not resolve the gdbtarget debug configuration. Check the ESP-IDF output for details."
-        )
-      );
-      return;
+      throw invalidConfiguration("launch.configurations");
     }
     await debug.startDebugging(workspaceFolder, resolvedConf);
     return;
   }
-  await window.showInformationMessage(
-    l10n.t(
-      `No gdbtarget configuration found in launch.json.\nDelete launch.json and use the 'ESP-IDF: Add vscode Configuration Folder' command.`
-    )
-  );
+  throw invalidConfiguration("launch.configurations");
 }
 
 export function registerEspIdfDebugCommand(
   context: ExtensionContext,
   cdtDebugProvider: CDTDebugConfigurationProvider
 ) {
-  registerIDFCommand(context, "espIdf.debug", async () => {
-    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+  registerDebugCommand(context, "espIdf.debug", async () => {
+    await PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
       const workspaceFolder =
         ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       if (!workspaceFolder) {
-        await window.showInformationMessage(
-          l10n.t("No workspace folder selected.")
-        );
-        return;
+        throw noWorkspaceOpen();
       }
       const launchJsonPath = join(
         workspaceFolder.uri.fsPath,
@@ -210,12 +188,7 @@ export function registerEspIdfDebugCommand(
         "launch.json"
       );
       if (!(await pathExists(launchJsonPath))) {
-        await window.showInformationMessage(
-          l10n.t(
-            `No launch.json found.\nUse the 'ESP-IDF: Add vscode Configuration Folder' command.`
-          )
-        );
-        return;
+        throw fileNotFound(launchJsonPath);
       }
       await startFirstGdbTargetConfiguration(workspaceFolder, cdtDebugProvider);
     });

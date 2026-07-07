@@ -14,6 +14,7 @@ import { dirname } from 'path';
 import { existsSync } from 'fs';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { MIDataDisassembleAsmInsn } from './mi/data';
+import { idfToolNotFound } from '../../common/error/knownError';
 
 /**
  * This method actually launches 'gdb --version' to determine the version of
@@ -38,9 +39,7 @@ export async function getGdbVersion(
 
     const gdbVersion = parseGdbVersionOutput(stdout);
     if (!gdbVersion) {
-        throw new Error(
-            `Failed to get version number from GDB. GDB returned:\nstdout:\n${stdout}\nstderr:\n${stderr}`
-        );
+        throw idfToolNotFound('gdb');
     }
     return gdbVersion;
 }

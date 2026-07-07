@@ -19,8 +19,8 @@
 import { Uri } from "vscode";
 import { pathExists, readJson, writeJson } from "fs-extra";
 import { ESP } from "../config";
-import { Logger } from "../logger/logger";
-import { readParameter } from "../idfConfiguration";
+import { Logger } from "../common/logger";
+import { readParameter } from "../configuration/idf";
 import { CMakePresets, ConfigurePreset } from "./projectConfiguration";
 import { getESPIDFSettingValue, setESPIDFSettingValue } from "./presetSettings";
 import { toCMakePresetMacros } from "./presetSubstitution";

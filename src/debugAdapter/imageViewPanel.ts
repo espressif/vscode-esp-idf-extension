@@ -17,6 +17,15 @@
  */
 import { readParameter } from "../configuration/idf";
 import { Logger } from "../common/logger";
+import {
+  fileNotFound,
+  invalidConfiguration,
+  isKnownError,
+  missingDependency,
+  parseError,
+} from "../common/error/knownError";
+import { resolveKnownErrorUserMessage } from "../common/error/resolve";
+import { debugCommandErrorMapping } from "./errorMapping";
 import { ESP } from "../config";
 import {
   debug,
@@ -103,6 +112,20 @@ export class ImageViewPanel {
     "yuv444",
   ];
 
+  private static formatErrorMessage(error: unknown): string {
+    if (isKnownError(error)) {
+      return resolveKnownErrorUserMessage(error, debugCommandErrorMapping);
+    }
+    return error instanceof Error ? error.message : String(error);
+  }
+
+  private postPanelError(error: unknown): void {
+    this.panel.webview.postMessage({
+      command: "showError",
+      error: ImageViewPanel.formatErrorMessage(error),
+    });
+  }
+
   public static show(extensionPath: string) {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
@@ -127,7 +150,7 @@ export class ImageViewPanel {
     ImageViewPanel.instance = new ImageViewPanel(panel, extensionPath);
   }
 
-  public static handleVariableAsImage(debugContext: {
+  public static async handleVariableAsImage(debugContext: {
     container: {
       expensive: boolean;
       name: string;
@@ -144,8 +167,7 @@ export class ImageViewPanel {
     };
   }) {
     if (ImageViewPanel.instance) {
-      // Use the new configuration-based extraction with automatic type detection
-      ImageViewPanel.instance.handleExtractImageWithConfig(
+      await ImageViewPanel.instance.handleExtractImageWithConfig(
         debugContext.variable
       );
     }
@@ -163,17 +185,18 @@ export class ImageViewPanel {
         await ImageViewPanel.instance.parseLvglImageFromFile(filePath);
       }
     } catch (error) {
+      if (ImageViewPanel.instance) {
+        ImageViewPanel.instance.postPanelError(error);
+      }
+      if (isKnownError(error)) {
+        throw error;
+      }
       Logger.error(
         "Failed to load image from file:",
         error as Error,
         "ImageViewPanel loadImageFromFile"
       );
-      if (ImageViewPanel.instance) {
-        ImageViewPanel.instance.panel.webview.postMessage({
-          command: "showError",
-          error: `Failed to load image from LVGL cfile: ${error as Error}`,
-        });
-      }
+      throw error instanceof Error ? error : new Error(String(error));
     }
   }
 
@@ -347,12 +370,7 @@ export class ImageViewPanel {
       if (mappedFormat && ImageViewPanel.isValidFormat(mappedFormat)) {
         return mappedFormat;
       } else {
-        throw new Error(
-          `Invalid format '${mappedFormat}' from backend mapping for format value ${rawFormat}. ` +
-            `Please check the imageFormats configuration for ${
-              configName || "unknown config"
-            }.`
-        );
+        throw invalidConfiguration("idf.imageViewerConfigs - given format number not mapped or invalid in config: " + (configName || "unknown") + ", format number: " + rawFormat);
       }
     }
 
@@ -413,11 +431,7 @@ export class ImageViewPanel {
         return "yuv444";
 
       // If no match found, throw error
-      throw new Error(
-        `Invalid format string '${rawFormat}'. Valid formats are: ${ImageViewPanel.VALID_FORMATS.join(
-          ", "
-        )}`
-      );
+      throw invalidConfiguration("idf.imageViewerConfigs - given format number not mapped or invalid in config: " + (configName || "unknown") + ", format number: " + rawFormat);
     }
 
     // Fallback for unknown format types
@@ -473,18 +487,16 @@ export class ImageViewPanel {
             if (match) {
               return match[0];
             }
-            throw new Error(
-              `Could not extract address from: ${evaluateResponse.result}`
-            );
+            throw invalidConfiguration("imageViewer.extraction - failed to extract address from expression: " + fieldConfig.value);
           } else {
             return parseInt(evaluateResponse.result, 10);
           }
         }
-        throw new Error(`Could not evaluate expression: ${fieldConfig.value}`);
+        throw invalidConfiguration("imageViewer.extraction - failed to evaluate expression: " + fieldConfig.value);
       }
     }
 
-    throw new Error(`Unsupported field type: ${fieldConfig.type}`);
+    throw invalidConfiguration("imageViewer.extraction - unsupported field type: " + fieldConfig.type);
   }
 
   private async extractChildValue(
@@ -508,7 +520,7 @@ export class ImageViewPanel {
       const variable = variables.find((v: any) => v.name === part);
 
       if (!variable) {
-        throw new Error(`Property '${part}' not found in path '${fieldPath}'`);
+        throw invalidConfiguration("imageViewer.fieldPath - failed to find variable: " + part + " in path: " + fieldPath);
       }
 
       if (i === pathParts.length - 1) {
@@ -518,7 +530,7 @@ export class ImageViewPanel {
           if (match) {
             return match[0];
           }
-          throw new Error(`Could not extract address from: ${variable.value}`);
+          throw invalidConfiguration("imageViewer.fieldPath - failed to extract address from variable: " + part + " in path: " + fieldPath);
         } else {
           return parseInt(variable.value, 10);
         }
@@ -528,7 +540,7 @@ export class ImageViewPanel {
       }
     }
 
-    throw new Error(`Could not extract value from path: ${fieldPath}`);
+    throw invalidConfiguration("imageViewer.fieldPath - failed to navigate path: " + fieldPath);
   }
 
   private async extractDataSize(
@@ -555,7 +567,7 @@ export class ImageViewPanel {
       if (evaluateResponse && evaluateResponse.result) {
         return parseInt(evaluateResponse.result, 10);
       }
-      throw new Error(`Could not evaluate formula: ${formula}`);
+      throw invalidConfiguration("imageViewer.formula - failed to evaluate formula: " + formula);
     }
 
     // For number and string types, use the unified extractFieldValue method
@@ -596,11 +608,7 @@ export class ImageViewPanel {
       let config = this.findMatchingConfig(variable.type || "");
 
       if (!config) {
-        this.panel.webview.postMessage({
-          command: "showError",
-          error: `No matching configuration found for variable type: ${variable.type}`,
-        });
-        return;
+        throw invalidConfiguration("idf.imageViewerConfigs - no matching configuration found for type: " + (variable.type || "unknown"));
       }
 
       // Get current thread and frame
@@ -629,10 +637,7 @@ export class ImageViewPanel {
         this.sendImageWithDimensionsData(imageProperties, config.name);
       }
     } catch (error) {
-      this.panel.webview.postMessage({
-        command: "showError",
-        error: `Error extracting image with configuration: ${error}`,
-      });
+      this.postPanelError(error);
     }
   }
 
@@ -962,7 +967,7 @@ export class ImageViewPanel {
       );
       const dataAddress = this.extractDataAddressFromCFile(fileContent, config);
       if (!dataAddress) {
-        throw new Error("Could not extract data address from C file");
+        throw parseError("imageViewer.cfile");
       }
 
       const dataArray = this.extractDataArrayFromCFile(
@@ -972,7 +977,7 @@ export class ImageViewPanel {
       if (dataArray) {
         imageData.data = new Uint8Array(dataArray);
       } else {
-        throw new Error("Could not extract image data array from C file");
+        throw parseError("imageViewer.cfile");
       }
 
       const validatedFormat = ImageViewPanel.validateAndGetFormat(
@@ -1012,9 +1017,7 @@ export class ImageViewPanel {
         const pathParts = fieldConfig.value.split(".");
         const structMatch = this.findLvImageStruct(fileContent);
         if (!structMatch) {
-          throw new Error(
-            `Could not find lv_image_dsc_t struct definition for field: ${fieldConfig.value}`
-          );
+          throw parseError("imageViewer.cfile");
         }
 
         let currentContent = structMatch[0];
@@ -1043,19 +1046,17 @@ export class ImageViewPanel {
           }
         }
 
-        throw new Error(`Could not find field: ${fieldConfig.value}`);
+        throw parseError("imageViewer.cfile");
       } else {
-        throw new Error(
-          "Direct expression evaluation not supported for file parsing"
-        );
+        throw invalidConfiguration("imageViewer.cfile");
       }
     }
 
     if (fieldConfig.type === "formula") {
-      throw new Error("Formula-based data size supported for file parsing");
+      throw invalidConfiguration("imageViewer.cfile");
     }
 
-    throw new Error(`Unsupported field type: ${fieldConfig.type}`);
+    throw invalidConfiguration("imageViewer.extraction");
   }
 
   private findLvImageStruct(fileContent: string): RegExpMatchArray | null {

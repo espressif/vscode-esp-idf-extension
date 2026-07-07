@@ -32,6 +32,12 @@ import {
   window,
 } from "vscode";
 import { Logger } from "../../common/logger";
+import { handleError } from "../../common/error/handler";
+import {
+  filePermissionDenied,
+  isKnownError,
+} from "../../common/error/knownError";
+import { debugCommandErrorMapping } from "../errorMapping";
 import { AddrRange, MessageNode, NodeSetting } from "./common";
 import { BasePeripheral, PeripheralBaseNode } from "./nodes/base";
 import { Peripheral } from "./nodes/peripheral";
@@ -194,16 +200,11 @@ export class PeripheralTreeForSession extends PeripheralBaseNode {
           this.errMessage = `Unable to parse SVD file ${
             this.svdFileName
           }: ${e.toString()}`;
-          Logger.errorNotify(
-            this.errMessage,
-            new Error(this.errMessage),
-            "PeripheralTreeForSession sessionStarted"
-          );
           if (debug.activeDebugConsole) {
             debug.activeDebugConsole.appendLine(this.errMessage);
           }
           this.fireCb();
-          resolve(undefined);
+          reject(e);
         }
       );
     });
@@ -222,7 +223,15 @@ export class PeripheralTreeForSession extends PeripheralBaseNode {
         writeJson(this.stateFileName(), state);
       }
     } catch (e) {
-      window.showWarningMessage(`Unable to save periperal preferences ${e}`);
+      const stateFilePath = this.stateFileName();
+      if (stateFilePath) {
+        void handleError(
+          "debug.peripheralView",
+          filePermissionDenied(stateFilePath),
+          undefined,
+          debugCommandErrorMapping
+        );
+      }
     }
   }
 
@@ -301,12 +310,22 @@ export class PeripheralTreeView
       });
       this.sessionPeripheralsMap.set(session.id, regs);
       try {
-        await regs.sessionStarted(svdFilePath, thresh); // Should never reject
+        await regs.sessionStarted(svdFilePath, thresh);
       } catch (e) {
-        const err = new Error(
-          `Internal Error: Unexpected rejection of promise ${e}`
-        );
-        Logger.errorNotify(err.message, err, "peripheralTreeView debugSessionStarted");
+        if (isKnownError(e)) {
+          await handleError(
+            "debug.peripheralView",
+            e,
+            undefined,
+            debugCommandErrorMapping
+          );
+        } else {
+          Logger.error(
+            e instanceof Error ? e.message : String(e),
+            e as Error,
+            "peripheralTreeView debugSessionStarted"
+          );
+        }
       } finally {
         this._onDidChangeTreeData.fire(undefined);
       }

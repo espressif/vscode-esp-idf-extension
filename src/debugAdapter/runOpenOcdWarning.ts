@@ -29,9 +29,9 @@ import {
   window,
   workspace,
 } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { TCLClient } from "../espIdf/openOcd/tcl/tclClient";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 
 /** Sessions that never rely on the extension OpenOCD server. */
 const SESSIONS_WITHOUT_OPENOCD = [

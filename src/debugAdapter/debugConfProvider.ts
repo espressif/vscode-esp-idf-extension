@@ -21,25 +21,32 @@ import {
   DebugConfiguration,
   DebugConfigurationProvider,
   WorkspaceFolder,
-  window,
 } from "vscode";
 import { readParameter } from "../configuration/idf";
 import {
   getProjectDescriptionJson,
   getConfigValueFromSDKConfig,
-  getProjectElfFilePath,
 } from "../configuration/workspace";
 import { dirname, join } from "path";
 import { pathExists, readFile } from "fs-extra";
-import { verifyAppBinary } from "./verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../common/logger";
 import { execChildProcess, getToolchainPath } from "../utils";
-import { ESP } from "../config";
 import { buildFlashAndMonitor } from "../buildFlashMonitor";
 import { monitorMain } from "../espIdf/monitor/main";
 import { handleError } from "../common/error/handler";
-import { isKnownError } from "../common/error/knownError";
+import {
+  gdbinitPrefixMapMissing,
+  isKnownError,
+} from "../common/error/knownError";
+import { debugCommandErrorMapping } from "./errorMapping";
+import {
+  requireBuildDirPath,
+  requireWorkspaceFolderForDebug,
+  resolveDebugGdb,
+  resolveDebugProgram,
+  verifyAppBeforeDebug,
+} from "./validation";
 
 /** ESP-IDF generated gdbinit files, in `idf.py gdb` order. */
 const GDBINIT_FILE_NAMES = [
@@ -101,13 +108,34 @@ async function resolveGdbinitFilePaths(
   return resolved;
 }
 
+function expectedPrefixMapFilePath(
+  gdbinitFiles: { [key: string]: string } | undefined,
+  buildDirPath: string
+): string {
+  if (gdbinitFiles) {
+    const prefixMapKey = Object.keys(gdbinitFiles)
+      .sort()
+      .find((key) => key.replace(/^\d+_/, "") === "prefix_map");
+    if (prefixMapKey) {
+      return gdbinitFiles[prefixMapKey];
+    }
+  }
+  return buildDirPath ? join(buildDirPath, "gdbinit", "prefix_map") : "";
+}
+
 async function getGdbinitSourceCommands(
   gdbinitPaths: Map<string, string>,
+  gdbinitFiles: { [key: string]: string } | undefined,
   buildDirPath: string,
   gdbPath: string
-): Promise<{ commands: string[]; prefixMapFound: boolean }> {
+): Promise<{
+  commands: string[];
+  prefixMapFound: boolean;
+  prefixMapFilePath: string;
+}> {
   const commands: string[] = [];
   let prefixMapFound = false;
+  let prefixMapFilePath = expectedPrefixMapFilePath(gdbinitFiles, buildDirPath);
 
   for (const [name, filePath] of gdbinitPaths) {
     if (name === GDBINIT_CONNECT_FILE_NAME) {
@@ -119,6 +147,7 @@ async function getGdbinitSourceCommands(
     commands.push(`source ${filePath}`);
     if (name === "prefix_map") {
       prefixMapFound = true;
+      prefixMapFilePath = filePath;
     }
   }
 
@@ -127,10 +156,11 @@ async function getGdbinitSourceCommands(
     if (await pathExists(legacyPrefixMap)) {
       commands.push(`source ${legacyPrefixMap}`);
       prefixMapFound = true;
+      prefixMapFilePath = legacyPrefixMap;
     }
   }
 
-  return { commands, prefixMapFound };
+  return { commands, prefixMapFound, prefixMapFilePath };
 }
 
 function getRemoteTargetAddress(target: { host?: string; port?: string }) {
@@ -219,21 +249,25 @@ async function getConnectCommands(
   return connectsToTarget ? commands : undefined;
 }
 
-async function getOrPickWorkspaceFolder(
-  folder: WorkspaceFolder | undefined
-): Promise<WorkspaceFolder> {
-  if (!folder) {
-    folder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-    if (!folder) {
-      folder = await window.showWorkspaceFolderPick({
-        placeHolder: "Pick a workspace folder to start a debug session.",
-      });
-      if (!folder) {
-        throw new Error("No folder was selected to start debug session");
-      }
-    }
+async function handleDebugConfigurationError(
+  error: unknown
+): Promise<undefined> {
+  if (isKnownError(error)) {
+    await handleError(
+      "debug.resolveConfiguration",
+      error,
+      undefined,
+      debugCommandErrorMapping
+    );
+    return undefined;
   }
-  return folder;
+  const msg = error instanceof Error ? error.message : String(error);
+  Logger.error(
+    msg,
+    error as Error,
+    "CDTDebugConfigurationProvider resolveDebugConfiguration"
+  );
+  return undefined;
 }
 
 export class CDTDebugConfigurationProvider
@@ -243,7 +277,11 @@ export class CDTDebugConfigurationProvider
     debugConfiguration: DebugConfiguration,
     token?: CancellationToken
   ) {
-    folder = await getOrPickWorkspaceFolder(folder);
+    try {
+      folder = await requireWorkspaceFolderForDebug(folder);
+    } catch (error) {
+      return handleDebugConfigurationError(error);
+    }
     const useMonitorWithDebug = readParameter(
       "idf.launchMonitorOnDebugSession",
       folder
@@ -285,7 +323,12 @@ export class CDTDebugConfigurationProvider
         await openOCDManager.start({ launchedByDebug: true });
       } catch (error) {
         if (isKnownError(error)) {
-          await handleError("debug.resolveConfiguration", error);
+          await handleError(
+            "debug.resolveConfiguration",
+            error,
+            undefined,
+            debugCommandErrorMapping
+          );
           return debugConfiguration;
         }
         throw error;
@@ -299,38 +342,37 @@ export class CDTDebugConfigurationProvider
     token?: CancellationToken
   ): Promise<DebugConfiguration | undefined> {
     try {
-      folder = await getOrPickWorkspaceFolder(folder);
-      if (!config.program) {
-        const elfFilePath = await getProjectElfFilePath(folder.uri);
-        const elfFileExists = await pathExists(elfFilePath);
-        if (!elfFileExists) {
-          throw new Error(
-            `${elfFilePath} doesn't exist. Build this project first.`
-          );
-        }
-        config.program = elfFilePath;
-      }
+      folder = await requireWorkspaceFolderForDebug(folder);
+      config.program = await resolveDebugProgram(config, folder);
+      config.gdb = await resolveDebugGdb(config);
       if (!config.gdb) {
-        config.gdb = await getToolchainPath("gdb");
+        config.gdb = await resolveDebugGdb(config);
       }
       // config.gdb may still hold an unresolved ${command:...} variable at this point.
       const gdbPath = config.gdb.includes("${")
         ? await getToolchainPath("gdb")
         : config.gdb;
 
-      const buildDirPath = readParameter("idf.buildPath", folder) as string;
+      const buildDirPath = requireBuildDirPath(folder);
       const isPostMortemSession =
         config.sessionID === "core-dump.debug.session.ws" ||
         config.sessionID === "gdbstub.debug.session.ws";
       const projectDescription = await getProjectDescriptionJson(folder.uri);
+      const gdbinitFiles = projectDescription?.gdbinitFiles;
       const gdbinitPaths = await resolveGdbinitFilePaths(
-        projectDescription?.gdbinitFiles,
+        gdbinitFiles,
         buildDirPath
       );
       const {
         commands: preConnectCommands,
         prefixMapFound,
-      } = await getGdbinitSourceCommands(gdbinitPaths, buildDirPath, gdbPath);
+        prefixMapFilePath,
+      } = await getGdbinitSourceCommands(
+        gdbinitPaths,
+        gdbinitFiles,
+        buildDirPath,
+        gdbPath
+      );
 
       if (!isPostMortemSession) {
         const connectCommands =
@@ -348,8 +390,11 @@ export class CDTDebugConfigurationProvider
             folder.uri
           );
           if (isAppReproducibleBuildEnabled === "y") {
-            window.showInformationMessage(
-              `CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found.`
+            await handleError(
+              "debug.resolveConfiguration",
+              gdbinitPrefixMapMissing(prefixMapFilePath),
+              undefined,
+              debugCommandErrorMapping
             );
           }
         } catch (error) {
@@ -384,21 +429,10 @@ export class CDTDebugConfigurationProvider
         }
       }
       if (folder && folder.uri && config.verifyAppBinBeforeDebug) {
-        const isSameAppBinary = await verifyAppBinary(folder.uri);
-        if (!isSameAppBinary) {
-          throw new Error(
-            `Current app binary is different from your project. Flash first.`
-          );
-        }
+        await verifyAppBeforeDebug(folder.uri);
       }
     } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      Logger.error(
-        msg,
-        error as Error,
-        "CDTDebugConfigurationProvider resolveDebugConfiguration"
-      );
-      return undefined;
+      return handleDebugConfigurationError(error);
     }
     return config;
   }

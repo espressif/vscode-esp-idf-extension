@@ -22,7 +22,7 @@ import { join, resolve } from "path";
 import { mkdtemp, remove, writeFile, writeJson } from "fs-extra";
 import { ExtensionContext, Uri } from "vscode";
 import { ESP } from "../../config";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { getProjectConfigurationElements } from "../../project-conf/presetsReader";
 import { resolvePresetInheritance } from "../../project-conf/presetInheritance";
 import { getESPIDFSettingValue } from "../../project-conf/presetSettings";

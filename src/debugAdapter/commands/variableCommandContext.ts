@@ -15,7 +15,7 @@
  */
 
 import { debug } from "vscode";
-import { Logger } from "../../common/logger";
+import { isKnownError } from "../../common/error/knownError";
 
 export type DebugVariableCommandContext = {
   container: {
@@ -38,8 +38,11 @@ export function errorMessageFromUnknown(e: unknown): string {
   return e instanceof Error && e.message ? e.message : String(e);
 }
 
-export function notifyCommandError(e: unknown, scope: string): void {
-  Logger.errorNotify(errorMessageFromUnknown(e), e as Error, scope);
+export function rethrowKnownError(e: unknown): never {
+  if (isKnownError(e)) {
+    throw e;
+  }
+  throw e instanceof Error ? e : new Error(String(e));
 }
 
 export function isVariableCommandContextReady(
@@ -54,10 +57,11 @@ export function isVariableCommandContextReady(
 export function isImageVariableCommandContextReady(
   ctx: DebugVariableCommandContext | undefined
 ): ctx is DebugVariableCommandContext & {
-  variable: DebugVariableCommandContext["variable"] & { type: string };
+  variable: { type: string };
 } {
-  if (!isVariableCommandContextReady(ctx) || !ctx) {
-    return false;
-  }
-  return typeof ctx.variable.type === "string";
+  return (
+    isVariableCommandContextReady(ctx) &&
+    typeof ctx?.variable?.type === "string" &&
+    ctx.variable.type.length > 0
+  );
 }

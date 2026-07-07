@@ -489,6 +489,20 @@ registerNewErrorInRegistry({
   outputChannel: openOcdOutputChannel,
 });
 
+registerNewErrorInRegistry({
+  code: ErrorCode.GdbinitPrefixMapMissing,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found at {filePath}.",
+  logMessage: "Reproducible build gdbinit prefix map not found: {filePath}.",
+  actions: [
+    {
+      label: "Build Project",
+      execute: () => commands.executeCommand("espIdf.buildDevice"),
+    },
+  ],
+});
+
 // ──────────────────────────── Tracing errors ───────────────────────────
 
 const tracingOutputChannel = "Tracing";

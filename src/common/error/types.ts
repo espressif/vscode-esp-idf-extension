@@ -79,6 +79,9 @@ export enum ErrorCode {
   OpenOcdBoardSelectionFailed = 'OpenOcdBoardSelectionFailed',
   OpenOcdHintsLoadFailed = 'OpenOcdHintsLoadFailed',
 
+  // Debug
+  GdbinitPrefixMapMissing = 'GdbinitPrefixMapMissing',
+
   // Tracing
   TraceTclFailed = 'TraceTclFailed',
   HeapTraceNotSupported = 'HeapTraceNotSupported',
