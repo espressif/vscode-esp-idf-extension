@@ -26,6 +26,7 @@ import {
   ProviderResult,
 } from "vscode";
 import { GDBTargetDebugSession } from "./adapter";
+import { invalidConfiguration } from "../common/error/knownError";
 
 const DEBUG_DEFAULT_PORT = 43476;
 
@@ -50,7 +51,7 @@ export class CDTDebugAdapterDescriptorFactory
       return new DebugAdapterServer((<AddressInfo>address).port);
     } else {
       this.dispose();
-      throw new Error("Failed to get CDT Debug Adapter server address or port.");
+      throw invalidConfiguration("debugPort");
     }
   }
 
