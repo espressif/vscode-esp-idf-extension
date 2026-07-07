@@ -100,6 +100,21 @@ registerNewErrorInRegistry({
 });
 
 registerNewErrorInRegistry({
+  code: ErrorCode.InvalidIdfTarget,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    '"{target}" is not a supported IDF target. Supported targets: {supportedTargets}.',
+  logMessage:
+    'Invalid IDF target "{target}". Supported targets: {supportedTargets}.',
+  actions: [
+    {
+      label: "Set Target",
+      execute: () => commands.executeCommand("espIdf.setTarget"),
+    },
+  ],
+});
+
+registerNewErrorInRegistry({
   code: ErrorCode.BuildTerminated,
   severity: ErrorSeverity.Warning,
   userMessage: "Build was terminated.",

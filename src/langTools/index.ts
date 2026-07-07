@@ -1,12 +1,11 @@
 import * as vscode from "vscode";
 import { Logger } from "../common/logger";
-import { isKnownError } from "../common/error/knownError";
+import { isKnownError, idfTaskInProgress, invalidIdfTarget, IdfTaskName } from "../common/error/knownError";
 import { resolveKnownErrorUserMessage } from "../common/error/resolve";
 import { OutputChannel } from "../common/outputChannel";
 import { ESP } from "../config";
 import { buildMain } from "../build/buildMain";
 import { readParameter, writeParameter } from "../configuration/idf";
-import { getEspIdfFromCMake } from "../utils";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
 import { IdfTaskExecution } from "../taskManager/taskManager";
@@ -14,6 +13,7 @@ import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
 import { updateCurrentProfileIdfTarget } from "../project-conf/utils";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { setTargetInIDF } from "../espIdf/setTarget/setTargetInIdf";
+import { setTargetCommandErrorMapping } from "../espIdf/setTarget/errorMapping";
 import { statusBarItems } from "../statusBar";
 import { isSettingIDFTarget, setIsSettingIDFTarget } from "../espIdf/setTarget/main";
 import {
@@ -210,61 +210,87 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 ),
               ]);
             }
-            const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
-            const selectedTarget = targetsFromIdf.find(
-              (t) => t.target === target
-            );
+            try {
+              const targetsFromIdf = await getTargetsFromEspIdf(
+                workspaceFolder.uri
+              );
+              const selectedTarget = targetsFromIdf.find(
+                (t) => t.target === target
+              );
 
-            if (!selectedTarget) {
-              const espIdfPath = modifiedEnv["IDF_PATH"];
-              const espIdfVersion = await getEspIdfFromCMake(espIdfPath);
-              return new vscode.LanguageModelToolResult([
-                new vscode.LanguageModelTextPart(
-                  `${target} is not a valid target for ESP-IDF ${espIdfVersion}`
-                ),
-              ]);
+              if (!selectedTarget) {
+                const message =
+                  resolveKnownErrorUserMessage(
+                    invalidIdfTarget(
+                      target,
+                      targetsFromIdf.map((t) => t.target)
+                    ),
+                    setTargetCommandErrorMapping
+                  ) ??
+                  `${target} is not a valid target.`;
+                return new vscode.LanguageModelToolResult([
+                  new vscode.LanguageModelTextPart(message),
+                ]);
+              }
+              if (isSettingIDFTarget) {
+                const message =
+                  resolveKnownErrorUserMessage(
+                    idfTaskInProgress(IdfTaskName.SetTarget),
+                    setTargetCommandErrorMapping
+                  ) ?? "Set target is already running.";
+                return new vscode.LanguageModelToolResult([
+                  new vscode.LanguageModelTextPart(message),
+                ]);
+              }
+              setIsSettingIDFTarget(true);
+              try {
+                const setTargetResult = await setTargetInIDF(
+                  workspaceFolder.uri,
+                  selectedTarget
+                );
+
+                const configurationTarget =
+                  vscode.ConfigurationTarget.WorkspaceFolder;
+                const customExtraVars = readParameter(
+                  "idf.customExtraVars",
+                  workspaceFolder
+                ) as { [key: string]: string };
+                customExtraVars["IDF_TARGET"] = selectedTarget.target;
+                await writeParameter(
+                  "idf.customExtraVars",
+                  customExtraVars,
+                  configurationTarget,
+                  workspaceFolder
+                );
+                await updateCurrentProfileIdfTarget(
+                  selectedTarget.target,
+                  workspaceFolder.uri
+                );
+
+                await getIdfTargetFromSdkconfig(
+                  workspaceFolder.uri,
+                  statusBarItems["target"]
+                );
+
+                return new vscode.LanguageModelToolResult([
+                  new vscode.LanguageModelTextPart(setTargetResult),
+                ]);
+              } finally {
+                setIsSettingIDFTarget(false);
+              }
+            } catch (error) {
+              if (isKnownError(error)) {
+                const userMessage =
+                  resolveKnownErrorUserMessage(
+                    error,
+                    setTargetCommandErrorMapping
+                  ) ?? error.message;
+                return new vscode.LanguageModelToolResult([
+                  new vscode.LanguageModelTextPart(userMessage),
+                ]);
+              }
+              throw error;
             }
-            if (isSettingIDFTarget) {
-              return new vscode.LanguageModelToolResult([
-                new vscode.LanguageModelTextPart(
-                  `"setTargetInIDF is already running."`
-                ),
-              ]);
-            }
-            setIsSettingIDFTarget(true);
-            const setTargetResult = await setTargetInIDF(
-              workspaceFolder.uri,
-              selectedTarget
-            );
-
-            // Update configuration like setIdfTarget does
-            const configurationTarget =
-              vscode.ConfigurationTarget.WorkspaceFolder;
-            const customExtraVars = readParameter(
-              "idf.customExtraVars",
-              workspaceFolder
-            ) as { [key: string]: string };
-            customExtraVars["IDF_TARGET"] = selectedTarget.target;
-            await writeParameter(
-              "idf.customExtraVars",
-              customExtraVars,
-              configurationTarget,
-              workspaceFolder
-            );
-            await updateCurrentProfileIdfTarget(
-              selectedTarget.target,
-              workspaceFolder.uri
-            );
-
-            await getIdfTargetFromSdkconfig(
-              workspaceFolder.uri,
-              statusBarItems["target"]
-            );
-
-            setIsSettingIDFTarget(false);
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart(setTargetResult),
-            ]);
           } else {
             await vscode.commands.executeCommand(commandId);
           }

@@ -19,7 +19,6 @@
 import {
   ConfigurationTarget,
   ExtensionContext,
-  window,
   l10n,
 } from "vscode";
 import { registerIDFCommand } from "../../common/registerCommand";
@@ -29,7 +28,6 @@ import {
   setIdfTarget,
   setIsSettingIDFTarget,
 } from "./main";
-import { Logger } from "../../common/logger";
 import { getTargetsFromEspIdf } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 import { readParameter, writeParameter } from "../../configuration/idf";
@@ -37,36 +35,45 @@ import { updateCurrentProfileIdfTarget } from "../../project-conf/utils";
 import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
 import { statusBarItems } from "../../statusBar";
 import { ESP } from "../../config";
+import {
+  idfTaskInProgress,
+  invalidIdfTarget,
+  IdfTaskName,
+} from "../../common/error/knownError";
+import { setTargetCommandErrorMapping } from "./errorMapping";
 
 export function registerSetTargetCommand(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.setTarget", (target?: string) => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      if (!wsFolder) {
-        return;
-      }
-
-      if (target) {
-        // Check if target setting is already in progress
-        if (isSettingIDFTarget) {
-          Logger.info("setTargetInIDF is already running.");
+  registerIDFCommand(
+    context,
+    "espIdf.setTarget",
+    (target?: string) => {
+      return PreCheck.perform([openFolderCheck], async () => {
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        if (!wsFolder) {
           return;
         }
-        setIsSettingIDFTarget(true);
 
-        try {
-          // If a target is provided, set it directly
-          const targetsFromIdf = await getTargetsFromEspIdf(
-            wsFolder.uri
-          );
-          const selectedTarget = targetsFromIdf.find(
-            (t) => t.target === target
-          );
+        if (target) {
+          if (isSettingIDFTarget) {
+            throw idfTaskInProgress(IdfTaskName.SetTarget);
+          }
+          setIsSettingIDFTarget(true);
 
-          if (selectedTarget) {
+          try {
+            const targetsFromIdf = await getTargetsFromEspIdf(wsFolder.uri);
+            const selectedTarget = targetsFromIdf.find(
+              (t) => t.target === target
+            );
+
+            if (!selectedTarget) {
+              throw invalidIdfTarget(
+                target,
+                targetsFromIdf.map((t) => t.target)
+              );
+            }
+
             await setTargetInIDF(wsFolder.uri, selectedTarget);
 
-            // Update configuration like setIdfTarget does
             const configurationTarget = ConfigurationTarget.WorkspaceFolder;
             const customExtraVars = readParameter(
               "idf.customExtraVars",
@@ -88,30 +95,16 @@ export function registerSetTargetCommand(context: ExtensionContext) {
               wsFolder.uri,
               statusBarItems["target"]
             );
-          } else {
-            const listOfTargets = targetsFromIdf
-              .map((t) => t.target)
-              .join(", ");
-            window.showErrorMessage(
-              `Invalid target: ${target}. Please use one of the supported targets: ${listOfTargets}.`
-            );
+          } finally {
+            setIsSettingIDFTarget(false);
           }
-        } catch (error) {
-          const errMsg = error instanceof Error ? error.message : String(error);
-          Logger.errorNotify(
-            errMsg,
-            error as Error,
-            "espIdf.setTarget command"
-          );
-        } finally {
-          setIsSettingIDFTarget(false);
+        } else {
+          const enterDeviceTargetMsg = l10n.t("Enter target name (IDF_TARGET)");
+          await setIdfTarget(enterDeviceTargetMsg, wsFolder);
+          await getIdfTargetFromSdkconfig(wsFolder.uri, statusBarItems["target"]);
         }
-      } else {
-        // If no target is provided, show the selection dialog
-        const enterDeviceTargetMsg = l10n.t("Enter target name (IDF_TARGET)");
-        await setIdfTarget(enterDeviceTargetMsg, wsFolder);
-        await getIdfTargetFromSdkconfig(wsFolder.uri, statusBarItems["target"]);
-      }
-    });
-  });
+      });
+    },
+    setTargetCommandErrorMapping
+  );
 }
