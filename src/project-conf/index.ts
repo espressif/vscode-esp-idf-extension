@@ -19,7 +19,6 @@
 import { ExtensionContext, window } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { statusBarItems } from "../statusBar";
-import { Logger } from "../common/logger";
 import { projectConfigurationPanel } from "./projectConfPanel";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { withProgressWrapper } from "../common/withProgressWrapper";
@@ -40,22 +39,13 @@ export function registerProjectConfigCommands(context: ExtensionContext) {
       [openFolderCheck],
       "ESP-IDF: Loading project configuration",
       async (_progress, _cancelToken) => {
-        try {
-          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          const targetsFromIdf = await getTargetsFromEspIdf(wsFolder.uri);
-          projectConfigurationPanel.createOrShow(
-            context.extensionPath,
-            wsFolder.uri,
-            targetsFromIdf
-          );
-        } catch (error) {
-          const errMsg = error instanceof Error ? error.message : String(error);
-          Logger.errorNotify(
-            errMsg,
-            error as Error,
-            "projectConfigurationEditor"
-          );
-        }
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        const targetsFromIdf = await getTargetsFromEspIdf(wsFolder.uri);
+        projectConfigurationPanel.createOrShow(
+          context.extensionPath,
+          wsFolder.uri,
+          targetsFromIdf
+        );
       }
     );
   });

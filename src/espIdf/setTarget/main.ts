@@ -22,7 +22,6 @@ import {
   ProgressLocation,
   WorkspaceFolder,
   window,
-  l10n,
   QuickPickItemKind,
   debug,
 } from "vscode";
@@ -31,8 +30,11 @@ import {
   readParameter,
   writeParameter,
 } from "../../configuration/idf";
+import {
+  idfTaskInProgress,
+  IdfTaskName,
+} from "../../common/error/knownError";
 import { Logger } from "../../common/logger";
-import { OutputChannel } from "../../common/outputChannel";
 import { selectOpenOcdConfigFiles } from "../openOcd/boardConfiguration";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { getTargetsFromEspIdf, IdfTarget } from "./getTargets";
@@ -75,8 +77,7 @@ export async function setIdfTarget(
     return;
   }
   if (isSettingIDFTarget) {
-    Logger.info("setTargetInIDF is already running.");
-    return;
+    throw idfTaskInProgress(IdfTaskName.SetTarget);
   }
   setIsSettingIDFTarget(true);
 
@@ -95,7 +96,7 @@ export async function setIdfTarget(
       location: progressLocation,
       title: "ESP-IDF: Setting device target...",
     },
-    async (progress: Progress<{ message: string; increment: number }>) => {
+    async (_progress: Progress<{ message: string; increment: number }>) => {
       try {
         const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
         let connectedBoards: ISetTargetQuickPickItems[] = [];
@@ -251,24 +252,6 @@ export async function setIdfTarget(
           selectedTarget.idfTarget.target,
           workspaceFolder.uri
         );
-      } catch (err) {
-        const normalizedError =
-          err instanceof Error
-            ? err
-            : new Error(
-                err == null || String(err).trim() === ""
-                  ? l10n.t("Unknown error occurred while setting IDF target.")
-                  : String(err)
-              );
-        const errMsg = normalizedError.message;
-
-        if (errMsg.includes("are satisfied")) {
-          Logger.info(errMsg);
-          OutputChannel.appendLine(errMsg);
-        } else {
-          Logger.error(errMsg, normalizedError, "setIdfTarget");
-          OutputChannel.appendLine(errMsg);
-        }
       } finally {
         setIsSettingIDFTarget(false);
       }
