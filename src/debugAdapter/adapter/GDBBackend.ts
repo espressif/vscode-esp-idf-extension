@@ -25,6 +25,7 @@ import {
     createEnvValues,
     getGdbCwd,
 } from './util';
+import { idfToolNotFound, traceGdbProcessFailed } from '../../common/error/knownError';
 
 export interface MIExecNextRequest {
     reverse?: boolean;
@@ -95,7 +96,7 @@ export class GDBBackend extends events.EventEmitter {
             env: gdbEnvironment,
         });
         if (this.proc.stdin == null || this.proc.stdout == null) {
-            throw new Error('Spawned GDB does not have stdout or stdin');
+            throw idfToolNotFound('gdb');
         }
         this.out = this.proc.stdin;
         this.hardwareBreakpoint = requestArgs.hardwareBreakpoint ? true : false;
@@ -183,7 +184,7 @@ export class GDBBackend extends events.EventEmitter {
             mi.sendExecInterrupt(this, threadId);
         } else {
             if (!this.proc) {
-                throw new Error('GDB is not running, nothing to interrupt');
+                throw traceGdbProcessFailed({ detail: 'GDB is not running, nothing to interrupt' });
             }
             logger.verbose(`GDB signal: SIGINT to pid ${this.proc.pid}`);
             this.proc.kill('SIGINT');
@@ -205,7 +206,7 @@ export class GDBBackend extends events.EventEmitter {
 
     public gdbVersionAtLeast(targetVersion: string): boolean {
         if (!this.gdbVersion) {
-            throw new Error('gdbVersion needs to be set first');
+            throw traceGdbProcessFailed({ detail: 'gdbVersion needs to be set first' });
         }
         return compareVersions(this.gdbVersion, targetVersion) >= 0;
     }

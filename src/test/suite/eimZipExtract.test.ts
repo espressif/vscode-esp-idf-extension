@@ -10,7 +10,7 @@ import {
 import { tmpdir } from "os";
 import { join } from "path";
 import { installZipFile, ZipFileError } from "../../eim/downloadInstall";
-import { OutputChannel } from "../../logger/outputChannel";
+import { OutputChannel } from "../../common/outputChannel";
 
 const S_IFREG = 0o100000;
 const S_IFLNK = 0o120000;

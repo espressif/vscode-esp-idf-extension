@@ -12,6 +12,7 @@ import { sendDataDisassemble } from "../mi";
 import { GDBBackend } from "../GDBBackend";
 import { calculateMemoryOffset } from "./calculateMemoryOffset";
 import { isHexString } from "./isHexString";
+import { traceGdbProcessFailed } from "../../../common/error/knownError";
 
 /**
  * Global cache to track which functions have already been inserted
@@ -239,7 +240,7 @@ export const getInstructions = async (
       // In case of memory read error, where no instructions read before you cannot be sure about the memory offsets
       // Avoid sending empty instructions, which is overriding the previous disassembled instructions in the VSCode
       // Instead, send error message and fail the request.
-      throw new Error(`Cannot retrieve instructions!`);
+      throw traceGdbProcessFailed({ detail: "disassembly" });
     }
     const lastMemoryAddress =
       list[isReverseFetch ? 0 : list.length - 1].address;

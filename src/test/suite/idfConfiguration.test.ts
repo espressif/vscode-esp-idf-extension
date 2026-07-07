@@ -11,8 +11,8 @@ import * as vscode from "vscode";
 import { resolve } from "path";
 import { ESP } from "../../config";
 import { Logger } from "../../common/logger";
-import { ProjectConfigStore } from "../../project-conf/utils";
-import { ProjectConfElement } from "../../project-conf/projectConfiguration";
+import { ProjectConfigStore } from "../../project-conf/store";
+import { ConfigurePreset, ESPIDFSettings } from "../../project-conf/projectConfiguration";
 import { createMockMemento } from "../mockUtils";
 import {
   addWinIfRequired,
@@ -31,31 +31,44 @@ import {
 
 const PROFILE = "test-profile";
 
-function minimalProjectConf(
-  overrides: Partial<ProjectConfElement> = {}
-): ProjectConfElement {
-  const base: ProjectConfElement = {
-    build: {
-      compileArgs: [],
-      ninjaArgs: [],
-      buildDirectoryPath: "",
-      sdkconfigDefaults: [],
-      sdkconfigFilePath: "",
-    },
-    env: {},
-    idfTarget: "esp32",
-    flashBaudRate: "",
-    monitorBaudRate: "",
-    openOCD: { debugLevel: 0, configs: [], args: [] },
-    tasks: { preBuild: "", preFlash: "", postBuild: "", postFlash: "" },
-  };
+function vendorSettings(settings: ESPIDFSettings[]): ConfigurePreset["vendor"] {
   return {
-    ...base,
-    ...overrides,
-    build: { ...base.build, ...overrides.build },
-    env: overrides.env ?? base.env,
-    openOCD: { ...base.openOCD, ...overrides.openOCD },
-    tasks: { ...base.tasks, ...overrides.tasks },
+    [ESP.CMakePresets.ESP_IDF_VENDOR_KEY]: {
+      schemaVersion: ESP.CMakePresets.CMAKE_PRESET_SCHEMA_VERSION,
+      settings,
+    },
+  };
+}
+
+function minimalConfigurePreset(
+  overrides: {
+    binaryDir?: string;
+    ninjaArgs?: string[];
+    environment?: { [key: string]: string };
+    idfTarget?: string;
+    tasks?: {
+      preBuild?: string;
+      postBuild?: string;
+      preFlash?: string;
+      postFlash?: string;
+    };
+  } = {}
+): ConfigurePreset {
+  const settings: ESPIDFSettings[] = [];
+  if (overrides.ninjaArgs) {
+    settings.push({ type: "ninjaArgs", value: overrides.ninjaArgs });
+  }
+  if (overrides.tasks) {
+    settings.push({ type: "tasks", value: overrides.tasks });
+  }
+  return {
+    name: PROFILE,
+    binaryDir: overrides.binaryDir,
+    cacheVariables: {
+      IDF_TARGET: overrides.idfTarget ?? "esp32",
+    },
+    environment: overrides.environment,
+    vendor: settings.length ? vendorSettings(settings) : undefined,
   };
 }
 
@@ -104,7 +117,7 @@ suite("configuration/idf.ts", () => {
     resetIdfConfigurationSource();
   });
 
-  function seedSelectedProfile(conf: ProjectConfElement) {
+  function seedSelectedProfile(conf: ConfigurePreset) {
     const store = ESP.ProjectConfiguration.store;
     store.set(ESP.ProjectConfiguration.SELECTED_CONFIG, PROFILE);
     store.set(PROFILE, conf);
@@ -153,14 +166,9 @@ suite("configuration/idf.ts", () => {
 
     test("maps build path and ninja args from the active profile", () => {
       seedSelectedProfile(
-        minimalProjectConf({
-          build: {
-            compileArgs: [],
-            ninjaArgs: ["-j", "4"],
-            buildDirectoryPath: "/abs/build",
-            sdkconfigDefaults: [],
-            sdkconfigFilePath: "",
-          },
+        minimalConfigurePreset({
+          binaryDir: "/abs/build",
+          ninjaArgs: ["-j", "4"],
         })
       );
       assert.strictEqual(parameterToProjectConfigMap("idf.buildPath"), "/abs/build");
@@ -169,7 +177,7 @@ suite("configuration/idf.ts", () => {
 
     test("maps task names from the active profile", () => {
       seedSelectedProfile(
-        minimalProjectConf({
+        minimalConfigurePreset({
           tasks: {
             preBuild: "task-a",
             postBuild: "task-b",
@@ -187,7 +195,7 @@ suite("configuration/idf.ts", () => {
 
   suite("readParameter and injected configuration source", () => {
     test("uses workspace source when project map yields a falsy string", () => {
-      seedSelectedProfile(minimalProjectConf());
+      seedSelectedProfile(minimalConfigurePreset());
       setIdfConfigurationSource(
         createFakeIdfSource({
           getValues: { "idf.unmappedSetting": "from-workspace" },
@@ -198,14 +206,8 @@ suite("configuration/idf.ts", () => {
 
     test("prefers truthy project value without calling configuration getScoped", () => {
       seedSelectedProfile(
-        minimalProjectConf({
-          build: {
-            compileArgs: [],
-            ninjaArgs: [],
-            buildDirectoryPath: "/only-from-project",
-            sdkconfigDefaults: [],
-            sdkconfigFilePath: "",
-          },
+        minimalConfigurePreset({
+          binaryDir: "/only-from-project",
         })
       );
       setIdfConfigurationSource(createFakeIdfSource({ throwOnGetScoped: true }));
@@ -214,8 +216,8 @@ suite("configuration/idf.ts", () => {
 
     test("merges idf.customExtraVars from workspace, profile env, and idfTarget", () => {
       seedSelectedProfile(
-        minimalProjectConf({
-          env: { FROM_PROF: "p" },
+        minimalConfigurePreset({
+          environment: { FROM_PROF: "p" },
           idfTarget: "esp32c3",
         })
       );
@@ -254,14 +256,8 @@ suite("configuration/idf.ts", () => {
   suite("resolveVariables", () => {
     test("substitutes config:, workspaceFolder, and execPath", () => {
       seedSelectedProfile(
-        minimalProjectConf({
-          build: {
-            compileArgs: [],
-            ninjaArgs: [],
-            buildDirectoryPath: "/cfg/build",
-            sdkconfigDefaults: [],
-            sdkconfigFilePath: "",
-          },
+        minimalConfigurePreset({
+          binaryDir: "/cfg/build",
         })
       );
       setIdfConfigurationSource(createFakeIdfSource({}));
@@ -278,14 +274,9 @@ suite("configuration/idf.ts", () => {
 
     test("applies comma prefix for config array and string values", () => {
       seedSelectedProfile(
-        minimalProjectConf({
-          build: {
-            compileArgs: [],
-            ninjaArgs: ["-v", "-w"],
-            buildDirectoryPath: "/b",
-            sdkconfigDefaults: [],
-            sdkconfigFilePath: "",
-          },
+        minimalConfigurePreset({
+          binaryDir: "/b",
+          ninjaArgs: ["-v", "-w"],
         })
       );
       setIdfConfigurationSource(createFakeIdfSource({}));
@@ -293,14 +284,8 @@ suite("configuration/idf.ts", () => {
       assert.strictEqual(arr, "-D-v -D-w");
 
       seedSelectedProfile(
-        minimalProjectConf({
-          build: {
-            compileArgs: [],
-            ninjaArgs: [],
-            buildDirectoryPath: "/path",
-            sdkconfigDefaults: [],
-            sdkconfigFilePath: "",
-          },
+        minimalConfigurePreset({
+          binaryDir: "/path",
         })
       );
       const str = resolveVariables("${config:idf.buildPath,-C}", undefined);
@@ -309,8 +294,8 @@ suite("configuration/idf.ts", () => {
 
     test("resolves env: from custom extra vars, then IDF configuration, then process.env", () => {
       seedSelectedProfile(
-        minimalProjectConf({
-          env: {},
+        minimalConfigurePreset({
+          environment: {},
         })
       );
       setIdfConfigurationSource(

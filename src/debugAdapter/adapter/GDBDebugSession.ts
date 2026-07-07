@@ -37,6 +37,8 @@ import {
   getInstructions,
   clearInsertedFunctionsCache,
 } from "./util/disassembly";
+import { invalidConfiguration } from "../../common/error/knownError";
+import { resolveDapErrorMessage } from "../dapError";
 
 export interface RequestArguments extends DebugProtocol.LaunchRequestArguments {
   gdb?: string;
@@ -142,12 +144,12 @@ const cBoolRegex = /\bbool$/; // match boolean
 export function hexToBase64(hex: string): string {
   // The buffer will ignore incomplete bytes (unpaired digits), so we need to catch that early
   if (hex.length % 2 !== 0) {
-    throw new Error("Received memory with incomplete bytes.");
+    throw invalidConfiguration("memory.encoding");
   }
   const base64 = Buffer.from(hex, "hex").toString("base64");
   // If the hex input includes characters that are not hex digits, Buffer.from() will return an empty buffer, and the base64 string will be empty.
   if (base64.length === 0 && hex.length !== 0) {
-    throw new Error("Received ill-formed hex input: " + hex);
+    throw invalidConfiguration("memory.encoding");
   }
   return base64;
 }
@@ -157,7 +159,7 @@ export function base64ToHex(base64: string): string {
   // The caller likely passed in a value that left dangling bits that couldn't be assigned to a full byte and so
   // were ignored by Buffer. We can't be sure what the client thought they wanted to do with those extra bits, so fail here.
   if (buffer.length === 0 || !buffer.toString("base64").startsWith(base64)) {
-    throw new Error("Received ill-formed base64 input: " + base64);
+    throw invalidConfiguration("memory.encoding");
   }
   return buffer.toString("hex");
 }
@@ -413,7 +415,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -432,7 +434,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -557,7 +559,7 @@ export class GDBDebugSession extends LoggingDebugSession {
         } catch (err) {
           actual.push({
             verified: false,
-            message: err instanceof Error ? err.message : String(err),
+            message: resolveDapErrorMessage(err),
           } as DebugProtocol.Breakpoint);
         }
       }
@@ -571,7 +573,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
 
@@ -748,7 +750,7 @@ export class GDBDebugSession extends LoggingDebugSession {
         } catch (err) {
           actual.push({
             verified: false,
-            message: err instanceof Error ? err.message : String(err),
+            message: resolveDapErrorMessage(err),
           } as DebugProtocol.Breakpoint);
         }
       }
@@ -762,7 +764,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
 
@@ -875,7 +877,7 @@ export class GDBDebugSession extends LoggingDebugSession {
         } catch (err) {
           actual.push({
             verified: false,
-            message: err instanceof Error ? err.message : String(err),
+            message: resolveDapErrorMessage(err),
           } as DebugProtocol.Breakpoint);
         }
       }
@@ -889,7 +891,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
 
@@ -971,7 +973,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         100,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -1008,7 +1010,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -1074,7 +1076,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -1092,7 +1094,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -1110,7 +1112,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -1126,7 +1128,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -1151,7 +1153,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -1167,7 +1169,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -1222,7 +1224,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -1358,7 +1360,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
     this.sendResponse(response);
@@ -1374,9 +1376,7 @@ export class GDBDebugSession extends LoggingDebugSession {
     }; // default response
     try {
       if (args.frameId === undefined) {
-        throw new Error(
-          "Evaluation of expression without frameId is not supported."
-        );
+        throw invalidConfiguration("evaluateRequest.frameId");
       }
 
       const frame = this.frameHandles.get(args.frameId);
@@ -1497,7 +1497,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -1551,24 +1551,18 @@ export class GDBDebugSession extends LoggingDebugSession {
   protected async memoryRequest(response: MemoryResponse, args: any) {
     try {
       if (typeof args.address !== "string") {
-        throw new Error(
-          `Invalid type for 'address', expected string, got ${typeof args.address}`
-        );
+        throw invalidConfiguration("memoryRequest.address");
       }
 
       if (typeof args.length !== "number") {
-        throw new Error(
-          `Invalid type for 'length', expected number, got ${typeof args.length}`
-        );
+        throw invalidConfiguration("memoryRequest.length");
       }
 
       if (
         typeof args.offset !== "number" &&
         typeof args.offset !== "undefined"
       ) {
-        throw new Error(
-          `Invalid type for 'offset', expected number or undefined, got ${typeof args.offset}`
-        );
+        throw invalidConfiguration("memoryRequest.offset");
       }
 
       const typedArgs = args as MemoryRequestArguments;
@@ -1588,7 +1582,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -1602,7 +1596,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       clearInsertedFunctionsCache();
 
       if (!args.memoryReference) {
-        throw new Error("Target memory reference is not specified!");
+        throw invalidConfiguration("disassembleRequest.memoryReference");
       }
       const instructionStartOffset = args.instructionOffset ?? 0;
       const instructionEndOffset =
@@ -1642,7 +1636,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       };
       this.sendResponse(response);
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = resolveDapErrorMessage(err);
       this.sendEvent(new OutputEvent(`Error: ${message}`));
       this.sendErrorResponse(response, 1, message);
     }
@@ -1672,7 +1666,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -1689,14 +1683,10 @@ export class GDBDebugSession extends LoggingDebugSession {
       const typeofAddress = typeof memoryReference;
       const typeofContent = typeof data;
       if (typeofAddress !== "string") {
-        throw new Error(
-          `Invalid type for 'address', expected string, got ${typeofAddress}`
-        );
+        throw invalidConfiguration("writeMemoryRequest.address");
       }
       if (typeofContent !== "string") {
-        throw new Error(
-          `Invalid type for 'content', expected string, got ${typeofContent}`
-        );
+        throw invalidConfiguration("writeMemoryRequest.content");
       }
       const hexContent = base64ToHex(data);
       await sendDataWriteMemoryBytes(this.gdb, memoryReference, hexContent);
@@ -1705,7 +1695,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }
@@ -1722,7 +1712,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       this.sendErrorResponse(
         response,
         1,
-        err instanceof Error ? err.message : String(err)
+        resolveDapErrorMessage(err)
       );
     }
   }

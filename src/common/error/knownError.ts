@@ -220,6 +220,10 @@ export function openOcdHintsLoadFailed(detail: string): KnownError {
   return known(ErrorCode.OpenOcdHintsLoadFailed, { detail });
 }
 
+export function gdbinitPrefixMapMissing(filePath: string): KnownError {
+  return known(ErrorCode.GdbinitPrefixMapMissing, { filePath });
+}
+
 export type TraceTclPhase = "reset" | "start" | "status" | "stop";
 
 export function traceTclFailed(

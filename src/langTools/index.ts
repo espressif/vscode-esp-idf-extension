@@ -11,7 +11,7 @@ import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
 import { IdfTaskExecution } from "../taskManager/taskManager";
 import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
-import { updateCurrentProfileIdfTarget } from "../project-conf/utils";
+import { updateCurrentProfileIdfTarget } from "../project-conf/presetsWriter";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { setTargetInIDF } from "../espIdf/setTarget/setTargetInIdf";
 import { statusBarItems } from "../statusBar";

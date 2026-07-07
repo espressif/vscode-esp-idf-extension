@@ -19,7 +19,7 @@
 import { Uri } from "vscode";
 import { pathExists, readJson } from "fs-extra";
 import { ESP } from "../config";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { CMakePresets, ConfigurePreset } from "./projectConfiguration";
 import { resolvePresetInheritance } from "./presetInheritance";
 import { processConfigurePresetVariables } from "./presetProcessing";

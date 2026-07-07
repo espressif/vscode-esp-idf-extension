@@ -17,6 +17,7 @@
  */
 
 import { DebugSession } from "vscode";
+import { parseError } from "../../common/error/knownError";
 import { AddrRange } from "./common";
 
 export function binaryFormat(
@@ -74,11 +75,15 @@ export function hexFormat(
   return includePrefix ? "0x" + base : base;
 }
 
-export function parseDimIndex(spec: string, count: number): string[] {
+export function parseDimIndex(
+  spec: string,
+  count: number,
+  svdFilePath = ""
+): string[] {
   if (spec.indexOf(",") !== -1) {
     const components = spec.split(",").map((c) => c.trim());
     if (components.length !== count) {
-      throw new Error("dimIndex Element has invalid specification.");
+      throw parseError(svdFilePath || "svd");
     }
     return components;
   }
@@ -90,7 +95,7 @@ export function parseDimIndex(spec: string, count: number): string[] {
 
     const numElements = end - start + 1;
     if (numElements < count) {
-      throw new Error("dimIndex Element has invalid specification.");
+      throw parseError(svdFilePath || "svd");
     }
 
     const components = [];
@@ -107,7 +112,7 @@ export function parseDimIndex(spec: string, count: number): string[] {
 
     const numElements = end - start + 1;
     if (numElements < count) {
-      throw new Error("dimIndex Element has invalid specification.");
+      throw parseError(svdFilePath || "svd");
     }
 
     const components = [];
