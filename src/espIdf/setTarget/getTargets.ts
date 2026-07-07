@@ -18,7 +18,7 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { Uri } from "vscode";
-import { Logger } from "../../common/logger";
+import { fileNotFound } from "../../common/error/knownError";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
 
 export interface IdfTarget {
@@ -38,53 +38,44 @@ export async function getTargetsFromEspIdf(
     : modifiedEnv["IDF_PATH"];
   const resultTargetArray: IdfTarget[] = [];
 
-  try {
-    const idfConstantsFile = join(
-      idfPathDir,
-      "tools",
-      "idf_py_actions",
-      "constants.py"
-    );
-    if (!existsSync(idfConstantsFile)) {
-      throw new Error(`File not found: ${idfConstantsFile}`);
-    }
-
-    const idfConstantsFileContent = readFileSync(idfConstantsFile, "utf-8");
-    function extractArray(varName: string): string[] {
-      const regex = new RegExp(`${varName}\\s*=\\s*\\[([^\\]]*)\\]`, "m");
-      const match = idfConstantsFileContent.match(regex);
-      if (!match) return [];
-      // Split by comma, remove quotes and whitespace
-      return match[1]
-        .split(",")
-        .map((s) => s.replace(/['"\s]/g, ""))
-        .filter(Boolean);
-    }
-    const supportedTargets = extractArray("SUPPORTED_TARGETS");
-    const previewTargets = extractArray("PREVIEW_TARGETS");
-    for (const supportedTarget of supportedTargets) {
-      resultTargetArray.push({
-        label: supportedTarget,
-        target: supportedTarget,
-        isPreview: false,
-      } as IdfTarget);
-    }
-
-    for (const supportedTarget of previewTargets) {
-      resultTargetArray.push({
-        label: supportedTarget,
-        target: supportedTarget,
-        description: "Preview",
-        isPreview: true,
-      } as IdfTarget);
-    }
-  } catch (error) {
-    Logger.errorNotify(
-      `Error while getting targets from ESP-IDF: ${error}`,
-      error as Error,
-      "getTargetsFromEspIdf"
-    );
-    return resultTargetArray;
+  const idfConstantsFile = join(
+    idfPathDir,
+    "tools",
+    "idf_py_actions",
+    "constants.py"
+  );
+  if (!existsSync(idfConstantsFile)) {
+    throw fileNotFound(idfConstantsFile);
   }
+
+  const idfConstantsFileContent = readFileSync(idfConstantsFile, "utf-8");
+  function extractArray(varName: string): string[] {
+    const regex = new RegExp(`${varName}\\s*=\\s*\\[([^\\]]*)\\]`, "m");
+    const match = idfConstantsFileContent.match(regex);
+    if (!match) return [];
+    return match[1]
+      .split(",")
+      .map((s) => s.replace(/['"\s]/g, ""))
+      .filter(Boolean);
+  }
+  const supportedTargets = extractArray("SUPPORTED_TARGETS");
+  const previewTargets = extractArray("PREVIEW_TARGETS");
+  for (const supportedTarget of supportedTargets) {
+    resultTargetArray.push({
+      label: supportedTarget,
+      target: supportedTarget,
+      isPreview: false,
+    } as IdfTarget);
+  }
+
+  for (const supportedTarget of previewTargets) {
+    resultTargetArray.push({
+      label: supportedTarget,
+      target: supportedTarget,
+      description: "Preview",
+      isPreview: true,
+    } as IdfTarget);
+  }
+
   return resultTargetArray;
 }

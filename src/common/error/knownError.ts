@@ -121,6 +121,7 @@ export const IdfTaskName = {
   Flash: "flash",
   EraseFlash: "erase flash",
   Monitor: "monitor",
+  SetTarget: "set target",
 } as const;
 
 export function idfTargetNotSet(): KnownError {
@@ -135,6 +136,16 @@ export function invalidIdfVersion(
     ErrorCode.InvalidIdfVersion,
     detail ? { idfPath, detail } : { idfPath }
   );
+}
+
+export function invalidIdfTarget(
+  target: string,
+  supportedTargets: string[]
+): KnownError {
+  return known(ErrorCode.InvalidIdfTarget, {
+    target,
+    supportedTargets: supportedTargets.join(", "),
+  });
 }
 
 export function buildRequiredBeforeFlash(buildDirPath: string): KnownError {

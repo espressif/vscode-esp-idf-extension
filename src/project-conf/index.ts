@@ -20,11 +20,7 @@
 import { ExtensionContext, window } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { statusBarItems } from "../statusBar";
-import { Logger } from "../common/logger";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
-import { withProgressWrapper } from "../common/withProgressWrapper";
-import { ESP } from "../config";
-import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
 import { ProjectConfigurationManager } from "./ProjectConfigurationManager";
 
 export { ProjectConfigStore } from "./store";
