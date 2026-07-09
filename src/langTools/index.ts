@@ -1,6 +1,11 @@
 import * as vscode from "vscode";
 import { Logger } from "../common/logger";
-import { isKnownError, idfTaskInProgress, invalidIdfTarget, IdfTaskName } from "../common/error/knownError";
+import {
+  isKnownError,
+  idfTaskInProgress,
+  invalidIdfTarget,
+  IdfTaskName,
+} from "../common/error/knownError";
 import { resolveKnownErrorUserMessage } from "../common/error/resolve";
 import { OutputChannel } from "../common/outputChannel";
 import { ESP } from "../config";
@@ -15,10 +20,11 @@ import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { setTargetInIDF } from "../espIdf/setTarget/setTargetInIdf";
 import { setTargetCommandErrorMapping } from "../espIdf/setTarget/errorMapping";
 import { statusBarItems } from "../statusBar";
-import { isSettingIDFTarget, setIsSettingIDFTarget } from "../espIdf/setTarget/main";
 import {
-  OutputCapturingExecution,
-} from "../taskManager/customExecution";
+  isSettingIDFTarget,
+  setIsSettingIDFTarget,
+} from "../espIdf/setTarget/main";
+import { OutputCapturingExecution } from "../taskManager/customExecution";
 import { flashMain } from "../flash/main";
 import { eraseFlashMain } from "../eraseFlash/main";
 import { buildFlashAndMonitorCapture } from "../buildFlashMonitor";
@@ -211,9 +217,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               ]);
             }
             try {
-              const targetsFromIdf = await getTargetsFromEspIdf(
-                workspaceFolder.uri
-              );
+              const targetsFromIdf = await getTargetsFromEspIdf();
               const selectedTarget = targetsFromIdf.find(
                 (t) => t.target === target
               );
@@ -226,8 +230,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                       targetsFromIdf.map((t) => t.target)
                     ),
                     setTargetCommandErrorMapping
-                  ) ??
-                  `${target} is not a valid target.`;
+                  ) ?? `${target} is not a valid target.`;
                 return new vscode.LanguageModelToolResult([
                   new vscode.LanguageModelTextPart(message),
                 ]);

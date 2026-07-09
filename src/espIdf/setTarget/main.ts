@@ -99,7 +99,7 @@ export async function setIdfTarget(
     },
     async (_progress: Progress<{ message: string; increment: number }>) => {
       try {
-        const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
+        const targetsFromIdf = await getTargetsFromEspIdf();
         let connectedBoards: ISetTargetQuickPickItems[] = [];
         let openOCDVersion: string | undefined;
 
