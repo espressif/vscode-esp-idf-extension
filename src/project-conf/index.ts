@@ -45,7 +45,7 @@ export function registerProjectConfigCommands(context: ExtensionContext) {
         "ESP-IDF: Loading project configuration",
         async (_progress, _cancelToken) => {
           const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          const targetsFromIdf = await getTargetsFromEspIdf(wsFolder.uri);
+          const targetsFromIdf = await getTargetsFromEspIdf();
           projectConfigurationPanel.createOrShow(
             context.extensionPath,
             wsFolder.uri,
