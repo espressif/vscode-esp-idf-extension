@@ -20,49 +20,58 @@ import { Uri } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { join } from "path";
 import { pathExists } from "fs-extra";
-import { Logger } from "../common/logger";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { selectedDFUAdapterId } from "../flash/transports/dfu/helpers";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 import { addProcessTask, type IdfTaskExecution } from "../taskManager/taskManager";
+import {
+  dfuTargetNotCompatible,
+  flasherArgsMissing,
+  idfTargetNotSet,
+  invalidConfiguration,
+  missingDependency,
+} from "../common/error/knownError";
+
+let getIdfTargetFromSdkconfigForTests:
+  | ((workspace: Uri) => Promise<string | undefined>)
+  | undefined;
+
+/** @internal Test helper to stub IDF target resolution for DFU build. */
+export function setDfuExecutionTestHooks(
+  hooks?: {
+    getIdfTargetFromSdkconfig?: (workspace: Uri) => Promise<string | undefined>;
+  }
+): void {
+  getIdfTargetFromSdkconfigForTests = hooks?.getIdfTargetFromSdkconfig;
+}
 
 export async function appendDfuExecution(
   executions: IdfTaskExecution[],
   workspace: Uri,
   captureOutput?: boolean
-): Promise<boolean> {
+): Promise<void> {
   const buildPath = (readParameter("idf.buildPath", workspace) as string)?.trim();
   if (!buildPath) {
-    Logger.warnNotify(
-      "idf.buildPath is not configured. Set the build directory in ESP-IDF settings before building for DFU."
-    );
-    return false;
+    throw invalidConfiguration("idf.buildPath");
   }
   if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
-    Logger.warnNotify(
-      "flasher_args.json file is missing from the build directory, can't proceed, please build properly!"
-    );
-    return false;
+    throw flasherArgsMissing();
   }
 
-  const adapterTargetName = await getIdfTargetFromSdkconfig(workspace);
+  const resolveIdfTarget =
+    getIdfTargetFromSdkconfigForTests ?? getIdfTargetFromSdkconfig;
+  const adapterTargetName = await resolveIdfTarget(workspace);
   if (!adapterTargetName) {
-    Logger.warnNotify(
-      "Could not determine the selected device target, so dfu.bin was not created."
-    );
-    return false;
+    throw idfTargetNotSet();
   }
   if (selectedDFUAdapterId(adapterTargetName) === -1) {
-    Logger.warnNotify(
-      `The selected device target "${adapterTargetName}" is not compatible for DFU, as a result the dfu.bin was not created.`
-    );
-    return false;
+    throw dfuTargetNotCompatible(adapterTargetName);
   }
 
   const modifiedEnv = getCurrentIdfConfiguration();
   const idfPathDir = modifiedEnv["IDF_PATH"];
   if (!idfPathDir) {
-    throw new Error("IDF_PATH not found in environment");
+    throw invalidConfiguration("IDF_PATH");
   }
   const args = [
     join(idfPathDir, "tools", "mkdfu.py"),
@@ -74,9 +83,9 @@ export async function appendDfuExecution(
     "--pid",
     selectedDFUAdapterId(adapterTargetName).toString(),
   ];
-  const pythonBinPath = await getVirtualEnvPythonPath();
+  const pythonBinPath = getVirtualEnvPythonPath();
   if (!pythonBinPath) {
-    throw new Error("Python path not found in environment");
+    throw missingDependency("Python");
   }
   const buildDfuExecution = addProcessTask(
     "Write DFU bin",
@@ -89,5 +98,4 @@ export async function appendDfuExecution(
   );
 
   executions.push(buildDfuExecution);
-  return true;
 }

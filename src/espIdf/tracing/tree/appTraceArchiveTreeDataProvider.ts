@@ -30,6 +30,7 @@ import {
   window,
   workspace,
 } from "vscode";
+import { PreCheck } from "../../../common/PreCheck";
 
 export enum TraceType {
   AppTrace = 0,
@@ -37,9 +38,9 @@ export enum TraceType {
 }
 
 export class AppTraceArchiveItems extends TreeItem {
-  public fileName: string;
-  public filePath: string;
-  public type: TraceType;
+  public fileName: string = "";
+  public filePath: string = "";
+  public type: TraceType = TraceType.AppTrace;
 }
 
 // tslint:disable-next-line: max-classes-per-file
@@ -51,7 +52,7 @@ export class AppTraceArchiveTreeDataProvider
   >();
   public readonly onDidChangeTreeData: Event<AppTraceArchiveItems | null> = this
     .OnDidChangeTreeData.event;
-  public appTraceArchives: AppTraceArchiveItems[];
+  public appTraceArchives: AppTraceArchiveItems[] = new Array<AppTraceArchiveItems>(0);
 
   constructor() {
     this.populateArchiveTree();
@@ -73,6 +74,10 @@ export class AppTraceArchiveTreeDataProvider
 
   public populateArchiveTree() {
     this.appTraceArchives = Array<AppTraceArchiveItems>(0);
+    if (!PreCheck.isWorkspaceFolderOpen()) {
+      this.refresh();
+      return;
+    }
     const storedWorkspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
     let baseFolderPath: string | undefined;
     if (storedWorkspaceFolder) {
@@ -89,7 +94,7 @@ export class AppTraceArchiveTreeDataProvider
     if (existsSync(traceFolder)) {
       const traceLists = readdirSync(traceFolder);
       let appTraceCounter = 1;
-      const appTraceArchives = [];
+      const appTraceArchives = new Array<AppTraceArchiveItems>(0);
       traceLists
         .filter((trace) => trace.endsWith(".trace"))
         .forEach((trace) => {

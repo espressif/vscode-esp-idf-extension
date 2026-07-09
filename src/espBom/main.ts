@@ -23,77 +23,64 @@ import { OutputChannel } from "../common/outputChannel";
 import { join } from "path";
 import { pathExists, lstat, constants } from "fs-extra";
 import { Logger } from "../common/logger";
+import { missingDependency } from "../common/error/knownError";
 import { addProcessTask, TaskManager } from "../taskManager/taskManager";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
+import {
+  getProjectMapFilePath,
+} from "../configuration/workspace";
 
 export async function createSBOM(workspaceUri: Uri) {
-  try {
-    const projectDescriptionJson = join(
-      workspaceUri.fsPath,
-      "build",
-      "project_description.json"
-    );
-    const projectDescriptionExists = await pathExists(projectDescriptionJson);
-    if (!projectDescriptionExists) {
+  await getProjectMapFilePath(workspaceUri);
+  const buildDirPath = readParameter("idf.buildPath", workspaceUri) as string;
+  const projectDescriptionJson = join(buildDirPath, "project_description.json");
+  const modifiedEnv = getCurrentIdfConfiguration();
+  const sbomFilePath = readParameter(
+    "idf.sbomFilePath",
+    workspaceUri
+  ) as string;
+  const sbomFileExists = await pathExists(sbomFilePath);
+  if (sbomFileExists) {
+    const sbomFileAccess = canAccessFile(sbomFilePath, constants.W_OK);
+    const sbomFilePathStats = await lstat(sbomFilePath);
+    if (sbomFilePathStats.isDirectory() || !sbomFileAccess) {
       return Logger.infoNotify(
-        `${projectDescriptionJson} doesn't exists for ESP-IDF SBOM tasks.`
+        `${sbomFilePath} is not valid. Please update idf.sbomFilePath to a writable file path.`
       );
     }
-    const modifiedEnv = getCurrentIdfConfiguration();
-    const sbomFilePath = readParameter(
-      "idf.sbomFilePath",
-      workspaceUri
-    ) as string;
-    const sbomFileExists = await pathExists(sbomFilePath);
-    if (sbomFileExists) {
-      const sbomFileAccess = canAccessFile(sbomFilePath, constants.W_OK);
-      const sbomFilePathStats = await lstat(sbomFilePath);
-      if (sbomFilePathStats.isDirectory() || !sbomFileAccess) {
-        return Logger.infoNotify(
-          `${sbomFilePath} is not valid. Please update idf.sbomFilePath to a writable file path.`
-        );
-      }
-    }
-    const command = "esp-idf-sbom";
-    const argsCreating = [
-      "create",
-      projectDescriptionJson,
-      "--output-file",
-      sbomFilePath,
-    ];
-    addProcessTask(
-      "SBOM Create",
-      workspaceUri,
-      command,
-      argsCreating,
-      workspaceUri.fsPath,
-      modifiedEnv
-    );
-
-    const argsChecking = ["check", sbomFilePath];
-    addProcessTask(
-      "SBOM Check",
-      workspaceUri,
-      command,
-      argsChecking,
-      workspaceUri.fsPath,
-      modifiedEnv
-    );
-    await TaskManager.runTasks();
-  } catch (error) {
-    const msg = error instanceof Error && error.message
-      ? error.message
-      : "Error create SBOM Report or check vulnerabilities.";
-    Logger.errorNotify(msg, error as Error, "createSBOM");
   }
+  const command = "esp-idf-sbom";
+  const argsCreating = [
+    "create",
+    projectDescriptionJson,
+    "--output-file",
+    sbomFilePath,
+  ];
+  addProcessTask(
+    "SBOM Create",
+    workspaceUri,
+    command,
+    argsCreating,
+    workspaceUri.fsPath,
+    modifiedEnv
+  );
+
+  const argsChecking = ["check", sbomFilePath];
+  addProcessTask(
+    "SBOM Check",
+    workspaceUri,
+    command,
+    argsChecking,
+    workspaceUri.fsPath,
+    modifiedEnv
+  );
+  await TaskManager.runTasks();
 }
 
 export async function installEspSBOM(workspace: Uri) {
   const pythonBinPath = getVirtualEnvPythonPath();
   if (!pythonBinPath) {
-    return Logger.infoNotify(
-      "Python environment is not set up. Please set up Python environment to use ESP-IDF SBOM features."
-    );
+    throw missingDependency("Python");
   }
   const modifiedEnv = getCurrentIdfConfiguration();
   try {

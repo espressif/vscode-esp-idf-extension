@@ -20,6 +20,7 @@ import {
   CancellationTokenSource,
   ExtensionContext,
   TreeItemCheckboxState,
+  Uri,
   workspace,
 } from "vscode";
 import {
@@ -44,16 +45,21 @@ import { ESP } from "../config";
 import { OutputChannel } from "./outputChannel";
 import { UnitTest } from "../espIdf/unitTest/adapter";
 import { updateCurrentIdfEnvVar } from "../configuration/env";
+import { ExtensionConfigStore } from "./store";
 
 export function registerOnDidChangeConfiguration(context: ExtensionContext) {
   context.subscriptions.push(
     workspace.onDidChangeConfiguration(async (e) => {
       const winFlag = process.platform === "win32" ? "Win" : "";
-      const workspaceRoot = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      const prevWorkspaceFolderStr = ESP.GlobalConfiguration.store.get<string>(
+        ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
+        ""
+      );
+      const prevWorkspaceFolder = workspace.getWorkspaceFolder(Uri.parse(prevWorkspaceFolderStr));
       // Refresh OpenOCD adapter status bar item when adapter location is manually edited
       if (
-        workspaceRoot &&
-        e.affectsConfiguration("idf.customExtraVars", workspaceRoot) &&
+        prevWorkspaceFolder &&
+        e.affectsConfiguration("idf.customExtraVars", prevWorkspaceFolder) &&
         statusBarItems &&
         statusBarItems["openOcdAdapter"] &&
         ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
@@ -61,25 +67,25 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
           TreeItemCheckboxState.Unchecked
         ) === TreeItemCheckboxState.Checked
       ) {
-        updateOpenOcdAdapterStatusBarItem(workspaceRoot.uri);
+        updateOpenOcdAdapterStatusBarItem(prevWorkspaceFolder.uri);
       }
-      if (e.affectsConfiguration("idf.enableStatusBar")) {
+      if (prevWorkspaceFolder && e.affectsConfiguration("idf.enableStatusBar")) {
         const enableStatusBar = readParameter(
           "idf.enableStatusBar",
-          workspaceRoot
+          prevWorkspaceFolder
         ) as boolean;
         if (enableStatusBar) {
-          await createCmdsStatusBarItems(context, workspaceRoot.uri);
+          await createCmdsStatusBarItems(context, prevWorkspaceFolder.uri);
         } else if (!enableStatusBar) {
           for (let statusItem in statusBarItems) {
             statusBarItems[statusItem].dispose();
             delete statusBarItems[statusItem];
           }
         }
-      } else if (e.affectsConfiguration("idf.customExtraVars")) {
+      } else if (prevWorkspaceFolder && e.affectsConfiguration("idf.customExtraVars")) {
         const customExtraVars = readParameter(
           "idf.customExtraVars",
-          workspaceRoot
+          prevWorkspaceFolder
         ) as { [key: string]: string };
         for (const envVar in customExtraVars) {
           if (envVar.toUpperCase() !== "PATH") {
@@ -92,19 +98,19 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
           }
         }
         await getIdfTargetFromSdkconfig(
-          workspaceRoot.uri,
+          prevWorkspaceFolder.uri,
           statusBarItems["target"]
         );
-        await configureClangSettings(workspaceRoot.uri);
+        await configureClangSettings(prevWorkspaceFolder.uri);
         ESP.URL.Docs.IDF_INDEX = undefined;
       } else if (e.affectsConfiguration("idf.port" + winFlag)) {
         if (statusBarItems && statusBarItems["port"]) {
           statusBarItems["port"].text =
             `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
-            readParameter("idf.port", workspaceRoot);
+            readParameter("idf.port", prevWorkspaceFolder);
         }
       } else if (e.affectsConfiguration("idf.monitorPort")) {
-        const monitorPort = readParameter("idf.monitorPort", workspaceRoot);
+        const monitorPort = readParameter("idf.monitorPort", prevWorkspaceFolder);
         if (statusBarItems && statusBarItems["monitorPort"]) {
           if (monitorPort === "") {
             statusBarItems["monitorPort"].hide();
@@ -117,16 +123,16 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
           }
         }
       } else if (e.affectsConfiguration("idf.flashType")) {
-        let flashType = readParameter("idf.flashType", workspaceRoot) as string;
+        let flashType = readParameter("idf.flashType", prevWorkspaceFolder) as string;
         if (statusBarItems && statusBarItems["flashType"]) {
           statusBarItems["flashType"].text = `$(${
             commandDictionary[CommandKeys.SelectFlashType].iconId
           }) ${flashType}`;
         }
-      } else if (e.affectsConfiguration("idf.buildPath" + winFlag)) {
-        updateIdfComponentsTree(workspaceRoot.uri);
-        await configureClangSettings(workspaceRoot.uri);
-        handleCompileCommandsUpdate(workspaceRoot.uri, context);
+      } else if (prevWorkspaceFolder && e.affectsConfiguration("idf.buildPath" + winFlag)) {
+        updateIdfComponentsTree(prevWorkspaceFolder.uri);
+        await configureClangSettings(prevWorkspaceFolder.uri);
+        handleCompileCommandsUpdate(prevWorkspaceFolder.uri, context);
       } else if (e.affectsConfiguration("idf.unitTestFilePattern")) {
         const cancelTokenSource = new CancellationTokenSource();
         try {
@@ -150,12 +156,12 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
         } finally {
           cancelTokenSource.dispose();
         }
-      } else if (coverageRendererSettingsAffected(e, workspaceRoot.uri)) {
+      } else if (coverageRendererSettingsAffected(e, prevWorkspaceFolder?.uri)) {
         espIdfCoverageRenderer.refreshOptionsFromWorkspace();
       } else if (e.affectsConfiguration("idf.sdkconfigFilePath")) {
         const sdkconfigFilePath = readParameter(
           "idf.sdkconfigFilePath",
-          workspaceRoot
+          prevWorkspaceFolder
         ) as string;
         if (sdkconfigFilePath) {
           updateCurrentIdfEnvVar("SDKCONFIG", sdkconfigFilePath);
@@ -163,7 +169,7 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
       } else if (e.affectsConfiguration("idf.enableIdfComponentManager")) {
         const enableIdfComponentManager = readParameter(
           "idf.enableIdfComponentManager",
-          workspaceRoot
+          prevWorkspaceFolder
         ) as boolean;
         const enabled = enableIdfComponentManager ? "1" : "0";
         updateCurrentIdfEnvVar("IDF_COMPONENT_MANAGER", enabled);

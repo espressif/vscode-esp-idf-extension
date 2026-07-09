@@ -20,6 +20,13 @@ import { stringify } from "querystring";
 import { ESP } from "../../config";
 import { Logger } from "../../common/logger";
 import {
+  isKnownError,
+  rainmakerLoginFailed,
+  rainmakerNodeDeleteFailed,
+  rainmakerParamUpdateFailed,
+} from "../../common/error/knownError";
+import { ErrorCode } from "../../common/error/types";
+import {
   RainmakerLoginResponseModel,
   RainmakerNodeWithDetails,
   RainmakerDeviceParams,
@@ -68,18 +75,25 @@ export class RainmakerAPIClient {
     username: string,
     password: string
   ): Promise<RainmakerLoginResponseModel | undefined> {
-    const resp = await axios.post<RainmakerLoginResponseModel>(
-      this.generateURLFor("login"),
-      { user_name: username, password },
-      { headers: this.generateUserAgentHeader() }
-    );
+    try {
+      const resp = await axios.post<RainmakerLoginResponseModel>(
+        this.generateURLFor("login"),
+        { user_name: username, password },
+        { headers: this.generateUserAgentHeader() }
+      );
 
-    if (resp.status === 200 && resp.data.status === "success") {
-      this.updateUserTokens(resp.data);
-      this.setUserLoggedInContext(true);
-      return resp.data;
+      if (resp.status === 200 && resp.data.status === "success") {
+        this.updateUserTokens(resp.data);
+        this.setUserLoggedInContext(true);
+        return resp.data;
+      }
+      this.throwRainmakerError(ErrorCode.RainmakerLoginFailed, resp);
+    } catch (error) {
+      if (isKnownError(error)) {
+        throw error;
+      }
+      this.throwRainmakerError(ErrorCode.RainmakerLoginFailed, error);
     }
-    this.throwUnknownError(resp);
   }
 
   public static logout() {
@@ -135,16 +149,23 @@ export class RainmakerAPIClient {
   }
 
   public static async deleteNode(node_id: string) {
-    await this.refreshAccessToken();
-    const resp = await axios.put(
-      this.generateURLFor("user/nodes/mapping"),
-      { node_id, operation: "remove" },
-      { headers: this.getAuthHeader() }
-    );
-    if (resp.status === 200 && resp.data) {
-      return resp.data;
+    try {
+      await this.refreshAccessToken();
+      const resp = await axios.put(
+        this.generateURLFor("user/nodes/mapping"),
+        { node_id, operation: "remove" },
+        { headers: this.getAuthHeader() }
+      );
+      if (resp.status === 200 && resp.data) {
+        return resp.data;
+      }
+      this.throwRainmakerError(ErrorCode.RainmakerNodeDeleteFailed, resp);
+    } catch (error) {
+      if (isKnownError(error)) {
+        throw error;
+      }
+      this.throwRainmakerError(ErrorCode.RainmakerNodeDeleteFailed, error);
     }
-    this.throwUnknownError(resp);
   }
 
   public static async getNodeParams(
@@ -171,15 +192,22 @@ export class RainmakerAPIClient {
     payload[deviceName] = {};
     payload[deviceName][paramName] = value;
 
-    const resp = await axios.put(
-      this.generateURLFor(`user/nodes/params?nodeid=${nodeID}`),
-      payload,
-      { headers: this.getAuthHeader() }
-    );
-    if (resp.status === 200 && resp.data.status === "success") {
-      return resp.data;
+    try {
+      const resp = await axios.put(
+        this.generateURLFor(`user/nodes/params?nodeid=${nodeID}`),
+        payload,
+        { headers: this.getAuthHeader() }
+      );
+      if (resp.status === 200 && resp.data.status === "success") {
+        return resp.data;
+      }
+      this.throwRainmakerError(ErrorCode.RainmakerParamUpdateFailed, resp);
+    } catch (error) {
+      if (isKnownError(error)) {
+        throw error;
+      }
+      this.throwRainmakerError(ErrorCode.RainmakerParamUpdateFailed, error);
     }
-    this.throwUnknownError(resp);
   }
 
   public static async getUserInfo(): Promise<RainmakerUserInfo | undefined> {
@@ -247,6 +275,47 @@ export class RainmakerAPIClient {
   private static generateUserAgentHeader(): any {
     return { "User-Agent": ESP.HTTP_USER_AGENT };
   }
+  private static throwRainmakerError(code: ErrorCode, meta?: unknown): never {
+    const detail =
+      this.extractRainmakerDetail(meta) ??
+      (meta instanceof Error ? meta.message : undefined);
+
+    switch (code) {
+      case ErrorCode.RainmakerNodeDeleteFailed:
+        throw rainmakerNodeDeleteFailed(detail);
+      case ErrorCode.RainmakerParamUpdateFailed:
+        throw rainmakerParamUpdateFailed(
+          detail ?? "please try once more"
+        );
+      case ErrorCode.RainmakerLoginFailed:
+      default:
+        throw rainmakerLoginFailed(detail);
+    }
+  }
+
+  private static extractRainmakerDetail(meta: unknown): string | undefined {
+    if (!meta || typeof meta !== "object") {
+      return undefined;
+    }
+    if (axios.isAxiosError(meta)) {
+      const description = meta.response?.data?.description;
+      if (typeof description === "string") {
+        return description;
+      }
+    }
+    const record = meta as Record<string, unknown>;
+    if (typeof record.description === "string") {
+      return record.description;
+    }
+    if (record.data && typeof record.data === "object") {
+      const data = record.data as Record<string, unknown>;
+      if (typeof data.description === "string") {
+        return data.description;
+      }
+    }
+    return undefined;
+  }
+
   private static throwUnknownError(meta?: any) {
     const UnknownError = new Error(
       "Unknown Error while trying to login with rainmaker server"

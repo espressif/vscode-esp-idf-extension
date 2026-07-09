@@ -16,13 +16,12 @@
  * limitations under the License.
  */
 
-import { commands, ExtensionContext, l10n } from "vscode";
+import { commands, ExtensionContext } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../common/PreCheck";
 import { ESP } from "../config";
 import { flash } from "./flashProject";
 import { selectFlashMethod } from "./selectFlashMethod";
-import { Logger } from "../common/logger";
 import { ErrorCode, CommandErrorMapping } from "../common/error/types";
 import { ErrorSeverity } from "../common/customNotifications";
 
@@ -102,6 +101,15 @@ const flashCommandErrorMapping: CommandErrorMapping = {
     ],
     outputChannel: "Flash",
   },
+  [ErrorCode.FlashEncryptionValidationFailed]: {
+    severity: ErrorSeverity.Info,
+    userMessage:
+      "Flash encryption validation did not pass. See the Flash Encryption output for details.",
+    logMessage:
+      "Flash encryption validation failed ({resultType}). Details were shown in the Flash Encryption output.",
+    actions: [],
+    outputChannel: "Flash Encryption",
+  },
 };
 
 function registerFlashCommand(
@@ -139,13 +147,9 @@ export function registerFlashCommands(context: ExtensionContext) {
     flash(undefined, ESP.FlashType.UART, ESP.BuildType.PartitionTable)
   );
 
-  registerIDFCommand(context, "espIdf.selectFlashMethod", () =>
+  registerFlashCommand(context, "espIdf.selectFlashMethod", () =>
     PreCheck.perform([openFolderCheck, webIdeCheck], async () => {
       const ws = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      if (!ws) {
-        Logger.infoNotify(l10n.t("No workspace selected."));
-        return;
-      }
       await selectFlashMethod(ws);
     })
   );

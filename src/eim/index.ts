@@ -40,9 +40,18 @@ import { readParameter, writeParameter } from "../configuration/idf";
 import { showSnapEimNotification } from "./showSnapEimNotification";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { selectIdfSetup } from "./selectIdfSetup";
+import { eimCommandErrorMapping } from "./errorMapping";
+
+function registerEimCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any
+) {
+  registerIDFCommand(context, name, callback, eimCommandErrorMapping);
+}
 
 export function installManagerCommand(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.selectCurrentIdfVersion", () => {
+  registerEimCommand(context, "espIdf.selectCurrentIdfVersion", () => {
     PreCheck.perform([openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       await selectIdfSetup(
@@ -51,7 +60,7 @@ export function installManagerCommand(context: ExtensionContext) {
       );
     });
   });
-  registerIDFCommand(context, "espIdf.installManager", async () => {
+  registerEimCommand(context, "espIdf.installManager", async () => {
     await withProgressWrapper(
       [],
       l10n.t("ESP-IDF Install Manager"),

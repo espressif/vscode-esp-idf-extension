@@ -17,6 +17,7 @@ import { readParameter } from "../configuration/idf";
 import { registerIDFCommand } from "../common/registerCommand";
 import { ESP } from "../config";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
+import { espAdfCommandErrorMapping } from "./errorMapping";
 
 export class AdfCloning extends AbstractCloning {
   constructor() {
@@ -35,10 +36,15 @@ export async function getEspAdf(workspace?: Uri) {
 }
 
 export function registerEspAdfCmd(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.getEspAdf", async () => {
-    return PreCheck.perform([openFolderCheck], async () => {
-      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      await getEspAdf(wsFolder?.uri);
-    });
-  });
+  registerIDFCommand(
+    context,
+    "espIdf.getEspAdf",
+    async () => {
+      return PreCheck.perform([openFolderCheck], async () => {
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        await getEspAdf(wsFolder?.uri);
+      });
+    },
+    espAdfCommandErrorMapping
+  );
 }

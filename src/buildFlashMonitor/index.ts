@@ -42,6 +42,7 @@ import { monitorMain } from "../espIdf/monitor/main";
 import { registerIDFCommand } from "../common/registerCommand";
 import { ErrorCode, CommandErrorMapping } from "../common/error/types";
 import { ErrorSeverity } from "../common/customNotifications";
+import { known } from "../common/error/knownError";
 
 export const buildFlashMonitorCommandErrorMapping: CommandErrorMapping = {
   [ErrorCode.TaskFailedWithOutput]: {
@@ -80,6 +81,15 @@ function registerBuildFlashMonitorCommand(
     callback,
     buildFlashMonitorCommandErrorMapping
   );
+}
+
+/** @internal Ensures hard-tier command callers surface failures via KnownError. */
+export function assertBuildFlashMonitorSucceeded(
+  result: CustomExecutionTaskResult
+): void {
+  if (!result.continueFlag) {
+    throw known(ErrorCode.TaskFailed);
+  }
 }
 
 export function registerBuildFlashMonitorCommands(
@@ -174,27 +184,26 @@ export async function buildFlashAndMonitor(
         undefined
       );
 
-      const result = await buildFlashAndMonitorCapture(
-        taskWsFolder,
-        cancelToken,
-        false,
-        flashType,
-        partitionToUse,
-        noResetMonitor,
-        () =>
-          progress.report({
-            message: "Flashing project into device...",
-            increment: 60,
-          }),
-        () =>
-          progress.report({
-            message: "Launching monitor...",
-            increment: 10,
-          })
+      assertBuildFlashMonitorSucceeded(
+        await buildFlashAndMonitorCapture(
+          taskWsFolder,
+          cancelToken,
+          false,
+          flashType,
+          partitionToUse,
+          noResetMonitor,
+          () =>
+            progress.report({
+              message: "Flashing project into device...",
+              increment: 60,
+            }),
+          () =>
+            progress.report({
+              message: "Launching monitor...",
+              increment: 10,
+            })
+        )
       );
-      if (!result.continueFlag) {
-        return;
-      }
     },
     { workspaceFolder: wsFolder }
   );

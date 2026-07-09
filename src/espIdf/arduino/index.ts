@@ -35,37 +35,27 @@ export function registerAddArduinoAsComponentCmd(context: ExtensionContext) {
         [openFolderCheck],
         l10n.t("ESP-IDF: Arduino ESP32 as ESP-IDF component"),
         async (_progress, cancelToken) => {
-          try {
-            const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-            const arduinoComponentManager = new ArduinoComponentInstaller(
-              wsFolder.uri.fsPath,
-            );
-            cancelToken.onCancellationRequested(() => {
-              arduinoComponentManager.cancel();
-            });
-            const arduinoDirPath = join(
-              wsFolder.uri.fsPath,
-              "components",
-              "arduino"
-            );
-            const arduinoDirExists = await dirExistPromise(arduinoDirPath);
-            if (arduinoDirExists) {
-              return Logger.infoNotify(
-                l10n.t(`{arduinoDirPath} already exists.`, {
-                  arduinoDirPath,
-                })
-              );
-            }
-            await arduinoComponentManager.addArduinoAsComponent();
-          } catch (error) {
-            const errorMsg =
-              error instanceof Error ? error.message : String(error);
-            Logger.errorNotify(
-              errorMsg,
-              error as Error,
-              "addArduinoAsComponentToCurFolder"
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+          const arduinoComponentManager = new ArduinoComponentInstaller(
+            wsFolder.uri.fsPath,
+          );
+          cancelToken.onCancellationRequested(() => {
+            arduinoComponentManager.cancel();
+          });
+          const arduinoDirPath = join(
+            wsFolder.uri.fsPath,
+            "components",
+            "arduino"
+          );
+          const arduinoDirExists = await dirExistPromise(arduinoDirPath);
+          if (arduinoDirExists) {
+            return Logger.infoNotify(
+              l10n.t(`{arduinoDirPath} already exists.`, {
+                arduinoDirPath,
+              })
             );
           }
+          await arduinoComponentManager.addArduinoAsComponent();
         }
       );
     }

@@ -26,12 +26,13 @@ import { parse } from "jsonc-parser";
 import { EOL } from "os";
 import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
+import { idfToolNotFound, parseError } from "../common/error/knownError";
 import { ESP } from "../config";
 import { getCurrentIdfConfiguration } from "../configuration/env";
 
 export function registerClangCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.setClangSettings", async () => {
-    PreCheck.perform([openFolderCheck], async () => {
+    await PreCheck.perform([openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       await configureClangSettings(wsFolder.uri, true);
       window.showInformationMessage(
@@ -59,14 +60,7 @@ export async function setClangSettings(
   const espClangPath = await validateEspClangExists();
   if (!espClangPath) {
     if (showError) {
-      const error = new Error(
-        l10n.t("esp-clang not found in PATH. Make sure esp-clang is installed.")
-      );
-      Logger.errorNotify(
-        error.message,
-        error,
-        "clang index configureClangSettings"
-      );
+      throw idfToolNotFound("esp-clang");
     }
     return;
   }
@@ -97,7 +91,10 @@ export async function configureClangSettings(
       );
       settingsJson = parse(settingsContent.toString());
     } catch (error) {
-      Logger.errorNotify(
+      if (showError) {
+        throw parseError(settingsJsonPath);
+      }
+      Logger.error(
         "Failed to parse settings.json. Ensure it has valid JSON syntax.",
         error as Error,
         "clang index configureClangSettings"
@@ -112,10 +109,13 @@ export async function configureClangSettings(
     spaces: 2,
   });
 
-  await createClangdFile(workspaceFolder);
+  await createClangdFile(workspaceFolder, showError);
 }
 
-export async function createClangdFile(workspaceFolder: Uri) {
+export async function createClangdFile(
+  workspaceFolder: Uri,
+  showError = false
+) {
   const clangdFilePath = join(workspaceFolder.fsPath, ".clangd");
   const fileExists = await pathExists(clangdFilePath);
   if (fileExists) {
@@ -132,7 +132,10 @@ export async function createClangdFile(workspaceFolder: Uri) {
     await writeFile(clangdFilePath, clangdContent, { encoding: "utf8" });
     Logger.infoNotify(".clangd file created successfully.");
   } catch (error) {
-    Logger.errorNotify(
+    if (showError) {
+      throw error;
+    }
+    Logger.error(
       "Failed to create .clangd file.",
       error as Error,
       "clang index createClangdFile"
