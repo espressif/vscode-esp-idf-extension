@@ -27,9 +27,7 @@ import { readParameter } from "../../configuration/idf";
 import type { IDFSizeCalculateResult } from "./types";
 import { CancellationToken, l10n, Progress, Uri } from "vscode";
 import { join } from "path";
-import { existsSync } from "fs";
 import {
-  fileNotFound,
   invalidConfiguration,
   invalidIdfVersion,
   isKnownError,
@@ -57,9 +55,6 @@ export class IDFSize {
     }
 
     const mapFilePath = await this.resolveMapFilePath();
-    if (!existsSync(mapFilePath)) {
-      throw fileNotFound(mapFilePath);
-    }
 
     const espIdfPath = this.idfPath();
     let version: string;
@@ -128,11 +123,7 @@ export class IDFSize {
     if (!buildDirPath) {
       throw invalidConfiguration("idf.buildPath");
     }
-    try {
-      return await getProjectMapFilePath(this.workspaceFolderUri);
-    } catch {
-      throw fileNotFound(join(buildDirPath, "project_description.json"));
-    }
+    return getProjectMapFilePath(this.workspaceFolderUri);
   }
 
   private idfPath(): string {
@@ -141,7 +132,12 @@ export class IDFSize {
   }
 
   public async isBuiltAlready() {
-    return existsSync(await getProjectMapFilePath(this.workspaceFolderUri));
+    try {
+      await getProjectMapFilePath(this.workspaceFolderUri);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private async idfCommandInvoker(

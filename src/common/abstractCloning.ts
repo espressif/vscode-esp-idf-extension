@@ -14,6 +14,11 @@
 import { spawn, ChildProcess } from "child_process";
 import { join, basename } from "path";
 import treeKill from "tree-kill";
+import {
+  isKnownError,
+  missingDependency,
+  repositoryCloneFailed,
+} from "./error/knownError";
 import { Logger } from "./logger";
 import { checkGitExists, dirExistPromise, execChildProcess, isBinInPath } from "../utils";
 import { OutputChannel } from "./outputChannel";
@@ -193,7 +198,7 @@ export class AbstractCloning {
             gitPath
           );
           if (!gitVersion || gitVersion === "Not found") {
-            throw new Error("Git is not found in PATH");
+            throw missingDependency("Git");
           }
           cancelToken.onCancellationRequested((e) => {
             this.cancel();
@@ -216,13 +221,12 @@ export class AbstractCloning {
           await writeParameter("idf.customExtraVars", customExtraVars, target);
           Logger.infoNotify(`${this.name} has been installed`);
         } catch (error) {
+          if (isKnownError(error)) {
+            throw error;
+          }
           const msg = error instanceof Error ? error.message : String(error);
           OutputChannel.appendLine(msg);
-          Logger.errorNotify(
-            msg,
-            error as Error,
-            "AbstractCloning getRepository"
-          );
+          throw repositoryCloneFailed(this.name, msg);
         }
       }
     );
@@ -365,12 +369,7 @@ export class AbstractCloning {
         if (!signal && code !== 0) {
           const msg = `Submodules clone has exit with ${code}`;
           OutputChannel.appendLine(msg);
-          Logger.errorNotify(
-            "Submodules cloning error",
-            new Error(msg),
-            "AbstractCloning spawnWithProgress"
-          );
-          return reject(new Error(msg));
+          return reject(repositoryCloneFailed(this.name, msg));
         }
         return resolve();
       });

@@ -14,7 +14,6 @@
 
 import * as vscode from "vscode";
 import { IDocResult } from "./getSearchResults";
-import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
 
 export class DocSearchResult extends vscode.TreeItem {
@@ -48,17 +47,6 @@ export class DocSearchResultTreeDataProvider
   public docSearchResults: DocSearchResult[];
 
   constructor() {
-    vscode.commands.registerCommand("espIdf.openDocUrl", (url: string) => {
-      if (!url) {
-        Logger.errorNotify(
-          "Cannot call this command directly, click on any ESP-IDF search result!",
-          new Error("INVALID_INVOCATION"),
-          "DocSearchResultTreeDataProvider espIdf.openDocUrl"
-        );
-        return;
-      }
-      vscode.env.openExternal(vscode.Uri.parse(url));
-    });
     this.docSearchResults = Array<DocSearchResult>(0);
   }
 

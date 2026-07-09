@@ -17,9 +17,9 @@
  */
 
 import { ExtensionContext, Uri, window } from "vscode";
+import { openFolderCheck, PreCheck } from "../../common/PreCheck";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { join } from "path";
-import { Logger } from "../../common/logger";
 import { NVSPartitionTable } from "./partitionTable/panel";
 import { ESP } from "../../config";
 
@@ -28,10 +28,10 @@ export function registerNVSCommand(context: ExtensionContext) {
     context,
     "espIdf.webview.nvsPartitionEditor",
     async (args?: Uri) => {
-      let filePath = args?.fsPath;
-      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      if (!args) {
-        try {
+      await PreCheck.perform([openFolderCheck], async () => {
+        let filePath = args?.fsPath;
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        if (!args) {
           const nvsFileName = await window.showInputBox({
             placeHolder: "Enter NVS CSV file name",
             value: "",
@@ -43,21 +43,15 @@ export function registerNVSCommand(context: ExtensionContext) {
             wsFolder.uri.fsPath,
             `${nvsFileName.replace(".csv", "")}.csv`
           );
-        } catch (error) {
-          const errMsg =
-            error instanceof Error
-              ? error.message
-              : "Error loading NVS Partition Editor";
-          Logger.errorNotify(errMsg, error as Error, "nvsPartitionEditor");
         }
-      }
-      if (filePath) {
-        NVSPartitionTable.createOrShow(
-          context.extensionPath,
-          filePath,
-          wsFolder.uri
-        );
-      }
+        if (filePath) {
+          NVSPartitionTable.createOrShow(
+            context.extensionPath,
+            filePath,
+            wsFolder.uri
+          );
+        }
+      });
     }
   );
 }

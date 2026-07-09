@@ -65,10 +65,13 @@ interface BoardQuickPickItem extends QuickPickItem {
 }
 
 export async function getOpenOcdScripts(
-  workspace: WorkspaceFolder
+  workspaceFolder?: WorkspaceFolder
 ): Promise<string> {
   const modifiedEnv = getCurrentIdfConfiguration();
-  const userExtraVars = readParameter("idf.customExtraVars", workspace) as {
+  const userExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as {
     [key: string]: string;
   };
   let openOcdScriptsPath: string;

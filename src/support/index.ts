@@ -26,6 +26,23 @@ import { Logger } from "../common/logger";
 import { writeTextReport } from "./writeReport";
 import { TroubleshootingPanel } from "./troubleshootPanel";
 import { ESP } from "../config";
+import { isKnownError } from "../common/error/knownError";
+import { reportObj } from "./types";
+
+async function showDoctorReportOnError(
+  error: unknown,
+  reportedResult: reportObj,
+  context: ExtensionContext
+): Promise<void> {
+  reportedResult.latestError = error as Error;
+  const errMsg = error instanceof Error ? error.message : String(error);
+  Logger.error(errMsg, error as Error, "extension DoctorCommand");
+  const reportOutput = await writeTextReport(reportedResult, context);
+  await env.clipboard.writeText(reportOutput);
+  await window.showTextDocument(
+    Uri.file(join(context.extensionPath, "report.txt"))
+  );
+}
 
 export function registerDoctorCommand(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.doctorCommand", async () => {
@@ -44,20 +61,10 @@ export function registerDoctorCommand(context: ExtensionContext) {
             Uri.joinPath(context.extensionUri, "report.txt")
           );
         } catch (error) {
-          reportedResult.latestError = error as Error;
-          const errMsg = error instanceof Error ? error.message : String(error);
-          Logger.error(errMsg, error as Error, "extension DoctorCommand");
-          Logger.warnNotify(
-            l10n.t(
-              "Extension configuration report has been copied to clipboard with errors"
-            )
-          );
-          const reportOutput = await writeTextReport(reportedResult, context);
-          await env.clipboard.writeText(reportOutput);
-          await window.showTextDocument(
-            Uri.file(join(context.extensionPath, "report.txt"))
-          );
-          return reportedResult;
+          await showDoctorReportOnError(error, reportedResult, context);
+          if (!isKnownError(error)) {
+            throw error;
+          }
         }
       }
     );

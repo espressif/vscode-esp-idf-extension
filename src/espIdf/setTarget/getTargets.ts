@@ -28,10 +28,7 @@ export interface IdfTarget {
   description?: string;
 }
 
-export async function getTargetsFromEspIdf(
-  workspaceFolder: Uri,
-  givenIdfPathDir?: string
-) {
+export async function getTargetsFromEspIdf(givenIdfPathDir?: string) {
   const modifiedEnv = getCurrentIdfConfiguration();
   const idfPathDir = givenIdfPathDir
     ? givenIdfPathDir

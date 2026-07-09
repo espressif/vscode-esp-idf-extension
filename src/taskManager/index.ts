@@ -17,7 +17,6 @@
  */
 
 import { ExtensionContext } from "vscode";
-import { Logger } from "../common/logger";
 import { CustomTask, CustomTaskType } from "./customTaskProvider";
 import { TaskManager } from "./taskManager";
 import { registerIDFCommand } from "../common/registerCommand";
@@ -26,19 +25,11 @@ import { ESP } from "../config";
 
 export function registerCustomTaskCommand(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.customTask", async () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      try {
-        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-        if (!wsFolder) {
-          return;
-        }
-        const customTask = new CustomTask(wsFolder.uri);
-        await customTask.addCustomTask(CustomTaskType.Custom);
-        await TaskManager.runTasks();
-      } catch (error) {
-        const errMsg = error instanceof Error ? error.message : String(error);
-        Logger.errorNotify(errMsg, error as Error, "extension customTask");
-      }
+    await PreCheck.perform([openFolderCheck], async () => {
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      const customTask = new CustomTask(wsFolder.uri);
+      await customTask.addCustomTask(CustomTaskType.Custom);
+      await TaskManager.runTasks();
     });
   });
 }

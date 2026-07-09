@@ -44,35 +44,39 @@ export function registerOpenOCDCommands(context: ExtensionContext) {
     openOcdCommandErrorMapping
   );
 
-  registerIDFCommand(context, CommandKeys.OpenOcdAdapterStatusBar, () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      if (!wsFolder) {
-        return;
-      }
+  registerIDFCommand(
+    context,
+    CommandKeys.OpenOcdAdapterStatusBar,
+    () => {
+      return PreCheck.perform([openFolderCheck], async () => {
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
 
-      // Clear adapter serial (extension workspace state) and adapter location (settings.json)
-      clearAdapterSerial(wsFolder.uri);
-      const extraVars = readParameter("idf.customExtraVars", wsFolder) as { [key: string]: any };
-      if (extraVars["OPENOCD_USB_ADAPTER_LOCATION"]) {
-        const nextExtraVars = { ...extraVars };
-        delete nextExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
-        await writeParameter(
-          "idf.customExtraVars",
-          nextExtraVars,
-          ConfigurationTarget.WorkspaceFolder,
-          wsFolder
-        );
-      }
+        // Clear adapter serial (extension workspace state) and adapter location (settings.json)
+        clearAdapterSerial(wsFolder.uri);
+        const extraVars = readParameter("idf.customExtraVars", wsFolder) as {
+          [key: string]: any;
+        };
+        if (extraVars["OPENOCD_USB_ADAPTER_LOCATION"]) {
+          const nextExtraVars = { ...extraVars };
+          delete nextExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
+          await writeParameter(
+            "idf.customExtraVars",
+            nextExtraVars,
+            ConfigurationTarget.WorkspaceFolder,
+            wsFolder
+          );
+        }
 
-      // Stop OpenOCD if it is currently running to avoid keeping the old binding alive.
-      if (OpenOCDManager.init().isRunning()) {
-        OpenOCDManager.init().stop();
-      }
+        // Stop OpenOCD if it is currently running to avoid keeping the old binding alive.
+        if (OpenOCDManager.init().isRunning()) {
+          OpenOCDManager.init().stop();
+        }
 
-      updateOpenOcdAdapterStatusBarItem(wsFolder.uri);
-    });
-  });
+        updateOpenOcdAdapterStatusBarItem(wsFolder.uri);
+      });
+    },
+    openOcdCommandErrorMapping
+  );
 
   registerIDFCommand(context, "espIdf.getOpenOcdConfigs", () => {
     const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();

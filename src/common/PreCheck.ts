@@ -16,34 +16,31 @@
  * limitations under the License.
  */
 
-import { env, l10n, workspace } from "vscode";
+import { env, workspace } from "vscode";
 import { compareVersion, getEspIdfFromCMake } from "../utils";
 import { Logger } from "./logger";
 import { getCurrentIdfConfiguration } from "../configuration/env";
+import {
+  environmentNotSupported,
+  idfVersionTooLow,
+  KnownError,
+  noWorkspaceOpen,
+} from "./error/knownError";
 
 type PreCheckFunc = (...args: any[]) => boolean;
-export type PreCheckInput = [PreCheckFunc, string];
+export type PreCheckErrorFactory = () => KnownError;
+export type PreCheckInput = [PreCheckFunc, PreCheckErrorFactory];
 export class PreCheck {
   public static perform(
     preCheckFunctions: PreCheckInput[],
     proceed: () => any
   ): any {
-    let isPassedAll: boolean = true;
-    preCheckFunctions.forEach((preCheck: PreCheckInput) => {
-      if (!preCheck[0]()) {
-        isPassedAll = false;
-        Logger.errorNotify(
-          preCheck[1],
-          new Error("PRECHECK_FAILED"),
-          "utils precheck failed",
-          undefined,
-          false
-        );
+    for (const [check, toError] of preCheckFunctions) {
+      if (!check()) {
+        throw toError();
       }
-    });
-    if (isPassedAll) {
-      return proceed();
     }
+    return proceed();
   }
   public static isWorkspaceFolderOpen(): boolean {
     return (
@@ -114,33 +111,19 @@ export class PreCheck {
   }
 }
 
-const openFolderFirstMsg = l10n.t("Open a folder first.");
-const cmdNotForWebIdeMsg = l10n.t(
-  "Selected command is not available in {envName}",
-  { envName: "Codespaces" }
-);
-const cmdNotDockerContainerMsg = l10n.t(
-  "Selected command is not available in {envName}",
-  { envName: "Docker container" }
-);
-const cmdNeedToolVersionOrHigher = (minVersion: string, tool: string) =>
-  l10n.t("Selected command needs {tool} {minVersion} or higher", {
-    minVersion,
-    tool,
-  });
 export const openFolderCheck = [
   PreCheck.isWorkspaceFolderOpen,
-  openFolderFirstMsg,
+  noWorkspaceOpen,
 ] as PreCheckInput;
 
 export const webIdeCheck = [
   PreCheck.notUsingWebIde,
-  cmdNotForWebIdeMsg,
+  () => environmentNotSupported("Codespaces"),
 ] as PreCheckInput;
 
 export const isNotDockerContainerCheck = [
   PreCheck.isNotDockerContainer,
-  cmdNotDockerContainerMsg,
+  () => environmentNotSupported("Docker container"),
 ] as PreCheckInput;
 
 const UNRESOLVED_IDF_VERSION = "0.0.0";
@@ -163,6 +146,6 @@ export async function minIdfVersionCheck(minVersion: string) {
   }
   return [
     () => PreCheck.espIdfVersionValidator(minVersion, currentVersion),
-    cmdNeedToolVersionOrHigher("v" + minVersion, "ESP-IDF"),
+    () => idfVersionTooLow(minVersion, currentVersion),
   ] as PreCheckInput;
 }

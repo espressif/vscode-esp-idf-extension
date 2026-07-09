@@ -20,7 +20,7 @@ import { ExtensionContext, l10n, Uri, workspace } from "vscode";
 import { srcOp, UpdateCmakeLists } from "./srcsWatcher";
 import { CmakeListsEditorPanel } from "./cmakeEditorPanel";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
-import { Logger } from "../common/logger";
+import { invalidCommandInvocation } from "../common/error/knownError";
 import { registerIDFCommand } from "../common/registerCommand";
 
 export function addCmakeFileSystemWatcher(context: ExtensionContext) {
@@ -71,16 +71,11 @@ export function addCmakeFileSystemWatcher(context: ExtensionContext) {
     "espIdf.cmakeListsEditor.start",
     async (fileUri: Uri) => {
       if (!fileUri) {
-        Logger.errorNotify(
-          l10n.t(
-            "Cannot call this command directly, right click on any CMakeLists.txt file!"
-          ),
-          new Error("INVALID_INVOCATION"),
-          "extension cmakeListsEditor no file"
+        throw invalidCommandInvocation(
+          l10n.t("Right click on any CMakeLists.txt file!")
         );
-        return;
       }
-      PreCheck.perform([openFolderCheck], async () => {
+      await PreCheck.perform([openFolderCheck], async () => {
         await CmakeListsEditorPanel.createOrShow(context.extensionUri, fileUri);
       });
     }

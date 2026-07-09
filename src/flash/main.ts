@@ -21,7 +21,7 @@ import { readParameter, readSerialPort } from "../configuration/idf";
 import { ESP } from "../config";
 import {
   checkFlashEncryption,
-  FlashCheckResultType,
+  throwIfFlashEncryptionCheckFailed,
 } from "./verify/flashEncryption";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { verifyCanFlash } from "./verify/canFlash";
@@ -84,15 +84,10 @@ export async function flashMain(
         flashType,
         workspaceFolderUri
       );
-      if (!encryptionValidationResult.success) {
-        if (
-          encryptionValidationResult.resultType ===
-          FlashCheckResultType.ErrorEfuseNotSet
-        ) {
-          encryptPartitions = false;
-        } else {
-          return { continueFlag: false, executions: [] };
-        }
+      if (
+        !throwIfFlashEncryptionCheckFailed(encryptionValidationResult)
+      ) {
+        encryptPartitions = false;
       }
     }
 

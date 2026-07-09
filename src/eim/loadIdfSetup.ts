@@ -31,7 +31,7 @@ import { pathExists } from "fs-extra";
 import { IdfToolsManager } from "../idfToolsManager";
 
 export async function getCurrentIdfSetup(
-  workspaceFolder: WorkspaceFolder
+  workspaceFolder?: WorkspaceFolder
 ): Promise<IdfSetup | undefined> {
   const idfConfigurationName = readParameter(
     "idf.currentSetup",

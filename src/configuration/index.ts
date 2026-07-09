@@ -83,23 +83,18 @@ export function registerConfigurationCommands(context: ExtensionContext) {
     );
   });
 
-  registerIDFCommand(context, "espIdf.pickAWorkspaceFolder", () => {
-    PreCheck.perform([openFolderCheck], async () => {
+  registerIDFCommand(context, "espIdf.pickAWorkspaceFolder", async () => {
+    await PreCheck.perform([openFolderCheck], async () => {
       const selectCurrentFolderMsg = l10n.t("Select your current folder");
-      try {
-        const option = await window.showWorkspaceFolderPick({
-          placeHolder: selectCurrentFolderMsg,
-        });
-        if (!option) {
-          const noFolderMsg = l10n.t("No workspace selected.");
-          Logger.infoNotify(noFolderMsg);
-          return;
-        }
-        await configureForWorkspace(context,option);
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        Logger.errorNotify(errorMsg, error as Error, "pickAWorkspaceFolder");
+      const option = await window.showWorkspaceFolderPick({
+        placeHolder: selectCurrentFolderMsg,
+      });
+      if (!option) {
+        const noFolderMsg = l10n.t("No workspace selected.");
+        Logger.infoNotify(noFolderMsg);
+        return;
       }
+      await configureForWorkspace(context, option);
     });
   });
 }
