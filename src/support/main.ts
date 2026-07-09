@@ -36,7 +36,6 @@ import {
 } from "./projectConfiguration";
 import { checkIDFSetups } from "./checkIdfSetups";
 import { getWorkspaceFolder } from "./getWorkspaceFolder";
-import { isBinInPath } from "../utils";
 
 export async function generateConfigurationReport(
   context: vscode.ExtensionContext,
@@ -60,7 +59,7 @@ export async function generateConfigurationReport(
     increment: 7,
     message: "Generating configuration report...",
   });
-  await getConfigurationSettings(reportedResult);
+  await getConfigurationSettings(reportedResult, workspaceFolder);
   progress.report({
     message: "Checking configuration access...",
     increment: 13,

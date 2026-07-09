@@ -97,6 +97,37 @@ export interface ExtendedIdfSetup extends IdfSetup {
   reason: string;
 }
 
+export type CheckStatus = "ok" | "fail" | "warn" | "skip";
+
+export interface DiagnosticFinding {
+  status: CheckStatus;
+  category: string;
+  label: string;
+  settingKey?: string;
+  value?: string;
+  message: string;
+}
+
+export interface ReportSummary {
+  overall: "PASS" | "FAIL" | "WARN";
+  findings: DiagnosticFinding[];
+  errorCount: number;
+  warningCount: number;
+}
+
+export interface ConfigCheckLine {
+  label: string;
+  value: string;
+  status: CheckStatus;
+  message: string;
+}
+
+export interface BuildToolAvailability {
+  available: boolean;
+  source: "env" | "idf-tools" | "none";
+  actual?: string;
+}
+
 export interface reportObj {
   configurationSettings: Configuration;
   configurationAccess: ConfigurationAccess;
@@ -116,4 +147,5 @@ export interface reportObj {
   selectedProjectConfiguration: string;
   systemInfo: SystemInfo;
   workspaceFolder: string;
+  reportSummary?: ReportSummary;
 }

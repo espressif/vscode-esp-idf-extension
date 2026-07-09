@@ -18,6 +18,8 @@
 import { pathExists, readJSON } from "fs-extra";
 import { join } from "path";
 import * as vscode from "vscode";
+import { getCurrentIdfConfiguration } from "../configuration/env";
+import { pathVarFromEnvVars } from "../eim/verifySetup";
 import { IdfToolsManager } from "../idfToolsManager";
 import { PlatformInformation } from "../PlatformInformation";
 import { OutputChannel } from "../common/outputChannel";
@@ -48,10 +50,19 @@ export async function checkEspIdfTools(
     OutputChannel.init(),
     reportedResult.configurationSettings.espIdfPath
   );
-  if (reportedResult.configurationSettings.customExtraPaths) {
-    const verifiedPkgs = await idfToolsManager.getRequiredToolsInfo(
-      reportedResult.configurationSettings.customExtraPaths
-    );
-    reportedResult.espIdfToolsVersions = verifiedPkgs;
+  const idfEnvVars = getCurrentIdfConfiguration();
+  const { value: pathEnvValue } = pathVarFromEnvVars(idfEnvVars);
+  const pathToVerify =
+    pathEnvValue || reportedResult.configurationSettings.systemEnvPath;
+
+  if (!pathToVerify) {
+    reportedResult.espIdfToolsVersions = [];
+    return;
   }
+
+  reportedResult.espIdfToolsVersions = await idfToolsManager.getRequiredToolsInfo(
+    pathToVerify,
+    undefined,
+    false
+  );
 }

@@ -17,7 +17,7 @@
  */
 import { join } from "path";
 import { reportObj } from "./types";
-import { Uri, workspace } from "vscode";
+import { workspace, WorkspaceFolder } from "vscode";
 import { getCurrentIdfConfiguration } from "../configuration/env";
 import { isBinInPath } from "../utils";
 
@@ -33,13 +33,10 @@ export function getIdfSetupVarsForReport(envVars: { [key: string]: string }) {
 
 export async function getConfigurationSettings(
   reportedResult: reportObj,
-  scope?: Uri
+  scope?: WorkspaceFolder
 ) {
   const winFlag = process.platform === "win32" ? "Win" : "";
   const conf = workspace.getConfiguration("", scope);
-  reportedResult.workspaceFolder = scope
-    ? scope.fsPath
-    : "No workspace folder is open";
 
   const currentEnvVars = getCurrentIdfConfiguration();
 
