@@ -21,95 +21,99 @@ import { QemuLaunchMode, QemuManager } from "./qemuManager";
 import { registerIDFCommand } from "../common/registerCommand";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { openFolderCheck } from "../common/PreCheck";
-import { Logger } from "../common/logger";
 import { getToolchainPath } from "../utils";
 import { readParameter } from "../configuration/idf";
 import { ESP } from "../config";
+import { qemuDebugLaunchFailed } from "../common/error/knownError";
+import { qemuCommandErrorMapping } from "./errorMapping";
+
+function registerQemuCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any
+) {
+  registerIDFCommand(context, name, callback, qemuCommandErrorMapping);
+}
 
 export function registerQEMUCommands(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.qemuCommand", async () => {
+  registerQemuCommand(context, "espIdf.qemuCommand", async () => {
     await withProgressWrapper(
       [openFolderCheck],
       "ESP-IDF: Starting ESP-IDF QEMU",
-      async (_progress, _cancelToken) => {
-        try {
-          QemuManager.init().commandHandler();
-        } catch (error) {
-          const msg = error instanceof Error ? error.message : String(error);
-          Logger.errorNotify(msg, error as Error, "qemuCommand");
-        }
+      async () => {
+        await QemuManager.init().commandHandler();
       }
     );
   });
 
-  registerIDFCommand(context, "espIdf.qemuDebug", async () => {
+  registerQemuCommand(context, "espIdf.qemuDebug", async () => {
     await withProgressWrapper(
       [openFolderCheck],
       l10n.t("ESP-IDF: Starting ESP-IDF QEMU Debug"),
-      async (_progress, _cancelToken) => {
-        try {
-          if (QemuManager.init().isRunning()) {
-            QemuManager.init().stop();
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-          }
-          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          const monitorAfterDebug = readParameter(
-            "idf.qemuDebugMonitor",
-            wsFolder.uri
-          ) as boolean;
-          let qemuMode = monitorAfterDebug
-            ? QemuLaunchMode.DebugMonitor
-            : QemuLaunchMode.Debug;
-          await QemuManager.init().start(context.extensionPath,qemuMode, wsFolder.uri);
-          const gdbPath = await getToolchainPath("gdb");
-          const workspaceFolder = workspace.getWorkspaceFolder(wsFolder.uri);
-          await debug.startDebugging(workspaceFolder, {
-            name: "GDB QEMU",
-            type: "gdbtarget",
-            request: "attach",
-            sessionID: "qemu.debug.session",
-            gdb: gdbPath,
-            initCommands: [
-              "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
-              "mon reset halt",
-              "maintenance flush register-cache",
-              "thb app_main",
-            ],
-            target: {
-              type: "remote",
-              host: "localhost",
-              port: "3333",
-            },
-          });
-          debug.onDidTerminateDebugSession(async (session) => {
-            if (session.configuration.sessionID === "qemu.debug.session") {
-              QemuManager.init().stop();
-            }
-          });
-        } catch (error) {
-          const msg = error instanceof Error ? error.message : String(error);
-          Logger.errorNotify(msg, error as Error, "qemu debug");
+      async () => {
+        if (QemuManager.init().isRunning()) {
+          QemuManager.init().stop();
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        const monitorAfterDebug = readParameter(
+          "idf.qemuDebugMonitor",
+          wsFolder.uri
+        ) as boolean;
+        const qemuMode = monitorAfterDebug
+          ? QemuLaunchMode.DebugMonitor
+          : QemuLaunchMode.Debug;
+        await QemuManager.init().start(
+          context.extensionPath,
+          qemuMode,
+          wsFolder.uri
+        );
+        const gdbPath = await getToolchainPath("gdb");
+        const workspaceFolder = workspace.getWorkspaceFolder(wsFolder.uri);
+        const debugStarted = await debug.startDebugging(workspaceFolder, {
+          name: "GDB QEMU",
+          type: "gdbtarget",
+          request: "attach",
+          sessionID: "qemu.debug.session",
+          gdb: gdbPath,
+          initCommands: [
+            "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
+            "mon reset halt",
+            "maintenance flush register-cache",
+            "thb app_main",
+          ],
+          target: {
+            type: "remote",
+            host: "localhost",
+            port: "3333",
+          },
+        });
+        if (!debugStarted) {
+          throw qemuDebugLaunchFailed("VS Code failed to start the debug session.");
+        }
+        debug.onDidTerminateDebugSession(async (session) => {
+          if (session.configuration.sessionID === "qemu.debug.session") {
+            QemuManager.init().stop();
+          }
+        });
       }
     );
   });
 
-  registerIDFCommand(context, "espIdf.monitorQemu", async () => {
+  registerQemuCommand(context, "espIdf.monitorQemu", async () => {
     await withProgressWrapper(
       [openFolderCheck],
       l10n.t("ESP-IDF: Starting ESP-IDF QEMU Monitor"),
-      async (_progress, _cancelToken) => {
-        try {
-          const isQemuLaunched = QemuManager.init().isRunning();
-          if (isQemuLaunched) {
-            QemuManager.init().stop();
-          }
-          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          await QemuManager.init().start(context.extensionPath, QemuLaunchMode.Monitor, wsFolder.uri);
-        } catch (error) {
-          const msg = error instanceof Error ? error.message : String(error);
-          Logger.errorNotify(msg, error as Error, "qemu monitor");
+      async () => {
+        if (QemuManager.init().isRunning()) {
+          QemuManager.init().stop();
         }
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        await QemuManager.init().start(
+          context.extensionPath,
+          QemuLaunchMode.Monitor,
+          wsFolder.uri
+        );
       }
     );
   });

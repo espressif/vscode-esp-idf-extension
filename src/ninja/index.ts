@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { ExtensionContext, l10n } from "vscode";
+import { ExtensionContext } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { join } from "path";
@@ -27,51 +27,44 @@ import { OutputChannel } from "../common/outputChannel";
 import { Logger } from "../common/logger";
 import { ESP } from "../config";
 import { openFolderCheck } from "../common/PreCheck";
+import { missingDependency } from "../common/error/knownError";
+
+export function getNinjaSummaryPythonPath(): string {
+  const pythonBinPath = getVirtualEnvPythonPath();
+  if (!pythonBinPath) {
+    throw missingDependency("Python");
+  }
+  return pythonBinPath;
+}
 
 export function registerNinjaSummaryCommand(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.ninja.summary", async () => {
     await withProgressWrapper(
       [openFolderCheck],
       "ESP-IDF: Generating Ninja Build Summary",
-      async (_progress, cancelToken) => {
-        try {
-          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          const pythonBinPath = getVirtualEnvPythonPath();
-          if (!pythonBinPath) {
-            Logger.errorNotify(
-              "Python interpreter not found in virtual environment",
-              new Error("Python interpreter not found in virtual environment"),
-              "ninja summary"
-            );
-            return;
-          }
-          const ninjaSummaryScript = join(
-            context.extensionPath,
-            "external",
-            "chromium",
-            "ninja-build-summary.py"
-          );
-          const buildDir = readParameter("idf.buildPath", wsFolder) as string;
-          const args = [ninjaSummaryScript, "-C", buildDir];
-          const summaryResult = await execChildProcess(
-            pythonBinPath,
-            args,
-            wsFolder.uri.fsPath,
-            OutputChannel.init()
-          );
-          const ninjaBuildMsg = `Ninja build summary - ${Date().toLocaleString()}`;
-          OutputChannel.appendLine(ninjaBuildMsg);
-          Logger.info(ninjaBuildMsg);
-          OutputChannel.appendLine(summaryResult);
-          Logger.info(summaryResult);
-          OutputChannel.show();
-        } catch (error) {
-          Logger.errorNotify(
-            l10n.t("Ninja build summary found an error"),
-            error as Error,
-            "ninja summary"
-          );
-        }
+      async (_progress, _cancelToken) => {
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        const pythonBinPath = getNinjaSummaryPythonPath();
+        const ninjaSummaryScript = join(
+          context.extensionPath,
+          "external",
+          "chromium",
+          "ninja-build-summary.py"
+        );
+        const buildDir = readParameter("idf.buildPath", wsFolder) as string;
+        const args = [ninjaSummaryScript, "-C", buildDir];
+        const summaryResult = await execChildProcess(
+          pythonBinPath,
+          args,
+          wsFolder.uri.fsPath,
+          OutputChannel.init()
+        );
+        const ninjaBuildMsg = `Ninja build summary - ${Date().toLocaleString()}`;
+        OutputChannel.appendLine(ninjaBuildMsg);
+        Logger.info(ninjaBuildMsg);
+        OutputChannel.appendLine(summaryResult);
+        Logger.info(summaryResult);
+        OutputChannel.show();
       }
     );
   });

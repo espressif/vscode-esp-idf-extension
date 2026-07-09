@@ -64,6 +64,25 @@ registerNewErrorInRegistry({
 });
 
 registerNewErrorInRegistry({
+  code: ErrorCode.NoBuildDirToClean,
+  severity: ErrorSeverity.Warning,
+  userMessage: "There is no build directory to clean, exiting!",
+  logMessage: "Full clean blocked: build directory does not exist.",
+  actions: [],
+  outputChannel: "ESP-IDF",
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.CMakeCacheNotFound,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "There is no CMakeCache.txt. Please try to delete the build directory manually.",
+  logMessage: "Full clean blocked: CMakeCache.txt missing in {buildDir}.",
+  actions: [],
+  outputChannel: "ESP-IDF",
+});
+
+registerNewErrorInRegistry({
   code: ErrorCode.IdfToolNotFound,
   severity: ErrorSeverity.Error,
   userMessage:
@@ -97,6 +116,35 @@ registerNewErrorInRegistry({
   userMessage: "Failed to read ESP-IDF version from {idfPath}.",
   logMessage: "Failed to read ESP-IDF version from {idfPath}: {detail}.",
   actions: [],
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.IdfVersionTooLow,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "Selected command needs ESP-IDF v{minVersion} or higher (current: {currentVersion}).",
+  logMessage:
+    "ESP-IDF version {currentVersion} is below required minimum {minVersion}.",
+  actions: [
+    {
+      label: "Open ESP-IDF Install Manager",
+      execute: () => commands.executeCommand("espIdf.installManager"),
+    },
+  ],
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.ToolchainNotFound,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "Toolchain {toolchain} was not found. Please install it and ensure it is in your PATH.",
+  logMessage: "Toolchain {toolchain} executable not found.",
+  actions: [
+    {
+      label: "Open ESP-IDF Install Manager",
+      execute: () => commands.executeCommand("espIdf.installManager"),
+    },
+  ],
 });
 
 registerNewErrorInRegistry({
@@ -144,9 +192,34 @@ registerNewErrorInRegistry({
   ],
 });
 
+registerNewErrorInRegistry({
+  code: ErrorCode.DfuTargetNotCompatible,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    'The selected device target "{target}" is not compatible for DFU, as a result the dfu.bin was not created.',
+  logMessage: 'IDF target "{target}" is not compatible with DFU build.',
+  actions: [
+    {
+      label: "Set Target",
+      execute: () => commands.executeCommand("espIdf.setTarget"),
+    },
+  ],
+});
+
 // ──────────────────────────── Flash errors ───────────────────────────
 
 const flashOutputChannel = "Flash";
+
+registerNewErrorInRegistry({
+  code: ErrorCode.FlashEncryptionValidationFailed,
+  severity: ErrorSeverity.Info,
+  userMessage:
+    "Flash encryption validation did not pass. See the Flash Encryption output for details.",
+  logMessage:
+    "Flash encryption validation failed ({resultType}). Details were shown in the Flash Encryption output.",
+  actions: [],
+  outputChannel: "Flash Encryption",
+});
 
 registerNewErrorInRegistry({
   code: ErrorCode.AlreadyFlashing,
@@ -593,6 +666,161 @@ registerNewErrorInRegistry({
   outputChannel: menuconfigOutputChannel,
 });
 
+// ──────────────────────────── QEMU errors ────────────────────────────
+
+const qemuOutputChannel = "QEMU";
+
+registerNewErrorInRegistry({
+  code: ErrorCode.QemuTargetNotSupported,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    'IDF target "{target}" is not supported by Espressif QEMU. Check your ESP-IDF and QEMU installation.',
+  logMessage: 'QEMU does not support IDF target "{target}".',
+  actions: [
+    {
+      label: "Open ESP-IDF Install Manager",
+      execute: () => commands.executeCommand("espIdf.installManager"),
+    },
+  ],
+  outputChannel: qemuOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.QemuLaunchArgsMissing,
+  severity: ErrorSeverity.Error,
+  userMessage: "No QEMU launch arguments found.",
+  logMessage: "QEMU launch arguments could not be resolved.",
+  actions: [],
+  outputChannel: qemuOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.QemuDebugLaunchFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Failed to launch GDB debugger for QEMU: {detail}",
+  logMessage: "QEMU debug session launch failed: {detail}.",
+  actions: [],
+  outputChannel: qemuOutputChannel,
+});
+
+// ──────────────────────────── Coverage errors ────────────────────────
+
+const coverageOutputChannel = "Coverage";
+
+registerNewErrorInRegistry({
+  code: ErrorCode.CoverageGcovDataFailed,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "Error building gcov data from gcda files. Check the ESP-IDF output for more details.",
+  logMessage: "Failed to build gcov data from gcda files: {detail}.",
+  actions: [],
+  outputChannel: coverageOutputChannel,
+});
+
+// ──────────────────────────── Partition table errors ─────────────────
+
+const partitionTableOutputChannel = "Partition Table";
+
+registerNewErrorInRegistry({
+  code: ErrorCode.PartitionSdkconfigRequired,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "Partition table editor requires an sdkconfig file. Build the project first.",
+  logMessage: "Partition table editor blocked: sdkconfig file is missing.",
+  actions: [
+    {
+      label: "Build",
+      execute: () => commands.executeCommand("espIdf.buildDevice"),
+    },
+  ],
+  outputChannel: partitionTableOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.PartitionCustomTableNotEnabled,
+  severity: ErrorSeverity.Warning,
+  userMessage: "Custom partition table is not enabled for this project.",
+  logMessage: "CONFIG_PARTITION_TABLE_CUSTOM is not enabled.",
+  actions: [
+    {
+      label: "Open SDK Configuration",
+      execute: () => commands.executeCommand("espIdf.menuconfig.start"),
+    },
+  ],
+  outputChannel: partitionTableOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.PartitionTableFilenameEmpty,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME is empty. Add a CSV file to generate the partition table.",
+  logMessage: "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME is empty.",
+  actions: [],
+  outputChannel: partitionTableOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.PartitionPopulateFailed,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "Failed to load partition table entries. Check the build output for details.",
+  logMessage: "Partition table populate failed: {detail}.",
+  actions: [
+    {
+      label: "Build",
+      execute: () => commands.executeCommand("espIdf.buildDevice"),
+    },
+  ],
+  outputChannel: partitionTableOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.PartitionInvalidSizeFormat,
+  severity: ErrorSeverity.Error,
+  userMessage: 'Partition size "{size}" is not a valid format (e.g. 24K, 1M).',
+  logMessage: 'Invalid partition size format: "{size}".',
+  actions: [],
+  outputChannel: partitionTableOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.PartitionFlashFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Failed to flash binary to partition: {detail}",
+  logMessage: "Partition flash failed: {detail}.",
+  actions: [],
+  outputChannel: partitionTableOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.PartitionReadFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Failed to read partition from device: {detail}",
+  logMessage: "Partition read failed: {detail}.",
+  actions: [],
+  outputChannel: partitionTableOutputChannel,
+});
+
+// ──────────────────────────── Unit test errors ───────────────────────
+
+const unitTestOutputChannel = "Unit Test";
+
+registerNewErrorInRegistry({
+  code: ErrorCode.UnitTestTaskFailed,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "Unit test app task failed. Check the terminal output for details.",
+  logMessage: "Unit test app task failed: {detail}.",
+  actions: [
+    {
+      label: "View Terminal Output",
+      execute: () => commands.executeCommand("workbench.action.terminal.focus"),
+    },
+  ],
+  outputChannel: unitTestOutputChannel,
+});
+
 // ──────────────────────────── File errors ────────────────────────────
 
 registerNewErrorInRegistry({
@@ -664,7 +892,33 @@ registerNewErrorInRegistry({
   ],
 });
 
+registerNewErrorInRegistry({
+  code: ErrorCode.EnvironmentNotSupported,
+  severity: ErrorSeverity.Warning,
+  userMessage: "Selected command is not available in {envName}.",
+  logMessage: "Command blocked: unsupported environment {envName}.",
+  actions: [],
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.InvalidCommandInvocation,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "Cannot call this command directly. {detail}",
+  logMessage: "Command invoked without required arguments: {detail}.",
+  actions: [],
+});
+
 // ──────────────────────────── Config errors ──────────────────────────
+
+registerNewErrorInRegistry({
+  code: ErrorCode.EspIdfSettingsRemovalFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Failed to remove ESP-IDF settings: {detail}",
+  logMessage: "ESP-IDF settings removal failed: {detail}.",
+  actions: [],
+  outputChannel: "ESP-IDF",
+});
 
 registerNewErrorInRegistry({
   code: ErrorCode.INVALID_CONFIGURATION,
@@ -706,6 +960,108 @@ registerNewErrorInRegistry({
   userMessage:
     "Failed to parse {filePath}. Please check the syntax.",
   logMessage: "Parse error in {filePath}.",
+  actions: [],
+});
+
+// ──────────────────────────── New project errors ─────────────────────
+
+registerNewErrorInRegistry({
+  code: ErrorCode.NewProjectWizardFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Failed to start the ESP-IDF New Project wizard.",
+  logMessage: "New Project wizard failed: {detail}.",
+  actions: [],
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.ProjectScaffoldFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Failed to {operation}.",
+  logMessage: "Project scaffold failed during {operation}: {detail}.",
+  actions: [],
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.ImportProjectFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Failed to import the ESP-IDF project.",
+  logMessage: "Import project failed: {detail}.",
+  actions: [],
+});
+
+// ──────────────────────────── Rainmaker errors ─────────────────────
+
+registerNewErrorInRegistry({
+  code: ErrorCode.RainmakerLoginFailed,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "Failed to login with Rainmaker Cloud, double check your id and password.",
+  logMessage: "Rainmaker login failed: {detail}.",
+  actions: [],
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.RainmakerNodeDeleteFailed,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "Failed to delete node, maybe the node is already marked for delete, please try again after sometime.",
+  logMessage: "Rainmaker node delete failed: {detail}.",
+  actions: [],
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.RainmakerParamUpdateFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Failed to update the param, please try once more.",
+  logMessage: "Rainmaker param update failed: {detail}.",
+  actions: [],
+});
+
+// ──────────────────────────── eFuse errors ───────────────────────────
+
+registerNewErrorInRegistry({
+  code: ErrorCode.EfuseSummaryFailed,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "Failed to get the eFuse summary from the chip. {detail}",
+  logMessage: "eFuse summary command failed: {detail}.",
+  actions: [],
+});
+
+// ──────────────────────────── EIM errors ─────────────────────────────
+
+registerNewErrorInRegistry({
+  code: ErrorCode.EimDownloadCanceled,
+  severity: ErrorSeverity.Info,
+  userMessage: "EIM download was canceled.",
+  logMessage: "EIM download canceled by user.",
+  actions: [],
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.EimDownloadFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "EIM download or installation failed: {detail}",
+  logMessage: "EIM download/install failed: {detail}.",
+  actions: [],
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.EimAssetNotFound,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "No EIM release asset found for this platform: {assetName}.",
+  logMessage: "EIM asset not found in release manifest: {assetName}.",
+  actions: [],
+});
+
+// ──────────────────────────── Repository cloning errors ──────────────
+
+registerNewErrorInRegistry({
+  code: ErrorCode.RepositoryCloneFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Failed to clone {repoName}. {detail}",
+  logMessage: "Repository clone failed for {repoName}: {detail}.",
   actions: [],
 });
 

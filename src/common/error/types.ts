@@ -31,10 +31,13 @@ export enum ErrorCode {
   // Workspace-related
   NO_WORKSPACE_OPEN = 'NO_WORKSPACE_OPEN',
   NO_ACTIVE_EDITOR = 'NO_ACTIVE_EDITOR',
+  EnvironmentNotSupported = 'EnvironmentNotSupported',
+  InvalidCommandInvocation = 'InvalidCommandInvocation',
 
   // Configuration-related
   INVALID_CONFIGURATION = 'INVALID_CONFIGURATION',
   MISSING_DEPENDENCY = 'MISSING_DEPENDENCY',
+  EspIdfSettingsRemovalFailed = 'EspIdfSettingsRemovalFailed',
 
   // Parse-related
   PARSE_ERROR = 'PARSE_ERROR',
@@ -48,12 +51,17 @@ export enum ErrorCode {
   IdfToolNotFound = 'IdfToolNotFound',
   IdfTargetNotSet = 'IdfTargetNotSet',
   InvalidIdfVersion = 'InvalidIdfVersion',
+  IdfVersionTooLow = 'IdfVersionTooLow',
   InvalidIdfTarget = 'InvalidIdfTarget',
   BuildTerminated = 'BuildTerminated',
   FlashInProgress = 'FlashInProgress',
   ToolchainNotFound = 'ToolchainNotFound',
+  DfuTargetNotCompatible = 'DfuTargetNotCompatible',
+  NoBuildDirToClean = 'NoBuildDirToClean',
+  CMakeCacheNotFound = 'CMakeCacheNotFound',
 
   // Flash
+  FlashEncryptionValidationFailed = 'FlashEncryptionValidationFailed',
   AlreadyFlashing = 'AlreadyFlashing',
   FlashTerminated = 'FlashTerminated',
   IdfTaskInProgress = 'IdfTaskInProgress',
@@ -103,6 +111,47 @@ export enum ErrorCode {
   WebsocketClientInstallFailed = 'WebsocketClientInstallFailed',
   MonitorCoreDumpElfGenerationFailed = 'MonitorCoreDumpElfGenerationFailed',
   MonitorDebugLaunchFailed = 'MonitorDebugLaunchFailed',
+
+  // QEMU
+  QemuTargetNotSupported = 'QemuTargetNotSupported',
+  QemuLaunchArgsMissing = 'QemuLaunchArgsMissing',
+  QemuDebugLaunchFailed = 'QemuDebugLaunchFailed',
+
+  // Coverage
+  CoverageGcovDataFailed = 'CoverageGcovDataFailed',
+
+  // Partition table
+  PartitionSdkconfigRequired = 'PartitionSdkconfigRequired',
+  PartitionCustomTableNotEnabled = 'PartitionCustomTableNotEnabled',
+  PartitionTableFilenameEmpty = 'PartitionTableFilenameEmpty',
+  PartitionPopulateFailed = 'PartitionPopulateFailed',
+  PartitionInvalidSizeFormat = 'PartitionInvalidSizeFormat',
+  PartitionFlashFailed = 'PartitionFlashFailed',
+  PartitionReadFailed = 'PartitionReadFailed',
+
+  // Unit test
+  UnitTestTaskFailed = 'UnitTestTaskFailed',
+
+  // New project
+  NewProjectWizardFailed = 'NewProjectWizardFailed',
+  ProjectScaffoldFailed = 'ProjectScaffoldFailed',
+  ImportProjectFailed = 'ImportProjectFailed',
+
+  // Rainmaker
+  RainmakerLoginFailed = 'RainmakerLoginFailed',
+  RainmakerNodeDeleteFailed = 'RainmakerNodeDeleteFailed',
+  RainmakerParamUpdateFailed = 'RainmakerParamUpdateFailed',
+
+  // eFuse
+  EfuseSummaryFailed = 'EfuseSummaryFailed',
+
+  // EIM
+  EimDownloadCanceled = 'EimDownloadCanceled',
+  EimDownloadFailed = 'EimDownloadFailed',
+  EimAssetNotFound = 'EimAssetNotFound',
+
+  // Repository cloning
+  RepositoryCloneFailed = 'RepositoryCloneFailed',
 }
 
 /**

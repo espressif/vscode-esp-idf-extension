@@ -20,8 +20,6 @@ import { ExtensionContext, l10n, Uri } from "vscode";
 import { openFolderCheck } from "../../common/PreCheck";
 import { withProgressWrapper } from "../../common/withProgressWrapper";
 import { registerIDFCommand } from "../../common/registerCommand";
-import { Logger } from "../../common/logger";
-import { OutputChannel } from "../../common/outputChannel";
 import { pathExists } from "fs-extra";
 import { getFileList, getTestComponents } from "./utils";
 import {
@@ -32,64 +30,63 @@ import {
 } from "./configure";
 import { ESP } from "../../config";
 import { UnitTest } from "./adapter";
+import { unitTestCommandErrorMapping } from "./errorMapping";
+
+function registerUnitTestCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any
+) {
+  registerIDFCommand(context, name, callback, unitTestCommandErrorMapping);
+}
+
+async function ensureUnitTestAppUri(wsFolderUri: Uri): Promise<Uri> {
+  let unitTestAppUri = Uri.joinPath(wsFolderUri, "unity-app");
+  const doesUnitTestAppExists = await pathExists(unitTestAppUri.fsPath);
+  if (!doesUnitTestAppExists) {
+    const unitTestFiles = await getFileList();
+    const testComponents = await getTestComponents(unitTestFiles);
+    unitTestAppUri = await copyTestAppProject(wsFolderUri, testComponents);
+  }
+  return unitTestAppUri;
+}
 
 export function addUnitTestCommands(context: ExtensionContext) {
   new UnitTest(context);
-  registerIDFCommand(context, "espIdf.unitTest.buildUnitTestApp", async () => {
-    await withProgressWrapper(
-      [openFolderCheck],
-      l10n.t("ESP-IDF: Building unit test app"),
-      async (_progress, cancelToken) => {
-        try {
+
+  registerUnitTestCommand(
+    context,
+    "espIdf.unitTest.buildUnitTestApp",
+    async () => {
+      await withProgressWrapper(
+        [openFolderCheck],
+        l10n.t("ESP-IDF: Building unit test app"),
+        async (_progress, cancelToken) => {
           const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          let unitTestAppUri = Uri.joinPath(wsFolder.uri, "unity-app");
-          const doesUnitTestAppExists = await pathExists(unitTestAppUri.fsPath);
-          if (!doesUnitTestAppExists) {
-            const unitTestFiles = await getFileList();
-            const testComponents = await getTestComponents(unitTestFiles);
-            unitTestAppUri = await copyTestAppProject(
-              wsFolder.uri,
-              testComponents
-            );
-          }
+          const unitTestAppUri = await ensureUnitTestAppUri(wsFolder.uri);
           await buildTestApp(unitTestAppUri, cancelToken);
-        } catch (error) {
-          const msg = error instanceof Error ? error.message : String(error);
-          OutputChannel.appendLine(msg, "idf-unit-test");
-          Logger.error(msg, error as Error, "buildUnitTestApp");
         }
-      }
-    );
-  });
+      );
+    }
+  );
 
-  registerIDFCommand(context, "espIdf.unitTest.flashUnitTestApp", async () => {
-    await withProgressWrapper(
-      [openFolderCheck],
-      l10n.t("ESP-IDF: Building unit test app and flashing"),
-      async (_progress, cancelToken) => {
-        try {
+  registerUnitTestCommand(
+    context,
+    "espIdf.unitTest.flashUnitTestApp",
+    async () => {
+      await withProgressWrapper(
+        [openFolderCheck],
+        l10n.t("ESP-IDF: Building unit test app and flashing"),
+        async (_progress, cancelToken) => {
           const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          let unitTestAppUri = Uri.joinPath(wsFolder.uri, "unity-app");
-          const doesUnitTestAppExists = await pathExists(unitTestAppUri.fsPath);
-          if (!doesUnitTestAppExists) {
-            const unitTestFiles = await getFileList();
-            const testComponents = await getTestComponents(unitTestFiles);
-            unitTestAppUri = await copyTestAppProject(
-              wsFolder.uri,
-              testComponents
-            );
-          }
+          const unitTestAppUri = await ensureUnitTestAppUri(wsFolder.uri);
           await flashTestApp(unitTestAppUri, cancelToken);
-        } catch (error) {
-          const msg = error instanceof Error ? error.message : String(error);
-          OutputChannel.appendLine(msg, "idf-unit-test");
-          Logger.error(msg, error as Error, "flashUnitTestApp");
         }
-      }
-    );
-  });
+      );
+    }
+  );
 
-  registerIDFCommand(
+  registerUnitTestCommand(
     context,
     "espIdf.unitTest.buildFlashUnitTestApp",
     async () => {
@@ -97,30 +94,9 @@ export function addUnitTestCommands(context: ExtensionContext) {
         [openFolderCheck],
         l10n.t("ESP-IDF: Building unit test app and flashing"),
         async (_progress, cancelToken) => {
-          try {
-            const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-            let unitTestAppUri = Uri.joinPath(wsFolder.uri, "unity-app");
-            const doesUnitTestAppExists = await pathExists(
-              unitTestAppUri.fsPath
-            );
-            if (!doesUnitTestAppExists) {
-              const unitTestFiles = await getFileList();
-              const testComponents = await getTestComponents(unitTestFiles);
-              unitTestAppUri = await copyTestAppProject(
-                wsFolder.uri,
-                testComponents
-              );
-            }
-            await buildFlashTestApp(unitTestAppUri, cancelToken);
-          } catch (error) {
-            const msg = error instanceof Error ? error.message : String(error);
-            OutputChannel.appendLine(msg, "idf-unit-test");
-            Logger.error(
-              msg,
-              error instanceof Error ? error : new Error(String(error)),
-              "buildFlashUnitTestApp"
-            );
-          }
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+          const unitTestAppUri = await ensureUnitTestAppUri(wsFolder.uri);
+          await buildFlashTestApp(unitTestAppUri, cancelToken);
         }
       );
     }

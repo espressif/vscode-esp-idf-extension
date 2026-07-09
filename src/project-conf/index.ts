@@ -16,8 +16,9 @@
  * limitations under the License.
  */
 
-import { ExtensionContext, window } from "vscode";
+import { ExtensionContext } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
+import { missingDependency } from "../common/error/knownError";
 import { statusBarItems } from "../statusBar";
 import { projectConfigurationPanel } from "./projectConfPanel";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
@@ -25,6 +26,7 @@ import { withProgressWrapper } from "../common/withProgressWrapper";
 import { ESP } from "../config";
 import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
 import { ProjectConfigurationManager } from "./ProjectConfigurationManager";
+import { projectConfCommandErrorMapping } from "./errorMapping";
 
 export function registerProjectConfigCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.rmProjectConfStatusBar", async () => {
@@ -34,31 +36,39 @@ export function registerProjectConfigCommands(context: ExtensionContext) {
     }
   });
 
-  registerIDFCommand(context, "espIdf.projectConfigurationEditor", async () => {
-    await withProgressWrapper(
-      [openFolderCheck],
-      "ESP-IDF: Loading project configuration",
-      async (_progress, _cancelToken) => {
-        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-        const targetsFromIdf = await getTargetsFromEspIdf(wsFolder.uri);
-        projectConfigurationPanel.createOrShow(
-          context.extensionPath,
-          wsFolder.uri,
-          targetsFromIdf
-        );
-      }
-    );
-  });
+  registerIDFCommand(
+    context,
+    "espIdf.projectConfigurationEditor",
+    async () => {
+      await withProgressWrapper(
+        [openFolderCheck],
+        "ESP-IDF: Loading project configuration",
+        async (_progress, _cancelToken) => {
+          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+          const targetsFromIdf = await getTargetsFromEspIdf(wsFolder.uri);
+          projectConfigurationPanel.createOrShow(
+            context.extensionPath,
+            wsFolder.uri,
+            targetsFromIdf
+          );
+        }
+      );
+    },
+    projectConfCommandErrorMapping
+  );
 
-  registerIDFCommand(context, "espIdf.projectConf", () => {
-      PreCheck.perform([openFolderCheck], async () => {
+  registerIDFCommand(
+    context,
+    "espIdf.projectConf",
+    () => {
+      return PreCheck.perform([openFolderCheck], async () => {
         if (ProjectConfigurationManager.instance) {
           await ProjectConfigurationManager.instance.selectProjectConfiguration();
         } else {
-          window.showErrorMessage(
-            "Project Configuration Manager not initialized."
-          );
+          throw missingDependency("Project Configuration Manager");
         }
       });
-    });
+    },
+    projectConfCommandErrorMapping
+  );
 }

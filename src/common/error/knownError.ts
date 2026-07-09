@@ -88,6 +88,40 @@ export function noWorkspaceOpen(): KnownError {
   return known(ErrorCode.NO_WORKSPACE_OPEN);
 }
 
+export function noActiveEditor(): KnownError {
+  return known(ErrorCode.NO_ACTIVE_EDITOR);
+}
+
+export function noBuildDirToClean(buildDir?: string): KnownError {
+  return known(
+    ErrorCode.NoBuildDirToClean,
+    buildDir ? { buildDir } : undefined
+  );
+}
+
+export function cmakeCacheNotFound(buildDir: string): KnownError {
+  return known(ErrorCode.CMakeCacheNotFound, { buildDir });
+}
+
+export function environmentNotSupported(envName: string): KnownError {
+  return known(ErrorCode.EnvironmentNotSupported, { envName });
+}
+
+export function invalidCommandInvocation(detail?: string): KnownError {
+  return known(ErrorCode.InvalidCommandInvocation, detail ? { detail } : undefined);
+}
+
+export function idfVersionTooLow(
+  minVersion: string,
+  currentVersion: string
+): KnownError {
+  return known(ErrorCode.IdfVersionTooLow, { minVersion, currentVersion });
+}
+
+export function toolchainNotFound(toolchain: string): KnownError {
+  return known(ErrorCode.ToolchainNotFound, { toolchain });
+}
+
 export function parseError(filePath: string): KnownError {
   return known(ErrorCode.PARSE_ERROR, { filePath });
 }
@@ -98,6 +132,23 @@ export function alreadyBuilding(): KnownError {
 
 export function buildTerminated(): KnownError {
   return known(ErrorCode.BuildTerminated);
+}
+
+export function dfuTargetNotCompatible(target: string): KnownError {
+  return known(ErrorCode.DfuTargetNotCompatible, { target });
+}
+
+export function flashEncryptionValidationFailed(
+  resultType?: string
+): KnownError {
+  return known(
+    ErrorCode.FlashEncryptionValidationFailed,
+    resultType ? { resultType } : undefined
+  );
+}
+
+export function espIdfSettingsRemovalFailed(detail: string): KnownError {
+  return known(ErrorCode.EspIdfSettingsRemovalFailed, { detail });
 }
 
 export function flashInProgress(): KnownError {
@@ -319,4 +370,132 @@ export function confserverProcessFailed(
 
 export function confserverProtocolError(detail: string): KnownError {
   return known(ErrorCode.ConfserverProtocolError, { detail });
+}
+
+export function efuseSummaryFailed(detail?: string): KnownError {
+  return known(
+    ErrorCode.EfuseSummaryFailed,
+    detail ? { detail } : undefined
+  );
+}
+
+export function eimDownloadCanceled(): KnownError {
+  return known(ErrorCode.EimDownloadCanceled);
+}
+
+export function eimDownloadFailed(detail: string): KnownError {
+  return known(ErrorCode.EimDownloadFailed, { detail });
+}
+
+export function eimAssetNotFound(assetName: string): KnownError {
+  return known(ErrorCode.EimAssetNotFound, { assetName });
+}
+
+export function repositoryCloneFailed(
+  repoName: string,
+  detail?: string
+): KnownError {
+  return known(
+    ErrorCode.RepositoryCloneFailed,
+    detail ? { repoName, detail } : { repoName }
+  );
+}
+
+export function newProjectWizardFailed(detail?: string): KnownError {
+  return known(
+    ErrorCode.NewProjectWizardFailed,
+    detail ? { detail } : undefined
+  );
+}
+
+export function projectScaffoldFailed(
+  operation: string,
+  detail?: string
+): KnownError {
+  return known(
+    ErrorCode.ProjectScaffoldFailed,
+    detail ? { operation, detail } : { operation }
+  );
+}
+
+export function importProjectFailed(detail?: string): KnownError {
+  return known(
+    ErrorCode.ImportProjectFailed,
+    detail ? { detail } : undefined
+  );
+}
+
+export function rainmakerLoginFailed(detail?: string): KnownError {
+  return known(
+    ErrorCode.RainmakerLoginFailed,
+    detail ? { detail } : undefined
+  );
+}
+
+export function rainmakerNodeDeleteFailed(detail?: string): KnownError {
+  return known(
+    ErrorCode.RainmakerNodeDeleteFailed,
+    detail ? { detail } : undefined
+  );
+}
+
+export function rainmakerParamUpdateFailed(detail?: string): KnownError {
+  return known(
+    ErrorCode.RainmakerParamUpdateFailed,
+    detail ? { detail } : undefined
+  );
+}
+
+export function qemuTargetNotSupported(target: string): KnownError {
+  return known(ErrorCode.QemuTargetNotSupported, { target });
+}
+
+export function qemuLaunchArgsMissing(): KnownError {
+  return known(ErrorCode.QemuLaunchArgsMissing);
+}
+
+export function qemuDebugLaunchFailed(detail: string): KnownError {
+  return known(ErrorCode.QemuDebugLaunchFailed, { detail });
+}
+
+export function coverageGcovDataFailed(detail?: string): KnownError {
+  return known(
+    ErrorCode.CoverageGcovDataFailed,
+    detail ? { detail } : undefined
+  );
+}
+
+export function partitionSdkconfigRequired(): KnownError {
+  return known(ErrorCode.PartitionSdkconfigRequired);
+}
+
+export function partitionCustomTableNotEnabled(): KnownError {
+  return known(ErrorCode.PartitionCustomTableNotEnabled);
+}
+
+export function partitionTableFilenameEmpty(): KnownError {
+  return known(ErrorCode.PartitionTableFilenameEmpty);
+}
+
+export function partitionPopulateFailed(detail: string): KnownError {
+  return known(ErrorCode.PartitionPopulateFailed, { detail });
+}
+
+export function partitionInvalidSizeFormat(size: string): KnownError {
+  return known(ErrorCode.PartitionInvalidSizeFormat, { size });
+}
+
+export function partitionFlashFailed(detail: string): KnownError {
+  return known(ErrorCode.PartitionFlashFailed, { detail });
+}
+
+export function partitionReadFailed(detail: string): KnownError {
+  return known(ErrorCode.PartitionReadFailed, { detail });
+}
+
+export function unitTestTaskFailed(detail?: string): KnownError {
+  return known(
+    ErrorCode.UnitTestTaskFailed,
+    detail ? { detail } : undefined
+  );
 }

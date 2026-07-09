@@ -21,7 +21,6 @@ import { withProgressWrapper } from "../common/withProgressWrapper";
 import { registerIDFCommand } from "../common/registerCommand";
 import { getWelcomePageInitialValues } from "./welcomeInit";
 import { WelcomePanel } from "./panel";
-import { Logger } from "../common/logger";
 
 export function registerWelcomePanel(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.welcome.start", async () => {
@@ -32,17 +31,9 @@ export function registerWelcomePanel(context: ExtensionContext) {
     await withProgressWrapper(
       [],
       "ESP-IDF: Loading welcome page",
-      async (_progress, _cancelToken) => {
-        try {
-          const welcomeArgs = await getWelcomePageInitialValues(_progress);
-          if (!welcomeArgs) {
-            throw new Error("Error getting welcome page initial values");
-          }
-          WelcomePanel.createOrShow(context.extensionPath, welcomeArgs);
-        } catch (error) {
-          const errMsg = error instanceof Error ? error.message : String(error);
-          Logger.errorNotify(errMsg, error as Error, "welcome panel");
-        }
+      async (progress, _cancelToken) => {
+        const welcomeArgs = await getWelcomePageInitialValues(progress);
+        WelcomePanel.createOrShow(context.extensionPath, welcomeArgs);
       }
     );
   });

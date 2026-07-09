@@ -16,11 +16,15 @@
  * limitations under the License.
  */
 
-import { ExtensionContext, window } from "vscode";
+import { env, ExtensionContext, Uri, window } from "vscode";
+import { openFolderCheck } from "../../common/PreCheck";
 import { withProgressWrapper } from "../../common/withProgressWrapper";
 import { registerIDFCommand } from "../../common/registerCommand";
+import {
+  invalidCommandInvocation,
+  noActiveEditor,
+} from "../../common/error/knownError";
 import { searchInEspDocs } from "./getSearchResults";
-import { Logger } from "../../common/logger";
 import {
   DocSearchResult,
   DocSearchResultTreeDataProvider,
@@ -34,6 +38,13 @@ export function registerSearchDocsCommand(context: ExtensionContext) {
     espIdfDocsResultTreeDataProvider.clearResults();
   });
 
+  registerIDFCommand(context, "espIdf.openDocUrl", (url: string) => {
+    if (!url) {
+      throw invalidCommandInvocation("Click on any ESP-IDF search result!");
+    }
+    return env.openExternal(Uri.parse(url));
+  });
+
   const idfSearchResults = window.createTreeView<DocSearchResult>(
     "idfSearchResults",
     {
@@ -45,38 +56,32 @@ export function registerSearchDocsCommand(context: ExtensionContext) {
 
   registerIDFCommand(context, "espIdf.searchInEspIdfDocs", async () => {
     await withProgressWrapper(
-      [],
+      [openFolderCheck],
       "ESP-IDF: Documentation search results",
-      async (_progress, cancelToken) => {
-        try {
-          const currentEditor = window.activeTextEditor;
-          if (!currentEditor) {
-            return;
-          }
-          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          let selection = currentEditor.document.getText(
-            currentEditor.selection
-          );
-          if (!selection) {
-            const range = currentEditor.document.getWordRangeAtPosition(
-              currentEditor.selection.active
-            );
-            selection = currentEditor.document.getText(range);
-          }
-          const searchResults = await searchInEspDocs(context.extensionPath, selection, wsFolder.uri);
-          espIdfDocsResultTreeDataProvider.getResults(
-            searchResults,
-            idfSearchResults
-          );
-        } catch (error) {
-          const errMsg = error instanceof Error ? error.message : String(error);
-          Logger.errorNotify(
-            errMsg,
-            error instanceof Error ? error : new Error(errMsg),
-            "searchInEspIdfDocs"
-          );
-          return;
+      async (_progress, _cancelToken) => {
+        const currentEditor = window.activeTextEditor;
+        if (!currentEditor) {
+          throw noActiveEditor();
         }
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        let selection = currentEditor.document.getText(
+          currentEditor.selection
+        );
+        if (!selection) {
+          const range = currentEditor.document.getWordRangeAtPosition(
+            currentEditor.selection.active
+          );
+          selection = currentEditor.document.getText(range);
+        }
+        const searchResults = await searchInEspDocs(
+          context.extensionPath,
+          selection,
+          wsFolder.uri
+        );
+        espIdfDocsResultTreeDataProvider.getResults(
+          searchResults,
+          idfSearchResults
+        );
       }
     );
   });

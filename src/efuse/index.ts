@@ -21,45 +21,33 @@ import { registerIDFCommand } from "../common/registerCommand";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { ESPEFuseManager } from "./manager";
 import { openFolderCheck } from "../common/PreCheck";
-import { Logger } from "../common/logger";
 import { ESP } from "../config";
 import { ESPEFuseTreeDataProvider } from "./view";
+import { efuseCommandErrorMapping } from "./errorMapping";
 
 export function registerEfuseCommands(context: ExtensionContext) {
   let eFuseExplorer: ESPEFuseTreeDataProvider = new ESPEFuseTreeDataProvider();
   context.subscriptions.push(
     eFuseExplorer.registerDataProviderForTree("espEFuseExplorer")
   );
-  registerIDFCommand(context, "esp.efuse.summary", async () => {
-    await withProgressWrapper(
-      [openFolderCheck],
-      l10n.t("ESP-IDF: Getting eFuse summary for your chip"),
-      async (_progress, _cancelToken) => {
-        try {
+  registerIDFCommand(
+    context,
+    "esp.efuse.summary",
+    async () => {
+      await withProgressWrapper(
+        [openFolderCheck],
+        l10n.t("ESP-IDF: Getting eFuse summary for your chip"),
+        async (_progress, _cancelToken) => {
           const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
           const eFuse = new ESPEFuseManager(wsFolder.uri);
           const resp = await eFuse.summary();
           eFuseExplorer.load(resp);
           eFuseExplorer.refresh();
-        } catch (error) {
-          const errMsg = error instanceof Error ? error.message : String(error);
-          if (
-            error instanceof Error &&
-            error.name === "IDF_VERSION_MIN_REQUIREMENT_ERROR"
-          ) {
-            return Logger.errorNotify(errMsg, error as Error, "efuse summary");
-          }
-          Logger.errorNotify(
-            l10n.t(
-              "Failed to get the eFuse Summary from the chip, please make sure you have selected a valid port"
-            ),
-            error as Error,
-            "efuse summary"
-          );
         }
-      }
-    );
-  });
+      );
+    },
+    efuseCommandErrorMapping
+  );
 
   registerIDFCommand(context, "espIdf.efuse.clearResults", async () => {
     eFuseExplorer.clearResults();

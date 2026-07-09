@@ -95,15 +95,8 @@ export async function buildMain(
       buildExecution
     );
 
-    if (
-      flashType === ESP.FlashType.DFU &&
-      !(await appendDfuExecution(
-        executions,
-        workspace,
-        captureOutput
-      ))
-    ) {
-      return { continueFlag: false, executions };
+    if (flashType === ESP.FlashType.DFU) {
+      await appendDfuExecution(executions, workspace, captureOutput);
     }
     const postBuildExecution = await customTask.addCustomTask(
       CustomTaskType.PostBuild,
