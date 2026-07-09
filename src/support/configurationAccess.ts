@@ -17,12 +17,11 @@
  */
 import { constants } from "fs-extra";
 import { delimiter } from "path";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 import { canAccessFile, isBinInPath } from "../utils";
 import { reportObj } from "./types";
 
-export async function getConfigurationAccess(
-  reportedResult: reportObj
-) {
+export async function getConfigurationAccess(reportedResult: reportObj) {
   reportedResult.configurationAccess.toolsPath = canAccessFile(
     reportedResult.configurationSettings.toolsPath,
     constants.R_OK,
@@ -52,11 +51,11 @@ export async function getConfigurationAccess(
       delimiter
     );
     for (const tool of toolPathsArray) {
-      reportedResult.configurationAccess.espIdfToolsPaths[tool] = canAccessFile(
-        tool,
-        constants.R_OK,
-        "CUSTOM_EXTRA_PATH"
-      );
+      if (tool) {
+        reportedResult.configurationAccess.espIdfToolsPaths[
+          tool
+        ] = canAccessFile(tool, constants.R_OK, "CUSTOM_EXTRA_PATH");
+      }
     }
   }
   if (reportedResult.configurationSettings.customOpenOcdPath) {
@@ -66,12 +65,11 @@ export async function getConfigurationAccess(
       "CUSTOM_OPENOCD_PATH"
     );
   }
-  if (process.platform !== "win32") {
-    const cmakePathInEnv = await isBinInPath("cmake", process.env);
-    reportedResult.configurationAccess.cmakeInEnv =
-      cmakePathInEnv && cmakePathInEnv.indexOf("not found") === -1;
-    const ninjaPathInEnv = await isBinInPath("ninja", process.env);
-    reportedResult.configurationAccess.ninjaInEnv =
-      ninjaPathInEnv && ninjaPathInEnv.indexOf("not found") === -1;
-  }
+  const idfEnvVars = getCurrentIdfConfiguration();
+  const cmakePathInEnv = await isBinInPath("cmake", idfEnvVars);
+  reportedResult.configurationAccess.cmakeInEnv =
+    !!cmakePathInEnv && cmakePathInEnv.indexOf("not found") === -1;
+  const ninjaPathInEnv = await isBinInPath("ninja", idfEnvVars);
+  reportedResult.configurationAccess.ninjaInEnv =
+    !!ninjaPathInEnv && ninjaPathInEnv.indexOf("not found") === -1;
 }
