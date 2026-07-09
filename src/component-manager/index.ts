@@ -17,25 +17,18 @@
  */
 
 import { ExtensionContext, Uri, ViewColumn, workspace, window } from "vscode";
-import { Logger } from "../common/logger";
 import { ComponentManagerUIPanel } from "./panel";
 import { registerIDFCommand } from "../common/registerCommand";
 import { ESP } from "../config";
 
 export function registerComponentManagerCmd(context: ExtensionContext) {
   registerIDFCommand(context, "esp.component-manager.ui.show", async () => {
-    try {
-      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      ComponentManagerUIPanel.show(context.extensionPath, wsFolder.uri);
-    } catch (error) {
-      const err = error as Error;
-      Logger.errorNotify(err.message, err, "component manager");
-    }
+    const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+    ComponentManagerUIPanel.show(context.extensionPath, wsFolder.uri);
   });
 
-  registerIDFCommand(context, "espIdf.openIdfDocument", (docUri: Uri) => {
-    workspace.openTextDocument(docUri.fsPath).then((doc) => {
-      window.showTextDocument(doc, ViewColumn.One, true);
-    });
+  registerIDFCommand(context, "espIdf.openIdfDocument", async (docUri: Uri) => {
+    const doc = await workspace.openTextDocument(docUri.fsPath);
+    await window.showTextDocument(doc, ViewColumn.One, true);
   });
 }

@@ -17,15 +17,23 @@
  */
 
 import { basename, join } from "path";
-import { l10n, Progress, ProgressLocation, Uri, window } from "vscode";
+import { Progress, ProgressLocation, Uri, window } from "vscode";
 import {
   NotificationMode,
   readParameter,
   readSerialPort,
 } from "../../configuration/idf";
-import { Logger } from "../../common/logger";
 import { spawn } from "../../utils";
-import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
+import {
+  getCurrentIdfConfiguration,
+  getVirtualEnvPythonPath,
+} from "../../configuration/env";
+import {
+  isKnownError,
+  missingDependency,
+  noSerialPort,
+  partitionFlashFailed,
+} from "../../common/error/knownError";
 
 export async function flashBinaryToPartition(
   offset: string,
@@ -47,34 +55,27 @@ export async function flashBinaryToPartition(
       location: progressLocation,
       title: "ESP-IDF: Flashing binary to device",
     },
-    async (progress: Progress<{ message: string; increment: number }>) => {
-      try {
-        const modifiedEnv = getCurrentIdfConfiguration();
-        const serialPort = await readSerialPort(workspaceFolder, false);
-        if (!serialPort) {
-          return Logger.warnNotify(
-            l10n.t(
-              "No serial port found for current IDF_TARGET: {0}",
-              modifiedEnv["IDF_TARGET"]
-            )
-          );
-        }
-        const idfPath = modifiedEnv["IDF_PATH"];
-        const pythonBinPath = getVirtualEnvPythonPath();
-        if(!pythonBinPath) {
-          return Logger.warnNotify(
-            "Python environment is not set up. Please set up the Python environment to flash the binary."
-          );
-        }
-        const esptoolPath = join(
-          idfPath,
-          "components",
-          "esptool_py",
-          "esptool",
-          "esptool.py"
-        );
+    async (_progress: Progress<{ message: string; increment: number }>) => {
+      const modifiedEnv = getCurrentIdfConfiguration();
+      const serialPort = await readSerialPort(workspaceFolder, false);
+      if (!serialPort) {
+        throw noSerialPort(modifiedEnv["IDF_TARGET"]);
+      }
+      const idfPath = modifiedEnv["IDF_PATH"];
+      const pythonBinPath = getVirtualEnvPythonPath();
+      if (!pythonBinPath) {
+        throw missingDependency("Python");
+      }
+      const esptoolPath = join(
+        idfPath,
+        "components",
+        "esptool_py",
+        "esptool",
+        "esptool.py"
+      );
 
-        const flashingOutput = await spawn(
+      try {
+        await spawn(
           pythonBinPath,
           [esptoolPath, "-p", serialPort, "write_flash", offset, binPath],
           {
@@ -82,15 +83,19 @@ export async function flashBinaryToPartition(
             env: modifiedEnv,
           }
         );
-        window.showInformationMessage(
-          `Binary ${basename(binPath)} is flashed in ${offset}`
-        );
       } catch (error) {
-        let msg = error instanceof Error && error.message
-          ? error.message
-          : "Error flashing binary to device";
-        Logger.errorNotify(msg, error instanceof Error ? error : new Error("Error flashing binary to device"), "flashBinaryToPartition");
+        if (isKnownError(error)) {
+          throw error;
+        }
+        const msg =
+          error instanceof Error && error.message
+            ? error.message
+            : "Error flashing binary to device";
+        throw partitionFlashFailed(msg);
       }
+      window.showInformationMessage(
+        `Binary ${basename(binPath)} is flashed in ${offset}`
+      );
     }
   );
 }

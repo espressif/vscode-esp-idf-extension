@@ -22,22 +22,16 @@ import { registerIDFCommand } from "../common/registerCommand";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { openFolderCheck } from "../common/PreCheck";
 import { createSBOM, installEspSBOM } from "./main";
-import { Logger } from "../common/logger";
 
 export function registerEspBomCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.createSbom", async () => {
     await withProgressWrapper(
       [openFolderCheck],
       l10n.t("ESP-IDF: Create SBOM summary"),
-      async (_progress, cancelToken) => {
-        try {
-          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          await installEspSBOM(wsFolder.uri);
-          await createSBOM(wsFolder.uri);
-        } catch (err) {
-          const errorMessage = err instanceof Error ? err.message : String(err);
-          return Logger.errorNotify(errorMessage, err as Error, "sbom");
-        }
+      async (_progress, _cancelToken) => {
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        await installEspSBOM(wsFolder.uri);
+        await createSBOM(wsFolder.uri);
       }
     );
   });

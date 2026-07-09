@@ -119,18 +119,28 @@ export function registerAppTraceCommands(context: ExtensionContext) {
     heapTraceCommandErrorMapping
   );
 
-  registerTracingCommand(context, "espIdf.apptrace.customize", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      await AppTraceManager.saveConfiguration(wsFolder);
-    });
-  });
+  registerTracingCommand(
+    context,
+    "espIdf.apptrace.customize",
+    () => {
+      return PreCheck.perform([openFolderCheck], async () => {
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        await AppTraceManager.saveConfiguration(wsFolder);
+      });
+    },
+    appTraceCommandErrorMapping
+  );
 
-  registerTracingCommand(context, "espIdf.apptrace.archive.refresh", () => {
-    PreCheck.perform([openFolderCheck], () => {
-      appTraceArchiveTreeDataProvider.populateArchiveTree();
-    });
-  });
+  registerTracingCommand(
+    context,
+    "espIdf.apptrace.archive.refresh",
+    () => {
+      return PreCheck.perform([openFolderCheck], () => {
+        appTraceArchiveTreeDataProvider.populateArchiveTree();
+      });
+    },
+    traceArchiveCommandErrorMapping
+  );
 
   registerTracingCommand(
     context,

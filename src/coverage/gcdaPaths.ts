@@ -25,6 +25,7 @@ import { IGcovOutput } from "./gcovData";
 import { Logger } from "../common/logger";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { getCurrentIdfConfiguration } from "../configuration/env";
+import { coverageGcovDataFailed } from "../common/error/knownError";
 
 export async function getGcdaPaths(workspaceFolder: Uri) {
   const gcdaPaths: Set<string> = new Set();
@@ -73,13 +74,17 @@ export async function getGcovData(workspaceFolder: Uri) {
       },
       (err, stdout, stderr) => {
         if (err) {
-          const msg = err && err.message ? err.message : err;
+          const msg = err && err.message ? err.message : String(err);
           Logger.error(`exec error: ${msg}`, err, "gcdaPaths getGcovData");
-          return reject(err);
+          return reject(coverageGcovDataFailed(msg));
         }
         const output = [];
         if (!stdout) {
-          return reject(stderr);
+          const detail =
+            typeof stderr === "string" && stderr.length > 0
+              ? stderr
+              : "gcov produced no output";
+          return reject(coverageGcovDataFailed(detail));
         }
         const parts = stdout.toString().split("\n");
         for (const part of parts) {

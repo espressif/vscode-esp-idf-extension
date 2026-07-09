@@ -21,35 +21,28 @@ import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { previewReport } from "./coverageService";
 import { Logger } from "../common/logger";
-import { OutputChannel } from "../common/outputChannel";
 import { ESP } from "../config";
 import { espIdfCoverageRenderer } from "./renderer";
 import { configureProjectWithGcov } from "./configureProject";
+import { coverageCommandErrorMapping } from "./errorMapping";
+
+function registerCoverageCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any
+) {
+  registerIDFCommand(context, name, callback, coverageCommandErrorMapping);
+}
 
 export function registerCoverageCommands(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.genCoverage", () => {
+  registerCoverageCommand(context, "espIdf.genCoverage", () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      try {
-        const covRenderer = espIdfCoverageRenderer.get();
-        if (!covRenderer) {
-          Logger.infoNotify(l10n.t("No workspace selected."));
-          return;
-        }
-        await covRenderer.renderCoverage();
-      } catch (e) {
-        const errMsg = e instanceof Error ? e.message : String(e);
-        Logger.errorNotify(
-          "Error building gcov data from gcda files.\nCheck the ESP-IDF output for more details.",
-          e as Error,
-          "extension genCoverage"
-        );
-        OutputChannel.appendLine(
-          errMsg +
-            "\nError building gcov data from gcda files.\n\n" +
-            "Review the code coverage tutorial https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/coverage.html \n" +
-            "or ESP-IDF documentation: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage \n"
-        );
+      const covRenderer = espIdfCoverageRenderer.get();
+      if (!covRenderer) {
+        Logger.infoNotify(l10n.t("No workspace selected."));
+        return;
       }
+      await covRenderer.renderCoverage();
     });
   });
 
@@ -70,15 +63,10 @@ export function registerCoverageCommands(context: ExtensionContext) {
     });
   });
 
-  registerIDFCommand(context, "espIdf.setGcovConfig", async () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      try {
-        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-        await configureProjectWithGcov(context.extensionPath, wsFolder.uri);
-      } catch (error) {
-        const errMsg = error instanceof Error ? error.message : String(error);
-        Logger.errorNotify(errMsg, error as Error, "extension setGcovConfig");
-      }
+  registerCoverageCommand(context, "espIdf.setGcovConfig", async () => {
+    await PreCheck.perform([openFolderCheck], async () => {
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      await configureProjectWithGcov(context.extensionPath, wsFolder.uri);
     });
   });
 }

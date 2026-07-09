@@ -51,12 +51,10 @@ export async function registerHintsCommands(context: ExtensionContext) {
     treeDataProvider.clearOpenOCDErrorsOnly(); // Clear only OpenOCD errors
     updateHintsStatusBarItem(false);
   });
-
-  const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
   const openOCDErrorMonitor = OpenOCDErrorMonitor.init(
     treeDataProvider
   );
-  await openOCDErrorMonitor.initialize(wsFolder.uri);
+  await openOCDErrorMonitor.initialize();
 
   // Register disposal of the monitor
   context.subscriptions.push(openOCDErrorMonitor);

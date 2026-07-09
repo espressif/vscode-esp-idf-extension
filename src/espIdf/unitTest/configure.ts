@@ -26,7 +26,7 @@ import { flashMain } from "../../flash/main";
 import { CustomExecutionTaskResult } from "../../taskManager/types";
 import { OutputChannel } from "../../common/outputChannel";
 import { Logger } from "../../common/logger";
-import { isKnownError } from "../../common/error/knownError";
+import { missingDependency } from "../../common/error/knownError";
 import { getFileList, getTestComponents } from "./utils";
 
 export async function configureUnityApp(
@@ -62,7 +62,7 @@ export async function copyTestAppProject(
 ) {
   const extensionPath = extensions.getExtension(ESP.extensionID)?.extensionPath;
   if (!extensionPath) {
-    throw new Error("Extension path not found");
+    throw missingDependency("Extension");
   }
   let unityAppDir: string = join(
     extensionPath,
@@ -104,18 +104,7 @@ export async function buildTestApp(
   if (!flashType) {
     flashType = ESP.FlashType.UART;
   }
-  try {
-    return await buildMain(
-      unitTestAppDirPath,
-      cancelToken,
-      flashType
-    );
-  } catch (error) {
-    if (isKnownError(error)) {
-      return { continueFlag: false, executions: [] };
-    }
-    throw error;
-  }
+  return buildMain(unitTestAppDirPath, cancelToken, flashType);
 }
 
 export async function flashTestApp(
@@ -129,19 +118,7 @@ export async function flashTestApp(
   if (!flashType) {
     flashType = ESP.FlashType.UART;
   }
-  try {
-    await flashMain(
-      unitTestAppDirPath,
-      cancelToken,
-      flashType,
-      false
-    );
-  } catch (error) {
-    if (isKnownError(error)) {
-      return;
-    }
-    throw error;
-  }
+  await flashMain(unitTestAppDirPath, cancelToken, flashType, false);
 }
 
 export async function buildFlashTestApp(

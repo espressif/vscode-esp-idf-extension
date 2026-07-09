@@ -15,6 +15,10 @@
 import { constants, promises, readFileSync, unlinkSync } from "fs";
 import { join, isAbsolute } from "path";
 import { commands, l10n, StatusBarItem, Uri, window } from "vscode";
+import {
+  buildRequiredBeforeFlash,
+  fileNotFound,
+} from "../common/error/knownError";
 import { Logger } from "../common/logger";
 import { readParameter } from "./idf";
 import { showInfoNotificationWithAction } from "../common/customNotifications";
@@ -258,7 +262,8 @@ export async function getProjectName(workspacePath: Uri): Promise<string> {
   if (projectDescription && projectDescription.projectName) {
     return projectDescription.projectName;
   }
-  throw new Error("Failed to get project name from project description.");
+  const buildDirPath = readParameter("idf.buildPath", workspacePath) as string;
+  throw buildRequiredBeforeFlash(buildDirPath);
 }
 
 /**
@@ -289,8 +294,8 @@ export async function getProjectElfFilePath(
 
 /**
  * Returns the full path to `${projectName}.map` using `idf.buildPath`.
- * Throws if `projectName` cannot be read from `project_description.json`
- * or if `idf.buildPath` is missing.
+ * Throws if `projectName` cannot be read from `project_description.json`,
+ * if `idf.buildPath` is missing, or if the map file does not exist.
  * @param {vscode.Uri} workspacePath - Workspace URI to get the project MAP file path from its project description json.
  * @returns {Promise<string>}
  */
@@ -306,6 +311,9 @@ export async function getProjectMapFilePath(
     throw new Error("Failed to get build directory path for MAP file path.");
   }
   const mapFilePath = join(buildDirPath, `${projectName}.map`);
+  if (!(await pathExists(mapFilePath))) {
+    throw fileNotFound(mapFilePath);
+  }
   return mapFilePath;
 }
 

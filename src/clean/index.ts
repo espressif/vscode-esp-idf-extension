@@ -21,7 +21,6 @@ import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { readParameter } from "../configuration/idf";
 import { canAccessFile, dirExistPromise } from "../utils";
-import { OutputChannel } from "../common/outputChannel";
 import { Logger } from "../common/logger";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
 import { join } from "path";
@@ -30,28 +29,30 @@ import { FlashSession } from "../flash/shared/flashSession";
 import { BuildSession } from "../build/buildSession";
 import { pathExists } from "fs-extra";
 import { ESP } from "../config";
+import {
+  cmakeCacheNotFound,
+  idfTaskInProgress,
+  IdfTaskName,
+  noBuildDirToClean,
+} from "../common/error/knownError";
 
 export function registerFullCleanCmd(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.fullClean", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const selectWorkspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      if (!selectWorkspaceFolder) {
-        const errStr = l10n.t("Open a folder first.");
-        OutputChannel.appendLineAndShow(errStr);
-        return Logger.warnNotify(errStr);
-      }
-      const buildDir = readParameter("idf.buildPath", selectWorkspaceFolder) as string;
+  registerIDFCommand(context, "espIdf.fullClean", async () => {
+    await PreCheck.perform([openFolderCheck], async () => {
+      const selectWorkspaceFolder =
+        ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      const buildDir = readParameter(
+        "idf.buildPath",
+        selectWorkspaceFolder
+      ) as string;
       const buildDirExists = await dirExistPromise(buildDir);
       if (!buildDirExists) {
-        const errStr = l10n.t("There is no build directory to clean, exiting!");
-        OutputChannel.appendLineAndShow(errStr);
-        return Logger.warnNotify(errStr);
+        throw noBuildDirToClean(buildDir);
       }
       if (ConfserverProcess.exists()) {
         const closingSDKConfigMsg = l10n.t(
           `Trying to delete the build folder. Closing existing SDK Configuration editor process...`
         );
-        OutputChannel.init().appendLine(closingSDKConfigMsg);
         Logger.info(closingSDKConfigMsg);
         ConfserverProcess.dispose();
       }
@@ -61,41 +62,30 @@ export function registerFullCleanCmd(context: ExtensionContext) {
         constants.R_OK
       );
       if (!doesCmakeCacheExists) {
-        const errStr = l10n.t(
-          `There is no CMakeCache.txt. Please try to delete the build directory manually.`
-        );
-        OutputChannel.appendLineAndShow(errStr);
-        return Logger.warnNotify(errStr);
+        throw cmakeCacheNotFound(buildDir);
       }
-      if (BuildSession.isActive || FlashSession.isActive) {
-        const errStr = l10n.t(
-          `There is a build or flash task running. Wait for it to finish or cancel them before clean.`
-        );
-        OutputChannel.appendLineAndShow(errStr);
-        return Logger.warnNotify(errStr);
+      if (BuildSession.isActive) {
+        throw idfTaskInProgress(IdfTaskName.Build);
+      }
+      if (FlashSession.isActive) {
+        throw idfTaskInProgress(IdfTaskName.Flash);
       }
 
-      try {
-        await rm(buildDir, { recursive: true, force: true });
-        const extraPathsToClean = readParameter(
-          "idf.extraCleanPaths",
-          selectWorkspaceFolder
-        ) as string[];
-        if (extraPathsToClean && extraPathsToClean.length > 0) {
-          for (const extraPath of extraPathsToClean) {
-            const fullPath = join(selectWorkspaceFolder.uri.fsPath, extraPath);
-            const doesExtraPathExist = await pathExists(fullPath);
-            if (doesExtraPathExist) {
-              await rm(fullPath, { recursive: true, force: true });
-            }
+      await rm(buildDir, { recursive: true, force: true });
+      const extraPathsToClean = readParameter(
+        "idf.extraCleanPaths",
+        selectWorkspaceFolder
+      ) as string[];
+      if (extraPathsToClean && extraPathsToClean.length > 0) {
+        for (const extraPath of extraPathsToClean) {
+          const fullPath = join(selectWorkspaceFolder.uri.fsPath, extraPath);
+          const doesExtraPathExist = await pathExists(fullPath);
+          if (doesExtraPathExist) {
+            await rm(fullPath, { recursive: true, force: true });
           }
         }
-        Logger.infoNotify(l10n.t("Build directory has been deleted."));
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        OutputChannel.appendLineAndShow(errorMsg);
-        Logger.errorNotify(errorMsg, error as Error, "fullClean");
       }
+      Logger.infoNotify(l10n.t("Build directory has been deleted."));
     });
   });
 }

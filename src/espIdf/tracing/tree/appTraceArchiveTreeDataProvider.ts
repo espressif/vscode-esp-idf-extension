@@ -30,6 +30,7 @@ import {
   window,
   workspace,
 } from "vscode";
+import { PreCheck } from "../../../common/PreCheck";
 
 export enum TraceType {
   AppTrace = 0,
@@ -67,10 +68,9 @@ export class AppTraceArchiveTreeDataProvider
   public OnDidChangeTreeData: EventEmitter<AppTraceArchiveItems | null> = new EventEmitter<AppTraceArchiveItems | null>();
   public readonly onDidChangeTreeData: Event<AppTraceArchiveItems | null> = this
     .OnDidChangeTreeData.event;
-  public appTraceArchives: Array<AppTraceArchiveItems>;
+  public appTraceArchives: AppTraceArchiveItems[] = new Array<AppTraceArchiveItems>(0);
 
   constructor() {
-    this.appTraceArchives = Array<AppTraceArchiveItems>(0);
     this.populateArchiveTree();
   }
 
@@ -90,6 +90,10 @@ export class AppTraceArchiveTreeDataProvider
 
   public populateArchiveTree() {
     this.appTraceArchives = Array<AppTraceArchiveItems>(0);
+    if (!PreCheck.isWorkspaceFolderOpen()) {
+      this.refresh();
+      return;
+    }
     const storedWorkspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
     let baseFolderPath: string | undefined;
     if (storedWorkspaceFolder) {
@@ -110,7 +114,7 @@ export class AppTraceArchiveTreeDataProvider
     if (existsSync(traceFolder)) {
       const traceLists = readdirSync(traceFolder);
       let appTraceCounter = 1;
-      const appTraceArchives: Array<AppTraceArchiveItems> = [];
+      const appTraceArchives = new Array<AppTraceArchiveItems>(0);
       traceLists
         .filter((trace) => trace.endsWith(".trace"))
         .forEach((trace) => {

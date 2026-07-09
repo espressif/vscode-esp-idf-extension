@@ -25,6 +25,7 @@ import { withProgressWrapper } from "../../common/withProgressWrapper";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { openFolderCheck } from "../../common/PreCheck";
 import { Logger } from "../../common/logger";
+import { missingDependency } from "../../common/error/knownError";
 import { ESP } from "../../config";
 
 export async function addIdfReconfigureTask(workspace: Uri) {
@@ -39,7 +40,7 @@ export async function addIdfReconfigureTask(workspace: Uri) {
   const pythonBinPath = getVirtualEnvPythonPath();
 
   if (!pythonBinPath) {
-    return;
+    throw missingDependency("Python");
   }
 
   addProcessTask(
@@ -57,18 +58,13 @@ export function registerReconfigureCmd(context: ExtensionContext) {
     await withProgressWrapper(
       [openFolderCheck],
       "ESP-IDF: Reconfiguring ESP-IDF project",
-      async (progress, cancelToken) => {
-        try {
-          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          await addIdfReconfigureTask(wsFolder.uri);
-          await TaskManager.runTasks();
-          if (!cancelToken.isCancellationRequested) {
-            Logger.infoNotify("ESP-IDF Reconfigure Successfully");
-            TaskManager.disposeListeners();
-          }
-        } catch (error) {
-          const errMsg = error instanceof Error ? error.message : String(error);
-          Logger.errorNotify(errMsg, error as Error, "idfReconfigureTask");
+      async (_progress, cancelToken) => {
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        await addIdfReconfigureTask(wsFolder.uri);
+        await TaskManager.runTasks();
+        if (!cancelToken.isCancellationRequested) {
+          Logger.infoNotify("ESP-IDF Reconfigure Successfully");
+          TaskManager.disposeListeners();
         }
       }
     );

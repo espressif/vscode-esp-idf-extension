@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 
-import { ExtensionContext } from "vscode";
+import { commands, ExtensionContext } from "vscode";
 import { registerIDFCommand } from "./registerCommand";
-import { Logger } from "./logger";
 import {
   getIdfTargetFromSdkconfig,
   getProjectName,
@@ -26,19 +25,37 @@ import {
 import { openFolderCheck, PreCheck } from "./PreCheck";
 import { getToolchainPath } from "../utils";
 import { ESP } from "../config";
+import { CommandErrorMapping, ErrorCode } from "./error/types";
+import { ErrorSeverity } from "./customNotifications";
+
+const getProjectNameCommandErrorMapping: CommandErrorMapping = {
+  [ErrorCode.BuildRequiredBeforeFlash]: {
+    severity: ErrorSeverity.Error,
+    userMessage:
+      "Build the project first to read project_description.json. {buildDirPath} can't be accessed.",
+    logMessage:
+      "getProjectName blocked: build directory or project_description.json not accessible: {buildDirPath}.",
+    actions: [
+      {
+        label: "Build",
+        execute: () => commands.executeCommand("espIdf.buildDevice"),
+      },
+    ],
+  },
+};
 
 export function registerTaskCommands(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.getProjectName", () => {
-    return PreCheck.perform([openFolderCheck], async () => {
-      try {
+  registerIDFCommand(
+    context,
+    "espIdf.getProjectName",
+    () => {
+      return PreCheck.perform([openFolderCheck], async () => {
         const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
         return await getProjectName(wsFolder.uri);
-      } catch (error) {
-        const errMsg = error instanceof Error ? error.message : String(error);
-        Logger.errorNotify(errMsg, error as Error, "extension getProjectName");
-      }
-    });
-  });
+      });
+    },
+    getProjectNameCommandErrorMapping
+  );
 
   registerIDFCommand(context, "espIdf.getToolchainGdb", () => {
     return PreCheck.perform([openFolderCheck], async () => {

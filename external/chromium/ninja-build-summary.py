@@ -2,7 +2,7 @@
 # Copyright (c) 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-"""Summarize the last ninja build, invoked with ninja's -C syntax.
+r"""Summarize the last ninja build, invoked with ninja's -C syntax.
 This script is designed to be automatically run after each ninja build in
 order to summarize the build's performance. Making build performance information
 more visible should make it easier to notice anomalies and opportunities. To use
@@ -41,9 +41,9 @@ will have a weighted time that is the same or similar to its elapsed time. A
 compile that runs in parallel with 999 other compiles will have a weighted time
 that is tiny."""
 import argparse
-import errno
 import fnmatch
 import os
+import re
 import sys
 # The number of long build times to report:
 long_count = 10
@@ -95,11 +95,15 @@ def ReadTargets(log, show_all):
     """Reads all targets from .ninja_log file |log_file|, sorted by duration.
     The result is a list of Target objects."""
     header = log.readline()
-    assert header == '# ninja log v5\n', \
-           'unrecognized ninja log version %r' % header
+    m = re.match(r'^# ninja log v(\d+)\n$', header)
+    assert m, 'unrecognized ninja log version %r' % header
+    version = int(m.group(1))
+    assert 5 <= version <= 7, 'unsupported ninja log version %d' % version
     targets_dict = {}
     last_end_seen = 0.0
     for line in log:
+        if line.startswith('#'):
+          continue
         parts = line.strip().split('\t')
         if len(parts) != 5:
           # If ninja.exe is rudely halted then the .ninja_log file may be
@@ -298,6 +302,6 @@ def main():
         SummarizeEntries(entries, args.step_types)
     except IOError:
       print('Log file %r not found, no build summary created.' % log_file)
-      return errno.ENOENT
+      return 0
 if __name__ == '__main__':
     sys.exit(main())

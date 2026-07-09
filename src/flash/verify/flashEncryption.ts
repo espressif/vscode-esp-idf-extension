@@ -4,6 +4,7 @@ import {
   writeParameter,
 } from "../../configuration/idf";
 import { Logger } from "../../common/logger";
+import { flashEncryptionValidationFailed } from "../../common/error/knownError";
 import { OutputChannel } from "../../common/outputChannel";
 import { ESP } from "../../config";
 import {
@@ -411,4 +412,25 @@ export function disableFlashEncryption() {
   OutputChannel.appendLine(newValueRequest, "SDK Configuration Editor");
   ConfserverProcess.sendUpdatedValue(newValueRequest);
   ConfserverProcess.saveGuiConfigValues();
+}
+
+/**
+ * Hard-tier flash callers use this after {@link checkFlashEncryption}: throws
+ * {@link KnownError} for blocking failures. Returns `false` for the first-step
+ * eFuse burn flow ({@link FlashCheckResultType.ErrorEfuseNotSet}).
+ */
+export function throwIfFlashEncryptionCheckFailed(
+  result: FlashCheckResult
+): boolean {
+  if (result.success) {
+    return true;
+  }
+  if (result.resultType === FlashCheckResultType.ErrorEfuseNotSet) {
+    return false;
+  }
+  throw flashEncryptionValidationFailed(
+    result.resultType !== undefined
+      ? FlashCheckResultType[result.resultType]
+      : undefined
+  );
 }

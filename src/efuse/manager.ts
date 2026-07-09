@@ -22,9 +22,17 @@ import { readSerialPort } from "../configuration/idf";
 import { tmpdir } from "os";
 import { readJson, unlink } from "fs-extra";
 import { Logger } from "../common/logger";
-import { Uri, l10n } from "vscode";
+import { Uri } from "vscode";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
+import {
+  efuseSummaryFailed,
+  idfVersionTooLow,
+  invalidConfiguration,
+  isKnownError,
+  missingDependency,
+  noSerialPort,
+} from "../common/error/knownError";
 
 export type ESPEFuseSummary = {
   [category: string]: {
@@ -56,11 +64,7 @@ export class ESPEFuseManager {
     for (const name in eFuseFields) {
       const fields = eFuseFields[name];
       if (!fields.category) {
-        const error = new Error(
-          l10n.t("IDF Version >= 4.3.x required to have eFuse view")
-        );
-        error.name = "IDF_VERSION_MIN_REQUIREMENT_ERROR";
-        throw error;
+        throw idfVersionTooLow("4.3.x", "unknown");
       }
       if (!resp[fields.category]) {
         resp[fields.category] = [];
@@ -75,36 +79,36 @@ export class ESPEFuseManager {
     const pythonPath = getVirtualEnvPythonPath();
 
     if (!pythonPath) {
-      Logger.info(
-        "Python path is not set. Cannot read eFuse summary without Python."
-       );
-      return {};
+      throw missingDependency("Python");
     }
 
     const port = await readSerialPort(this.workspace, false);
     if (!port) {
-      return Logger.warnNotify(
-        l10n.t(
-          "No serial port found for current IDF_TARGET: {0}",
-          await getIdfTargetFromSdkconfig(this.workspace)
-        )
-      );
+      throw noSerialPort(await getIdfTargetFromSdkconfig(this.workspace));
     }
 
-    await spawn(
-      pythonPath,
-      [
-        this.toolPath,
-        "-p",
-        port,
-        "summary",
-        "--format",
-        "json",
-        "--file",
-        tempFile,
-      ],
-      {}
-    );
+    try {
+      await spawn(
+        pythonPath,
+        [
+          this.toolPath,
+          "-p",
+          port,
+          "summary",
+          "--format",
+          "json",
+          "--file",
+          tempFile,
+        ],
+        {}
+      );
+    } catch (error) {
+      if (isKnownError(error)) {
+        throw error;
+      }
+      const detail = error instanceof Error ? error.message : String(error);
+      throw efuseSummaryFailed(detail);
+    }
 
     const eFuseFields = await readJson(tempFile);
 
@@ -128,9 +132,7 @@ export class ESPEFuseManager {
     const currentEnvVars = getCurrentIdfConfiguration();
     const idfPath = currentEnvVars["IDF_PATH"] || process.env.IDF_PATH;
     if (!idfPath) {
-      throw new Error(
-        l10n.t("IDF_PATH is not set. Cannot determine the path to espefuse.py")
-      );
+      throw invalidConfiguration("IDF_PATH");
     }
     return join(
       idfPath,

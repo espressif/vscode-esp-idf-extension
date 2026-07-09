@@ -23,12 +23,35 @@ import { PartitionItem, PartitionTreeDataProvider } from "./tree";
 import { openFolderCheck, PreCheck } from "../../common/PreCheck";
 import { readPartition } from "./partitionReader";
 import { ESP } from "../../config";
-import { getConfigValueFromSDKConfig, getSDKConfigFilePath } from "../../configuration/workspace";
+import {
+  getConfigValueFromSDKConfig,
+  getSDKConfigFilePath,
+} from "../../configuration/workspace";
 import { createFileSync, existsSync, pathExists } from "fs-extra";
 import { ConfserverProcess } from "../menuconfig/confserver/confServerProcess";
 import { join } from "path";
 import { Logger } from "../../common/logger";
 import { PartitionTableEditorPanel } from "./panel";
+import {
+  invalidCommandInvocation,
+  partitionCustomTableNotEnabled,
+  partitionSdkconfigRequired,
+  partitionTableFilenameEmpty,
+} from "../../common/error/knownError";
+import { partitionTableCommandErrorMapping } from "./errorMapping";
+
+function registerPartitionTableCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any
+) {
+  registerIDFCommand(
+    context,
+    name,
+    callback,
+    partitionTableCommandErrorMapping
+  );
+}
 
 export function registerPartitionTableCommands(context: ExtensionContext) {
   const partitionTableTreeDataProvider = new PartitionTreeDataProvider();
@@ -37,25 +60,25 @@ export function registerPartitionTableCommands(context: ExtensionContext) {
     partitionTableTreeDataProvider.registerDataProvider("idfPartitionExplorer")
   );
 
-  registerIDFCommand(
+  registerPartitionTableCommand(
     context,
     "espIdf.flashBinaryToPartition",
     async (binPath: Uri) => {
       if (!binPath) {
-        return;
+        throw invalidCommandInvocation("A binary file path is required.");
       }
-      let items: { label: string; target: string; description: string }[] = [];
+      const items: { label: string; target: string; description: string }[] =
+        [];
       const partitionsInDevice = partitionTableTreeDataProvider.getChildren();
       if (!partitionsInDevice) {
         window.showInformationMessage("No partition found");
       } else {
-        for (let devicePartition of partitionsInDevice) {
-          const item = {
+        for (const devicePartition of partitionsInDevice) {
+          items.push({
             label: devicePartition.name,
             target: devicePartition.offset,
             description: String(devicePartition.description),
-          };
-          items.push(item);
+          });
         }
       }
       items.push({
@@ -93,14 +116,14 @@ export function registerPartitionTableCommands(context: ExtensionContext) {
     }
   );
 
-  registerIDFCommand(
+  registerPartitionTableCommand(
     context,
     "espIdf.partition.actions",
     (partitionNode: PartitionItem) => {
       if (!partitionNode) {
-        return;
+        throw invalidCommandInvocation("A partition tree item is required.");
       }
-      PreCheck.perform([openFolderCheck], async () => {
+      return PreCheck.perform([openFolderCheck], async () => {
         const partitionAction = await window.showQuickPick(
           [
             {
@@ -144,100 +167,89 @@ export function registerPartitionTableCommands(context: ExtensionContext) {
     }
   );
 
-  registerIDFCommand(context, "espIdf.partition.table.refresh", () => {
-    PreCheck.perform([openFolderCheck], () => {
-      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      partitionTableTreeDataProvider.populatePartitionItems(wsFolder.uri);
-    });
-  });
+  registerPartitionTableCommand(
+    context,
+    "espIdf.partition.table.refresh",
+    () => {
+      return PreCheck.perform([openFolderCheck], () => {
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        return partitionTableTreeDataProvider.populatePartitionItems(
+          wsFolder.uri
+        );
+      });
+    }
+  );
 
-  registerIDFCommand(
+  registerPartitionTableCommand(
     context,
     "esp.webview.open.partition-table",
     async (args?: Uri) => {
       let filePath = args?.fsPath;
       if (!args) {
-        // try to get the partition table name from sdkconfig and if not found create one
-        try {
-          const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-          const sdkconfigFilePath = await getSDKConfigFilePath(wsFolder.uri);
-          if (!sdkconfigFilePath || !(await pathExists(sdkconfigFilePath))) {
-            const buildProject = await window.showInformationMessage(
-              l10n.t(
-                `Partition table editor requires sdkconfig file. Build the project?`
-              ),
-              "Build"
-            );
-            if (buildProject === "Build") {
-              commands.executeCommand("espIdf.buildDevice");
-            }
-            return;
-          }
-          const isCustomPartitionTableEnabled = await getConfigValueFromSDKConfig(
-            "CONFIG_PARTITION_TABLE_CUSTOM",
-            wsFolder.uri
+        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        const sdkconfigFilePath = await getSDKConfigFilePath(wsFolder.uri);
+        if (!sdkconfigFilePath || !(await pathExists(sdkconfigFilePath))) {
+          const buildProject = await window.showInformationMessage(
+            l10n.t(
+              `Partition table editor requires sdkconfig file. Build the project?`
+            ),
+            "Build"
           );
-          if (isCustomPartitionTableEnabled !== "y") {
-            const enableCustomPartitionTable = await window.showInformationMessage(
-              l10n.t("Custom Partition Table not enabled for the project"),
-              "Enable"
-            );
-            if (enableCustomPartitionTable === "Enable") {
-              await ConfserverProcess.initWithProgress(
-                wsFolder.uri,
-                context.extensionPath
-              );
-
-              if (ConfserverProcess.exists()) {
-                const customPartitionTableEnableRequest = `{"version": 2, "set": { "PARTITION_TABLE_CUSTOM": true }}\n`;
-                ConfserverProcess.sendUpdatedValue(
-                  customPartitionTableEnableRequest
-                );
-                ConfserverProcess.saveGuiConfigValues();
-              }
-            } else {
-              throw new Error(
-                l10n.t("Custom Partition Table not enabled for the project")
-              );
-            }
+          if (buildProject === "Build") {
+            commands.executeCommand("espIdf.buildDevice");
           }
-
-          let partitionTableFilePath = await getConfigValueFromSDKConfig(
-            "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME",
-            wsFolder.uri
-          );
-          partitionTableFilePath = partitionTableFilePath.replace(/\"/g, "");
-          if (!(!!partitionTableFilePath.trim())) {
-            throw new Error(
-              l10n.t(
-                "Empty CONFIG_PARTITION_TABLE_CUSTOM_FILENAME, please add a csv file to generate partition table"
-              )
-            );
-          }
-
-          partitionTableFilePath = join(
-            wsFolder.uri.fsPath,
-            partitionTableFilePath
-          );
-          if (!existsSync(partitionTableFilePath)) {
-            // inform user and create file.
-            Logger.infoNotify(
-              l10n.t(
-                `Partition Table File {partitionTableFilePath} doesn't exists, we are creating an empty file there`,
-                { partitionTableFilePath }
-              )
-            );
-            createFileSync(partitionTableFilePath);
-          }
-          filePath = partitionTableFilePath;
-        } catch (error) {
-          const errMsg = error instanceof Error ? error.message : String(error);
-          return Logger.errorNotify(
-            errMsg,
-            error as Error,
-            "open partitiontable"
-          );
+          throw partitionSdkconfigRequired();
         }
+        const isCustomPartitionTableEnabled = await getConfigValueFromSDKConfig(
+          "CONFIG_PARTITION_TABLE_CUSTOM",
+          wsFolder.uri
+        );
+        if (isCustomPartitionTableEnabled !== "y") {
+          const enableCustomPartitionTable = await window.showInformationMessage(
+            l10n.t("Custom Partition Table not enabled for the project"),
+            "Enable"
+          );
+          if (enableCustomPartitionTable === "Enable") {
+            await ConfserverProcess.initWithProgress(
+              wsFolder.uri,
+              context.extensionPath
+            );
+
+            if (ConfserverProcess.exists()) {
+              const customPartitionTableEnableRequest = `{"version": 2, "set": { "PARTITION_TABLE_CUSTOM": true }}\n`;
+              ConfserverProcess.sendUpdatedValue(
+                customPartitionTableEnableRequest
+              );
+              ConfserverProcess.saveGuiConfigValues();
+            }
+          } else {
+            throw partitionCustomTableNotEnabled();
+          }
+        }
+
+        let partitionTableFilePath = await getConfigValueFromSDKConfig(
+          "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME",
+          wsFolder.uri
+        );
+        partitionTableFilePath = partitionTableFilePath.replace(/\"/g, "");
+        if (!partitionTableFilePath.trim()) {
+          throw partitionTableFilenameEmpty();
+        }
+
+        partitionTableFilePath = join(
+          wsFolder.uri.fsPath,
+          partitionTableFilePath
+        );
+        if (!existsSync(partitionTableFilePath)) {
+          Logger.infoNotify(
+            l10n.t(
+              `Partition Table File {partitionTableFilePath} doesn't exists, we are creating an empty file there`,
+              { partitionTableFilePath }
+            )
+          );
+          createFileSync(partitionTableFilePath);
+        }
+        filePath = partitionTableFilePath;
       }
       if (!filePath) {
         return;

@@ -30,7 +30,13 @@ import {
   window,
 } from "vscode";
 import { readParameter } from "../../configuration/idf";
-import { Logger } from "../../common/logger";
+import {
+  flasherArgsMissing,
+  isKnownError,
+  missingDependency,
+  noSerialPort,
+  partitionPopulateFailed,
+} from "../../common/error/knownError";
 import { CSV2JSON } from "../../views/partition-table/util";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
 import { createFlashModel } from "../../flash/transports/uart/flashModelBuilder";
@@ -80,33 +86,21 @@ export class PartitionTreeDataProvider
       const modifiedEnv = getCurrentIdfConfiguration();
       const serialPort = readParameter("idf.port", workspace) as string;
       if (!serialPort) {
-        return Logger.warnNotify(
-          l10n.t(
-            "No serial port found for current IDF_TARGET: {0}",
-            modifiedEnv["IDF_TARGET"]
-          )
-        );
+        throw noSerialPort(modifiedEnv["IDF_TARGET"]);
       }
       const buildPath = readParameter("idf.buildPath", workspace) as string;
       const flashBaudRate = readParameter("idf.flashBaudRate", workspace) as string;
       const idfPath = modifiedEnv["IDF_PATH"];
       const pythonBinPath = getVirtualEnvPythonPath();
-      if(!pythonBinPath) {
-        return Logger.warnNotify(
-          "Python environment is not set up. Please set up the Python environment to populate partition items."
-        );
+      if (!pythonBinPath) {
+        throw missingDependency("Python");
       }
 
       const flasherArgsPath = join(buildPath, "flasher_args.json");
 
       const flasherArgsExists = await pathExists(flasherArgsPath);
       if (!flasherArgsExists) {
-        window.showInformationMessage(
-          l10n.t(`{buildFile} doesn't exist. Build first.`, {
-            flasherArgsPath,
-          })
-        );
-        return;
+        throw flasherArgsMissing();
       }
 
       const flasherArgsModel = await createFlashModel(
@@ -201,14 +195,14 @@ export class PartitionTreeDataProvider
         ...csvItems,
       ]);
     } catch (error) {
-      let msg = error instanceof Error && error.message
-        ? error.message
-        : "Error getting partitions from device";
-      Logger.errorNotify(
-        msg,
-        error instanceof Error ? error : new Error("Error getting partitions from device"),
-        "PartitionTreeDataProvider populatePartitionItems"
-      );
+      if (isKnownError(error)) {
+        throw error;
+      }
+      const msg =
+        error instanceof Error && error.message
+          ? error.message
+          : "Error getting partitions from device";
+      throw partitionPopulateFailed(msg);
     }
     this.refresh();
   }

@@ -29,7 +29,6 @@ import {
 } from "vscode";
 import { ESP } from "../config";
 import { readParameter } from "../configuration/idf";
-import { Logger } from "../common/logger";
 import { statusBarItems } from "../statusBar";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { isBinInPath } from "../utils";
@@ -39,6 +38,11 @@ import {
   getCurrentIdfConfiguration,
   getVirtualEnvPythonPath,
 } from "../configuration/env";
+import {
+  idfToolNotFound,
+  qemuLaunchArgsMissing,
+  qemuTargetNotSupported,
+} from "../common/error/knownError";
 
 export enum QemuLaunchMode {
   Debug,
@@ -92,26 +96,18 @@ export class QemuManager extends EventEmitter {
     if (!selectedOption) {
       return;
     }
-    try {
-      switch (selectedOption.label) {
-        case "Stop QEMU":
-          QemuManager.instance.stop();
-          break;
-        case "QEMU Monitor":
-          commands.executeCommand("espIdf.monitorQemu");
-          break;
-        case "QEMU Debug":
-          commands.executeCommand("espIdf.qemuDebug");
-          break;
-        default:
-          break;
-      }
-    } catch (error) {
-      const msg =
-        error instanceof Error && error.message
-          ? error.message
-          : "Error executing QEMU command";
-      Logger.errorNotify(msg, error as Error, "QemuManager commandHandler");
+    switch (selectedOption.label) {
+      case "Stop QEMU":
+        QemuManager.instance.stop();
+        break;
+      case "QEMU Monitor":
+        commands.executeCommand("espIdf.monitorQemu");
+        break;
+      case "QEMU Debug":
+        commands.executeCommand("espIdf.qemuDebug");
+        break;
+      default:
+        break;
     }
   }
 
@@ -194,15 +190,11 @@ export class QemuManager extends EventEmitter {
     );
     const qemuExecutable = qemuExecutableDict[modifiedEnv.IDF_TARGET] || "";
     if (!qemuExecutable) {
-      throw new Error(
-        `${modifiedEnv.IDF_TARGET} is not supported by Espressif QEMU. Check ESP-IDF and QEMU version installed.`
-      );
+      throw qemuTargetNotSupported(modifiedEnv.IDF_TARGET);
     }
     const isQemuBinInPath = await isBinInPath(qemuExecutable, modifiedEnv);
     if (!isQemuBinInPath) {
-      throw new Error(
-        `${qemuExecutable} is not found in PATH or access is denied`
-      );
+      throw idfToolNotFound(qemuExecutable);
     }
 
     const qemuArgs: string[] = await this.getLaunchArguments(
@@ -210,7 +202,7 @@ export class QemuManager extends EventEmitter {
       workspaceFolder
     );
     if (typeof qemuArgs === "undefined" || qemuArgs.length < 1) {
-      throw new Error("No QEMU launch arguments found.");
+      throw qemuLaunchArgsMissing();
     }
 
     if (typeof this.qemuTerminal === "undefined") {

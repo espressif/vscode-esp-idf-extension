@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-
 import { ExtensionContext, window } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
+import { missingDependency } from "../common/error/knownError";
 import { statusBarItems } from "../statusBar";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { ProjectConfigurationManager } from "./ProjectConfigurationManager";
+import { projectConfCommandErrorMapping } from "./errorMapping";
 
 export { ProjectConfigStore } from "./store";
 
@@ -53,27 +54,30 @@ export function registerProjectConfigCommands(context: ExtensionContext) {
     }
   });
 
-  registerIDFCommand(context, "espIdf.projectConf", () => {
+  registerIDFCommand(
+    context,
+    "espIdf.projectConf",
+    () => {
       PreCheck.perform([openFolderCheck], async () => {
         if (ProjectConfigurationManager.instance) {
-        await ProjectConfigurationManager.instance.selectProjectConfiguration();
+          await ProjectConfigurationManager.instance.selectProjectConfiguration();
         } else {
-          window.showErrorMessage(
-            "Project Configuration Manager not initialized."
-          );
+          throw missingDependency("Project Configuration Manager");
         }
       });
-    });
+    },
+    projectConfCommandErrorMapping
+  );
 
-    registerIDFCommand(context, "espIdf.createProjectConfiguration", () => {
-        PreCheck.perform([openFolderCheck], async () => {
-          if (ProjectConfigurationManager.instance) {
-            await ProjectConfigurationManager.instance.createProjectConfiguration();
-          } else {
-            window.showErrorMessage(
-              "Project Configuration Manager not initialized."
-            );
-          }
-        });
-      });
+  registerIDFCommand(context, "espIdf.createProjectConfiguration", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      if (ProjectConfigurationManager.instance) {
+        await ProjectConfigurationManager.instance.createProjectConfiguration();
+      } else {
+        window.showErrorMessage(
+          "Project Configuration Manager not initialized."
+        );
+      }
+    });
+  });
 }

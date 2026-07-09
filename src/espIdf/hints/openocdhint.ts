@@ -67,9 +67,8 @@ export class OpenOCDErrorMonitor {
     return OpenOCDErrorMonitor.instance;
   }
 
-  public async initialize(workspaceFolderUri: Uri): Promise<void> {
+  public async initialize(): Promise<void> {
     try {
-      await this.setHintsData(workspaceFolderUri);
       // Start monitoring OpenOCD output
       this.watchOpenOCDStatus();
     } catch (error) {
