@@ -60,7 +60,7 @@ export function registerSetTargetCommand(context: ExtensionContext) {
           setIsSettingIDFTarget(true);
 
           try {
-            const targetsFromIdf = await getTargetsFromEspIdf(wsFolder.uri);
+            const targetsFromIdf = await getTargetsFromEspIdf();
             const selectedTarget = targetsFromIdf.find(
               (t) => t.target === target
             );

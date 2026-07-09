@@ -78,7 +78,7 @@ suite("setTarget errors", () => {
       const idfPath = mkdtempSync(join(tmpdir(), "idf-missing-constants-"));
 
       await assert.rejects(
-        () => getTargetsFromEspIdf(testWorkspaceUri, idfPath),
+        () => getTargetsFromEspIdf(idfPath),
         (error: unknown) =>
           isKnownError(error) && error.code === ErrorCode.FILE_NOT_FOUND
       );
