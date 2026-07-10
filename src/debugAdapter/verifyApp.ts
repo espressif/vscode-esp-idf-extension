@@ -19,6 +19,7 @@
 import { join } from "path";
 import { Uri } from "vscode";
 import { readParameter, readSerialPort } from "../configuration/idf";
+import { getIdfBuildPath } from "../configuration/workspace";
 import { Logger } from "../common/logger";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 import { pathExists } from "fs-extra";
@@ -83,10 +84,7 @@ export async function verifyAppBinary(workspaceFolder: Uri): Promise<void> {
   if (!(await pathExists(esptoolPath))) {
     throw esptoolNotAccessible(debugErrorPresentation.esptoolNotAccessible);
   }
-  const buildDirPath = readParameter(
-    "idf.buildPath",
-    workspaceFolder
-  ) as string;
+  const buildDirPath = getIdfBuildPath(workspaceFolder);
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
   if (!(await pathExists(flasherArgsJsonPath))) {
     throw flasherArgsMissing(debugErrorPresentation.flasherArgsMissing);

@@ -20,7 +20,7 @@ import { commands, Uri } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { join } from "path";
 import { pathExists } from "fs-extra";
-import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
+import { getIdfBuildPath, getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { selectedDFUAdapterId } from "../flash/transports/dfu/helpers";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 import { addProcessTask, type IdfTaskExecution } from "../taskManager/taskManager";
@@ -78,13 +78,7 @@ export async function appendDfuExecution(
   workspace: Uri,
   captureOutput?: boolean
 ): Promise<void> {
-  const buildPath = (readParameter("idf.buildPath", workspace) as string)?.trim();
-  if (!buildPath) {
-    throw invalidConfiguration(
-      "idf.buildPath",
-      buildInvalidConfigurationPresentation
-    );
-  }
+  const buildPath = getIdfBuildPath(workspace);
   if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
     throw flasherArgsMissing(buildFlasherArgsMissingPresentation);
   }

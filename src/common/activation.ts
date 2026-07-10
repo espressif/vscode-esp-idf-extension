@@ -27,6 +27,7 @@ import {
 import { Logger } from "./logger";
 import { PreCheck } from "./PreCheck";
 import { readParameter, writeParameter } from "../configuration/idf";
+import { getIdfBuildPath } from "../configuration/workspace";
 import { join } from "path";
 import { pathExists, readFile } from "fs-extra";
 import { checkIsProjectCmakeLists } from "../newProject/utils";
@@ -167,10 +168,7 @@ export function checkAndNotifyMissingCompileCommands() {
       try {
         const isIdfProject = checkIsProjectCmakeLists(folder.uri.fsPath);
         if (isIdfProject) {
-          const buildDirPath = readParameter(
-            "idf.buildPath",
-            folder.uri
-          ) as string;
+          const buildDirPath = getIdfBuildPath(folder.uri);
           const compileCommandsPath = join(
             buildDirPath,
             "compile_commands.json"

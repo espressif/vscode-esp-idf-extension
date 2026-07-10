@@ -64,8 +64,6 @@ Visual Studio Code 允许你在不同级别配置设置：**全局（用户设�
       - 描述
     * - **idf.port**
       - 所选设备端口路径（默认：``detect``）。作用域：Resource。
-    * - **idf.portWin**
-      - Windows 下所选设备端口路径（默认：``detect``）。作用域：Resource。
     * - **idf.monitorPort**
       - 监视器所用设备端口（可选）。未设置时使用 **idf.port**。作用域：Resource。
     * - **idf.flashBaudRate**
@@ -117,9 +115,7 @@ Visual Studio Code 允许你在不同级别配置设置：**全局（用户设�
     * - 设置 ID
       - 描述
     * - **idf.buildPath**
-      - 扩展命令使用的构建目录（默认：``${workspaceFolder}/build``）。作用域：Resource。
-    * - **idf.buildPathWin**
-      - Windows 下构建目录（默认：``${workspaceFolder}\\build``）。作用域：Resource。
+      - 扩展命令使用的构建目录（默认：``build``，相对于工作区文件夹）。作用域：Resource。
     * - **idf.cmakeCompilerArgs**
       - CMake 配置参数（默认含 ``-G Ninja``、``-DPYTHON_DEPS_CHECKED=1``、``-DESP_PLATFORM=1``）。作用域：Resource。
     * - **idf.sdkconfigDefaults**

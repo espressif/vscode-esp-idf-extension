@@ -77,7 +77,7 @@ For code navigation and C/C++ syntax highlighting, you can use `Microsoft C/C++ 
 Usually C/C++ language extensions rely on a file called ``compile_commands.json``, which is located in your project build directory. You can generate this file using the ``ESP-IDF: Run idf.py reconfigure task``.
 
 For `LLVM clangd extension <https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd>`_, the user can use the ``ESP-IDF: Configure project for ESP-Clang`` to configure this extension argument.
-The command will search for ``esp-clang`` in the configured ESP-IDF setup, the build directory from ``idf.buildPath`` (``idf.buildPathWin`` in Windows) and the GCC toolchain path from current ``IDF_TARGET`` and configured ESP-IDF setup and use these paths to configure clang path and arguments.
+The command will search for ``esp-clang`` in the configured ESP-IDF setup, the build directory from ``idf.buildPath`` and the GCC toolchain path from current ``IDF_TARGET`` and configured ESP-IDF setup and use these paths to configure clang path and arguments.
 
 The result looks like this:
 
