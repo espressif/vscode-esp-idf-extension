@@ -50,6 +50,7 @@ export function isLegacyDefaultValue(
     return (
       legacyValue === canonicalDefault ||
       legacyValue === LEGACY_BUILD_PATH_WIN_DEFAULT ||
+      legacyValue === "${workspaceFolder}/build" ||
       legacyValue === "build"
     );
   }

@@ -17,7 +17,7 @@
 
 import * as assert from "assert";
 import { mkdtempSync, writeFileSync } from "fs";
-import { join } from "path";
+import { join, resolve } from "path";
 import { tmpdir } from "os";
 import * as vscode from "vscode";
 import {
@@ -30,6 +30,8 @@ import {
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
+import { Logger } from "../../common/logger";
+import { ESP } from "../../config";
 import {
   resetIdfConfigurationSource,
   setIdfConfigurationSource,
@@ -40,6 +42,8 @@ import {
 } from "../../build/sizeExecution";
 import { IDFSize } from "../../espIdf/size/idfSize";
 import { sizeErrorPresentation } from "../../espIdf/size/sizeErrorPresentation";
+import { ProjectConfigStore } from "../../project-conf/utils";
+import { createMockMemento } from "../mockUtils";
 
 const testWorkspaceUri = vscode.Uri.file("/test/workspace");
 
@@ -60,8 +64,24 @@ function createFakeIdfSource(getValues: Record<string, unknown> = {}) {
 }
 
 suite("size errors", () => {
+  suiteSetup(() => {
+    const absPath = (filename: string) =>
+      resolve(__dirname, "..", "..", "..", filename);
+    const mockUpContext = {
+      extensionPath: resolve(__dirname, "..", "..", ".."),
+      asAbsolutePath: absPath,
+      workspaceState: createMockMemento(),
+      globalState: createMockMemento(),
+    } as vscode.ExtensionContext;
+    Logger.init(mockUpContext);
+    ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
+  });
+
   teardown(() => {
     setSizeExecutionTestHooks(undefined);
+    ESP.ProjectConfiguration.store?.clear(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
     resetIdfConfigurationSource();
   });
 
@@ -133,9 +153,14 @@ suite("size errors", () => {
 
   suite("runSizeTaskIfEnabled", () => {
     test("throws missingDependency when python path is missing", async () => {
+      const buildDir = mkdtempSync(join(tmpdir(), "size-missing-python-"));
+      writeFileSync(
+        join(buildDir, "project_description.json"),
+        JSON.stringify({ project_name: "app" })
+      );
       setIdfConfigurationSource(
         createFakeIdfSource({
-          "idf.buildPath": "/build",
+          "idf.buildPath": buildDir,
           "idf.enableSizeTaskAfterBuildTask": true,
         })
       );

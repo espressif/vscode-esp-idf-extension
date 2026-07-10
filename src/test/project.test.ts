@@ -43,7 +43,7 @@ suite("Project tests", () => {
     workspaceState: createMockMemento(),
     globalState: createMockMemento(),
   } as ExtensionContext;
-  ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
   const templateFolder = join(mockUpContext.extensionPath, "templates");
   const wsFolder = process.env.GITHUB_WORKSPACE
     ? join(process.env.GITHUB_WORKSPACE, "project-test")

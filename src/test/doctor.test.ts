@@ -51,7 +51,7 @@ suite("Doctor Command tests", () => {
     globalState: createMockMemento(),
   } as vscode.ExtensionContext;
   Logger.init(mockUpContext);
-  ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
   setup(async () => {
     reportObj.workspaceFolder = join(
       __dirname,

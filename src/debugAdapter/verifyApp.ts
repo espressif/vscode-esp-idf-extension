@@ -21,7 +21,11 @@ import { Uri } from "vscode";
 import { readParameter, readSerialPort } from "../configuration/idf";
 import { getIdfBuildPath } from "../configuration/workspace";
 import { Logger } from "../common/logger";
-import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
+import {
+  getCurrentIdfConfiguration,
+  getVirtualEnvPythonPath,
+  type IdfEnvMap,
+} from "../configuration/env";
 import { pathExists } from "fs-extra";
 import { createFlashModel } from "../flash/transports/uart/flashModelBuilder";
 import { spawn } from "../utils";
@@ -41,12 +45,24 @@ let readSerialPortForTests:
   | ((workspaceFolder: Uri, allowPrompt: boolean) => Promise<string>)
   | undefined;
 
+let getVirtualEnvPythonPathForTests: (() => string | undefined) | undefined;
+let getCurrentIdfConfigurationForTests: (() => IdfEnvMap) | undefined;
+
 export function setReadSerialPortForTests(
   fn:
     | ((workspaceFolder: Uri, allowPrompt: boolean) => Promise<string>)
     | undefined
 ): void {
   readSerialPortForTests = fn;
+}
+
+/** @internal Test helper to stub Python path and IDF env resolution. */
+export function setVerifyAppTestHooks(hooks?: {
+  getVirtualEnvPythonPath?: () => string | undefined;
+  getCurrentIdfConfiguration?: () => IdfEnvMap;
+}): void {
+  getVirtualEnvPythonPathForTests = hooks?.getVirtualEnvPythonPath;
+  getCurrentIdfConfigurationForTests = hooks?.getCurrentIdfConfiguration;
 }
 
 async function loadSerialPort(workspaceFolder: Uri): Promise<string> {
@@ -56,8 +72,22 @@ async function loadSerialPort(workspaceFolder: Uri): Promise<string> {
   return readSerialPort(workspaceFolder, false);
 }
 
+function resolveVirtualEnvPythonPath(): string | undefined {
+  if (getVirtualEnvPythonPathForTests) {
+    return getVirtualEnvPythonPathForTests();
+  }
+  return getVirtualEnvPythonPath();
+}
+
+function resolveIdfConfiguration(): IdfEnvMap {
+  if (getCurrentIdfConfigurationForTests) {
+    return getCurrentIdfConfigurationForTests();
+  }
+  return getCurrentIdfConfiguration();
+}
+
 export async function verifyAppBinary(workspaceFolder: Uri): Promise<void> {
-  const modifiedEnv = getCurrentIdfConfiguration();
+  const modifiedEnv = resolveIdfConfiguration();
   const serialPort = await loadSerialPort(workspaceFolder);
   if (!serialPort) {
     throw noSerialPort(
@@ -66,7 +96,7 @@ export async function verifyAppBinary(workspaceFolder: Uri): Promise<void> {
     );
   }
   const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolder) as string;
-  const pythonBinPath = getVirtualEnvPythonPath();
+  const pythonBinPath = resolveVirtualEnvPythonPath();
   if (!pythonBinPath) {
     throw missingDependency("Python", debugErrorPresentation.missingDependency);
   }

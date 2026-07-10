@@ -16,16 +16,34 @@
  */
 
 import * as assert from "assert";
+import { resolve } from "path";
 import * as vscode from "vscode";
 import { isKnownError } from "../../common/error/knownError";
 import { ErrorCode } from "../../common/error/types";
+import { Logger } from "../../common/logger";
+import { ESP } from "../../config";
 import { installEspSBOM } from "../../espBom/main";
 import { addIdfReconfigureTask } from "../../espIdf/reconfigure/task";
 import { getNinjaSummaryPythonPath } from "../../ninja/index";
+import { ProjectConfigStore } from "../../project-conf/utils";
+import { createMockMemento } from "../mockUtils";
 
 const testWorkspaceUri = vscode.Uri.file("/test/workspace");
 
 suite("command errors", () => {
+  suiteSetup(() => {
+    const absPath = (filename: string) =>
+      resolve(__dirname, "..", "..", "..", filename);
+    const mockUpContext = {
+      extensionPath: resolve(__dirname, "..", "..", ".."),
+      asAbsolutePath: absPath,
+      workspaceState: createMockMemento(),
+      globalState: createMockMemento(),
+    } as vscode.ExtensionContext;
+    Logger.init(mockUpContext);
+    ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
+  });
+
   suite("getNinjaSummaryPythonPath", () => {
     test("throws missingDependency when python path is missing", () => {
       assert.throws(

@@ -310,9 +310,19 @@ export async function getProjectElfFilePath(
     const elfFilePath = join(buildDirPath, projectDescription.appElf);
     return elfFilePath;
   }
-  throw new Error(
-    "Failed to get project ELF file name from project description."
-  );
+  const buildDirPath = getIdfBuildPath(workspacePath);
+  throw buildRequiredBeforeFlash(buildDirPath, {
+    userMessage:
+      "Build the project first to read project_description.json. {buildDirPath} can't be accessed.",
+    logMessage:
+      "getProjectElfFilePath blocked: build directory or project_description.json not accessible: {buildDirPath}.",
+    actions: [
+      {
+        label: "Build",
+        execute: () => commands.executeCommand("espIdf.buildDevice"),
+      },
+    ],
+  });
 }
 
 /**
