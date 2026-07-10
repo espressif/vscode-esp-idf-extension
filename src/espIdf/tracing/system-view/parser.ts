@@ -23,7 +23,7 @@ import { isKnownError, parseError } from "../../../common/error/knownError";
 import { SystemViewPanel } from "./panel";
 import { SysviewTraceProc } from "../tools/sysviewTraceProc";
 import { NotificationMode, readParameter } from "../../../configuration/idf";
-import { traceArchiveCommandErrorMapping } from "../errorMapping";
+import { traceArchiveParseErrorPresentation } from "../tracingOpenOcdPresentation";
 
 export class SystemViewResultParser {
   public static parseWithProgress(
@@ -56,15 +56,15 @@ export class SystemViewResultParser {
               "espIdf.apptrace.archive.showReport",
               error,
               undefined,
-              traceArchiveCommandErrorMapping
+              { outputChannel: "Tracing" }
             );
             return;
           }
           await handleError(
             "espIdf.apptrace.archive.showReport",
-            parseError(trace.filePath),
+            parseError(trace.filePath, traceArchiveParseErrorPresentation),
             undefined,
-            traceArchiveCommandErrorMapping
+            { outputChannel: "Tracing" }
           );
         }
       }
@@ -77,7 +77,7 @@ export class SystemViewResultParser {
     try {
       return JSON.parse(resp.toString());
     } catch (_error) {
-      throw parseError(filePath);
+      throw parseError(filePath, traceArchiveParseErrorPresentation);
     }
   }
 }

@@ -15,10 +15,10 @@ import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
 import { IdfTaskExecution } from "../taskManager/taskManager";
 import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
+import { setTargetErrorPresentation } from "../espIdf/setTarget/setTargetErrorPresentation";
 import { updateCurrentProfileIdfTarget } from "../project-conf/utils";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { setTargetInIDF } from "../espIdf/setTarget/setTargetInIdf";
-import { setTargetCommandErrorMapping } from "../espIdf/setTarget/errorMapping";
 import { statusBarItems } from "../statusBar";
 import {
   isSettingIDFTarget,
@@ -227,9 +227,10 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                   resolveKnownErrorUserMessage(
                     invalidIdfTarget(
                       target,
-                      targetsFromIdf.map((t) => t.target)
+                      targetsFromIdf.map((t) => t.target),
+                      setTargetErrorPresentation.invalidIdfTarget
                     ),
-                    setTargetCommandErrorMapping
+                    undefined
                   ) ?? `${target} is not a valid target.`;
                 return new vscode.LanguageModelToolResult([
                   new vscode.LanguageModelTextPart(message),
@@ -238,8 +239,11 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               if (isSettingIDFTarget) {
                 const message =
                   resolveKnownErrorUserMessage(
-                    idfTaskInProgress(IdfTaskName.SetTarget),
-                    setTargetCommandErrorMapping
+                    idfTaskInProgress(
+                      IdfTaskName.SetTarget,
+                      setTargetErrorPresentation.idfTaskInProgress
+                    ),
+                    undefined
                   ) ?? "Set target is already running.";
                 return new vscode.LanguageModelToolResult([
                   new vscode.LanguageModelTextPart(message),
@@ -286,7 +290,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 const userMessage =
                   resolveKnownErrorUserMessage(
                     error,
-                    setTargetCommandErrorMapping
+                    { outputChannel: "Set Target" }
                   ) ?? error.message;
                 return new vscode.LanguageModelToolResult([
                   new vscode.LanguageModelTextPart(userMessage),

@@ -28,21 +28,22 @@ import {
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
-import { qemuCommandErrorMapping } from "../../qemu/errorMapping";
+
+const qemuErrorOptions = { outputChannel: "QEMU" };
 
 suite("QEMU command errors", () => {
   suite("resolveKnownErrorUserMessage", () => {
     test("command mapping applies QEMU output channel for QemuTargetNotSupported", () => {
       const descriptor = resolveKnownErrorDescriptor(
         qemuTargetNotSupported("esp32h2"),
-        qemuCommandErrorMapping
+        qemuErrorOptions
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "QEMU");
       assert.ok(
         resolveKnownErrorUserMessage(
           qemuTargetNotSupported("esp32h2"),
-          qemuCommandErrorMapping
+          qemuErrorOptions
         )?.includes("esp32h2")
       );
       assert.strictEqual(
@@ -54,14 +55,14 @@ suite("QEMU command errors", () => {
     test("command mapping applies QEMU-specific wording for IdfToolNotFound", () => {
       const descriptor = resolveKnownErrorDescriptor(
         idfToolNotFound("qemu-system-xtensa"),
-        qemuCommandErrorMapping
+        qemuErrorOptions
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "QEMU");
       assert.ok(
         resolveKnownErrorUserMessage(
           idfToolNotFound("qemu-system-xtensa"),
-          qemuCommandErrorMapping
+          qemuErrorOptions
         )?.includes("qemu-system-xtensa")
       );
     });
@@ -70,7 +71,7 @@ suite("QEMU command errors", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
           qemuDebugLaunchFailed("VS Code failed to start the debug session."),
-          qemuCommandErrorMapping
+          qemuErrorOptions
         ),
         "Failed to launch GDB debugger for QEMU: VS Code failed to start the debug session."
       );

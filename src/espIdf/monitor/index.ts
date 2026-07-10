@@ -30,16 +30,13 @@ import { ESP } from "../../config";
 import { installWebsocketClient } from "./websocket/checkWebsocketClient";
 import { monitorMain } from "./main";
 import { startWithWebSocket } from "./websocket";
-import { CommandErrorMapping } from "../../common/error/types";
-import { monitorCommandErrorMapping } from "./errorMapping";
 
 function registerMonitorCommand(
   context: ExtensionContext,
   name: string,
-  callback: (...args: any[]) => any,
-  errorMapping?: CommandErrorMapping
+  callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(context, name, callback, errorMapping);
+  registerIDFCommand(context, name, callback, { outputChannel: "Monitor" });
 }
 
 export function registerMonitorCommands(context: ExtensionContext) {
@@ -52,7 +49,7 @@ export function registerMonitorCommands(context: ExtensionContext) {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       await monitorMain(wsFolder);
     });
-  }, monitorCommandErrorMapping);
+  });
 
   registerMonitorCommand(context, "espIdf.launchWSServerAndMonitor", async () => {
     const idfVersionCheck = await minIdfVersionCheck("4.3");
@@ -70,5 +67,5 @@ export function registerMonitorCommands(context: ExtensionContext) {
         await startWithWebSocket(wsFolder, noReset, wsPort);
       }
     );
-  }, monitorCommandErrorMapping);
+  });
 }

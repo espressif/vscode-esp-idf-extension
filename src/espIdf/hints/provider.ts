@@ -19,7 +19,6 @@ import { handleError } from "../../common/error/handler";
 import { parseError } from "../../common/error/knownError";
 import * as utils from "../../utils";
 import { getOpenOcdHintsYmlPath, resolveIdfHintsYmlPath } from "./utils";
-import { openOcdHintsCommandErrorMapping } from "./errorMapping";
 import {
   Event,
   EventEmitter,
@@ -43,6 +42,7 @@ import {
 } from "vscode";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
+import { hintsErrorPresentation } from "./hintsErrorPresentation";
 
 /**
  * Class representing a pair of regular expression and its corresponding hint.
@@ -285,9 +285,7 @@ export class ErrorHintProvider implements TreeDataProvider<ErrorHintTreeItem> {
           );
           void handleError(
             "espIdf.errorHints",
-            parseError(openOcdHintsPath),
-            undefined,
-            openOcdHintsCommandErrorMapping
+            parseError(openOcdHintsPath, hintsErrorPresentation.parseError)
           );
         }
       } else if (openOcdHintsPath) {

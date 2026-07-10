@@ -25,7 +25,6 @@ import {
   parseError,
 } from "../common/error/knownError";
 import { resolveKnownErrorUserMessage } from "../common/error/resolve";
-import { debugCommandErrorMapping } from "./errorMapping";
 import { ESP } from "../config";
 import {
   debug,
@@ -114,7 +113,7 @@ export class ImageViewPanel {
 
   private static formatErrorMessage(error: unknown): string {
     if (isKnownError(error)) {
-      return resolveKnownErrorUserMessage(error, debugCommandErrorMapping);
+      return resolveKnownErrorUserMessage(error, { outputChannel: "Debug" });
     }
     return error instanceof Error ? error.message : String(error);
   }

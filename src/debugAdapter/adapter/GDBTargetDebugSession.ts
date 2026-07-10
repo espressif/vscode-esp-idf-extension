@@ -25,6 +25,10 @@ import { createEnvValues, getGdbCwd } from "./util";
 import { OpenOCDManager } from "../../espIdf/openOcd/openOcdManager";
 import { openOcdNotRunning, idfToolNotFound, invalidConfiguration, traceGdbProcessFailed } from "../../common/error/knownError";
 import { resolveDapErrorMessage } from "../dapError";
+import {
+  debugDapErrorPresentation,
+  debugErrorPresentation,
+} from "../debugErrorPresentation";
 
 interface UARTArguments {
   // Path to the serial port connected to the UART on the board.
@@ -149,7 +153,12 @@ export class GDBTargetDebugSession extends GDBDebugSession {
         this.sendErrorResponse(
           response,
           1,
-          resolveDapErrorMessage(invalidConfiguration("program"))
+          resolveDapErrorMessage(
+            invalidConfiguration(
+              "program",
+              debugDapErrorPresentation.invalidConfiguration
+            )
+          )
         );
         return;
       }
@@ -294,7 +303,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
           checkTargetPort(accumulatedStdout);
         });
       } else {
-        throw idfToolNotFound("gdbserver");
+        throw idfToolNotFound("gdbserver", debugErrorPresentation.idfToolNotFound);
       }
 
       if (this.gdbserver.stderr) {
@@ -307,7 +316,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
           checkTargetPort(accumulatedStderr);
         });
       } else {
-        throw idfToolNotFound("gdbserver");
+        throw idfToolNotFound("gdbserver", debugErrorPresentation.idfToolNotFound);
       }
 
       this.gdbserver.on("exit", (code, signal) => {
@@ -321,9 +330,10 @@ export class GDBTargetDebugSession extends GDBDebugSession {
         if (!gdbserverStartupResolved) {
           gdbserverStartupResolved = true;
           reject(
-            traceGdbProcessFailed({
-              detail: exitmsg + "\n" + accumulatedStderr,
-            })
+            traceGdbProcessFailed(
+              { detail: exitmsg + "\n" + accumulatedStderr },
+              debugDapErrorPresentation.traceGdbProcessFailed
+            )
           );
         }
       });
@@ -334,9 +344,10 @@ export class GDBTargetDebugSession extends GDBDebugSession {
         if (!gdbserverStartupResolved) {
           gdbserverStartupResolved = true;
           reject(
-            traceGdbProcessFailed({
-              detail: errmsg + "\n" + accumulatedStderr,
-            })
+            traceGdbProcessFailed(
+              { detail: errmsg + "\n" + accumulatedStderr },
+              debugDapErrorPresentation.traceGdbProcessFailed
+            )
           );
         }
       });
@@ -487,7 +498,9 @@ export class GDBTargetDebugSession extends GDBDebugSession {
       ) {
         const openOCDManager = OpenOCDManager.init();
         if (!openOCDManager.isRunning()) {
-          const errorMsg = resolveDapErrorMessage(openOcdNotRunning());
+          const errorMsg = resolveDapErrorMessage(
+            openOcdNotRunning(debugErrorPresentation.openOcdNotRunning)
+          );
           this.sendEvent(new OutputEvent(`❌ ${errorMsg}`, "stderr"));
           this.sendErrorResponse(response, 1, errorMsg);
           return;

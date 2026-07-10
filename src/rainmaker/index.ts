@@ -26,14 +26,13 @@ import { withProgressWrapper } from "../common/withProgressWrapper";
 import { RMakerItem } from "./view/item";
 import { RainmakerDeviceParamStructure } from "./client/model";
 import { ESPRainMakerTreeDataProvider } from "./view";
-import { rainmakerCommandErrorMapping } from "./errorMapping";
 
 function registerRainmakerCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(context, name, callback, rainmakerCommandErrorMapping);
+  registerIDFCommand(context, name, callback, { outputChannel: "Rainmaker" });
 }
 
 export function registerRainMakerCommands(context: ExtensionContext) {
@@ -42,37 +41,41 @@ export function registerRainMakerCommands(context: ExtensionContext) {
     rainMakerTreeDataProvider.registerDataProviderForTree("espRainmaker")
   );
 
-  registerRainmakerCommand(context, "esp.rainmaker.backend.connect", async () => {
-    if (RainmakerAPIClient.isLoggedIn()) {
-      Logger.infoNotify(l10n.t("Already logged-in, please sign-out first"));
-      return;
-    }
-    await withProgressWrapper(
-      [],
-      l10n.t("ESP-IDF: Please wait checking with Rainmaker Cloud"),
-      async (_progress, _cancelToken) => {
-        const accountDetails = await PromptUserToLogin();
-        if (!accountDetails) {
-          return;
-        }
-
-        if (accountDetails.provider) {
-          RainmakerOAuthManager.openExternalOAuthURL(accountDetails.provider);
-          return;
-        }
-
-        if (!accountDetails.username || !accountDetails.password) {
-          return;
-        }
-        await RainmakerAPIClient.login(
-          accountDetails.username,
-          accountDetails.password
-        );
-        await rainMakerTreeDataProvider.refresh();
-        Logger.infoNotify("Rainmaker Cloud Linking Success!");
+  registerRainmakerCommand(
+    context,
+    "esp.rainmaker.backend.connect",
+    async () => {
+      if (RainmakerAPIClient.isLoggedIn()) {
+        Logger.infoNotify(l10n.t("Already logged-in, please sign-out first"));
+        return;
       }
-    );
-  });
+      await withProgressWrapper(
+        [],
+        l10n.t("ESP-IDF: Please wait checking with Rainmaker Cloud"),
+        async (_progress, _cancelToken) => {
+          const accountDetails = await PromptUserToLogin();
+          if (!accountDetails) {
+            return;
+          }
+
+          if (accountDetails.provider) {
+            RainmakerOAuthManager.openExternalOAuthURL(accountDetails.provider);
+            return;
+          }
+
+          if (!accountDetails.username || !accountDetails.password) {
+            return;
+          }
+          await RainmakerAPIClient.login(
+            accountDetails.username,
+            accountDetails.password
+          );
+          await rainMakerTreeDataProvider.refresh();
+          Logger.infoNotify("Rainmaker Cloud Linking Success!");
+        }
+      );
+    }
+  );
 
   registerIDFCommand(context, "esp.rainmaker.backend.logout", async () => {
     const shallLogout = await window.showWarningMessage(

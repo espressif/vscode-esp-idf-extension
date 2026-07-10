@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { commands, ExtensionContext } from "vscode";
+import { ExtensionContext } from "vscode";
 import { registerIDFCommand } from "./registerCommand";
 import {
   getIdfTargetFromSdkconfig,
@@ -25,25 +25,6 @@ import {
 import { openFolderCheck, PreCheck } from "./PreCheck";
 import { getToolchainPath } from "../utils";
 import { ESP } from "../config";
-import { CommandErrorMapping, ErrorCode } from "./error/types";
-import { ErrorSeverity } from "./customNotifications";
-
-const getProjectNameCommandErrorMapping: CommandErrorMapping = {
-  [ErrorCode.BuildRequiredBeforeFlash]: {
-    severity: ErrorSeverity.Error,
-    userMessage:
-      "Build the project first to read project_description.json. {buildDirPath} can't be accessed.",
-    logMessage:
-      "getProjectName blocked: build directory or project_description.json not accessible: {buildDirPath}.",
-    actions: [
-      {
-        label: "Build",
-        execute: () => commands.executeCommand("espIdf.buildDevice"),
-      },
-    ],
-  },
-};
-
 export function registerTaskCommands(context: ExtensionContext) {
   registerIDFCommand(
     context,
@@ -54,7 +35,6 @@ export function registerTaskCommands(context: ExtensionContext) {
         return await getProjectName(wsFolder.uri);
       });
     },
-    getProjectNameCommandErrorMapping
   );
 
   registerIDFCommand(context, "espIdf.getToolchainGdb", () => {

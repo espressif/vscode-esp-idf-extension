@@ -20,6 +20,7 @@ import { join } from "path";
 import { Uri } from "vscode";
 import { fileNotFound } from "../../common/error/knownError";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
+import { setTargetErrorPresentation } from "./setTargetErrorPresentation";
 
 export interface IdfTarget {
   label: string;
@@ -42,7 +43,10 @@ export async function getTargetsFromEspIdf(givenIdfPathDir?: string) {
     "constants.py"
   );
   if (!existsSync(idfConstantsFile)) {
-    throw fileNotFound(idfConstantsFile);
+    throw fileNotFound(
+      idfConstantsFile,
+      setTargetErrorPresentation.fileNotFound
+    );
   }
 
   const idfConstantsFileContent = readFileSync(idfConstantsFile, "utf-8");

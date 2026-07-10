@@ -21,11 +21,11 @@ import {
   parseError,
 } from "../../common/error/knownError";
 import { getOpenOcdHintsYmlPath } from "./utils";
-import { openOcdHintsCommandErrorMapping } from "./errorMapping";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { ErrorHintProvider } from "./provider";
 import { PreCheck } from "../../common/PreCheck";
 import { Disposable, Uri } from "vscode";
+import { hintsErrorPresentation } from "./hintsErrorPresentation";
 
 interface OpenOCDHint {
   source?: string;
@@ -75,9 +75,7 @@ export class OpenOCDErrorMonitor {
       const errMsg = error instanceof Error ? error.message : String(error);
       void handleError(
         "espIdf.errorHints",
-        openOcdHintsLoadFailed(errMsg),
-        undefined,
-        openOcdHintsCommandErrorMapping
+        openOcdHintsLoadFailed(errMsg, hintsErrorPresentation.loadFailed)
       );
     }
   }
@@ -118,9 +116,7 @@ export class OpenOCDErrorMonitor {
         );
         void handleError(
           "espIdf.errorHints",
-          parseError(openOcdHintsPath),
-          undefined,
-          openOcdHintsCommandErrorMapping
+          parseError(openOcdHintsPath, hintsErrorPresentation.parseError)
         );
         this.hintsData = [];
       }

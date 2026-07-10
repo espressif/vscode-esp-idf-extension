@@ -40,34 +40,20 @@ import {
 import { CustomExecutionTaskResult } from "../taskManager/types";
 import { monitorMain } from "../espIdf/monitor/main";
 import { registerIDFCommand } from "../common/registerCommand";
-import { ErrorCode, CommandErrorMapping } from "../common/error/types";
-import { ErrorSeverity } from "../common/customNotifications";
-import { known } from "../common/error/knownError";
+import { ErrorCode, ErrorPresentation } from "../common/error/types";
+import { isKnownError, known } from "../common/error/knownError";
 
-export const buildFlashMonitorCommandErrorMapping: CommandErrorMapping = {
-  [ErrorCode.TaskFailedWithOutput]: {
-    severity: ErrorSeverity.Error,
-    userMessage:
-      "Build, flash, or monitor task failed. Check the terminal output for details.",
-    logMessage: "Build-flash-monitor task failed with captured output.",
-    actions: [
-      {
-        label: "View Terminal Output",
-        execute: () => commands.executeCommand("workbench.action.terminal.focus"),
-      },
-    ],
-  },
-  [ErrorCode.FlashTypeNotSelected]: {
-    severity: ErrorSeverity.Error,
-    userMessage: "Select a flash method before flashing.",
-    logMessage: "Build-flash-monitor blocked: idf.flashType is not configured.",
-    actions: [
-      {
-        label: "Select Flash Method",
-        execute: () => commands.executeCommand("espIdf.selectFlashMethod"),
-      },
-    ],
-  },
+/** @internal Exported for tests asserting call-site presentation. */
+export const buildFlashMonitorTaskFailedPresentation: ErrorPresentation = {
+  userMessage:
+    "Build, flash, or monitor task failed. Check the terminal output for details.",
+  logMessage: "Build-flash-monitor task failed with captured output.",
+  outputChannel: "Build",
+};
+
+const buildFlashMonitorFlashTypeNotSelectedPresentation: ErrorPresentation = {
+  logMessage:
+    "Build-flash-monitor blocked: idf.flashType is not configured.",
 };
 
 function registerBuildFlashMonitorCommand(
@@ -75,12 +61,9 @@ function registerBuildFlashMonitorCommand(
   name: string,
   callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(
-    context,
-    name,
-    callback,
-    buildFlashMonitorCommandErrorMapping
-  );
+  registerIDFCommand(context, name, callback, {
+    outputChannel: "Build",
+  });
 }
 
 /** @internal Ensures hard-tier command callers surface failures via KnownError. */
@@ -90,6 +73,26 @@ export function assertBuildFlashMonitorSucceeded(
   if (!result.continueFlag) {
     throw known(ErrorCode.TaskFailed);
   }
+}
+
+function rethrowWithBuildFlashMonitorPresentation(error: unknown): never {
+  if (isKnownError(error)) {
+    if (error.code === ErrorCode.TaskFailedWithOutput) {
+      throw known(
+        ErrorCode.TaskFailedWithOutput,
+        error.metadata,
+        buildFlashMonitorTaskFailedPresentation
+      );
+    }
+    if (error.code === ErrorCode.FlashTypeNotSelected) {
+      throw known(
+        ErrorCode.FlashTypeNotSelected,
+        error.metadata,
+        buildFlashMonitorFlashTypeNotSelectedPresentation
+      );
+    }
+  }
+  throw error;
 }
 
 export function registerBuildFlashMonitorCommands(
@@ -184,26 +187,30 @@ export async function buildFlashAndMonitor(
         undefined
       );
 
-      assertBuildFlashMonitorSucceeded(
-        await buildFlashAndMonitorCapture(
-          taskWsFolder,
-          cancelToken,
-          false,
-          flashType,
-          partitionToUse,
-          noResetMonitor,
-          () =>
-            progress.report({
-              message: "Flashing project into device...",
-              increment: 60,
-            }),
-          () =>
-            progress.report({
-              message: "Launching monitor...",
-              increment: 10,
-            })
-        )
-      );
+      try {
+        assertBuildFlashMonitorSucceeded(
+          await buildFlashAndMonitorCapture(
+            taskWsFolder,
+            cancelToken,
+            false,
+            flashType,
+            partitionToUse,
+            noResetMonitor,
+            () =>
+              progress.report({
+                message: "Flashing project into device...",
+                increment: 60,
+              }),
+            () =>
+              progress.report({
+                message: "Launching monitor...",
+                increment: 10,
+              })
+          )
+        );
+      } catch (error) {
+        rethrowWithBuildFlashMonitorPresentation(error);
+      }
     },
     { workspaceFolder: wsFolder }
   );

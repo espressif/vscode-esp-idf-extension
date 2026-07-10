@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { TaskPanelKind, Uri } from "vscode";
+import { TaskPanelKind, Uri, commands } from "vscode";
 import {
   addProcessTask,
   type MaybeIdfTaskExecution,
@@ -30,7 +30,24 @@ import {
   invalidConfiguration,
   missingDependency,
 } from "../common/error/knownError";
+import { ErrorPresentation } from "../common/error/types";
 
+const buildInvalidConfigurationPresentation: ErrorPresentation = {
+  actions: [
+    {
+      label: "Open Settings",
+      execute: () =>
+        commands.executeCommand(
+          "workbench.action.openSettings",
+          "idf.buildPath"
+        ),
+    },
+  ],
+};
+
+const buildMissingDependencyPresentation: ErrorPresentation = {
+  actions: [],
+};
 let getVirtualEnvPythonPathForTests: (() => string | undefined) | undefined;
 
 /** @internal Test helper to stub Python path resolution. */
@@ -63,18 +80,24 @@ export async function runSizeTaskIfEnabled(
   }
   const buildDirPath = readParameter("idf.buildPath", workspace) as string;
   if (!buildDirPath) {
-    throw invalidConfiguration("idf.buildPath");
+    throw invalidConfiguration(
+      "idf.buildPath",
+      buildInvalidConfigurationPresentation
+    );
   }
   const projectName = await getProjectName(workspace);
   const mapFilePath = join(buildDirPath, `${projectName}.map`);
   const pythonCommand = resolveVirtualEnvPythonPath();
   if (!pythonCommand) {
-    throw missingDependency("Python");
+    throw missingDependency("Python", buildMissingDependencyPresentation);
   }
   const modifiedEnv = getCurrentIdfConfiguration();
   const idfPath = modifiedEnv["IDF_PATH"];
   if (!idfPath) {
-    throw invalidConfiguration("IDF_PATH");
+    throw invalidConfiguration(
+      "IDF_PATH",
+      buildInvalidConfigurationPresentation
+    );
   }
   const idfSizePath = join(idfPath, "tools", "idf_size.py");
   const args = [idfSizePath, mapFilePath];

@@ -30,14 +30,13 @@ import {
 } from "./configure";
 import { ESP } from "../../config";
 import { UnitTest } from "./adapter";
-import { unitTestCommandErrorMapping } from "./errorMapping";
 
 function registerUnitTestCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(context, name, callback, unitTestCommandErrorMapping);
+  registerIDFCommand(context, name, callback, { outputChannel: "Unit Test" });
 }
 
 async function ensureUnitTestAppUri(wsFolderUri: Uri): Promise<Uri> {

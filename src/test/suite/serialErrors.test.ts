@@ -27,11 +27,11 @@ import {
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
-import { serialCommandErrorMapping } from "../../espIdf/serial/errorMapping";
 import {
   SerialPort,
   setSerialPortModuleTestHooks,
 } from "../../espIdf/serial/serialPort";
+import { serialErrorPresentation } from "../../espIdf/serial/serialErrorPresentation";
 import {
   resetIdfConfigurationSource,
   setIdfConfigurationSource,
@@ -62,17 +62,18 @@ suite("serial errors", () => {
   });
 
   suite("resolveKnownErrorUserMessage", () => {
-    test("registry message applies for noSerialPortsAvailable", () => {
+    test("presentation applies for noSerialPortsAvailable", () => {
       assert.strictEqual(
-        resolveKnownErrorUserMessage(noSerialPortsAvailable()),
+        resolveKnownErrorUserMessage(
+          noSerialPortsAvailable(serialErrorPresentation.noSerialPortsAvailable)
+        ),
         "No serial ports found."
       );
     });
 
-    test("command mapping adds Detect action for NoSerialPort", () => {
+    test("presentation adds Detect action for NoSerialPort", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        noSerialPort("esp32"),
-        serialCommandErrorMapping
+        noSerialPort("esp32", serialErrorPresentation.noSerialPort)
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Serial port");
@@ -80,10 +81,9 @@ suite("serial errors", () => {
       assert.strictEqual(descriptor?.actions[0].label, "Detect");
     });
 
-    test("command mapping adds Detect action for NoSerialPortsAvailable", () => {
+    test("presentation adds Detect action for NoSerialPortsAvailable", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        noSerialPortsAvailable(),
-        serialCommandErrorMapping
+        noSerialPortsAvailable(serialErrorPresentation.noSerialPortsAvailable)
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Serial port");
