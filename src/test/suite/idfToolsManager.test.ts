@@ -81,7 +81,7 @@ suite("IDF Tools Manager Tests", async () => {
     workspaceState: createMockMemento(),
     globalState: createMockMemento(),
   } as ExtensionContext;
-  ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
   const platInfo: PlatformInformation = {
     architecture: "x86_64",
     platform: "darwin",

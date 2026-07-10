@@ -108,11 +108,14 @@ suite("configuration/idf.ts", () => {
 
   suiteSetup(() => {
     Logger.init(mockUpContext);
-    ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
+    ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
     resetIdfConfigurationSource();
   });
 
   teardown(() => {
+    ESP.ProjectConfiguration.store?.clear(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
     resetIdfConfigurationSource();
   });
 
@@ -251,14 +254,8 @@ suite("configuration/idf.ts", () => {
       assert.strictEqual(withConfig, "p /cfg/build end");
 
       seedSelectedProfile(
-        minimalProjectConf({
-          build: {
-            compileArgs: [],
-            ninjaArgs: [],
-            buildDirectoryPath: "build",
-            sdkconfigDefaults: [],
-            sdkconfigFilePath: "",
-          },
+        minimalConfigurePreset({
+          binaryDir: "build"
         })
       );
       const withRelativeBuild = resolveVariables(

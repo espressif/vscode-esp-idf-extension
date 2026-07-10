@@ -28,6 +28,13 @@ export class ProjectConfigStore {
     }
     return this.self;
   }
+
+  /** @internal Test helper to replace the singleton with a fresh store. */
+  public static resetForTests(context: ExtensionContext): ProjectConfigStore {
+    this.self = new ProjectConfigStore(context);
+    return this.self;
+  }
+
   private constructor(context: ExtensionContext) {
     this.ctx = context;
   }

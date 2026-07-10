@@ -127,15 +127,15 @@ suite("build errors", () => {
   });
 
   suite("appendDfuExecution", () => {
-    test("throws invalidConfiguration when idf.buildPath is missing", async () => {
+    test("throws flasherArgsMissing when idf.buildPath falls back and flasher_args.json is absent", async () => {
       setIdfConfigurationSource(createFakeIdfSource());
 
       await assert.rejects(
         () => appendDfuExecution([], testWorkspaceUri),
         (error: unknown) =>
           isKnownError(error) &&
-          error.code === ErrorCode.INVALID_CONFIGURATION &&
-          error.metadata?.setting === "idf.buildPath"
+          error.code === ErrorCode.FlasherArgsMissing &&
+          error.presentation?.actions?.[0]?.label === "Build"
       );
     });
 
