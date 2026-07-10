@@ -29,6 +29,7 @@ import {
 } from "vscode";
 import { ESP } from "../config";
 import { readParameter } from "../configuration/idf";
+import { getIdfBuildPath } from "../configuration/workspace";
 import { statusBarItems } from "../statusBar";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { isBinInPath } from "../utils";
@@ -112,7 +113,7 @@ export class QemuManager extends EventEmitter {
   }
 
   public async getLaunchArguments(mode: QemuLaunchMode, workspaceFolder: Uri) {
-    const buildPath = readParameter("idf.buildPath", workspaceFolder) as string;
+    const buildPath = getIdfBuildPath(workspaceFolder);
     const extraArgs = readParameter(
       "idf.qemuExtraArgs",
       workspaceFolder

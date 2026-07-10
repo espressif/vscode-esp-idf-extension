@@ -29,6 +29,10 @@ export async function checkEspIdfTools(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
+  if (!reportedResult.configurationSettings.espIdfPath) {
+    reportedResult.espIdfToolsVersions = [];
+    return;
+  }
   const platformInfo = PlatformInformation.GetPlatformInformation();
   let toolsJsonPath: string = join(
     reportedResult.configurationSettings.espIdfPath,

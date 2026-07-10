@@ -29,7 +29,7 @@ import {
   updateCurrentIdfEnvVar,
 } from "../../configuration/env";
 import { l10n, Uri } from "vscode";
-import { setCCppPropertiesJsonCompilerPath } from "../../configuration/workspace";
+import { getIdfBuildPath, setCCppPropertiesJsonCompilerPath } from "../../configuration/workspace";
 import {
   isKnownError,
   known,
@@ -49,10 +49,7 @@ export async function setTargetInIDF(
   if (ConfserverProcess.exists()) {
     ConfserverProcess.dispose();
   }
-  const buildDirPath = readParameter(
-    "idf.buildPath",
-    workspaceFolder
-  ) as string;
+  const buildDirPath = getIdfBuildPath(workspaceFolder);
   const modifiedEnv = getCurrentIdfConfiguration();
   const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
   delete modifiedEnv.IDF_TARGET;

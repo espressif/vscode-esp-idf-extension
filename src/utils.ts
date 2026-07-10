@@ -19,6 +19,7 @@ import { EOL } from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 import { readParameter } from "./configuration/idf";
+import { getIdfBuildPath } from "./configuration/workspace";
 import { Logger } from "./common/logger";
 import { OutputChannel } from "./common/outputChannel";
 import { ESP } from "./config";
@@ -117,6 +118,9 @@ export function canAccessFile(
   mode?: number,
   expectedValue?: string
 ): boolean {
+  if (!filePath) {
+    return false;
+  }
   try {
     // tslint:disable-next-line: no-bitwise
     mode = mode || constants.R_OK | constants.W_OK | constants.X_OK;
@@ -488,7 +492,7 @@ export async function getConfigValueFromBuild(
   configKey: string,
   workspacePath: vscode.Uri
 ): Promise<string> {
-  const buildPath = readParameter("idf.buildPath", workspacePath) as string;
+  const buildPath = getIdfBuildPath(workspacePath);
   const jsonFilePath = path.join(buildPath, "config", "sdkconfig.json");
   try {
     const data = await readFile(jsonFilePath, "utf-8");

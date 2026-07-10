@@ -35,7 +35,6 @@ export async function getConfigurationSettings(
   reportedResult: reportObj,
   scope?: WorkspaceFolder
 ) {
-  const winFlag = process.platform === "win32" ? "Win" : "";
   const conf = workspace.getConfiguration("", scope);
 
   const currentEnvVars = getCurrentIdfConfiguration();
@@ -85,13 +84,13 @@ export async function getConfigurationSettings(
     flashPartitionToUse: conf.get("idf.flashPartitionToUse") || "",
     customExtraPaths: customExtraPaths,
     espIdfPath: idfPathDir,
-    espAdfPath: userExtraVars["ADF_PATH"] || "",
+    espAdfPath: userExtraVars?.ADF_PATH || "",
     idfExtraVars: getIdfSetupVarsForReport(currentEnvVars),
-    userExtraVars: userExtraVars,
+    userExtraVars: userExtraVars || {},
     pythonBinPath: venvPythonPath,
     gitPath: gitPath || "",
     pythonPackages: [],
-    serialPort: conf.get("idf.port" + winFlag) || "",
+    serialPort: conf.get("idf.port") || "",
     openOCDDebugLevel: conf.get("idf.openOcdDebugLevel") || "2",
     openOcdConfigs: conf.get("idf.openOcdConfigs") || [],
     openOcdLaunchArgs: conf.get("idf.openOcdLaunchArgs") || [],

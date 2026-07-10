@@ -15,6 +15,7 @@
 "use strict";
 import { ConfserverProcess } from "./espIdf/menuconfig/confserver/confServerProcess";
 import { readParameter } from "./configuration/idf";
+import { migrateLegacyWinPortAndBuildPathSettings } from "./configuration/migrateWinSettings";
 import { resetIdfConfigurationSource } from "./configuration/idfConfigurationSource";
 import { Logger } from "./common/logger";
 import { OutputChannel } from "./common/outputChannel";
@@ -95,6 +96,7 @@ export async function activate(context: ExtensionContext) {
   Logger.init(context);
   resetIdfConfigurationSource();
   ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
+  await migrateLegacyWinPortAndBuildPathSettings(context);
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
   initCommandDictionary();
   ESP.Rainmaker.store = RainmakerStore.init(context);

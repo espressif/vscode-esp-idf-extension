@@ -17,14 +17,11 @@
 
 import { DebugConfiguration, Uri, window, WorkspaceFolder } from "vscode";
 import { pathExists } from "fs-extra";
-import { readParameter } from "../configuration/idf";
-import { getProjectElfFilePath } from "../configuration/workspace";
+import { getIdfBuildPath, getProjectElfFilePath } from "../configuration/workspace";
 import { ESP } from "../config";
 import {
   buildRequiredBeforeFlash,
-  fileNotFound,
   idfToolNotFound,
-  invalidConfiguration,
   isKnownError,
   noWorkspaceOpen,
 } from "../common/error/knownError";
@@ -52,14 +49,7 @@ export async function requireWorkspaceFolderForDebug(
 }
 
 export function requireBuildDirPath(folder: WorkspaceFolder): string {
-  const buildDirPath = readParameter("idf.buildPath", folder) as string;
-  if (!buildDirPath) {
-    throw invalidConfiguration(
-      "idf.buildPath",
-      debugErrorPresentation.invalidConfiguration
-    );
-  }
-  return buildDirPath;
+  return getIdfBuildPath(folder);
 }
 
 export async function resolveDebugProgram(
@@ -71,14 +61,10 @@ export async function resolveDebugProgram(
   }
   const elfFilePath = await getProjectElfFilePath(folder.uri);
   if (!(await pathExists(elfFilePath))) {
-    const buildDirPath = readParameter("idf.buildPath", folder) as string;
-    if (buildDirPath) {
-      throw buildRequiredBeforeFlash(
-        buildDirPath,
-        debugErrorPresentation.buildRequiredBeforeFlash
-      );
-    }
-    throw fileNotFound(elfFilePath, debugErrorPresentation.fileNotFound);
+    throw buildRequiredBeforeFlash(
+      getIdfBuildPath(folder),
+      debugErrorPresentation.buildRequiredBeforeFlash
+    );
   }
   return elfFilePath;
 }

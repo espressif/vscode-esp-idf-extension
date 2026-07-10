@@ -18,12 +18,13 @@
 
 import { Uri } from "vscode";
 import { readParameter } from "../configuration/idf";
+import { getIdfBuildPath } from "../configuration/workspace";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { createFlashModel } from "../flash/transports/uart/flashModelBuilder";
 
 export async function buildFinishFlashCmd(workspace: Uri) {
-  const buildPath = readParameter("idf.buildPath", workspace) as string;
+  const buildPath = getIdfBuildPath(workspace);
   const flasherArgsPath = join(buildPath, "flasher_args.json");
   const flasherArgsExists = await pathExists(flasherArgsPath);
   if (!flasherArgsExists) {

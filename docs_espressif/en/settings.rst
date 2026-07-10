@@ -62,8 +62,6 @@ Serial Port
       - Description
     * - **idf.port**
       - Path of selected device port (default: ``detect``). Scope: Resource.
-    * - **idf.portWin**
-      - Path of selected device port in Windows (default: ``detect``). Scope: Resource.
     * - **idf.monitorPort**
       - Optional path of selected device port for monitor. If undefined, **idf.port** is used. Scope: Resource.
     * - **idf.flashBaudRate**
@@ -115,9 +113,7 @@ Build
     * - Setting ID
       - Description
     * - **idf.buildPath**
-      - Custom build directory for extension commands (default: ``${workspaceFolder}/build``). Scope: Resource.
-    * - **idf.buildPathWin**
-      - Custom build directory in Windows (default: ``${workspaceFolder}\\build``). Scope: Resource.
+      - Custom build directory for extension commands (default: ``build``, relative to the workspace folder). Scope: Resource.
     * - **idf.cmakeCompilerArgs**
       - Arguments for CMake configuration (default includes ``-G Ninja``, ``-DPYTHON_DEPS_CHECKED=1``, ``-DESP_PLATFORM=1``). Scope: Resource.
     * - **idf.sdkconfigDefaults**

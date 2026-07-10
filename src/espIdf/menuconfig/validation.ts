@@ -20,6 +20,7 @@ import { Uri } from "vscode";
 import { pathExists, readFile } from "fs-extra";
 import { getVirtualEnvPythonPath } from "../../configuration/env";
 import { readParameter } from "../../configuration/idf";
+import { getIdfBuildPath } from "../../configuration/workspace";
 import {
   fileNotFound,
   invalidConfiguration,
@@ -45,10 +46,7 @@ export function requireIdfPath(env: Record<string, string>): string {
 }
 
 export function kconfigMenusPath(workspaceFolder: Uri): string {
-  const buildDirPath = readParameter(
-    "idf.buildPath",
-    workspaceFolder
-  ) as string;
+  const buildDirPath = getIdfBuildPath(workspaceFolder);
   return join(buildDirPath, "config", "kconfig_menus.json");
 }
 

@@ -15,7 +15,6 @@ import { ProjectConfigStore } from "../../project-conf/utils";
 import { ProjectConfElement } from "../../project-conf/projectConfiguration";
 import { createMockMemento } from "../mockUtils";
 import {
-  addWinIfRequired,
   checkTypeOfConfiguration,
   parameterToProjectConfigMap,
   parseStrToArray,
@@ -117,20 +116,6 @@ suite("configuration/idf.ts", () => {
 
     test("drops empty segments", () => {
       assert.deepStrictEqual(parseStrToArray("x,, y"), ["x", "y"]);
-    });
-  });
-
-  suite("addWinIfRequired", () => {
-    test("leaves keys that are not platform-dependent unchanged", () => {
-      assert.strictEqual(addWinIfRequired("idf.customExtraVars"), "idf.customExtraVars");
-    });
-
-    test("appends Win suffix on win32 for platform-dependent keys", () => {
-      if (process.platform === "win32") {
-        assert.strictEqual(addWinIfRequired("idf.buildPath"), "idf.buildPathWin");
-      } else {
-        assert.strictEqual(addWinIfRequired("idf.buildPath"), "idf.buildPath");
-      }
     });
   });
 
@@ -268,6 +253,23 @@ suite("configuration/idf.ts", () => {
       const folder = vscode.Uri.file("/ws/folder");
       const withConfig = resolveVariables("p ${config:idf.buildPath} end", folder);
       assert.strictEqual(withConfig, "p /cfg/build end");
+
+      seedSelectedProfile(
+        minimalProjectConf({
+          build: {
+            compileArgs: [],
+            ninjaArgs: [],
+            buildDirectoryPath: "build",
+            sdkconfigDefaults: [],
+            sdkconfigFilePath: "",
+          },
+        })
+      );
+      const withRelativeBuild = resolveVariables(
+        "p ${config:idf.buildPath} end",
+        folder
+      );
+      assert.strictEqual(withRelativeBuild, "p /ws/folder/build end");
 
       const withWs = resolveVariables("here ${workspaceFolder}", folder);
       assert.strictEqual(withWs, "here /ws/folder");

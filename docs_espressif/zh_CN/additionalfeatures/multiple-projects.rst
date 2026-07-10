@@ -138,7 +138,7 @@
 
 如 ESP-IDF CMake `多种构建配置示例 <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_ 所示，可以使用多个构建目录和多个 sdkconfig 默认文件来生成不同版本的最终产品。
 
-在此扩展中，可以使用 ``idf.buildPath`` （Windows 系统中使用 ``idf.buildPathWin``）来定义构建目录，并使用 ``idf.sdkconfigDefaults`` 来定义 sdkconfig 默认文件列表。扩展构建命令会使用这些定义好的配置。
+在此扩展中，可以使用 ``idf.buildPath`` 来定义构建目录，并使用 ``idf.sdkconfigDefaults`` 来定义 sdkconfig 默认文件列表。扩展构建命令会使用这些定义好的配置。
 
 例如，如果要制作产品 1：
 

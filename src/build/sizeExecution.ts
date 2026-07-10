@@ -25,7 +25,7 @@ import {
 import { readParameter } from "../configuration/idf";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 import { join } from "path";
-import { getProjectName } from "../configuration/workspace";
+import { getIdfBuildPath, getProjectName } from "../configuration/workspace";
 import {
   invalidConfiguration,
   missingDependency,
@@ -78,13 +78,7 @@ export async function runSizeTaskIfEnabled(
   if (!enableSizeTask) {
     return true;
   }
-  const buildDirPath = readParameter("idf.buildPath", workspace) as string;
-  if (!buildDirPath) {
-    throw invalidConfiguration(
-      "idf.buildPath",
-      buildInvalidConfigurationPresentation
-    );
-  }
+  const buildDirPath = getIdfBuildPath(workspace);
   const projectName = await getProjectName(workspace);
   const mapFilePath = join(buildDirPath, `${projectName}.map`);
   const pythonCommand = resolveVirtualEnvPythonPath();

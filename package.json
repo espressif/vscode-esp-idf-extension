@@ -670,12 +670,6 @@
             "description": "%param.port%",
             "scope": "resource"
           },
-          "idf.portWin": {
-            "type": "string",
-            "default": "detect",
-            "description": "%param.port%",
-            "scope": "resource"
-          },
           "idf.monitorPort": {
             "type": "string",
             "default": "",
@@ -840,13 +834,7 @@
         "properties": {
           "idf.buildPath": {
             "type": "string",
-            "default": "${workspaceFolder}/build",
-            "description": "%param.buildPath%",
-            "scope": "resource"
-          },
-          "idf.buildPathWin": {
-            "type": "string",
-            "default": "${workspaceFolder}\\build",
+            "default": "build",
             "description": "%param.buildPath%",
             "scope": "resource"
           },
