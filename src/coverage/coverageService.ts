@@ -26,6 +26,7 @@ import {
   getWebViewFavicon,
 } from "../utils";
 import { readParameter } from "../configuration/idf";
+import { getIdfBuildPath } from "../configuration/workspace";
 import { OutputChannel } from "../common/outputChannel";
 import { Logger } from "../common/logger";
 import { getGcovData } from "./gcdaPaths";
@@ -69,10 +70,7 @@ export async function generateCoverageForEditors(
           .split(sep);
         if (fileParts && fileParts.length > 1) {
           const fileName = fileParts.pop();
-          const buildDirPath = readParameter(
-            "idf.buildPath",
-            dirPath
-          ) as string;
+          const buildDirPath = getIdfBuildPath(dirPath);
           if (fileName) {
             gcovObjFilePath = join(
               buildDirPath,

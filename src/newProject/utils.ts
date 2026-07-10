@@ -45,7 +45,6 @@ export async function setCurrentSettingsInTemplate(
   openOcdConfigs?: string
 ) {
   const settingsJson = await readJSON(settingsJsonPath);
-  const isWin = process.platform === "win32" ? "Win" : "";
   if (openOcdConfigs) {
     settingsJson["idf.openOcdConfigs"] =
       openOcdConfigs.indexOf(",") !== -1
@@ -53,7 +52,7 @@ export async function setCurrentSettingsInTemplate(
         : [openOcdConfigs];
   }
   if (port.indexOf("no port") === -1) {
-    settingsJson["idf.port" + isWin] = port;
+    settingsJson["idf.port"] = port;
   }
   if (idfSetup.idfPath) {
     settingsJson["idf.currentSetup"] = idfSetup.idfPath;

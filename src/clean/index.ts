@@ -20,6 +20,7 @@ import { ExtensionContext, l10n } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { readParameter } from "../configuration/idf";
+import { getIdfBuildPath } from "../configuration/workspace";
 import { canAccessFile, dirExistPromise } from "../utils";
 import { Logger } from "../common/logger";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
@@ -41,10 +42,7 @@ export function registerFullCleanCmd(context: ExtensionContext) {
     await PreCheck.perform([openFolderCheck], async () => {
       const selectWorkspaceFolder =
         ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      const buildDir = readParameter(
-        "idf.buildPath",
-        selectWorkspaceFolder
-      ) as string;
+      const buildDir = getIdfBuildPath(selectWorkspaceFolder);
       const buildDirExists = await dirExistPromise(buildDir);
       if (!buildDirExists) {
         throw noBuildDirToClean(buildDir);

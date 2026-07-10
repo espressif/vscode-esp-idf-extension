@@ -17,8 +17,7 @@
 
 import { Uri } from "vscode";
 import { pathExists } from "fs-extra";
-import { readParameter } from "../../configuration/idf";
-import { getProjectElfFilePath } from "../../configuration/workspace";
+import { getIdfBuildPath, getProjectElfFilePath } from "../../configuration/workspace";
 import {
   buildRequiredBeforeFlash,
   fileNotFound,
@@ -55,7 +54,7 @@ export function requireHeapTraceElf(elfFilePath: string, exists: boolean): void 
 export async function validateHeapTraceStartPrerequisites(
   workspace: Uri
 ): Promise<{ buildDirPath: string; gdbTool: string; elfFilePath: string }> {
-  const buildDirPath = readParameter("idf.buildPath", workspace) as string;
+  const buildDirPath = getIdfBuildPath(workspace);
   await requireHeapTraceBuildDir(buildDirPath);
 
   const modifiedEnv = getCurrentIdfConfiguration();

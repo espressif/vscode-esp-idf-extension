@@ -50,7 +50,6 @@ import { ExtensionConfigStore } from "./store";
 export function registerOnDidChangeConfiguration(context: ExtensionContext) {
   context.subscriptions.push(
     workspace.onDidChangeConfiguration(async (e) => {
-      const winFlag = process.platform === "win32" ? "Win" : "";
       const prevWorkspaceFolderStr = ESP.GlobalConfiguration.store.get<string>(
         ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
         ""
@@ -103,7 +102,7 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
         );
         await configureClangSettings(prevWorkspaceFolder.uri);
         ESP.URL.Docs.IDF_INDEX = undefined;
-      } else if (e.affectsConfiguration("idf.port" + winFlag)) {
+      } else if (e.affectsConfiguration("idf.port")) {
         if (statusBarItems && statusBarItems["port"]) {
           statusBarItems["port"].text =
             `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
@@ -129,7 +128,7 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
             commandDictionary[CommandKeys.SelectFlashType].iconId
           }) ${flashType}`;
         }
-      } else if (prevWorkspaceFolder && e.affectsConfiguration("idf.buildPath" + winFlag)) {
+      } else if (prevWorkspaceFolder && e.affectsConfiguration("idf.buildPath")) {
         updateIdfComponentsTree(prevWorkspaceFolder.uri);
         await configureClangSettings(prevWorkspaceFolder.uri);
         handleCompileCommandsUpdate(prevWorkspaceFolder.uri, context);

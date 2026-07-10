@@ -18,12 +18,12 @@
 
 import { CancellationToken, Disposable, Uri, workspace } from "vscode";
 import { readParameter, readSerialPort } from "../configuration/idf";
+import { getIdfBuildPath, getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { ESP } from "../config";
 import {
   checkFlashEncryption,
   throwIfFlashEncryptionCheckFailed,
 } from "./verify/flashEncryption";
-import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { verifyCanFlash } from "./verify/canFlash";
 import { jtagFlashCommandMain } from "./transports/jtag/jtagCmd";
 import { uartFlashCommandMain } from "./transports/uart/uartFlashCmd";
@@ -100,10 +100,7 @@ export async function flashMain(
       }
       port = uartPort;
     }
-    const buildDirPath = readParameter(
-      "idf.buildPath",
-      workspaceFolderUri
-    ) as string;
+    const buildDirPath = getIdfBuildPath(workspaceFolderUri);
     const flashBaudRate = readParameter(
       "idf.flashBaudRate",
       workspaceFolderUri

@@ -30,6 +30,7 @@ import {
   window,
 } from "vscode";
 import { readParameter } from "../../configuration/idf";
+import { getIdfBuildPath } from "../../configuration/workspace";
 import {
   flasherArgsMissing,
   isKnownError,
@@ -88,7 +89,7 @@ export class PartitionTreeDataProvider
       if (!serialPort) {
         throw noSerialPort(modifiedEnv["IDF_TARGET"]);
       }
-      const buildPath = readParameter("idf.buildPath", workspace) as string;
+      const buildPath = getIdfBuildPath(workspace);
       const flashBaudRate = readParameter("idf.flashBaudRate", workspace) as string;
       const idfPath = modifiedEnv["IDF_PATH"];
       const pythonBinPath = getVirtualEnvPythonPath();

@@ -19,7 +19,7 @@ import { registerWsMonitorDebugCleanup } from "./monitorDebugCleanup";
 import { CoreDumpResponse } from "../../communications/ws";
 import { NotificationMode, readParameter } from "../../../configuration/idf";
 import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "../../core-dump";
-import { getProjectName } from "../../../configuration/workspace";
+import { getIdfBuildPath, getProjectName } from "../../../configuration/workspace";
 import { IdfMonitorWebSocketServer } from ".";
 import { IDFMonitor } from "../terminal";
 import { handleError } from "../../../common/error/handler";
@@ -64,7 +64,7 @@ export function handleWsCoreDumpDetected(
     async (progress) => {
       try {
         const espCoreDumpPyTool = new ESPCoreDumpPyTool(idfPath);
-        const buildDirPath = readParameter("idf.buildPath", wsFolder) as string;
+        const buildDirPath = getIdfBuildPath(wsFolder);
         const projectName = await getProjectName(wsFolder.uri);
         const coreElfFilePath = join(
           buildDirPath,

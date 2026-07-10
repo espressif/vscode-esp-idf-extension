@@ -20,7 +20,7 @@ import {
   TreeItemCollapsibleState,
 } from "vscode";
 import { Event, Uri } from "vscode";
-import { readParameter } from "../../configuration/idf";
+import { getIdfBuildPath } from "../../configuration/workspace";
 import { Logger } from "../../common/logger";
 import { join } from "path";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
@@ -39,10 +39,7 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponentTreeIte
   private projectDescriptionJsonPath: string;
 
   constructor(workspaceFolder: Uri) {
-    const buildDirPath = readParameter(
-      "idf.buildPath",
-      workspaceFolder
-    ) as string;
+    const buildDirPath = getIdfBuildPath(workspaceFolder);
     this.projectDescriptionJsonPath = join(
       buildDirPath,
       "project_description.json"
@@ -50,10 +47,7 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponentTreeIte
   }
 
   public refresh(workspaceFolder: Uri): void {
-    const buildDirPath = readParameter(
-      "idf.buildPath",
-      workspaceFolder
-    ) as string;
+    const buildDirPath = getIdfBuildPath(workspaceFolder);
     this.projectDescriptionJsonPath = join(
       buildDirPath,
       "project_description.json"

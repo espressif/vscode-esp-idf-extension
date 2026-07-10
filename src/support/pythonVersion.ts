@@ -25,8 +25,13 @@ export async function getPythonVersion(
   context: vscode.ExtensionContext
 ) {
   try {
+    const pythonBinPath = reportedResult.configurationSettings.pythonBinPath;
+    if (!pythonBinPath) {
+      reportedResult.pythonVersion.result = "Not found";
+      return;
+    }
     const rawPythonVersion = await execChildProcess(
-      reportedResult.configurationSettings.pythonBinPath,
+      pythonBinPath,
       ["--version"],
       context.extensionPath
     );

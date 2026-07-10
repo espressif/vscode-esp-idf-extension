@@ -26,6 +26,16 @@ export async function checkEspIdfRequirements(
   context: vscode.ExtensionContext
 ) {
   try {
+    if (
+      !reportedResult.configurationSettings.espIdfPath ||
+      !reportedResult.configurationSettings.pythonBinPath
+    ) {
+      reportedResult.idfCheckRequirements.output =
+        "ESP-IDF path or Python path is not configured";
+      reportedResult.idfCheckRequirements.result =
+        "Error: " + reportedResult.idfCheckRequirements.output;
+      return;
+    }
     let requirementsPath: string;
     requirementsPath = join(
       reportedResult.configurationSettings.espIdfPath,
