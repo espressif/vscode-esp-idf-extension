@@ -39,7 +39,7 @@ import {
   setSizeExecutionTestHooks,
 } from "../../build/sizeExecution";
 import { IDFSize } from "../../espIdf/size/idfSize";
-import { sizeCommandErrorMapping } from "../../espIdf/size/errorMapping";
+import { sizeErrorPresentation } from "../../espIdf/size/sizeErrorPresentation";
 
 const testWorkspaceUri = vscode.Uri.file("/test/workspace");
 
@@ -66,10 +66,9 @@ suite("size errors", () => {
   });
 
   suite("resolveKnownErrorUserMessage", () => {
-    test("command mapping includes Build action for FILE_NOT_FOUND", () => {
+    test("presentation includes Build action for FILE_NOT_FOUND", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        fileNotFound("/build/project.map"),
-        sizeCommandErrorMapping
+        fileNotFound("/build/project.map", sizeErrorPresentation.fileNotFound)
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Size");
@@ -81,17 +80,23 @@ suite("size errors", () => {
       assert.strictEqual(descriptor?.actions[0].label, "Build");
     });
 
-    test("command mapping applies Size output channel for TaskFailedWithOutput", () => {
+    test("presentation applies Size output channel for TaskFailedWithOutput", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        known(ErrorCode.TaskFailedWithOutput, { detail: "idf_size.py failed" }),
-        sizeCommandErrorMapping
+        known(
+          ErrorCode.TaskFailedWithOutput,
+          { detail: "idf_size.py failed" },
+          sizeErrorPresentation.taskFailedWithOutput
+        )
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Size");
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          known(ErrorCode.TaskFailedWithOutput, { detail: "idf_size.py failed" }),
-          sizeCommandErrorMapping
+          known(
+            ErrorCode.TaskFailedWithOutput,
+            { detail: "idf_size.py failed" },
+            sizeErrorPresentation.taskFailedWithOutput
+          )
         ),
         "Size analysis failed. Check the output for details."
       );

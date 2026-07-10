@@ -41,6 +41,7 @@ import {
   l10n,
   window,
 } from "vscode";
+import { serialErrorPresentation } from "./serialErrorPresentation";
 
 type SerialPortListItem = {
   path: string;
@@ -211,7 +212,9 @@ export class SerialPort {
           const modifiedEnv = readIdfConfiguration();
           const idfPath = modifiedEnv["IDF_PATH"];
           if (!idfPath) {
-            throw esptoolNotAccessible();
+            throw esptoolNotAccessible(
+              serialErrorPresentation.esptoolNotAccessible
+            );
           }
           const { pythonPath, esptoolScriptPath } =
             await resolveEsptool(idfPath);
@@ -303,7 +306,10 @@ export class SerialPort {
                 expectedTarget
               ),
             });
-            throw noSerialPort(expectedTarget);
+            throw noSerialPort(
+              expectedTarget,
+              serialErrorPresentation.noSerialPort
+            );
           }
 
           return foundWorkingPort;
@@ -438,7 +444,9 @@ export class SerialPort {
       : await SerialPortLib.SerialPort.list();
 
     if (!listOfSerialPorts || listOfSerialPorts.length === 0) {
-      throw noSerialPortsAvailable();
+      throw noSerialPortsAvailable(
+        serialErrorPresentation.noSerialPortsAvailable
+      );
     }
 
     let choices = listOfSerialPorts.map((item) => {
@@ -485,7 +493,7 @@ export class SerialPort {
     const currentEnvVars = readIdfConfiguration();
     const idfPath = currentEnvVars["IDF_PATH"];
     if (!idfPath) {
-      throw esptoolNotAccessible();
+      throw esptoolNotAccessible(serialErrorPresentation.esptoolNotAccessible);
     }
 
     let pythonPath: string | undefined;

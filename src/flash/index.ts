@@ -16,108 +16,19 @@
  * limitations under the License.
  */
 
-import { commands, ExtensionContext } from "vscode";
+import { ExtensionContext } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../common/PreCheck";
 import { ESP } from "../config";
 import { flash } from "./flashProject";
 import { selectFlashMethod } from "./selectFlashMethod";
-import { ErrorCode, CommandErrorMapping } from "../common/error/types";
-import { ErrorSeverity } from "../common/customNotifications";
-
-const flashCommandErrorMapping: CommandErrorMapping = {
-  [ErrorCode.TaskFailedWithOutput]: {
-    severity: ErrorSeverity.Error,
-    userMessage: "Flash task failed. Check the terminal output for details.",
-    logMessage: "Flash task failed with captured output.",
-    actions: [
-      {
-        label: "View Terminal Output",
-        execute: () => commands.executeCommand("workbench.action.terminal.focus"),
-      },
-    ],
-    outputChannel: "Flash",
-  },
-  [ErrorCode.OpenOcdNotRunning]: {
-    severity: ErrorSeverity.Warning,
-    userMessage:
-      "Can't perform JTAG flash, because OpenOCD server is not running!",
-    logMessage: "OpenOCD server is not running after launch attempt.",
-    actions: [
-      {
-        label: "Launch OpenOCD",
-        execute: () => commands.executeCommand("espIdf.openOCDCommand"),
-      },
-    ],
-    outputChannel: "Flash",
-  },
-  [ErrorCode.OpenOcdNotReady]: {
-    severity: ErrorSeverity.Warning,
-    userMessage: "OpenOCD is not ready to accept commands. Please try again.",
-    logMessage: "OpenOCD TCL server did not become ready within retry limit.",
-    actions: [
-      {
-        label: "Launch OpenOCD",
-        execute: () => commands.executeCommand("espIdf.openOCDCommand"),
-      },
-    ],
-    outputChannel: "Flash",
-  },
-  [ErrorCode.OpenOcdVersionTooLow]: {
-    severity: ErrorSeverity.Warning,
-    userMessage:
-      "Minimum OpenOCD version {minVersion} is required while you have {currentVersion} version installed",
-    logMessage:
-      "OpenOCD version {currentVersion} is below required minimum {minVersion}.",
-    actions: [
-      {
-        label: "Launch OpenOCD",
-        execute: () => commands.executeCommand("espIdf.openOCDCommand"),
-      },
-    ],
-    outputChannel: "Flash",
-  },
-  [ErrorCode.OpenOcdLaunchDeclined]: {
-    severity: ErrorSeverity.Info,
-    userMessage: "OpenOCD was not launched.",
-    logMessage: "JTAG flash cancelled: user declined to launch OpenOCD.",
-    actions: [
-      {
-        label: "Launch OpenOCD",
-        execute: () => commands.executeCommand("espIdf.openOCDCommand"),
-      },
-    ],
-    outputChannel: "Flash",
-  },
-  [ErrorCode.FlashTypeNotSelected]: {
-    severity: ErrorSeverity.Error,
-    userMessage: "Select a flash method before flashing.",
-    logMessage: "Flash blocked: idf.flashType is not configured.",
-    actions: [
-      {
-        label: "Select Flash Method",
-        execute: () => commands.executeCommand("espIdf.selectFlashMethod"),
-      },
-    ],
-    outputChannel: "Flash",
-  },
-  [ErrorCode.FlashEncryptionValidationFailed]: {
-    severity: ErrorSeverity.Info,
-    userMessage:
-      "Flash encryption validation did not pass. See the Flash Encryption output for details.",
-    logMessage:
-      "Flash encryption validation failed ({resultType}). Details were shown in the Flash Encryption output.",
-    actions: [],
-    outputChannel: "Flash Encryption",
-  },
-};
 
 function registerFlashCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(context, name, callback, flashCommandErrorMapping);
+  registerIDFCommand(context, name, callback, { outputChannel: "Flash" });
 }
 
 export function registerFlashCommands(context: ExtensionContext) {

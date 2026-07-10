@@ -43,6 +43,7 @@ import {
 import { throwFlashCapturedTaskFailure } from "./shared/flashTaskFailure";
 import { assertMinimumOpenOcdVersionForJtag } from "../espIdf/openOcd/jtagPreflight";
 import { EraseFlashSession } from "../eraseFlash/eraseFlashSession";
+import { flashJtagOpenOcdPresentation } from "./jtagOpenOcdPresentation";
 export { selectFlashMethod } from "./selectFlashMethod";
 
 /**
@@ -118,7 +119,9 @@ export async function flashMain(
     );
 
     if (flashType === ESP.FlashType.JTAG) {
-      await assertMinimumOpenOcdVersionForJtag();
+      await assertMinimumOpenOcdVersionForJtag(
+        flashJtagOpenOcdPresentation.versionTooLow
+      );
       if (BuildSession.isActive) {
         throw idfTaskInProgress(IdfTaskName.Build);
       }

@@ -44,7 +44,6 @@ import {
 } from "./adapterSerial";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
 import { validateOpenOcdStartPrerequisites, requireOpenOcdWorkspace } from "./validation";
-import { openOcdCommandErrorMapping } from "./errorMapping";
 import { ensureOpenOcdServerRunning } from "./openOcdLaunch";
 
 export interface IOpenOCDConfig {
@@ -309,7 +308,7 @@ export class OpenOCDManager extends EventEmitter {
             "espIdf.openOCDCommand",
             openOcdStartFailed(matchArr.join(" ")),
             undefined,
-            openOcdCommandErrorMapping
+            { outputChannel: "OpenOCD" }
           );
         }
       }
@@ -358,7 +357,7 @@ export class OpenOCDManager extends EventEmitter {
             "espIdf.openOCDCommand",
             openOcdProcessExited(code),
             undefined,
-            openOcdCommandErrorMapping
+            { outputChannel: "OpenOCD" }
           );
         }
       }

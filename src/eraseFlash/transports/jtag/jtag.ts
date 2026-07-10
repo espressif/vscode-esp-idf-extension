@@ -20,11 +20,10 @@ import { CancellationToken, Disposable, Uri } from "vscode";
 import { connectOpenOcdForJtag } from "../../../espIdf/openOcd/jtagPreflight";
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
 import { eraseFlashTelnetCommand } from "./tclClientCmd";
-import {
-  collectExecutions,
-  throwCapturedTaskFailure,
-} from "../../../taskManager/taskManager";
+import { collectExecutions } from "../../../taskManager/taskManager";
 import { CustomExecutionTaskResult } from "../../../taskManager/types";
+import { eraseJtagOpenOcdPresentation } from "../../jtagOpenOcdPresentation";
+import { throwEraseCapturedTaskFailure } from "../../eraseTaskFailure";
 
 export async function jtagEraseFlashCommand(
   cancelToken: CancellationToken,
@@ -33,7 +32,10 @@ export async function jtagEraseFlashCommand(
   let client: TCLClient | undefined;
   let cancelSubscription: Disposable | undefined;
   try {
-    client = await connectOpenOcdForJtag(workspaceFolder);
+    client = await connectOpenOcdForJtag(
+      workspaceFolder,
+      eraseJtagOpenOcdPresentation
+    );
     cancelSubscription = cancelToken.onCancellationRequested(() => {
       client?.stop();
     });
@@ -42,7 +44,7 @@ export async function jtagEraseFlashCommand(
       "halt; flash erase_sector 0 0 last; reset"
     );
     if (!eraseResult.continueFlag) {
-      await throwCapturedTaskFailure(eraseResult.executions);
+      await throwEraseCapturedTaskFailure(eraseResult.executions);
       return {
         continueFlag: false,
         executions: collectExecutions(...eraseResult.executions),

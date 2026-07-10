@@ -24,7 +24,6 @@ import {
   dfuTargetNotCompatible,
   flasherArgsMissing,
   idfTaskInProgress,
-  invalidConfiguration,
   isKnownError,
   known,
 } from "../../common/error/knownError";
@@ -37,7 +36,6 @@ import {
   resetIdfConfigurationSource,
   setIdfConfigurationSource,
 } from "../../configuration/idfConfigurationSource";
-import { buildCommandErrorMapping } from "../../build/errorMapping";
 import {
   appendDfuExecution,
   setDfuExecutionTestHooks,
@@ -68,37 +66,38 @@ suite("build errors", () => {
   });
 
   suite("resolveKnownErrorUserMessage", () => {
-    test("command mapping applies Build output channel for TaskFailedWithOutput", () => {
+    test("HandleErrorOptions fills Build output channel for TaskFailedWithOutput", () => {
       const descriptor = resolveKnownErrorDescriptor(
         known(ErrorCode.TaskFailedWithOutput, { detail: "ninja failed" }),
-        buildCommandErrorMapping
+        { outputChannel: "Build" }
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Build");
       assert.strictEqual(
         resolveKnownErrorUserMessage(
           known(ErrorCode.TaskFailedWithOutput, { detail: "ninja failed" }),
-          buildCommandErrorMapping
+          { outputChannel: "Build" }
         ),
         "Build task failed. Check the terminal output for details."
       );
       assert.strictEqual(descriptor?.actions[0].label, "View Terminal Output");
     });
 
-    test("command mapping applies build-specific wording for IdfTaskInProgress", () => {
+    test("call-site presentation applies build-specific wording for IdfTaskInProgress", () => {
+      const error = idfTaskInProgress("flash", {
+        userMessage: "Wait for ESP-IDF {taskName} to finish before building.",
+        logMessage: "Attempted to build while {taskName} is in progress.",
+      });
       assert.strictEqual(
-        resolveKnownErrorUserMessage(
-          idfTaskInProgress("flash"),
-          buildCommandErrorMapping
-        ),
+        resolveKnownErrorUserMessage(error),
         "Wait for ESP-IDF flash to finish before building."
       );
     });
 
-    test("command mapping includes Set Target action for DfuTargetNotCompatible", () => {
+    test("registry includes Set Target action for DfuTargetNotCompatible", () => {
       const descriptor = resolveKnownErrorDescriptor(
         dfuTargetNotCompatible("esp32"),
-        buildCommandErrorMapping
+        { outputChannel: "Build" }
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Build");
@@ -109,10 +108,17 @@ suite("build errors", () => {
       assert.strictEqual(descriptor?.actions[0].label, "Set Target");
     });
 
-    test("command mapping includes Build action for FlasherArgsMissing", () => {
+    test("call-site presentation includes Build action for FlasherArgsMissing", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        flasherArgsMissing(),
-        buildCommandErrorMapping
+        flasherArgsMissing({
+          actions: [
+            {
+              label: "Build",
+              execute: () => undefined,
+            },
+          ],
+          outputChannel: "Build",
+        })
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Build");
@@ -144,7 +150,9 @@ suite("build errors", () => {
       await assert.rejects(
         () => appendDfuExecution([], testWorkspaceUri),
         (error: unknown) =>
-          isKnownError(error) && error.code === ErrorCode.FlasherArgsMissing
+          isKnownError(error) &&
+          error.code === ErrorCode.FlasherArgsMissing &&
+          error.presentation?.actions?.[0]?.label === "Build"
       );
     });
 

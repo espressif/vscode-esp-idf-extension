@@ -28,14 +28,15 @@ import {
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
-import { eimCommandErrorMapping } from "../../eim/errorMapping";
+
+const eimErrorOptions = { outputChannel: "EIM" };
 
 suite("EIM command errors", () => {
   suite("resolveKnownErrorUserMessage", () => {
     test("command mapping applies EIM output channel for EimDownloadFailed", () => {
       const descriptor = resolveKnownErrorDescriptor(
         eimDownloadFailed("network error"),
-        eimCommandErrorMapping
+        eimErrorOptions
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "EIM");
@@ -46,7 +47,7 @@ suite("EIM command errors", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
           eimAssetNotFound("eim-cli-linux-x64.zip"),
-          eimCommandErrorMapping
+          eimErrorOptions
         ),
         "No EIM release asset found for this platform: eim-cli-linux-x64.zip."
       );
@@ -54,20 +55,20 @@ suite("EIM command errors", () => {
 
     test("command mapping applies info severity wording for EimDownloadCanceled", () => {
       assert.strictEqual(
-        resolveKnownErrorUserMessage(
-          eimDownloadCanceled(),
-          eimCommandErrorMapping
-        ),
+        resolveKnownErrorUserMessage(eimDownloadCanceled(), eimErrorOptions),
         "EIM download was canceled."
       );
     });
 
     test("command mapping applies environment wording for unsupported platform", () => {
+      const error = environmentNotSupported("freebsd", {
+        userMessage: "EIM is not supported on {envName}.",
+        logMessage: "EIM install blocked: unsupported environment {envName}.",
+        actions: [],
+        outputChannel: "EIM",
+      });
       assert.strictEqual(
-        resolveKnownErrorUserMessage(
-          environmentNotSupported("freebsd"),
-          eimCommandErrorMapping
-        ),
+        resolveKnownErrorUserMessage(error, eimErrorOptions),
         "EIM is not supported on freebsd."
       );
     });

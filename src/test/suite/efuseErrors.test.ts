@@ -29,44 +29,50 @@ import {
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
-import { efuseCommandErrorMapping } from "../../efuse/errorMapping";
+import { efuseErrorPresentation } from "../../efuse/efuseErrorPresentation";
 
 suite("eFuse command errors", () => {
   suite("resolveKnownErrorUserMessage", () => {
-    test("command mapping applies eFuse output channel for NoSerialPort", () => {
+    test("presentation applies eFuse output channel for NoSerialPort", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        noSerialPort("esp32"),
-        efuseCommandErrorMapping
+        noSerialPort("esp32", efuseErrorPresentation.noSerialPort)
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "eFuse");
       assert.strictEqual(descriptor?.actions[0].label, "Select Port");
     });
 
-    test("command mapping applies eFuse-specific wording for IdfVersionTooLow", () => {
+    test("presentation applies eFuse-specific wording for IdfVersionTooLow", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          idfVersionTooLow("4.3.x", "4.2.0"),
-          efuseCommandErrorMapping
+          idfVersionTooLow(
+            "4.3.x",
+            "4.2.0",
+            efuseErrorPresentation.idfVersionTooLow
+          )
         ),
         "ESP-IDF v4.3.x or higher is required for the eFuse view (current: 4.2.0)."
       );
     });
 
-    test("command mapping includes Select Port action for EfuseSummaryFailed", () => {
+    test("presentation includes Select Port action for EfuseSummaryFailed", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        efuseSummaryFailed("espefuse.py failed"),
-        efuseCommandErrorMapping
+        efuseSummaryFailed(
+          "espefuse.py failed",
+          efuseErrorPresentation.efuseSummaryFailed
+        )
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "eFuse");
       assert.strictEqual(descriptor?.actions[0].label, "Select Port");
     });
 
-    test("command mapping includes Install Manager action for missing IDF_PATH", () => {
+    test("presentation includes Install Manager action for missing IDF_PATH", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        invalidConfiguration("IDF_PATH"),
-        efuseCommandErrorMapping
+        invalidConfiguration(
+          "IDF_PATH",
+          efuseErrorPresentation.invalidConfiguration
+        )
       );
       assert.ok(descriptor);
       assert.strictEqual(

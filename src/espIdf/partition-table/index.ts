@@ -38,19 +38,15 @@ import {
   partitionSdkconfigRequired,
   partitionTableFilenameEmpty,
 } from "../../common/error/knownError";
-import { partitionTableCommandErrorMapping } from "./errorMapping";
 
 function registerPartitionTableCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(
-    context,
-    name,
-    callback,
-    partitionTableCommandErrorMapping
-  );
+  registerIDFCommand(context, name, callback, {
+    outputChannel: "Partition Table",
+  });
 }
 
 export function registerPartitionTableCommands(context: ExtensionContext) {
@@ -67,8 +63,11 @@ export function registerPartitionTableCommands(context: ExtensionContext) {
       if (!binPath) {
         throw invalidCommandInvocation("A binary file path is required.");
       }
-      const items: { label: string; target: string; description: string }[] =
-        [];
+      const items: {
+        label: string;
+        target: string;
+        description: string;
+      }[] = [];
       const partitionsInDevice = partitionTableTreeDataProvider.getChildren();
       if (!partitionsInDevice) {
         window.showInformationMessage("No partition found");

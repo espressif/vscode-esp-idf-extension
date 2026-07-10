@@ -36,7 +36,7 @@ import {
   missingDependency,
 } from "../../common/error/knownError";
 import { ErrorCode } from "../../common/error/types";
-import { setTargetOutputChannel } from "./errorMapping";
+import { setTargetErrorPresentation } from "./setTargetErrorPresentation";
 
 function isSetTargetBenignOutput(message: string): boolean {
   return message.includes("are satisfied");
@@ -85,9 +85,12 @@ export async function setTargetInIDF(
   setTargetArgs.push("set-target", selectedTarget.target);
   const pythonBinPath = getVirtualEnvPythonPath();
   if (!pythonBinPath) {
-    throw missingDependency("Python");
+    throw missingDependency(
+      "Python",
+      setTargetErrorPresentation.missingDependency
+    );
   }
-  OutputChannel.appendLine("Running IDF Set Target action", setTargetOutputChannel);
+  OutputChannel.appendLine("Running IDF Set Target action", "Set Target");
   try {
     const setTargetResult = await spawn(pythonBinPath, setTargetArgs, {
       cwd: workspaceFolder.fsPath,
@@ -99,7 +102,7 @@ export async function setTargetInIDF(
       "Target {0} Set Successfully.",
       selectedTarget.target.toLocaleUpperCase()
     );
-    OutputChannel.appendLineAndShow(msg, setTargetOutputChannel);
+    OutputChannel.appendLineAndShow(msg, "Set Target");
     Logger.infoNotify(msg);
     updateCurrentIdfEnvVar("IDF_TARGET", selectedTarget.target);
     await setCCppPropertiesJsonCompilerPath(workspaceFolder);
@@ -111,9 +114,13 @@ export async function setTargetInIDF(
     const errMsg = error instanceof Error ? error.message : String(error);
     if (isSetTargetBenignOutput(errMsg)) {
       Logger.info(errMsg);
-      OutputChannel.appendLine(errMsg, setTargetOutputChannel);
+      OutputChannel.appendLine(errMsg, "Set Target");
       return errMsg;
     }
-    throw known(ErrorCode.TaskFailedWithOutput, { detail: errMsg });
+    throw known(
+      ErrorCode.TaskFailedWithOutput,
+      { detail: errMsg },
+      setTargetErrorPresentation.taskFailedWithOutput
+    );
   }
 }

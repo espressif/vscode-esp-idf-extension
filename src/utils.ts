@@ -24,6 +24,7 @@ import { OutputChannel } from "./common/outputChannel";
 import { ESP } from "./config";
 import { getCurrentIdfConfiguration } from "./configuration/env";
 import { idfToolNotFound, isKnownError } from "./common/error/knownError";
+import { ErrorPresentation } from "./common/error/types";
 
 export const packageJson = vscode.extensions.getExtension(ESP.extensionID)
   ?.packageJSON;
@@ -135,21 +136,24 @@ export function canAccessFile(
   }
 }
 
-export async function getToolchainPath(tool: string = "gcc") {
+export async function getToolchainPath(
+  tool: string = "gcc",
+  notFoundPresentation?: ErrorPresentation
+) {
   const modifiedEnv = getCurrentIdfConfiguration();
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gdbTool = getToolchainToolName(idfTarget, tool);
   try {
     const gdbPath = await isBinInPath(gdbTool, modifiedEnv);
     if (!gdbPath) {
-      throw idfToolNotFound(tool);
+      throw idfToolNotFound(tool, notFoundPresentation);
     }
     return gdbPath;
   } catch (error) {
     if (isKnownError(error)) {
       throw error;
     }
-    throw idfToolNotFound(tool);
+    throw idfToolNotFound(tool, notFoundPresentation);
   }
 }
 

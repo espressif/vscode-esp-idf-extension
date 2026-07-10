@@ -23,7 +23,6 @@ import { withProgressWrapper } from "../../common/withProgressWrapper";
 import { IDFSizePanel } from "./idfSizePanel";
 import { IDFSize } from "./idfSize";
 import { ESP } from "../../config";
-import { sizeCommandErrorMapping } from "./errorMapping";
 
 export function registerIdfSizeUICmd(context: ExtensionContext) {
   registerIDFCommand(
@@ -52,6 +51,6 @@ export function registerIdfSizeUICmd(context: ExtensionContext) {
         }
       );
     },
-    sizeCommandErrorMapping
+    { outputChannel: "Size" }
   );
 }

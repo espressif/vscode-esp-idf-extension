@@ -32,8 +32,12 @@ import {
   AppTraceButtonType,
   AppTraceTreeDataProvider,
 } from "./tree/appTraceTreeDataProvider";
-import { heapTraceCommandErrorMapping } from "./errorMapping";
 import { validateHeapTraceStartPrerequisites } from "./validation";
+import {
+  heapTraceGdbProcessFailedPresentation,
+  heapTraceNotSupportedPresentation,
+  heapTraceOpenOcdPresentation,
+} from "./tracingOpenOcdPresentation";
 
 export class GdbHeapTraceManager {
   private treeDataProvider: AppTraceTreeDataProvider;
@@ -53,7 +57,7 @@ export class GdbHeapTraceManager {
 
   public async start(workspace: Uri) {
     this.gdbFailureNotified = false;
-    await ensureOpenOcdServerRunning(workspace);
+    await ensureOpenOcdServerRunning(workspace, heapTraceOpenOcdPresentation);
     this.showStopButton();
     ensureDir(join(workspace.fsPath, "trace"));
     const fileName = `file://${join(workspace.fsPath, "trace").replace(
@@ -125,9 +129,9 @@ export class GdbHeapTraceManager {
     this.gdbFailureNotified = true;
     void handleError(
       "espIdf.heaptrace",
-      traceGdbProcessFailed(metadata),
+      traceGdbProcessFailed(metadata, heapTraceGdbProcessFailedPresentation),
       undefined,
-      heapTraceCommandErrorMapping
+      { outputChannel: "Tracing" }
     );
   }
 
@@ -138,9 +142,9 @@ export class GdbHeapTraceManager {
     ) {
       void handleError(
         "espIdf.heaptrace",
-        heapTraceNotSupported(),
+        heapTraceNotSupported(heapTraceNotSupportedPresentation),
         undefined,
-        heapTraceCommandErrorMapping
+        { outputChannel: "Tracing" }
       );
       this.stop();
     } else if (dataReceived.indexOf("Tracing is STOPPED") !== -1) {

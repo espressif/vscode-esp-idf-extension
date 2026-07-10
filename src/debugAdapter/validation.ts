@@ -28,6 +28,7 @@ import {
 } from "../common/error/knownError";
 import { getToolchainPath } from "../utils";
 import { verifyAppBinary } from "./verifyApp";
+import { debugErrorPresentation } from "./debugErrorPresentation";
 
 export async function requireWorkspaceFolderForDebug(
   folder: WorkspaceFolder | undefined
@@ -41,7 +42,7 @@ export async function requireWorkspaceFolderForDebug(
       placeHolder: "Pick a workspace folder to start a debug session.",
     });
     if (!folder) {
-      throw noWorkspaceOpen();
+      throw noWorkspaceOpen(debugErrorPresentation.noWorkspaceOpen);
     }
   }
   return folder;
@@ -50,7 +51,10 @@ export async function requireWorkspaceFolderForDebug(
 export function requireBuildDirPath(folder: WorkspaceFolder): string {
   const buildDirPath = readParameter("idf.buildPath", folder) as string;
   if (!buildDirPath) {
-    throw invalidConfiguration("idf.buildPath");
+    throw invalidConfiguration(
+      "idf.buildPath",
+      debugErrorPresentation.invalidConfiguration
+    );
   }
   return buildDirPath;
 }
@@ -66,9 +70,12 @@ export async function resolveDebugProgram(
   if (!(await pathExists(elfFilePath))) {
     const buildDirPath = readParameter("idf.buildPath", folder) as string;
     if (buildDirPath) {
-      throw buildRequiredBeforeFlash(buildDirPath);
+      throw buildRequiredBeforeFlash(
+        buildDirPath,
+        debugErrorPresentation.buildRequiredBeforeFlash
+      );
     }
-    throw fileNotFound(elfFilePath);
+    throw fileNotFound(elfFilePath, debugErrorPresentation.fileNotFound);
   }
   return elfFilePath;
 }
@@ -79,7 +86,7 @@ export async function resolveDebugGdb(
   if (config.gdb) {
     return config.gdb as string;
   }
-  return await getToolchainPath("gdb");
+  return await getToolchainPath("gdb", debugErrorPresentation.idfToolNotFound);
 }
 
 export async function verifyAppBeforeDebug(workspaceUri: Uri): Promise<void> {

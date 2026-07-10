@@ -19,21 +19,24 @@ import { commands, Disposable, ExtensionContext } from "vscode";
 import { Logger } from "./logger";
 import { Telemetry } from "./telemetry";
 import { handleError } from "./error/handler";
-import { CommandErrorMapping } from "./error/types";
+import { HandleErrorOptions } from "./error/types";
 
 export function registerIDFCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any,
-  errorMapping?: CommandErrorMapping
+  options?: HandleErrorOptions
 ): Disposable {
-  const telemetryCallback = async function (this: unknown, ...args: any[]): Promise<any> {
+  const telemetryCallback = async function (
+    this: unknown,
+    ...args: any[]
+  ): Promise<any> {
     const startTime = Date.now();
     Logger.info(`Command::${name}::Executed`);
     try {
       return await callback.apply(this, args);
     } catch (error) {
-      handleError(name, error, undefined, errorMapping);
+      handleError(name, error, undefined, options);
     } finally {
       const timeSpent = Date.now() - startTime;
       Telemetry.sendEvent("command", { commandName: name }, { timeSpent });

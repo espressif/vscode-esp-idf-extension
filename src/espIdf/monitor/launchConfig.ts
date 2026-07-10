@@ -8,7 +8,8 @@
 
 import { join } from "path";
 import { R_OK } from "constants";
-import { WorkspaceFolder } from "vscode";
+import { commands, WorkspaceFolder } from "vscode";
+import { ErrorSeverity } from "../../common/customNotifications";
 import { pathExists } from "fs-extra";
 import { readParameter, readSerialPort } from "../../configuration/idf";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
@@ -44,13 +45,31 @@ export async function loadMonitorLaunchConfig(
   wsPort?: number
 ): Promise<{ config: MonitorConfig; idfPath: string }> {
   if (BuildSession.isActive) {
-    throw idfTaskInProgress(IdfTaskName.Build);
+    throw idfTaskInProgress(IdfTaskName.Build, {
+      severity: ErrorSeverity.Warning,
+      userMessage:
+        "Wait for ESP-IDF {taskName} to finish before starting the monitor.",
+      logMessage: "Attempted to start monitor while {taskName} is in progress.",
+      actions: [],
+    });
   }
   if (FlashSession.isActive) {
-    throw idfTaskInProgress(IdfTaskName.Flash);
+    throw idfTaskInProgress(IdfTaskName.Flash, {
+      severity: ErrorSeverity.Warning,
+      userMessage:
+        "Wait for ESP-IDF {taskName} to finish before starting the monitor.",
+      logMessage: "Attempted to start monitor while {taskName} is in progress.",
+      actions: [],
+    });
   }
   if (EraseFlashSession.isActive) {
-    throw idfTaskInProgress(IdfTaskName.EraseFlash);
+    throw idfTaskInProgress(IdfTaskName.EraseFlash, {
+      severity: ErrorSeverity.Warning,
+      userMessage:
+        "Wait for ESP-IDF {taskName} to finish before starting the monitor.",
+      logMessage: "Attempted to start monitor while {taskName} is in progress.",
+      actions: [],
+    });
   }
 
   const serialPort = await readSerialPort(workspaceFolder.uri, false);
@@ -60,7 +79,16 @@ export async function loadMonitorLaunchConfig(
   ) as string;
   const port = monitorPort ? monitorPort : serialPort;
   if (!port) {
-    throw noPortSelected();
+    throw noPortSelected({
+      userMessage: "Select a serial port before starting the monitor.",
+      logMessage: "No serial port selected for monitor.",
+      actions: [
+        {
+          label: "Select Port",
+          execute: () => commands.executeCommand("espIdf.selectPort"),
+        },
+      ],
+    });
   }
 
   const pythonBinPath = getVirtualEnvPythonPath();
@@ -71,7 +99,21 @@ export async function loadMonitorLaunchConfig(
   const currentEnvVars = getCurrentIdfConfiguration();
   const idfPath = currentEnvVars["IDF_PATH"];
   if (!idfPath) {
-    throw invalidConfiguration("IDF_PATH");
+    throw invalidConfiguration("IDF_PATH", {
+      userMessage:
+        "Extension setting {setting} is invalid. Please review your configuration.",
+      logMessage: "Invalid extension configuration: {setting}.",
+      actions: [
+        {
+          label: "Open Settings",
+          execute: () =>
+            commands.executeCommand(
+              "workbench.action.openSettings",
+              "idf.customExtraVars"
+            ),
+        },
+      ],
+    });
   }
   let idfVersion: string;
   try {
@@ -99,7 +141,17 @@ export async function loadMonitorLaunchConfig(
   try {
     elfFilePath = await getProjectElfFilePath(workspaceFolder.uri);
     if (!(await pathExists(elfFilePath))) {
-      throw fileNotFound(elfFilePath);
+      throw fileNotFound(elfFilePath, {
+        userMessage:
+          "Project ELF file not found at {filePath}. Build your project first.",
+        logMessage: "Monitor blocked: project ELF file not found: {filePath}.",
+        actions: [
+          {
+            label: "Build",
+            execute: () => commands.executeCommand("espIdf.buildDevice"),
+          },
+        ],
+      });
     }
   } catch (error) {
     if (isKnownError(error)) {
@@ -114,7 +166,17 @@ export async function loadMonitorLaunchConfig(
       error as Error,
       "monitor launchConfig getProjectElfFilePath"
     );
-    throw fileNotFound(errStr);
+    throw fileNotFound(errStr, {
+      userMessage:
+        "Project ELF file not found at {filePath}. Build your project first.",
+      logMessage: "Monitor blocked: project ELF file not found: {filePath}.",
+      actions: [
+        {
+          label: "Build",
+          execute: () => commands.executeCommand("espIdf.buildDevice"),
+        },
+      ],
+    });
   }
   const toolchainPrefix = getToolchainToolName(idfTarget, "");
   const shellPath = readParameter(

@@ -15,10 +15,16 @@
  * limitations under the License.
  */
 
-import { ErrorCode } from "../../common/error/types";
-import { isKnownError, noDfuDeviceFound } from "../../common/error/knownError";
+import { ErrorCode, ErrorPresentation } from "../../common/error/types";
+import { isKnownError, known, noDfuDeviceFound } from "../../common/error/knownError";
 import { throwCapturedTaskFailure } from "../../taskManager/taskManager";
 import type { CustomExecutionTaskResult } from "../../taskManager/types";
+
+const flashTaskFailedWithOutputPresentation: ErrorPresentation = {
+  userMessage: "Flash task failed. Check the terminal output for details.",
+  logMessage: "Flash task failed with captured output.",
+  outputChannel: "Flash",
+};
 
 export async function throwFlashCapturedTaskFailure(
   executions: CustomExecutionTaskResult["executions"]
@@ -28,10 +34,16 @@ export async function throwFlashCapturedTaskFailure(
   } catch (error) {
     if (
       isKnownError(error) &&
-      error.code === ErrorCode.TaskFailedWithOutput &&
-      error.metadata?.exitCode === 74
+      error.code === ErrorCode.TaskFailedWithOutput
     ) {
-      throw noDfuDeviceFound();
+      if (error.metadata?.exitCode === 74) {
+        throw noDfuDeviceFound();
+      }
+      throw known(
+        ErrorCode.TaskFailedWithOutput,
+        error.metadata,
+        flashTaskFailedWithOutputPresentation
+      );
     }
     throw error;
   }

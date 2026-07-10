@@ -23,14 +23,13 @@ import { readParameter } from "../configuration/idf";
 import { ExtensionContext } from "vscode";
 import { buildMain } from "./buildMain";
 import { registerIDFCommand } from "../common/registerCommand";
-import { buildCommandErrorMapping } from "./errorMapping";
 
 function registerBuildCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(context, name, callback, buildCommandErrorMapping);
+  registerIDFCommand(context, name, callback, { outputChannel: "Build" });
 }
 
 export function registerBuildCommands(context: ExtensionContext) {

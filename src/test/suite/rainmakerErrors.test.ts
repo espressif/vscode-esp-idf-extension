@@ -27,21 +27,22 @@ import {
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
-import { rainmakerCommandErrorMapping } from "../../rainmaker/errorMapping";
+
+const rainmakerErrorOptions = { outputChannel: "Rainmaker" };
 
 suite("rainmaker command errors", () => {
   suite("resolveKnownErrorUserMessage", () => {
     test("command mapping applies Rainmaker output channel for login failures", () => {
       const descriptor = resolveKnownErrorDescriptor(
         rainmakerLoginFailed("invalid credentials"),
-        rainmakerCommandErrorMapping
+        rainmakerErrorOptions
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Rainmaker");
       assert.strictEqual(
         resolveKnownErrorUserMessage(
           rainmakerLoginFailed("invalid credentials"),
-          rainmakerCommandErrorMapping
+          rainmakerErrorOptions
         ),
         "Failed to login with Rainmaker Cloud, double check your id and password."
       );
@@ -51,7 +52,7 @@ suite("rainmaker command errors", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
           rainmakerNodeDeleteFailed("node pending delete"),
-          rainmakerCommandErrorMapping
+          rainmakerErrorOptions
         ),
         "Failed to delete node, maybe the node is already marked for delete, please try again after sometime."
       );
@@ -61,7 +62,7 @@ suite("rainmaker command errors", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
           rainmakerParamUpdateFailed("invalid value for brightness"),
-          rainmakerCommandErrorMapping
+          rainmakerErrorOptions
         ),
         "Failed to update param because, invalid value for brightness"
       );

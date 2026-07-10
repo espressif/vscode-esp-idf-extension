@@ -40,7 +40,7 @@ import {
   invalidIdfTarget,
   IdfTaskName,
 } from "../../common/error/knownError";
-import { setTargetCommandErrorMapping } from "./errorMapping";
+import { setTargetErrorPresentation } from "./setTargetErrorPresentation";
 
 export function registerSetTargetCommand(context: ExtensionContext) {
   registerIDFCommand(
@@ -55,7 +55,10 @@ export function registerSetTargetCommand(context: ExtensionContext) {
 
         if (target) {
           if (isSettingIDFTarget) {
-            throw idfTaskInProgress(IdfTaskName.SetTarget);
+            throw idfTaskInProgress(
+              IdfTaskName.SetTarget,
+              setTargetErrorPresentation.idfTaskInProgress
+            );
           }
           setIsSettingIDFTarget(true);
 
@@ -68,7 +71,8 @@ export function registerSetTargetCommand(context: ExtensionContext) {
             if (!selectedTarget) {
               throw invalidIdfTarget(
                 target,
-                targetsFromIdf.map((t) => t.target)
+                targetsFromIdf.map((t) => t.target),
+                setTargetErrorPresentation.invalidIdfTarget
               );
             }
 
@@ -105,6 +109,6 @@ export function registerSetTargetCommand(context: ExtensionContext) {
         }
       });
     },
-    setTargetCommandErrorMapping
+    { outputChannel: "Set Target" }
   );
 }

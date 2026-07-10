@@ -24,7 +24,7 @@ import { Logger } from "../logger";
 import { OutputChannel } from "../outputChannel";
 import { isKnownError, KnownError } from "./knownError";
 import { resolveKnownErrorDescriptor } from "./resolve";
-import { CommandErrorMapping } from "./types";
+import { HandleErrorOptions } from "./types";
 
 /**
  * Central error handler. All command errors funnel through here.
@@ -33,7 +33,7 @@ export async function handleError(
   commandId: string,
   error: unknown,
   metadata?: Record<string, unknown>,
-  commandOverrides?: CommandErrorMapping
+  options?: HandleErrorOptions
 ): Promise<void> {
   let mergedMetadata = {
     ...metadata,
@@ -41,7 +41,7 @@ export async function handleError(
   };
   // ── Known errors ──────────────────────────────────────────────
   if (isKnownError(error)) {
-    const descriptor = resolveKnownErrorDescriptor(error, commandOverrides);
+    const descriptor = resolveKnownErrorDescriptor(error, options);
     mergedMetadata = {
       ...mergedMetadata,
       ...(error instanceof KnownError ? error.metadata : {}),

@@ -34,6 +34,7 @@ import {
   noSerialPort,
 } from "../common/error/knownError";
 import { ErrorCode } from "../common/error/types";
+import { debugErrorPresentation } from "./debugErrorPresentation";
 
 let readSerialPortForTests:
   | ((workspaceFolder: Uri, allowPrompt: boolean) => Promise<string>)
@@ -58,16 +59,19 @@ export async function verifyAppBinary(workspaceFolder: Uri): Promise<void> {
   const modifiedEnv = getCurrentIdfConfiguration();
   const serialPort = await loadSerialPort(workspaceFolder);
   if (!serialPort) {
-    throw noSerialPort(modifiedEnv["IDF_TARGET"] || "default");
+    throw noSerialPort(
+      modifiedEnv["IDF_TARGET"] || "default",
+      debugErrorPresentation.noSerialPort
+    );
   }
   const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolder) as string;
   const pythonBinPath = getVirtualEnvPythonPath();
   if (!pythonBinPath) {
-    throw missingDependency("Python");
+    throw missingDependency("Python", debugErrorPresentation.missingDependency);
   }
   const idfPath = modifiedEnv["IDF_PATH"];
   if (!idfPath) {
-    throw esptoolNotAccessible();
+    throw esptoolNotAccessible(debugErrorPresentation.esptoolNotAccessible);
   }
   const esptoolPath = join(
     idfPath,
@@ -77,7 +81,7 @@ export async function verifyAppBinary(workspaceFolder: Uri): Promise<void> {
     "esptool.py"
   );
   if (!(await pathExists(esptoolPath))) {
-    throw esptoolNotAccessible();
+    throw esptoolNotAccessible(debugErrorPresentation.esptoolNotAccessible);
   }
   const buildDirPath = readParameter(
     "idf.buildPath",
@@ -85,7 +89,7 @@ export async function verifyAppBinary(workspaceFolder: Uri): Promise<void> {
   ) as string;
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
   if (!(await pathExists(flasherArgsJsonPath))) {
-    throw flasherArgsMissing();
+    throw flasherArgsMissing(debugErrorPresentation.flasherArgsMissing);
   }
   const model = await createFlashModel(
     flasherArgsJsonPath,
@@ -112,14 +116,19 @@ export async function verifyAppBinary(workspaceFolder: Uri): Promise<void> {
     Logger.info(cmdResult.toString());
     const output = cmdResult.toString();
     if (output.indexOf("verify FAILED (digest mismatch)") !== -1) {
-      throw invalidConfiguration("verifyAppBinBeforeDebug");
+      throw invalidConfiguration(
+        "verifyAppBinBeforeDebug",
+        debugErrorPresentation.invalidConfiguration
+      );
     }
     if (output.indexOf("verify OK (digest matched)") !== -1) {
       return;
     }
-    throw known(ErrorCode.TaskFailedWithOutput, {
-      detail: "Unexpected esptool verify_flash output",
-    });
+    throw known(
+      ErrorCode.TaskFailedWithOutput,
+      { detail: "Unexpected esptool verify_flash output" },
+      debugErrorPresentation.taskFailedWithOutput
+    );
   } catch (error) {
     if (isKnownError(error)) {
       throw error;
@@ -128,12 +137,19 @@ export async function verifyAppBinary(workspaceFolder: Uri): Promise<void> {
       error instanceof Error &&
       error.message.indexOf("verify FAILED (digest mismatch)") !== -1
     ) {
-      throw invalidConfiguration("verifyAppBinBeforeDebug");
+      throw invalidConfiguration(
+        "verifyAppBinBeforeDebug",
+        debugErrorPresentation.invalidConfiguration
+      );
     }
     const msg =
       error instanceof Error && error.message
         ? error.message
         : "App binary verification failed.";
-    throw known(ErrorCode.TaskFailedWithOutput, { detail: msg });
+    throw known(
+      ErrorCode.TaskFailedWithOutput,
+      { detail: msg },
+      debugErrorPresentation.taskFailedWithOutput
+    );
   }
 }

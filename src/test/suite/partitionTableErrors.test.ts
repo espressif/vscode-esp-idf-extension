@@ -32,14 +32,15 @@ import {
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
 import { parsePartitionSize } from "../../espIdf/partition-table/partitionReader";
-import { partitionTableCommandErrorMapping } from "../../espIdf/partition-table/errorMapping";
+
+const partitionTableErrorOptions = { outputChannel: "Partition Table" };
 
 suite("Partition table command errors", () => {
   suite("resolveKnownErrorUserMessage", () => {
     test("command mapping includes Build action for PartitionSdkconfigRequired", () => {
       const descriptor = resolveKnownErrorDescriptor(
         partitionSdkconfigRequired(),
-        partitionTableCommandErrorMapping
+        partitionTableErrorOptions
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Partition Table");
@@ -49,7 +50,7 @@ suite("Partition table command errors", () => {
     test("command mapping includes SDK Configuration action for PartitionCustomTableNotEnabled", () => {
       const descriptor = resolveKnownErrorDescriptor(
         partitionCustomTableNotEnabled(),
-        partitionTableCommandErrorMapping
+        partitionTableErrorOptions
       );
       assert.ok(descriptor);
       assert.strictEqual(
@@ -62,7 +63,7 @@ suite("Partition table command errors", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
           noSerialPort("esp32"),
-          partitionTableCommandErrorMapping
+          partitionTableErrorOptions
         ),
         "No serial port found for current IDF_TARGET: esp32"
       );
@@ -71,7 +72,7 @@ suite("Partition table command errors", () => {
     test("command mapping includes Build action for FlasherArgsMissing", () => {
       const descriptor = resolveKnownErrorDescriptor(
         flasherArgsMissing(),
-        partitionTableCommandErrorMapping
+        partitionTableErrorOptions
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.actions[0].label, "Build");

@@ -26,25 +26,23 @@ import {
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
-import { espAdfCommandErrorMapping } from "../../espAdf/errorMapping";
+import { espAdfErrorPresentation } from "../../espAdf/espAdfErrorPresentation";
 
 suite("ESP-ADF command errors", () => {
   suite("resolveKnownErrorUserMessage", () => {
-    test("command mapping applies ESP-ADF output channel for missing Git", () => {
+    test("presentation applies ESP-ADF output channel for missing Git", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        missingDependency("Git"),
-        espAdfCommandErrorMapping
+        missingDependency("Git", espAdfErrorPresentation.missingDependency)
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "ESP-ADF");
       assert.strictEqual(descriptor?.actions[0].label, "View Output");
     });
 
-    test("command mapping interpolates repo name for RepositoryCloneFailed", () => {
+    test("registry interpolates repo name for RepositoryCloneFailed", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          repositoryCloneFailed("ESP-ADF", "git clone failed"),
-          espAdfCommandErrorMapping
+          repositoryCloneFailed("ESP-ADF", "git clone failed")
         ),
         "Failed to clone ESP-ADF. git clone failed"
       );

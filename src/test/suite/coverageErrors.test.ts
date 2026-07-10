@@ -26,33 +26,34 @@ import {
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
-import { coverageCommandErrorMapping } from "../../coverage/errorMapping";
+
+const coverageErrorOptions = { outputChannel: "Coverage" };
 
 suite("Coverage command errors", () => {
   suite("resolveKnownErrorUserMessage", () => {
     test("command mapping applies Coverage output channel for CoverageGcovDataFailed", () => {
       const descriptor = resolveKnownErrorDescriptor(
         coverageGcovDataFailed("gcov exited with code 1"),
-        coverageCommandErrorMapping
+        coverageErrorOptions
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Coverage");
       assert.strictEqual(
         resolveKnownErrorUserMessage(
           coverageGcovDataFailed("gcov exited with code 1"),
-          coverageCommandErrorMapping
+          coverageErrorOptions
         ),
         "Error building gcov data from gcda files. Check the ESP-IDF output for more details."
       );
       assert.strictEqual(descriptor?.actions[0].label, "Coverage Tutorial");
     });
 
-    test("command mapping applies coverage-specific wording for ConfserverProcessFailed", () => {
+    test("registry resolves ConfserverProcessFailed", () => {
       assert.ok(
         resolveKnownErrorUserMessage(
           confserverProcessFailed("startup", { detail: "process exited" }),
-          coverageCommandErrorMapping
-        )?.includes("enabling coverage")
+          coverageErrorOptions
+        )?.includes("SDK Configuration editor process failed")
       );
     });
 

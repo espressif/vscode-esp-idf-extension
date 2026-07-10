@@ -31,7 +31,7 @@ import { dirname, join } from "path";
 import { pathExists, readFile } from "fs-extra";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../common/logger";
-import { execChildProcess, getToolchainPath } from "../utils";
+import { execChildProcess } from "../utils";
 import { buildFlashAndMonitor } from "../buildFlashMonitor";
 import { monitorMain } from "../espIdf/monitor/main";
 import { handleError } from "../common/error/handler";
@@ -39,7 +39,6 @@ import {
   gdbinitPrefixMapMissing,
   isKnownError,
 } from "../common/error/knownError";
-import { debugCommandErrorMapping } from "./errorMapping";
 import {
   requireBuildDirPath,
   requireWorkspaceFolderForDebug,
@@ -253,12 +252,9 @@ async function handleDebugConfigurationError(
   error: unknown
 ): Promise<undefined> {
   if (isKnownError(error)) {
-    await handleError(
-      "debug.resolveConfiguration",
-      error,
-      undefined,
-      debugCommandErrorMapping
-    );
+    await handleError("debug.resolveConfiguration", error, undefined, {
+      outputChannel: "Debug",
+    });
     return undefined;
   }
   const msg = error instanceof Error ? error.message : String(error);
@@ -323,12 +319,9 @@ export class CDTDebugConfigurationProvider
         await openOCDManager.start({ launchedByDebug: true });
       } catch (error) {
         if (isKnownError(error)) {
-          await handleError(
-            "debug.resolveConfiguration",
-            error,
-            undefined,
-            debugCommandErrorMapping
-          );
+          await handleError("debug.resolveConfiguration", error, undefined, {
+            outputChannel: "Debug",
+          });
           return debugConfiguration;
         }
         throw error;
@@ -344,13 +337,12 @@ export class CDTDebugConfigurationProvider
     try {
       folder = await requireWorkspaceFolderForDebug(folder);
       config.program = await resolveDebugProgram(config, folder);
-      config.gdb = await resolveDebugGdb(config);
       if (!config.gdb) {
         config.gdb = await resolveDebugGdb(config);
       }
       // config.gdb may still hold an unresolved ${command:...} variable at this point.
       const gdbPath = config.gdb.includes("${")
-        ? await getToolchainPath("gdb")
+        ? await resolveDebugGdb(config)
         : config.gdb;
 
       const buildDirPath = requireBuildDirPath(folder);
@@ -393,8 +385,7 @@ export class CDTDebugConfigurationProvider
             await handleError(
               "debug.resolveConfiguration",
               gdbinitPrefixMapMissing(prefixMapFilePath),
-              undefined,
-              debugCommandErrorMapping
+              undefined
             );
           }
         } catch (error) {

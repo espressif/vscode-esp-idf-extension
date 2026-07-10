@@ -38,27 +38,31 @@ import { ESP } from "../config";
 import { Logger } from "../common/logger";
 import { readParameter, writeParameter } from "../configuration/idf";
 import { showSnapEimNotification } from "./showSnapEimNotification";
-import { openFolderCheck, PreCheck } from "../common/PreCheck";
+import { PreCheck } from "../common/PreCheck";
 import { selectIdfSetup } from "./selectIdfSetup";
-import { eimCommandErrorMapping } from "./errorMapping";
+import { noWorkspaceOpen } from "../common/error/knownError";
 
 function registerEimCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(context, name, callback, eimCommandErrorMapping);
+  registerIDFCommand(context, name, callback, { outputChannel: "EIM" });
 }
 
 export function installManagerCommand(context: ExtensionContext) {
   registerEimCommand(context, "espIdf.selectCurrentIdfVersion", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-      await selectIdfSetup(
-        context.extensionPath,
-        wsFolder
-      );
-    });
+    if (!PreCheck.isWorkspaceFolderOpen()) {
+      throw noWorkspaceOpen({
+        userMessage:
+          "Open a workspace folder before selecting an ESP-IDF version.",
+        logMessage: "Select ESP-IDF version blocked: no workspace open.",
+        actions: [],
+        outputChannel: "EIM",
+      });
+    }
+    const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+    return selectIdfSetup(context.extensionPath, wsFolder);
   });
   registerEimCommand(context, "espIdf.installManager", async () => {
     await withProgressWrapper(

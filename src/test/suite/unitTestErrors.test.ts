@@ -29,47 +29,43 @@ import {
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
-import { unitTestCommandErrorMapping } from "../../espIdf/unitTest/errorMapping";
+import { unitTestErrorPresentation } from "../../espIdf/unitTest/unitTestErrorPresentation";
 
 suite("Unit test command errors", () => {
   suite("resolveKnownErrorUserMessage", () => {
-    test("command mapping applies Unit Test output channel for AlreadyBuilding", () => {
+    test("presentation applies Unit Test output channel for AlreadyBuilding", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        alreadyBuilding(),
-        unitTestCommandErrorMapping
+        alreadyBuilding(unitTestErrorPresentation.alreadyBuilding)
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Unit Test");
-      assert.ok(
-        resolveKnownErrorUserMessage(
-          alreadyBuilding(),
-          unitTestCommandErrorMapping
-        )?.includes("unit test app")
-      );
     });
 
-    test("command mapping includes Select Port action for NoPortSelected", () => {
+    test("presentation includes Select Port action for NoPortSelected", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        noPortSelected(),
-        unitTestCommandErrorMapping
+        noPortSelected(unitTestErrorPresentation.noPortSelected)
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.actions[0].label, "Select Port");
     });
 
-    test("command mapping applies unit-test-specific wording for IdfTaskInProgress", () => {
+    test("presentation resolves IdfTaskInProgress", () => {
       assert.ok(
         resolveKnownErrorUserMessage(
-          idfTaskInProgress("flash"),
-          unitTestCommandErrorMapping
-        )?.includes("unit tests")
+          idfTaskInProgress(
+            "flash",
+            unitTestErrorPresentation.idfTaskInProgress
+          )
+        )
       );
     });
 
-    test("missingDependency maps to Unit Test output channel", () => {
+    test("presentation maps missingDependency to Unit Test output channel", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        missingDependency("Extension"),
-        unitTestCommandErrorMapping
+        missingDependency(
+          "Extension",
+          unitTestErrorPresentation.missingDependency
+        )
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Unit Test");

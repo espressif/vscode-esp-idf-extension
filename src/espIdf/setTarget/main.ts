@@ -49,6 +49,7 @@ import {
 } from "../openOcd/adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
+import { setTargetErrorPresentation } from "./setTargetErrorPresentation";
 
 export let isSettingIDFTarget = false;
 
@@ -78,7 +79,10 @@ export async function setIdfTarget(
     return;
   }
   if (isSettingIDFTarget) {
-    throw idfTaskInProgress(IdfTaskName.SetTarget);
+    throw idfTaskInProgress(
+      IdfTaskName.SetTarget,
+      setTargetErrorPresentation.idfTaskInProgress
+    );
   }
   setIsSettingIDFTarget(true);
 

@@ -16,7 +16,8 @@
  */
 
 import { join } from "path";
-import { WorkspaceFolder } from "vscode";
+import { commands, WorkspaceFolder } from "vscode";
+import { ErrorSeverity } from "../common/customNotifications";
 import { pathExists } from "fs-extra";
 import { readParameter } from "../configuration/idf";
 import { getCurrentIdfConfiguration } from "../configuration/env";
@@ -68,9 +69,23 @@ async function resolveActivationScriptPath(
     if (await pathExists(fallbackPath)) {
       return fallbackPath;
     }
-    throw fileNotFound(fallbackPath);
+    throw fileNotFound(fallbackPath, {
+      severity: ErrorSeverity.Error,
+      userMessage:
+        "Required file {filePath} could not be found for terminal activation.",
+      logMessage: "Terminal activation file not found: {filePath}.",
+      actions: [],
+      outputChannel: "Terminal",
+    });
   }
-  throw fileNotFound(currentSetup.activationScript);
+  throw fileNotFound(currentSetup.activationScript, {
+    severity: ErrorSeverity.Error,
+    userMessage:
+      "Required file {filePath} could not be found for terminal activation.",
+    logMessage: "Terminal activation file not found: {filePath}.",
+    actions: [],
+    outputChannel: "Terminal",
+  });
 }
 
 export async function loadTerminalLaunchConfig(
@@ -101,21 +116,61 @@ export async function loadTerminalLaunchConfig(
 
   if (process.platform !== "win32" && shellExecutablePath) {
     if (!(await pathExists(shellExecutablePath))) {
-      throw fileNotFound(shellExecutablePath);
+      throw fileNotFound(shellExecutablePath, {
+        severity: ErrorSeverity.Error,
+        userMessage:
+          "Required file {filePath} could not be found for terminal activation.",
+        logMessage: "Terminal activation file not found: {filePath}.",
+        actions: [],
+        outputChannel: "Terminal",
+      });
     }
   }
 
   const currentSetup = await loadCurrentIdfSetup(workspaceFolder);
   if (!currentSetup) {
-    throw invalidConfiguration("idf.currentSetup");
+    throw invalidConfiguration("idf.currentSetup", {
+      severity: ErrorSeverity.Error,
+      userMessage:
+        "No ESP-IDF setup is selected. Please select an ESP-IDF version.",
+      logMessage: "ESP-IDF setup not found for terminal activation.",
+      actions: [
+        {
+          label: "Select ESP-IDF Version",
+          execute: () =>
+            commands.executeCommand("espIdf.selectCurrentIdfVersion"),
+        },
+      ],
+      outputChannel: "Terminal",
+    });
   }
 
   const idfPath = currentSetup.idfPath;
   if (!idfPath) {
-    throw invalidConfiguration("IDF_PATH");
+    throw invalidConfiguration("IDF_PATH", {
+      severity: ErrorSeverity.Error,
+      userMessage:
+        "No ESP-IDF setup is selected. Please select an ESP-IDF version.",
+      logMessage: "ESP-IDF setup not found for terminal activation.",
+      actions: [
+        {
+          label: "Select ESP-IDF Version",
+          execute: () =>
+            commands.executeCommand("espIdf.selectCurrentIdfVersion"),
+        },
+      ],
+      outputChannel: "Terminal",
+    });
   }
   if (!(await pathExists(idfPath))) {
-    throw fileNotFound(idfPath);
+    throw fileNotFound(idfPath, {
+      severity: ErrorSeverity.Error,
+      userMessage:
+        "Required file {filePath} could not be found for terminal activation.",
+      logMessage: "Terminal activation file not found: {filePath}.",
+      actions: [],
+      outputChannel: "Terminal",
+    });
   }
 
   const activationScriptPath = await resolveActivationScriptPath(

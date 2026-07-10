@@ -23,7 +23,6 @@ import { ESPEFuseManager } from "./manager";
 import { openFolderCheck } from "../common/PreCheck";
 import { ESP } from "../config";
 import { ESPEFuseTreeDataProvider } from "./view";
-import { efuseCommandErrorMapping } from "./errorMapping";
 
 export function registerEfuseCommands(context: ExtensionContext) {
   let eFuseExplorer: ESPEFuseTreeDataProvider = new ESPEFuseTreeDataProvider();
@@ -46,7 +45,7 @@ export function registerEfuseCommands(context: ExtensionContext) {
         }
       );
     },
-    efuseCommandErrorMapping
+    { outputChannel: "eFuse" }
   );
 
   registerIDFCommand(context, "espIdf.efuse.clearResults", async () => {
