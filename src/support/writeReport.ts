@@ -37,7 +37,8 @@ export async function writeTextReport(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
-  reportedResult = replaceUserPath(reportedResult);
+  // Keep mutations on the caller's object (replaceUserPath returns a clone).
+  Object.assign(reportedResult, replaceUserPath(reportedResult));
   reportedResult.reportSummary = analyzeReport(reportedResult);
   const summary = reportedResult.reportSummary;
 

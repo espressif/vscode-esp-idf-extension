@@ -263,7 +263,12 @@ registerNewErrorInRegistry({
   userMessage:
     "flasher_args.json file is missing from the build directory, can't proceed, please build properly!",
   logMessage: "flasher_args.json missing from build directory.",
-  actions: [],
+  actions: [
+    {
+      label: "Build",
+      execute: () => commands.executeCommand("espIdf.buildDevice"),
+    },
+  ],
   outputChannel: flashOutputChannel,
 });
 
