@@ -37,11 +37,11 @@ import {
   filePermissionDenied,
   isKnownError,
 } from "../../common/error/knownError";
-import { debugCommandErrorMapping } from "../errorMapping";
 import { AddrRange, MessageNode, NodeSetting } from "./common";
 import { BasePeripheral, PeripheralBaseNode } from "./nodes/base";
 import { Peripheral } from "./nodes/peripheral";
 import { SVDParser } from "./svdParser";
+import { debugErrorPresentation } from "../debugErrorPresentation";
 
 export class PeripheralTreeForSession extends PeripheralBaseNode {
   public myTreeItem: TreeItem;
@@ -227,9 +227,12 @@ export class PeripheralTreeForSession extends PeripheralBaseNode {
       if (stateFilePath) {
         void handleError(
           "debug.peripheralView",
-          filePermissionDenied(stateFilePath),
+          filePermissionDenied(
+            stateFilePath,
+            debugErrorPresentation.filePermissionDenied
+          ),
           undefined,
-          debugCommandErrorMapping
+          { outputChannel: "Debug" }
         );
       }
     }
@@ -317,7 +320,7 @@ export class PeripheralTreeView
             "debug.peripheralView",
             e,
             undefined,
-            debugCommandErrorMapping
+            { outputChannel: "Debug" }
           );
         } else {
           Logger.error(

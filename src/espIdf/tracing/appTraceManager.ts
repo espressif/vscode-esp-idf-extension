@@ -28,13 +28,16 @@ import {
 import { ensureOpenOcdServerRunning } from "../openOcd/openOcdLaunch";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { TCLClient } from "../openOcd/tcl/tclClient";
+import {
+  appTraceOpenOcdPresentation,
+  appTraceTclFailedPresentation,
+} from "./tracingOpenOcdPresentation";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import {
   AppTraceButtonType,
   AppTraceTreeDataProvider,
 } from "./tree/appTraceTreeDataProvider";
 import { ConfigurationTarget, window, WorkspaceFolder } from "vscode";
-import { appTraceCommandErrorMapping } from "./errorMapping";
 
 export interface IAppTraceManagerConfig {
   host: string;
@@ -146,7 +149,7 @@ export class AppTraceManager extends EventEmitter {
   }
 
   public async start(workspace: WorkspaceFolder) {
-    await ensureOpenOcdServerRunning(workspace.uri);
+    await ensureOpenOcdServerRunning(workspace.uri, appTraceOpenOcdPresentation);
     this.treeDataProvider.showStopButton(AppTraceButtonType.AppTraceButton);
     this.treeDataProvider.updateDescription(
       AppTraceButtonType.AppTraceButton,
@@ -212,7 +215,7 @@ export class AppTraceManager extends EventEmitter {
   }
 
   public async stop(workspace: WorkspaceFolder) {
-    await ensureOpenOcdServerRunning(workspace.uri);
+    await ensureOpenOcdServerRunning(workspace.uri, appTraceOpenOcdPresentation);
     this.shallContinueCheckingStatus = false;
     const stopHandler = this.sendCommandToTCLSession(
       "esp apptrace stop",
@@ -255,9 +258,9 @@ export class AppTraceManager extends EventEmitter {
     );
     void handleError(
       "espIdf.apptrace",
-      traceTclFailed(detail, phase),
+      traceTclFailed(detail, phase, appTraceTclFailedPresentation),
       undefined,
-      appTraceCommandErrorMapping
+      { outputChannel: "Tracing" }
     );
   }
 

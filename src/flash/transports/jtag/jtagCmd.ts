@@ -33,6 +33,7 @@ import {
 import { jtagFlash } from "./flashTclClient";
 import type { CustomExecutionTaskResult } from "../../../taskManager/types";
 import { throwFlashCapturedTaskFailure } from "../../shared/flashTaskFailure";
+import { flashJtagOpenOcdPresentation } from "../../jtagOpenOcdPresentation";
 
 export async function jtagFlashCommandMain(
   cancelToken: CancellationToken,
@@ -42,7 +43,7 @@ export async function jtagFlashCommandMain(
   let client: TCLClient | undefined;
   let cancelSubscription: Disposable | undefined;
   try {
-    client = await connectOpenOcdForJtag(workspace);
+    client = await connectOpenOcdForJtag(workspace, flashJtagOpenOcdPresentation);
     cancelSubscription = cancelToken.onCancellationRequested(() => {
       client?.stop();
     });

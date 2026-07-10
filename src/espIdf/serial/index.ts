@@ -21,16 +21,13 @@ import { registerIDFCommand } from "../../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../../common/PreCheck";
 import { SerialPort } from "./serialPort";
 import { ESP } from "../../config";
-import { CommandErrorMapping } from "../../common/error/types";
-import { serialCommandErrorMapping } from "./errorMapping";
 
 function registerSerialCommand(
   context: ExtensionContext,
   name: string,
-  callback: (...args: any[]) => any,
-  errorMapping: CommandErrorMapping = serialCommandErrorMapping
+  callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(context, name, callback, errorMapping);
+  registerIDFCommand(context, name, callback, { outputChannel: "Serial port" });
 }
 
 export function registerSerialPortCmds(context: ExtensionContext) {

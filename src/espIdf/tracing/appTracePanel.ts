@@ -29,7 +29,7 @@ import { SysviewTraceProc } from "./tools/sysviewTraceProc";
 import { Addr2Line } from "./tools/xtensa/addr2line";
 import { ReadElf } from "./tools/xtensa/readelf";
 import { getProjectElfFilePath } from "../../configuration/workspace";
-import { traceArchiveCommandErrorMapping } from "./errorMapping";
+import { traceArchiveFileNotFoundPresentation } from "./tracingOpenOcdPresentation";
 
 export class AppTracePanel {
   public static createOrShow(
@@ -179,7 +179,7 @@ export class AppTracePanel {
         "espIdf.apptrace.archive.showReport",
         error,
         undefined,
-        traceArchiveCommandErrorMapping
+        { outputChannel: "Tracing" }
       );
       return;
     }
@@ -187,9 +187,12 @@ export class AppTracePanel {
     Logger.error(err.message, err, "AppTracePanel");
     await handleError(
       "espIdf.apptrace.archive.showReport",
-      fileNotFound(this._traceData?.trace?.filePath ?? "unknown"),
+      fileNotFound(
+        this._traceData?.trace?.filePath ?? "unknown",
+        traceArchiveFileNotFoundPresentation
+      ),
       undefined,
-      traceArchiveCommandErrorMapping
+      { outputChannel: "Tracing" }
     );
   }
 

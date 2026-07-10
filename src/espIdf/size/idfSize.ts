@@ -28,6 +28,7 @@ import type { IDFSizeCalculateResult } from "./types";
 import { CancellationToken, l10n, Progress, Uri } from "vscode";
 import { join } from "path";
 import {
+  fileNotFound,
   invalidConfiguration,
   invalidIdfVersion,
   isKnownError,
@@ -36,6 +37,7 @@ import {
   parseError,
 } from "../../common/error/knownError";
 import { ErrorCode } from "../../common/error/types";
+import { sizeErrorPresentation } from "./sizeErrorPresentation";
 
 export class IDFSize {
   private readonly workspaceFolderUri: Uri;
@@ -62,7 +64,11 @@ export class IDFSize {
       version = await getEspIdfFromCMake(espIdfPath);
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
-      throw invalidIdfVersion(espIdfPath, detail);
+      throw invalidIdfVersion(
+        espIdfPath,
+        detail,
+        sizeErrorPresentation.invalidIdfVersion
+      );
     }
 
     const formatArgs =
@@ -121,9 +127,22 @@ export class IDFSize {
       this.workspaceFolderUri
     ) as string;
     if (!buildDirPath) {
-      throw invalidConfiguration("idf.buildPath");
+      throw invalidConfiguration(
+        "idf.buildPath",
+        sizeErrorPresentation.invalidConfiguration
+      );
     }
-    return getProjectMapFilePath(this.workspaceFolderUri);
+    try {
+      return await getProjectMapFilePath(this.workspaceFolderUri);
+    } catch (error) {
+      if (isKnownError(error) && error.code === ErrorCode.FILE_NOT_FOUND) {
+        throw fileNotFound(
+          String(error.metadata?.filePath),
+          sizeErrorPresentation.fileNotFound
+        );
+      }
+      throw error;
+    }
   }
 
   private idfPath(): string {
@@ -152,7 +171,7 @@ export class IDFSize {
     const idfPath = this.idfPath();
     const pythonBinPath = getVirtualEnvPythonPath();
     if (!pythonBinPath) {
-      throw missingDependency("Python");
+      throw missingDependency("Python", sizeErrorPresentation.missingDependency);
     }
 
     try {
@@ -165,7 +184,7 @@ export class IDFSize {
       try {
         return JSON.parse(buffStr);
       } catch {
-        throw parseError(mapFilePath);
+        throw parseError(mapFilePath, sizeErrorPresentation.parseError);
       }
     } catch (error) {
       if (isKnownError(error)) {
@@ -175,7 +194,11 @@ export class IDFSize {
         return;
       }
       const msg = error instanceof Error ? error.message : String(error);
-      throw known(ErrorCode.TaskFailedWithOutput, { detail: msg });
+      throw known(
+        ErrorCode.TaskFailedWithOutput,
+        { detail: msg },
+      sizeErrorPresentation.taskFailedWithOutput
+      );
     }
   }
 }

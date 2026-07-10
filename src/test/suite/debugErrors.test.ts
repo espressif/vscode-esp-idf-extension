@@ -34,9 +34,9 @@ import {
 import { ErrorCode } from "../../common/error/types";
 import { resolveDapErrorMessage } from "../../debugAdapter/dapError";
 import {
-  debugCommandErrorMapping,
-  debugDapErrorMapping,
-} from "../../debugAdapter/errorMapping";
+  debugDapErrorPresentation,
+  debugErrorPresentation,
+} from "../../debugAdapter/debugErrorPresentation";
 import {
   requireBuildDirPath,
   resolveDebugGdb,
@@ -83,8 +83,10 @@ suite("debug errors", () => {
     test("command override applies for FILE_NOT_FOUND", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          fileNotFound("/proj/build/app.elf"),
-          debugCommandErrorMapping
+          fileNotFound(
+            "/proj/build/app.elf",
+            debugErrorPresentation.fileNotFound
+          )
         ),
         "Required file /proj/build/app.elf could not be found for the debug session."
       );
@@ -93,8 +95,7 @@ suite("debug errors", () => {
     test("command override applies for OpenOcdNotRunning", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          openOcdNotRunning(),
-          debugDapErrorMapping
+          openOcdNotRunning(debugErrorPresentation.openOcdNotRunning)
         ),
         "OpenOCD is not running. Please start OpenOCD before launching the debug session."
       );
@@ -103,8 +104,7 @@ suite("debug errors", () => {
     test("command override applies for IdfToolNotFound", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          idfToolNotFound("gdb"),
-          debugCommandErrorMapping
+          idfToolNotFound("gdb", debugErrorPresentation.idfToolNotFound)
         ),
         "Toolchain tool gdb was not found. Check your ESP-IDF setup."
       );
@@ -114,7 +114,12 @@ suite("debug errors", () => {
   suite("resolveDapErrorMessage", () => {
     test("maps KnownError through debug DAP mapping", () => {
       assert.strictEqual(
-        resolveDapErrorMessage(invalidConfiguration("program")),
+        resolveDapErrorMessage(
+          invalidConfiguration(
+            "program",
+            debugDapErrorPresentation.invalidConfiguration
+          )
+        ),
         "Debug launch setting program is invalid or missing."
       );
     });

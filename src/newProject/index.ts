@@ -50,14 +50,13 @@ import {
   newProjectWizardFailed,
   projectScaffoldFailed,
 } from "../common/error/knownError";
-import { newProjectCommandErrorMapping } from "./errorMapping";
 
 function registerNewProjectCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(context, name, callback, newProjectCommandErrorMapping);
+  registerIDFCommand(context, name, callback, { outputChannel: "New Project" });
 }
 
 function errorMessage(error: unknown): string {
@@ -161,7 +160,10 @@ async function runCreateDevContainer(
       l10n.t("ESP-IDF container files have been added to the project.")
     );
   } catch (error) {
-    rethrowScaffoldFailure("add ESP-IDF dev container files to the project", error);
+    rethrowScaffoldFailure(
+      "add ESP-IDF dev container files to the project",
+      error
+    );
   }
 }
 

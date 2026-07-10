@@ -25,14 +25,13 @@ import { getToolchainPath } from "../utils";
 import { readParameter } from "../configuration/idf";
 import { ESP } from "../config";
 import { qemuDebugLaunchFailed } from "../common/error/knownError";
-import { qemuCommandErrorMapping } from "./errorMapping";
 
 function registerQemuCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(context, name, callback, qemuCommandErrorMapping);
+  registerIDFCommand(context, name, callback, { outputChannel: "QEMU" });
 }
 
 export function registerQEMUCommands(context: ExtensionContext) {
@@ -89,7 +88,9 @@ export function registerQEMUCommands(context: ExtensionContext) {
           },
         });
         if (!debugStarted) {
-          throw qemuDebugLaunchFailed("VS Code failed to start the debug session.");
+          throw qemuDebugLaunchFailed(
+            "VS Code failed to start the debug session."
+          );
         }
         debug.onDidTerminateDebugSession(async (session) => {
           if (session.configuration.sessionID === "qemu.debug.session") {

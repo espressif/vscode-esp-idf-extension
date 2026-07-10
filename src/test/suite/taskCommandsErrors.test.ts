@@ -16,25 +16,12 @@
  */
 
 import * as assert from "assert";
-import { ErrorSeverity } from "../../common/customNotifications";
 import {
-  buildRequiredBeforeFlash,
   isKnownError,
 } from "../../common/error/knownError";
-import { resolveKnownErrorUserMessage } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
 import { getProjectName } from "../../configuration/workspace";
 import { Uri } from "vscode";
-
-const getProjectNameCommandErrorMapping = {
-  [ErrorCode.BuildRequiredBeforeFlash]: {
-    severity: ErrorSeverity.Error,
-    userMessage:
-      "Build the project first to read project_description.json. {buildDirPath} can't be accessed.",
-    logMessage: "getProjectName blocked: {buildDirPath}.",
-    actions: [],
-  },
-};
 
 suite("Task command errors", () => {
   test("getProjectName throws BuildRequiredBeforeFlash when project description is missing", async () => {
@@ -47,11 +34,4 @@ suite("Task command errors", () => {
     );
   });
 
-  test("getProjectName command error mapping interpolates buildDirPath", () => {
-    const message = resolveKnownErrorUserMessage(
-      buildRequiredBeforeFlash("/build/path"),
-      getProjectNameCommandErrorMapping
-    );
-    assert.ok(message?.includes("/build/path"));
-  });
 });

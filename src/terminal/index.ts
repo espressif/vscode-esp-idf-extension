@@ -17,43 +17,15 @@
  */
 
 import {
-  commands,
   ExtensionContext,
   Terminal,
   TerminalLocation,
 } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
-import { ErrorSeverity } from "../common/customNotifications";
-import { CommandErrorMapping, ErrorCode } from "../common/error/types";
 import { noWorkspaceOpen } from "../common/error/knownError";
 import { ESP } from "../config";
 import { createEspIdfTerminalMain } from "./main";
-
-export const terminalCommandErrorMapping: CommandErrorMapping = {
-  [ErrorCode.INVALID_CONFIGURATION]: {
-    severity: ErrorSeverity.Error,
-    userMessage:
-      "No ESP-IDF setup is selected. Please select an ESP-IDF version.",
-    logMessage: "ESP-IDF setup not found for terminal activation.",
-    actions: [
-      {
-        label: "Select ESP-IDF Version",
-        execute: () =>
-          commands.executeCommand("espIdf.selectCurrentIdfVersion"),
-      },
-    ],
-    outputChannel: "Terminal",
-  },
-  [ErrorCode.FILE_NOT_FOUND]: {
-    severity: ErrorSeverity.Error,
-    userMessage:
-      "Required file {filePath} could not be found for terminal activation.",
-    logMessage: "Terminal activation file not found: {filePath}.",
-    actions: [],
-    outputChannel: "Terminal",
-  },
-};
 
 export function registerIdfTerminalCommand(context: ExtensionContext) {
   registerIDFCommand(
@@ -70,7 +42,7 @@ export function registerIdfTerminalCommand(context: ExtensionContext) {
         );
       });
     },
-    terminalCommandErrorMapping
+    { outputChannel: "Terminal" }
   );
 }
 

@@ -26,6 +26,7 @@ import {
   missingDependency,
   parseError,
 } from "../../common/error/knownError";
+import { menuconfigErrorPresentation } from "./menuconfigErrorPresentation";
 
 export async function resolvePythonForIdfPy(): Promise<string> {
   const pythonBinPath = getVirtualEnvPythonPath();
@@ -56,7 +57,7 @@ export async function requireKconfigMenusJson(
 ): Promise<unknown> {
   const menusFilePath = kconfigMenusPath(workspaceFolder);
   if (!(await pathExists(menusFilePath))) {
-    throw fileNotFound(menusFilePath);
+    throw fileNotFound(menusFilePath, menuconfigErrorPresentation.fileNotFound);
   }
   try {
     return JSON.parse(await readFile(menusFilePath, "utf-8"));

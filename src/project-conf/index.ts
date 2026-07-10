@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { ExtensionContext } from "vscode";
+import { commands, ExtensionContext } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { missingDependency } from "../common/error/knownError";
 import { statusBarItems } from "../statusBar";
@@ -26,7 +26,6 @@ import { withProgressWrapper } from "../common/withProgressWrapper";
 import { ESP } from "../config";
 import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
 import { ProjectConfigurationManager } from "./ProjectConfigurationManager";
-import { projectConfCommandErrorMapping } from "./errorMapping";
 
 export function registerProjectConfigCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.rmProjectConfStatusBar", async () => {
@@ -54,7 +53,7 @@ export function registerProjectConfigCommands(context: ExtensionContext) {
         }
       );
     },
-    projectConfCommandErrorMapping
+    { outputChannel: "Project Configuration" }
   );
 
   registerIDFCommand(
@@ -65,10 +64,21 @@ export function registerProjectConfigCommands(context: ExtensionContext) {
         if (ProjectConfigurationManager.instance) {
           await ProjectConfigurationManager.instance.selectProjectConfiguration();
         } else {
-          throw missingDependency("Project Configuration Manager");
+          throw missingDependency("Project Configuration Manager", {
+            userMessage: "Project Configuration Manager is not initialized.",
+            logMessage: "Project Configuration Manager not initialized.",
+            actions: [
+              {
+                label: "Reload Window",
+                execute: () =>
+                  commands.executeCommand("workbench.action.reloadWindow"),
+              },
+            ],
+            outputChannel: "Project Configuration",
+          });
         }
       });
     },
-    projectConfCommandErrorMapping
+    { outputChannel: "Project Configuration" }
   );
 }

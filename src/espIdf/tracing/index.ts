@@ -25,7 +25,7 @@ import {
   webIdeCheck,
 } from "../../common/PreCheck";
 import { traceInvalidCommand } from "../../common/error/knownError";
-import { CommandErrorMapping } from "../../common/error/types";
+import { HandleErrorOptions } from "../../common/error/types";
 import { AppTraceManager } from "./appTraceManager";
 import { GdbHeapTraceManager } from "./gdbHeapTraceManager";
 import {
@@ -38,19 +38,14 @@ import { ESP } from "../../config";
 import { SystemViewResultParser } from "./system-view";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
 import { AppTracePanel } from "./appTracePanel";
-import {
-  appTraceCommandErrorMapping,
-  heapTraceCommandErrorMapping,
-  traceArchiveCommandErrorMapping,
-} from "./errorMapping";
 
 function registerTracingCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any,
-  errorMapping?: CommandErrorMapping
+  options: HandleErrorOptions = { outputChannel: "Tracing" }
 ) {
-  registerIDFCommand(context, name, callback, errorMapping);
+  registerIDFCommand(context, name, callback, options);
 }
 
 export function registerAppTraceCommands(context: ExtensionContext) {
@@ -90,7 +85,6 @@ export function registerAppTraceCommands(context: ExtensionContext) {
         }
       });
     },
-    appTraceCommandErrorMapping
   );
 
   registerTracingCommand(
@@ -116,7 +110,6 @@ export function registerAppTraceCommands(context: ExtensionContext) {
         }
       );
     },
-    heapTraceCommandErrorMapping
   );
 
   registerTracingCommand(
@@ -128,7 +121,6 @@ export function registerAppTraceCommands(context: ExtensionContext) {
         await AppTraceManager.saveConfiguration(wsFolder);
       });
     },
-    appTraceCommandErrorMapping
   );
 
   registerTracingCommand(
@@ -139,7 +131,6 @@ export function registerAppTraceCommands(context: ExtensionContext) {
         appTraceArchiveTreeDataProvider.populateArchiveTree();
       });
     },
-    traceArchiveCommandErrorMapping
   );
 
   registerTracingCommand(
@@ -215,6 +206,5 @@ export function registerAppTraceCommands(context: ExtensionContext) {
         });
       });
     },
-    traceArchiveCommandErrorMapping
   );
 }

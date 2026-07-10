@@ -29,7 +29,6 @@ import {
   getOpenOcdScripts,
   selectOpenOcdConfigFiles,
 } from "./boardConfiguration";
-import { openOcdCommandErrorMapping } from "./errorMapping";
 
 export function registerOpenOCDCommands(context: ExtensionContext) {
   registerIDFCommand(
@@ -41,7 +40,7 @@ export function registerOpenOCDCommands(context: ExtensionContext) {
         OpenOCDManager.init().commandHandler
       );
     },
-    openOcdCommandErrorMapping
+    { outputChannel: "OpenOCD" }
   );
 
   registerIDFCommand(
@@ -75,7 +74,7 @@ export function registerOpenOCDCommands(context: ExtensionContext) {
         updateOpenOcdAdapterStatusBarItem(wsFolder.uri);
       });
     },
-    openOcdCommandErrorMapping
+    { outputChannel: "OpenOCD" }
   );
 
   registerIDFCommand(context, "espIdf.getOpenOcdConfigs", () => {
@@ -100,7 +99,7 @@ export function registerOpenOCDCommands(context: ExtensionContext) {
         await selectOpenOcdConfigFiles(wsFolder);
       });
     },
-    openOcdCommandErrorMapping
+    { outputChannel: "OpenOCD" }
   );
 
   registerIDFCommand(context, "espIdf.getOpenOcdScriptValue", async () => {

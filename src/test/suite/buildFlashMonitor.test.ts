@@ -16,22 +16,41 @@
  */
 
 import * as assert from "assert";
-import { buildFlashMonitorCommandErrorMapping } from "../../buildFlashMonitor";
+import { buildFlashMonitorTaskFailedPresentation } from "../../buildFlashMonitor";
 import { known } from "../../common/error/knownError";
-import { resolveKnownErrorUserMessage } from "../../common/error/resolve";
+import {
+  resolveKnownErrorDescriptor,
+  resolveKnownErrorUserMessage,
+} from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
 
 suite("buildFlashMonitor", () => {
-  suite("buildFlashMonitorCommandErrorMapping", () => {
-    test("overrides TaskFailedWithOutput user message for composite command", () => {
+  suite("TaskFailedWithOutput presentation", () => {
+    test("call-site presentation overrides TaskFailedWithOutput user message", () => {
       const message = resolveKnownErrorUserMessage(
-        known(ErrorCode.TaskFailedWithOutput, { exitCode: 1 }),
-        buildFlashMonitorCommandErrorMapping
+        known(
+          ErrorCode.TaskFailedWithOutput,
+          { exitCode: 1 },
+          buildFlashMonitorTaskFailedPresentation
+        )
       );
       assert.strictEqual(
         message,
         "Build, flash, or monitor task failed. Check the terminal output for details."
       );
+    });
+
+    test("HandleErrorOptions fills Build output channel when presentation omits it", () => {
+      const descriptor = resolveKnownErrorDescriptor(
+        known(
+          ErrorCode.TaskFailedWithOutput,
+          { exitCode: 1 },
+          buildFlashMonitorTaskFailedPresentation
+        ),
+        { outputChannel: "Build" }
+      );
+      assert.ok(descriptor);
+      assert.strictEqual(descriptor?.outputChannel, "Build");
     });
   });
 });

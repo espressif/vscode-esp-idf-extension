@@ -15,13 +15,35 @@
  * limitations under the License.
  */
 
-import { isKnownError } from "../common/error/knownError";
+import { isKnownError, known } from "../common/error/knownError";
 import { resolveKnownErrorUserMessage } from "../common/error/resolve";
-import { debugDapErrorMapping } from "./errorMapping";
+import { ErrorCode } from "../common/error/types";
+import { debugDapErrorPresentation } from "./debugErrorPresentation";
 
 export function resolveDapErrorMessage(error: unknown): string {
   if (isKnownError(error)) {
-    return resolveKnownErrorUserMessage(error, debugDapErrorMapping);
+    if (error.presentation) {
+      return resolveKnownErrorUserMessage(error, { outputChannel: "Debug" });
+    }
+    if (error.code === ErrorCode.INVALID_CONFIGURATION) {
+      return resolveKnownErrorUserMessage(
+        known(
+          error.code,
+          error.metadata,
+          debugDapErrorPresentation.invalidConfiguration
+        )
+      );
+    }
+    if (error.code === ErrorCode.TraceGdbProcessFailed) {
+      return resolveKnownErrorUserMessage(
+        known(
+          error.code,
+          error.metadata,
+          debugDapErrorPresentation.traceGdbProcessFailed
+        )
+      );
+    }
+    return resolveKnownErrorUserMessage(error, { outputChannel: "Debug" });
   }
   return error instanceof Error ? error.message : String(error);
 }

@@ -60,10 +60,7 @@ export function isVSCodeInstalledViaSnap(): boolean {
 }
 
 export function shouldForceCliMode(): boolean {
-  return (
-    typeof env.remoteName !== "undefined" ||
-    env.uiKind === UIKind.Web
-  );
+  return typeof env.remoteName !== "undefined" || env.uiKind === UIKind.Web;
 }
 
 function getEimHomeDir(): string {
@@ -90,7 +87,12 @@ function getEimInstallDir(mode: "cli" | "gui"): string {
     process.platform !== "linux" &&
     process.platform !== "darwin"
   ) {
-    throw environmentNotSupported(process.platform);
+    throw environmentNotSupported(process.platform, {
+      userMessage: "EIM is not supported on {envName}.",
+      logMessage: "EIM install blocked: unsupported environment {envName}.",
+      actions: [],
+      outputChannel: "EIM",
+    });
   }
 
   const subdir = mode === "cli" ? "eim" : "eim_gui";
@@ -143,11 +145,17 @@ function getEimAssetName(mode: "cli" | "gui", arch: string): string {
   }
 
   if (process.platform === "linux") {
-    const linuxArch = mode === "cli" ? getLinuxCliAssetArch(arch) : getGuiAssetArch(arch);
+    const linuxArch =
+      mode === "cli" ? getLinuxCliAssetArch(arch) : getGuiAssetArch(arch);
     return `eim-${mode}-linux-${linuxArch}.zip`;
   }
 
-  throw environmentNotSupported(process.platform);
+  throw environmentNotSupported(process.platform, {
+    userMessage: "EIM is not supported on {envName}.",
+    logMessage: "EIM install blocked: unsupported environment {envName}.",
+    actions: [],
+    outputChannel: "EIM",
+  });
 }
 
 export async function resolveEimPath(): Promise<string> {
@@ -162,7 +170,9 @@ export async function resolveEimPath(): Promise<string> {
   }
   // 2. Check eim_idf.json for existing EIM path
   if (!eimPath) {
-    Logger.info("[resolveEimPath] Step 2: checking eim_idf.json for existing EIM path");
+    Logger.info(
+      "[resolveEimPath] Step 2: checking eim_idf.json for existing EIM path"
+    );
     const eimJSON = await getEimIdfJson();
     if (eimJSON && eimJSON.eimPath) {
       Logger.info(`[resolveEimPath] eim_idf.json eimPath: ${eimJSON.eimPath}`);
@@ -176,7 +186,9 @@ export async function resolveEimPath(): Promise<string> {
   if (!eimPath) {
     const envEimPath = process.env.EIM_PATH;
     Logger.info(
-      `[resolveEimPath] Step 3: checking EIM_PATH env variable${envEimPath ? `: ${envEimPath}` : " (not set)"}`
+      `[resolveEimPath] Step 3: checking EIM_PATH env variable${
+        envEimPath ? `: ${envEimPath}` : " (not set)"
+      }`
     );
     eimPath = envEimPath || "";
   }
@@ -186,7 +198,9 @@ export async function resolveEimPath(): Promise<string> {
   const cliPath = getCliBinaryPath();
   const orderedPaths = forceCliMode ? [cliPath, guiPath] : [guiPath, cliPath];
   Logger.info(
-    `[resolveEimPath] Step 4: checking managed install locations (order: ${orderedPaths.join(", ")})`
+    `[resolveEimPath] Step 4: checking managed install locations (order: ${orderedPaths.join(
+      ", "
+    )})`
   );
 
   for (const candidate of orderedPaths) {
@@ -324,7 +338,8 @@ function createEimPathProfileSnippet(
   shellType: "fish" | "posix",
   eimDir: string
 ) {
-  const header = "# Added by ESP-IDF extension so the EIM CLI can be launched directly.";
+  const header =
+    "# Added by ESP-IDF extension so the EIM CLI can be launched directly.";
 
   if (shellType === "fish") {
     return [

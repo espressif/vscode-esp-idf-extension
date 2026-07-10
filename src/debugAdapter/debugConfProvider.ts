@@ -36,8 +36,6 @@ import { monitorMain } from "../espIdf/monitor/main";
 import { handleError } from "../common/error/handler";
 import { fileNotFound, isKnownError } from "../common/error/knownError";
 import { ErrorSeverity } from "../common/customNotifications";
-import { debugCommandErrorMapping } from "./errorMapping";
-import { ErrorCode } from "../common/error/types";
 import {
   requireBuildDirPath,
   requireWorkspaceFolderForDebug,
@@ -52,7 +50,7 @@ async function handleDebugConfigurationError(error: unknown): Promise<undefined>
       "debug.resolveConfiguration",
       error,
       undefined,
-      debugCommandErrorMapping
+      { outputChannel: "Debug" }
     );
     return undefined;
   }
@@ -122,7 +120,7 @@ export class CDTDebugConfigurationProvider
             "debug.resolveConfiguration",
             error,
             undefined,
-            debugCommandErrorMapping
+            { outputChannel: "Debug" }
           );
           return debugConfiguration;
         }
@@ -171,20 +169,17 @@ export class CDTDebugConfigurationProvider
               const missingPath = gdbinitPrefixMap;
               await handleError(
                 "debug.resolveConfiguration",
-                fileNotFound(missingPath),
+                fileNotFound(missingPath, {
+                  severity: ErrorSeverity.Warning,
+                  userMessage:
+                    "CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found at {filePath}.",
+                  logMessage:
+                    "Reproducible build gdbinit prefix map not found: {filePath}.",
+                  actions: [],
+                  outputChannel: "Debug",
+                }),
                 undefined,
-                {
-                  ...debugCommandErrorMapping,
-                  [ErrorCode.FILE_NOT_FOUND]: {
-                    severity: ErrorSeverity.Warning,
-                    userMessage:
-                      "CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found at {filePath}.",
-                    logMessage:
-                      "Reproducible build gdbinit prefix map not found: {filePath}.",
-                    actions: [],
-                    outputChannel: "Debug",
-                  },
-                }
+                { outputChannel: "Debug" }
               );
             }
           }

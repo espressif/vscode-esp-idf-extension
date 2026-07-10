@@ -24,14 +24,57 @@ import { Logger } from "../common/logger";
 import { ESP } from "../config";
 import { espIdfCoverageRenderer } from "./renderer";
 import { configureProjectWithGcov } from "./configureProject";
-import { coverageCommandErrorMapping } from "./errorMapping";
+import { isKnownError, known } from "../common/error/knownError";
+import { ErrorCode } from "../common/error/types";
+import { OutputChannel } from "../common/outputChannel";
 
 function registerCoverageCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(context, name, callback, coverageCommandErrorMapping);
+  registerIDFCommand(
+    context,
+    name,
+    async (...args: any[]) => {
+      try {
+        return await callback(...args);
+      } catch (error) {
+        if (
+          isKnownError(error) &&
+          error.code === ErrorCode.ConfserverProcessFailed
+        ) {
+          throw known(error.code, error.metadata, {
+            userMessage:
+              "SDK Configuration editor process failed during {phase} while enabling coverage.",
+            logMessage:
+              "Confserver process failed during {phase} (exitCode: {exitCode}, detail: {detail}).",
+            actions: [
+              {
+                label: "View Output",
+                execute: () => OutputChannel.show(),
+              },
+            ],
+            outputChannel: "Coverage",
+          });
+        }
+        if (
+          isKnownError(error) &&
+          error.code === ErrorCode.ConfserverProtocolError
+        ) {
+          throw known(error.code, error.metadata, {
+            userMessage:
+              "SDK Configuration editor returned an error while enabling coverage: {detail}.",
+            logMessage: "Confserver protocol error: {detail}.",
+            actions: [],
+            outputChannel: "Coverage",
+          });
+        }
+        throw error;
+      }
+    },
+    { outputChannel: "Coverage" }
+  );
 }
 
 export function registerCoverageCommands(context: ExtensionContext) {

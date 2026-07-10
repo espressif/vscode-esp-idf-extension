@@ -16,6 +16,7 @@
  */
 
 import * as assert from "assert";
+import { ErrorSeverity } from "../../common/customNotifications";
 import {
   fileNotFound,
   idfTaskInProgress,
@@ -27,21 +28,48 @@ import {
   resolveKnownErrorDescriptor,
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
-import { monitorCommandErrorMapping } from "../../espIdf/monitor/errorMapping";
+const monitorPresentation = {
+  taskInProgress: {
+    severity: ErrorSeverity.Warning,
+    userMessage:
+      "Wait for ESP-IDF {taskName} to finish before starting the monitor.",
+    logMessage: "Attempted to start monitor while {taskName} is in progress.",
+    actions: [],
+    outputChannel: "Monitor",
+  },
+  noPortSelected: {
+    userMessage: "Select a serial port before starting the monitor.",
+    logMessage: "No serial port selected for monitor.",
+    actions: [{ label: "Select Port", execute: async () => undefined }],
+    outputChannel: "Monitor",
+  },
+  fileNotFound: {
+    userMessage:
+      "Project ELF file not found at {filePath}. Build your project first.",
+    logMessage: "Monitor blocked: project ELF file not found: {filePath}.",
+    actions: [{ label: "Build", execute: async () => undefined }],
+    outputChannel: "Monitor",
+  },
+  wsPortNotConfigured: {
+    severity: ErrorSeverity.Error,
+    userMessage: "WebSocket port (idf.wssPort) is not configured.",
+    logMessage: "WebSocket monitor port (idf.wssPort) is not configured.",
+    actions: [{ label: "Open Settings", execute: async () => undefined }],
+    outputChannel: "Monitor",
+  },
+};
 
 suite("monitor errors", () => {
   suite("resolveKnownErrorUserMessage", () => {
     test("command mapping applies Monitor output channel for NoPortSelected", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        noPortSelected(),
-        monitorCommandErrorMapping
+        noPortSelected(monitorPresentation.noPortSelected)
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Monitor");
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          noPortSelected(),
-          monitorCommandErrorMapping
+          noPortSelected(monitorPresentation.noPortSelected)
         ),
         "Select a serial port before starting the monitor."
       );
@@ -51,8 +79,7 @@ suite("monitor errors", () => {
     test("command mapping applies monitor-specific wording for IdfTaskInProgress", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          idfTaskInProgress("build"),
-          monitorCommandErrorMapping
+          idfTaskInProgress("build", monitorPresentation.taskInProgress)
         ),
         "Wait for ESP-IDF build to finish before starting the monitor."
       );
@@ -60,8 +87,7 @@ suite("monitor errors", () => {
 
     test("command mapping includes Build action for missing ELF file", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        fileNotFound("/build/project.elf"),
-        monitorCommandErrorMapping
+        fileNotFound("/build/project.elf", monitorPresentation.fileNotFound)
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Monitor");
@@ -74,8 +100,7 @@ suite("monitor errors", () => {
 
     test("command mapping includes Open Settings action for MonitorWsPortNotConfigured", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        monitorWsPortNotConfigured(),
-        monitorCommandErrorMapping
+        monitorWsPortNotConfigured(monitorPresentation.wsPortNotConfigured)
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Monitor");
@@ -85,8 +110,7 @@ suite("monitor errors", () => {
     test("command mapping applies wsPort interpolation for MonitorWsPortInUse", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          monitorWsPortInUse(8266),
-          monitorCommandErrorMapping
+          monitorWsPortInUse(8266)
         ),
         "Port 8266 is not available. Change idf.wssPort to use a different port."
       );

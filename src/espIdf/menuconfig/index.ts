@@ -28,14 +28,15 @@ import { createClassicMenuconfig } from "./classicTerminal";
 import { addMenuConfigFileWatchers } from "./fileWatchers";
 import { saveDefSdkconfig } from "./saveDefConfig";
 import { ESP } from "../../config";
-import { menuconfigCommandErrorMapping } from "./errorMapping";
 
 function registerMenuconfigCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(context, name, callback, menuconfigCommandErrorMapping);
+  registerIDFCommand(context, name, callback, {
+    outputChannel: "SDK Configuration Editor",
+  });
 }
 
 export function registerMenuconfigCommands(context: ExtensionContext) {

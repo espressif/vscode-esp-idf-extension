@@ -21,10 +21,19 @@ import {
   openOcdLaunchDeclined,
   openOcdNotRunning,
 } from "../../common/error/knownError";
+import { ErrorPresentation } from "../../common/error/types";
 import { OpenOCDManager } from "./openOcdManager";
 import { TCLClient } from "./tcl/tclClient";
 
-export async function ensureOpenOcdServerRunning(workspace: Uri): Promise<void> {
+export type EnsureOpenOcdServerRunningPresentation = {
+  launchDeclined?: ErrorPresentation;
+  notRunning?: ErrorPresentation;
+};
+
+export async function ensureOpenOcdServerRunning(
+  workspace: Uri,
+  presentation?: EnsureOpenOcdServerRunningPresentation
+): Promise<void> {
   const host = readParameter("openocd.tcl.host", workspace) as string;
   const port = readParameter("openocd.tcl.port", workspace) as number;
   const probeClient = new TCLClient({ host, port });
@@ -40,11 +49,11 @@ export async function ensureOpenOcdServerRunning(workspace: Uri): Promise<void> 
     { title: "Cancel", isCloseAffordance: true }
   );
   if (!resp || resp.title !== "Yes") {
-    throw openOcdLaunchDeclined();
+    throw openOcdLaunchDeclined(presentation?.launchDeclined);
   }
 
   await OpenOCDManager.init().start();
   if (!(await probeClient.isOpenOCDServerRunning())) {
-    throw openOcdNotRunning();
+    throw openOcdNotRunning(presentation?.notRunning);
   }
 }

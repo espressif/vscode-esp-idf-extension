@@ -266,7 +266,18 @@ export async function getProjectName(
     return projectDescription.projectName;
   }
   const buildDirPath = readParameter("idf.buildPath", workspacePath) as string;
-  throw buildRequiredBeforeFlash(buildDirPath);
+  throw buildRequiredBeforeFlash(buildDirPath, {
+    userMessage:
+      "Build the project first to read project_description.json. {buildDirPath} can't be accessed.",
+    logMessage:
+      "getProjectName blocked: build directory or project_description.json not accessible: {buildDirPath}.",
+    actions: [
+      {
+        label: "Build",
+        execute: () => commands.executeCommand("espIdf.buildDevice"),
+      },
+    ],
+  });
 }
 
 /**
