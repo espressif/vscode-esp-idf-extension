@@ -28,6 +28,7 @@ import {
 } from "vscode";
 import { Logger } from "../common/logger";
 import { readParameter } from "../configuration/idf";
+import { getIdfBuildPath } from "../configuration/workspace";
 
 export const CLANGD_EXTENSION_ID = "llvm-vs-code-extensions.vscode-clangd";
 
@@ -154,11 +155,7 @@ export async function handleCompileCommandsUpdate(
       d.dispose();
     }
   }
-  const buildDirPath = readParameter("idf.buildPath", workspaceUri) as string;
-
-  if (!buildDirPath) {
-    return;
-  }
+  const buildDirPath = getIdfBuildPath(workspaceUri);
 
   const relativePattern = new RelativePattern(
     buildDirPath,

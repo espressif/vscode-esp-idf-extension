@@ -18,6 +18,7 @@
 
 import { Uri } from "vscode";
 import { readParameter } from "../../configuration/idf";
+import { getIdfBuildPath } from "../../configuration/workspace";
 import {
   applySdkconfigDefaultsAndCcacheArgs,
   replaceBuildDirArg,
@@ -31,10 +32,7 @@ export function buildIdfPyConfigSubcommandArgs(
     "idf.enableCCache",
     workspacePath
   ) as boolean,
-  buildDirPath: string = readParameter(
-    "idf.buildPath",
-    workspacePath
-  ) as string,
+  buildDirPath: string = getIdfBuildPath(workspacePath),
   sdkconfigFile: string = readParameter(
     "idf.sdkconfigFilePath",
     workspacePath

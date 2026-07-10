@@ -20,16 +20,14 @@ import { TerminalLocation } from "vscode";
 import { openFolderCheck, PreCheck } from "../../common/PreCheck";
 import { ESP } from "../../config";
 import { readParameter } from "../../configuration/idf";
+import { getIdfBuildPath } from "../../configuration/workspace";
 import { createEspIdfTerminal } from "../../terminal";
 
 export async function createClassicMenuconfig(extensionPath: string) {
   PreCheck.perform([openFolderCheck], async () => {
     const workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
     // Get build directory and sdkconfig file from settings
-    const buildDirPath = readParameter(
-      "idf.buildPath",
-      workspaceFolder
-    ) as string;
+    const buildDirPath = getIdfBuildPath(workspaceFolder);
     const sdkconfigFilePath = readParameter(
       "idf.sdkconfigFilePath",
       workspaceFolder

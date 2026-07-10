@@ -14,12 +14,24 @@
 
 import { constants, promises, readFileSync, unlinkSync } from "fs";
 import { join, isAbsolute } from "path";
-import { commands, l10n, StatusBarItem, Uri, window, workspace } from "vscode";
+import {
+  commands,
+  ConfigurationScope,
+  l10n,
+  StatusBarItem,
+  Uri,
+  window,
+  workspace,
+} from "vscode";
 import {
   buildRequiredBeforeFlash,
   fileNotFound,
 } from "../common/error/knownError";
 import { Logger } from "../common/logger";
+import {
+  getWorkspaceFsPathFromScope,
+  resolveIdfBuildPathValue,
+} from "./buildPath";
 import { readParameter } from "./idf";
 import { showInfoNotificationWithAction } from "../common/customNotifications";
 import { isSettingIDFTarget } from "../espIdf/setTarget/main";
@@ -69,6 +81,12 @@ function optString(value: unknown): string | undefined {
 }
 
 let idfDataProvider: IdfTreeDataProvider;
+
+export function getIdfBuildPath(scope: ConfigurationScope): string {
+  const raw = readParameter("idf.buildPath", scope) as string;
+  return resolveIdfBuildPathValue(raw, getWorkspaceFsPathFromScope(scope));
+}
+
 export function updateIdfComponentsTree(workspaceFolder: Uri) {
   if (typeof idfDataProvider === "undefined") {
     idfDataProvider = new IdfTreeDataProvider(workspaceFolder);
@@ -88,10 +106,7 @@ export function updateIdfComponentsTree(workspaceFolder: Uri) {
 export async function getProjectDescriptionJson(
   workspaceFolder: Uri
 ): Promise<IProjectDescription | undefined> {
-  const buildDirPath = readParameter(
-    "idf.buildPath",
-    workspaceFolder
-  ) as string;
+  const buildDirPath = getIdfBuildPath(workspaceFolder);
   try {
     const doesBuildPathExists = await pathExists(buildDirPath);
     if (!doesBuildPathExists) {
@@ -265,7 +280,7 @@ export async function getProjectName(
   if (projectDescription && projectDescription.projectName) {
     return projectDescription.projectName;
   }
-  const buildDirPath = readParameter("idf.buildPath", workspacePath) as string;
+  const buildDirPath = getIdfBuildPath(workspacePath);
   throw buildRequiredBeforeFlash(buildDirPath, {
     userMessage:
       "Build the project first to read project_description.json. {buildDirPath} can't be accessed.",
@@ -291,13 +306,7 @@ export async function getProjectElfFilePath(
 ): Promise<string> {
   const projectDescription = await getProjectDescriptionJson(workspacePath);
   if (projectDescription && projectDescription.appElf) {
-    const buildDirPath = readParameter(
-      "idf.buildPath",
-      workspacePath
-    ) as string;
-    if (!buildDirPath) {
-      throw new Error("Failed to get build directory path for ELF file path.");
-    }
+    const buildDirPath = getIdfBuildPath(workspacePath);
     const elfFilePath = join(buildDirPath, projectDescription.appElf);
     return elfFilePath;
   }
@@ -320,10 +329,7 @@ export async function getProjectMapFilePath(
   if (!projectName) {
     throw new Error("Failed to get project name for MAP file path.");
   }
-  const buildDirPath = readParameter("idf.buildPath", workspacePath) as string;
-  if (!buildDirPath) {
-    throw new Error("Failed to get build directory path for MAP file path.");
-  }
+  const buildDirPath = getIdfBuildPath(workspacePath);
   const mapFilePath = join(buildDirPath, `${projectName}.map`);
   if (!(await pathExists(mapFilePath))) {
     throw fileNotFound(mapFilePath);
@@ -414,10 +420,7 @@ export async function setCCppPropertiesJsonCompilerPath(
 export async function setCCppPropertiesJsonCompileCommands(
   curWorkspaceFsPath: Uri
 ) {
-  const buildDirPath = readParameter(
-    "idf.buildPath",
-    curWorkspaceFsPath
-  ) as string;
+  const buildDirPath = getIdfBuildPath(curWorkspaceFsPath);
   const compileCommandsPath = join(buildDirPath, "compile_commands.json");
 
   await updateCCppPropertiesJson(

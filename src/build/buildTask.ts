@@ -23,6 +23,7 @@ import { ESP } from "../config";
 import type { OutputCapturingExecution } from "../taskManager/customExecution";
 import type { ProcessExecution, Uri } from "vscode";
 import { readParameter } from "../configuration/idf";
+import { getIdfBuildPath } from "../configuration/workspace";
 import { runValidationBeforeBuild } from "./validation";
 import { enqueueCompileTaskIfNoCache } from "./cmakeConfigure";
 import { getCurrentIdfConfiguration } from "../configuration/env";
@@ -48,10 +49,7 @@ export class BuildTask {
     ]
   > {
     const modifiedEnv = getCurrentIdfConfiguration();
-    const buildDirPath = readParameter(
-      "idf.buildPath",
-      this.currentWorkspace
-    ) as string;
+    const buildDirPath = getIdfBuildPath(this.currentWorkspace);
     await ensureDir(buildDirPath);
     const { cmakeBin, ninjaBin } = await runValidationBeforeBuild(
       modifiedEnv,

@@ -27,12 +27,13 @@ import { missingDependency } from "../common/error/knownError";
 import { addProcessTask, TaskManager } from "../taskManager/taskManager";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 import {
+  getIdfBuildPath,
   getProjectMapFilePath,
 } from "../configuration/workspace";
 
 export async function createSBOM(workspaceUri: Uri) {
   await getProjectMapFilePath(workspaceUri);
-  const buildDirPath = readParameter("idf.buildPath", workspaceUri) as string;
+  const buildDirPath = getIdfBuildPath(workspaceUri);
   const projectDescriptionJson = join(buildDirPath, "project_description.json");
   const modifiedEnv = getCurrentIdfConfiguration();
   const sbomFilePath = readParameter(

@@ -22,6 +22,7 @@ import { withProgressWrapper } from "../common/withProgressWrapper";
 import { join } from "path";
 import { getVirtualEnvPythonPath } from "../configuration/env";
 import { readParameter } from "../configuration/idf";
+import { getIdfBuildPath } from "../configuration/workspace";
 import { execChildProcess } from "../utils";
 import { OutputChannel } from "../common/outputChannel";
 import { Logger } from "../common/logger";
@@ -51,7 +52,7 @@ export function registerNinjaSummaryCommand(context: ExtensionContext) {
           "chromium",
           "ninja-build-summary.py"
         );
-        const buildDir = readParameter("idf.buildPath", wsFolder) as string;
+        const buildDir = getIdfBuildPath(wsFolder);
         const args = [ninjaSummaryScript, "-C", buildDir];
         const summaryResult = await execChildProcess(
           pythonBinPath,

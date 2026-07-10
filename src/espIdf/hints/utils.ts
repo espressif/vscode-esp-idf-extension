@@ -1,7 +1,8 @@
-import { isAbsolute, join } from "path";
+import { join } from "path";
 import { pathExists } from "fs-extra";
 import { Logger } from "../../common/logger";
 import { readParameter } from "../../configuration/idf";
+import { getIdfBuildPath } from "../../configuration/workspace";
 import { Uri } from "vscode";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
@@ -69,12 +70,7 @@ export async function resolveIdfHintsYmlPath(
     "idf_py_actions",
     "hints.yml"
   );
-  let buildDir = readParameter("idf.buildPath", workspace) as string;
-  if (!buildDir) {
-    buildDir = join(workspace.fsPath, "build");
-  } else if (!isAbsolute(buildDir)) {
-    buildDir = join(workspace.fsPath, buildDir);
-  }
+  const buildDir = getIdfBuildPath(workspace);
   const aggregated = join(buildDir, "hints.yml");
   if (await pathExists(aggregated)) {
     return aggregated;

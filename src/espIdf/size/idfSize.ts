@@ -23,13 +23,11 @@ import {
 } from "../../utils";
 import { getProjectMapFilePath } from "../../configuration/workspace";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
-import { readParameter } from "../../configuration/idf";
 import type { IDFSizeCalculateResult } from "./types";
 import { CancellationToken, l10n, Progress, Uri } from "vscode";
 import { join } from "path";
 import {
   fileNotFound,
-  invalidConfiguration,
   invalidIdfVersion,
   isKnownError,
   known,
@@ -122,16 +120,6 @@ export class IDFSize {
   }
 
   private async resolveMapFilePath(): Promise<string> {
-    const buildDirPath = readParameter(
-      "idf.buildPath",
-      this.workspaceFolderUri
-    ) as string;
-    if (!buildDirPath) {
-      throw invalidConfiguration(
-        "idf.buildPath",
-        sizeErrorPresentation.invalidConfiguration
-      );
-    }
     try {
       return await getProjectMapFilePath(this.workspaceFolderUri);
     } catch (error) {

@@ -56,11 +56,6 @@ export namespace ESP {
     export let store: ExtensionConfigStore;
   }
 
-  export const platformDepConfigurations: string[] = [
-    "idf.buildPath",
-    "idf.port",
-  ];
-
   export namespace Rainmaker {
     export let store: RainmakerStore;
     export namespace OAuth {

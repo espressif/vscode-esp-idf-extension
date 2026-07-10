@@ -19,7 +19,6 @@ import {
   getPresetParameterValue,
 } from "../project-conf/presetSettings";
 import { SerialPort } from "../espIdf/serial/serialPort";
-import { showInfoNotificationWithAction } from "../common/customNotifications";
 import {
   ConfigurationScope,
   ConfigurationTarget,
@@ -31,6 +30,10 @@ import {
 } from "vscode";
 import { Logger } from "../common/logger";
 import { getIdfConfigurationSource } from "./idfConfigurationSource";
+import {
+  getWorkspaceFsPathFromScope,
+  resolveIdfBuildPathValue,
+} from "./buildPath";
 import { getCurrentIdfConfiguration } from "./env";
 import { isKnownError } from "../common/error/knownError";
 import { ErrorCode } from "../common/error/types";
@@ -40,16 +43,6 @@ export enum NotificationMode {
   Notifications = "Notifications",
   Output = "Output",
   All = "All",
-}
-
-export function addWinIfRequired(param: string) {
-  const winFlag = process.platform === "win32" ? "Win" : "";
-  for (const platDepConf of ESP.platformDepConfigurations) {
-    if (param.indexOf(platDepConf) >= 0) {
-      return param + winFlag;
-    }
-  }
-  return param;
 }
 
 export function parameterToProjectConfigMap(
@@ -73,7 +66,7 @@ export function parameterToProjectConfigMap(
   }
   if (param === "idf.customExtraVars") {
     const settingsVars =
-      (getIdfConfigurationSource().getScoped("", scope, addWinIfRequired(param)) as {
+      (getIdfConfigurationSource().getScoped("", scope, param) as {
         [key: string]: any;
       }) ?? {};
     return { ...settingsVars, ...getPresetCustomExtraVars(currentProjectConf) };
@@ -85,11 +78,9 @@ export function readParameter(
   param: string,
   scope?: ConfigurationScope
 ): string | string[] | boolean | ConfigurationTarget | { [key: string]: any } {
-  const paramUpdated = addWinIfRequired(param);
   let paramValue = parameterToProjectConfigMap(param, scope);
   paramValue =
-    paramValue ||
-    getIdfConfigurationSource().getScoped("", scope, paramUpdated);
+    paramValue || getIdfConfigurationSource().getScoped("", scope, param);
   if (typeof paramValue === "undefined") {
     return "";
   }
@@ -154,10 +145,9 @@ export async function writeParameter(
   target: ConfigurationTarget,
   wsFolder?: WorkspaceFolder | Uri
 ) {
-  const paramValue = addWinIfRequired(param);
   const conf = getIdfConfigurationSource();
   if (target !== ConfigurationTarget.WorkspaceFolder) {
-    await conf.updateGlobal(paramValue, newValue, target);
+    await conf.updateGlobal(param, newValue, target);
 
     conf.refreshConfiguration();
     return target === ConfigurationTarget.Global
@@ -179,7 +169,7 @@ export async function writeParameter(
       }
       wsFolder = workspaceFolder;
     }
-    await conf.updateScoped("", wsFolder, paramValue, newValue, target);
+    await conf.updateScoped("", wsFolder, param, newValue, target);
 
     conf.refreshConfiguration();
     return wsFolder instanceof Uri ? wsFolder.fsPath : wsFolder.uri.fsPath;
@@ -243,6 +233,20 @@ export function parseStrToArray(groupStr: string) {
   return resultArr;
 }
 
+function resolveConfigVariableValue(
+  configVarName: string,
+  configVarValue: unknown,
+  scope?: ConfigurationScope
+): unknown {
+  if (configVarName === "idf.buildPath" && typeof configVarValue === "string") {
+    return resolveIdfBuildPathValue(
+      configVarValue,
+      getWorkspaceFsPathFromScope(scope)
+    );
+  }
+  return configVarValue;
+}
+
 export function resolveVariables(
   configPath: string,
   scope?: ConfigurationScope
@@ -264,16 +268,23 @@ export function resolveVariables(
         prefix = configVar.substring(delimiterIndex + 1).trim();
       }
       const configVarValue = readParameter(configVarName, scope);
+      const resolvedConfigVarValue = resolveConfigVariableValue(
+        configVarName,
+        configVarValue,
+        scope
+      );
 
-      if (prefix && Array.isArray(configVarValue)) {
-        return configVarValue.map((value) => `${prefix}${value}`).join(" ");
+      if (prefix && Array.isArray(resolvedConfigVarValue)) {
+        return resolvedConfigVarValue
+          .map((value) => `${prefix}${value}`)
+          .join(" ");
       }
 
-      if (prefix && typeof configVarValue === "string") {
-        return `${prefix} ${configVarValue}`;
+      if (prefix && typeof resolvedConfigVarValue === "string") {
+        return `${prefix} ${resolvedConfigVarValue}`;
       }
 
-      return configVarValue;
+      return resolvedConfigVarValue;
     }
     if (match.indexOf("env:") > 0) {
       const envVariable = name.substring(name.indexOf("env:") + "env:".length);

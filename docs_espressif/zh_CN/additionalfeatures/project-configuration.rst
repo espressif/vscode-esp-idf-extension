@@ -42,7 +42,7 @@
 
 通过该扩展的设置，可以修改默认的构建路径 (``/path/to/esp-project/build``)、sdkconfig 文件路径以及 ``sdkconfig.defaults`` 文件路径。
 
-在此扩展中，你可以通过 ``idf.buildPath`` （Windows 系统使用 ``idf.buildPathWin``）配置项定义构建目录，以及通过 ``idf.sdkconfigDefaults`` 配置项定义 sdkconfig 默认文件列表。扩展的构建命令将使用这些定义好的值。
+在此扩展中，你可以通过 ``idf.buildPath`` 配置项定义构建目录，以及通过 ``idf.sdkconfigDefaults`` 配置项定义 sdkconfig 默认文件列表。扩展的构建命令将使用这些定义好的值。
 
 例如，要为产品 1 创建配置：
 
