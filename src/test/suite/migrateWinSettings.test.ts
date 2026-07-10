@@ -7,6 +7,7 @@
  */
 
 import * as assert from "assert";
+import { resolve } from "path";
 import {
   ConfigurationTarget,
   ExtensionContext,
@@ -82,7 +83,14 @@ suite("configuration/migrateWinSettings.ts", () => {
   const originalWorkspaceFolders = workspace.workspaceFolders;
 
   suiteSetup(() => {
-    Logger.init({ globalState: createMockMemento() } as ExtensionContext);
+    const absPath = (filename: string) =>
+      resolve(__dirname, "..", "..", "..", filename);
+    Logger.init({
+      extensionPath: resolve(__dirname, "..", "..", ".."),
+      asAbsolutePath: absPath,
+      workspaceState: createMockMemento(),
+      globalState: createMockMemento(),
+    } as ExtensionContext);
   });
 
   teardown(() => {

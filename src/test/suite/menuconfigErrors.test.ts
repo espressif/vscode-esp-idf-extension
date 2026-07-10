@@ -107,17 +107,23 @@ function seedSelectedProfile(conf: ProjectConfElement) {
 
 suite("menuconfig errors", () => {
   suiteSetup(() => {
+    const absPath = (filename: string) =>
+      resolve(__dirname, "..", "..", "..", filename);
     const mockUpContext = {
       extensionPath: resolve(__dirname, "..", "..", ".."),
+      asAbsolutePath: absPath,
       workspaceState: createMockMemento(),
       globalState: createMockMemento(),
     } as vscode.ExtensionContext;
     Logger.init(mockUpContext);
-    ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
+    ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
     resetIdfConfigurationSource();
   });
 
   teardown(() => {
+    ESP.ProjectConfiguration.store?.clear(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
     resetIdfConfigurationSource();
   });
 

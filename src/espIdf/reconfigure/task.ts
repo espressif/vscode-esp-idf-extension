@@ -29,6 +29,11 @@ import { missingDependency } from "../../common/error/knownError";
 import { ESP } from "../../config";
 
 export async function addIdfReconfigureTask(workspace: Uri) {
+  const pythonBinPath = getVirtualEnvPythonPath();
+  if (!pythonBinPath) {
+    throw missingDependency("Python");
+  }
+
   const modifiedEnv = getCurrentIdfConfiguration();
   const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
   const reconfigureArgs = buildIdfPyConfigSubcommandArgs(
@@ -36,12 +41,6 @@ export async function addIdfReconfigureTask(workspace: Uri) {
     "reconfigure",
     workspace
   );
-
-  const pythonBinPath = getVirtualEnvPythonPath();
-
-  if (!pythonBinPath) {
-    throw missingDependency("Python");
-  }
 
   addProcessTask(
     "Reconfigure",

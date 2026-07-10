@@ -16,15 +16,15 @@
  */
 
 import * as assert from "assert";
+import { mkdirSync, mkdtempSync, writeFileSync } from "fs";
 import { join, resolve } from "path";
+import { tmpdir } from "os";
 import * as vscode from "vscode";
 import {
   fileNotFound,
-  flasherArgsMissing,
   idfToolNotFound,
   invalidConfiguration,
   isKnownError,
-  missingDependency,
   noSerialPort,
   openOcdNotRunning,
 } from "../../common/error/knownError";
@@ -32,6 +32,8 @@ import {
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
+import { Logger } from "../../common/logger";
+import { ESP } from "../../config";
 import { resolveDapErrorMessage } from "../../debugAdapter/dapError";
 import {
   debugDapErrorPresentation,
@@ -44,12 +46,15 @@ import {
 } from "../../debugAdapter/validation";
 import {
   setReadSerialPortForTests,
+  setVerifyAppTestHooks,
   verifyAppBinary,
 } from "../../debugAdapter/verifyApp";
 import {
   resetIdfConfigurationSource,
   setIdfConfigurationSource,
 } from "../../configuration/idfConfigurationSource";
+import { ProjectConfigStore } from "../../project-conf/utils";
+import { createMockMemento } from "../mockUtils";
 
 const testWorkspaceFolder = {
   uri: vscode.Uri.file("/test/workspace"),
@@ -74,8 +79,25 @@ function createFakeIdfSource(getValues: Record<string, unknown> = {}) {
 }
 
 suite("debug errors", () => {
+  suiteSetup(() => {
+    const absPath = (filename: string) =>
+      resolve(__dirname, "..", "..", "..", filename);
+    const mockUpContext = {
+      extensionPath: resolve(__dirname, "..", "..", ".."),
+      asAbsolutePath: absPath,
+      workspaceState: createMockMemento(),
+      globalState: createMockMemento(),
+    } as vscode.ExtensionContext;
+    Logger.init(mockUpContext);
+    ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
+  });
+
   teardown(() => {
     setReadSerialPortForTests(undefined);
+    setVerifyAppTestHooks(undefined);
+    ESP.ProjectConfiguration.store?.clear(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
     resetIdfConfigurationSource();
   });
 
@@ -133,14 +155,11 @@ suite("debug errors", () => {
   });
 
   suite("validation", () => {
-    test("requireBuildDirPath throws invalidConfiguration when build path missing", () => {
+    test("requireBuildDirPath returns default build path when setting is unset", () => {
       setIdfConfigurationSource(createFakeIdfSource());
-      assert.throws(
-        () => requireBuildDirPath(testWorkspaceFolder),
-        (error: unknown) =>
-          isKnownError(error) &&
-          error.code === ErrorCode.INVALID_CONFIGURATION &&
-          error.metadata?.setting === "idf.buildPath"
+      assert.strictEqual(
+        requireBuildDirPath(testWorkspaceFolder),
+        join(testWorkspaceFolder.uri.fsPath, "build")
       );
     });
 
@@ -191,10 +210,26 @@ suite("debug errors", () => {
     });
 
     test("throws flasherArgsMissing when flasher_args.json is absent", async () => {
+      const idfRoot = mkdtempSync(join(tmpdir(), "debug-verify-idf-"));
+      const esptoolDir = join(
+        idfRoot,
+        "components",
+        "esptool_py",
+        "esptool"
+      );
+      mkdirSync(esptoolDir, { recursive: true });
+      writeFileSync(join(esptoolDir, "esptool.py"), "# stub\n");
+
       setReadSerialPortForTests(async () => "/dev/ttyUSB0");
+      setVerifyAppTestHooks({
+        getVirtualEnvPythonPath: () => "/usr/bin/python3",
+        getCurrentIdfConfiguration: () => ({
+          IDF_PATH: idfRoot,
+          IDF_TARGET: "esp32",
+        }),
+      });
       setIdfConfigurationSource(
         createFakeIdfSource({
-          IDF_PATH: resolve(__dirname, "..", "..", ".."),
           "idf.buildPath": join("/missing", "build"),
         })
       );

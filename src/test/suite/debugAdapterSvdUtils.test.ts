@@ -6,6 +6,8 @@
  */
 
 import * as assert from "assert";
+import { isKnownError } from "../../common/error/knownError";
+import { ErrorCode } from "../../common/error/types";
 import { AddrRange } from "../../debugAdapter/svd/common";
 import {
   binaryFormat,
@@ -90,14 +92,16 @@ suite("debugAdapter svd utils parseDimIndex", () => {
   test("throws when comma list length mismatches count", () => {
     assert.throws(
       () => parseDimIndex("a,b", 3),
-      /invalid specification/
+      (error: unknown) =>
+        isKnownError(error) && error.code === ErrorCode.PARSE_ERROR
     );
   });
 
   test("throws when numeric range has fewer elements than count", () => {
     assert.throws(
       () => parseDimIndex("0-1", 3),
-      /invalid specification/
+      (error: unknown) =>
+        isKnownError(error) && error.code === ErrorCode.PARSE_ERROR
     );
   });
 });

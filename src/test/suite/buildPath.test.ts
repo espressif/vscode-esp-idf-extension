@@ -7,7 +7,7 @@
  */
 
 import * as assert from "assert";
-import { join } from "path";
+import { join, resolve } from "path";
 import * as vscode from "vscode";
 import { ESP } from "../../config";
 import { Logger } from "../../common/logger";
@@ -83,17 +83,25 @@ suite("configuration/buildPath.ts", () => {
 });
 
 suite("configuration/workspace getIdfBuildPath", () => {
+  const absPath = (filename: string) =>
+    resolve(__dirname, "..", "..", "..", filename);
   const mockUpContext: vscode.ExtensionContext = {
+    extensionPath: resolve(__dirname, "..", "..", ".."),
+    asAbsolutePath: absPath,
+    workspaceState: createMockMemento(),
     globalState: createMockMemento(),
   } as vscode.ExtensionContext;
 
   suiteSetup(() => {
     Logger.init(mockUpContext);
-    ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
+    ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
     resetIdfConfigurationSource();
   });
 
   teardown(() => {
+    ESP.ProjectConfiguration.store?.clear(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
     resetIdfConfigurationSource();
   });
 
