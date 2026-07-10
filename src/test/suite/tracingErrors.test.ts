@@ -27,14 +27,15 @@ import {
 import { resolveKnownErrorUserMessage } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
 import {
-  appTraceCommandErrorMapping,
-  heapTraceCommandErrorMapping,
-} from "../../espIdf/tracing/errorMapping";
-import {
   requireHeapTraceBuildDir,
   requireHeapTraceElf,
   requireHeapTraceGdb,
 } from "../../espIdf/tracing/validation";
+import {
+  appTraceOpenOcdPresentation,
+  appTraceTclFailedPresentation,
+  heapTraceBuildRequiredPresentation,
+} from "../../espIdf/tracing/tracingOpenOcdPresentation";
 
 suite("Tracing errors", () => {
   suite("validation", () => {
@@ -91,31 +92,35 @@ suite("Tracing errors", () => {
   });
 
   suite("resolveKnownErrorUserMessage", () => {
-    test("appTraceCommandErrorMapping overrides OpenOcdNotRunning for tracing", () => {
+    test("tracing resolves OpenOcdNotRunning", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          openOcdNotRunning(),
-          appTraceCommandErrorMapping
+          openOcdNotRunning(appTraceOpenOcdPresentation.notRunning)
         ),
         "Can't perform tracing, because OpenOCD server is not running!"
       );
     });
 
-    test("heapTraceCommandErrorMapping overrides BuildRequiredBeforeFlash for heap tracing", () => {
+    test("tracing resolves BuildRequiredBeforeFlash", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          buildRequiredBeforeFlash("/project/build"),
-          heapTraceCommandErrorMapping
+          buildRequiredBeforeFlash(
+            "/project/build",
+            heapTraceBuildRequiredPresentation
+          )
         ),
         "Build is required before heap tracing. /project/build can't be accessed."
       );
     });
 
-    test("appTraceCommandErrorMapping interpolates TraceTclFailed detail and phase", () => {
+    test("tracing interpolates TraceTclFailed detail and phase", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          traceTclFailed("TCL socket error", "start"),
-          appTraceCommandErrorMapping
+          traceTclFailed(
+            "TCL socket error",
+            "start",
+            appTraceTclFailedPresentation
+          )
         ),
         "App trace failed during start: TCL socket error"
       );

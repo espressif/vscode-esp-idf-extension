@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 
-import { WorkspaceFolder } from "vscode";
+import { commands, WorkspaceFolder } from "vscode";
+import { ErrorSeverity } from "../../../common/customNotifications";
 import { WSServer } from "../../communications/ws";
 import { IDFMonitor } from "../terminal";
 import { interruptMonitorWithDelay } from "../interruptMonitorWithDelay";
@@ -44,7 +45,22 @@ export async function startWithWebSocket(
     wsPort
   );
   if (typeof monitorConfigResult.config.wsPort === "undefined") {
-    throw monitorWsPortNotConfigured();
+    throw monitorWsPortNotConfigured({
+      severity: ErrorSeverity.Error,
+      userMessage: "WebSocket port (idf.wssPort) is not configured.",
+      logMessage: "WebSocket monitor port (idf.wssPort) is not configured.",
+      actions: [
+        {
+          label: "Open Settings",
+          execute: () =>
+            commands.executeCommand(
+              "workbench.action.openSettings",
+              "idf.wssPort"
+            ),
+        },
+      ],
+      outputChannel: "Monitor",
+    });
   }
   if (IdfMonitorWebSocketServer) {
     IdfMonitorWebSocketServer.close();

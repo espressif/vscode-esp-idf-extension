@@ -16,8 +16,14 @@ import { AbstractCloning } from "../common/abstractCloning";
 import { readParameter } from "../configuration/idf";
 import { registerIDFCommand } from "../common/registerCommand";
 import { ESP } from "../config";
-import { openFolderCheck, PreCheck } from "../common/PreCheck";
-import { espAdfCommandErrorMapping } from "./errorMapping";
+import { PreCheck } from "../common/PreCheck";
+import {
+  isKnownError,
+  missingDependency,
+  noWorkspaceOpen,
+} from "../common/error/knownError";
+import { ErrorCode } from "../common/error/types";
+import { espAdfErrorPresentation } from "./espAdfErrorPresentation";
 
 export class AdfCloning extends AbstractCloning {
   constructor() {
@@ -32,7 +38,17 @@ export class AdfCloning extends AbstractCloning {
 
 export async function getEspAdf(workspace?: Uri) {
   const adfInstaller = new AdfCloning();
-  await adfInstaller.getRepository("ADF_PATH", workspace);
+  try {
+    await adfInstaller.getRepository("ADF_PATH", workspace);
+  } catch (error) {
+    if (isKnownError(error) && error.code === ErrorCode.MISSING_DEPENDENCY) {
+      throw missingDependency(
+        String(error.metadata?.dependency),
+        espAdfErrorPresentation.missingDependency
+      );
+    }
+    throw error;
+  }
 }
 
 export function registerEspAdfCmd(context: ExtensionContext) {
@@ -40,11 +56,12 @@ export function registerEspAdfCmd(context: ExtensionContext) {
     context,
     "espIdf.getEspAdf",
     async () => {
-      return PreCheck.perform([openFolderCheck], async () => {
-        const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-        await getEspAdf(wsFolder?.uri);
-      });
+      if (!PreCheck.isWorkspaceFolderOpen()) {
+        throw noWorkspaceOpen(espAdfErrorPresentation.noWorkspaceOpen);
+      }
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      await getEspAdf(wsFolder?.uri);
     },
-    espAdfCommandErrorMapping
+    { outputChannel: "ESP-ADF" }
   );
 }

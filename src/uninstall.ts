@@ -3,18 +3,6 @@ import { Logger } from "./common/logger";
 import { OutputChannel } from "./common/outputChannel";
 import { registerIDFCommand } from "./common/registerCommand";
 import { espIdfSettingsRemovalFailed } from "./common/error/knownError";
-import { CommandErrorMapping, ErrorCode } from "./common/error/types";
-import { ErrorSeverity } from "./common/customNotifications";
-
-const removeEspIdfSettingsErrorMapping: CommandErrorMapping = {
-  [ErrorCode.EspIdfSettingsRemovalFailed]: {
-    severity: ErrorSeverity.Error,
-    userMessage: "Failed to remove ESP-IDF settings: {detail}",
-    logMessage: "ESP-IDF settings removal failed: {detail}.",
-    actions: [],
-    outputChannel: "ESP-IDF",
-  },
-};
 
 export function registerRemoveEspIdfSettingsCommand(
   context: vscode.ExtensionContext
@@ -23,7 +11,7 @@ export function registerRemoveEspIdfSettingsCommand(
     context,
     "espIdf.removeEspIdfSettings",
     asyncRemoveEspIdfSettings,
-    removeEspIdfSettingsErrorMapping
+    { outputChannel: "ESP-IDF" }
   );
 }
 

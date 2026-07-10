@@ -16,13 +16,12 @@
  * limitations under the License.
  */
 
-import { ExtensionContext, window } from "vscode";
+import { commands, ExtensionContext, window } from "vscode";
 import { registerIDFCommand } from "../common/registerCommand";
 import { missingDependency } from "../common/error/knownError";
 import { statusBarItems } from "../statusBar";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { ProjectConfigurationManager } from "./ProjectConfigurationManager";
-import { projectConfCommandErrorMapping } from "./errorMapping";
 
 export { ProjectConfigStore } from "./store";
 
@@ -47,12 +46,17 @@ export {
 } from "./legacy";
 
 export function registerProjectConfigCommands(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.rmProjectConfStatusBar", async () => {
-    if (statusBarItems["projectConf"]) {
-      statusBarItems["projectConf"].dispose();
-      delete statusBarItems["projectConf"];
-    }
-  });
+  registerIDFCommand(
+    context,
+    "espIdf.rmProjectConfStatusBar",
+    async () => {
+      if (statusBarItems["projectConf"]) {
+        statusBarItems["projectConf"].dispose();
+        delete statusBarItems["projectConf"];
+      }
+    },
+    { outputChannel: "Project Configuration" }
+  );
 
   registerIDFCommand(
     context,
@@ -62,22 +66,38 @@ export function registerProjectConfigCommands(context: ExtensionContext) {
         if (ProjectConfigurationManager.instance) {
           await ProjectConfigurationManager.instance.selectProjectConfiguration();
         } else {
-          throw missingDependency("Project Configuration Manager");
+          throw missingDependency("Project Configuration Manager", {
+            userMessage: "Project Configuration Manager is not initialized.",
+            logMessage: "Project Configuration Manager not initialized.",
+            actions: [
+              {
+                label: "Reload Window",
+                execute: () =>
+                  commands.executeCommand("workbench.action.reloadWindow"),
+              },
+            ],
+            outputChannel: "Project Configuration",
+          });
         }
       });
     },
-    projectConfCommandErrorMapping
+    { outputChannel: "Project Configuration" }
   );
 
-  registerIDFCommand(context, "espIdf.createProjectConfiguration", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      if (ProjectConfigurationManager.instance) {
-        await ProjectConfigurationManager.instance.createProjectConfiguration();
-      } else {
-        window.showErrorMessage(
-          "Project Configuration Manager not initialized."
-        );
-      }
-    });
-  });
+  registerIDFCommand(
+    context,
+    "espIdf.createProjectConfiguration",
+    () => {
+      PreCheck.perform([openFolderCheck], async () => {
+        if (ProjectConfigurationManager.instance) {
+          await ProjectConfigurationManager.instance.createProjectConfiguration();
+        } else {
+          window.showErrorMessage(
+            "Project Configuration Manager not initialized."
+          );
+        }
+      });
+    },
+    { outputChannel: "Project Configuration" }
+  );
 }

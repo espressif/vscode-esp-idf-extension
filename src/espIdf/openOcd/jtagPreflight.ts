@@ -18,13 +18,17 @@
 import { Uri } from "vscode";
 import { readParameter } from "../../configuration/idf";
 import { openOcdNotReady } from "../../common/error/knownError";
+import { ErrorPresentation } from "../../common/error/types";
 import { TCLClient } from "./tcl/tclClient";
 import {
   assertOpenOcdVersionMeetsJtagMinimum,
   MIN_OPENOCD_VERSION_FOR_JTAG,
 } from "./jtagPreflightVersion";
 import { OpenOCDManager } from "./openOcdManager";
-import { ensureOpenOcdServerRunning } from "./openOcdLaunch";
+import {
+  ensureOpenOcdServerRunning,
+  EnsureOpenOcdServerRunningPresentation,
+} from "./openOcdLaunch";
 
 export {
   MIN_OPENOCD_VERSION_FOR_JTAG,
@@ -34,12 +38,23 @@ export {
 const OPENOCD_READY_MAX_ATTEMPTS = 3;
 const OPENOCD_READY_RETRY_DELAY_MS = 1000;
 
-export async function assertMinimumOpenOcdVersionForJtag(): Promise<void> {
+export type ConnectOpenOcdForJtagPresentation =
+  EnsureOpenOcdServerRunningPresentation & {
+    notReady?: ErrorPresentation;
+    versionTooLow?: ErrorPresentation;
+  };
+
+export async function assertMinimumOpenOcdVersionForJtag(
+  presentation?: ErrorPresentation
+): Promise<void> {
   const currentVersion = await OpenOCDManager.init().version();
-  assertOpenOcdVersionMeetsJtagMinimum(currentVersion);
+  assertOpenOcdVersionMeetsJtagMinimum(currentVersion, presentation);
 }
 
-async function waitForOpenOcdReady(client: TCLClient): Promise<void> {
+async function waitForOpenOcdReady(
+  client: TCLClient,
+  presentation?: ErrorPresentation
+): Promise<void> {
   for (let attempt = 0; attempt < OPENOCD_READY_MAX_ATTEMPTS; attempt++) {
     if (await client.verifyOpenOCDReady()) {
       return;
@@ -48,14 +63,17 @@ async function waitForOpenOcdReady(client: TCLClient): Promise<void> {
       await new Promise((resolve) => setTimeout(resolve, OPENOCD_READY_RETRY_DELAY_MS));
     }
   }
-  throw openOcdNotReady();
+  throw openOcdNotReady(presentation);
 }
 
-export async function connectOpenOcdForJtag(workspace: Uri): Promise<TCLClient> {
-  await ensureOpenOcdServerRunning(workspace);
+export async function connectOpenOcdForJtag(
+  workspace: Uri,
+  presentation?: ConnectOpenOcdForJtagPresentation
+): Promise<TCLClient> {
+  await ensureOpenOcdServerRunning(workspace, presentation);
   const host = readParameter("openocd.tcl.host", workspace) as string;
   const port = readParameter("openocd.tcl.port", workspace) as number;
   const client = new TCLClient({ host, port });
-  await waitForOpenOcdReady(client);
+  await waitForOpenOcdReady(client, presentation?.notReady);
   return client;
 }

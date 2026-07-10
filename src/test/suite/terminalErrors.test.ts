@@ -25,10 +25,6 @@ import {
   invalidConfiguration,
   isKnownError,
 } from "../../common/error/knownError";
-import {
-  resolveKnownErrorDescriptor,
-  resolveKnownErrorUserMessage,
-} from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
 import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
@@ -37,7 +33,6 @@ import {
   setIdfConfigurationSource,
 } from "../../configuration/idfConfigurationSource";
 import { IdfSetup } from "../../eim/types";
-import { terminalCommandErrorMapping } from "../../terminal";
 import {
   loadTerminalLaunchConfig,
   setGetCurrentIdfSetupForTests,
@@ -115,39 +110,6 @@ suite("terminal errors", () => {
   teardown(() => {
     setGetCurrentIdfSetupForTests(undefined);
     resetIdfConfigurationSource();
-  });
-
-  suite("resolveKnownErrorUserMessage", () => {
-    test("command override applies for INVALID_CONFIGURATION", () => {
-      assert.strictEqual(
-        resolveKnownErrorUserMessage(
-          invalidConfiguration("idf.currentSetup"),
-          terminalCommandErrorMapping
-        ),
-        "No ESP-IDF setup is selected. Please select an ESP-IDF version."
-      );
-    });
-
-    test("command override applies for FILE_NOT_FOUND", () => {
-      assert.strictEqual(
-        resolveKnownErrorUserMessage(
-          fileNotFound("/missing/export.sh"),
-          terminalCommandErrorMapping
-        ),
-        "Required file /missing/export.sh could not be found for terminal activation."
-      );
-    });
-
-    test("INVALID_CONFIGURATION override includes select setup action", () => {
-      const descriptor = resolveKnownErrorDescriptor(
-        invalidConfiguration("idf.currentSetup"),
-        terminalCommandErrorMapping
-      );
-      assert.ok(descriptor);
-      assert.strictEqual(descriptor?.actions.length, 1);
-      assert.strictEqual(descriptor?.actions[0].label, "Select ESP-IDF Version");
-      assert.strictEqual(descriptor?.outputChannel, "Terminal");
-    });
   });
 
   suite("loadTerminalLaunchConfig", () => {

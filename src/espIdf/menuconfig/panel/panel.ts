@@ -25,7 +25,6 @@ import { ConfserverProcess } from "../confserver/confServerProcess";
 import { Menu } from "../Menu";
 import { NotificationMode, readParameter } from "../../../configuration/idf";
 import { createMenuconfigPanelController } from "./controller";
-import { menuconfigCommandErrorMapping } from "../errorMapping";
 import { kconfigMenusPath } from "../validation";
 
 export class MenuConfigPanel {
@@ -184,7 +183,7 @@ export class MenuConfigPanel {
         "espIdf.menuconfig.panel",
         parseError(kconfigMenusPath(this.curWorkspaceFolder)),
         undefined,
-        menuconfigCommandErrorMapping
+        { outputChannel: "SDK Configuration Editor" }
       );
       return;
     }
@@ -197,7 +196,7 @@ export class MenuConfigPanel {
         "espIdf.menuconfig.panel",
         confserverProtocolError(jsonValues.error),
         undefined,
-        menuconfigCommandErrorMapping
+        { outputChannel: "SDK Configuration Editor" }
       );
       return;
     }
@@ -271,7 +270,7 @@ export class MenuConfigPanel {
             "espIdf.menuconfig.setDefault",
             error,
             undefined,
-            menuconfigCommandErrorMapping
+            { outputChannel: "SDK Configuration Editor" }
           );
         }
       }

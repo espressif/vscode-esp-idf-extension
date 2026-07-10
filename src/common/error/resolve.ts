@@ -19,7 +19,12 @@ import { ErrorSeverity } from "../customNotifications";
 import { Logger } from "../logger";
 import { KnownError } from "./knownError";
 import { getErrorDescriptor } from "./registry";
-import { CommandErrorMapping, ErrorCode, KnownErrorDescriptor } from "./types";
+import {
+  ErrorCode,
+  ErrorPresentation,
+  HandleErrorOptions,
+  KnownErrorDescriptor,
+} from "./types";
 
 const unregisteredCodeWarnings = new Set<ErrorCode>();
 
@@ -39,17 +44,18 @@ export function assertRegisteredErrorCode(code: ErrorCode): void {
 }
 
 /**
- * Resolve the full descriptor for a KnownError, applying any
- * command-level overrides on top of the global defaults.
+ * Resolve the full descriptor for a KnownError.
+ * Call-site {@link KnownError.presentation} wins over registry defaults.
+ * Optional command {@link HandleErrorOptions.outputChannel} fills in when unset.
  */
 export function resolveKnownErrorDescriptor(
   error: KnownError,
-  commandOverrides?: CommandErrorMapping
+  options?: HandleErrorOptions
 ): KnownErrorDescriptor | undefined {
   const base = getErrorDescriptor(error.code);
-  const override = commandOverrides?.[error.code];
+  const presentation: ErrorPresentation | undefined = error.presentation;
 
-  if (!base && !override) {
+  if (!base && !presentation) {
     if (!unregisteredCodeWarnings.has(error.code)) {
       unregisteredCodeWarnings.add(error.code);
       Logger.warn(
@@ -61,36 +67,39 @@ export function resolveKnownErrorDescriptor(
   }
 
   const userMessage = interpolate(
-    override?.userMessage ?? base?.userMessage ?? error.message,
+    presentation?.userMessage ?? base?.userMessage ?? error.message,
     error.metadata
   );
   const logMessage = interpolate(
-    override?.logMessage ?? base?.logMessage ?? error.message,
+    presentation?.logMessage ?? base?.logMessage ?? error.message,
     error.metadata
   );
 
   return {
     code: error.code,
-    severity: override?.severity ?? base?.severity ?? ErrorSeverity.Error,
+    severity: presentation?.severity ?? base?.severity ?? ErrorSeverity.Error,
     userMessage,
     logMessage,
-    actions: override?.actions ?? base?.actions ?? [],
-    outputChannel: override?.outputChannel ?? base?.outputChannel,
+    actions: presentation?.actions ?? base?.actions ?? [],
+    outputChannel:
+      presentation?.outputChannel ??
+      base?.outputChannel ??
+      options?.outputChannel,
   };
 }
 
 export function resolveKnownErrorUserMessage(
   error: KnownError,
-  commandOverrides?: CommandErrorMapping
+  options?: HandleErrorOptions
 ): string | undefined {
-  return resolveKnownErrorDescriptor(error, commandOverrides)?.userMessage;
+  return resolveKnownErrorDescriptor(error, options)?.userMessage;
 }
 
 export function resolveKnownErrorLogMessage(
   error: KnownError,
-  commandOverrides?: CommandErrorMapping
+  options?: HandleErrorOptions
 ): string | undefined {
-  return resolveKnownErrorDescriptor(error, commandOverrides)?.logMessage;
+  return resolveKnownErrorDescriptor(error, options)?.logMessage;
 }
 
 /** @internal Test helper to reset one-time unregistered-code warnings. */

@@ -32,25 +32,32 @@ import {
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
 import { getTargetsFromEspIdf } from "../../espIdf/setTarget/getTargets";
-import { setTargetCommandErrorMapping } from "../../espIdf/setTarget/errorMapping";
+import { setTargetErrorPresentation } from "../../espIdf/setTarget/setTargetErrorPresentation";
 
 const testWorkspaceUri = vscode.Uri.file("/test/workspace");
 
 suite("setTarget errors", () => {
   suite("resolveKnownErrorUserMessage", () => {
-    test("registry message applies for InvalidIdfTarget", () => {
+    test("presentation applies for InvalidIdfTarget", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          invalidIdfTarget("esp999", ["esp32", "esp32s3"])
+          invalidIdfTarget(
+            "esp999",
+            ["esp32", "esp32s3"],
+            setTargetErrorPresentation.invalidIdfTarget
+          )
         ),
         '"esp999" is not a supported IDF target. Supported targets: esp32, esp32s3.'
       );
     });
 
-    test("command mapping applies Set Target output channel for TaskFailedWithOutput", () => {
+    test("presentation applies Set Target output channel for TaskFailedWithOutput", () => {
       const descriptor = resolveKnownErrorDescriptor(
-        known(ErrorCode.TaskFailedWithOutput, { detail: "set-target failed" }),
-        setTargetCommandErrorMapping
+        known(
+          ErrorCode.TaskFailedWithOutput,
+          { detail: "set-target failed" },
+          setTargetErrorPresentation.taskFailedWithOutput
+        )
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Set Target");
@@ -62,11 +69,13 @@ suite("setTarget errors", () => {
       assert.strictEqual(descriptor?.actions[0].label, "View Output");
     });
 
-    test("command mapping applies set-target wording for IdfTaskInProgress", () => {
+    test("presentation applies set-target wording for IdfTaskInProgress", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          idfTaskInProgress("set target"),
-          setTargetCommandErrorMapping
+          idfTaskInProgress(
+            "set target",
+            setTargetErrorPresentation.idfTaskInProgress
+          )
         ),
         "Wait for ESP-IDF set target to finish."
       );

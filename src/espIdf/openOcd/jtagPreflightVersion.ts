@@ -17,16 +17,24 @@
 
 import { PreCheck } from "../../common/PreCheck";
 import { openOcdVersionTooLow } from "../../common/error/knownError";
+import { ErrorPresentation } from "../../common/error/types";
 
 /** Minimum OpenOCD build required for JTAG flash and JTAG erase in this extension. */
 export const MIN_OPENOCD_VERSION_FOR_JTAG = "v0.10.0-esp32-20201125";
 
-export function assertOpenOcdVersionMeetsJtagMinimum(currentVersion: string): void {
+export function assertOpenOcdVersionMeetsJtagMinimum(
+  currentVersion: string,
+  presentation?: ErrorPresentation
+): void {
   const ok = PreCheck.openOCDVersionValidator(
     MIN_OPENOCD_VERSION_FOR_JTAG,
     currentVersion
   );
   if (!ok) {
-    throw openOcdVersionTooLow(currentVersion, MIN_OPENOCD_VERSION_FOR_JTAG);
+    throw openOcdVersionTooLow(
+      currentVersion,
+      MIN_OPENOCD_VERSION_FOR_JTAG,
+      presentation
+    );
   }
 }

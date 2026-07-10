@@ -36,19 +36,19 @@ import {
   isImageVariableCommandContextReady,
   isVariableCommandContextReady,
 } from "./variableCommandContext";
-import { debugCommandErrorMapping } from "../errorMapping";
 import {
   fileNotFound,
   invalidConfiguration,
   noWorkspaceOpen,
 } from "../../common/error/knownError";
+import { debugErrorPresentation } from "../debugErrorPresentation";
 
 function registerDebugCommand(
   context: ExtensionContext,
   name: string,
   callback: (...args: any[]) => any
 ) {
-  registerIDFCommand(context, name, callback, debugCommandErrorMapping);
+  registerIDFCommand(context, name, callback, { outputChannel: "Debug" });
 }
 
 export function registerHexViewCommands(
@@ -91,7 +91,10 @@ export function registerHexViewCommands(
         const value = debugContext.variable.value;
         const numericValue = parseInt(value, 10);
         if (isNaN(numericValue)) {
-          throw invalidConfiguration("espIdf.viewAsHex.variableValue");
+          throw invalidConfiguration(
+            "espIdf.viewAsHex.variableValue",
+            debugErrorPresentation.invalidConfiguration
+          );
         }
         hexViewProvider.addElement(debugContext.variable.name, numericValue);
       });
@@ -152,7 +155,10 @@ async function startFirstGdbTargetConfiguration(
     "configurations"
   ) as DebugConfiguration[];
   if (!configurations?.length) {
-    throw invalidConfiguration("launch.configurations");
+    throw invalidConfiguration(
+      "launch.configurations",
+      debugErrorPresentation.invalidConfiguration
+    );
   }
   for (const conf of configurations) {
     if (conf.type !== "gdbtarget") {
@@ -163,12 +169,18 @@ async function startFirstGdbTargetConfiguration(
       conf
     );
     if (!resolvedConf) {
-      throw invalidConfiguration("launch.configurations");
+      throw invalidConfiguration(
+        "launch.configurations",
+        debugErrorPresentation.invalidConfiguration
+      );
     }
     await debug.startDebugging(workspaceFolder, resolvedConf);
     return;
   }
-  throw invalidConfiguration("launch.configurations");
+  throw invalidConfiguration(
+    "launch.configurations",
+    debugErrorPresentation.invalidConfiguration
+  );
 }
 
 export function registerEspIdfDebugCommand(
@@ -180,7 +192,7 @@ export function registerEspIdfDebugCommand(
       const workspaceFolder =
         ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       if (!workspaceFolder) {
-        throw noWorkspaceOpen();
+        throw noWorkspaceOpen(debugErrorPresentation.noWorkspaceOpen);
       }
       const launchJsonPath = join(
         workspaceFolder.uri.fsPath,
@@ -188,7 +200,7 @@ export function registerEspIdfDebugCommand(
         "launch.json"
       );
       if (!(await pathExists(launchJsonPath))) {
-        throw fileNotFound(launchJsonPath);
+        throw fileNotFound(launchJsonPath, debugErrorPresentation.fileNotFound);
       }
       await startFirstGdbTargetConfiguration(workspaceFolder, cdtDebugProvider);
     });

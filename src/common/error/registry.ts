@@ -27,10 +27,10 @@ import { ESP } from "../../config";
 
 /**
  * Global registry of default descriptors for each known error code.
- * Commands can override these per-command via CommandErrorMapping.
+ * Call sites may override presentation via KnownError.presentation.
  *
- * When adding a new error: (1) add ErrorCode, (2) register here,
- * (3) add a known() factory with metadata only. Never put user-facing copy in factories.
+ * When adding a new error: (1) add ErrorCode, (2) register defaults here,
+ * (3) add a known() factory (metadata + optional presentation override).
  */
 const errorRegistry = new Map<ErrorCode, KnownErrorDescriptor>();
 
@@ -727,7 +727,21 @@ registerNewErrorInRegistry({
   userMessage:
     "Error building gcov data from gcda files. Check the ESP-IDF output for more details.",
   logMessage: "Failed to build gcov data from gcda files: {detail}.",
-  actions: [],
+  actions: [
+    {
+      label: "Coverage Tutorial",
+      execute: () =>
+        env.openExternal(
+          Uri.parse(
+            "https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/coverage.html"
+          )
+        ),
+    },
+    {
+      label: "View Output",
+      execute: () => OutputChannel.show(),
+    },
+  ],
   outputChannel: coverageOutputChannel,
 });
 
@@ -946,7 +960,7 @@ registerNewErrorInRegistry({
       execute: () =>
         commands.executeCommand(
           "workbench.action.openSettings",
-          "myExtension"
+          "espressif.esp-idf-extension"
         ),
     },
   ],
@@ -959,11 +973,8 @@ registerNewErrorInRegistry({
   logMessage: "Missing dependency: {dependency}.",
   actions: [
     {
-      label: "Show Details",
-      execute: () =>
-        window.showInformationMessage(
-          "Please install the required dependencies. See extension documentation."
-        ),
+      label: "Open ESP-IDF Install Manager",
+      execute: () => commands.executeCommand("espIdf.installManager"),
     },
   ],
 });
@@ -979,12 +990,15 @@ registerNewErrorInRegistry({
 
 // ──────────────────────────── New project errors ─────────────────────
 
+const newProjectOutputChannel = "New Project";
+
 registerNewErrorInRegistry({
   code: ErrorCode.NewProjectWizardFailed,
   severity: ErrorSeverity.Error,
   userMessage: "Failed to start the ESP-IDF New Project wizard.",
   logMessage: "New Project wizard failed: {detail}.",
   actions: [],
+  outputChannel: newProjectOutputChannel,
 });
 
 registerNewErrorInRegistry({
@@ -993,6 +1007,7 @@ registerNewErrorInRegistry({
   userMessage: "Failed to {operation}.",
   logMessage: "Project scaffold failed during {operation}: {detail}.",
   actions: [],
+  outputChannel: newProjectOutputChannel,
 });
 
 registerNewErrorInRegistry({
@@ -1001,9 +1016,12 @@ registerNewErrorInRegistry({
   userMessage: "Failed to import the ESP-IDF project.",
   logMessage: "Import project failed: {detail}.",
   actions: [],
+  outputChannel: newProjectOutputChannel,
 });
 
 // ──────────────────────────── Rainmaker errors ─────────────────────
+
+const rainmakerOutputChannel = "Rainmaker";
 
 registerNewErrorInRegistry({
   code: ErrorCode.RainmakerLoginFailed,
@@ -1012,6 +1030,7 @@ registerNewErrorInRegistry({
     "Failed to login with Rainmaker Cloud, double check your id and password.",
   logMessage: "Rainmaker login failed: {detail}.",
   actions: [],
+  outputChannel: rainmakerOutputChannel,
 });
 
 registerNewErrorInRegistry({
@@ -1021,14 +1040,16 @@ registerNewErrorInRegistry({
     "Failed to delete node, maybe the node is already marked for delete, please try again after sometime.",
   logMessage: "Rainmaker node delete failed: {detail}.",
   actions: [],
+  outputChannel: rainmakerOutputChannel,
 });
 
 registerNewErrorInRegistry({
   code: ErrorCode.RainmakerParamUpdateFailed,
   severity: ErrorSeverity.Error,
-  userMessage: "Failed to update the param, please try once more.",
+  userMessage: "Failed to update param because, {detail}",
   logMessage: "Rainmaker param update failed: {detail}.",
   actions: [],
+  outputChannel: rainmakerOutputChannel,
 });
 
 // ──────────────────────────── eFuse errors ───────────────────────────
@@ -1037,12 +1058,25 @@ registerNewErrorInRegistry({
   code: ErrorCode.EfuseSummaryFailed,
   severity: ErrorSeverity.Error,
   userMessage:
-    "Failed to get the eFuse summary from the chip. {detail}",
+    "Failed to get the eFuse summary from the chip. Make sure you have selected a valid port. {detail}",
   logMessage: "eFuse summary command failed: {detail}.",
-  actions: [],
+  actions: [
+    {
+      label: "Select Port",
+      execute: () => commands.executeCommand("espIdf.selectPort"),
+    },
+  ],
+  outputChannel: "eFuse",
 });
 
 // ──────────────────────────── EIM errors ─────────────────────────────
+
+const eimOutputChannel = "EIM";
+
+const openEimReleasesAction = {
+  label: "Open Releases URL",
+  execute: () => env.openExternal(Uri.parse(ESP.URL.InstallManager.Releases)),
+};
 
 registerNewErrorInRegistry({
   code: ErrorCode.EimDownloadCanceled,
@@ -1050,6 +1084,7 @@ registerNewErrorInRegistry({
   userMessage: "EIM download was canceled.",
   logMessage: "EIM download canceled by user.",
   actions: [],
+  outputChannel: eimOutputChannel,
 });
 
 registerNewErrorInRegistry({
@@ -1057,7 +1092,8 @@ registerNewErrorInRegistry({
   severity: ErrorSeverity.Error,
   userMessage: "EIM download or installation failed: {detail}",
   logMessage: "EIM download/install failed: {detail}.",
-  actions: [],
+  actions: [openEimReleasesAction],
+  outputChannel: eimOutputChannel,
 });
 
 registerNewErrorInRegistry({
@@ -1066,7 +1102,8 @@ registerNewErrorInRegistry({
   userMessage:
     "No EIM release asset found for this platform: {assetName}.",
   logMessage: "EIM asset not found in release manifest: {assetName}.",
-  actions: [],
+  actions: [openEimReleasesAction],
+  outputChannel: eimOutputChannel,
 });
 
 // ──────────────────────────── Repository cloning errors ──────────────
@@ -1076,7 +1113,12 @@ registerNewErrorInRegistry({
   severity: ErrorSeverity.Error,
   userMessage: "Failed to clone {repoName}. {detail}",
   logMessage: "Repository clone failed for {repoName}: {detail}.",
-  actions: [],
+  actions: [
+    {
+      label: "View Output",
+      execute: () => OutputChannel.show(),
+    },
+  ],
 });
 
 // ──────────────────────────── Public API ─────────────────────────────

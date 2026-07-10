@@ -33,6 +33,7 @@ import {
   missingDependency,
   noSerialPort,
 } from "../common/error/knownError";
+import { efuseErrorPresentation } from "./efuseErrorPresentation";
 
 export type ESPEFuseSummary = {
   [category: string]: {
@@ -64,7 +65,11 @@ export class ESPEFuseManager {
     for (const name in eFuseFields) {
       const fields = eFuseFields[name];
       if (!fields.category) {
-        throw idfVersionTooLow("4.3.x", "unknown");
+        throw idfVersionTooLow(
+          "4.3.x",
+          "unknown",
+          efuseErrorPresentation.idfVersionTooLow
+        );
       }
       if (!resp[fields.category]) {
         resp[fields.category] = [];
@@ -79,12 +84,15 @@ export class ESPEFuseManager {
     const pythonPath = getVirtualEnvPythonPath();
 
     if (!pythonPath) {
-      throw missingDependency("Python");
+      throw missingDependency("Python", efuseErrorPresentation.missingDependency);
     }
 
     const port = await readSerialPort(this.workspace, false);
     if (!port) {
-      throw noSerialPort(await getIdfTargetFromSdkconfig(this.workspace));
+      throw noSerialPort(
+        await getIdfTargetFromSdkconfig(this.workspace),
+        efuseErrorPresentation.noSerialPort
+      );
     }
 
     try {
@@ -107,7 +115,7 @@ export class ESPEFuseManager {
         throw error;
       }
       const detail = error instanceof Error ? error.message : String(error);
-      throw efuseSummaryFailed(detail);
+      throw efuseSummaryFailed(detail, efuseErrorPresentation.efuseSummaryFailed);
     }
 
     const eFuseFields = await readJson(tempFile);
@@ -132,7 +140,10 @@ export class ESPEFuseManager {
     const currentEnvVars = getCurrentIdfConfiguration();
     const idfPath = currentEnvVars["IDF_PATH"] || process.env.IDF_PATH;
     if (!idfPath) {
-      throw invalidConfiguration("IDF_PATH");
+      throw invalidConfiguration(
+        "IDF_PATH",
+        efuseErrorPresentation.invalidConfiguration
+      );
     }
     return join(
       idfPath,

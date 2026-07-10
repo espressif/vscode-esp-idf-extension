@@ -24,37 +24,18 @@ import {
   openOcdProcessExited,
   openOcdStartFailed,
 } from "../../common/error/knownError";
-import { resolveKnownErrorUserMessage } from "../../common/error/resolve";
-import { CommandErrorMapping, ErrorCode } from "../../common/error/types";
-import { ErrorSeverity } from "../../common/customNotifications";
-import { openOcdCommandErrorMapping } from "../../espIdf/openOcd/errorMapping";
+import {
+  resolveKnownErrorDescriptor,
+  resolveKnownErrorUserMessage,
+} from "../../common/error/resolve";
+import { ErrorCode } from "../../common/error/types";
 import {
   requireOpenOcdBinary,
   requireOpenOcdScripts,
   requireOpenOcdWorkspace,
 } from "../../espIdf/openOcd/validation";
-
-const flashJtagOpenOcdNotRunningMapping: CommandErrorMapping = {
-  [ErrorCode.OpenOcdNotRunning]: {
-    severity: ErrorSeverity.Warning,
-    userMessage:
-      "Can't perform JTAG flash, because OpenOCD server is not running!",
-    logMessage: "OpenOCD server is not running after launch attempt.",
-    actions: [],
-    outputChannel: "Flash",
-  },
-};
-
-const eraseJtagOpenOcdNotRunningMapping: CommandErrorMapping = {
-  [ErrorCode.OpenOcdNotRunning]: {
-    severity: ErrorSeverity.Warning,
-    userMessage:
-      "Can't perform JTAG erase, because OpenOCD server is not running!",
-    logMessage: "OpenOCD server is not running after launch attempt.",
-    actions: [],
-    outputChannel: "Erase flash",
-  },
-};
+import { flashJtagOpenOcdPresentation } from "../../flash/jtagOpenOcdPresentation";
+import { eraseJtagOpenOcdPresentation } from "../../eraseFlash/jtagOpenOcdPresentation";
 
 suite("OpenOCD errors", () => {
   suite("validation", () => {
@@ -115,42 +96,50 @@ suite("OpenOCD errors", () => {
       );
     });
 
-    test("openOcdCommandErrorMapping overrides INVALID_CONFIGURATION for OpenOCD command", () => {
-      const error = idfToolNotFound("openocd");
-      assert.ok(
-        resolveKnownErrorUserMessage(error, openOcdCommandErrorMapping)?.includes(
-          "openocd"
-        )
-      );
-    });
-
-    test("openOcdCommandErrorMapping interpolates OpenOcdStartFailed detail", () => {
+    test("registry interpolates OpenOcdStartFailed detail", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          openOcdStartFailed("Error: adapter not found"),
-          openOcdCommandErrorMapping
+          openOcdStartFailed("Error: adapter not found")
         ),
         "OpenOCD server failed to start: Error: adapter not found"
       );
     });
 
-    test("flash JTAG mapping preserves JTAG-specific OpenOcdNotRunning message", () => {
-      assert.strictEqual(
-        resolveKnownErrorUserMessage(
-          openOcdNotRunning(),
-          flashJtagOpenOcdNotRunningMapping
-        ),
-        "Can't perform JTAG flash, because OpenOCD server is not running!"
+    test("registry interpolates IdfToolNotFound for openocd", () => {
+      assert.ok(
+        resolveKnownErrorUserMessage(idfToolNotFound("openocd"))?.includes(
+          "openocd"
+        )
       );
     });
 
-    test("erase JTAG mapping preserves JTAG-specific OpenOcdNotRunning message", () => {
+    test("flash JTAG presentation preserves JTAG-specific OpenOcdNotRunning message", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          openOcdNotRunning(),
-          eraseJtagOpenOcdNotRunningMapping
+          openOcdNotRunning(flashJtagOpenOcdPresentation.notRunning)
+        ),
+        "Can't perform JTAG flash, because OpenOCD server is not running!"
+      );
+      assert.strictEqual(
+        resolveKnownErrorDescriptor(
+          openOcdNotRunning(flashJtagOpenOcdPresentation.notRunning)
+        )?.outputChannel,
+        "Flash"
+      );
+    });
+
+    test("erase JTAG presentation preserves JTAG-specific OpenOcdNotRunning message", () => {
+      assert.strictEqual(
+        resolveKnownErrorUserMessage(
+          openOcdNotRunning(eraseJtagOpenOcdPresentation.notRunning)
         ),
         "Can't perform JTAG erase, because OpenOCD server is not running!"
+      );
+      assert.strictEqual(
+        resolveKnownErrorDescriptor(
+          openOcdNotRunning(eraseJtagOpenOcdPresentation.notRunning)
+        )?.outputChannel,
+        "Erase flash"
       );
     });
   });

@@ -19,18 +19,26 @@ import * as assert from "assert";
 import { isKnownError, missingDependency } from "../../common/error/knownError";
 import { resolveKnownErrorUserMessage } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
-import { projectConfCommandErrorMapping } from "../../project-conf/errorMapping";
+
+const projectConfErrorOptions = { outputChannel: "Project Configuration" };
 
 suite("Project configuration command errors", () => {
   test("missingDependency for uninitialized manager maps to user message", () => {
-    const error = missingDependency("Project Configuration Manager");
+    const error = missingDependency("Project Configuration Manager", {
+      userMessage: "Project Configuration Manager is not initialized.",
+      logMessage: "Project Configuration Manager not initialized.",
+      actions: [],
+      outputChannel: "Project Configuration",
+    });
     assert.ok(isKnownError(error));
     assert.strictEqual(error.code, ErrorCode.MISSING_DEPENDENCY);
 
     const message = resolveKnownErrorUserMessage(
       error,
-      projectConfCommandErrorMapping
+      projectConfErrorOptions
     );
-    assert.ok(message?.includes("Project Configuration Manager is not initialized"));
+    assert.ok(
+      message?.includes("Project Configuration Manager is not initialized")
+    );
   });
 });

@@ -26,24 +26,29 @@ import {
 } from "../../common/error/knownError";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
 import { getToolchainToolName, isBinInPath } from "../../utils";
+import {
+  heapTraceBuildRequiredPresentation,
+  tracingFileNotFoundPresentation,
+  tracingIdfToolNotFoundPresentation,
+} from "./tracingOpenOcdPresentation";
 
 export async function requireHeapTraceBuildDir(
   buildDirPath: string
 ): Promise<void> {
   if (!(await pathExists(buildDirPath))) {
-    throw buildRequiredBeforeFlash(buildDirPath);
+    throw buildRequiredBeforeFlash(buildDirPath, heapTraceBuildRequiredPresentation);
   }
 }
 
 export function requireHeapTraceGdb(gdbTool: string, gdbPath: string): void {
   if (!gdbPath) {
-    throw idfToolNotFound(gdbTool);
+    throw idfToolNotFound(gdbTool, tracingIdfToolNotFoundPresentation);
   }
 }
 
 export function requireHeapTraceElf(elfFilePath: string, exists: boolean): void {
   if (!exists) {
-    throw fileNotFound(elfFilePath);
+    throw fileNotFound(elfFilePath, tracingFileNotFoundPresentation);
   }
 }
 

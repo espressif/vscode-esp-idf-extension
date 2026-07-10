@@ -25,10 +25,9 @@ import {
 } from "../../common/error/knownError";
 import {
   interpolate,
+  resolveKnownErrorDescriptor,
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
-import { ErrorCode } from "../../common/error/types";
-import { ErrorSeverity } from "../../common/customNotifications";
 
 suite("error resolve", () => {
   suite("interpolate", () => {
@@ -71,16 +70,22 @@ suite("error resolve", () => {
       );
     });
 
-    test("command override wins over registry default", () => {
-      const message = resolveKnownErrorUserMessage(alreadyBuilding(), {
-        [ErrorCode.AlreadyBuilding]: {
-          severity: ErrorSeverity.Warning,
+    test("call-site presentation wins over registry default", () => {
+      const message = resolveKnownErrorUserMessage(
+        alreadyBuilding({
           userMessage: "Custom build busy message",
           logMessage: "custom log",
           actions: [],
-        },
-      });
+        })
+      );
       assert.strictEqual(message, "Custom build busy message");
+    });
+
+    test("HandleErrorOptions fills outputChannel when presentation and registry omit it", () => {
+      const descriptor = resolveKnownErrorDescriptor(alreadyBuilding(), {
+        outputChannel: "Build",
+      });
+      assert.strictEqual(descriptor?.outputChannel, "Build");
     });
   });
 });

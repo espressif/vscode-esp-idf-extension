@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { Uri } from "vscode";
+import { commands, Uri } from "vscode";
+import { ErrorSeverity } from "../../common/customNotifications";
 import { readParameter } from "../../configuration/idf";
 import {
   idfToolNotFound,
@@ -33,7 +34,22 @@ export function requireOpenOcdWorkspace(workspace: Uri | undefined): Uri {
 
 export function requireOpenOcdBinary(openOcdPath: string): string {
   if (!openOcdPath) {
-    throw idfToolNotFound("openocd");
+    throw idfToolNotFound("openocd", {
+      severity: ErrorSeverity.Error,
+      userMessage:
+        "Invalid OpenOCD bin path or access is denied. Check idf.customOpenOCDPath or ensure openocd is in PATH.",
+      logMessage: "{toolName} executable not found or not accessible.",
+      actions: [
+        {
+          label: "Open Settings",
+          execute: () =>
+            commands.executeCommand(
+              "workbench.action.openSettings",
+              "idf.customOpenOCDPath"
+            ),
+        },
+      ],
+    });
   }
   return openOcdPath;
 }
@@ -42,7 +58,22 @@ export function requireOpenOcdScripts(
   modifiedEnv: Record<string, string>
 ): void {
   if (typeof modifiedEnv.OPENOCD_SCRIPTS === "undefined") {
-    throw missingDependency("OPENOCD_SCRIPTS");
+    throw missingDependency("OPENOCD_SCRIPTS", {
+      severity: ErrorSeverity.Error,
+      userMessage:
+        "OPENOCD_SCRIPTS environment variable is missing. Set it in idf.customExtraVars or in your system environment.",
+      logMessage: "Missing dependency: {dependency}.",
+      actions: [
+        {
+          label: "Open Settings",
+          execute: () =>
+            commands.executeCommand(
+              "workbench.action.openSettings",
+              "idf.customExtraVars"
+            ),
+        },
+      ],
+    });
   }
 }
 
@@ -70,7 +101,19 @@ export function requireOpenOcdLaunchConfig(
     typeof openOcdConfigFilesList === "undefined" ||
     openOcdConfigFilesList.length < 1
   ) {
-    throw invalidConfiguration("idf.openOcdConfigs");
+    throw invalidConfiguration("idf.openOcdConfigs", {
+      severity: ErrorSeverity.Error,
+      userMessage:
+        "Invalid OpenOCD config files. Check idf.openOcdConfigs or select a board configuration.",
+      logMessage: "Invalid extension configuration: {setting}.",
+      actions: [
+        {
+          label: "Select Board Configs",
+          execute: () =>
+            commands.executeCommand("espIdf.selectOpenOcdConfigFiles"),
+        },
+      ],
+    });
   }
 }
 

@@ -27,21 +27,22 @@ import {
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
-import { newProjectCommandErrorMapping } from "../../newProject/errorMapping";
+
+const newProjectErrorOptions = { outputChannel: "New Project" };
 
 suite("new project command errors", () => {
   suite("resolveKnownErrorUserMessage", () => {
     test("command mapping applies New Project output channel for wizard failures", () => {
       const descriptor = resolveKnownErrorDescriptor(
         newProjectWizardFailed("setup list unavailable"),
-        newProjectCommandErrorMapping
+        newProjectErrorOptions
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "New Project");
       assert.strictEqual(
         resolveKnownErrorUserMessage(
           newProjectWizardFailed("setup list unavailable"),
-          newProjectCommandErrorMapping
+          newProjectErrorOptions
         ),
         "Failed to start the ESP-IDF New Project wizard."
       );
@@ -54,7 +55,7 @@ suite("new project command errors", () => {
             "create the ESP-IDF project",
             "permission denied"
           ),
-          newProjectCommandErrorMapping
+          newProjectErrorOptions
         ),
         "Failed to create the ESP-IDF project."
       );
@@ -63,14 +64,14 @@ suite("new project command errors", () => {
     test("command mapping applies import-specific wording for ImportProjectFailed", () => {
       const descriptor = resolveKnownErrorDescriptor(
         importProjectFailed("copy failed"),
-        newProjectCommandErrorMapping
+        newProjectErrorOptions
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "New Project");
       assert.strictEqual(
         resolveKnownErrorUserMessage(
           importProjectFailed("copy failed"),
-          newProjectCommandErrorMapping
+          newProjectErrorOptions
         ),
         "Failed to import the ESP-IDF project."
       );
@@ -79,10 +80,15 @@ suite("new project command errors", () => {
 
   suite("known error factories", () => {
     test("projectScaffoldFailed preserves operation metadata", () => {
-      const error = projectScaffoldFailed("add ESP-IDF VS Code files to the project");
+      const error = projectScaffoldFailed(
+        "add ESP-IDF VS Code files to the project"
+      );
       assert.ok(isKnownError(error));
       assert.strictEqual(error.code, ErrorCode.ProjectScaffoldFailed);
-      assert.strictEqual(error.metadata?.operation, "add ESP-IDF VS Code files to the project");
+      assert.strictEqual(
+        error.metadata?.operation,
+        "add ESP-IDF VS Code files to the project"
+      );
     });
   });
 });

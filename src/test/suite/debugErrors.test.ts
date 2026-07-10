@@ -20,13 +20,10 @@ import { join, resolve } from "path";
 import * as vscode from "vscode";
 import {
   fileNotFound,
-  flasherArgsMissing,
   gdbinitPrefixMapMissing,
   idfToolNotFound,
   invalidConfiguration,
   isKnownError,
-  missingDependency,
-  noSerialPort,
   openOcdNotRunning,
 } from "../../common/error/knownError";
 import {
@@ -35,12 +32,11 @@ import {
 import { ErrorCode } from "../../common/error/types";
 import { resolveDapErrorMessage } from "../../debugAdapter/dapError";
 import {
-  debugCommandErrorMapping,
-  debugDapErrorMapping,
-} from "../../debugAdapter/errorMapping";
+  debugDapErrorPresentation,
+  debugErrorPresentation,
+} from "../../debugAdapter/debugErrorPresentation";
 import {
   requireBuildDirPath,
-  resolveDebugGdb,
   resolveDebugProgram,
 } from "../../debugAdapter/validation";
 import {
@@ -84,8 +80,10 @@ suite("debug errors", () => {
     test("command override applies for FILE_NOT_FOUND", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          fileNotFound("/proj/build/app.elf"),
-          debugCommandErrorMapping
+          fileNotFound(
+            "/proj/build/app.elf",
+            debugErrorPresentation.fileNotFound
+          )
         ),
         "Required file /proj/build/app.elf could not be found for the debug session."
       );
@@ -94,8 +92,7 @@ suite("debug errors", () => {
     test("command override applies for GdbinitPrefixMapMissing", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          gdbinitPrefixMapMissing("/proj/build/gdbinit/prefix_map"),
-          debugCommandErrorMapping
+          gdbinitPrefixMapMissing("/proj/build/gdbinit/prefix_map")
         ),
         "CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found at /proj/build/gdbinit/prefix_map."
       );
@@ -104,8 +101,7 @@ suite("debug errors", () => {
     test("command override applies for OpenOcdNotRunning", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          openOcdNotRunning(),
-          debugDapErrorMapping
+          openOcdNotRunning(debugErrorPresentation.openOcdNotRunning)
         ),
         "OpenOCD is not running. Please start OpenOCD before launching the debug session."
       );
@@ -114,8 +110,7 @@ suite("debug errors", () => {
     test("command override applies for IdfToolNotFound", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          idfToolNotFound("gdb"),
-          debugCommandErrorMapping
+          idfToolNotFound("gdb", debugErrorPresentation.idfToolNotFound)
         ),
         "Toolchain tool gdb was not found. Check your ESP-IDF setup."
       );
@@ -125,7 +120,12 @@ suite("debug errors", () => {
   suite("resolveDapErrorMessage", () => {
     test("maps KnownError through debug DAP mapping", () => {
       assert.strictEqual(
-        resolveDapErrorMessage(invalidConfiguration("program")),
+        resolveDapErrorMessage(
+          invalidConfiguration(
+            "program",
+            debugDapErrorPresentation.invalidConfiguration
+          )
+        ),
         "Debug launch setting program is invalid or missing."
       );
     });

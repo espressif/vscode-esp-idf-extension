@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Uri } from "vscode";
+import { commands, Uri } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { join } from "path";
 import { pathExists } from "fs-extra";
@@ -31,6 +31,34 @@ import {
   invalidConfiguration,
   missingDependency,
 } from "../common/error/knownError";
+import { ErrorPresentation } from "../common/error/types";
+
+const buildInvalidConfigurationPresentation: ErrorPresentation = {
+  actions: [
+    {
+      label: "Open Settings",
+      execute: () =>
+        commands.executeCommand(
+          "workbench.action.openSettings",
+          "idf.buildPath"
+        ),
+    },
+  ],
+};
+
+const buildFlasherArgsMissingPresentation: ErrorPresentation = {
+  actions: [
+    {
+      label: "Build",
+      execute: () => commands.executeCommand("espIdf.buildDevice"),
+    },
+  ],
+  outputChannel: "Build",
+};
+
+const buildMissingDependencyPresentation: ErrorPresentation = {
+  actions: [],
+};
 
 let getIdfTargetFromSdkconfigForTests:
   | ((workspace: Uri) => Promise<string | undefined>)
@@ -52,10 +80,13 @@ export async function appendDfuExecution(
 ): Promise<void> {
   const buildPath = (readParameter("idf.buildPath", workspace) as string)?.trim();
   if (!buildPath) {
-    throw invalidConfiguration("idf.buildPath");
+    throw invalidConfiguration(
+      "idf.buildPath",
+      buildInvalidConfigurationPresentation
+    );
   }
   if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
-    throw flasherArgsMissing();
+    throw flasherArgsMissing(buildFlasherArgsMissingPresentation);
   }
 
   const resolveIdfTarget =
@@ -71,7 +102,10 @@ export async function appendDfuExecution(
   const modifiedEnv = getCurrentIdfConfiguration();
   const idfPathDir = modifiedEnv["IDF_PATH"];
   if (!idfPathDir) {
-    throw invalidConfiguration("IDF_PATH");
+    throw invalidConfiguration(
+      "IDF_PATH",
+      buildInvalidConfigurationPresentation
+    );
   }
   const args = [
     join(idfPathDir, "tools", "mkdfu.py"),
@@ -85,7 +119,7 @@ export async function appendDfuExecution(
   ];
   const pythonBinPath = getVirtualEnvPythonPath();
   if (!pythonBinPath) {
-    throw missingDependency("Python");
+    throw missingDependency("Python", buildMissingDependencyPresentation);
   }
   const buildDfuExecution = addProcessTask(
     "Write DFU bin",

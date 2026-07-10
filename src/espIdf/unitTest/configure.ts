@@ -26,8 +26,39 @@ import { flashMain } from "../../flash/main";
 import { CustomExecutionTaskResult } from "../../taskManager/types";
 import { OutputChannel } from "../../common/outputChannel";
 import { Logger } from "../../common/logger";
-import { missingDependency } from "../../common/error/knownError";
+import {
+  isKnownError,
+  known,
+  missingDependency,
+} from "../../common/error/knownError";
+import { ErrorCode, ErrorPresentation } from "../../common/error/types";
 import { getFileList, getTestComponents } from "./utils";
+import { unitTestErrorPresentation } from "./unitTestErrorPresentation";
+
+const unitTestPresentations: Partial<Record<ErrorCode, ErrorPresentation>> = {
+  [ErrorCode.UnitTestTaskFailed]: unitTestErrorPresentation.unitTestTaskFailed,
+  [ErrorCode.TaskFailedWithOutput]:
+    unitTestErrorPresentation.taskFailedWithOutput,
+  [ErrorCode.AlreadyBuilding]: unitTestErrorPresentation.alreadyBuilding,
+  [ErrorCode.AlreadyFlashing]: unitTestErrorPresentation.alreadyFlashing,
+  [ErrorCode.IdfTaskInProgress]: unitTestErrorPresentation.idfTaskInProgress,
+  [ErrorCode.BuildTerminated]: unitTestErrorPresentation.buildTerminated,
+  [ErrorCode.FlashTerminated]: unitTestErrorPresentation.flashTerminated,
+  [ErrorCode.NoPortSelected]: unitTestErrorPresentation.noPortSelected,
+  [ErrorCode.NoSerialPort]: unitTestErrorPresentation.noSerialPort,
+  [ErrorCode.MISSING_DEPENDENCY]: unitTestErrorPresentation.missingDependency,
+};
+
+function presentUnitTestError(error: unknown): never {
+  if (!isKnownError(error)) {
+    throw error;
+  }
+  const presentation = unitTestPresentations[error.code];
+  if (!presentation) {
+    throw error;
+  }
+  throw known(error.code, error.metadata, presentation);
+}
 
 export async function configureUnityApp(
   workspaceFolder: Uri,
@@ -52,7 +83,11 @@ export async function configureUnityApp(
         ? error.message
         : "Error configuring Unity App for project";
     OutputChannel.appendLine(msg, "idf-unit-test");
-    Logger.error(msg, error instanceof Error ? error : new Error(String(error)), "configureUnityApp");
+    Logger.error(
+      msg,
+      error instanceof Error ? error : new Error(String(error)),
+      "configureUnityApp"
+    );
   }
 }
 
@@ -62,13 +97,12 @@ export async function copyTestAppProject(
 ) {
   const extensionPath = extensions.getExtension(ESP.extensionID)?.extensionPath;
   if (!extensionPath) {
-    throw missingDependency("Extension");
+    throw missingDependency(
+      "Extension",
+      unitTestErrorPresentation.missingDependency
+    );
   }
-  let unityAppDir: string = join(
-    extensionPath,
-    "templates",
-    "unity-app"
-  );
+  let unityAppDir: string = join(extensionPath, "templates", "unity-app");
   let destUnityAppDir = Uri.joinPath(workspaceFolder, "unity-app");
   await copy(unityAppDir, destUnityAppDir.fsPath);
   await updateTestComponents(destUnityAppDir, testComponents);
@@ -104,7 +138,11 @@ export async function buildTestApp(
   if (!flashType) {
     flashType = ESP.FlashType.UART;
   }
-  return buildMain(unitTestAppDirPath, cancelToken, flashType);
+  try {
+    return await buildMain(unitTestAppDirPath, cancelToken, flashType);
+  } catch (error) {
+    presentUnitTestError(error);
+  }
 }
 
 export async function flashTestApp(
@@ -118,7 +156,11 @@ export async function flashTestApp(
   if (!flashType) {
     flashType = ESP.FlashType.UART;
   }
-  await flashMain(unitTestAppDirPath, cancelToken, flashType, false);
+  try {
+    await flashMain(unitTestAppDirPath, cancelToken, flashType, false);
+  } catch (error) {
+    presentUnitTestError(error);
+  }
 }
 
 export async function buildFlashTestApp(

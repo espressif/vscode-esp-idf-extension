@@ -32,10 +32,10 @@ import { ErrorCode } from "../../common/error/types";
 import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
 import { KconfigMenuLoader } from "../../espIdf/menuconfig/kconfigMenus/loader";
-import { menuconfigCommandErrorMapping } from "../../espIdf/menuconfig/errorMapping";
 import { kconfigMenusPath, requireIdfPath, requireKconfigMenusJson } from "../../espIdf/menuconfig/validation";
 import { ConfigurePreset } from "../../project-conf/projectConfiguration";
 import { ProjectConfigStore } from "../../project-conf/store";
+import { menuconfigErrorPresentation } from "../../espIdf/menuconfig/menuconfigErrorPresentation";
 import {
   IdfConfigurationSource,
   IdfInspectResult,
@@ -134,11 +134,13 @@ suite("menuconfig errors", () => {
       );
     });
 
-    test("command override applies for FILE_NOT_FOUND", () => {
+    test("presentation applies for FILE_NOT_FOUND", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
-          fileNotFound("/build/config/kconfig_menus.json"),
-          menuconfigCommandErrorMapping
+          fileNotFound(
+            "/build/config/kconfig_menus.json",
+            menuconfigErrorPresentation.fileNotFound
+          )
         ),
         "Menuconfig menus file not found at /build/config/kconfig_menus.json. Build the project first."
       );

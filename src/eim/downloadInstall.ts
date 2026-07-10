@@ -102,7 +102,12 @@ function getEimInstallDir(mode: "cli" | "gui"): string {
     process.platform !== "linux" &&
     process.platform !== "darwin"
   ) {
-    throw environmentNotSupported(process.platform);
+    throw environmentNotSupported(process.platform, {
+      userMessage: "EIM is not supported on {envName}.",
+      logMessage: "EIM install blocked: unsupported environment {envName}.",
+      actions: [],
+      outputChannel: "EIM",
+    });
   }
 
   const subdir = mode === "cli" ? "eim" : "eim_gui";
@@ -162,7 +167,12 @@ function getEimAssetName(mode: "cli" | "gui", arch: string): string {
     return `eim-${mode}-linux-${linuxArch}`;
   }
 
-  throw environmentNotSupported(process.platform);
+  throw environmentNotSupported(process.platform, {
+    userMessage: "EIM is not supported on {envName}.",
+    logMessage: "EIM install blocked: unsupported environment {envName}.",
+    actions: [],
+    outputChannel: "EIM",
+  });
 }
 
 function getEimAssetExtension(): ".exe" | ".zip" {

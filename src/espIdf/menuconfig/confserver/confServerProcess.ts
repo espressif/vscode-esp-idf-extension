@@ -51,7 +51,6 @@ import {
 import { NotificationMode, readParameter } from "../../../configuration/idf";
 import { join } from "path";
 import { buildIdfPyConfigSubcommandArgs } from "../../common/idfPySubCmdBuilder";
-import { menuconfigCommandErrorMapping } from "../errorMapping";
 import { requireIdfPath, resolvePythonForIdfPy } from "../validation";
 
 const CONFSERVER_COMMAND_ID = "espIdf.menuconfig.confserver";
@@ -506,7 +505,7 @@ export class ConfserverProcess {
         CONFSERVER_COMMAND_ID,
         confserverProcessFailed("startup", { detail }),
         undefined,
-        menuconfigCommandErrorMapping
+        { outputChannel: "SDK Configuration Editor" }
       );
     });
     this.confServerProcess?.on("exit", (code, signal) => {
@@ -520,7 +519,7 @@ export class ConfserverProcess {
             signal,
           }),
           undefined,
-          menuconfigCommandErrorMapping
+          { outputChannel: "SDK Configuration Editor" }
         );
       }
       ConfserverProcess.dispose();

@@ -26,6 +26,7 @@ import {
   idfTaskInProgress,
   IdfTaskName,
 } from "../common/error/knownError";
+import { ErrorPresentation } from "../common/error/types";
 import {
   collectExecutions,
   TaskManager,
@@ -40,6 +41,11 @@ import { buildFinishFlashCmd } from "./buildFinishFlashCmd";
 import { appendDfuExecution } from "./dfuExecution";
 import { runSizeTaskIfEnabled } from "./sizeExecution";
 import { CancellationToken, Disposable, Uri } from "vscode";
+
+const buildIdfTaskInProgressPresentation: ErrorPresentation = {
+  userMessage: "Wait for ESP-IDF {taskName} to finish before building.",
+  logMessage: "Attempted to build while {taskName} is in progress.",
+};
 
 /**
  * Runs the ESP-IDF build pipeline: optional pre/post custom tasks, CMake/ninja
@@ -71,10 +77,16 @@ export async function buildMain(
 
   try {
     if (FlashSession.isActive) {
-      throw idfTaskInProgress(IdfTaskName.Flash);
+      throw idfTaskInProgress(
+        IdfTaskName.Flash,
+        buildIdfTaskInProgressPresentation
+      );
     }
     if (EraseFlashSession.isActive) {
-      throw idfTaskInProgress(IdfTaskName.EraseFlash);
+      throw idfTaskInProgress(
+        IdfTaskName.EraseFlash,
+        buildIdfTaskInProgressPresentation
+      );
     }
     session = BuildSession.acquire();
     TaskManager.clearTaskResults();
