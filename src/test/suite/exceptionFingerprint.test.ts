@@ -1,5 +1,5 @@
 import * as assert from "assert";
-import { exceptionFingerprint } from "../../telemetry/exceptionFingerprint";
+import { exceptionFingerprint } from "../../common/exceptionFingerprint";
 
 suite("exceptionFingerprint Tests", () => {
   test("same error and category produce same fingerprint", () => {
