@@ -61,10 +61,9 @@ interface BoardQuickPickItem extends QuickPickItem {
 
 export async function getOpenOcdScripts(workspace: Uri): Promise<string> {
   const modifiedEnv = await configureEnvVariables(workspace);
-  const userExtraVars = readParameter(
-    "idf.customExtraVars",
-    workspace
-  ) as { [key: string]: string };
+  const userExtraVars = readParameter("idf.customExtraVars", workspace) as {
+    [key: string]: string;
+  };
   let openOcdScriptsPath: string;
   try {
     openOcdScriptsPath = modifiedEnv.hasOwnProperty("OPENOCD_SCRIPTS")
@@ -167,9 +166,7 @@ export async function selectOpenOcdConfigFiles(
             const parsed = JSON.parse(devkitsOutput);
             if (parsed && Array.isArray(parsed.boards)) {
               connectedBoardItems = parsed.boards
-                .filter(
-                  (b: any) => !idfTarget || b.target === idfTarget
-                )
+                .filter((b: any) => !idfTarget || b.target === idfTarget)
                 .map(
                   (b: any): BoardQuickPickItem => ({
                     label: b.name,
@@ -214,9 +211,7 @@ export async function selectOpenOcdConfigFiles(
       detail: b.configFiles.join(", "),
       label: b.name,
       target: b,
-      picked: currentOpenOcdConfigs
-        .join(",")
-        .includes(b.configFiles.join(",")),
+      picked: currentOpenOcdConfigs.join(",").includes(b.configFiles.join(",")),
       isConnected: false,
     }));
 
@@ -235,7 +230,10 @@ export async function selectOpenOcdConfigFiles(
       connectedBoardItems.length > 0
         ? [
             ...connectedBoardItems,
-            { kind: QuickPickItemKind.Separator, label: l10n.t("Other Boards") },
+            {
+              kind: QuickPickItemKind.Separator,
+              label: l10n.t("Other Boards"),
+            },
             ...filteredStaticChoices,
           ]
         : staticChoices;
@@ -279,7 +277,10 @@ export async function selectOpenOcdConfigFiles(
             openOCDVersion &&
             supportsSerialFromDetectConfig(openOCDVersion)
           ) {
-            storeAdapterSerial(workspaceFolder, selectedBoard.boardInfo.serial_number);
+            storeAdapterSerial(
+              workspaceFolder,
+              selectedBoard.boardInfo.serial_number
+            );
             updateOpenOcdAdapterStatusBarItem(workspaceFolder);
           }
 
