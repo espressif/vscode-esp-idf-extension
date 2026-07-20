@@ -157,7 +157,12 @@ export async function selectOpenOcdConfigFiles(
         const openOCDManager = OpenOCDManager.init();
         openOCDVersion = await openOCDManager.version();
         const devkitsCmd = new DevkitsCommand(workspaceFolder);
-        const scriptPath = await devkitsCmd.getScriptPath(openOCDVersion);
+        const modifiedEnv = await configureEnvVariables(workspaceFolder);
+        const openOcdPath = await OpenOCDManager.getOpenOcdPath(
+          workspaceFolder,
+          modifiedEnv
+        );
+        const scriptPath = await devkitsCmd.getScriptPath(openOcdPath);
         if (scriptPath) {
           const devkitsOutput = await devkitsCmd.runDevkitsScript(
             openOCDVersion
