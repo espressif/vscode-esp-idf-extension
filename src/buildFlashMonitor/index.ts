@@ -40,7 +40,8 @@ import { createNewIdfMonitor } from "../espIdf/monitor/command";
 
 export async function buildFlashAndMonitor(
   workspaceFolderUri: Uri,
-  noResetMonitor?: boolean
+  noResetMonitor?: boolean,
+  buildType?:ESP.BuildType
 ) {
   await PreCheck.perform([openFolderCheck], async () => {
     const notificationMode = readParameter(
@@ -65,11 +66,22 @@ export async function buildFlashAndMonitor(
       ) => {
         progress.report({ message: "Building project...", increment: 20 });
         const flashType = readParameter("idf.flashType", workspaceFolderUri);
-        let canContinue = await buildCommand(
-          workspaceFolderUri,
-          cancelToken,
-          flashType
-        );
+        let canContinue = false;
+        if (typeof buildType === "undefined") {
+          canContinue = await buildCommand(
+            workspaceFolderUri,
+            cancelToken,
+            flashType
+          );
+        } else if (buildType === ESP.BuildType.App) {
+          canContinue = await buildCommand(
+            workspaceFolderUri,
+            cancelToken,
+            flashType,
+            buildType
+          );
+        }
+
         if (!canContinue) {
           return;
         }
@@ -87,10 +99,19 @@ export async function buildFlashAndMonitor(
           workspaceFolderUri
         );
 
-        let partitionToUse = readParameter(
-          "idf.flashPartitionToUse",
-          workspaceFolderUri
-        ) as ESP.BuildType;
+        let partitionToUse: any;
+
+        if (
+          typeof buildType === "undefined" ||
+          buildType !== ESP.BuildType.App
+        ) {
+          partitionToUse = readParameter(
+            "idf.flashPartitionToUse",
+            workspaceFolderUri
+          ) as ESP.BuildType;
+        } else {
+          partitionToUse = ESP.BuildType.App;
+        }
 
         if (
           partitionToUse &&
