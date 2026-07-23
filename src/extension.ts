@@ -2013,7 +2013,7 @@ export async function activate(context: vscode.ExtensionContext) {
     return flash(isEncrypted, ESP.FlashType.UART, ESP.BuildType.App);
   });
   registerIDFCommand("espIdf.appBuildFlashMonitor", () => {
-    buildFlashAndMonitor(workspaceRoot, true, ESP.BuildType.App);
+    buildFlashAndMonitor(workspaceRoot, undefined, ESP.BuildType.App);
   })
   registerIDFCommand("espIdf.buildBootloader", () =>
     build(undefined, ESP.BuildType.Bootloader)
