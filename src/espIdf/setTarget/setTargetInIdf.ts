@@ -30,7 +30,6 @@ import { IdfTarget } from "./getTargets";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import * as vscode from "vscode";
 import { configureEnvVariables } from "../../common/prepareEnv";
-import { ESP } from "../../config";
 
 export async function setTargetInIDF(
   workspaceFolder: WorkspaceFolder,
@@ -54,12 +53,6 @@ export async function setTargetInIDF(
     const setTargetArgs: string[] = [idfPy];
     if (selectedTarget.isPreview) {
       setTargetArgs.push("--preview");
-    }
-    const selectedConfig = ESP.ProjectConfiguration.store?.get<string>(
-      ESP.ProjectConfiguration.SELECTED_CONFIG
-    );
-    if (selectedConfig) {
-      setTargetArgs.push("--preset", selectedConfig);
     }
     setTargetArgs.push("-B", buildDirPath);
     if (enableCCache) {
