@@ -18,7 +18,7 @@
 
 import { ExtensionConfigStore } from "./common/store";
 import { IEspIdfDocVersion } from "./espIdf/documentation/getDocsVersion";
-import { ProjectConfigStore } from "./project-conf";
+import { ProjectConfigStore } from "./project-conf/store";
 import { RainmakerStore } from "./rainmaker/store";
 
 export namespace ESP {

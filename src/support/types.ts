@@ -17,7 +17,7 @@
  */
 
 import { IdfSetup } from "../eim/types";
-import { ProjectConfElement } from "../project-conf/projectConfiguration";
+import { ConfigurePreset } from "../project-conf/projectConfiguration";
 
 export class ConfigurationAccess {
   espIdfPath: boolean;
@@ -110,7 +110,7 @@ export class reportObj {
   launchJson: string;
   cCppPropertiesJson: any;
   pipVersion: execResult;
-  projectConfigurations: { [key: string]: ProjectConfElement };
+  projectConfigurations: { [key: string]: ConfigurePreset };
   pythonVersion: execResult;
   pythonPackages: execResult;
   idfCheckRequirements: execResult;

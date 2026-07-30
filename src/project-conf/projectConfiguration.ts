@@ -16,54 +16,29 @@
  * limitations under the License.
  */
 
-// Legacy interface for backward compatibility
-export interface ProjectConfElement {
-  build: {
-    compileArgs: string[];
-    ninjaArgs: string[];
-    buildDirectoryPath: string;
-    sdkconfigDefaults: string[];
-    sdkconfigFilePath: string;
-  };
-  env: { [key: string]: string };
-  idfTarget: string;
-  flashBaudRate: string;
-  monitorBaudRate: string;
-  openOCD: {
-    debugLevel: number;
-    configs: string[];
-    args: string[];
-  };
-  tasks: {
-    preBuild: string;
-    preFlash: string;
-    postBuild: string;
-    postFlash: string;
-  };
-}
-
-// New CMakePresets interfaces
 export interface CMakeVersion {
   major: number;
   minor: number;
   patch: number;
 }
 
+export type ESPIDFSettingType =
+  | "compileArgs"
+  | "ninjaArgs"
+  | "flashBaudRate"
+  | "monitorBaudRate"
+  | "openOCD"
+  | "tasks";
+
 export interface ESPIDFSettings {
-  type:
-    | "compileArgs"
-    | "ninjaArgs"
-    | "flashBaudRate"
-    | "monitorBaudRate"
-    | "openOCD"
-    | "tasks";
+  type: ESPIDFSettingType;
   value: any;
 }
 
 export interface ESPIDFVendorSettings {
   "espressif/vscode-esp-idf": {
     settings: ESPIDFSettings[];
-    schemaVersion?: number
+    schemaVersion?: number;
   };
 }
 

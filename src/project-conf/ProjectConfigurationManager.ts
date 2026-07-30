@@ -21,11 +21,8 @@ import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { createStatusBarItem } from "../statusBar";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { Logger } from "../logger/logger";
-import {
-  getProjectConfigurationElements,
-  configurePresetToProjectConfElement,
-  migrateLegacyConfiguration,
-} from "./index";
+import { getProjectConfigurationElements } from "./presetsReader";
+import { migrateLegacyConfiguration } from "./legacy";
 import { pathExists } from "fs-extra";
 import { configureClangSettings } from "../clang";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
@@ -81,14 +78,20 @@ export class ProjectConfigurationManager {
 
     // Watch both CMakePresets.json and CMakeUserPresets.json
     this.cmakePresetsWatcher = workspace.createFileSystemWatcher(
-      new RelativePattern(this.workspaceUri, ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME),
+      new RelativePattern(
+        this.workspaceUri,
+        ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+      ),
       false,
       false,
       false
     );
 
     this.cmakeUserPresetsWatcher = workspace.createFileSystemWatcher(
-      new RelativePattern(this.workspaceUri, ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME),
+      new RelativePattern(
+        this.workspaceUri,
+        ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME
+      ),
       false,
       false,
       false
@@ -224,7 +227,7 @@ export class ProjectConfigurationManager {
   private async handleConfigFileChange(): Promise<void> {
     // Wait for initialization to complete before processing file changes
     await this.initPromise;
-    
+
     try {
       // Use the updated getProjectConfigurationElements function that handles both files
       const projectConfElements = await getProjectConfigurationElements(
@@ -304,7 +307,7 @@ export class ProjectConfigurationManager {
   private async handleConfigFileDelete(): Promise<void> {
     // Wait for initialization to complete before processing file deletion
     await this.initPromise;
-    
+
     // When the config file is deleted, clear all configurations
     this.configVersions = [];
 
@@ -325,7 +328,7 @@ export class ProjectConfigurationManager {
       this.statusBarItems["projectConf"].dispose();
       this.statusBarItems["projectConf"] = undefined;
     }
-  
+
     // Optionally notify the user
     Logger.infoNotify(l10n.t("Project configuration file has been deleted."));
   }
@@ -333,7 +336,7 @@ export class ProjectConfigurationManager {
   private async handleConfigFileCreate(): Promise<void> {
     // Wait for initialization to complete before processing file creation
     await this.initPromise;
-    
+
     try {
       // Use the updated getProjectConfigurationElements function that handles both files
       const projectConfElements = await getProjectConfigurationElements(
@@ -397,8 +400,9 @@ export class ProjectConfigurationManager {
     }
 
     const statusBarItemName = l10n.t("No Configuration Selected");
-    const statusBarItemTooltip =
-      l10n.t("No project configuration selected. Click to select one");
+    const statusBarItemTooltip = l10n.t(
+      "No project configuration selected. Click to select one"
+    );
     const commandToUse = "espIdf.projectConf";
 
     if (this.statusBarItems["projectConf"]) {
@@ -438,7 +442,7 @@ export class ProjectConfigurationManager {
       // Clear adapter location from settings.json (workspace-folder scope).
       const cfg = workspace.getConfiguration("", this.workspaceUri);
       const extraVars =
-        (cfg.get<{ [key: string]: any }>("idf.customExtraVars") ?? {});
+        cfg.get<{ [key: string]: any }>("idf.customExtraVars") ?? {};
       if (extraVars["OPENOCD_USB_ADAPTER_LOCATION"]) {
         const nextExtraVars = { ...extraVars };
         delete nextExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
@@ -458,17 +462,12 @@ export class ProjectConfigurationManager {
       configName
     );
 
-    // Update the configuration data with resolved paths for building
+    // Store the preset with paths resolved, since consumers read it to build command lines
     const resolvedConfig = await getProjectConfigurationElements(
       this.workspaceUri,
-      true // Resolve paths for building
+      true
     );
-
-    // Convert ConfigurePreset to ProjectConfElement for store compatibility
-    const legacyElement = configurePresetToProjectConfElement(
-      resolvedConfig[configName]
-    );
-    ESP.ProjectConfiguration.store.set(configName, legacyElement);
+    ESP.ProjectConfiguration.store.set(configName, resolvedConfig[configName]);
 
     // Update UI
     if (this.statusBarItems["projectConf"]) {
@@ -502,7 +501,7 @@ export class ProjectConfigurationManager {
   public async selectProjectConfiguration(): Promise<void> {
     // Wait for initialization to complete before allowing configuration selection
     await this.initPromise;
-    
+
     try {
       const projectConfigurations = await getProjectConfigurationElements(
         this.workspaceUri,
@@ -689,7 +688,7 @@ export class ProjectConfigurationManager {
       const choice = await window.showInformationMessage(
         message,
         { modal: true },
-        migrateOption,
+        migrateOption
       );
 
       if (choice === migrateOption) {
