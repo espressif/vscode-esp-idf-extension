@@ -132,7 +132,8 @@ export async function writeTextReport(
   }${EOL}`;
   output += `-------------------------------------------------- Project configuration settings ----------------------------------------------------------${EOL}`;
   if (reportedResult.selectedProjectConfiguration) {
-    output += `Selected configuration: ${reportedResult.selectedProjectConfiguration}${EOL}${EOL}`;
+    output += `Selected configuration: ${reportedResult.selectedProjectConfiguration}${EOL}`;
+    output += `IDF_PRESET (passed to idf.py as the active CMake preset) ${reportedResult.selectedProjectConfiguration}${EOL}${EOL}`;
   }
   if (reportedResult.projectConfigurations) {
     for (let key of Object.keys(reportedResult.projectConfigurations)) {
