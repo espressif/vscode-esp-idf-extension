@@ -42,6 +42,8 @@ import {
   parseAdapterSerialFromLog,
   storeAdapterSerial,
   getStoredAdapterSerial,
+  supportsAdapterUsbLocationCommand,
+  supportsSerialFromDetectConfig,
 } from "./adapterSerial";
 import { configureEnvVariables } from "../../common/prepareEnv";
 
@@ -209,6 +211,14 @@ export class OpenOCDManager extends EventEmitter {
       );
     }
 
+    const versionString = await this.version(true);
+    const useLocationCommand = supportsAdapterUsbLocationCommand(versionString);
+    const useDetectConfigSerial = supportsSerialFromDetectConfig(versionString);
+    const adapterLocation = modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
+    if (useLocationCommand && adapterLocation) {
+      delete modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
+    }
+
     const openOcdArgs: string[] = [];
     const openOcdLaunchArgs = idfConf.readParameter(
       "idf.openOcdLaunchArgs",
@@ -216,7 +226,7 @@ export class OpenOCDManager extends EventEmitter {
     ) as string[];
 
     const storedSerial = getStoredAdapterSerial(this.workspace);
-    const needsSerialDiscovery = !storedSerial;
+    const needsSerialDiscovery = !storedSerial && !useDetectConfigSerial;
 
     if (openOcdLaunchArgs && openOcdLaunchArgs.length > 0) {
       openOcdArgs.push(...openOcdLaunchArgs);
@@ -228,6 +238,13 @@ export class OpenOCDManager extends EventEmitter {
         !openOcdArgs.some((a) => typeof a === "string" && a.match(/^-d-?\d+$/))
       ) {
         openOcdArgs.unshift("-d2");
+      }
+
+      const alreadyHasLocation = openOcdArgs.some(
+        (a) => typeof a === "string" && a.includes("adapter usb location")
+      );
+      if (useLocationCommand && adapterLocation && !alreadyHasLocation) {
+        openOcdArgs.unshift("-c", `adapter usb location ${adapterLocation}`);
       }
     } else {
       const openOcdConfigFilesList = idfConf.readParameter(
@@ -266,6 +283,10 @@ export class OpenOCDManager extends EventEmitter {
         openOcdArgs.push("-c", `adapter serial ${storedSerial}`);
       }
 
+      if (useLocationCommand && adapterLocation) {
+        openOcdArgs.push("-c", `adapter usb location ${adapterLocation}`);
+      }
+
       openOcdConfigFilesList.forEach((configFile) => {
         const isFileAlreadyInArgs = openOcdArgs.some((arg) =>
           arg.includes(configFile)
@@ -286,11 +307,12 @@ export class OpenOCDManager extends EventEmitter {
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
 
-      // Parse adapter serial number from log output
-      const serialNumber = parseAdapterSerialFromLog(data);
-      if (serialNumber && this.workspace) {
-        storeAdapterSerial(this.workspace, serialNumber);
-        updateOpenOcdAdapterStatusBarItem(this.workspace);
+      if (!useDetectConfigSerial) {
+        const serialNumber = parseAdapterSerialFromLog(data);
+        if (serialNumber && this.workspace) {
+          storeAdapterSerial(this.workspace, serialNumber);
+          updateOpenOcdAdapterStatusBarItem(this.workspace);
+        }
       }
 
       const regex = /Error:.*/i;
@@ -314,11 +336,12 @@ export class OpenOCDManager extends EventEmitter {
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
 
-      // Parse adapter serial number from log output
-      const serialNumber = parseAdapterSerialFromLog(data);
-      if (serialNumber && this.workspace) {
-        storeAdapterSerial(this.workspace, serialNumber);
-        updateOpenOcdAdapterStatusBarItem(this.workspace);
+      if (!useDetectConfigSerial) {
+        const serialNumber = parseAdapterSerialFromLog(data);
+        if (serialNumber && this.workspace) {
+          storeAdapterSerial(this.workspace, serialNumber);
+          updateOpenOcdAdapterStatusBarItem(this.workspace);
+        }
       }
 
       this.emit("data", this.chan);
