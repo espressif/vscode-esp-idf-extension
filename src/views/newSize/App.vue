@@ -10,10 +10,6 @@ import ArchiveItem from "./components/ArchiveItem.vue";
 import FileTable from "./components/FileTable.vue";
 import SizeFilter from "./components/SizeFilter.vue";
 import { IDFSizeArchive } from "../../espIdf/size/types";
-import {
-  sectionCapacityTotal,
-  sectionShowsUsagePercent,
-} from "../../espIdf/size/layoutUtils";
 
 const store = useNewSizeStore();
 
@@ -21,9 +17,12 @@ const { archives, isOverviewEnabled, overviewData, searchText } = storeToRefs(
   store
 );
 
-const sectionsWithUsagePercent = computed(() =>
-  overviewData.value.layout.filter(sectionShowsUsagePercent)
-);
+const sectionsWithUsagePercent = computed(() => {
+  if (!overviewData.value?.layout) {
+    return [];
+  }
+  return overviewData.value.layout.filter((section) => section.total > 0);
+});
 
 const filteredArchives = computed<{ [key: string]: IDFSizeArchive }>(() => {
   let filteredObj = archives.value;
@@ -64,7 +63,7 @@ onMounted(() => {
               :key="section.name"
               :name="section.name"
               :usedData="section.used"
-              :totalData="sectionCapacityTotal(section)"
+              :totalData="section.total"
             />
           </div>
           <div v-else>
