@@ -15,60 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { AddressInfo, Server, createServer } from "net";
 import {
   DebugAdapterDescriptor,
   DebugAdapterDescriptorFactory,
   DebugAdapterExecutable,
-  DebugAdapterServer,
+  DebugAdapterInlineImplementation,
   DebugSession,
   ProviderResult,
 } from "vscode";
 import { GDBTargetDebugSession } from "./adapter";
 
-const DEBUG_DEFAULT_PORT = 43476;
-
 export class CDTDebugAdapterDescriptorFactory
   implements DebugAdapterDescriptorFactory {
-  private server?: Server;
   createDebugAdapterDescriptor(
     session: DebugSession,
     executable: DebugAdapterExecutable | undefined
   ): ProviderResult<DebugAdapterDescriptor> {
-    if (!this.server) {
-      const portToUse = session.configuration.debugPort || DEBUG_DEFAULT_PORT;
-      this.server = createServer((socket) => {
-        const gdbTargetDebugSession = new GDBTargetDebugSession();
-        gdbTargetDebugSession.setRunAsServer(true);
-        gdbTargetDebugSession.start(<NodeJS.ReadableStream>socket, socket);
-      }).listen(portToUse);
-    }
-
-    const address = this.server.address();
-    if (address && typeof address === "object" && address.port) {
-      return new DebugAdapterServer((<AddressInfo>address).port);
-    } else {
-      this.dispose();
-      throw new Error("Failed to get CDT Debug Adapter server address or port.");
-    }
-  }
-
-  checkCurrentPort(port: number): boolean {
-    if (!this.server) {
-      return false;
-    }
-    const address = this.server.address();
-    if (address && typeof address === "object" && address.port) {
-      return (<AddressInfo>address).port === port;
-    }
-    return false;
-  }
-
-  dispose() {
-    if (this.server) {
-      this.server.close();
-      this.server = undefined;
-    }
+    return new DebugAdapterInlineImplementation(
+      new GDBTargetDebugSession()
+    );
   }
 }

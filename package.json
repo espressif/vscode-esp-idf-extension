@@ -1861,11 +1861,6 @@
                 "type": "string",
                 "description": "Working directory (cwd) to use when launching gdb. Defaults to the directory of the 'program'"
               },
-              "debugPort": {
-                "type": "number",
-                "description": "Port for Debug Adapter server. Default: 43476",
-                "default": 43476
-              },
               "buildFlashMonitor": {
                 "type": "boolean",
                 "description": "Build, Flash and Monitor the device before debugging",
@@ -2139,11 +2134,6 @@
               "cwd": {
                 "type": "string",
                 "description": "Working directory (cwd) to use when launching gdb. Defaults to the directory of the 'program'"
-              },
-              "debugPort": {
-                "type": "number",
-                "description": "Port for Debug Adapter server. Default: 43476",
-                "default": 43476
               },
               "buildFlashMonitor": {
                 "type": "boolean",

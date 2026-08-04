@@ -153,7 +153,6 @@
 你可能使用的其他参数包括：
 
 - ``buildFlashMonitor``: （默认值：false）。在启动调试会话之前构建、烧录并启动 IDF Monitor。使用 ``idf.monitorDelay`` 设置启动监视器后的延迟时间（以毫秒为单位，默认值为 ``1000``）。
-- ``debugPort``: （默认值：43476）启动 Eclipse CDT GDB 调试适配器服务器的端口。如果未指定，将使用默认值 43476。
 - ``runOpenOCD``: （默认值：true）。运行扩展 OpenOCD 服务器。
 - ``verifyAppBinBeforeDebug``: （默认值：false）验证当前 ESP-IDF 项目二进制文件是否与芯片中的二进制文件相同。
 - ``logFile``: 用于记录与 gdb 交互的文件的绝对路径。示例：${workspaceFolder}/gdb.log。
