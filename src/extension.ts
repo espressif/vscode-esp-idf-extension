@@ -187,7 +187,6 @@ import {
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
-const DEBUG_DEFAULT_PORT = 43474;
 let covRenderer: CoverageRenderer;
 
 // OpenOCD  and Debug Adapter Manager
