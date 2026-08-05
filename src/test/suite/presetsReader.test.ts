@@ -140,3 +140,100 @@ suite("Hidden configure presets", () => {
     assert.strictEqual(presets["esp32c6-local"].hidden, undefined);
   });
 });
+
+const multipleInheritancePresets = {
+  version: 3,
+  cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
+  configurePresets: [
+    {
+      name: "first-parent",
+      displayName: "First parent",
+      description: "Parent listed first",
+      hidden: true,
+      binaryDir: "build/from-first",
+      cacheVariables: {
+        IDF_TARGET: "esp32c6",
+        SDKCONFIG: "./build/from-first/sdkconfig",
+      },
+      environment: { QA_PARENT_WINNER: "FIRST" },
+      vendor: {
+        [ESP.CMakePresets.ESP_IDF_VENDOR_KEY]: {
+          schemaVersion: 1,
+          settings: [{ type: "monitorBaudRate", value: "115200" }],
+        },
+      },
+    },
+    {
+      name: "second-parent",
+      hidden: true,
+      binaryDir: "build/from-second",
+      cacheVariables: {
+        IDF_TARGET: "esp32",
+        SDKCONFIG: "./build/from-second/sdkconfig",
+      },
+      environment: { QA_PARENT_WINNER: "SECOND" },
+      vendor: {
+        [ESP.CMakePresets.ESP_IDF_VENDOR_KEY]: {
+          schemaVersion: 1,
+          settings: [{ type: "monitorBaudRate", value: "74880" }],
+        },
+      },
+    },
+    {
+      name: "precedence-child",
+      inherits: ["first-parent", "second-parent"],
+    },
+  ],
+};
+
+suite("Multiple configure preset inheritance", () => {
+  let workspaceFolder: string;
+
+  suiteSetup(() => {
+    Logger.init(createMockContext());
+  });
+
+  setup(async () => {
+    workspaceFolder = await mkdtemp(join(tmpdir(), "esp-idf-presets-"));
+    await writeJson(
+      join(
+        workspaceFolder,
+        ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+      ),
+      multipleInheritancePresets
+    );
+  });
+
+  teardown(async () => {
+    await remove(workspaceFolder);
+  });
+
+  test("the earlier parent in the inherits array wins", async () => {
+    const presets = await getProjectConfigurationElements(
+      Uri.file(workspaceFolder)
+    );
+    const child = presets["precedence-child"];
+
+    assert.strictEqual(child.binaryDir, "build/from-first");
+    assert.strictEqual(child.cacheVariables.IDF_TARGET, "esp32c6");
+    assert.strictEqual(
+      child.cacheVariables.SDKCONFIG,
+      "./build/from-first/sdkconfig"
+    );
+    assert.strictEqual(child.environment["QA_PARENT_WINNER"], "FIRST");
+    assert.strictEqual(
+      getESPIDFSettingValue(child, "monitorBaudRate"),
+      "115200"
+    );
+  });
+
+  test("displayName and description are not inherited", async () => {
+    const presets = await getProjectConfigurationElements(
+      Uri.file(workspaceFolder)
+    );
+    const child = presets["precedence-child"];
+
+    assert.strictEqual(child.displayName, undefined);
+    assert.strictEqual(child.description, undefined);
+  });
+});

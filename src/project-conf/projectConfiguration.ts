@@ -44,6 +44,8 @@ export interface ESPIDFVendorSettings {
 
 export interface ConfigurePreset {
   name: string;
+  displayName?: string;
+  description?: string;
   inherits?: string | string[];
   /** Base preset meant only for inheritance. Not selectable, mirroring `cmake --list-presets`. */
   hidden?: boolean;
