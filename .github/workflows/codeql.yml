@@ -1,7 +1,5 @@
 # CodeQL for the ESP-IDF VS Code extension.
 # Primary language is TypeScript; Actions workflows are scanned optionally.
-# c-cpp / python were dropped from the GitHub default matrix — little first-party
-# value and extra CI noise for this repo.
 name: "CodeQL"
 
 on:
