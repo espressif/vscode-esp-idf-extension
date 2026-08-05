@@ -22,7 +22,8 @@ import { ConfigurePreset, ESPIDFSettings } from "./projectConfiguration";
 
 /**
  * Resolves the "inherits" chain of a preset, depth first, and strips the field
- * from the result. Child properties win over parent properties.
+ * from the result. Child properties win over parent properties, and when several
+ * parents are listed the earlier one wins, as CMake specifies.
  * @param allPresets Every preset from CMakePresets.json and CMakeUserPresets.json.
  */
 export function resolvePresetInheritance(
@@ -67,7 +68,12 @@ export function resolvePresetInheritance(
         visiting
       );
 
-      resolvedPreset = mergePresets(resolvedPreset, resolvedParent);
+      // What is already accumulated comes from earlier parents, which outrank
+      // this one, so it takes the winning side of the merge.
+      resolvedPreset = mergePresets(
+        inheritableFields(resolvedParent),
+        resolvedPreset
+      );
     }
   } finally {
     visiting.delete(preset.name);
@@ -77,13 +83,16 @@ export function resolvePresetInheritance(
 
   delete resolvedPreset.inherits;
 
-  // CMake does not propagate "hidden" through inheritance: a visible preset is
-  // free to extend a hidden base.
-  if (preset.hidden === undefined) {
-    delete resolvedPreset.hidden;
-  }
-
   return resolvedPreset;
+}
+
+/**
+ * Drops the fields CMake keeps out of inheritance, so a visible preset is free to
+ * extend a hidden base and keeps its own name, description and displayName.
+ */
+function inheritableFields(preset: ConfigurePreset): ConfigurePreset {
+  const { hidden, inherits, description, displayName, ...inheritable } = preset;
+  return inheritable;
 }
 
 /**
