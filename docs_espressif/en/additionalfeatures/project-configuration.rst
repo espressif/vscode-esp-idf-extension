@@ -204,6 +204,50 @@ The ``CMakePresets.json`` file structure follows the CMake Presets schema with E
 
 The preset name (``name`` field) is used to identify the profile when using the **ESP-IDF: Select Project Configuration** command. The preset name is also used to display the current profile in the status bar. The preset name is case-sensitive.
 
+Hidden Presets
+^^^^^^^^^^^^^^
+
+A preset with ``"hidden": true`` is a base meant only to be inherited from, exactly as in ``cmake --list-presets``. The extension does not offer it in the **ESP-IDF: Select Project Configuration** list, but presets that list it in their ``inherits`` field still receive all of its settings. Use this to keep settings shared by several profiles in a single place:
+
+.. code-block:: JSON
+
+    {
+      "version": 3,
+      "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+      },
+      "configurePresets": [
+        {
+          "name": "common",
+          "hidden": true,
+          "cacheVariables": {
+            "IDF_TARGET": "esp32c6"
+          },
+          "vendor": {
+            "espressif/vscode-esp-idf": {
+              "schemaVersion": 1,
+              "settings": [
+                {
+                  "type": "monitorBaudRate",
+                  "value": "115200"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "prod1",
+          "displayName": "Product 1",
+          "inherits": "common",
+          "binaryDir": "${sourceDir}/build_prod1"
+        }
+      ]
+    }
+
+Only ``prod1`` appears in the configuration list, and it builds for ``esp32c6`` with a monitor baud rate of 115200 inherited from ``common``. ``hidden`` itself is never inherited, so a visible preset can freely extend a hidden one.
+
 **CMakeUserPresets.json** follows the same structure and is used for user-specific overrides. Presets in ``CMakeUserPresets.json`` take precedence over presets with the same name in ``CMakePresets.json``. This allows you to:
 
 - Keep project-wide configurations in ``CMakePresets.json`` (committed to version control)

@@ -26,7 +26,9 @@ import { processConfigurePresetVariables } from "./presetProcessing";
 
 /**
  * Reads the configure presets of CMakePresets.json and CMakeUserPresets.json,
- * resolves inheritance and expands variables.
+ * resolves inheritance and expands variables. Presets marked `"hidden": true`
+ * stay available as inheritance bases but are left out of the result, matching
+ * what `cmake --list-presets` offers.
  * @param resolvePaths Whether to resolve paths to absolute paths (true for building, false for display)
  * @returns An object mapping preset names to their processed ConfigurePreset.
  */
@@ -57,6 +59,9 @@ export async function getProjectConfigurationElements(
 
   const processedPresets: { [key: string]: ConfigurePreset } = {};
   for (const [name, preset] of Object.entries(allRawPresets)) {
+    if (preset.hidden) {
+      continue;
+    }
     try {
       const resolvedPreset = resolvePresetInheritance(preset, allRawPresets);
       processedPresets[name] = processConfigurePresetVariables(

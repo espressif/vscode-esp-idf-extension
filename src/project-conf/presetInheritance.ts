@@ -77,6 +77,12 @@ export function resolvePresetInheritance(
 
   delete resolvedPreset.inherits;
 
+  // CMake does not propagate "hidden" through inheritance: a visible preset is
+  // free to extend a hidden base.
+  if (preset.hidden === undefined) {
+    delete resolvedPreset.hidden;
+  }
+
   return resolvedPreset;
 }
 
