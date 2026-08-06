@@ -405,3 +405,100 @@ suite("Configure preset conditions", () => {
     assert.strictEqual(presets["no-condition"].binaryDir, "build/no-condition");
   });
 });
+
+suite("Duplicate configure preset names", () => {
+  let workspaceFolder: string;
+
+  const writePresetsFile = (fileName: string, contents: unknown) =>
+    writeJson(join(workspaceFolder, fileName), contents);
+
+  const readPresets = () =>
+    getProjectConfigurationElements(Uri.file(workspaceFolder));
+
+  suiteSetup(() => {
+    Logger.init(createMockContext());
+  });
+
+  setup(async () => {
+    workspaceFolder = await mkdtemp(join(tmpdir(), "esp-idf-presets-"));
+  });
+
+  teardown(async () => {
+    await remove(workspaceFolder);
+  });
+
+  test("a name declared in both files is rejected, as cmake does", async () => {
+    await writePresetsFile(
+      ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME,
+      {
+        version: 3,
+        cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
+        configurePresets: [
+          { name: "debug", binaryDir: "build/debug" },
+          { name: "release", binaryDir: "build/release" },
+        ],
+      }
+    );
+    await writePresetsFile(
+      ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME,
+      {
+        version: 3,
+        configurePresets: [{ name: "debug", binaryDir: "build/debug-local" }],
+      }
+    );
+
+    await assert.rejects(
+      readPresets,
+      (error: Error) =>
+        error.message.includes('"debug"') &&
+        error.message.includes(
+          ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+        ) &&
+        error.message.includes(
+          ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME
+        ),
+      "the error should name the duplicate and both files"
+    );
+  });
+
+  test("a name repeated inside one file is rejected", async () => {
+    await writePresetsFile(
+      ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME,
+      {
+        version: 3,
+        cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
+        configurePresets: [
+          { name: "debug", binaryDir: "build/one" },
+          { name: "debug", binaryDir: "build/two" },
+        ],
+      }
+    );
+
+    await assert.rejects(readPresets, (error: Error) =>
+      error.message.includes('"debug"')
+    );
+  });
+
+  test("distinct names let a user preset inherit a project preset", async () => {
+    await writePresetsFile(
+      ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME,
+      {
+        version: 3,
+        cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
+        configurePresets: [{ name: "shared", binaryDir: "build/shared" }],
+      }
+    );
+    await writePresetsFile(
+      ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME,
+      {
+        version: 3,
+        configurePresets: [{ name: "local", inherits: "shared" }],
+      }
+    );
+
+    const presets = await readPresets();
+
+    assert.deepStrictEqual(Object.keys(presets).sort(), ["local", "shared"]);
+    assert.strictEqual(presets["local"].binaryDir, "build/shared");
+  });
+});

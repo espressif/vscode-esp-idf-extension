@@ -248,10 +248,12 @@ A preset with ``"hidden": true`` is a base meant only to be inherited from, exac
 
 Only ``prod1`` appears in the configuration list, and it builds for ``esp32c6`` with a monitor baud rate of 115200 inherited from ``common``. ``hidden`` itself is never inherited, so a visible preset can freely extend a hidden one.
 
-**CMakeUserPresets.json** follows the same structure and is used for user-specific overrides. Presets in ``CMakeUserPresets.json`` take precedence over presets with the same name in ``CMakePresets.json``. This allows you to:
+**CMakeUserPresets.json** follows the same structure and is where you keep settings you do not want to share. This allows you to:
 
 - Keep project-wide configurations in ``CMakePresets.json`` (committed to version control)
 - Keep personal customizations in ``CMakeUserPresets.json`` (gitignored)
+
+Preset names must be unique across both files. CMake refuses to read any preset when a name is declared twice, and the extension behaves the same way: no configuration is offered while a duplicate exists, and an error message names the presets involved. To personalize a shared preset, add a preset under a different name that ``inherits`` it.
 
 **Example: Using CMakeUserPresets.json for Personal Overrides**
 
@@ -279,7 +281,7 @@ Suppose you have a project-wide ``CMakePresets.json`` with a ``production`` pres
       ]
     }
 
-You can create a ``CMakeUserPresets.json`` file to override specific settings for your personal use, such as flash baud rate or monitor baud rate:
+You can create a ``CMakeUserPresets.json`` file with your own preset that inherits ``production`` and sets only what you want to change, such as flash baud rate or monitor baud rate:
 
 .. code-block:: JSON
 
@@ -287,7 +289,9 @@ You can create a ``CMakeUserPresets.json`` file to override specific settings fo
       "version": 3,
       "configurePresets": [
         {
-          "name": "production",
+          "name": "production-local",
+          "displayName": "Production (local)",
+          "inherits": "production",
           "vendor": {
             "espressif/vscode-esp-idf": {
               "schemaVersion": 1,
@@ -307,7 +311,7 @@ You can create a ``CMakeUserPresets.json`` file to override specific settings fo
       ]
     }
 
-When you select the ``production`` preset, the extension will use the flash and monitor baud rates from ``CMakeUserPresets.json`` (115200) instead of any defaults, while still using the build directory and SDKConfig settings from ``CMakePresets.json``. This allows each team member to have their own serial port settings without modifying the shared project configuration.
+Both presets appear in the configuration list. When you select ``production-local``, the extension uses your flash and monitor baud rates (115200) and inherits the build directory and SDKConfig settings from ``production``. This allows each team member to have their own serial port settings without modifying the shared project configuration.
 
 While each field is self-explanatory, here is the mapping of the CMakePresets structure to the extension settings:
 

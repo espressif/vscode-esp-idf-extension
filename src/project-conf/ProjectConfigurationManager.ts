@@ -174,7 +174,9 @@ export class ProjectConfigurationManager {
       }
     } catch (error) {
       Logger.errorNotify(
-        l10n.t("Failed to parse project configuration files"),
+        `${l10n.t("Failed to parse project configuration files")}: ${
+          error.message
+        }`,
         error,
         "ProjectConfigurationManager initialize"
       );

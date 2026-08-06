@@ -121,10 +121,19 @@ export async function updateCurrentProjectConfiguration(
   );
   await writePresetsDocument(target.filePath, target.document);
 
-  const resolvedPresets = await getProjectConfigurationElements(
-    workspaceFolder,
-    true
-  );
+  let resolvedPresets: { [key: string]: ConfigurePreset } = {};
+  try {
+    resolvedPresets = await getProjectConfigurationElements(
+      workspaceFolder,
+      true
+    );
+  } catch (error) {
+    Logger.errorNotify(
+      error.message,
+      error,
+      "updateCurrentProjectConfiguration project-conf"
+    );
+  }
   ESP.ProjectConfiguration.store.set(
     selectedConfig,
     resolvedPresets[selectedConfig] ?? updatedPreset
@@ -158,8 +167,8 @@ interface LocatedPreset {
 }
 
 /**
- * Finds the file that declares a preset. CMakeUserPresets.json wins when both
- * declare the same name, matching how the presets are merged on read.
+ * Finds the file that declares a preset. A name can only be declared in one of the
+ * two files, so the order they are searched in does not change the result.
  */
 async function locatePreset(
   workspaceFolder: Uri,
