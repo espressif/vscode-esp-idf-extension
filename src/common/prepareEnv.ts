@@ -39,6 +39,9 @@ import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
  * and component directories to the system `PATH`.
  * - Determining and setting `IDF_TARGET` based on the workspace's sdkconfig.
  * - Setting the `IDF_COMPONENT_MANAGER` flag and `SDKCONFIG` path based on settings.
+ * - Setting `IDF_PRESET` from the currently selected project configuration, so idf.py
+ * (ESP-IDF v6+) resolves the same CMake preset the extension has selected instead of
+ * auto-selecting its own default/first preset.
  *
  * @async
  * @param {Uri} curWorkspace - The Uri of the current workspace, used to access settings and sdkconfig.
@@ -259,6 +262,13 @@ export async function configureEnvVariables(
   if (sdkconfigFilePath) {
     modifiedEnv.SDKCONFIG = sdkconfigFilePath;
   }
+
+  // Keep idf.py's own preset resolution (used when a raw idf.py command is run,
+  // e.g. from the ESP-IDF Terminal) in sync with the profile selected in the extension.
+  const selectedConfig = ESP.ProjectConfiguration.store?.get<string>(
+    ESP.ProjectConfiguration.SELECTED_CONFIG
+  );
+  modifiedEnv.IDF_PRESET = selectedConfig || undefined;
 
   return modifiedEnv;
 }

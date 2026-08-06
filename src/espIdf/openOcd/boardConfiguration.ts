@@ -40,6 +40,7 @@ import {
   supportsSerialFromDetectConfig,
 } from "./adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
+import { updateCurrentProfileOpenOcdConfigs } from "../../project-conf";
 
 export interface IdfBoard {
   name: string;
@@ -265,7 +266,9 @@ export async function selectOpenOcdConfigFiles(
         const selectedBoard = boardQuickPick.selectedItems[0];
         if (!selectedBoard) {
           Logger.infoNotify(
-            `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`
+            l10n.t(
+              "ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs"
+            )
           );
         } else {
           const customExtraVarsRead = readParameter(
@@ -308,6 +311,10 @@ export async function selectOpenOcdConfigFiles(
               ConfigurationTarget.WorkspaceFolder,
               workspaceFolder
             );
+            await updateCurrentProfileOpenOcdConfigs(
+              configFiles,
+              workspaceFolder
+            );
             Logger.infoNotify(
               l10n.t(`OpenOCD Board configuration files set to {boards}.`, {
                 boards: configFiles.join(","),
@@ -316,7 +323,9 @@ export async function selectOpenOcdConfigFiles(
           } else if (selectedBoard.target) {
             if (selectedBoard.label.indexOf("Custom board") !== -1) {
               const inputBoard = await window.showInputBox({
-                placeHolder: "Enter comma-separated configuration files",
+                placeHolder: l10n.t(
+                  "Enter comma-separated configuration files"
+                ),
                 value: selectedBoard.target.configFiles.join(","),
               });
               if (inputBoard) {
@@ -333,6 +342,10 @@ export async function selectOpenOcdConfigFiles(
               "idf.customExtraVars",
               customExtraVars,
               ConfigurationTarget.WorkspaceFolder,
+              workspaceFolder
+            );
+            await updateCurrentProfileOpenOcdConfigs(
+              selectedBoard.target.configFiles,
               workspaceFolder
             );
             Logger.infoNotify(

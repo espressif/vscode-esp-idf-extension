@@ -17,7 +17,7 @@
  */
 
 import { ESP } from "../config";
-import { ProjectConfElement } from "../project-conf/projectConfiguration";
+import { ConfigurePreset } from "../project-conf/projectConfiguration";
 import { reportObj } from "./types";
 
 export function getProjectConfigurations(reportedResult: reportObj) {
@@ -28,10 +28,10 @@ export function getProjectConfigurations(reportedResult: reportObj) {
     return "";
   }
   const currentProjectConf = ESP.ProjectConfiguration.store.get<
-    ProjectConfElement
+    ConfigurePreset
   >(currentProjectConfKey);
   reportedResult.projectConfigurations = {
-    currentProjectConfKey: currentProjectConf,
+    [currentProjectConfKey]: currentProjectConf,
   };
 }
 

@@ -18,7 +18,7 @@
 
 import { ExtensionConfigStore } from "./common/store";
 import { IEspIdfDocVersion } from "./espIdf/documentation/getDocsVersion";
-import { ProjectConfigStore } from "./project-conf";
+import { ProjectConfigStore } from "./project-conf/store";
 import { RainmakerStore } from "./rainmaker/store";
 
 export namespace ESP {
@@ -31,8 +31,8 @@ export namespace ESP {
     export let store: ProjectConfigStore;
     export const SELECTED_CONFIG = "SELECTED_PROJECT_CONFIG";
     export const CURRENT_IDF_CONFIGURATION = "CURRENT_IDF_CONFIGURATION";
-    export const PROJECT_CONFIGURATION_FILENAME =
-      "esp_idf_project_configuration.json";
+    export const PROJECT_CONFIGURATION_FILENAME = "CMakePresets.json";
+    export const USER_CONFIGURATION_FILENAME = "CMakeUserPresets.json";
   }
 
   export enum BuildType {
@@ -143,5 +143,21 @@ export namespace ESP {
       export const ViewType = "component-manager-ui";
       export const Title = "ESP Component Registry";
     }
+  }
+  export namespace CMakePresets {
+    export const ESP_IDF_VENDOR_KEY = "espressif/vscode-esp-idf";
+    /**
+     * Capped by the CMake that ESP-IDF installs (3.22.1), since presets version 4
+     * requires CMake 3.23. The two constants below move together: CMake refuses to
+     * read a presets file whose cmakeMinimumRequired exceeds the running CMake, and
+     * no JSON schema catches that.
+     */
+    export const CMAKE_PRESET_VERSION = 3;
+    export const CMAKE_PRESET_SCHEMA_VERSION = 1;
+    export const CMAKE_PRESET_MINIMUM_REQUIRED = {
+      major: 3,
+      minor: 21,
+      patch: 0,
+    };
   }
 }

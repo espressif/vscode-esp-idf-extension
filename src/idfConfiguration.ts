@@ -15,7 +15,11 @@
 import * as vscode from "vscode";
 import { Logger } from "./logger/logger";
 import { ESP } from "./config";
-import { ProjectConfElement } from "./project-conf/projectConfiguration";
+import { ConfigurePreset } from "./project-conf/projectConfiguration";
+import {
+  getPresetCustomExtraVars,
+  getPresetParameterValue,
+} from "./project-conf/presetSettings";
 import { SerialPort } from "./espIdf/serial/serialPort";
 import { showInfoNotificationWithAction } from "./logger/utils";
 
@@ -50,102 +54,19 @@ export function parameterToProjectConfigMap(
     return "";
   }
   const currentProjectConf = ESP.ProjectConfiguration.store.get<
-    ProjectConfElement
+    ConfigurePreset
   >(currentProjectConfKey);
   if (!currentProjectConf) {
     return "";
   }
-  switch (param) {
-    case "idf.cmakeCompilerArgs":
-      return currentProjectConf.build &&
-        currentProjectConf.build.compileArgs &&
-        currentProjectConf.build.compileArgs.length
-        ? currentProjectConf.build.compileArgs
-        : "";
-    case "idf.ninjaArgs":
-      return currentProjectConf.build &&
-        currentProjectConf.build.ninjaArgs &&
-        currentProjectConf.build.ninjaArgs.length
-        ? currentProjectConf.build.ninjaArgs
-        : "";
-    case "idf.buildPath":
-      return currentProjectConf.build &&
-        currentProjectConf.build.buildDirectoryPath
-        ? currentProjectConf.build.buildDirectoryPath
-        : "";
-    case "idf.sdkconfigDefaults":
-      return currentProjectConf.build &&
-        currentProjectConf.build.sdkconfigDefaults &&
-        currentProjectConf.build.sdkconfigDefaults.length
-        ? currentProjectConf.build.sdkconfigDefaults
-        : "";
-    case "idf.customExtraVars":
-      const paramUpdated = addWinIfRequired(param);
-      let settingsVars = vscode.workspace
+  if (param === "idf.customExtraVars") {
+    const settingsVars =
+      (vscode.workspace
         .getConfiguration("", scope)
-        .get(paramUpdated) as { [key: string]: any };
-      let resultVars = {};
-      for (const envKey of Object.keys(settingsVars)) {
-        resultVars[envKey] = settingsVars[envKey];
-      }
-      if (
-        currentProjectConf.env &&
-        typeof currentProjectConf.env === "object" &&
-        !Array.isArray(currentProjectConf.env)
-      ) {
-        for (const projectConfEnvKey of Object.keys(currentProjectConf.env)) {
-          resultVars[projectConfEnvKey] =
-            currentProjectConf.env[projectConfEnvKey];
-        }
-      }
-      if (currentProjectConf.idfTarget) {
-        resultVars["IDF_TARGET"] = currentProjectConf.idfTarget;
-      }
-      return resultVars;
-    case "idf.flashBaudRate":
-      return currentProjectConf.flashBaudRate;
-    case "idf.monitorBaudRate":
-      return currentProjectConf.monitorBaudRate;
-    case "idf.openOcdDebugLevel":
-      return currentProjectConf.openOCD && currentProjectConf.openOCD.debugLevel
-        ? currentProjectConf.openOCD.debugLevel
-        : "";
-    case "idf.openOcdConfigs":
-      return currentProjectConf.openOCD &&
-        currentProjectConf.openOCD.configs &&
-        currentProjectConf.openOCD.configs.length
-        ? currentProjectConf.openOCD.configs
-        : "";
-    case "idf.openOcdLaunchArgs":
-      return currentProjectConf.openOCD &&
-        currentProjectConf.openOCD.args &&
-        currentProjectConf.openOCD.args.length
-        ? currentProjectConf.openOCD.args
-        : "";
-    case "idf.preBuildTask":
-      return currentProjectConf.tasks && currentProjectConf.tasks.preBuild
-        ? currentProjectConf.tasks.preBuild
-        : "";
-    case "idf.postBuildTask":
-      return currentProjectConf.tasks && currentProjectConf.tasks.postBuild
-        ? currentProjectConf.tasks.postBuild
-        : "";
-    case "idf.preFlashTask":
-      return currentProjectConf.tasks && currentProjectConf.tasks.preFlash
-        ? currentProjectConf.tasks.preFlash
-        : "";
-    case "idf.postFlashTask":
-      return currentProjectConf.tasks && currentProjectConf.tasks.postFlash
-        ? currentProjectConf.tasks.postFlash
-        : "";
-    case "idf.sdkconfigFilePath":
-      return currentProjectConf.build &&
-        currentProjectConf.build.sdkconfigFilePath
-        ? currentProjectConf.build.sdkconfigFilePath
-        : "";
-    default:
-      return "";
+        .get(addWinIfRequired(param)) as { [key: string]: any }) ?? {};
+    return { ...settingsVars, ...getPresetCustomExtraVars(currentProjectConf) };
   }
+  return getPresetParameterValue(param, currentProjectConf);
 }
 
 export function readParameter(

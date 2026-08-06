@@ -177,12 +177,12 @@ export class OpenOCDManager extends EventEmitter {
     const tclClient = new TCLClient(tclConnectionParams);
     if (!(await tclClient.isOpenOCDServerRunning())) {
       const resp = await vscode.window.showInformationMessage(
-        "OpenOCD is not running, do you want to launch it?",
+        vscode.l10n.t("OpenOCD is not running, do you want to launch it?"),
         { modal: true },
-        { title: "Yes" },
-        { title: "Cancel", isCloseAffordance: true }
+        { title: vscode.l10n.t("Yes") },
+        { title: vscode.l10n.t("Cancel"), isCloseAffordance: true }
       );
-      if (resp && resp.title === "Yes") {
+      if (resp && resp.title === vscode.l10n.t("Yes")) {
         await OpenOCDManager.init().start();
         return await tclClient.isOpenOCDServerRunning();
       }
@@ -201,9 +201,7 @@ export class OpenOCDManager extends EventEmitter {
       modifiedEnv
     );
     if (!openOcdPath) {
-      throw new Error(
-        "Invalid OpenOCD bin path or access is denied for the user"
-      );
+      throw new Error("Invalid OpenOCD bin path or access is denied for the user");
     }
     if (typeof modifiedEnv.OPENOCD_SCRIPTS === "undefined") {
       throw new Error(
@@ -371,7 +369,7 @@ export class OpenOCDManager extends EventEmitter {
       }
       this.stop();
     });
-    this.updateStatusText("❇️ OpenOCD Server (Running)");
+    this.updateStatusText(`❇️ ${vscode.l10n.t("OpenOCD Server (Running)")}`);
     OutputChannel.show();
   }
 
@@ -379,7 +377,7 @@ export class OpenOCDManager extends EventEmitter {
     if (this.server && !this.server.killed) {
       this.server.kill("SIGKILL");
       this.server = undefined;
-      this.updateStatusText("❌ OpenOCD Server (Stopped)");
+      this.updateStatusText(`❌ ${vscode.l10n.t("OpenOCD Server (Stopped)")}`);
       const endMsg = "[Stopped] : OpenOCD Server";
       OutputChannel.appendLine(endMsg, "OpenOCD");
       Logger.info(endMsg);
@@ -396,7 +394,7 @@ export class OpenOCDManager extends EventEmitter {
       vscode.StatusBarAlignment.Left,
       1
     );
-    this.statusBar.name = this.statusBar.text = "OpenOCD Server";
+    this.statusBar.name = this.statusBar.text = vscode.l10n.t("OpenOCD Server");
     const commandDictionary = createCommandDictionary();
     this.statusBar.tooltip = commandDictionary[CommandKeys.OpenOCD].tooltip;
     this.statusBar.command = CommandKeys.OpenOCD;
