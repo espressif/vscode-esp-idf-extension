@@ -137,18 +137,12 @@ export class ProjectConfigurationManager {
         if (saveLastProjectConfiguration !== false) {
           await this.updateConfiguration(currentSelectedConfig);
         } else {
-          ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
-          ESP.ProjectConfiguration.store.clear(
-            ESP.ProjectConfiguration.SELECTED_CONFIG
-          );
+          this.forgetSelectedConfiguration();
           this.setNoConfigurationSelectedStatus();
         }
       } else if (currentSelectedConfig) {
-        // Current selection is invalid, clear it
-        ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
-        ESP.ProjectConfiguration.store.clear(
-          ESP.ProjectConfiguration.SELECTED_CONFIG
-        );
+        // The presets parsed, so the selection really is gone rather than unreadable.
+        this.forgetSelectedConfiguration();
         this.setNoConfigurationSelectedStatus();
       } else if (this.configVersions.length > 0) {
         // No current selection but configurations exist
@@ -180,8 +174,7 @@ export class ProjectConfigurationManager {
         error,
         "ProjectConfigurationManager initialize"
       );
-      this.configVersions = []; // Ensure clean state on error
-      this.clearConfigurationState();
+      this.suspendConfigurationState();
     }
   }
 
@@ -277,11 +270,8 @@ export class ProjectConfigurationManager {
         // Current selection is still valid
         await this.updateConfiguration(currentSelectedConfig);
       } else if (currentSelectedConfig) {
-        // Current selection no longer exists, clear it
-        ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
-        ESP.ProjectConfiguration.store.clear(
-          ESP.ProjectConfiguration.SELECTED_CONFIG
-        );
+        // The presets parsed, so the selection really is gone rather than unreadable.
+        this.forgetSelectedConfiguration();
         if (currentVersions.length === 0) {
           this.clearConfigurationState();
         } else {
@@ -301,8 +291,7 @@ export class ProjectConfigurationManager {
         error,
         "ProjectConfigurationManager handleConfigFileChange"
       );
-      this.configVersions = [];
-      this.clearConfigurationState();
+      this.suspendConfigurationState();
     }
   }
 
@@ -310,26 +299,7 @@ export class ProjectConfigurationManager {
     // Wait for initialization to complete before processing file deletion
     await this.initPromise;
 
-    // When the config file is deleted, clear all configurations
-    this.configVersions = [];
-
-    // Clear any selected configuration
-    const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
-      ESP.ProjectConfiguration.SELECTED_CONFIG
-    );
-
-    if (currentSelectedConfig) {
-      ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
-      ESP.ProjectConfiguration.store.clear(
-        ESP.ProjectConfiguration.SELECTED_CONFIG
-      );
-    }
-
-    // Remove the status bar item completely when the config file is deleted
-    if (this.statusBarItems["projectConf"]) {
-      this.statusBarItems["projectConf"].dispose();
-      this.statusBarItems["projectConf"] = undefined;
-    }
+    this.clearConfigurationState();
 
     // Optionally notify the user
     Logger.infoNotify(l10n.t("Project configuration file has been deleted."));
@@ -362,12 +332,7 @@ export class ProjectConfigurationManager {
           await this.updateConfiguration(currentSelectedConfig);
         } else {
           // No valid selection, show "No Configuration Selected"
-          if (currentSelectedConfig) {
-            ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
-            ESP.ProjectConfiguration.store.clear(
-              ESP.ProjectConfiguration.SELECTED_CONFIG
-            );
-          }
+          this.forgetSelectedConfiguration();
           this.setNoConfigurationSelectedStatus();
 
           // Notify the user about available configurations
@@ -388,7 +353,7 @@ export class ProjectConfigurationManager {
         error,
         "ProjectConfigurationManager handleConfigFileCreate"
       );
-      this.setNoConfigurationSelectedStatus();
+      this.suspendConfigurationState();
     }
   }
 
@@ -777,14 +742,30 @@ export class ProjectConfigurationManager {
    */
   private clearConfigurationState(): void {
     this.configVersions = [];
+    this.disposeConfigurationStatusBar();
+    this.forgetSelectedConfiguration();
+  }
 
-    // If configuration status bar item exists, remove it
-    if (this.statusBarItems["projectConf"]) {
-      this.statusBarItems["projectConf"].dispose();
-      this.statusBarItems["projectConf"] = undefined;
+  /**
+   * Drops the resolved preset but keeps the selected name, so that a preset the
+   * extension cannot read right now is not mistaken for one the user deleted.
+   * A duplicate name or a half-saved edit makes the whole file unreadable, and
+   * forgetting the name there would force a new selection on every reopen.
+   */
+  private suspendConfigurationState(): void {
+    this.configVersions = [];
+    this.disposeConfigurationStatusBar();
+
+    const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+    if (currentSelectedConfig) {
+      // Stale overrides would otherwise outlive the status bar entry that reports them.
+      ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
     }
+  }
 
-    // Clear any potentially stale configuration
+  private forgetSelectedConfiguration(): void {
     const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
       ESP.ProjectConfiguration.SELECTED_CONFIG
     );
@@ -793,6 +774,13 @@ export class ProjectConfigurationManager {
       ESP.ProjectConfiguration.store.clear(
         ESP.ProjectConfiguration.SELECTED_CONFIG
       );
+    }
+  }
+
+  private disposeConfigurationStatusBar(): void {
+    if (this.statusBarItems["projectConf"]) {
+      this.statusBarItems["projectConf"].dispose();
+      this.statusBarItems["projectConf"] = undefined;
     }
   }
 

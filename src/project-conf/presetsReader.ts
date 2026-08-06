@@ -137,6 +137,12 @@ function indexPresetsByName(
   return presetsByName;
 }
 
+/**
+ * Fails instead of reporting an empty list when the file cannot be read, so that
+ * callers can tell a broken file from one that declares no configure presets.
+ * An unreadable file is usually a half-finished edit, and treating it as "no
+ * presets" makes the selected configuration look like it was deleted.
+ */
 async function readPresetsFile(
   filePath: Uri,
   fileName: string
@@ -149,23 +155,25 @@ async function readPresetsFile(
   try {
     configJson = await readJson(filePath.fsPath);
   } catch (error) {
-    Logger.errorNotify(
-      `Failed to read or parse ${fileName}`,
-      error,
-      "getProjectConfigurationElements"
+    throw new Error(`Failed to read or parse ${fileName}: ${error.message}`);
+  }
+
+  if (
+    typeof configJson !== "object" ||
+    configJson === null ||
+    configJson.version === undefined
+  ) {
+    throw new Error(
+      `${fileName} has no version field, so it does not follow the CMakePresets specification.`
     );
+  }
+
+  if (configJson.configurePresets === undefined) {
     return [];
   }
 
-  if (typeof configJson !== "object" || configJson === null) {
-    return [];
-  }
-
-  if (configJson.version === undefined || !configJson.configurePresets) {
-    Logger.warnNotify(
-      `Invalid ${fileName} format detected. Please ensure the file follows the CMakePresets specification.`
-    );
-    return [];
+  if (!Array.isArray(configJson.configurePresets)) {
+    throw new Error(`configurePresets in ${fileName} must be an array.`);
   }
 
   return (configJson as CMakePresets).configurePresets.filter((preset) => {
