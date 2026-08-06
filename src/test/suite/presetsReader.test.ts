@@ -19,7 +19,7 @@
 import * as assert from "assert";
 import { platform, tmpdir } from "os";
 import { join, resolve } from "path";
-import { mkdtemp, remove, writeJson } from "fs-extra";
+import { mkdtemp, remove, writeFile, writeJson } from "fs-extra";
 import { ExtensionContext, Uri } from "vscode";
 import { ESP } from "../../config";
 import { Logger } from "../../logger/logger";
@@ -500,5 +500,75 @@ suite("Duplicate configure preset names", () => {
 
     assert.deepStrictEqual(Object.keys(presets).sort(), ["local", "shared"]);
     assert.strictEqual(presets["local"].binaryDir, "build/shared");
+  });
+});
+
+/**
+ * An unreadable file has to be distinguishable from one that declares no presets:
+ * callers keep the selected configuration in the first case and drop it in the
+ * second, so reporting an empty list for both loses the user's selection.
+ */
+suite("Unreadable presets files", () => {
+  let workspaceFolder: string;
+
+  const presetsFileName =
+    ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME;
+
+  const readPresets = () =>
+    getProjectConfigurationElements(Uri.file(workspaceFolder));
+
+  suiteSetup(() => {
+    Logger.init(createMockContext());
+  });
+
+  setup(async () => {
+    workspaceFolder = await mkdtemp(join(tmpdir(), "esp-idf-presets-"));
+  });
+
+  teardown(async () => {
+    await remove(workspaceFolder);
+  });
+
+  test("a half-saved file is reported as an error, not as no presets", async () => {
+    await writeFile(
+      join(workspaceFolder, presetsFileName),
+      '{ "version": 3, "configurePresets": [ { "name": "debug"'
+    );
+
+    await assert.rejects(readPresets, (error: Error) =>
+      error.message.includes(presetsFileName)
+    );
+  });
+
+  test("a file without a version field is reported as an error", async () => {
+    await writeJson(join(workspaceFolder, presetsFileName), {
+      configurePresets: [{ name: "debug", binaryDir: "build/debug" }],
+    });
+
+    await assert.rejects(readPresets, (error: Error) =>
+      error.message.includes("version")
+    );
+  });
+
+  test("a file declaring no configure presets reads as empty", async () => {
+    await writeJson(join(workspaceFolder, presetsFileName), {
+      version: 3,
+      buildPresets: [{ name: "build-only", configurePreset: "absent" }],
+    });
+
+    assert.deepStrictEqual(await readPresets(), {});
+  });
+
+  test("an empty configurePresets array reads as empty", async () => {
+    await writeJson(join(workspaceFolder, presetsFileName), {
+      version: 3,
+      configurePresets: [],
+    });
+
+    assert.deepStrictEqual(await readPresets(), {});
+  });
+
+  test("a missing file is not an error", async () => {
+    assert.deepStrictEqual(await readPresets(), {});
   });
 });

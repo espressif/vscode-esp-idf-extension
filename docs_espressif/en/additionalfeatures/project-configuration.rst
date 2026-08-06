@@ -203,6 +203,8 @@ The ``CMakePresets.json`` file structure follows the CMake Presets schema with E
 
 The preset name (``name`` field) is used to identify the profile when using the **ESP-IDF: Select Project Configuration** command. The preset name is also used to display the current profile in the status bar. The preset name is case-sensitive.
 
+The selected profile is remembered per workspace and restored when you reopen it, so it only needs to be selected once. Set **idf.saveLastProjectConfiguration** to ``false`` to start with no profile selected instead. While the presets files cannot be read, for example during an unfinished edit or when two presets share a name, the extension reports the error and shows no profile, then restores your selection once the files parse again.
+
 Hidden Presets
 ^^^^^^^^^^^^^^
 
