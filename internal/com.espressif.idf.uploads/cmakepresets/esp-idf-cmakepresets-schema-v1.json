@@ -116,7 +116,7 @@
           }
         }
       },
-      "required": ["version", "cmakeMinimumRequired", "configurePresets"]
+      "required": ["version", "configurePresets"]
     }
   ]
 }
