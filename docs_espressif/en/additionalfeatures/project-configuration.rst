@@ -81,7 +81,7 @@ With **CMakePresets.json** you can define multiple locations of the build direct
 
 To create multiple build configurations:
 
-1. Create or edit ``CMakePresets.json`` in your project root directory.
+1. Create or edit ``CMakePresets.json`` in your project root directory. The **ESP-IDF: Create Project Configuration** command writes a starter file with two presets, ``default`` and ``production``, that you can rename and extend.
 2. Define your configuration presets in the ``configurePresets`` array. Each preset can override the following extension settings:
 
 .. list-table::

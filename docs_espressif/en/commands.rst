@@ -34,6 +34,8 @@ All commands start with ``ESP-IDF:``.
      - Create a new component in the current directory based on ESP-IDF component template.
    * - Create New Empty Project
      - Ask for the new project name, choose the directory to create the project, and show a notification to open the newly created project.
+   * - Create Project Configuration
+     - Create ``CMakePresets.json`` in the project root with a starter **default** and **production** configure preset to rename and extend. Presets you already defined are left untouched.
    * - Dispose of Current SDK Configuration Editor Server Process
      - If you already executed the SDK Configuration editor, a cache process will remain in the background for faster reopening. This command will dispose of such cache process.
    * - Doctor Command
@@ -108,6 +110,8 @@ All commands start with ``ESP-IDF:``.
      - Select which serial port to use for ESP-IDF tasks, such as flashing or monitoring your device.
    * - Select OpenOCD Board Configuration
      - Select the OpenOCD configuration files that match your Espressif device target, such as DevKitC or ESP-Wrover-Kit. This is necessary for flashing with JTAG or debugging your device.
+   * - Select Project Configuration
+     - Choose which configure preset from ``CMakePresets.json`` or ``CMakeUserPresets.json`` overrides the extension settings. Presets marked ``hidden`` and presets disabled by their ``condition`` are not offered.
    * - Select Where to Save Configuration Settings
      - In Visual Studio Code, settings can be saved in three places: User Settings (global settings), workspace ( .code-workspace file) or workspace folder (.vscode/settings.json).
    * - Select Output and Notification Mode

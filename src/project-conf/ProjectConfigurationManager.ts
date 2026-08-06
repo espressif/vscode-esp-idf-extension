@@ -13,7 +13,6 @@ import {
   fileExists,
   readFileSync,
   setCCppPropertiesJsonCompileCommands,
-  writeJson,
 } from "../utils";
 import { ESP } from "../config";
 import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
@@ -22,6 +21,7 @@ import { createStatusBarItem } from "../statusBar";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { Logger } from "../logger/logger";
 import { getProjectConfigurationElements } from "./presetsReader";
+import { createStarterPresetsFile } from "./presetsWriter";
 import { migrateLegacyConfiguration } from "./legacy";
 import { pathExists } from "fs-extra";
 import { configureClangSettings } from "../clang";
@@ -526,16 +526,16 @@ export class ProjectConfigurationManager {
           return;
         }
 
-        const openLabel = l10n.t("Open CMakePresets.json");
+        const createLabel = l10n.t("Create starter presets");
         const emptyOption = await window.showInformationMessage(
           l10n.t(
-            "No CMakePresets configure presets found. Define configurePresets in CMakePresets.json (or CMakeUserPresets.json)."
+            "No configure presets found. Create CMakePresets.json with a starter configuration to edit."
           ),
-          openLabel
+          createLabel
         );
 
-        if (emptyOption === openLabel) {
-          await this.openOrCreateCmakePresetsFile();
+        if (emptyOption === createLabel) {
+          await this.createProjectConfiguration();
         }
         return;
       }
@@ -734,32 +734,40 @@ export class ProjectConfigurationManager {
     }
   }
 
-  private async openOrCreateCmakePresetsFile(): Promise<void> {
-    const uri = Uri.joinPath(
-      this.workspaceUri,
-      ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
-    );
+  /**
+   * Seeds CMakePresets.json with presets the user can build with and edit, then
+   * opens it. Backs the ESP-IDF: Create Project Configuration command.
+   */
+  public async createProjectConfiguration(): Promise<void> {
+    const fileName = ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME;
     try {
-      if (!(await pathExists(uri.fsPath))) {
-        const minimal = {
-          version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
-          cmakeMinimumRequired: ESP.CMakePresets.CMAKE_PRESET_MINIMUM_REQUIRED,
-          configurePresets: [] as unknown[],
-        };
-        await writeJson(uri.fsPath, minimal);
+      const { filePath, outcome } = await createStarterPresetsFile(
+        this.workspaceUri
+      );
+
+      if (outcome === "unreadable") {
+        Logger.warnNotify(
+          l10n.t(
+            "Could not parse {0}, so no presets were added to it.",
+            fileName
+          )
+        );
+      } else if (outcome === "alreadyDefined") {
+        window.showInformationMessage(
+          l10n.t(
+            "{0} already defines configure presets. Add another entry to configurePresets to create one more configuration.",
+            fileName
+          )
+        );
       }
-      const doc = await workspace.openTextDocument(uri);
+
+      const doc = await workspace.openTextDocument(filePath);
       await window.showTextDocument(doc);
     } catch (error) {
-      Logger.error(
-        "Failed to open or create CMakePresets.json",
-        error,
-        "ProjectConfigurationManager openOrCreateCmakePresetsFile"
-      );
       Logger.errorNotify(
-        l10n.t("Could not open CMakePresets.json"),
+        l10n.t("Could not open {0}", fileName),
         error,
-        "ProjectConfigurationManager openOrCreateCmakePresetsFile"
+        "ProjectConfigurationManager createProjectConfiguration"
       );
     }
   }

@@ -44,6 +44,7 @@
 	"espIdf.createIdfTerminal.title": "Abrir terminal ESP-IDF",
 	"espIdf.createClassicMenuconfig.title": "Abrir terminal de configuración clásica",
 	"espIdf.createNewComponent.title": "Crear nuevo componente ESP-IDF",
+	"espIdf.createProjectConfiguration.title": "Crear configuración de proyecto",
 	"espIdf.createSbom.title": "Ejecutar comprobación de vulnerabilidad ESP-IDF-SBOM",
 	"espIdf.createVsCodeFolder.title": "Agregar carpeta de configuración de vscode",
 	"espIdf.customTask.title": "Ejecutar tarea personalizada",

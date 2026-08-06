@@ -19,7 +19,14 @@
 import * as assert from "assert";
 import { tmpdir } from "os";
 import { join, resolve } from "path";
-import { mkdtemp, readJson, remove, writeJson } from "fs-extra";
+import {
+  mkdtemp,
+  readFile,
+  readJson,
+  remove,
+  writeFile,
+  writeJson,
+} from "fs-extra";
 import { ExtensionContext, Uri } from "vscode";
 import { ESP } from "../../config";
 import { Logger } from "../../logger/logger";
@@ -30,6 +37,7 @@ import {
   legacyConfigToConfigurePreset,
   migrateLegacyConfiguration,
 } from "../../project-conf/legacy";
+import { createStarterPresetsFile } from "../../project-conf/presetsWriter";
 import { createMockMemento } from "../mockUtils";
 
 const fullPreset: ConfigurePreset = {
@@ -386,5 +394,108 @@ suite("Legacy project configuration migration", () => {
       cmakePresets.configurePresets[1].cacheVariables.SDKCONFIG,
       "${sourceDir}/mycustomsdkconfig"
     );
+  });
+});
+
+suite("Starter CMakePresets file", () => {
+  let workspaceFolder: string;
+  let presetsPath: string;
+
+  suiteSetup(() => {
+    Logger.init(createMockContext());
+  });
+
+  setup(async () => {
+    workspaceFolder = await mkdtemp(join(tmpdir(), "esp-idf-starter-"));
+    presetsPath = join(
+      workspaceFolder,
+      ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+    );
+  });
+
+  teardown(async () => {
+    await remove(workspaceFolder);
+  });
+
+  test("creates presets CMake can read when no file exists", async () => {
+    const { outcome } = await createStarterPresetsFile(
+      Uri.file(workspaceFolder)
+    );
+    assert.strictEqual(outcome, "created");
+
+    const document = await readJson(presetsPath);
+    assert.strictEqual(document.version, ESP.CMakePresets.CMAKE_PRESET_VERSION);
+    assert.deepStrictEqual(
+      document.cmakeMinimumRequired,
+      ESP.CMakePresets.CMAKE_PRESET_MINIMUM_REQUIRED
+    );
+    // CMake refuses the whole file over a $schema key below presets version 8.
+    assert.ok(!("$schema" in document));
+
+    assert.deepStrictEqual(
+      document.configurePresets.map((p) => p.name),
+      ["default", "production"]
+    );
+    for (const preset of document.configurePresets) {
+      assert.ok(preset.displayName, `${preset.name} needs a displayName`);
+      assert.ok(
+        preset.binaryDir.startsWith("${sourceDir}/"),
+        `${preset.name} must build inside the project`
+      );
+      // Naming absent sdkconfig defaults would fail the build from the start.
+      assert.ok(!preset.cacheVariables.SDKCONFIG_DEFAULTS);
+    }
+
+    const binaryDirs = document.configurePresets.map((p) => p.binaryDir);
+    assert.strictEqual(
+      new Set(binaryDirs).size,
+      binaryDirs.length,
+      "each preset needs its own build directory"
+    );
+  });
+
+  test("fills in presets while keeping the rest of an existing file", async () => {
+    await writeJson(presetsPath, {
+      version: 3,
+      cmakeMinimumRequired: { major: 3, minor: 21, patch: 0 },
+      configurePresets: [],
+      buildPresets: [{ name: "keep-me", configurePreset: "default" }],
+    });
+
+    const { outcome } = await createStarterPresetsFile(
+      Uri.file(workspaceFolder)
+    );
+    assert.strictEqual(outcome, "presetsAdded");
+
+    const document = await readJson(presetsPath);
+    assert.strictEqual(document.configurePresets.length, 2);
+    assert.deepStrictEqual(document.buildPresets, [
+      { name: "keep-me", configurePreset: "default" },
+    ]);
+  });
+
+  test("leaves presets the user already defined alone", async () => {
+    const existing = {
+      version: 3,
+      configurePresets: [{ name: "mine", binaryDir: "${sourceDir}/build" }],
+    };
+    await writeJson(presetsPath, existing);
+
+    const { outcome } = await createStarterPresetsFile(
+      Uri.file(workspaceFolder)
+    );
+    assert.strictEqual(outcome, "alreadyDefined");
+    assert.deepStrictEqual(await readJson(presetsPath), existing);
+  });
+
+  test("does not overwrite a file it cannot parse", async () => {
+    const malformed = '{ "version": 3, "configurePresets": [ }';
+    await writeFile(presetsPath, malformed);
+
+    const { outcome } = await createStarterPresetsFile(
+      Uri.file(workspaceFolder)
+    );
+    assert.strictEqual(outcome, "unreadable");
+    assert.strictEqual(await readFile(presetsPath, "utf8"), malformed);
   });
 });

@@ -159,6 +159,74 @@ export async function saveProjectConfFile(
   });
 }
 
+export type StarterPresetsOutcome =
+  | "created"
+  | "presetsAdded"
+  | "alreadyDefined"
+  | "unreadable";
+
+/**
+ * Mirrors the presets of the ESP-IDF multi_config example, without its
+ * SDKCONFIG_DEFAULTS entries: those name sdkconfig files a fresh project does not
+ * have, and CMake fails the build when they are missing.
+ */
+function starterConfigurePresets(): ConfigurePreset[] {
+  return [
+    {
+      name: "default",
+      displayName: "Default (development)",
+      description: "Development configuration",
+      binaryDir: "${sourceDir}/build/default",
+      cacheVariables: { SDKCONFIG: "${sourceDir}/build/default/sdkconfig" },
+    },
+    {
+      name: "production",
+      displayName: "Production",
+      description: "Production configuration",
+      binaryDir: "${sourceDir}/build/production",
+      cacheVariables: { SDKCONFIG: "${sourceDir}/build/production/sdkconfig" },
+    },
+  ];
+}
+
+/**
+ * Gives CMakePresets.json a pair of buildable presets to copy from, because an
+ * empty configurePresets array leaves nothing to learn the format from.
+ *
+ * Existing presets are never touched, and neither is a file that fails to parse,
+ * so a malformed file is reported rather than overwritten.
+ */
+export async function createStarterPresetsFile(
+  workspaceFolder: Uri
+): Promise<{ filePath: Uri; outcome: StarterPresetsOutcome }> {
+  const fileName = ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME;
+  const filePath = Uri.joinPath(workspaceFolder, fileName);
+
+  if (!(await pathExists(filePath.fsPath))) {
+    await writePresetsDocument(filePath, {
+      version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
+      cmakeMinimumRequired: ESP.CMakePresets.CMAKE_PRESET_MINIMUM_REQUIRED,
+      configurePresets: starterConfigurePresets(),
+    });
+    return { filePath, outcome: "created" };
+  }
+
+  const existing = await readPresetsDocument(filePath, fileName);
+  if (!existing) {
+    return { filePath, outcome: "unreadable" };
+  }
+  if (existing.configurePresets.length > 0) {
+    return { filePath, outcome: "alreadyDefined" };
+  }
+
+  await writePresetsDocument(filePath, {
+    ...existing,
+    version: existing.version ?? ESP.CMakePresets.CMAKE_PRESET_VERSION,
+    configurePresets: starterConfigurePresets(),
+  });
+  return { filePath, outcome: "presetsAdded" };
+}
+
 interface LocatedPreset {
   filePath: Uri;
   document: CMakePresets & { configurePresets: ConfigurePreset[] };

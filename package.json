@@ -1776,6 +1776,11 @@
         "category": "ESP-IDF"
       },
       {
+        "command": "espIdf.createProjectConfiguration",
+        "title": "%espIdf.createProjectConfiguration.title%",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.selectNotificationMode",
         "title": "%espIdf.selectNotificationMode.title%",
         "category": "ESP-IDF"
