@@ -44,6 +44,7 @@
 	"espIdf.createIdfTerminal.title": "打开 ESP-IDF 终端",
 	"espIdf.createClassicMenuconfig.title": "打开经典菜单配置终端",
 	"espIdf.createNewComponent.title": "创建新 ESP-IDF 组件",
+	"espIdf.createProjectConfiguration.title": "创建项目配置",
 	"espIdf.createSbom.title": "运行 ESP-IDF-SBOM 漏洞检查",
 	"espIdf.createVsCodeFolder.title": "添加 VS Code 配置文件夹",
 	"espIdf.customTask.title": "执行自定义任务",

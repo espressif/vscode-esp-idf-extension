@@ -44,6 +44,7 @@
 	"espIdf.createIdfTerminal.title": "Открыть терминал ESP-IDF",
 	"espIdf.createClassicMenuconfig.title": "Открыть классический терминал конфигурации",
 	"espIdf.createNewComponent.title": "Создать новый компонент ESP-IDF",
+	"espIdf.createProjectConfiguration.title": "Создать конфигурацию проекта",
 	"espIdf.createSbom.title": "Запустить проверку уязвимостей ESP-IDF-SBOM.",
 	"espIdf.createVsCodeFolder.title": "Добавить папку конфигурации VS Code",
 	"espIdf.customTask.title": "Выполнить пользовательскую задачу",

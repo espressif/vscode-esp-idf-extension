@@ -3965,6 +3965,18 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.createProjectConfiguration", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      if (projectConfigManager) {
+        await projectConfigManager.createProjectConfiguration();
+      } else {
+        vscode.window.showErrorMessage(
+          "Project Configuration Manager not initialized."
+        );
+      }
+    });
+  });
+
 }
 
 function checkAndNotifyMissingCompileCommands() {
