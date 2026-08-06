@@ -539,13 +539,18 @@ export class ProjectConfigurationManager {
       }
 
       const selectConfigMsg = l10n.t("Select configuration to use:");
-      let quickPickItems = Object.keys(projectConfigurations).map((k) => {
-        return {
-          description: k,
-          label: l10n.t("Configuration {0}", k),
-          target: k,
-        };
-      });
+      const quickPickItems = Object.entries(projectConfigurations).map(
+        ([name, preset]) => {
+          return {
+            label: preset.displayName || name,
+            // --preset and IDF_PRESET take the name, so keep it visible whenever
+            // the label shows something else.
+            description: preset.displayName ? name : undefined,
+            detail: preset.description,
+            target: name,
+          };
+        }
+      );
 
       const option = await window.showQuickPick(quickPickItems, {
         placeHolder: selectConfigMsg,
