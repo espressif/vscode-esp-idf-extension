@@ -134,12 +134,11 @@ Project configuration profiles are saved in ``CMakePresets.json`` and ``CMakeUse
 
 Project configurations are stored using the standard CMake Presets format in ``CMakePresets.json`` (typically committed to version control) and optionally ``CMakeUserPresets.json`` (user-specific overrides, typically gitignored).
 
-The ``CMakePresets.json`` file structure follows the CMake Presets schema with ESP-IDF-specific vendor settings. For JSON schema validation, you can reference the ESP-IDF CMakePresets schema at ``https://dl.espressif.com/dl/vscode-esp-idf-extension/schemas/esp-idf-cmakepresets-schema-v1.json``, which extends the official CMake Presets schema with ESP-IDF-specific vendor fields.
+The ``CMakePresets.json`` file structure follows the CMake Presets schema with ESP-IDF-specific vendor settings. The extension registers its own schema, which extends the official CMake Presets schema with the ESP-IDF vendor fields, for both ``CMakePresets.json`` and ``CMakeUserPresets.json``. Validation and autocompletion are therefore available as soon as you open either file, and no ``$schema`` field is required.
 
 .. code-block:: JSON
 
     {
-      "$schema": "https://dl.espressif.com/dl/vscode-esp-idf-extension/schemas/esp-idf-cmakepresets-schema-v1.json",
       "version": 3,
       "cmakeMinimumRequired": {
         "major": 3,
@@ -366,7 +365,6 @@ To create multiple configurations manually, create or edit ``CMakePresets.json``
 .. code-block:: JSON
 
     {
-      "$schema": "https://dl.espressif.com/dl/vscode-esp-idf-extension/schemas/esp-idf-cmakepresets-schema-v1.json",
       "version": 3,
       "cmakeMinimumRequired": {
         "major": 3,
@@ -429,7 +427,6 @@ For this example we will create two profiles, **development** and **production**
 .. code-block:: JSON
 
     {
-      "$schema": "https://dl.espressif.com/dl/vscode-esp-idf-extension/schemas/esp-idf-cmakepresets-schema-v1.json",
       "version": 3,
       "cmakeMinimumRequired": {
         "major": 3,
