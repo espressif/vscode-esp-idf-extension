@@ -16,14 +16,17 @@
  * limitations under the License.
  */
 
+import { delimiter } from "path";
+import { platform } from "os";
 import { Uri } from "vscode";
 import { resolveVariables } from "../idfConfiguration";
 import { ConfigurePreset } from "./projectConfiguration";
 import { getPresetParameterValue } from "./presetSettings";
 
 /**
- * Substitutes ${sourceDir}, ${workspaceFolder}, ${env:VARNAME} and ${config:PARAM}
- * in a preset string value.
+ * Substitutes ${sourceDir}, ${workspaceFolder}, ${presetName}, ${hostSystemName},
+ * ${pathListSep}, ${dollar}, ${env:VARNAME} and ${config:PARAM} in a preset string
+ * value.
  * @returns The string with variables substituted, or undefined if input was undefined/null.
  */
 export function substituteVariablesInConfigurePreset(
@@ -90,10 +93,39 @@ export function substituteVariablesInConfigurePreset(
     ) {
       return workspaceFolder.fsPath;
     }
+    if (match.indexOf("presetName") > 0) {
+      return preset.name;
+    }
+    if (match.indexOf("hostSystemName") > 0) {
+      return hostSystemName();
+    }
+    if (match.indexOf("pathListSep") > 0) {
+      return delimiter;
+    }
+    if (match.indexOf("dollar") > 0) {
+      return "$";
+    }
     return match;
   });
 
   return resolveVariables(result, workspaceFolder);
+}
+
+/**
+ * CMake expands ${hostSystemName} to CMAKE_HOST_SYSTEM_NAME, which is `uname -s`
+ * and spells the platforms differently from Node.
+ */
+function hostSystemName(): string {
+  switch (platform()) {
+    case "win32":
+      return "Windows";
+    case "darwin":
+      return "Darwin";
+    case "linux":
+      return "Linux";
+    default:
+      return platform();
+  }
 }
 
 /**

@@ -17,13 +17,14 @@
  */
 
 import * as assert from "assert";
-import { tmpdir } from "os";
+import { platform, tmpdir } from "os";
 import { join, resolve } from "path";
 import { mkdtemp, remove, writeJson } from "fs-extra";
 import { ExtensionContext, Uri } from "vscode";
 import { ESP } from "../../config";
 import { Logger } from "../../logger/logger";
 import { getProjectConfigurationElements } from "../../project-conf/presetsReader";
+import { resolvePresetInheritance } from "../../project-conf/presetInheritance";
 import { getESPIDFSettingValue } from "../../project-conf/presetSettings";
 import { createMockMemento } from "../mockUtils";
 
@@ -235,5 +236,172 @@ suite("Multiple configure preset inheritance", () => {
 
     assert.strictEqual(child.displayName, undefined);
     assert.strictEqual(child.description, undefined);
+  });
+});
+
+/** The spelling CMake uses for ${hostSystemName}, which is `uname -s`. */
+const hostSystemName = {
+  win32: "Windows",
+  darwin: "Darwin",
+  linux: "Linux",
+}[platform() as string];
+
+const hostPresetNames = {
+  Windows: "windows-only",
+  Darwin: "macos-only",
+  Linux: "linux-only",
+};
+
+const equalsHostSystemName = (rhs: string) => ({
+  type: "equals",
+  lhs: "${hostSystemName}",
+  rhs,
+});
+
+const conditionPresets = {
+  version: 3,
+  cmakeMinimumRequired: { major: 3, minor: 23, patch: 0 },
+  configurePresets: [
+    {
+      name: "windows-only",
+      condition: equalsHostSystemName("Windows"),
+    },
+    {
+      name: "linux-only",
+      condition: equalsHostSystemName("Linux"),
+    },
+    {
+      name: "macos-only",
+      condition: equalsHostSystemName("Darwin"),
+    },
+    { name: "always-disabled", condition: false },
+    { name: "always-enabled", condition: true },
+    { name: "explicitly-null", condition: null },
+    { name: "no-condition", binaryDir: "build/${presetName}" },
+    { name: "disabled-base", hidden: true, condition: false },
+    { name: "child-of-disabled", inherits: "disabled-base" },
+    {
+      name: "child-cancelling-condition",
+      inherits: "disabled-base",
+      condition: null,
+    },
+    {
+      name: "any-of-host",
+      condition: {
+        type: "anyOf",
+        conditions: [
+          equalsHostSystemName("Windows"),
+          equalsHostSystemName("Darwin"),
+          equalsHostSystemName("Linux"),
+        ],
+      },
+    },
+    {
+      name: "not-a-false-constant",
+      condition: { type: "not", condition: { type: "const", value: false } },
+    },
+    {
+      name: "in-list-host",
+      condition: {
+        type: "inList",
+        string: "${hostSystemName}",
+        list: ["Windows", "Darwin", "Linux"],
+      },
+    },
+    {
+      name: "matches-host",
+      condition: {
+        type: "matches",
+        string: "${hostSystemName}",
+        regex: "^(Windows|Darwin|Linux)$",
+      },
+    },
+    {
+      name: "missing-rhs",
+      condition: { type: "equals", lhs: "${hostSystemName}" },
+    },
+    { name: "unknown-type", condition: { type: "isTuesday" } },
+  ],
+};
+
+suite("Configure preset conditions", () => {
+  let workspaceFolder: string;
+  let presetNames: string[];
+
+  suiteSetup(() => {
+    Logger.init(createMockContext());
+  });
+
+  setup(async () => {
+    workspaceFolder = await mkdtemp(join(tmpdir(), "esp-idf-presets-"));
+    await writeJson(
+      join(
+        workspaceFolder,
+        ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+      ),
+      conditionPresets
+    );
+    presetNames = Object.keys(
+      await getProjectConfigurationElements(Uri.file(workspaceFolder))
+    );
+  });
+
+  teardown(async () => {
+    await remove(workspaceFolder);
+  });
+
+  test("only the host-specific preset of this platform is selectable", () => {
+    const hostSpecificNames = Object.values(hostPresetNames);
+    const expected = hostPresetNames[hostSystemName];
+
+    assert.ok(expected, `unexpected host system name ${hostSystemName}`);
+    assert.deepStrictEqual(
+      presetNames.filter((name) => hostSpecificNames.includes(name)),
+      [expected]
+    );
+  });
+
+  test("a false condition disables a preset, true and null keep it", () => {
+    assert.ok(!presetNames.includes("always-disabled"));
+    assert.ok(presetNames.includes("always-enabled"));
+    assert.ok(presetNames.includes("explicitly-null"));
+    assert.ok(presetNames.includes("no-condition"));
+  });
+
+  test("conditions are inherited, and a null condition cancels them", () => {
+    assert.ok(!presetNames.includes("child-of-disabled"));
+    assert.ok(presetNames.includes("child-cancelling-condition"));
+  });
+
+  test("a null condition is not passed on to inheriting presets", () => {
+    const resolved = resolvePresetInheritance(
+      { name: "child", inherits: "base" },
+      {
+        base: { name: "base", hidden: true, condition: null },
+        child: { name: "child", inherits: "base" },
+      }
+    );
+
+    assert.ok(!("condition" in resolved));
+  });
+
+  test("aggregate, list and regex conditions are evaluated", () => {
+    assert.ok(presetNames.includes("any-of-host"));
+    assert.ok(presetNames.includes("not-a-false-constant"));
+    assert.ok(presetNames.includes("in-list-host"));
+    assert.ok(presetNames.includes("matches-host"));
+  });
+
+  test("a condition that cannot be evaluated leaves the preset selectable", () => {
+    assert.ok(presetNames.includes("missing-rhs"));
+    assert.ok(presetNames.includes("unknown-type"));
+  });
+
+  test("${presetName} expands to the name of the preset", async () => {
+    const presets = await getProjectConfigurationElements(
+      Uri.file(workspaceFolder)
+    );
+
+    assert.strictEqual(presets["no-condition"].binaryDir, "build/no-condition");
   });
 });

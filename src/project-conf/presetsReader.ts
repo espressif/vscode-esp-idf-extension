@@ -23,12 +23,13 @@ import { Logger } from "../logger/logger";
 import { CMakePresets, ConfigurePreset } from "./projectConfiguration";
 import { resolvePresetInheritance } from "./presetInheritance";
 import { processConfigurePresetVariables } from "./presetProcessing";
+import { isPresetEnabled } from "./presetCondition";
 
 /**
  * Reads the configure presets of CMakePresets.json and CMakeUserPresets.json,
  * resolves inheritance and expands variables. Presets marked `"hidden": true`
- * stay available as inheritance bases but are left out of the result, matching
- * what `cmake --list-presets` offers.
+ * stay available as inheritance bases, and presets disabled by their `condition`
+ * are dropped, so the result matches what `cmake --list-presets` offers.
  * @param resolvePaths Whether to resolve paths to absolute paths (true for building, false for display)
  * @returns An object mapping preset names to their processed ConfigurePreset.
  */
@@ -64,6 +65,10 @@ export async function getProjectConfigurationElements(
     }
     try {
       const resolvedPreset = resolvePresetInheritance(preset, allRawPresets);
+      // Conditions are inherited, so they can only be judged once the chain is resolved.
+      if (!isPresetEnabled(resolvedPreset, workspaceFolder)) {
+        continue;
+      }
       processedPresets[name] = processConfigurePresetVariables(
         resolvedPreset,
         workspaceFolder,
