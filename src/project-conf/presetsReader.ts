@@ -46,17 +46,22 @@ export async function getProjectConfigurationElements(
     ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME
   );
 
-  // User presets are read last so that they override project presets of the same name.
-  const allRawPresets: { [key: string]: ConfigurePreset } = {
-    ...(await readPresetsFile(
-      cmakePresetsFilePath,
-      ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
-    )),
-    ...(await readPresetsFile(
-      cmakeUserPresetsFilePath,
-      ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME
-    )),
-  };
+  const allRawPresets = indexPresetsByName([
+    {
+      fileName: ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME,
+      presets: await readPresetsFile(
+        cmakePresetsFilePath,
+        ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+      ),
+    },
+    {
+      fileName: ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME,
+      presets: await readPresetsFile(
+        cmakeUserPresetsFilePath,
+        ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME
+      ),
+    },
+  ]);
 
   const processedPresets: { [key: string]: ConfigurePreset } = {};
   for (const [name, preset] of Object.entries(allRawPresets)) {
@@ -85,12 +90,59 @@ export async function getProjectConfigurationElements(
   return processedPresets;
 }
 
+interface PresetsFileContent {
+  fileName: string;
+  presets: ConfigurePreset[];
+}
+
+/**
+ * Keys the presets of both files by name. CMake requires the names to be unique
+ * across CMakePresets.json and CMakeUserPresets.json and reads no preset at all
+ * when they are not, so a duplicate has to fail the whole read instead of letting
+ * one preset silently shadow another.
+ */
+function indexPresetsByName(
+  files: PresetsFileContent[]
+): {
+  [key: string]: ConfigurePreset;
+} {
+  const presetsByName: { [key: string]: ConfigurePreset } = {};
+  const declaringFileByName: { [key: string]: string } = {};
+  const duplicates: string[] = [];
+
+  for (const { fileName, presets } of files) {
+    for (const preset of presets) {
+      const declaringFile = declaringFileByName[preset.name];
+      if (declaringFile) {
+        duplicates.push(
+          declaringFile === fileName
+            ? `"${preset.name}" is declared more than once in ${fileName}`
+            : `"${preset.name}" is declared in both ${declaringFile} and ${fileName}`
+        );
+        continue;
+      }
+      declaringFileByName[preset.name] = fileName;
+      presetsByName[preset.name] = { ...preset };
+    }
+  }
+
+  if (duplicates.length) {
+    throw new Error(
+      `Duplicate configure presets: ${duplicates.join(
+        "; "
+      )}. Preset names must be unique, so no configuration is available until this is fixed.`
+    );
+  }
+
+  return presetsByName;
+}
+
 async function readPresetsFile(
   filePath: Uri,
   fileName: string
-): Promise<{ [key: string]: ConfigurePreset }> {
+): Promise<ConfigurePreset[]> {
   if (!(await pathExists(filePath.fsPath))) {
-    return {};
+    return [];
   }
 
   let configJson: any;
@@ -102,23 +154,27 @@ async function readPresetsFile(
       error,
       "getProjectConfigurationElements"
     );
-    return {};
+    return [];
   }
 
   if (typeof configJson !== "object" || configJson === null) {
-    return {};
+    return [];
   }
 
   if (configJson.version === undefined || !configJson.configurePresets) {
     Logger.warnNotify(
       `Invalid ${fileName} format detected. Please ensure the file follows the CMakePresets specification.`
     );
-    return {};
+    return [];
   }
 
-  const rawPresets: { [key: string]: ConfigurePreset } = {};
-  for (const preset of (configJson as CMakePresets).configurePresets) {
-    rawPresets[preset.name] = { ...preset };
-  }
-  return rawPresets;
+  return (configJson as CMakePresets).configurePresets.filter((preset) => {
+    if (preset && typeof preset.name === "string" && preset.name !== "") {
+      return true;
+    }
+    Logger.warnNotify(
+      `Skipping a configure preset without a name in ${fileName}.`
+    );
+    return false;
+  });
 }
