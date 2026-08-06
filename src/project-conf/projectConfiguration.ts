@@ -42,6 +42,34 @@ export interface ESPIDFVendorSettings {
   };
 }
 
+export type PresetConditionType =
+  | "const"
+  | "equals"
+  | "notEquals"
+  | "inList"
+  | "notInList"
+  | "matches"
+  | "notMatches"
+  | "anyOf"
+  | "allOf"
+  | "not";
+
+/**
+ * Field names follow the CMake Condition object; which ones apply depends on `type`.
+ * @see https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html#condition
+ */
+export interface PresetCondition {
+  type: PresetConditionType;
+  value?: boolean;
+  lhs?: string;
+  rhs?: string;
+  string?: string;
+  list?: string[];
+  regex?: string;
+  conditions?: PresetCondition[];
+  condition?: PresetCondition;
+}
+
 export interface ConfigurePreset {
   name: string;
   displayName?: string;
@@ -49,6 +77,8 @@ export interface ConfigurePreset {
   inherits?: string | string[];
   /** Base preset meant only for inheritance. Not selectable, mirroring `cmake --list-presets`. */
   hidden?: boolean;
+  /** Decides whether the preset applies to the current host. `null` means enabled. */
+  condition?: boolean | null | PresetCondition;
   binaryDir?: string;
   cacheVariables?: {
     IDF_TARGET?: string;

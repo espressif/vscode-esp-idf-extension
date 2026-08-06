@@ -92,6 +92,10 @@ export function resolvePresetInheritance(
  */
 function inheritableFields(preset: ConfigurePreset): ConfigurePreset {
   const { hidden, inherits, description, displayName, ...inheritable } = preset;
+  // A null condition enables its own preset without being passed down.
+  if (inheritable.condition === null) {
+    delete inheritable.condition;
+  }
   return inheritable;
 }
 
