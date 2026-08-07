@@ -139,14 +139,27 @@ export class CDTDebugConfigurationProvider
         }
       }
 
-      const isAppReproducibleBuildEnabled = await getConfigValueFromSDKConfig(
-        "CONFIG_APP_REPRODUCIBLE_BUILD",
-        folder.uri
-      );
-      if (isAppReproducibleBuildEnabled === "y" && !prefixMapFound) {
-        window.showInformationMessage(
-          `CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found.`
-        );
+      const isPostMortemSession =
+        config.sessionID === "core-dump.debug.session.ws" ||
+        config.sessionID === "gdbstub.debug.session.ws";
+      if (!isPostMortemSession && !prefixMapFound) {
+        try {
+          const isAppReproducibleBuildEnabled = await getConfigValueFromSDKConfig(
+            "CONFIG_APP_REPRODUCIBLE_BUILD",
+            folder.uri
+          );
+          if (isAppReproducibleBuildEnabled === "y") {
+            window.showInformationMessage(
+              `CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found.`
+            );
+          }
+        } catch (error) {
+          Logger.error(
+            "Failed to read CONFIG_APP_REPRODUCIBLE_BUILD from sdkconfig",
+            error as Error,
+            "CDTDebugConfigurationProvider resolveDebugConfiguration"
+          );
+        }
       }
 
       if (
