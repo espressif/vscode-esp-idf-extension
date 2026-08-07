@@ -116,6 +116,52 @@ export class CDTDebugConfigurationProvider
       if (!config.gdb) {
         config.gdb = await getToolchainPath(folder.uri, "gdb");
       }
+
+      const buildDirPath = readParameter("idf.buildPath", folder) as string;
+      const preConnectCommands: string[] = [];
+      let prefixMapFound = false;
+      if (buildDirPath) {
+        const gdbinitSymbols = join(buildDirPath, "gdbinit", "symbols");
+        if (await pathExists(gdbinitSymbols)) {
+          preConnectCommands.push(`source ${gdbinitSymbols}`);
+        }
+
+        const gdbinitPrefixMap = join(buildDirPath, "gdbinit", "prefix_map");
+        if (await pathExists(gdbinitPrefixMap)) {
+          preConnectCommands.push(`source ${gdbinitPrefixMap}`);
+          prefixMapFound = true;
+        } else {
+          const prefixMapGdbinit = join(buildDirPath, "prefix_map_gdbinit");
+          if (await pathExists(prefixMapGdbinit)) {
+            preConnectCommands.push(`source ${prefixMapGdbinit}`);
+            prefixMapFound = true;
+          }
+        }
+      }
+
+      const isPostMortemSession =
+        config.sessionID === "core-dump.debug.session.ws" ||
+        config.sessionID === "gdbstub.debug.session.ws";
+      if (!isPostMortemSession && !prefixMapFound) {
+        try {
+          const isAppReproducibleBuildEnabled = await getConfigValueFromSDKConfig(
+            "CONFIG_APP_REPRODUCIBLE_BUILD",
+            folder.uri
+          );
+          if (isAppReproducibleBuildEnabled === "y") {
+            window.showInformationMessage(
+              `CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found.`
+            );
+          }
+        } catch (error) {
+          Logger.error(
+            "Failed to read CONFIG_APP_REPRODUCIBLE_BUILD from sdkconfig",
+            error as Error,
+            "CDTDebugConfigurationProvider resolveDebugConfiguration"
+          );
+        }
+      }
+
       if (
         config.sessionID !== "core-dump.debug.session.ws" &&
         config.sessionID !== "gdbstub.debug.session.ws" &&
@@ -126,33 +172,6 @@ export class CDTDebugConfigurationProvider
           "mon reset halt",
           "maintenance flush register-cache",
         ];
-        const isAppReproducibleBuildEnabled = await getConfigValueFromSDKConfig(
-          "CONFIG_APP_REPRODUCIBLE_BUILD",
-          folder.uri
-        );
-        if (isAppReproducibleBuildEnabled === "y") {
-          const buildDirPath = readParameter("idf.buildPath", folder) as string;
-          if (!buildDirPath) {
-            throw new Error("Failed to get build directory path.");
-          }
-          const gdbinitPrefixMap = join(buildDirPath, "gdbinit", "prefix_map");
-          const gdbinitPrefixMapExists = await pathExists(gdbinitPrefixMap);
-          if (gdbinitPrefixMapExists) {
-            config.initCommands.push(`source ${gdbinitPrefixMap}`);
-          } else {
-            const prefix_map_gdbinit = join(buildDirPath, "prefix_map_gdbinit");
-            const prefix_map_gdbinitExists = await pathExists(
-              prefix_map_gdbinit
-            );
-            if (prefix_map_gdbinitExists) {
-              config.initCommands.push(`source ${prefix_map_gdbinit}`);
-            } else {
-              window.showInformationMessage(
-                `CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found.`
-              );
-            }
-          }
-        }
         if (typeof config.initialBreakpoint === "undefined") {
           config.initCommands.push(`thb app_main`);
         } else if (config.initialBreakpoint) {
@@ -166,32 +185,39 @@ export class CDTDebugConfigurationProvider
           | "esp32"
           | "esp32s2"
           | "esp32s3"
+          | "esp32s31"
           | "esp32c2"
           | "esp32c3"
-          | "esp32c6"
-          | "esp32h2"
-          | "esp32p4"
-          | "esp32c4"
           | "esp32c5"
-          | "esp32c61";
-        // Mapping of idfTarget to corresponding CPU watchpoint numbers
+          | "esp32c6"
+          | "esp32c61"
+          | "esp32h2"
+          | "esp32h21"
+          | "esp32h4"
+          | "esp32p4";
+        // SOC_CPU_WATCHPOINTS_NUM from ESP-IDF components/soc/*/include/soc/soc_caps.h
         const idfTargetWatchpointMap: Record<IdfTarget, number> = {
           esp32: 2,
           esp32s2: 2,
           esp32s3: 2,
+          esp32s31: 4,
           esp32c2: 2,
           esp32c3: 8,
+          esp32c5: 3,
           esp32c6: 4,
+          esp32c61: 3,
           esp32h2: 4,
+          esp32h21: 4,
+          esp32h4: 3,
           esp32p4: 3,
-          esp32c4: 2,
-          esp32c5: 4,
-          esp32c61: 4,
         };
+        const watchpointNum = String(
+          idfTargetWatchpointMap[idfTarget as IdfTarget] || 2
+        );
         config.initCommands = config.initCommands.map((cmd: string) =>
           cmd.replace(
-            "{IDF_TARGET_CPU_WATCHPOINT_NUM}",
-            idfTargetWatchpointMap[idfTarget] || 2
+            /\{IDF_TARGET_CPU_WATCHPOINT_NUM\}|IDF_TARGET_CPU_WATCHPOINT_NUM/g,
+            watchpointNum
           )
         );
       }
@@ -207,6 +233,22 @@ export class CDTDebugConfigurationProvider
             "-target-select extended-remote localhost:3333",
           ],
         };
+      }
+
+      if (preConnectCommands.length > 0) {
+        if (!config.target) {
+          config.target = { connectCommands: [] };
+        }
+        if (!Array.isArray(config.target.connectCommands)) {
+          config.target.connectCommands = [];
+        }
+        const connectCommands = config.target.connectCommands as string[];
+        for (let i = preConnectCommands.length - 1; i >= 0; i--) {
+          const cmd = preConnectCommands[i];
+          if (!connectCommands.includes(cmd)) {
+            connectCommands.unshift(cmd);
+          }
+        }
       }
       if (folder && folder.uri && config.verifyAppBinBeforeDebug) {
         const isSameAppBinary = await verifyAppBinary(folder.uri);
