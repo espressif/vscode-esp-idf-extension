@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 import { join } from "path";
-import { readParameter, writeParameter } from "../../idfConfiguration";
+import { readParameter, writeParameter } from "../../configuration/idf";
 import { readJSON } from "fs-extra";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import {
   commands,
   ConfigurationTarget,
@@ -26,12 +26,11 @@ import {
   l10n,
   QuickPickItem,
   QuickPickItemKind,
-  Uri,
   window,
+  WorkspaceFolder,
 } from "vscode";
 import { defaultBoards } from "./defaultBoards";
-import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
 import { DevkitsCommand } from "../setTarget/DevkitsCommand";
 import { OpenOCDManager } from "./openOcdManager";
 import {
@@ -40,6 +39,8 @@ import {
   supportsSerialFromDetectConfig,
 } from "./adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
+import { openOcdNoBoardsForTarget } from "../../common/error/knownError";
 
 export interface IdfBoard {
   name: string;
@@ -59,25 +60,35 @@ interface BoardQuickPickItem extends QuickPickItem {
   };
 }
 
-export async function getOpenOcdScripts(workspace: Uri): Promise<string> {
-  const modifiedEnv = await configureEnvVariables(workspace);
-  const userExtraVars = readParameter("idf.customExtraVars", workspace) as {
+export async function getOpenOcdScripts(
+  workspaceFolder?: WorkspaceFolder
+): Promise<string> {
+  const modifiedEnv = getCurrentIdfConfiguration();
+  const userExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as {
     [key: string]: string;
   };
   let openOcdScriptsPath: string;
   try {
-    openOcdScriptsPath = modifiedEnv.hasOwnProperty("OPENOCD_SCRIPTS")
+    openOcdScriptsPath = modifiedEnv.OPENOCD_SCRIPTS
       ? modifiedEnv.OPENOCD_SCRIPTS
       : userExtraVars.hasOwnProperty("OPENOCD_SCRIPTS")
       ? userExtraVars.OPENOCD_SCRIPTS
       : process.env.OPENOCD_SCRIPTS
       ? process.env.OPENOCD_SCRIPTS
-      : undefined;
+      : "";
   } catch (error) {
-    Logger.error(error.message, error, "boardConfiguration getOpenOcdScripts");
+    const errMsg = error instanceof Error ? error.message : "Unknown error";
+    Logger.error(
+      errMsg,
+      error instanceof Error ? error : new Error("Unknown error"),
+      "boardConfiguration getOpenOcdScripts"
+    );
     openOcdScriptsPath = process.env.OPENOCD_SCRIPTS
       ? process.env.OPENOCD_SCRIPTS
-      : undefined;
+      : "";
   }
   return openOcdScriptsPath;
 }
@@ -95,7 +106,7 @@ export async function getBoards(
   const openOcdEspConfig = join(openOcdScriptsPath, "esp-config.json");
   try {
     const openOcdEspConfigObj = await readJSON(openOcdEspConfig);
-    const espBoards: IdfBoard[] = openOcdEspConfigObj.boards.map((b) => {
+    const espBoards: IdfBoard[] = openOcdEspConfigObj.boards.map((b: any) => {
       return {
         name: b.name,
         description: b.description,
@@ -124,7 +135,12 @@ export async function getBoards(
     });
     return idfTarget ? filteredEspBoards : espBoards;
   } catch (error) {
-    Logger.error(error.message, error, "boardConfiguration getBoards");
+    const errMsg = error instanceof Error ? error.message : "Unknown error";
+    Logger.error(
+      errMsg,
+      error instanceof Error ? error : new Error("Unknown error"),
+      "boardConfiguration getBoards"
+    );
     const filteredDefaultBoards = defaultBoards.filter((b) => {
       return b.target === idfTarget;
     });
@@ -133,229 +149,207 @@ export async function getBoards(
 }
 
 export async function selectOpenOcdConfigFiles(
-  workspaceFolder: Uri,
+  workspaceFolder: WorkspaceFolder,
   idfTarget?: string
 ) {
-  try {
-    const openOcdScriptsPath = await getOpenOcdScripts(workspaceFolder);
+  const openOcdScriptsPath = await getOpenOcdScripts(workspaceFolder);
+  if (!idfTarget) {
+    idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder.uri);
     if (!idfTarget) {
-      idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder);
-      if (!idfTarget) {
-        commands.executeCommand("espIdf.setTarget");
-        return;
-      }
-    }
-    if (idfTarget === "linux") {
+      commands.executeCommand("espIdf.setTarget");
       return;
     }
-
-    let connectedBoardItems: BoardQuickPickItem[] = [];
-    let openOCDVersion: string | undefined;
-    const isDebugging = debug.activeDebugSession !== undefined;
-    if (!isDebugging) {
-      try {
-        const openOCDManager = OpenOCDManager.init();
-        openOCDVersion = await openOCDManager.version();
-        const devkitsCmd = new DevkitsCommand(workspaceFolder);
-        const modifiedEnv = await configureEnvVariables(workspaceFolder);
-        const openOcdPath = await OpenOCDManager.getOpenOcdPath(
-          workspaceFolder,
-          modifiedEnv
-        );
-        const scriptPath = await devkitsCmd.getScriptPath(openOcdPath);
-        if (scriptPath) {
-          const devkitsOutput = await devkitsCmd.runDevkitsScript(
-            openOCDVersion
-          );
-          if (devkitsOutput) {
-            const parsed = JSON.parse(devkitsOutput);
-            if (parsed && Array.isArray(parsed.boards)) {
-              connectedBoardItems = parsed.boards
-                .filter((b: any) => !idfTarget || b.target === idfTarget)
-                .map(
-                  (b: any): BoardQuickPickItem => ({
-                    label: b.name,
-                    detail: `Status: CONNECTED${
-                      b.location ? `   Location: ${b.location}` : ""
-                    }`,
-                    isConnected: true,
-                    boardInfo: {
-                      location: b.location,
-                      config_files: b.config_files,
-                      serial_number: b.serial_number,
-                    },
-                    picked: false,
-                  })
-                );
-            }
-          }
-        }
-      } catch (_) {
-        // fall back to static board list
-      }
-    }
-
-    const currentOpenOcdConfigs = readParameter(
-      "idf.openOcdConfigs",
-      workspaceFolder
-    ) as string[];
-    const boards = await getBoards(openOcdScriptsPath, idfTarget);
-    const message = l10n.t(
-      "No OpenOCD boards found for target {target}. Please check your OPENOCD_SCRIPTS environment variable.",
-      { target: idfTarget }
-    );
-    if (!boards || boards.length === 0) {
-      Logger.errorNotify(
-        message,
-        new Error(message),
-        "boardConfiguration selectOpenOcdConfigFiles"
-      );
-      return;
-    }
-    const staticChoices: BoardQuickPickItem[] = boards.map((b) => ({
-      detail: b.configFiles.join(", "),
-      label: b.name,
-      target: b,
-      picked: currentOpenOcdConfigs.join(",").includes(b.configFiles.join(",")),
-      isConnected: false,
-    }));
-
-    const connectedKeys = new Set(
-      connectedBoardItems
-        .filter((c) => c.boardInfo?.config_files)
-        .map((c) => [...c.boardInfo.config_files].sort().join(","))
-    );
-    const filteredStaticChoices = staticChoices.filter(
-      (s) =>
-        !s.target ||
-        !connectedKeys.has([...s.target.configFiles].sort().join(","))
-    );
-
-    const allChoices: BoardQuickPickItem[] =
-      connectedBoardItems.length > 0
-        ? [
-            ...connectedBoardItems,
-            {
-              kind: QuickPickItemKind.Separator,
-              label: l10n.t("Other Boards"),
-            },
-            ...filteredStaticChoices,
-          ]
-        : staticChoices;
-
-    const selectOpenOCdConfigsMsg = l10n.t(
-      "Enter OpenOCD Configuration File Paths list"
-    );
-    const boardQuickPick = window.createQuickPick<BoardQuickPickItem>();
-    boardQuickPick.items = allChoices;
-    boardQuickPick.placeholder = selectOpenOCdConfigsMsg;
-    boardQuickPick.onDidHide(() => {
-      boardQuickPick.dispose();
-    });
-    boardQuickPick.activeItems = boardQuickPick.items.filter(
-      (item) => item.picked
-    );
-
-    return new Promise<void>((resolve) => {
-      boardQuickPick.onDidHide(() => {
-        boardQuickPick.dispose();
-        resolve();
-      });
-      boardQuickPick.onDidAccept(async () => {
-        const selectedBoard = boardQuickPick.selectedItems[0];
-        if (!selectedBoard) {
-          Logger.infoNotify(
-            `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`
-          );
-        } else {
-          const customExtraVarsRead = readParameter(
-            "idf.customExtraVars",
-            workspaceFolder
-          ) as { [key: string]: string };
-          const customExtraVars = { ...customExtraVarsRead };
-          clearAdapterSerial(workspaceFolder);
-          delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
-
-          if (
-            selectedBoard.isConnected &&
-            selectedBoard.boardInfo?.serial_number &&
-            openOCDVersion &&
-            supportsSerialFromDetectConfig(openOCDVersion)
-          ) {
-            storeAdapterSerial(
-              workspaceFolder,
-              selectedBoard.boardInfo.serial_number
-            );
-            updateOpenOcdAdapterStatusBarItem(workspaceFolder);
-          }
-
-          if (selectedBoard.isConnected && selectedBoard.boardInfo) {
-            const configFiles = selectedBoard.boardInfo.config_files || [];
-            await writeParameter(
-              "idf.openOcdConfigs",
-              configFiles,
-              ConfigurationTarget.WorkspaceFolder,
-              workspaceFolder
-            );
-            if (selectedBoard.boardInfo.location) {
-              customExtraVars[
-                "OPENOCD_USB_ADAPTER_LOCATION"
-              ] = selectedBoard.boardInfo.location.replace("usb://", "");
-            }
-            await writeParameter(
-              "idf.customExtraVars",
-              customExtraVars,
-              ConfigurationTarget.WorkspaceFolder,
-              workspaceFolder
-            );
-            Logger.infoNotify(
-              l10n.t(`OpenOCD Board configuration files set to {boards}.`, {
-                boards: configFiles.join(","),
-              })
-            );
-          } else if (selectedBoard.target) {
-            if (selectedBoard.label.indexOf("Custom board") !== -1) {
-              const inputBoard = await window.showInputBox({
-                placeHolder: "Enter comma-separated configuration files",
-                value: selectedBoard.target.configFiles.join(","),
-              });
-              if (inputBoard) {
-                selectedBoard.target.configFiles = inputBoard.split(",");
-              }
-            }
-            await writeParameter(
-              "idf.openOcdConfigs",
-              selectedBoard.target.configFiles,
-              ConfigurationTarget.WorkspaceFolder,
-              workspaceFolder
-            );
-            await writeParameter(
-              "idf.customExtraVars",
-              customExtraVars,
-              ConfigurationTarget.WorkspaceFolder,
-              workspaceFolder
-            );
-            Logger.infoNotify(
-              l10n.t(`OpenOCD Board configuration files set to {boards}.`, {
-                boards: selectedBoard.target.configFiles.join(","),
-              })
-            );
-          }
-          boardQuickPick.dispose();
-          resolve();
-        }
-        boardQuickPick.hide();
-      });
-      boardQuickPick.show();
-    });
-  } catch (error) {
-    const errMsg =
-      error.message || "Failed to select openOCD configuration files";
-    Logger.errorNotify(
-      errMsg,
-      error,
-      "boardConfiguration selectOpenOcdConfigFiles"
-    );
+  }
+  if (idfTarget === "linux") {
     return;
   }
+
+  let connectedBoardItems: BoardQuickPickItem[] = [];
+  let openOCDVersion: string | undefined;
+  const isDebugging = debug.activeDebugSession !== undefined;
+  if (!isDebugging) {
+    try {
+      const openOCDManager = OpenOCDManager.init();
+      openOCDVersion = await openOCDManager.version();
+      const devkitsCmd = new DevkitsCommand(workspaceFolder);
+      const modifiedEnv = getCurrentIdfConfiguration();
+      const openOcdPath = await OpenOCDManager.getOpenOcdPath(
+        workspaceFolder.uri,
+        modifiedEnv
+      );
+      const scriptPath = await devkitsCmd.getScriptPath(openOcdPath);
+      if (scriptPath) {
+        const devkitsOutput = await devkitsCmd.runDevkitsScript(openOCDVersion);
+        if (devkitsOutput) {
+          const parsed = JSON.parse(devkitsOutput);
+          if (parsed && Array.isArray(parsed.boards)) {
+            connectedBoardItems = parsed.boards
+              .filter((b: any) => !idfTarget || b.target === idfTarget)
+              .map(
+                (b: any): BoardQuickPickItem => ({
+                  label: b.name,
+                  detail: `Status: CONNECTED${
+                    b.location ? `   Location: ${b.location}` : ""
+                  }`,
+                  isConnected: true,
+                  boardInfo: {
+                    location: b.location,
+                    config_files: b.config_files,
+                    serial_number: b.serial_number,
+                  },
+                  picked: false,
+                })
+              );
+          }
+        }
+      }
+    } catch (_) {
+      // fall back to static board list
+    }
+  }
+
+  const currentOpenOcdConfigs = readParameter(
+    "idf.openOcdConfigs",
+    workspaceFolder
+  ) as string[];
+  const boards = await getBoards(openOcdScriptsPath, idfTarget);
+  if (!boards || boards.length === 0) {
+    throw openOcdNoBoardsForTarget(idfTarget);
+  }
+  const staticChoices: BoardQuickPickItem[] = boards.map((b) => ({
+    detail: b.configFiles.join(", "),
+    label: b.name,
+    target: b,
+    picked: currentOpenOcdConfigs.join(",").includes(b.configFiles.join(",")),
+    isConnected: false,
+  }));
+
+  const connectedKeys = new Set(
+    connectedBoardItems
+      .filter((c) => c.boardInfo?.config_files)
+      .map((c) => [...(c.boardInfo?.config_files || [])].sort().join(","))
+  );
+  const filteredStaticChoices = staticChoices.filter(
+    (s) =>
+      !s.target ||
+      !connectedKeys.has([...s.target.configFiles].sort().join(","))
+  );
+
+  const allChoices: BoardQuickPickItem[] =
+    connectedBoardItems.length > 0
+      ? [
+          ...connectedBoardItems,
+          {
+            kind: QuickPickItemKind.Separator,
+            label: l10n.t("Other Boards"),
+          },
+          ...filteredStaticChoices,
+        ]
+      : staticChoices;
+
+  const selectOpenOCdConfigsMsg = l10n.t(
+    "Enter OpenOCD Configuration File Paths list"
+  );
+  const boardQuickPick = window.createQuickPick<BoardQuickPickItem>();
+  boardQuickPick.items = allChoices;
+  boardQuickPick.placeholder = selectOpenOCdConfigsMsg;
+  boardQuickPick.onDidHide(() => {
+    boardQuickPick.dispose();
+  });
+  boardQuickPick.activeItems = boardQuickPick.items.filter(
+    (item) => item.picked
+  );
+
+  return new Promise<void>((resolve) => {
+    boardQuickPick.onDidHide(() => {
+      boardQuickPick.dispose();
+      resolve();
+    });
+    boardQuickPick.onDidAccept(async () => {
+      const selectedBoard = boardQuickPick.selectedItems[0];
+      if (!selectedBoard) {
+        Logger.infoNotify(
+          `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`
+        );
+      } else {
+        const customExtraVarsRead = readParameter(
+          "idf.customExtraVars",
+          workspaceFolder
+        ) as { [key: string]: string };
+        const customExtraVars = { ...customExtraVarsRead };
+        clearAdapterSerial(workspaceFolder.uri);
+        delete customExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
+
+        if (
+          selectedBoard.isConnected &&
+          selectedBoard.boardInfo?.serial_number &&
+          openOCDVersion &&
+          supportsSerialFromDetectConfig(openOCDVersion)
+        ) {
+          storeAdapterSerial(
+            workspaceFolder.uri,
+            selectedBoard.boardInfo.serial_number
+          );
+          updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
+        }
+
+        if (selectedBoard.isConnected && selectedBoard.boardInfo) {
+          const configFiles = selectedBoard.boardInfo.config_files || [];
+          await writeParameter(
+            "idf.openOcdConfigs",
+            configFiles,
+            ConfigurationTarget.WorkspaceFolder,
+            workspaceFolder
+          );
+          if (selectedBoard.boardInfo.location) {
+            customExtraVars[
+              "OPENOCD_USB_ADAPTER_LOCATION"
+            ] = selectedBoard.boardInfo.location.replace("usb://", "");
+          }
+          await writeParameter(
+            "idf.customExtraVars",
+            customExtraVars,
+            ConfigurationTarget.WorkspaceFolder,
+            workspaceFolder
+          );
+          Logger.infoNotify(
+            l10n.t(`OpenOCD Board configuration files set to {boards}.`, {
+              boards: configFiles.join(","),
+            })
+          );
+        } else if (selectedBoard.target) {
+          if (selectedBoard.label.indexOf("Custom board") !== -1) {
+            const inputBoard = await window.showInputBox({
+              placeHolder: "Enter comma-separated configuration files",
+              value: selectedBoard.target.configFiles.join(","),
+            });
+            if (inputBoard) {
+              selectedBoard.target.configFiles = inputBoard.split(",");
+            }
+          }
+          await writeParameter(
+            "idf.openOcdConfigs",
+            selectedBoard.target.configFiles,
+            ConfigurationTarget.WorkspaceFolder,
+            workspaceFolder
+          );
+          await writeParameter(
+            "idf.customExtraVars",
+            customExtraVars,
+            ConfigurationTarget.WorkspaceFolder,
+            workspaceFolder
+          );
+          Logger.infoNotify(
+            l10n.t(`OpenOCD Board configuration files set to {boards}.`, {
+              boards: selectedBoard.target.configFiles.join(","),
+            })
+          );
+        }
+        boardQuickPick.dispose();
+        resolve();
+      }
+      boardQuickPick.hide();
+    });
+    boardQuickPick.show();
+  });
 }

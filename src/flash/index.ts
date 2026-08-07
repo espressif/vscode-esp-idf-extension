@@ -1,0 +1,67 @@
+/*
+ * Project: ESP-IDF VSCode Extension
+ * File Created: Friday, 10th April 2026 2:55:48 pm
+ * Copyright 2026 Espressif Systems (Shanghai) CO LTD
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { ExtensionContext } from "vscode";
+import { registerIDFCommand } from "../common/registerCommand";
+import { openFolderCheck, PreCheck, webIdeCheck } from "../common/PreCheck";
+import { ESP } from "../config";
+import { flash } from "./flashProject";
+import { selectFlashMethod } from "./selectFlashMethod";
+
+function registerFlashCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any
+) {
+  registerIDFCommand(context, name, callback, { outputChannel: "Flash" });
+}
+
+export function registerFlashCommands(context: ExtensionContext) {
+  registerFlashCommand(context, "espIdf.jtag_flash", () =>
+    flash(false, ESP.FlashType.JTAG)
+  );
+  registerFlashCommand(context, "espIdf.flashDFU", () =>
+    flash(false, ESP.FlashType.DFU)
+  );
+  registerFlashCommand(context, "espIdf.flashUart", () =>
+    flash(undefined, ESP.FlashType.UART)
+  );
+  registerFlashCommand(context, "espIdf.flashDevice", () => flash(undefined));
+  registerFlashCommand(context, "espIdf.flashAndEncryptDevice", () =>
+    flash(true)
+  );
+
+  registerFlashCommand(context, "espIdf.flashAppUart", () =>
+    flash(undefined, ESP.FlashType.UART, ESP.BuildType.App)
+  );
+
+  registerFlashCommand(context, "espIdf.flashBootloaderUart", () =>
+    flash(undefined, ESP.FlashType.UART, ESP.BuildType.Bootloader)
+  );
+
+  registerFlashCommand(context, "espIdf.flashPartitionTableUart", () =>
+    flash(undefined, ESP.FlashType.UART, ESP.BuildType.PartitionTable)
+  );
+
+  registerFlashCommand(context, "espIdf.selectFlashMethod", () =>
+    PreCheck.perform([openFolderCheck, webIdeCheck], async () => {
+      const ws = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      await selectFlashMethod(ws);
+    })
+  );
+}

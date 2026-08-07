@@ -19,7 +19,7 @@
 import { IdfSetup } from "../eim/types";
 import { ProjectConfElement } from "../project-conf/projectConfiguration";
 
-export class ConfigurationAccess {
+export interface ConfigurationAccess {
   espIdfPath: boolean;
   espAdfPath: boolean;
   espIdfToolsPaths: { [key: string]: boolean };
@@ -29,7 +29,7 @@ export class ConfigurationAccess {
   toolsPath: boolean;
   customOpenOcdPath: boolean;
 }
-export class Configuration {
+export interface Configuration {
   systemEnvPath: string;
   espIdfPath: string;
   espAdfPath: string;
@@ -46,23 +46,22 @@ export class Configuration {
   openOcdConfigs: string[];
   openOCDDebugLevel: string;
   toolsPath: string;
-  gitPath: string;
   customTerminalExecutable: string;
   customTerminalExecutableArgs: string[];
   customOpenOcdPath: string;
+  gitPath: string;
 }
 
-export class ConfigurationSpacesValidation {
+export interface ConfigurationSpacesValidation {
   systemEnvPath: boolean;
   espIdfPath: boolean;
   espAdfPath: boolean;
   customExtraPaths: { [key: string]: boolean };
   pythonBinPath: boolean;
   toolsPath: boolean;
-  gitPath: boolean;
 }
 
-export class SystemInfo {
+export interface SystemInfo {
   architecture: string;
   envIdfPythonEnvPath: string;
   envPath: string;
@@ -77,19 +76,19 @@ export class SystemInfo {
   appName: string;
 }
 
-export class pyPkgVersion {
+export interface pyPkgVersion {
   name: string;
   version: string;
 }
 
-export class idfToolResult {
+export interface idfToolResult {
   actual: string;
   doesToolExist: boolean;
   expected: string;
   name: string;
 }
 
-export class execResult {
+export interface execResult {
   output: string;
   result: string;
 }
@@ -98,14 +97,44 @@ export interface ExtendedIdfSetup extends IdfSetup {
   reason: string;
 }
 
-export class reportObj {
+export type CheckStatus = "ok" | "fail" | "warn" | "skip";
+
+export interface DiagnosticFinding {
+  status: CheckStatus;
+  category: string;
+  label: string;
+  settingKey?: string;
+  value?: string;
+  message: string;
+}
+
+export interface ReportSummary {
+  overall: "PASS" | "FAIL" | "WARN";
+  findings: DiagnosticFinding[];
+  errorCount: number;
+  warningCount: number;
+}
+
+export interface ConfigCheckLine {
+  label: string;
+  value: string;
+  status: CheckStatus;
+  message: string;
+}
+
+export interface BuildToolAvailability {
+  available: boolean;
+  source: "env" | "idf-tools" | "none";
+  actual?: string;
+}
+
+export interface reportObj {
   configurationSettings: Configuration;
   configurationAccess: ConfigurationAccess;
   configurationSpacesValidation: ConfigurationSpacesValidation;
   espIdfSetups: ExtendedIdfSetup[];
   espIdfToolsVersions: idfToolResult[];
   espIdfVersion: execResult;
-  gitVersion: execResult;
   latestError: Error;
   launchJson: string;
   cCppPropertiesJson: any;
@@ -118,4 +147,5 @@ export class reportObj {
   selectedProjectConfiguration: string;
   systemInfo: SystemInfo;
   workspaceFolder: string;
+  reportSummary?: ReportSummary;
 }

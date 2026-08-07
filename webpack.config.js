@@ -1,15 +1,13 @@
-const fs = require("fs");
 const path = require("path");
+const os = require("os");
 const { VueLoaderPlugin } = require("vue-loader");
 const webpack = require("webpack");
 const fileManagerPlugin = require("filemanager-webpack-plugin");
 
-const packageConfig = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "package.json"), "utf8")
-);
-const externals = Object.keys(packageConfig.dependencies);
-externals.push("commonjs");
-externals.push("vscode");
+const threadPoolOptions = {
+  workers: Math.max(1, os.cpus().length - 1),
+  poolTimeout: 2000, // use Infinity for watch mode
+};
 
 const extensionConfig = {
   entry: {
@@ -42,11 +40,10 @@ const extensionConfig = {
         exclude: /node_modules/,
         use: [
           {
-            loader: "ts-loader",
+            loader: "esbuild-loader",
             options: {
-              compilerOptions: {
-                module: "es6",
-              },
+              loader: "ts",
+              target: "es2020",
             },
           },
         ],
@@ -66,7 +63,8 @@ const extensionConfig = {
         loader: "string-replace-loader",
         options: {
           search: /const _navigator = typeof navigator === 'object' && navigator \|\| undefined;/g,
-          replace: "const _navigator = undefined; // Replaced to avoid navigator deprecation warning in Node.js v22",
+          replace:
+            "const _navigator = undefined; // Replaced to avoid navigator deprecation warning in Node.js v22",
         },
       },
     ],
@@ -149,13 +147,7 @@ const webViewConfig = {
       "troubleshoot",
       "main.ts"
     ),
-    imageView: path.resolve(
-      __dirname,
-      "src",
-      "views",
-      "image-view",
-      "main.ts"
-    ),
+    imageView: path.resolve(__dirname, "src", "views", "image-view", "main.ts"),
   },
   output: {
     path: path.resolve(__dirname, "dist", "views"),
@@ -203,14 +195,15 @@ const webViewConfig = {
         use: ["vue-style-loader", "css-loader"],
       },
       {
-        test: /\.tsx?$/,
-        use: {
-          loader: "ts-loader",
-          options: {
-            appendTsSuffixTo: [/\.vue$/],
-          },
-        },
+        resourceQuery: /^\?vue&type=script.*lang=ts/,
+        loader: "esbuild-loader",
+        options: { loader: "ts", target: "es2020" },
+      },
+      {
+        test: /\.ts$/,
         exclude: /node_modules/,
+        loader: "esbuild-loader",
+        options: { loader: "ts", target: "es2020" },
       },
     ],
   },

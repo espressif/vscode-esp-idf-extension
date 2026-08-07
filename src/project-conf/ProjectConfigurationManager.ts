@@ -9,23 +9,21 @@ import {
   commands,
   ConfigurationTarget,
 } from "vscode";
-import {
-  fileExists,
-  readFileSync,
-  readJson,
-  setCCppPropertiesJsonCompileCommands,
-} from "../utils";
 import { ESP } from "../config";
-import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
-import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
+import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
+import { CommandKeys, commandDictionary } from "../cmdTreeView/cmdStore";
 import { createStatusBarItem } from "../statusBar";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
-import { Logger } from "../logger/logger";
-import { getProjectConfigurationElements } from "./index";
+import {
+  getIdfTargetFromSdkconfig,
+  setCCppPropertiesJsonCompileCommands,
+} from "../configuration/workspace";
+import { Logger } from "../common/logger";
+import { getProjectConfigurationElements } from "./utils";
 import { configureClangSettings } from "../clang";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { clearAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../statusBar";
+import { existsSync, readFileSync } from "fs";
 
 export function clearSelectedProjectConfiguration(): void {
   if (ESP.ProjectConfiguration.store) {
@@ -42,13 +40,13 @@ export function clearSelectedProjectConfiguration(): void {
 }
 
 export class ProjectConfigurationManager {
+  public static instance: ProjectConfigurationManager | undefined = undefined;
   private readonly configFilePath: string;
   private configVersions: string[] = [];
   private configWatcher: FileSystemWatcher;
   private statusBarItems: { [key: string]: StatusBarItem };
   private workspaceUri: Uri;
   private context: ExtensionContext;
-  private commandDictionary: any;
 
   constructor(
     workspaceUri: Uri,
@@ -58,7 +56,6 @@ export class ProjectConfigurationManager {
     this.workspaceUri = workspaceUri;
     this.context = context;
     this.statusBarItems = statusBarItems;
-    this.commandDictionary = createCommandDictionary();
 
     this.configFilePath = Uri.joinPath(
       workspaceUri,
@@ -74,17 +71,20 @@ export class ProjectConfigurationManager {
 
     this.initialize();
     this.registerEventHandlers();
+
+    ProjectConfigurationManager.instance = this;
+    context.subscriptions.push(this);
   }
 
   private initialize(): void {
-    if (!fileExists(this.configFilePath)) {
+    if (!existsSync(this.configFilePath)) {
       // File doesn't exist - this is normal for projects without multiple configurations
       this.configVersions = [];
 
       // If configuration status bar item exists, remove it
       if (this.statusBarItems["projectConf"]) {
         this.statusBarItems["projectConf"].dispose();
-        this.statusBarItems["projectConf"] = undefined;
+        delete this.statusBarItems["projectConf"];
       }
 
       // Clear any potentially stale configuration
@@ -102,7 +102,7 @@ export class ProjectConfigurationManager {
     }
 
     try {
-      const configContent = readFileSync(this.configFilePath);
+      const configContent = readFileSync(this.configFilePath, "utf-8");
 
       // Handle edge case: File exists but is empty
       if (!configContent || configContent.trim() === "") {
@@ -150,12 +150,13 @@ export class ProjectConfigurationManager {
         this.setNoConfigurationSelectedStatus();
       }
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       window.showErrorMessage(
-        `Error reading or parsing project configuration file (${this.configFilePath}): ${error.message}`
+        `Error reading or parsing project configuration file (${this.configFilePath}): ${errMsg}`
       );
       Logger.errorNotify(
         `Failed to parse project configuration file: ${this.configFilePath}`,
-        error,
+        error as Error,
         "ProjectConfigurationManager initialize"
       );
       this.configVersions = []; // Ensure clean state on error
@@ -188,7 +189,7 @@ export class ProjectConfigurationManager {
 
   private async handleConfigFileChange(): Promise<void> {
     try {
-      const configData = await readJson(this.configFilePath);
+      const configData = JSON.parse(readFileSync(this.configFilePath, "utf-8"));
       const currentVersions = Object.keys(configData);
 
       // Find added versions
@@ -240,7 +241,8 @@ export class ProjectConfigurationManager {
         this.setNoConfigurationSelectedStatus();
       }
     } catch (error) {
-      window.showErrorMessage(`Error parsing config file: ${error.message}`);
+      const errMsg = error instanceof Error ? error.message : String(error);
+      window.showErrorMessage(`Error parsing config file: ${errMsg}`);
       this.setNoConfigurationSelectedStatus();
     }
   }
@@ -264,7 +266,7 @@ export class ProjectConfigurationManager {
     // Remove the status bar item completely when the config file is deleted
     if (this.statusBarItems["projectConf"]) {
       this.statusBarItems["projectConf"].dispose();
-      this.statusBarItems["projectConf"] = undefined;
+      delete this.statusBarItems["projectConf"];
     }
 
     // Optionally notify the user
@@ -275,7 +277,7 @@ export class ProjectConfigurationManager {
 
   private async handleConfigFileCreate(): Promise<void> {
     try {
-      const configData = await readJson(this.configFilePath);
+      const configData = JSON.parse(readFileSync(this.configFilePath, "utf-8"));
       this.configVersions = Object.keys(configData);
 
       // If we have versions, check if current selection is valid
@@ -310,8 +312,9 @@ export class ProjectConfigurationManager {
         this.setNoConfigurationSelectedStatus();
       }
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       window.showErrorMessage(
-        `Error parsing newly created config file: ${error.message}`
+        `Error parsing newly created config file: ${errMsg}`
       );
       this.setNoConfigurationSelectedStatus();
     }
@@ -332,13 +335,12 @@ export class ProjectConfigurationManager {
 
     this.statusBarItems["projectConf"] = createStatusBarItem(
       `$(${
-        this.commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
+        commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
       }) ${statusBarItemName}`,
       statusBarItemTooltip,
       commandToUse,
       99,
-      this.commandDictionary[CommandKeys.SelectProjectConfiguration]
-        .checkboxState
+      commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
     );
   }
 
@@ -363,7 +365,7 @@ export class ProjectConfigurationManager {
       // Clear adapter location from settings.json (workspace-folder scope).
       const cfg = workspace.getConfiguration("", this.workspaceUri);
       const extraVars =
-        (cfg.get<{ [key: string]: any }>("idf.customExtraVars") ?? {});
+        cfg.get<{ [key: string]: any }>("idf.customExtraVars") ?? {};
       if (extraVars["OPENOCD_USB_ADAPTER_LOCATION"]) {
         const nextExtraVars = { ...extraVars };
         delete nextExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
@@ -397,13 +399,12 @@ export class ProjectConfigurationManager {
 
     this.statusBarItems["projectConf"] = createStatusBarItem(
       `$(${
-        this.commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
+        commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
       }) ${configName}`,
-      this.commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
+      commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
       CommandKeys.SelectProjectConfiguration,
       99,
-      this.commandDictionary[CommandKeys.SelectProjectConfiguration]
-        .checkboxState
+      commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
     );
 
     // Update related configurations
@@ -462,9 +463,8 @@ export class ProjectConfigurationManager {
 
       await this.updateConfiguration(option.target);
     } catch (error) {
-      window.showErrorMessage(
-        `Error selecting configuration: ${error.message}`
-      );
+      const errMsg = error instanceof Error ? error.message : String(error);
+      window.showErrorMessage(`Error selecting configuration: ${errMsg}`);
     }
   }
 
@@ -473,5 +473,6 @@ export class ProjectConfigurationManager {
    */
   public dispose(): void {
     this.configWatcher.dispose();
+    ProjectConfigurationManager.instance = undefined;
   }
 }

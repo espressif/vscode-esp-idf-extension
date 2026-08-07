@@ -1,0 +1,149 @@
+/*
+ * Project: ESP-IDF VSCode Extension
+ * File Created: Tuesday, 21st April 2026 3:31:57 pm
+ * Copyright 2026 Espressif Systems (Shanghai) CO LTD
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { MonitorConfig } from "./types";
+import { ESP } from "../../config";
+import { window, Terminal, env, debug } from "vscode";
+import { Logger } from "../../common/logger";
+import {
+  buildIdfMonitorQuotedInvokeTokens,
+  buildIdfMonitorTerminalSendSequence,
+  monitorShellKindFromUserShell,
+  resolveMonitorBaudRate,
+} from "./argsBuilder";
+import { platform } from "os";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
+
+export function getUserShell() {
+  const shell = env.shell;
+
+  // list of shells to check
+  const shells = ["powershell", "cmd", "bash", "zsh", "pwsh"];
+
+  // if user's shell is in the list, return it
+  for (let i = 0; i < shells.length; i++) {
+    if (shell && shell.includes(shells[i])) {
+      return shells[i];
+    }
+  }
+
+  // if no match, pick one based on user's OS
+  const userOS = platform();
+  if (userOS === "win32") {
+    return "powershell";
+  } else if (userOS === "darwin") {
+    return "zsh";
+  } else if (userOS === "linux") {
+    return "bash";
+  }
+
+  // if no match, return null
+  return null;
+}
+
+export class IDFMonitor {
+  public static config: MonitorConfig;
+  public static terminal: Terminal | undefined;
+
+  static updateConfiguration(config: MonitorConfig) {
+    IDFMonitor.config = config;
+  }
+
+  static async start() {
+    const modifiedEnv = getCurrentIdfConfiguration();
+    if (!IDFMonitor.terminal) {
+      IDFMonitor.terminal = window.createTerminal({
+        name: `ESP-IDF Monitor ${this.config.wsPort ? "(--ws enabled)" : ""}`,
+        env: modifiedEnv,
+        cwd:
+          this.config.workspaceFolder.uri.fsPath ||
+          modifiedEnv.IDF_PATH ||
+          process.cwd(),
+        strictEnv: true,
+        shellArgs: this.config.shellExecutableArgs || [],
+        shellPath: this.config.shellPath || env.shell,
+      });
+
+      window.onDidCloseTerminal((e) => {
+        if (e.processId === IDFMonitor.terminal?.processId) {
+          IDFMonitor.terminal = undefined;
+        }
+      });
+    }
+    IDFMonitor.terminal.show();
+    const shellKind = monitorShellKindFromUserShell(getUserShell());
+    const baudRateToUse = resolveMonitorBaudRate(
+      this.config.baudRate,
+      modifiedEnv.IDF_MONITOR_BAUD,
+      modifiedEnv.MONITORBAUD
+    );
+    const quotedTokens = buildIdfMonitorQuotedInvokeTokens({
+      port: this.config.port,
+      baudRate: baudRateToUse,
+      pythonBinPath: this.config.pythonBinPath,
+      idfMonitorToolPath: this.config.idfMonitorToolPath,
+      idfTarget: this.config.idfTarget,
+      idfVersion: this.config.idfVersion,
+      noReset: this.config.noReset,
+      enableTimestamps: this.config.enableTimestamps,
+      customTimestampFormat: this.config.customTimestampFormat,
+      toolchainPrefix: this.config.toolchainPrefix,
+      elfFilePath: this.config.elfFilePath,
+      wsPort: this.config.wsPort,
+      idfPath: modifiedEnv.IDF_PATH,
+      isDebugSessionActive: this.isDebugSessionActive(),
+      shellKind,
+    });
+    const quotedInvokeJoined = quotedTokens.join(" ");
+    const sequence = buildIdfMonitorTerminalSendSequence({
+      shellKind,
+      modifiedEnvIdfPath: modifiedEnv.IDF_PATH,
+      quotedInvokeJoined,
+    });
+    IDFMonitor.terminal.sendText(sequence.texts[0]);
+    if (sequence.delayMsAfterFirstLine !== undefined) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, sequence.delayMsAfterFirstLine)
+      );
+    }
+    for (let i = 1; i < sequence.texts.length; i++) {
+      IDFMonitor.terminal.sendText(sequence.texts[i]);
+    }
+
+    return IDFMonitor.terminal;
+  }
+
+  static async dispose() {
+    try {
+      if (IDFMonitor.terminal) {
+        IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
+        IDFMonitor.terminal.sendText(`exit`);
+      }
+    } catch (error) {
+      Logger.error(
+        "Failed to dispose IDF monitor terminal",
+        error as Error,
+        "IDFMonitor.dispose"
+      );
+    }
+  }
+
+  private static isDebugSessionActive(): boolean {
+    return debug.activeDebugSession !== undefined;
+  }
+}

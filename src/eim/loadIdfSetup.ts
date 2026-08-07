@@ -16,25 +16,51 @@
  * limitations under the License.
  */
 
-import { commands, ConfigurationTarget, l10n, Uri, window } from "vscode";
+import { commands, l10n, window, WorkspaceFolder } from "vscode";
 import { ESP } from "../config";
 import { getIdfSetups } from "./getExistingSetups";
 import { IdfSetup } from "./types";
 import { getEnvVariables } from "./loadSettings";
-import { readParameter, writeParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { getEspIdfFromCMake, isBinInPath } from "../utils";
 import { join } from "path";
-import { isIdfSetupValid } from "./verifySetup";
-import { Logger } from "../logger/logger";
+import { isIdfSetupValid, saveSettings } from "./verifySetup";
+import { Logger } from "../common/logger";
 import { createHash } from "crypto";
 import { pathExists } from "fs-extra";
 import { IdfToolsManager } from "../idfToolsManager";
 
-export async function loadIdfSetup(workspaceFolder: Uri) {
+export async function getCurrentIdfSetup(
+  workspaceFolder?: WorkspaceFolder
+): Promise<IdfSetup | undefined> {
+  const idfConfigurationName = readParameter(
+    "idf.currentSetup",
+    workspaceFolder
+  ) as string;
+  if (!idfConfigurationName) {
+    return;
+  }
+  const idfSetups = await getIdfSetups(workspaceFolder);
+  if (!idfSetups || idfSetups.length < 1) {
+    return;
+  }
+  const idfSetupToUse = idfSetups.find((idfSetup) => {
+    return idfSetup.idfPath === idfConfigurationName;
+  });
+  return idfSetupToUse;
+}
+
+export async function loadIdfSetup(
+  extensionPath: string,
+  workspaceFolder: WorkspaceFolder
+) {
   ESP.ProjectConfiguration.store.clear(
     ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
   );
-  const idfEnvSetup = await loadEnvVarsAsIdfSetup(workspaceFolder);
+  const idfEnvSetup = await loadEnvVarsAsIdfSetup(
+    extensionPath,
+    workspaceFolder
+  );
   if (idfEnvSetup) {
     Logger.info("Using environment variables to configure extension");
     return idfEnvSetup;
@@ -63,8 +89,8 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
       });
     } else {
       for (const idfSetup of idfSetups) {
-        const envVars = await getEnvVariables(idfSetup);
-        const [isValid] = await isIdfSetupValid(envVars);
+        const envVars = await getEnvVariables(extensionPath, idfSetup);
+        const [isValid] = await isIdfSetupValid(extensionPath, envVars);
         if (isValid) {
           idfSetupToUse = idfSetup;
           break;
@@ -79,26 +105,7 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
     void promptOpenEspIdfInstallationManager();
     return;
   }
-
-  await writeParameter(
-    "idf.currentSetup",
-    idfSetupToUse.idfPath,
-    ConfigurationTarget.WorkspaceFolder,
-    workspaceFolder
-  );
-
-  await writeParameter(
-    "idf.gitPath",
-    idfSetupToUse.gitPath,
-    ConfigurationTarget.Global
-  );
-
-  const envVars = await getEnvVariables(idfSetupToUse);
-
-  ESP.ProjectConfiguration.store.set(
-    ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
-    envVars
-  );
+  await saveSettings(extensionPath, idfSetupToUse, workspaceFolder);
   return idfSetupToUse;
 }
 
@@ -112,7 +119,10 @@ function getIdfMd5sum(idfPath: string) {
   return `esp-idf-${md5Value}`;
 }
 
-export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
+export async function loadEnvVarsAsIdfSetup(
+  extensionPath: string,
+  workspaceFolder: WorkspaceFolder
+): Promise<IdfSetup | undefined> {
   const customVarsSetting = readParameter(
     "idf.customExtraVars",
     workspaceFolder
@@ -161,6 +171,7 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
   }
   if (!customVars[normalizedPathName]) {
     const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+      extensionPath,
       idfPath
     );
     customVars[
@@ -216,7 +227,10 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
     );
   }
 
-  const [isValid, reason] = await isIdfSetupValid(envVarsForValidation);
+  const [isValid, reason] = await isIdfSetupValid(
+    extensionPath,
+    envVarsForValidation
+  );
 
   if (!isValid) {
     Logger.infoNotify(
@@ -244,16 +258,7 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
   };
 
   if (isValid) {
-    ESP.ProjectConfiguration.store.set(
-      ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
-      envVarsForValidation
-    );
-    await writeParameter(
-      "idf.currentSetup",
-      envDefinedIdfSetup.idfPath,
-      ConfigurationTarget.WorkspaceFolder,
-      workspaceFolder
-    );
+    await saveSettings(extensionPath, envDefinedIdfSetup, workspaceFolder);
     return envDefinedIdfSetup;
   }
 }

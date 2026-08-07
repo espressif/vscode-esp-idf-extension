@@ -1,0 +1,68 @@
+/*
+ * Project: ESP-IDF VSCode Extension
+ * File Created: Monday, 10th June 2019 1:00:54 pm
+ * Copyright 2019 Espressif Systems (Shanghai) CO LTD
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { window } from "vscode";
+import { error, Transport } from "winston";
+import { NotificationMode, readParameter } from "../configuration/idf";
+import { Telemetry } from "./telemetry";
+
+export default class UserNotificationManagerTransport extends Transport {
+  constructor(options: any) {
+    super(options);
+  }
+
+  protected log(
+    level: string,
+    message: string,
+    metadata?: any,
+    callback?: (arg1: any, arg2: any) => void
+  ) {
+    const notificationMode = readParameter(
+      "idf.notificationMode"
+    ) as string;
+    const enableNotification =
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Notifications;
+    if (metadata && metadata.user && enableNotification) {
+      if (level === "info") {
+        window.showInformationMessage(message);
+      } else if (level === "warn") {
+        window.showWarningMessage(message);
+      } else if (level === "error") {
+        window
+          .showErrorMessage(message, "Report", "Cancel")
+          .then((item) => {
+            if (item === "Cancel") {
+              return;
+            }
+            if (item === "Report") {
+              Telemetry.sendEvent("UserReport", { message });
+            }
+          });
+      } else {
+        error(
+          `Invalid error level '${level}' for user notification. ${message}`
+        );
+      }
+    }
+    super.emit("logged");
+    if (callback) {
+      callback(null, true);
+    }
+  }
+}

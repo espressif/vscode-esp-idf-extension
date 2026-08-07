@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Tuesday, 12th May 2020 7:51:26 pm
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +19,7 @@
 import { window, QuickPickItem } from "vscode";
 import { RainmakerOAuthProvider } from "../oauth";
 
-export async function PromptUserToLogin(): Promise<LoginDetails> {
+export async function PromptUserToLogin(): Promise<LoginDetails | undefined> {
   const choice = await showLoginChoices([
     {
       label: "Rainmaker Login",
@@ -87,7 +87,7 @@ interface LoginDetails {
 
 async function showLoginChoices(
   choices: RainmakerLoginItem[]
-): Promise<RainmakerLoginItem> {
+): Promise<RainmakerLoginItem | undefined> {
   return await window.showQuickPick<RainmakerLoginItem>(choices, {
     placeHolder: "Select a login option to connect with ESP Rainmaker Cloud",
     ignoreFocusOut: true,
@@ -95,7 +95,7 @@ async function showLoginChoices(
 }
 
 async function showBasicLoginForm(): Promise<LoginDetails> {
-  const validateInput = (value: string): string => {
+  const validateInput = (value: string): string | undefined => {
     if (value && value !== "") {
       return;
     }

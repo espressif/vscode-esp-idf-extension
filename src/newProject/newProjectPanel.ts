@@ -13,17 +13,23 @@
 // limitations under the License.
 import * as path from "path";
 import * as vscode from "vscode";
-import { Logger } from "../logger/logger";
-import { OutputChannel } from "../logger/outputChannel";
+import { Logger } from "../common/logger";
+import { OutputChannel } from "../common/outputChannel";
 import { INewProjectArgs } from "./newProjectInit";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
-import { copy, ensureDir, readFile, writeFile, writeJSON } from "fs-extra";
-import * as utils from "../utils";
-import { IExample } from "../examples/Example";
-import { setCurrentSettingsInTemplate } from "./utils";
-import { NotificationMode, readParameter } from "../idfConfiguration";
+import { copy, ensureDir, readFile, writeJSON } from "fs-extra";
+import { IExample } from "./Example";
+import {
+  copyFromSrcProject,
+  markdownToWebviewHtml,
+  setCurrentSettingsInTemplate,
+  updateProjectNameInCMakeLists,
+} from "./utils";
+import { NotificationMode, readParameter } from "../configuration/idf";
 import { createClangdFile } from "../clang";
 import { IdfSetup } from "../eim/types";
+import { WorkspaceFolder } from "vscode";
+import { dirExistPromise } from "../utils";
 
 export class NewProjectPanel {
   public static currentPanel: NewProjectPanel | undefined;
@@ -32,15 +38,17 @@ export class NewProjectPanel {
     extensionPath: string,
     newProjectArgs?: INewProjectArgs
   ) {
-    const column = vscode.window.activeTextEditor
-      ? vscode.window.activeTextEditor.viewColumn
-      : vscode.ViewColumn.One;
+    const column =
+      vscode.window.activeTextEditor &&
+      vscode.window.activeTextEditor.viewColumn
+        ? vscode.window.activeTextEditor.viewColumn
+        : vscode.ViewColumn.One;
     if (NewProjectPanel.currentPanel) {
       NewProjectPanel.currentPanel.panel.reveal(column);
     } else {
       NewProjectPanel.currentPanel = new NewProjectPanel(
         extensionPath,
-        newProjectArgs,
+        newProjectArgs!,
         column
       );
     }
@@ -48,7 +56,7 @@ export class NewProjectPanel {
 
   public static isCreatedAndHidden(): boolean {
     return (
-      NewProjectPanel.currentPanel &&
+      typeof NewProjectPanel.currentPanel !== "undefined" &&
       !NewProjectPanel.currentPanel.panel.visible
     );
   }
@@ -121,9 +129,9 @@ export class NewProjectPanel {
               message.containerFolder,
               message.projectName,
               JSON.parse(message.template),
+              message.selectedIdfTarget,
               message.openOcdConfigFiles,
-              newProjectArgs.workspaceFolder,
-              message.selectedIdfTarget
+              newProjectArgs.workspaceFolder
             );
           }
           break;
@@ -206,9 +214,9 @@ export class NewProjectPanel {
     projectDirectory: string,
     projectName: string,
     template: IExample,
+    selectedIdfTarget: string,
     openOcdConfigs?: string,
-    workspaceFolder?: vscode.Uri,
-    selectedIdfTarget?: string
+    workspaceFolder?: WorkspaceFolder
   ) {
     const newProjectPath = path.join(projectDirectory, projectName);
     let isSkipped = false;
@@ -232,7 +240,7 @@ export class NewProjectPanel {
         token: vscode.CancellationToken
       ) => {
         try {
-          const projectDirExists = await utils.dirExistPromise(
+          const projectDirExists = await dirExistPromise(
             projectDirectory
           );
           if (!projectDirExists) {
@@ -245,7 +253,7 @@ export class NewProjectPanel {
             isSkipped = true;
             return;
           }
-          const projectNameExists = await utils.dirExistPromise(newProjectPath);
+          const projectNameExists = await dirExistPromise(newProjectPath);
           if (projectNameExists) {
             const overwriteProject = await vscode.window.showInformationMessage(
               `${newProjectPath} already exists. Overwrite content?`,
@@ -262,7 +270,8 @@ export class NewProjectPanel {
           }
           await ensureDir(newProjectPath, { mode: 0o775 });
           if (template && template.path !== "") {
-            await utils.copyFromSrcProject(
+            await copyFromSrcProject(
+              this.extensionPath,
               template.path,
               vscode.Uri.file(newProjectPath)
             );
@@ -272,15 +281,13 @@ export class NewProjectPanel {
               "templates",
               "template-app"
             );
-            await utils.copyFromSrcProject(
+            await copyFromSrcProject(
+              this.extensionPath,
               boilerplatePath,
               vscode.Uri.file(newProjectPath)
             );
           }
-          await utils.updateProjectNameInCMakeLists(
-            newProjectPath,
-            projectName
-          );
+          await updateProjectNameInCMakeLists(newProjectPath, projectName);
           const settingsJsonPath = path.join(
             newProjectPath,
             ".vscode",
@@ -303,7 +310,7 @@ export class NewProjectPanel {
             const componentsPath = path.join(newProjectPath, "components");
             await ensureDir(componentsPath, { mode: 0o775 });
             for (const comp of components) {
-              const doesComponentExists = await utils.dirExistPromise(
+              const doesComponentExists = await dirExistPromise(
                 comp.path
               );
               if (doesComponentExists) {
@@ -322,10 +329,14 @@ export class NewProjectPanel {
             resultingProjectPath: newProjectPath,
           });
         } catch (error) {
-          OutputChannel.appendLine(error.message);
+          const msg =
+            error instanceof Error && error.message
+              ? error.message
+              : "Error creating new project";
+          OutputChannel.appendLine(msg);
           Logger.errorNotify(
-            error.message,
-            error,
+            msg,
+            error as Error,
             "NewProjectPanel createProject"
           );
         }
@@ -342,8 +353,10 @@ export class NewProjectPanel {
       vscode.Uri.file(projectPath),
       true
     );
-    NewProjectPanel.currentPanel.panel.dispose();
-    NewProjectPanel.currentPanel = undefined;
+    if (NewProjectPanel.currentPanel) {
+      NewProjectPanel.currentPanel.panel.dispose();
+      NewProjectPanel.currentPanel = undefined;
+    }
   }
 
   private async openFolder() {
@@ -361,7 +374,7 @@ export class NewProjectPanel {
     try {
       const pathToUse = vscode.Uri.file(path.join(projectPath, "README.md"));
       const readMeContent = await readFile(pathToUse.fsPath);
-      const contentStr = utils.markdownToWebviewHtml(
+      const contentStr = markdownToWebviewHtml(
         readMeContent.toString(),
         projectPath,
         this.panel

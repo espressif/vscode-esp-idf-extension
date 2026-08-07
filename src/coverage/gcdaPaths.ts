@@ -22,9 +22,10 @@ import { Uri } from "vscode";
 import { getGcovExecutable } from "./coverageService";
 import { exec } from "child_process";
 import { IGcovOutput } from "./gcovData";
-import { Logger } from "../logger/logger";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
-import { configureEnvVariables } from "../common/prepareEnv";
+import { Logger } from "../common/logger";
+import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
+import { getCurrentIdfConfiguration } from "../configuration/env";
+import { coverageGcovDataFailed } from "../common/error/knownError";
 
 export async function getGcdaPaths(workspaceFolder: Uri) {
   const gcdaPaths: Set<string> = new Set();
@@ -63,7 +64,7 @@ export async function getGcovData(workspaceFolder: Uri) {
   }
 
   return new Promise<IGcovOutput[]>(async (resolve, reject) => {
-    const modifiedEnv = await configureEnvVariables(workspaceFolder);
+    const modifiedEnv = getCurrentIdfConfiguration();
     exec(
       command,
       {
@@ -73,13 +74,17 @@ export async function getGcovData(workspaceFolder: Uri) {
       },
       (err, stdout, stderr) => {
         if (err) {
-          const msg = err && err.message ? err.message : err;
+          const msg = err && err.message ? err.message : String(err);
           Logger.error(`exec error: ${msg}`, err, "gcdaPaths getGcovData");
-          return reject(err);
+          return reject(coverageGcovDataFailed(msg));
         }
         const output = [];
         if (!stdout) {
-          return reject(stderr);
+          const detail =
+            typeof stderr === "string" && stderr.length > 0
+              ? stderr
+              : "gcov produced no output";
+          return reject(coverageGcovDataFailed(detail));
         }
         const parts = stdout.toString().split("\n");
         for (const part of parts) {

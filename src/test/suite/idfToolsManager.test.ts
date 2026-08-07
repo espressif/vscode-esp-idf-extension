@@ -20,10 +20,10 @@ import * as assert from "assert";
 import * as path from "path";
 import { ExtensionContext } from "vscode";
 import { IdfToolsManager } from "../../idfToolsManager";
-import { OutputChannel } from "../../logger/outputChannel";
+import { OutputChannel } from "../../common/outputChannel";
 import { PlatformInformation } from "../../PlatformInformation";
 import * as utils from "../../utils";
-import { ProjectConfigStore } from "../../project-conf";
+import { ProjectConfigStore } from "../../project-conf/utils";
 import { ESP } from "../../config";
 import { createMockMemento } from "../mockUtils";
 
@@ -81,8 +81,7 @@ suite("IDF Tools Manager Tests", async () => {
     workspaceState: createMockMemento(),
     globalState: createMockMemento(),
   } as ExtensionContext;
-  utils.setExtensionContext(mockUpContext);
-  ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
   const platInfo: PlatformInformation = {
     architecture: "x86_64",
     platform: "darwin",

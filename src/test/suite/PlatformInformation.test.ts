@@ -18,16 +18,10 @@
 
 import * as assert from "assert";
 import * as os from "os";
-import * as vscode from "vscode";
 import { PlatformInformation } from "../../PlatformInformation";
-import * as utils from "../../utils";
 
 suite("PlatformInformation Tests", () => {
   test("Get platform info", () => {
-    const mockUpContext = {
-      extensionPath: __dirname,
-    } as vscode.ExtensionContext;
-    utils.setExtensionContext(mockUpContext); // Need a path to execute a child process to get info
     const actual = PlatformInformation.GetPlatformInformation();
     assert.equal(actual.platform, os.platform());
     assert.equal(actual.architecture, "x64");

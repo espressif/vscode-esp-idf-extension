@@ -138,7 +138,7 @@ Using Multiple Build Configurations Manually
 
 As shown in the ESP-IDF CMake `Multiple Build Configurations Example <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_, you can use multiple build directories and multiple sdkconfig defaults files to produce different production outputs.
 
-In this extension, you can define the build directory with the ``idf.buildPath`` (``idf.buildPathWin`` for Windows) configuration setting, and define the list of sdkconfig defaults files with ``idf.sdkconfigDefaults``. These settings will be used by the extension build command.
+In this extension, you can define the build directory with the ``idf.buildPath`` configuration setting, and define the list of sdkconfig defaults files with ``idf.sdkconfigDefaults``. These settings will be used by the extension build command.
 
 For example, to create product 1:
 

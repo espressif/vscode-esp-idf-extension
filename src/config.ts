@@ -18,7 +18,7 @@
 
 import { ExtensionConfigStore } from "./common/store";
 import { IEspIdfDocVersion } from "./espIdf/documentation/getDocsVersion";
-import { ProjectConfigStore } from "./project-conf";
+import { ProjectConfigStore } from "./project-conf/utils";
 import { RainmakerStore } from "./rainmaker/store";
 
 export namespace ESP {
@@ -54,16 +54,7 @@ export namespace ESP {
 
   export namespace GlobalConfiguration {
     export let store: ExtensionConfigStore;
-    export const SELECTED_WORKSPACE_FOLDER = "SELECTED_WORKSPACE_FOLDER";
   }
-
-  export const platformDepConfigurations: string[] = [
-    "idf.espIdfPath",
-    "idf.toolsPath",
-    "idf.buildPath",
-    "idf.gitPath",
-    "idf.port",
-  ];
 
   export namespace Rainmaker {
     export let store: RainmakerStore;
@@ -119,7 +110,7 @@ export namespace ESP {
       "https://github.com/espressif/arduino-esp32.git";
     export namespace Docs {
       export const BASE_URL = "https://docs.espressif.com/projects/esp-idf";
-      export let IDF_INDEX;
+      export let IDF_INDEX: any;
       export const INDEX_CACHE_LIMIT = 86400; // Seconds
       export let IDF_VERSION_OBJ: IEspIdfDocVersion[];
       export const IDF_VERSIONS =

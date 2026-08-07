@@ -21,13 +21,13 @@ import { IdfSetup } from "./types";
 import { delimiter, join } from "path";
 import { pathExists } from "fs-extra";
 import { getEnvVariablesFromIdfSetup } from "./migrationTool";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 
-export async function getEnvVariables(idfSetup: IdfSetup) {
+export async function getEnvVariables(extensionPath: string, idfSetup: IdfSetup) {
   if (idfSetup.activationScript) {
     return await getEnvVariablesFromActivationScript(idfSetup.activationScript);
   } else {
-    return await getEnvVariablesFromIdfSetup(idfSetup);
+    return await getEnvVariablesFromIdfSetup(extensionPath, idfSetup);
   }
 }
 

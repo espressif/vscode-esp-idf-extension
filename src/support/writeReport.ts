@@ -19,13 +19,26 @@ import { pathExists, readFile, writeFile, writeJson } from "fs-extra";
 import { EOL } from "os";
 import { join } from "path";
 import * as vscode from "vscode";
+import {
+  analyzeReport,
+  formatConfigCheckLine,
+  formatFindingLine,
+  formatStatusTag,
+  getConfigurationCheckLines,
+  isBuildToolAvailable,
+} from "./reportAnalysis";
 import { reportObj } from "./types";
+
+const LOG_TAIL_LINES = 200;
 
 export async function writeTextReport(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
-  reportedResult = replaceUserPath(reportedResult);
+  // Keep mutations on the caller's object (replaceUserPath returns a clone).
+  Object.assign(reportedResult, replaceUserPath(reportedResult));
+  reportedResult.reportSummary = analyzeReport(reportedResult);
+  const summary = reportedResult.reportSummary;
 
   let output = `---------------------------------------------- ESP-IDF Extension for Visual Studio Code report ---------------------------------------------${EOL}`;
   const lineBreak = `--------------------------------------------------------------------------------------------------------------------------------------------${EOL}`;
@@ -40,41 +53,49 @@ export async function writeTextReport(
   output += `Visual Studio Code app name ${reportedResult.systemInfo.appName} ${EOL}`;
   output += `ESP-IDF Extension version ${reportedResult.systemInfo.extensionVersion} ${EOL}`;
   output += `Workspace folder ${reportedResult.workspaceFolder} ${EOL}`;
-  output += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${EOL}`;
-  output += `ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportedResult.configurationSettings.espAdfPath}${EOL}`;
-  output += `ESP-IDF Path (Project setup IDF_PATH) ${reportedResult.configurationSettings.espIdfPath}${EOL}`;
+
+  output += `======================================== CONFIGURATION SUMMARY ========================================${EOL}`;
+  output += `Overall status: ${summary.overall} (${summary.errorCount} error${summary.errorCount === 1 ? "" : "s"}, ${summary.warningCount} warning${summary.warningCount === 1 ? "" : "s"})${EOL}${EOL}`;
+  for (const finding of summary.findings) {
+    if (finding.status === "ok" || finding.status === "fail" || finding.status === "warn") {
+      output += `${formatFindingLine(finding)}${EOL}`;
+    }
+  }
+  output += `======================================================================================================${EOL}`;
+
+  output += `-------------------------------------------------------- Configuration checks -------------------------------------------------------------${EOL}`;
+  for (const line of getConfigurationCheckLines(reportedResult)) {
+    output += `${formatConfigCheckLine(line)}${EOL}`;
+  }
+
+  output += `---------------------------------------------------- Additional extension settings ------------------------------------------------------${EOL}`;
   output += `Custom extra paths ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
   if (
     reportedResult.configurationSettings.idfExtraVars &&
-    Object.keys(reportedResult.configurationSettings.idfExtraVars)
+    Object.keys(reportedResult.configurationSettings.idfExtraVars).length
   ) {
     output += `ESP-IDF Project Setup Variables${EOL}`;
-    for (let key in reportedResult.configurationSettings.idfExtraVars) {
+    for (const key in reportedResult.configurationSettings.idfExtraVars) {
       output += `    ${key}: ${reportedResult.configurationSettings.idfExtraVars[key]}${EOL}`;
     }
   }
   if (
     reportedResult.configurationSettings.userExtraVars &&
-    Object.keys(reportedResult.configurationSettings.userExtraVars)
+    Object.keys(reportedResult.configurationSettings.userExtraVars).length
   ) {
     output += `User extra vars (idf.customExtraVars)${EOL}`;
-    for (let key in reportedResult.configurationSettings.userExtraVars) {
+    for (const key in reportedResult.configurationSettings.userExtraVars) {
       output += `    ${key}: ${reportedResult.configurationSettings.userExtraVars[key]}${EOL}`;
     }
   }
-  output += `Virtual environment Python path (computed) ${reportedResult.configurationSettings.pythonBinPath}${EOL}`;
   output += `Serial port (idf.port) ${reportedResult.configurationSettings.serialPort}${EOL}`;
   output += `OpenOCD Configs (idf.openOcdConfigs) ${reportedResult.configurationSettings.openOcdConfigs}${EOL}`;
   output += `OpenOCD log level (idf.openOcdDebugLevel) ${reportedResult.configurationSettings.openOCDDebugLevel}${EOL}`;
   output += `OpenOCD launch arguments (idf.openOcdLaunchArgs) ${reportedResult.configurationSettings.openOcdLaunchArgs}${EOL}`;
-  output += `ESP-IDF Tools Path ${reportedResult.configurationSettings.toolsPath}${EOL}`;
-  output += `Git Path (idf.gitPath) ${reportedResult.configurationSettings.gitPath}${EOL}`;
+  output += `Git Path (ESP-IDF Project Setup Variables PATH) ${reportedResult.configurationSettings.gitPath}${EOL}`;
   output += `Notification Mode (idf.notificationMode) ${reportedResult.configurationSettings.notificationMode}${EOL}`;
   output += `Flash type (idf.flashType) ${reportedResult.configurationSettings.flashType}${EOL}`;
   output += `Flash partition to use (idf.flashPartitionToUse) ${reportedResult.configurationSettings.flashPartitionToUse}${EOL}`;
-  if (reportedResult.configurationSettings.customOpenOcdPath) {
-    output += `Custom OpenOCD path (idf.customOpenOCDPath) ${reportedResult.configurationSettings.customOpenOcdPath}${EOL}`;
-  }
   if (reportedResult.configurationSettings.customTerminalExecutable) {
     output += `Custom terminal executable (idf.customTerminalExecutable) ${reportedResult.configurationSettings.customTerminalExecutable}${EOL}`;
   }
@@ -84,37 +105,8 @@ export async function writeTextReport(
   ) {
     output += `Custom terminal executable args (idf.customTerminalExecutableArgs)${reportedResult.configurationSettings.customTerminalExecutableArgs}${EOL}`;
   }
-  output += `-------------------------------------------------------- Configurations access -------------------------------------------------------------${EOL}`;
-  output += `Access to ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportedResult.configurationAccess.espAdfPath}${EOL}`;
-  output += `Access to ESP-IDF Path (Project setup IDF_PATH) ${reportedResult.configurationAccess.espIdfPath}${EOL}`;
-  output += `Access to ESP-IDF Custom extra paths${EOL}`;
-  for (let key in reportedResult.configurationAccess.espIdfToolsPaths) {
-    output += `Access to ${key}: ${reportedResult.configurationAccess.espIdfToolsPaths[key]}${EOL}`;
-  }
-  output += `Access to Virtual environment Python path (computed) ${reportedResult.configurationAccess.pythonBinPath}${EOL}`;
-  output += `Access to CMake in environment PATH ${reportedResult.configurationAccess.cmakeInEnv}${EOL}`;
-  output += `Access to Ninja in environment PATH ${reportedResult.configurationAccess.ninjaInEnv}${EOL}`;
-  output += `Access to ESP-IDF Tools Path ${reportedResult.configurationAccess.toolsPath}${EOL}`;
-  if (reportedResult.configurationSettings.customOpenOcdPath) {
-    output += `Access to Custom OpenOCD path (idf.customOpenOCDPath) ${reportedResult.configurationAccess.customOpenOcdPath}${EOL}`;
-  }
-  output += `-------------------------------------------------------- Configurations has spaces -------------------------------------------------------------${EOL}`;
-  output += `Spaces in system environment Path ${reportedResult.configurationSpacesValidation.systemEnvPath}${EOL}`;
-  output += `Spaces in ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportedResult.configurationSpacesValidation.espAdfPath}${EOL}`;
-  output += `Spaces in ESP-IDF Path (Project setup IDF_PATH) ${reportedResult.configurationSpacesValidation.espIdfPath}${EOL}`;
-  output += `Spaces in ESP-IDF Custom extra paths${EOL}`;
-  for (let key in reportedResult.configurationSpacesValidation
-    .customExtraPaths) {
-    output += `Spaces in ${key}: ${reportedResult.configurationSpacesValidation.customExtraPaths[key]}${EOL}`;
-  }
-  output += `Spaces in Virtual environment Python path (computed) ${reportedResult.configurationSpacesValidation.pythonBinPath}${EOL}`;
-  output += `Spaces in ESP-IDF Tools Path ${reportedResult.configurationSpacesValidation.toolsPath}${EOL}`;
+
   output += `----------------------------------------------------------- Executables Versions -----------------------------------------------------------${EOL}`;
-  output += `Git version ${
-    reportedResult.gitVersion.result
-      ? reportedResult.gitVersion.result
-      : reportedResult.gitVersion.output
-  }${EOL}`;
   output += `ESP-IDF version ${
     reportedResult.espIdfVersion.result
       ? reportedResult.espIdfVersion.result
@@ -130,12 +122,36 @@ export async function writeTextReport(
       ? reportedResult.pipVersion.result
       : reportedResult.pipVersion.output
   }${EOL}`;
+
+  if (reportedResult.espIdfToolsVersions.length) {
+    output += `----------------------------------------------------------- ESP-IDF Tools ----------------------------------------------------------------${EOL}`;
+    const cmake = isBuildToolAvailable(
+      "cmake",
+      reportedResult.configurationAccess.cmakeInEnv,
+      reportedResult.espIdfToolsVersions
+    );
+    const ninja = isBuildToolAvailable(
+      "ninja",
+      reportedResult.configurationAccess.ninjaInEnv,
+      reportedResult.espIdfToolsVersions
+    );
+    output += `CMake   ${formatStatusTag(cmake.available ? "ok" : "fail")}   ${cmake.source === "env" ? "system PATH" : cmake.source === "idf-tools" ? `ESP-IDF tools (actual: ${cmake.actual || "unknown"})` : "not found"}${EOL}`;
+    output += `Ninja   ${formatStatusTag(ninja.available ? "ok" : "fail")}   ${ninja.source === "env" ? "system PATH" : ninja.source === "idf-tools" ? `ESP-IDF tools (actual: ${ninja.actual || "unknown"})` : "not found"}${EOL}`;
+    for (const tool of reportedResult.espIdfToolsVersions) {
+      if (tool.name === "cmake" || tool.name === "ninja") {
+        continue;
+      }
+      const status = tool.doesToolExist ? "ok" : "fail";
+      output += `Tool: ${tool.name}   expected: ${tool.expected}   actual: ${tool.actual || "(missing)"}   ${formatStatusTag(status)}${EOL}`;
+    }
+  }
+
   output += `-------------------------------------------------- Project configuration settings ----------------------------------------------------------${EOL}`;
   if (reportedResult.selectedProjectConfiguration) {
     output += `Selected configuration: ${reportedResult.selectedProjectConfiguration}${EOL}${EOL}`;
   }
   if (reportedResult.projectConfigurations) {
-    for (let key of Object.keys(reportedResult.projectConfigurations)) {
+    for (const key of Object.keys(reportedResult.projectConfigurations)) {
       output += `Configuration name: ${key}${EOL}`;
       if (reportedResult.projectConfigurations[key].build) {
         output += `---- Build section ----${EOL}`;
@@ -173,7 +189,7 @@ export async function writeTextReport(
   }
   output += `-------------------------------------------------- Python packages in Virtual environment Python path (computed) ---------------------------${EOL}`;
   if (reportedResult.configurationSettings.pythonPackages) {
-    for (let pkg of reportedResult.configurationSettings.pythonPackages) {
+    for (const pkg of reportedResult.configurationSettings.pythonPackages) {
       output += `${pkg.name} version: ${pkg.version}${EOL}`;
     }
   } else {
@@ -184,11 +200,13 @@ export async function writeTextReport(
     }${EOL}`;
   }
   output += `---------------------------------------------------- Check ESP-IDF python requirements.txt -------------------------------------------------${EOL}`;
-  output += `Check ESP-IDF Python packages ${
-    reportedResult.idfCheckRequirements.result
-      ? reportedResult.idfCheckRequirements.result
-      : reportedResult.idfCheckRequirements.output
-  }${EOL}`;
+  const requirementsResult =
+    reportedResult.idfCheckRequirements.result ||
+    reportedResult.idfCheckRequirements.output;
+  const requirementsStatus = requirementsResult.startsWith("Error:")
+    ? "fail"
+    : "ok";
+  output += `${formatStatusTag(requirementsStatus)} Check ESP-IDF Python packages ${requirementsResult}${EOL}`;
   if (reportedResult.espIdfSetups) {
     output += `---------------------------------------------------- ESP-IDF Setups ------------------------------------------------------------------------${EOL}`;
     for (const idfSetup of reportedResult.espIdfSetups) {
@@ -201,7 +219,7 @@ export async function writeTextReport(
         output += `------- system python path: ${idfSetup.sysPythonPath}${EOL}`;
       }
       if (idfSetup.activationScript) {
-        output += `------- activation script path: ${idfSetup.sysPythonPath}${EOL}`;
+        output += `------- activation script path: ${idfSetup.activationScript}${EOL}`;
       }
       output += `------- is valid? ${idfSetup.isValid}${EOL}`;
       if (idfSetup.reason) {
@@ -218,7 +236,7 @@ export async function writeTextReport(
     output += `---------------------------------------------------- Visual Studio Code c_cpp_properties.json ----------------------------------------------${EOL}`;
     output += `${reportedResult.cCppPropertiesJson} ${EOL}`;
   }
-  if (reportedResult.latestError) {
+  if (reportedResult.latestError?.message) {
     output += `----------------------------------------------------------- Latest error -----------------------------------------------------------------${EOL}`;
     output += JSON.stringify(reportedResult.latestError, undefined, 2) + EOL;
   }
@@ -227,8 +245,16 @@ export async function writeTextReport(
   const logFileExists = await pathExists(logFile);
   if (logFileExists) {
     const logFileContent = await readFile(logFile, "utf8");
-    output += `----------------------------------------------------------- Logfile -----------------------------------------------------------------${EOL}`;
-    output += replaceUserPathInStr(logFileContent) + EOL + lineBreak;
+    const logLines = logFileContent.split(/\r?\n/);
+    const truncatedLog =
+      logLines.length > LOG_TAIL_LINES
+        ? logLines.slice(-LOG_TAIL_LINES).join(EOL)
+        : logFileContent;
+    output += `----------------------------------------------------------- Logfile (last ${LOG_TAIL_LINES} lines) -----------------------------------------------------------------${EOL}`;
+    if (logLines.length > LOG_TAIL_LINES) {
+      output += `(Truncated. See esp_idf_vsc_ext.log for the full log.)${EOL}`;
+    }
+    output += replaceUserPathInStr(truncatedLog) + EOL + lineBreak;
   }
   const resultFile = join(context.extensionPath, "report.txt");
   await writeFile(resultFile, output);
@@ -245,11 +271,11 @@ export function replaceUserPath(report: reportObj): reportObj {
   // Replacing all home paths (based on OS) with '...' using es6 syntax. Can be replaced with one line using .replaceAll() when we will update the version of ECMAScript to 2021 or higher
   const parsedReport = replaceUserPathInStr(strReport);
 
-  return JSON.parse(parsedReport);
+  return parsedReport ? JSON.parse(parsedReport) : report;
 }
 
 function replaceUserPathInStr(strReport: string) {
-  if (process.env.windir) {
+  if (process.env.HOMEPATH) {
     const homePath = process.env.HOMEPATH;
     // Escape the path for regex, but keep backslashes as is
     const escapedPath = homePath.replace(/[.*+?^${}()|[\]\\]/g, (match) => {
@@ -264,7 +290,7 @@ function replaceUserPathInStr(strReport: string) {
     const pattern = `(${escapedPath}|${posixPath})`;
     const re = new RegExp(pattern, "g");
     return strReport.replace(re, "<HOMEPATH>");
-  } else {
+  } else if (process.env.HOME) {
     // For non-Windows systems, escape HOME path for regex
     const escapedHome = process.env.HOME.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const re = new RegExp(escapedHome, "g");

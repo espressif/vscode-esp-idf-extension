@@ -12,6 +12,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 
 ## Features and enhancements
 
+- Remove deprecated `idf.portWin` and `idf.buildPathWin` settings in favor of unified `idf.port` and `idf.buildPath`. On Windows, customized legacy values are auto-migrated on first activation; default values are silently cleaned up.
 - [Call clang restart server after compile_commands.json change](https://github.com/espressif/vscode-esp-idf-extension/pull/1769)
 - [Move extension settings in categories](https://github.com/espressif/vscode-esp-idf-extension/pull/1770)
 - [ESP32P4 PIE Registers support in debug session](https://github.com/espressif/vscode-esp-idf-extension/pull/1790)

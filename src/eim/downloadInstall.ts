@@ -32,13 +32,20 @@ import {
   WriteStream,
 } from "fs-extra";
 import { CancellationToken, env, Progress, UIKind, window } from "vscode";
-import { OutputChannel } from "../logger/outputChannel";
-import del from "del";
+import { OutputChannel } from "../common/outputChannel";
 import { dirExistPromise, isBinInPath, spawn } from "../utils";
 import * as yauzl from "yauzl";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { getEimIdfJson } from "./getExistingSetups";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
+import { rm } from "fs/promises";
+import {
+  eimAssetNotFound,
+  eimDownloadCanceled,
+  eimDownloadFailed,
+  environmentNotSupported,
+  isKnownError,
+} from "../common/error/knownError";
 
 type EimShellProfileTarget = {
   path: string;
@@ -53,10 +60,7 @@ export function isVSCodeInstalledViaSnap(): boolean {
 }
 
 export function shouldForceCliMode(): boolean {
-  return (
-    typeof env.remoteName !== "undefined" ||
-    env.uiKind === UIKind.Web
-  );
+  return typeof env.remoteName !== "undefined" || env.uiKind === UIKind.Web;
 }
 
 function getEimHomeDir(): string {
@@ -67,7 +71,7 @@ function getEimHomeDir(): string {
       : process.env.HOME || process.env.USERPROFILE);
 
   if (!homeDir) {
-    throw new Error("Unable to resolve the user home directory.");
+    throw eimDownloadFailed("Unable to resolve the user home directory.");
   }
 
   return homeDir;
@@ -83,7 +87,12 @@ function getEimInstallDir(mode: "cli" | "gui"): string {
     process.platform !== "linux" &&
     process.platform !== "darwin"
   ) {
-    throw new Error(`Unsupported platform: ${process.platform}`);
+    throw environmentNotSupported(process.platform, {
+      userMessage: "EIM is not supported on {envName}.",
+      logMessage: "EIM install blocked: unsupported environment {envName}.",
+      actions: [],
+      outputChannel: "EIM",
+    });
   }
 
   const subdir = mode === "cli" ? "eim" : "eim_gui";
@@ -105,7 +114,7 @@ function getGuiAssetArch(arch: string): "aarch64" | "x64" {
     case "x64":
       return "x64";
     default:
-      throw new Error(`Unsupported architecture: ${arch}`);
+      throw eimDownloadFailed(`Unsupported architecture: ${arch}`);
   }
 }
 
@@ -118,14 +127,14 @@ function getLinuxCliAssetArch(arch: string): "aarch64" | "armv7" | "x64" {
     case "x64":
       return "x64";
     default:
-      throw new Error(`Unsupported architecture: ${arch}`);
+      throw eimDownloadFailed(`Unsupported architecture: ${arch}`);
   }
 }
 
 function getEimAssetName(mode: "cli" | "gui", arch: string): string {
   if (process.platform === "win32") {
     if (arch !== "x64") {
-      throw new Error(`Unsupported architecture: ${arch}`);
+      throw eimDownloadFailed(`Unsupported architecture: ${arch}`);
     }
 
     return `eim-${mode}-windows-x64.exe`;
@@ -136,11 +145,17 @@ function getEimAssetName(mode: "cli" | "gui", arch: string): string {
   }
 
   if (process.platform === "linux") {
-    const linuxArch = mode === "cli" ? getLinuxCliAssetArch(arch) : getGuiAssetArch(arch);
+    const linuxArch =
+      mode === "cli" ? getLinuxCliAssetArch(arch) : getGuiAssetArch(arch);
     return `eim-${mode}-linux-${linuxArch}.zip`;
   }
 
-  throw new Error(`Unsupported platform: ${process.platform}`);
+  throw environmentNotSupported(process.platform, {
+    userMessage: "EIM is not supported on {envName}.",
+    logMessage: "EIM install blocked: unsupported environment {envName}.",
+    actions: [],
+    outputChannel: "EIM",
+  });
 }
 
 export async function resolveEimPath(): Promise<string> {
@@ -155,7 +170,9 @@ export async function resolveEimPath(): Promise<string> {
   }
   // 2. Check eim_idf.json for existing EIM path
   if (!eimPath) {
-    Logger.info("[resolveEimPath] Step 2: checking eim_idf.json for existing EIM path");
+    Logger.info(
+      "[resolveEimPath] Step 2: checking eim_idf.json for existing EIM path"
+    );
     const eimJSON = await getEimIdfJson();
     if (eimJSON && eimJSON.eimPath) {
       Logger.info(`[resolveEimPath] eim_idf.json eimPath: ${eimJSON.eimPath}`);
@@ -169,7 +186,9 @@ export async function resolveEimPath(): Promise<string> {
   if (!eimPath) {
     const envEimPath = process.env.EIM_PATH;
     Logger.info(
-      `[resolveEimPath] Step 3: checking EIM_PATH env variable${envEimPath ? `: ${envEimPath}` : " (not set)"}`
+      `[resolveEimPath] Step 3: checking EIM_PATH env variable${
+        envEimPath ? `: ${envEimPath}` : " (not set)"
+      }`
     );
     eimPath = envEimPath || "";
   }
@@ -179,7 +198,9 @@ export async function resolveEimPath(): Promise<string> {
   const cliPath = getCliBinaryPath();
   const orderedPaths = forceCliMode ? [cliPath, guiPath] : [guiPath, cliPath];
   Logger.info(
-    `[resolveEimPath] Step 4: checking managed install locations (order: ${orderedPaths.join(", ")})`
+    `[resolveEimPath] Step 4: checking managed install locations (order: ${orderedPaths.join(
+      ", "
+    )})`
   );
 
   for (const candidate of orderedPaths) {
@@ -317,7 +338,8 @@ function createEimPathProfileSnippet(
   shellType: "fish" | "posix",
   eimDir: string
 ) {
-  const header = "# Added by ESP-IDF extension so the EIM CLI can be launched directly.";
+  const header =
+    "# Added by ESP-IDF extension so the EIM CLI can be launched directly.";
 
   if (shellType === "fish") {
     return [
@@ -428,7 +450,7 @@ export async function downloadAndInstallEIM(
     const osKey = getEimAssetName(installCliMode ? "cli" : "gui", arch);
     const fileInfo = data.assets.find((asset: any) => asset.name === osKey);
     if (!fileInfo) {
-      throw new Error(`No file found for OS and architecture: ${osKey}`);
+      throw eimAssetNotFound(osKey);
     }
 
     progress.report({
@@ -461,7 +483,7 @@ export async function downloadAndInstallEIM(
       const tempDownloadPath = `${downloadPath}.tmp`;
       await remove(tempDownloadPath);
       if (cancelToken.isCancellationRequested) {
-        throw new Error("Download canceled by user.");
+        throw eimDownloadCanceled();
       }
 
       const writeStream: WriteStream = createWriteStream(tempDownloadPath, {
@@ -481,7 +503,7 @@ export async function downloadAndInstallEIM(
           10
         );
 
-        const cancellationError = new Error("Download canceled by user.");
+        const cancellationError = eimDownloadCanceled();
         cancellationListener = cancelToken.onCancellationRequested(() => {
           isCanceled = true;
           fileResponseStream.data.destroy(cancellationError);
@@ -514,7 +536,7 @@ export async function downloadAndInstallEIM(
       } catch (error) {
         await remove(tempDownloadPath);
         if (isCanceled) {
-          throw new Error("Download canceled by user.");
+          throw eimDownloadCanceled();
         }
         throw error;
       } finally {
@@ -539,12 +561,17 @@ export async function downloadAndInstallEIM(
 
     return getEimBinaryPath(eimInstallPath, installCliMode);
   } catch (error) {
-    Logger.errorNotify(
-      `Error during download and extraction: ${error.message}`,
-      error,
-      "downloadAndExtractEIM"
-    );
-    return "";
+    if (isKnownError(error)) {
+      throw error;
+    }
+    if (error instanceof ZipFileError) {
+      if (error.message === "Install cancelled by user") {
+        throw eimDownloadCanceled();
+      }
+      throw eimDownloadFailed(error.message);
+    }
+    const detail = error instanceof Error ? error.message : String(error);
+    throw eimDownloadFailed(detail);
   }
 }
 
@@ -615,7 +642,7 @@ export async function installZipFile(
         const dirExists = await dirExistPromise(absolutePath);
         if (dirExists) {
           try {
-            await del(absolutePath, { force: true });
+            await rm(absolutePath, { recursive: true, force: true });
           } catch (err) {
             OutputChannel.appendLine(
               `Error deleting previous ${absolutePath}: ${err.message}`
