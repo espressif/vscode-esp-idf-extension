@@ -121,13 +121,25 @@ export function getVirtualEnvPythonPath() {
   }
   if (currentEnvVars["IDF_PYTHON_ENV_PATH"]) {
     if (process.platform === "win32") {
-      return join(currentEnvVars["IDF_PYTHON_ENV_PATH"], "Scripts", "python.exe");
+      return join(
+        currentEnvVars["IDF_PYTHON_ENV_PATH"],
+        "Scripts",
+        "python.exe"
+      );
     }
-    const pythonPath = join(currentEnvVars["IDF_PYTHON_ENV_PATH"], "bin", "python");
+    const pythonPath = join(
+      currentEnvVars["IDF_PYTHON_ENV_PATH"],
+      "bin",
+      "python"
+    );
     if (pathExistsSync(pythonPath)) {
       return pythonPath;
     }
-    const python3Path = join(currentEnvVars["IDF_PYTHON_ENV_PATH"], "bin", "python3");
+    const python3Path = join(
+      currentEnvVars["IDF_PYTHON_ENV_PATH"],
+      "bin",
+      "python3"
+    );
     if (pathExistsSync(python3Path)) {
       return python3Path;
     }

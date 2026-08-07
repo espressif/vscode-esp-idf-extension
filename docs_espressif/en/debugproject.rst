@@ -158,7 +158,7 @@ You can modify the configuration to suit your needs. Let's describe the configur
 - ``gdb``: GDB executable to be used. By default "${command:espIdf.getToolchainGdb}" will query the extension to find the ESP-IDF toolchain GDB for the current IDF_TARGET of your esp-idf project (esp32, esp32c6, etc.).
 
 .. note::
-     **IDF_TARGET_CPU_WATCHPOINT_NUM** is resolved by the extension according to the current ``IDF_TARGET`` of your esp-idf project (esp32, esp32c6, etc.).
+     **IDF_TARGET_CPU_WATCHPOINT_NUM** (or ``{IDF_TARGET_CPU_WATCHPOINT_NUM}``) is resolved by the extension according to the current ``IDF_TARGET`` of your esp-idf project (esp32, esp32c6, etc.), for both default and user-defined ``initCommands``.
 
 Some additional arguments you might use are:
 
