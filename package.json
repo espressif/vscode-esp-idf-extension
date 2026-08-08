@@ -1440,6 +1440,11 @@
         "category": "ESP-IDF"
       },
       {
+        "command": "espIdf.appBuildFlashMonitor",
+        "title": "%espIdf.appBuildFlashMonitor.title%",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.buildBootloader",
         "title": "%espIdf.buildBootloader.title%",
         "category": "ESP-IDF"
