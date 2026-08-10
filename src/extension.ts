@@ -29,7 +29,7 @@ import { AppTracePanel } from "./espIdf/tracing/appTracePanel";
 import { GdbHeapTraceManager } from "./espIdf/tracing/gdbHeapTraceManager";
 import {
   AppTraceArchiveTreeDataProvider,
-  AppTraceArchiveItems,
+  AppTraceArchiveReportArgs,
   TraceType,
 } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
@@ -2949,7 +2949,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand(
     "espIdf.apptrace.archive.showReport",
-    (trace: AppTraceArchiveItems) => {
+    (trace: AppTraceArchiveReportArgs) => {
       if (!trace) {
         Logger.errorNotify(
           vscode.l10n.t(
