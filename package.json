@@ -2690,7 +2690,7 @@
     "plotly.js-dist": "^1.54.1",
     "plotly.js-dist-min": "^2.26.1",
     "postcss": "^8.4.31",
-    "sanitize-html": "^2.12.1",
+    "sanitize-html": "^2.17.5",
     "serialport": "^13.0.0",
     "stream-browserify": "^3.0.0",
     "tar-fs": "^3.1.1",
