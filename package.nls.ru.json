@@ -200,7 +200,7 @@
 	"trace.stop_tmo.description": "для apptrace будет установлен параметр stop_tmo",
 	"trace.trace_size.description": "для apptrace будет установлен параметр trace_size",
 	"trace.wait4halt.description": "для apptrace будет установлен параметр wait4halt",
-	"param.currentSetup": "Текущий идентификатор настройки ESP-IDF в пути eim_idf.json",
+	"param.currentSetup": "Путь к текущему выбранному каталогу ESP-IDF",
 	"view.components.name": "Компоненты проекта",
 	"view.debug.peripheral": "ESP-IDF: Обреватель периферии",
 	"view.debug.hexView": "ESP-IDF: Шестнадцатеричный вид",
