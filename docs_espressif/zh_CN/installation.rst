@@ -27,9 +27,10 @@
     - ``GitHub``：使用 GitHub 发布链接。
 
 3.  使用 ESP-IDF 安装管理器安装 ESP-IDF 及工具。如需帮助，可参阅 `ESP-IDF 安装管理器文档 <https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest/general_info.html>`_。
+
     .. note::
 
-        在 SSH、WSL、Dev Containers、Codespaces 或基于浏览器的 VS Code 等远程或无头环境中，扩展会运行 ``eim wizard``，而不是启动 GUI。首次在 Linux 环境中启动该向导时，扩展还会将 EIM 可执行文件所在目录添加到远程用户的 shell PATH 中，以便后续可在新的终端里直接运行 ``eim``。可用命令请参考 `EIM CLI 命令文档 <https://docs.espressif.com/projects/idf-im-ui/en/latest/cli_commands.html>`_。
+        在 SSH、WSL、Dev Containers、Codespaces 或基于浏览器的 VS Code 等远程或无头环境中，扩展会运行 ``eim wizard``，而不是启动 GUI。在 Linux 上启动该向导时，扩展还会将 EIM 可执行文件所在目录添加到远程用户的 shell PATH 中，以便后续可在新的终端里直接运行 ``eim``。可用命令请参考 `EIM CLI 命令文档 <https://docs.espressif.com/projects/idf-im-ui/en/latest/cli_commands.html>`_。
 
 4. 通过读取 EIM 的 **eim_idf.json** 文件，使用 ESP-IDF 安装管理器安装的所有 ESP-IDF 版本都会被 ESP-IDF VS Code 扩展自动识别。
 
@@ -124,3 +125,39 @@
     .. note::
 
         请将 `VERSION` 替换为已安装的 ESP-IDF 扩展的实际版本号。
+
+常见问题
+--------
+
+1. **如何确认 ESP-IDF 扩展已正确安装？**
+
+    - 打开命令面板（快捷键 F1），输入 ``ESP-IDF: Doctor Command``。选择该命令运行 Doctor，以检查 ESP-IDF 扩展及工具的安装与配置。
+
+2. **使用 ESP-IDF: Select Current ESP-IDF Version 命令时显示没有可用的 ESP-IDF 配置，该怎么办？**
+
+    - 请确认已通过 ESP-IDF 安装管理器 (EIM) 安装 ESP-IDF，或已使用正确的环境变量手动配置扩展。若通过 EIM 安装，请确保 **eim_idf.json** 位于默认位置，或在扩展设置 ``idf.eimIdfJsonPath`` 中指定其路径。
+
+3. **eim_idf.json 存在，但扩展仍未检测到任何 ESP-IDF 配置，该怎么办？**
+
+    - 请确认 **eim_idf.json** 格式正确，且其中包含有效的 ESP-IDF 安装路径。同时检查 EIM 是否已正确完成 ESP-IDF 安装。
+
+4. **EIM 未正确安装 ESP-IDF，该怎么办？**
+
+    - 检查 EIM 安装日志中是否有错误。日志位置参见 `EIM 日志目录 <https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest/issue_reporting.html#log-file-locations>`_。若仍有问题，可尝试使用 EIM 重新安装 ESP-IDF，或使用正确的环境变量手动配置扩展。
+
+5. **我安装了多个 ESP-IDF 版本，如何在它们之间切换？**
+
+    - 在命令面板中使用 ``ESP-IDF: Select Current ESP-IDF Version`` 命令，为当前项目选择所需的 ESP-IDF 版本。
+
+6. **我已通过环境变量手动配置了扩展，但想改用选定的 ESP-IDF 配置，该怎么做？**
+
+    - 清除扩展设置中手动配置的环境变量，然后使用 ``ESP-IDF: Select Current ESP-IDF Version`` 命令选择所需的 ESP-IDF 配置。
+
+7. **遇到具体问题需要帮助时，可以在哪里寻求支持？**
+
+    - 可在 `EIM GitHub <https://github.com/espressif/idf-im-ui/issues>`_ 或 `ESP-IDF Extension for VS Code GitHub <https://github.com/espressif/vscode-esp-idf-extension/issues>`_ 寻求帮助。
+
+8. **我使用 AI 工具排查 ESP-IDF 安装问题，但效果不好，该怎么办？**
+
+    - 请将 `Espressif Documentation MCP <https://mcp.espressif.com>`_ 添加到 AI 工具的知识库中。也可以直接添加 `EIM <https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest>`_ 与 `ESP-IDF Extension for VS Code <https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest>`_ 的文档链接。
+    - 本扩展也会向当前使用的 IDE 贡献 MCP Servers。
