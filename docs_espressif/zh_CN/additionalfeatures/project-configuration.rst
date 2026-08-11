@@ -132,7 +132,7 @@
 项目配置文件保存在 ``CMakePresets.json`` 和 ``CMakeUserPresets.json`` 中
 ------------------------------------------------------------------------
 
-项目配置使用标准的 CMake Presets 格式存储在 ``CMakePresets.json``（通常提交到版本控制）和可选的 ``CMakeUserPresets.json``（用户特定的覆盖，通常添加到 gitignore）中。
+项目配置使用标准的 CMake Presets 格式存储在 ``CMakePresets.json`` （通常提交到版本控制）和可选的 ``CMakeUserPresets.json`` （用户特定的覆盖，通常添加到 gitignore）中。
 
 ``CMakePresets.json`` 文件结构遵循 CMake Presets 模式，并包含 ESP-IDF 特有的 vendor 设置。扩展为 ``CMakePresets.json`` 和 ``CMakeUserPresets.json`` 注册了自己的模式（schema），该模式扩展了官方 CMake Presets 模式并添加了 ESP-IDF vendor 字段。打开任一文件即可获得验证和自动补全功能，无需在文件中添加 ``$schema`` 字段。
 
@@ -354,6 +354,8 @@
      - ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]``，其中 ``type == "tasks"``，field: ``postFlash``
 
 
+.. _multiple-configuration-tutorial:
+
 多配置教程
 ----------
 
@@ -464,7 +466,7 @@ ESP-IDF 项目的开发和发布配置文件
 
 6. 若选择 **development** 配置文件，系统会创建 ``/path/to/esp-project/build_dev/sdkconfig`` 并在 ``/path/to/esp-project/build_dev`` 中生成二进制文件。
 
-如 :ref:`多配置教程 <Multiple configuration tutorial>` 所示，production 配置文件可以进一步拆分为多个 production 预设。将 ``sdkconfig.defaults`` 文件拆分为通用 SDKConfig 设置文件 ``sdkconfig.prod_common`` 和产品特定设置文件 ``sdkconfig.prod1``、``sdkconfig.prod2``。在 ``CMakePresets.json`` 中，将多个 ``SDKCONFIG_DEFAULTS`` 文件指定为分号分隔的字符串（如 ``"sdkconfig.prod_common;sdkconfig.prod1"``），这些文件将按照 `ESP-IDF 文档 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/build-system.html?highlight=sdkconfig%20defaults#custom-sdkconfig-defaults>`_ 中说明的顺序加载。
+如 :ref:`多配置教程 <multiple-configuration-tutorial>` 所示，production 配置文件可以进一步拆分为多个 production 预设。将 ``sdkconfig.defaults`` 文件拆分为通用 SDKConfig 设置文件 ``sdkconfig.prod_common`` 和产品特定设置文件 ``sdkconfig.prod1``、``sdkconfig.prod2``。在 ``CMakePresets.json`` 中，将多个 ``SDKCONFIG_DEFAULTS`` 文件指定为分号分隔的字符串（如 ``"sdkconfig.prod_common;sdkconfig.prod1"``），这些文件将按照 `ESP-IDF 文档 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/build-system.html?highlight=sdkconfig%20defaults#custom-sdkconfig-defaults>`_ 中说明的顺序加载。
 
 从旧版项目配置格式迁移
 -----------------------

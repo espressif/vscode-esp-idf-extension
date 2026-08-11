@@ -354,6 +354,8 @@ While each field is self-explanatory, here is the mapping of the CMakePresets st
      - ``configurePresets[].vendor["espressif/vscode-esp-idf"].settings[]`` where ``type == "tasks"``, field: ``postFlash``
 
 
+.. _multiple-configuration-tutorial:
+
 Multiple Configuration Tutorial
 --------------------------------
 
@@ -464,7 +466,7 @@ For this example we will create two profiles, **development** and **production**
 
 6. If you choose the **development** profile, the ``/path/to/esp-project/build_dev/sdkconfig`` will be created and the binaries will be generated in ``/path/to/esp-project/build_dev``.
 
-The production profile can be split into multiple production profiles, as shown in the :ref:`Multiple configuration tutorial <Multiple configuration tutorial>`, by separating ``sdkconfig.defaults`` into common SDKConfig settings in a ``sdkconfig.prod_common`` file and product-specific settings in ``sdkconfig.prod1`` and ``sdkconfig.prod2`` files respectively. Multiple SDKConfig defaults files can be specified in the ``SDKCONFIG_DEFAULTS`` cache variable as a semicolon-separated string (e.g., ``"sdkconfig.prod_common;sdkconfig.prod1"``) where the values are loaded in order as explained in the `ESP-IDF documentation <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html?highlight=sdkconfig%20defaults#custom-sdkconfig-defaults>`_.
+The production profile can be split into multiple production profiles, as shown in the :ref:`Multiple configuration tutorial <multiple-configuration-tutorial>`, by separating ``sdkconfig.defaults`` into common SDKConfig settings in a ``sdkconfig.prod_common`` file and product-specific settings in ``sdkconfig.prod1`` and ``sdkconfig.prod2`` files respectively. Multiple SDKConfig defaults files can be specified in the ``SDKCONFIG_DEFAULTS`` cache variable as a semicolon-separated string (e.g., ``"sdkconfig.prod_common;sdkconfig.prod1"``) where the values are loaded in order as explained in the `ESP-IDF documentation <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html?highlight=sdkconfig%20defaults#custom-sdkconfig-defaults>`_.
 
 Migrating from Legacy Project Configuration Format
 ---------------------------------------------------
