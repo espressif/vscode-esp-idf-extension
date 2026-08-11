@@ -17,6 +17,13 @@ const { archives, isOverviewEnabled, overviewData, searchText } = storeToRefs(
   store
 );
 
+const sectionsWithUsagePercent = computed(() => {
+  if (!overviewData.value?.layout) {
+    return [];
+  }
+  return overviewData.value.layout.filter((section) => section.total > 0);
+});
+
 const filteredArchives = computed<{ [key: string]: IDFSizeArchive }>(() => {
   let filteredObj = archives.value;
   if (searchText.value !== "") {
@@ -52,11 +59,11 @@ onMounted(() => {
           <div v-if="isOverviewEnabled">
             <Overview />
             <ProgressBar
-              v-for="section in overviewData.layout"
+              v-for="section in sectionsWithUsagePercent"
               :key="section.name"
               :name="section.name"
               :usedData="section.used"
-              :totalData="section.total ? section.total : section.used + section.free"
+              :totalData="section.total"
             />
           </div>
           <div v-else>
