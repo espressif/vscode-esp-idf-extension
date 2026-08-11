@@ -217,5 +217,6 @@
 	"view.idf.errorHints": "错误提示",
 	"command.errorHints.clearAll.title": "清除所有错误提示",
 	"command.errorHints.clearBuild.title": "清除构建错误提示",
-	"command.errorHints.clearOpenOCD.title": "清除 OpenOCD 错误提示"
+	"command.errorHints.clearOpenOCD.title": "清除 OpenOCD 错误提示",
+	"param.saveLastProjectConfiguration": "重新打开工作区时保存并恢复上次选择的项目配置。启用后，扩展将恢复上次使用的配置（如果存在），否则不选择任何配置。禁用后，默认不选择任何配置。"
 }

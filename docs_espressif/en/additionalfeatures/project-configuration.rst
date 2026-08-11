@@ -1,5 +1,5 @@
-Project Configuration Editor
-============================
+Project Configuration
+=====================
 
 :link_to_translation:`zh_CN:[中文]`
 

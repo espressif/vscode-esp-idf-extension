@@ -216,5 +216,6 @@
 	"view.idf.errorHints": "Pistas de Error",
 	"command.errorHints.clearAll.title": "Borrar Todas las Pistas de Error",
 	"command.errorHints.clearBuild.title": "Borrar Pistas de Error de Compilación",
-	"command.errorHints.clearOpenOCD.title": "Borrar Pistas de Error de OpenOCD"
+	"command.errorHints.clearOpenOCD.title": "Borrar Pistas de Error de OpenOCD",
+	"param.saveLastProjectConfiguration": "Guardar y restaurar la última configuración de proyecto seleccionada al reabrir un espacio de trabajo. Cuando está habilitado, la extensión restaurará la última configuración utilizada si existe, de lo contrario no se seleccionará ninguna configuración. Cuando está deshabilitado, no se selecciona ninguna configuración por defecto."
 }
