@@ -22,7 +22,7 @@ import { Logger } from "../logger/logger";
 import { delimiter, dirname, join } from "path";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { ESP } from "../config";
-import { isBinInPath } from "../utils";
+import { isBinInPath, getEspIdfFromCMake, compareVersion } from "../utils";
 import { pathExists } from "fs-extra";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 
@@ -39,9 +39,10 @@ import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
  * and component directories to the system `PATH`.
  * - Determining and setting `IDF_TARGET` based on the workspace's sdkconfig.
  * - Setting the `IDF_COMPONENT_MANAGER` flag and `SDKCONFIG` path based on settings.
- * - Setting `IDF_PRESET` from the currently selected project configuration, so idf.py
- * (ESP-IDF v6+) resolves the same CMake preset the extension has selected instead of
- * auto-selecting its own default/first preset.
+ * - Setting `IDF_PRESET` from the currently selected project configuration on ESP-IDF v6.0+,
+ * so idf.py resolves the same CMake preset the extension has selected instead of
+ * auto-selecting its own default/first preset. Older idf.py versions have no `--preset`
+ * option and ignore the variable, so it is left unset there.
  *
  * @async
  * @param {Uri} curWorkspace - The Uri of the current workspace, used to access settings and sdkconfig.
@@ -265,10 +266,19 @@ export async function configureEnvVariables(
 
   // Keep idf.py's own preset resolution (used when a raw idf.py command is run,
   // e.g. from the ESP-IDF Terminal) in sync with the profile selected in the extension.
+  // `--preset` and its IDF_PRESET binding only exist in ESP-IDF v6.0+; older idf.py
+  // versions ignore the variable, so setting it there would be misleading noise.
+  // Any inherited value is dropped first, so the extension selection stays authoritative.
   const selectedConfig = ESP.ProjectConfiguration.store?.get<string>(
     ESP.ProjectConfiguration.SELECTED_CONFIG
   );
-  modifiedEnv.IDF_PRESET = selectedConfig || undefined;
+  delete modifiedEnv.IDF_PRESET;
+  if (selectedConfig) {
+    const idfVersion = await getEspIdfFromCMake(modifiedEnv.IDF_PATH);
+    if (idfVersion !== "x.x" && compareVersion(idfVersion, "6.0") !== -1) {
+      modifiedEnv.IDF_PRESET = selectedConfig;
+    }
+  }
 
   return modifiedEnv;
 }

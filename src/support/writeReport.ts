@@ -20,6 +20,7 @@ import { EOL } from "os";
 import { join } from "path";
 import * as vscode from "vscode";
 import { ESP } from "../config";
+import { compareVersion } from "../utils";
 import { reportObj } from "./types";
 
 export async function writeTextReport(
@@ -133,8 +134,15 @@ export async function writeTextReport(
   }${EOL}`;
   output += `-------------------------------------------------- Project configuration settings ----------------------------------------------------------${EOL}`;
   if (reportedResult.selectedProjectConfiguration) {
+    const idfVersion = reportedResult.espIdfVersion.result;
+    const supportsIdfPreset =
+      idfVersion &&
+      idfVersion !== "x.x" &&
+      compareVersion(idfVersion, "6.0") !== -1;
     output += `Selected configuration: ${reportedResult.selectedProjectConfiguration}${EOL}`;
-    output += `IDF_PRESET (passed to idf.py as the active CMake preset) ${reportedResult.selectedProjectConfiguration}${EOL}${EOL}`;
+    output += supportsIdfPreset
+      ? `IDF_PRESET (passed to idf.py as the active CMake preset) ${reportedResult.selectedProjectConfiguration}${EOL}${EOL}`
+      : `IDF_PRESET not exported: idf.py --preset requires ESP-IDF v6.0 or higher. The extension applies the configuration to its own commands instead.${EOL}${EOL}`;
   }
   if (reportedResult.projectConfigurations) {
     for (let key of Object.keys(reportedResult.projectConfigurations)) {
