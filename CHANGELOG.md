@@ -8,6 +8,33 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [2.2.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.2.0)
+
+## Features and enhancements
+
+**Remove ESP-IDF Project Configuration Editor in favor of [CMakePresets](https://github.com/espressif/vscode-esp-idf-extension/pull/1842)** Please see the documentation for migration changes.
+
+- [Add customOpenOCDPath setting to define OpenOCD executable path to use in extension](https://github.com/espressif/vscode-esp-idf-extension/pull/1829)
+- [Run UI Tests on Self-hosted runner](https://github.com/espressif/vscode-esp-idf-extension/pull/1849)
+- [Add Monitor UI Test](https://github.com/espressif/vscode-esp-idf-extension/pull/1867)
+- [Add component documentation in start and configure project](https://github.com/espressif/vscode-esp-idf-extension/pull/1854)
+- [Add support for eim_idf.json v3.0](https://github.com/espressif/vscode-esp-idf-extension/pull/1891)
+- [Enhance OpenOCD board config usb location](https://github.com/espressif/vscode-esp-idf-extension/pull/1850)
+- [Add CodeQL for vulnerability scan](https://github.com/espressif/vscode-esp-idf-extension/pull/1912)
+- [Remove Project Configuration Editor in favor of CMakePresets](https://github.com/espressif/vscode-esp-idf-extension/pull/1842)
+
+## Bug Fixes
+
+- [Pick adf_examples if present else fallback to examples](https://github.com/espressif/vscode-esp-idf-extension/pull/1848)
+- [Fix preserve user custom idf eimExecutableArgs](https://github.com/espressif/vscode-esp-idf-extension/pull/1844) Thanks @jiesou !
+- [Fix avoid waiting terminal focus over Remote SSH](https://github.com/espressif/vscode-esp-idf-extension/pull/1831)
+- [Use BASH as default terminal for activation script](https://github.com/espressif/vscode-esp-idf-extension/pull/1853)
+- [Bump CI ESP-IDF version to 6.0.1](https://github.com/espressif/vscode-esp-idf-extension/pull/1878)
+- [Fix telemetry session scope deduplication](https://github.com/espressif/vscode-esp-idf-extension/pull/1886)
+- [Use python3 binary name consistently ](https://github.com/espressif/vscode-esp-idf-extension/pull/1840)
+- [Remove bars for unavailable usage of memory regions in ESP IDF Size UI](https://github.com/espressif/vscode-esp-idf-extension/pull/1889)
+- [Update idf currentSetup setting description](https://github.com/espressif/vscode-esp-idf-extension/pull/1923)
+
 ## [2.1.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.1.0)
 
 ## Features and enhancements
