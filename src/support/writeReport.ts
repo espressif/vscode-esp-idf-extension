@@ -19,6 +19,8 @@ import { pathExists, readFile, writeFile, writeJson } from "fs-extra";
 import { EOL } from "os";
 import { join } from "path";
 import * as vscode from "vscode";
+import { ESP } from "../config";
+import { compareVersion } from "../utils";
 import { reportObj } from "./types";
 
 export async function writeTextReport(
@@ -132,42 +134,48 @@ export async function writeTextReport(
   }${EOL}`;
   output += `-------------------------------------------------- Project configuration settings ----------------------------------------------------------${EOL}`;
   if (reportedResult.selectedProjectConfiguration) {
-    output += `Selected configuration: ${reportedResult.selectedProjectConfiguration}${EOL}${EOL}`;
+    const idfVersion = reportedResult.espIdfVersion.result;
+    const supportsIdfPreset =
+      idfVersion &&
+      idfVersion !== "x.x" &&
+      compareVersion(idfVersion, "6.0") !== -1;
+    output += `Selected configuration: ${reportedResult.selectedProjectConfiguration}${EOL}`;
+    output += supportsIdfPreset
+      ? `IDF_PRESET (passed to idf.py as the active CMake preset) ${reportedResult.selectedProjectConfiguration}${EOL}${EOL}`
+      : `IDF_PRESET not exported: idf.py --preset requires ESP-IDF v6.0 or higher. The extension applies the configuration to its own commands instead.${EOL}${EOL}`;
   }
   if (reportedResult.projectConfigurations) {
     for (let key of Object.keys(reportedResult.projectConfigurations)) {
-      output += `Configuration name: ${key}${EOL}`;
-      if (reportedResult.projectConfigurations[key].build) {
-        output += `---- Build section ----${EOL}`;
-        output += `     Compile Arguments: ${reportedResult.projectConfigurations[key].build.compileArgs}${EOL}`;
-        output += `     Ninja Arguments: ${reportedResult.projectConfigurations[key].build.ninjaArgs}${EOL}`;
-        output += `     Build directory path: ${reportedResult.projectConfigurations[key].build.buildDirectoryPath}${EOL}`;
-        output += `     SDKConfig defaults : ${reportedResult.projectConfigurations[key].build.sdkconfigDefaults}${EOL}`;
+      const preset = reportedResult.projectConfigurations[key];
+      output += `Configuration preset: ${key}${EOL}`;
+      if (!preset) {
+        continue;
       }
-      if (reportedResult.projectConfigurations[key].env) {
-        output += `---- Environment variables section ----${EOL}`;
-        for (const envKey of Object.keys(
-          reportedResult.projectConfigurations[key].env
-        )) {
-          output += `     ${envKey}: ${reportedResult.projectConfigurations[key].env[envKey]}${EOL}`;
+      output += `     Build directory (binaryDir): ${preset.binaryDir}${EOL}`;
+
+      if (preset.cacheVariables) {
+        output += `---- Cache variables section ----${EOL}`;
+        for (const cacheKey of Object.keys(preset.cacheVariables)) {
+          output += `     ${cacheKey}: ${preset.cacheVariables[cacheKey]}${EOL}`;
         }
       }
-      output += `Flash baud rate: ${reportedResult.projectConfigurations[key].flashBaudRate}${EOL}`;
-      output += `Monitor baud rate: ${reportedResult.projectConfigurations[key].monitorBaudRate}${EOL}`;
 
-      if (reportedResult.projectConfigurations[key].openOCD) {
-        output += `---- OpenOCD section ----${EOL}`;
-        output += `     Debug level: ${reportedResult.projectConfigurations[key].openOCD.debugLevel}${EOL}`;
-        output += `     Configuration files: ${reportedResult.projectConfigurations[key].openOCD.configs}${EOL}`;
-        output += `     Launch arguments: ${reportedResult.projectConfigurations[key].openOCD.args}${EOL}`;
+      if (preset.environment) {
+        output += `---- Environment variables section ----${EOL}`;
+        for (const envKey of Object.keys(preset.environment)) {
+          output += `     ${envKey}: ${preset.environment[envKey]}${EOL}`;
+        }
       }
 
-      if (reportedResult.projectConfigurations[key].tasks) {
-        output += `---- Tasks section ----${EOL}`;
-        output += `     Pre build task: ${reportedResult.projectConfigurations[key].tasks.preBuild}${EOL}`;
-        output += `     Post build task: ${reportedResult.projectConfigurations[key].tasks.postBuild}${EOL}`;
-        output += `     Pre flash task: ${reportedResult.projectConfigurations[key].tasks.preFlash}${EOL}`;
-        output += `     Post flash task: ${reportedResult.projectConfigurations[key].tasks.postFlash}${EOL}`;
+      const espIdfSettings =
+        preset.vendor?.[ESP.CMakePresets.ESP_IDF_VENDOR_KEY]?.settings || [];
+      if (espIdfSettings.length) {
+        output += `---- ESP-IDF vendor settings section ----${EOL}`;
+        for (const setting of espIdfSettings) {
+          output += `     ${setting.type}: ${JSON.stringify(
+            setting.value
+          )}${EOL}`;
+        }
       }
     }
   }

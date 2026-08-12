@@ -36,6 +36,8 @@ import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { pathExists } from "fs-extra";
 import { getStoredAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 import { getEspIdfFromCMake } from "../utils";
+import { getProjectConfigurationElements } from "../project-conf";
+import { Logger } from "../logger/logger";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
 
@@ -101,11 +103,33 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   let projectConf = ESP.ProjectConfiguration.store.get<string>(
     ESP.ProjectConfiguration.SELECTED_CONFIG
   );
-  let projectConfPath = path.join(
+  const cmakePresetsPath = path.join(
     workspaceFolder.fsPath,
     ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
   );
-  let projectConfExists = await pathExists(projectConfPath);
+  const cmakeUserPresetsPath = path.join(
+    workspaceFolder.fsPath,
+    ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME
+  );
+  const cmakePresetsExists = await pathExists(cmakePresetsPath);
+  const cmakeUserPresetsExists = await pathExists(cmakeUserPresetsPath);
+  let hasConfigurePresets = false;
+  if (cmakePresetsExists || cmakeUserPresetsExists) {
+    try {
+      const elements = await getProjectConfigurationElements(
+        workspaceFolder,
+        false
+      );
+      hasConfigurePresets = Object.keys(elements).length > 0;
+    } catch (error) {
+      Logger.error(
+        "Failed to read project configuration presets for status bar",
+        error,
+        "createCmdsStatusBarItems"
+      );
+      hasConfigurePresets = false;
+    }
+  }
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
   }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
@@ -173,8 +197,8 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     }
   }
 
-  // Only create the project configuration status bar item if the configuration file exists
-  if (projectConfExists) {
+  // Only create the project configuration status bar item when configure presets exist
+  if (hasConfigurePresets) {
     if (!projectConf) {
       // No configuration selected but file exists with configurations
       let statusBarItemName = "No Configuration Selected";
@@ -202,7 +226,7 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
       );
     }
   } else if (statusBarItems["projectConf"]) {
-    // If the configuration file doesn't exist but the status bar item does, remove it
+    // If no configuration files exist but the status bar item does, remove it
     statusBarItems["projectConf"].dispose();
     statusBarItems["projectConf"] = undefined;
   }

@@ -16,27 +16,89 @@
  * limitations under the License.
  */
 
-export interface ProjectConfElement {
-  build: {
-    compileArgs: string[];
-    ninjaArgs: string[];
-    buildDirectoryPath: string;
-    sdkconfigDefaults: string[];
-    sdkconfigFilePath: string;
+export interface CMakeVersion {
+  major: number;
+  minor: number;
+  patch: number;
+}
+
+export type ESPIDFSettingType =
+  | "compileArgs"
+  | "ninjaArgs"
+  | "flashBaudRate"
+  | "monitorBaudRate"
+  | "openOCD"
+  | "tasks";
+
+export interface ESPIDFSettings {
+  type: ESPIDFSettingType;
+  value: any;
+}
+
+export interface ESPIDFVendorSettings {
+  "espressif/vscode-esp-idf": {
+    settings: ESPIDFSettings[];
+    schemaVersion?: number;
   };
-  env: { [key: string]: string };
-  idfTarget: string;
-  flashBaudRate: string;
-  monitorBaudRate: string;
-  openOCD: {
-    debugLevel: number;
-    configs: string[];
-    args: string[];
+}
+
+export type PresetConditionType =
+  | "const"
+  | "equals"
+  | "notEquals"
+  | "inList"
+  | "notInList"
+  | "matches"
+  | "notMatches"
+  | "anyOf"
+  | "allOf"
+  | "not";
+
+/**
+ * Field names follow the CMake Condition object; which ones apply depends on `type`.
+ * @see https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html#condition
+ */
+export interface PresetCondition {
+  type: PresetConditionType;
+  value?: boolean;
+  lhs?: string;
+  rhs?: string;
+  string?: string;
+  list?: string[];
+  regex?: string;
+  conditions?: PresetCondition[];
+  condition?: PresetCondition;
+}
+
+export interface ConfigurePreset {
+  name: string;
+  displayName?: string;
+  description?: string;
+  inherits?: string | string[];
+  /** Base preset meant only for inheritance. Not selectable, mirroring `cmake --list-presets`. */
+  hidden?: boolean;
+  /** Decides whether the preset applies to the current host. `null` means enabled. */
+  condition?: boolean | null | PresetCondition;
+  binaryDir?: string;
+  cacheVariables?: {
+    IDF_TARGET?: string;
+    SDKCONFIG_DEFAULTS?: string;
+    SDKCONFIG?: string;
+    [key: string]: any;
   };
-  tasks: {
-    preBuild: string;
-    preFlash: string;
-    postBuild: string;
-    postFlash: string;
-  };
+  environment?: { [key: string]: string };
+  vendor?: ESPIDFVendorSettings;
+}
+
+export interface BuildPreset {
+  name: string;
+  configurePreset: string;
+}
+
+export interface CMakePresets {
+  $schema?: string;
+  version: number;
+  cmakeMinimumRequired?: CMakeVersion;
+  configurePresets?: ConfigurePreset[];
+  buildPresets?: BuildPreset[]; // Optional - not used by ESP-IDF extension
 }

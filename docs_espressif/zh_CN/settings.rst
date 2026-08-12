@@ -48,6 +48,8 @@ Visual Studio Code 允许你在不同级别配置设置：**全局（用户设�
       - EIM 可执行文件参数（默认：``["gui", "--idf-features ide"]``）。该值会由扩展根据检测到的 EIM 启动模式自动更新。作用域：Application。
     * - **idf.currentSetup**
       - 当前选定的 ESP-IDF 目录路径。作用域：Resource。
+    * - **idf.saveLastProjectConfiguration**
+      - 重新打开工作区时，恢复上次选择的项目配置（默认：``true``）。禁用后，启动时不会选择任何配置。作用域：Resource。
     * - **idf.gitPath**
       - Git 可执行文件路径（默认：``/usr/bin/git``）。作用域：Application。
     * - **idf.gitPathWin**

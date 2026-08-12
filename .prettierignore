@@ -25,6 +25,7 @@ node_modules/
 templates/
 testFiles/
 media/
+internal/
 external/
 test-resources/
 docs_espressif/

@@ -44,6 +44,7 @@
 	"espIdf.createIdfTerminal.title": "打开 ESP-IDF 终端",
 	"espIdf.createClassicMenuconfig.title": "打开经典菜单配置终端",
 	"espIdf.createNewComponent.title": "创建新 ESP-IDF 组件",
+	"espIdf.createProjectConfiguration.title": "创建项目配置",
 	"espIdf.createSbom.title": "运行 ESP-IDF-SBOM 漏洞检查",
 	"espIdf.createVsCodeFolder.title": "添加 VS Code 配置文件夹",
 	"espIdf.customTask.title": "执行自定义任务",
@@ -82,7 +83,6 @@
 	"espIdf.partition.table.refresh.title": "刷新分区表",
 	"espIdf.pickAWorkspaceFolder.title": "选择工作区文件夹",
 	"espIdf.projectConf.title": "选择项目配置",
-	"espIdf.projectConfigurationEditor.title": "打开项目配置",
 	"espIdf.qemuDebug.title": "启动 QEMU 调试会话",
 	"espIdf.removeCoverage.title": "移除编辑器覆盖率",
 	"espIdf.saveDefSdkconfig.title": "ESP-IDF：保存默认 SDKCONFIG 文件 (save-defconfig)",
@@ -217,5 +217,6 @@
 	"view.idf.errorHints": "错误提示",
 	"command.errorHints.clearAll.title": "清除所有错误提示",
 	"command.errorHints.clearBuild.title": "清除构建错误提示",
-	"command.errorHints.clearOpenOCD.title": "清除 OpenOCD 错误提示"
+	"command.errorHints.clearOpenOCD.title": "清除 OpenOCD 错误提示",
+	"param.saveLastProjectConfiguration": "重新打开工作区时保存并恢复上次选择的项目配置。启用后，扩展将恢复上次使用的配置（如果存在），否则不选择任何配置。禁用后，默认不选择任何配置。"
 }

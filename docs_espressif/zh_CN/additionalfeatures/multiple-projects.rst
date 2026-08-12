@@ -98,27 +98,58 @@
 在同一工作区文件夹中使用多种构建配置
 ------------------------------------
 
-本章教程使用了 ESP-IDF CMake `多种构建配置示例 <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_。
+使用 ESP-IDF CMake `多种构建配置示例 <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_ 来跟随本教程。
 
-使用 ``ESP-IDF：打开项目配置`` 命令并创建两个配置文件：``prod1`` 和 ``prod2``。如下所示，在 sdkconfig defaults 字段中设置 ``sdkconfig.prod_common;sdkconfig.prod1`` 和 ``sdkconfig.prod_common;sdkconfig.prod2``：
+.. note::
 
-.. image:: ../../../media/tutorials/project_conf/enterConfigName.png
+   ESP-IDF ``multi_config`` 示例已附带可直接使用的 ``CMakePresets.json``，开箱即用。当你在此扩展中选择项目配置时，扩展会自动为所选预设附加 ``espressif/vscode-esp-idf`` 下的 vendor 设置（例如 OpenOCD 配置和 ``IDF_TARGET``），这些设置基于你当前在扩展中选择的开发板配置和目标。
 
-.. image:: ../../../media/tutorials/project_conf/prod1.png
+在 ``CMakePresets.json``（以及可选的 ``CMakeUserPresets.json``）中定义你的配置。然后使用 ``ESP-IDF: Select Project Configuration`` 在发现的预设中进行选择。扩展将在构建/烧录/监视时应用所选预设。
 
-.. image:: ../../../media/tutorials/project_conf/prod2.png
+``CMakePresets.json`` 中的典型条目：
 
-创建好配置文件并为每个文件都设置好配置项后，点击 ``保存`` 按钮。使用 ``ESP-IDF：选择项目配置`` 命令来选择要覆盖的扩展配置。
+.. code-block:: JSON
 
-.. image:: ../../../media/tutorials/project_conf/selectConfig.png
+   {
+       "version": 3,
+       "configurePresets": [
+           {
+               "name": "default",
+               "binaryDir": "build/default",
+               "displayName": "Default (development)",
+               "description": "Development configuration",
+               "cacheVariables": {
+                   "SDKCONFIG": "./build/default/sdkconfig"
+               }
+           },
+           {
+               "name": "prod1",
+               "binaryDir": "build/prod1",
+               "displayName": "Product 1",
+               "description": "Production configuration for product 1",
+               "cacheVariables": {
+                   "SDKCONFIG_DEFAULTS": "sdkconfig.defaults.prod_common;sdkconfig.defaults.prod1",
+                   "SDKCONFIG": "./build/prod1/sdkconfig"
+               }
+           },
+           {
+               "name": "prod2",
+               "binaryDir": "build/prod2",
+               "displayName": "Product 2",
+               "description": "Production configuration for product 2",
+               "cacheVariables": {
+                   "SDKCONFIG_DEFAULTS": "sdkconfig.defaults.prod_common;sdkconfig.defaults.prod2",
+                   "SDKCONFIG": "./build/prod2/sdkconfig"
+               }
+           }
+       ]
+   }
 
-选定配置文件后，所选文件将显示在 VS Code 状态栏中。
+选择预设：
 
-.. image:: ../../../media/tutorials/project_conf/configInStatusBar.png
-
-使用 ``ESP-IDF：构建项目`` 命令，为配置文件 ``prod1`` 和 ``prod2`` 构建项目。指定路径中将出现每个配置文件生成的二进制文件。使用 ``ESP-IDF：选择项目配置`` 命令，可以切换不同的构建配置。
-
-使用 ``ESP-IDF：打开项目配置`` 命令，可以修改、添加或删除配置文件。如果不再需要这些配置文件，删除即可。
+1. 打开命令面板并运行 ``ESP-IDF: Select Project Configuration``。
+2. 选择 ``default``、``prod1`` 或 ``prod2``。
+3. 运行 ``ESP-IDF: Build your Project`` 使用所选预设进行构建。随时可以通过相同的选择命令切换预设。
 
 多个 ESP-IDF 版本
 -----------------

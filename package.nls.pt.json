@@ -44,6 +44,7 @@
 	"espIdf.createIdfTerminal.title": "Abra o terminal ESP-IDF",
 	"espIdf.createClassicMenuconfig.title": "Abrir terminal de configuração clássica",
 	"espIdf.createNewComponent.title": "Criar novo componente ESP-IDF",
+	"espIdf.createProjectConfiguration.title": "Criar configuração do projeto",
 	"espIdf.createSbom.title": "Execute a verificação de vulnerabilidade ESP-IDF-SBOM",
 	"espIdf.createVsCodeFolder.title": "Adicionar pasta de configuração vscode",
 	"espIdf.customTask.title": "Executar tarefa personalizada",
@@ -82,7 +83,6 @@
 	"espIdf.partition.table.refresh.title": "Atualizar tabela de partição",
 	"espIdf.pickAWorkspaceFolder.title": "Escolha uma pasta do espaço de trabalho",
 	"espIdf.projectConf.title": "Selecione a configuração do projeto",
-	"espIdf.projectConfigurationEditor.title": "Abrir configuração do projeto",
 	"espIdf.qemuDebug.title": "Iniciar sessão de depuração QEMU",
 	"espIdf.removeCoverage.title": "Remover cobertura do editor",
 	"espIdf.saveDefSdkconfig.title": "ESP-IDF: Salvar arquivo SDKCONFIG padrão (save-defconfig)",
@@ -215,5 +215,6 @@
 	"view.idf.errorHints": "Dicas de Erro",
 	"command.errorHints.clearAll.title": "Limpar Todas as Dicas de Erro",
 	"command.errorHints.clearBuild.title": "Limpar Dicas de Erro de Compilação",
-	"command.errorHints.clearOpenOCD.title": "Limpar Dicas de Erro do OpenOCD"
+	"command.errorHints.clearOpenOCD.title": "Limpar Dicas de Erro do OpenOCD",
+	"param.saveLastProjectConfiguration": "Salvar e restaurar a última configuração de projeto selecionada ao reabrir um espaço de trabalho. Quando habilitado, a extensão restaurará a última configuração utilizada se existir, caso contrário nenhuma configuração será selecionada. Quando desabilitado, nenhuma configuração é selecionada por padrão."
 }

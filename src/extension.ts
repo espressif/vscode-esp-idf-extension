@@ -118,7 +118,6 @@ import { updateCurrentProfileIdfTarget } from "./project-conf";
 import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
-import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
 import { ProjectConfigStore } from "./project-conf";
 import { UnitTest } from "./espIdf/unitTest/adapter";
 import {
@@ -256,7 +255,17 @@ export async function activate(context: vscode.ExtensionContext) {
   Logger.init(context);
   ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
-  clearSelectedProjectConfiguration();
+
+  context.environmentVariableCollection.clear();
+
+  // Only clear selected project configuration if the setting is disabled
+  const saveLastProjectConfiguration = idfConf.readParameter(
+    "idf.saveLastProjectConfiguration"
+  );
+  if (saveLastProjectConfiguration === false) {
+    clearSelectedProjectConfiguration();
+  }
+
   Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
   utils.setExtensionContext(context);
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
@@ -1168,60 +1177,6 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  registerIDFCommand("espIdf.projectConfigurationEditor", async () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      try {
-        if (projectConfigurationPanel.isCreatedAndHidden()) {
-          projectConfigurationPanel.createOrShow(
-            context.extensionPath,
-            workspaceRoot
-          );
-          return;
-        }
-        const notificationMode = idfConf.readParameter(
-          "idf.notificationMode",
-          workspaceRoot
-        ) as string;
-        const ProgressLocation =
-          notificationMode === idfConf.NotificationMode.All ||
-          notificationMode === idfConf.NotificationMode.Notifications
-            ? vscode.ProgressLocation.Notification
-            : vscode.ProgressLocation.Window;
-        await vscode.window.withProgress(
-          {
-            cancellable: false,
-            location: ProgressLocation,
-            title: "ESP-IDF: Project configuration",
-          },
-          async (
-            progress: vscode.Progress<{ message: string; increment: number }>
-          ) => {
-            try {
-              const targetsFromIdf = await getTargetsFromEspIdf(workspaceRoot);
-              projectConfigurationPanel.createOrShow(
-                context.extensionPath,
-                workspaceRoot,
-                targetsFromIdf
-              );
-            } catch (error) {
-              Logger.errorNotify(
-                error.message,
-                error,
-                "extension projectConfigurationEditor"
-              );
-            }
-          }
-        );
-      } catch (error) {
-        Logger.errorNotify(
-          error.message,
-          error,
-          "extension projectConfigurationEditor"
-        );
-      }
-    });
-  });
-
   vscode.workspace.onDidChangeConfiguration(async (e) => {
     const winFlag = process.platform === "win32" ? "Win" : "";
     // Launch.json changes
@@ -1267,19 +1222,6 @@ export async function activate(context: vscode.ExtensionContext) {
         }
       }
     } else if (e.affectsConfiguration("idf.customExtraVars")) {
-      const customExtraVars = idfConf.readParameter(
-        "idf.customExtraVars",
-        workspaceRoot
-      ) as { [key: string]: string };
-      for (const envVar in customExtraVars) {
-        if (envVar.toUpperCase() !== "PATH") {
-          context.environmentVariableCollection.replace(
-            envVar,
-            customExtraVars[envVar],
-            { applyAtProcessCreation: true }
-          );
-        }
-      }
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
       await configureClangSettings(workspaceRoot);
       ESP.URL.Docs.IDF_INDEX = undefined;
@@ -4006,6 +3948,18 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([openFolderCheck], async () => {
       if (projectConfigManager) {
         await projectConfigManager.selectProjectConfiguration();
+      } else {
+        vscode.window.showErrorMessage(
+          "Project Configuration Manager not initialized."
+        );
+      }
+    });
+  });
+
+  registerIDFCommand("espIdf.createProjectConfiguration", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      if (projectConfigManager) {
+        await projectConfigManager.createProjectConfiguration();
       } else {
         vscode.window.showErrorMessage(
           "Project Configuration Manager not initialized."
