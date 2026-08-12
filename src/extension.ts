@@ -255,6 +255,8 @@ export async function activate(context: vscode.ExtensionContext) {
   Logger.init(context);
   ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
+
+  context.environmentVariableCollection.clear();
   
   // Only clear selected project configuration if the setting is disabled
   const saveLastProjectConfiguration = idfConf.readParameter("idf.saveLastProjectConfiguration");
@@ -1218,19 +1220,6 @@ export async function activate(context: vscode.ExtensionContext) {
         }
       }
     } else if (e.affectsConfiguration("idf.customExtraVars")) {
-      const customExtraVars = idfConf.readParameter(
-        "idf.customExtraVars",
-        workspaceRoot
-      ) as { [key: string]: string };
-      for (const envVar in customExtraVars) {
-        if (envVar.toUpperCase() !== "PATH") {
-          context.environmentVariableCollection.replace(
-            envVar,
-            customExtraVars[envVar],
-            { applyAtProcessCreation: true }
-          );
-        }
-      }
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
       await configureClangSettings(workspaceRoot);
       ESP.URL.Docs.IDF_INDEX = undefined;
