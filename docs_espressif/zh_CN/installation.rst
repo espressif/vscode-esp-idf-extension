@@ -39,13 +39,13 @@
         **eim_idf.json** 默认路径为：Windows 下 ``C:\Espressif\tools\eim_idf.json``，macOS/Linux 下 ``$HOME/.espressif/tools/eim_idf.json``。
         若 **eim_idf.json** 不在默认位置，可在 Visual Studio Code 中通过 ``Preferences: Open Settings (UI)`` 命令，使用扩展配置项 ``idf.eimIdfJsonPath`` 指定 EIM **eim_idf.json** 的路径。
 
-5. 在 Visual Studio Code 中，前往 ``查看`` > ``命令面板``，输入 ``select current esp-idf version``，在列表中选择 **ESP-IDF: Select Current ESP-IDF Version**。
+5. 在 Visual Studio Code 中，前往 ``查看`` > ``命令面板``，输入 ``选择当前使用的 ESP-IDF 版本``，在列表中选择 **ESP-IDF: 选择当前使用的 ESP-IDF 版本**。
 
    将显示可用的 ESP-IDF 配置列表，选择要用于当前 ESP-IDF 项目的配置。
 
    - 所选配置将保存 idf.currentSetup（包含所选 ESP-IDF 路径），扩展会为当前 ESP-IDF 项目配置所需的环境变量，并保存为工作区文件夹状态。
 
-   - 可通过运行 **ESP-IDF: Doctor Command** 检查配置：前往 ``查看`` > ``命令面板``，输入 ``doctor command``，在列表中选择 **ESP-IDF: Doctor Command**。
+   - 可通过运行 **ESP-IDF: 诊断命令** 检查配置：前往 ``查看`` > ``命令面板``，输入 ``诊断命令``，在列表中选择 **ESP-IDF: 诊断命令**。
 
 6.  下一步请 :ref:`创建 ESP-IDF 项目 <create_an_esp-idf_project>`。
 
@@ -59,7 +59,7 @@
 .. note::
 
      若通过环境变量配置了扩展，扩展将优先使用这些环境变量，而不会使用在 ``idf.currentSetup`` 中选定的 ESP-IDF 配置。因此，若要使用在扩展中选定的 ESP-IDF 配置，请清除相关环境变量。
-     若使用 ``ESP-IDF: Select Current ESP-IDF Version`` 命令选择 ESP-IDF 配置，扩展将使用所选配置中的环境变量，并删除在设置中手动配置的环境变量 IDF_PATH、IDF_TOOLS_PATH 和 IDF_PYTHON_ENV_PATH。
+     若使用 ``ESP-IDF: 选择当前使用的 ESP-IDF 版本`` 命令选择 ESP-IDF 配置，扩展将使用所选配置中的环境变量，并删除在设置中手动配置的环境变量 IDF_PATH、IDF_TOOLS_PATH 和 IDF_PYTHON_ENV_PATH。
 
 您可以手动配置 VS Code 的 ESP-IDF 扩展，使其使用已有的 ESP-IDF 环境，方法是在 Visual Studio Code 设置中为扩展设置所需环境变量。配置扩展需要提供 ESP-IDF 路径 (IDF_PATH)、要追加到 PATH 的 ESP-IDF 工具集或 ESP-IDF 工具路径 (IDF_TOOLS_PATH)，以及 Python 环境路径 (IDF_PYTHON_ENV_PATH)。
 
@@ -126,14 +126,14 @@
 
         请将 `VERSION` 替换为已安装的 ESP-IDF 扩展的实际版本号。
 
-常见问题
---------
+安装常见问题
+------------
 
 1. **如何确认 ESP-IDF 扩展已正确安装？**
 
-    - 打开命令面板（快捷键 F1），输入 ``ESP-IDF: Doctor Command``。选择该命令运行 Doctor，以检查 ESP-IDF 扩展及工具的安装与配置。
+    - 打开命令面板（快捷键 F1），输入 ``ESP-IDF: 诊断命令``。选择该命令运行诊断命令，以检查 ESP-IDF 扩展及工具的安装与配置。
 
-2. **使用 ESP-IDF: Select Current ESP-IDF Version 命令时显示没有可用的 ESP-IDF 配置，该怎么办？**
+2. **使用 ESP-IDF: 选择当前使用的 ESP-IDF 版本 命令时显示没有可用的 ESP-IDF 配置，该怎么办？**
 
     - 请确认已通过 ESP-IDF 安装管理器 (EIM) 安装 ESP-IDF，或已使用正确的环境变量手动配置扩展。若通过 EIM 安装，请确保 **eim_idf.json** 位于默认位置，或在扩展设置 ``idf.eimIdfJsonPath`` 中指定其路径。
 
@@ -147,11 +147,11 @@
 
 5. **我安装了多个 ESP-IDF 版本，如何在它们之间切换？**
 
-    - 在命令面板中使用 ``ESP-IDF: Select Current ESP-IDF Version`` 命令，为当前项目选择所需的 ESP-IDF 版本。
+    - 在命令面板中使用 ``ESP-IDF: 选择当前使用的 ESP-IDF 版本`` 命令，为当前项目选择所需的 ESP-IDF 版本。
 
 6. **我已通过环境变量手动配置了扩展，但想改用选定的 ESP-IDF 配置，该怎么做？**
 
-    - 清除扩展设置中手动配置的环境变量，然后使用 ``ESP-IDF: Select Current ESP-IDF Version`` 命令选择所需的 ESP-IDF 配置。
+    - 清除扩展设置中手动配置的环境变量，然后使用 ``ESP-IDF: 选择当前使用的 ESP-IDF 版本`` 命令选择所需的 ESP-IDF 配置。
 
 7. **遇到具体问题需要帮助时，可以在哪里寻求支持？**
 

@@ -110,12 +110,6 @@
   "main": "./dist/extension",
   "l10n": "./l10n",
   "contributes": {
-    "mcpServerDefinitionProviders": [
-      {
-        "id": "espressif",
-        "label": "Espressif MCP Servers"
-      }
-    ],
     "walkthroughs": [
       {
         "id": "espIdf.walkthrough.basic-usage",

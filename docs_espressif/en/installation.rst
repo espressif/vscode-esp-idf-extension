@@ -133,7 +133,7 @@ FAQ
 
     - Open Command Palette (press shortcut F1) and type ``ESP-IDF: Doctor Command``. Select the command to run the doctor command, which will check the installation and configuration of the ESP-IDF extension and tools.
 
-2. **When i use the ESP-IDF: Select Current ESP-IDF Version command, it shows no ESP-IDF setup available. What should I do?**
+2. **When I use the ESP-IDF: Select Current ESP-IDF Version command, it shows no ESP-IDF setup available. What should I do?**
 
     - Make sure you have installed the ESP-IDF using the ESP-IDF Installation Manager (EIM) or manually configured the extension with the correct environment variables. If you have installed ESP-IDF using EIM, ensure that the **eim_idf.json** file is in the default location or set the path to it in the extension settings ``idf.eimIdfJsonPath``.
 
@@ -157,10 +157,10 @@ FAQ
 
     - You can seek help from the `EIM GitHub <https://github.com/espressif/idf-im-ui/issues>`_ or the `ESP-IDF Extension for VS Code GitHub <https://github.com/espressif/vscode-esp-idf-extension/issues>`_.
 
-8. **I'm using AI tools to troubleshoot my ESP-IDF installation, but its not working. What should I do?**
+8. **I'm using AI tools to troubleshoot my ESP-IDF installation, but it's not working. What should I do?**
 
     - Make sure to add the `Espressif Documentation MCP <https://mcp.espressif.com>`_ to your AI tool's knowledge base. You can alternatively just add documentation links to `EIM <https://docs.espressif.com/projects/idf-im-ui/en/latest>`_ and `ESP-IDF Extension for VS Code <https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest>`_.
-    - This extension also contribute MCP Servers to the current IDE being used.
+    - This extension also contributes MCP Servers to the current IDE being used.
 
 
 
