@@ -172,6 +172,29 @@ function isVersionedEimAsset(assetName: string, prefix: string, extension: strin
   return /^-v\d+\.\d+\.\d+$/.test(middle);
 }
 
+function compareEimAssetVersions(
+  left: string,
+  right: string,
+  prefix: string,
+  extension: string
+): number {
+  const versionOf = (name: string) =>
+    name
+      .slice(prefix.length + 2, -extension.length)
+      .split(".")
+      .map(Number);
+
+  const leftVersion = versionOf(left);
+  const rightVersion = versionOf(right);
+  for (let index = 0; index < leftVersion.length; index++) {
+    const difference = leftVersion[index] - rightVersion[index];
+    if (difference !== 0) {
+      return difference;
+    }
+  }
+  return 0;
+}
+
 function pickPreferredEimAssetName(names: string[], prefix: string, extension: string): string | undefined {
   const matches = names.filter((name) => isEimPortableAsset(name, prefix, extension));
   if (matches.length === 0) {
@@ -180,7 +203,9 @@ function pickPreferredEimAssetName(names: string[], prefix: string, extension: s
 
   const versioned = matches
     .filter((name) => isVersionedEimAsset(name, prefix, extension))
-    .sort();
+    .sort((left, right) =>
+      compareEimAssetVersions(left, right, prefix, extension)
+    );
   if (versioned.length > 0) {
     return versioned[versioned.length - 1];
   }
