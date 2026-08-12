@@ -477,7 +477,7 @@ export async function downloadAndInstallEIM(
           responseType: "stream",
         });
         const totalSize = Number.parseInt(
-          fileResponseStream.headers["content-length"] || "0",
+          String(fileResponseStream.headers["content-length"] || "0"),
           10
         );
 

@@ -47,7 +47,7 @@ Setup & Installation
     * - **idf.eimExecutableArgs**
       - Arguments for the EIM executable (default: ``["gui", "--idf-features ide"]``). This value is updated automatically by the extension based on the detected EIM launch mode. Scope: Application.
     * - **idf.currentSetup**
-      - Current ESP-IDF setup identifier. Scope: Resource.
+      - Path to the currently selected ESP-IDF directory. Scope: Resource.
     * - **idf.gitPath**
       - Path to the Git executable (default: ``/usr/bin/git``). Scope: Application.
     * - **idf.gitPathWin**

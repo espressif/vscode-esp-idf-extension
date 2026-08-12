@@ -49,7 +49,7 @@ Make sure to review our [Espressif documentation](https://docs.espressif.com/pro
 
 8. Use the ESP-IDF Installation Manager to install the ESP-IDF and tools. If necessary, here is the [ESP-IDF Installation Manager Documentation](https://docs.espressif.com/projects/idf-im-ui/en/latest/general_info.html).
 
-9. In Visual Studio Code, navigate to `View` > `Command Palette` and type `select current esp-idf version` and select **ESP-IDF: Select Current ESP-IDF Version** from the list. The list of available ESP-IDF setups will be shown, select which one you want to use for the current ESP-IDF project. The selected setup will save a **idf.currentSetup** with selected ESP-IDF path and the extension will configure environment variables for the current project saved as workspace folder state. You can review the setup by running the **ESP-IDF: Doctor Command** by navigate to `View` > `Command Palette` and type `doctor command` and select **ESP-IDF: ESP-IDF: Doctor Command** from the list.
+9. In Visual Studio Code, navigate to `View` > `Command Palette` and type `select current esp-idf version` and select **ESP-IDF: Select Current ESP-IDF Version** from the list. The list of available ESP-IDF setups will be shown, select which one you want to use for the current ESP-IDF project. The selected setup will save the selected ESP-IDF path as **idf.currentSetup** and the extension will configure environment variables for the current project saved as workspace folder state. You can review the setup by navigating to `View` > `Command Palette`, typing `doctor command`, and selecting **ESP-IDF: Doctor Command** from the list.
 
 10. If everything is installed correctly, you will see a message that all settings have been configured. You can start using the extension.
 

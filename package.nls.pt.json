@@ -192,7 +192,7 @@
 	"param.extensionActivationMode.enum.never": "Nunca ativar a extensão ESP-IDF para este espaço de trabalho/pasta.",
   "param.eimIdfJsonPath": "Caminho personalizado do eim_idf.json para encontrar instalações do ESP-IDF",
 	"param.eimExecutableArgs": "Argumentos para passar para o executável eim",
-	"param.currentSetup": "ID de configuração do ESP-IDF atual em EIM_IDF.JSON PATH",
+	"param.currentSetup": "Caminho para o diretório ESP-IDF atualmente selecionado",
 	"trace.poll_period.description": "poll_period será definido para o apptrace",
 	"trace.skip_size.description": "skip_size será definido para o apptrace",
 	"trace.stop_tmo.description": "stop_tmo será definido para o apptrace",
