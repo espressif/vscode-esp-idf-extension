@@ -368,6 +368,7 @@ export class OpenOCDManager extends EventEmitter {
         );
       }
       this.stop();
+      this.emit("close", { code, signal });
     });
     this.updateStatusText(`❇️ ${vscode.l10n.t("OpenOCD Server (Running)")}`);
     OutputChannel.show();
