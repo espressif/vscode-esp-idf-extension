@@ -629,6 +629,24 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  openOCDManager.on("close", () => {
+    const session = vscode.debug.activeDebugSession;
+    if (
+      !session ||
+      session.type !== "gdbtarget" ||
+      session.configuration.sessionID === "core-dump.debug.session.ws" ||
+      session.configuration.sessionID === "gdbstub.debug.session.ws" ||
+      session.configuration.sessionID === "qemu.debug.session" ||
+      session.configuration.runOpenOCD === false
+    ) {
+      return;
+    }
+    vscode.window.showWarningMessage(
+      "OpenOCD has stopped. Ending the debug session."
+    );
+    void vscode.debug.stopDebugging(session);
+  });
+
   const kconfigMenusWatcher = vscode.workspace.createFileSystemWatcher(
     "**/config/kconfig_menus.json",
     true,
