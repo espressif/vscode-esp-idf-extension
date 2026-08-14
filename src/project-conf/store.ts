@@ -24,7 +24,7 @@ export class ProjectConfigStore {
 
   public static init(context: ExtensionContext): ProjectConfigStore {
     if (!this.self) {
-      return new ProjectConfigStore(context);
+      this.self = new ProjectConfigStore(context);
     }
     return this.self;
   }
