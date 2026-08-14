@@ -29,7 +29,7 @@ import {
 } from "../newProject/utils";
 import { isBinInPath } from "../utils";
 import { IdfSetup } from "../eim/types";
-import { ProjectConfigStore } from "../project-conf/utils";
+import { ProjectConfigStore } from "../project-conf";
 import { ESP } from "../config";
 import { createMockMemento } from "./mockUtils";
 import { updateCCppPropertiesJson } from "../configuration/workspace";

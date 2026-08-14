@@ -36,7 +36,7 @@ import {
 } from "../support/checkVscodeFiles";
 import { getPythonPackages } from "../support/pythonPackages";
 import { writeTextReport } from "../support/writeReport";
-import { ProjectConfigStore } from "../project-conf/utils";
+import { ProjectConfigStore } from "../project-conf";
 import { createMockMemento } from "./mockUtils";
 import { Logger } from "../common/logger";
 

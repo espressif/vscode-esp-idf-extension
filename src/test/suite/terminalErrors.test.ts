@@ -37,7 +37,7 @@ import {
   loadTerminalLaunchConfig,
   setGetCurrentIdfSetupForTests,
 } from "../../terminal/launchConfig";
-import { ProjectConfigStore } from "../../project-conf/utils";
+import { ProjectConfigStore } from "../../project-conf";
 import { createMockMemento } from "../mockUtils";
 
 const testWorkspaceFolder = {

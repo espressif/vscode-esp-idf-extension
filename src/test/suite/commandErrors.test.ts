@@ -25,7 +25,7 @@ import { ESP } from "../../config";
 import { installEspSBOM } from "../../espBom/main";
 import { addIdfReconfigureTask } from "../../espIdf/reconfigure/task";
 import { getNinjaSummaryPythonPath } from "../../ninja/index";
-import { ProjectConfigStore } from "../../project-conf/utils";
+import { ProjectConfigStore } from "../../project-conf";
 import { createMockMemento } from "../mockUtils";
 
 const testWorkspaceUri = vscode.Uri.file("/test/workspace");

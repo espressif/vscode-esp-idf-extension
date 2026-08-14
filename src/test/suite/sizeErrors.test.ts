@@ -42,7 +42,7 @@ import {
 } from "../../build/sizeExecution";
 import { IDFSize } from "../../espIdf/size/idfSize";
 import { sizeErrorPresentation } from "../../espIdf/size/sizeErrorPresentation";
-import { ProjectConfigStore } from "../../project-conf/utils";
+import { ProjectConfigStore } from "../../project-conf";
 import { createMockMemento } from "../mockUtils";
 
 const testWorkspaceUri = vscode.Uri.file("/test/workspace");

@@ -31,7 +31,7 @@ import {
 import { getTargetsFromEspIdf } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 import { readParameter, writeParameter } from "../../configuration/idf";
-import { updateCurrentProfileIdfTarget } from "../../project-conf/utils";
+import { updateCurrentProfileIdfTarget } from "../../project-conf";
 import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
 import { statusBarItems } from "../../statusBar";
 import { ESP } from "../../config";

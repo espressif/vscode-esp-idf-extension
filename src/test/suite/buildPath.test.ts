@@ -11,7 +11,7 @@ import { join, resolve } from "path";
 import * as vscode from "vscode";
 import { ESP } from "../../config";
 import { Logger } from "../../common/logger";
-import { ProjectConfigStore } from "../../project-conf/utils";
+import { ProjectConfigStore } from "../../project-conf";
 import { createMockMemento } from "../mockUtils";
 import {
   getWorkspaceFsPathFromScope,

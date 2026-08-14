@@ -16,7 +16,7 @@ import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
 import { IdfTaskExecution } from "../taskManager/taskManager";
 import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
 import { setTargetErrorPresentation } from "../espIdf/setTarget/setTargetErrorPresentation";
-import { updateCurrentProfileIdfTarget } from "../project-conf/utils";
+import { updateCurrentProfileIdfTarget } from "../project-conf";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { setTargetInIDF } from "../espIdf/setTarget/setTargetInIdf";
 import { statusBarItems } from "../statusBar";

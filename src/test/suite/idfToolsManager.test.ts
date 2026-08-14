@@ -23,7 +23,7 @@ import { IdfToolsManager } from "../../idfToolsManager";
 import { OutputChannel } from "../../common/outputChannel";
 import { PlatformInformation } from "../../PlatformInformation";
 import * as utils from "../../utils";
-import { ProjectConfigStore } from "../../project-conf/utils";
+import { ProjectConfigStore } from "../../project-conf";
 import { ESP } from "../../config";
 import { createMockMemento } from "../mockUtils";
 

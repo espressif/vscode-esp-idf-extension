@@ -19,7 +19,7 @@
 import { delimiter } from "path";
 import { platform } from "os";
 import { Uri } from "vscode";
-import { resolveVariables } from "../idfConfiguration";
+import { resolveVariables } from "../configuration/idf";
 import { ConfigurePreset } from "./projectConfiguration";
 import { getPresetParameterValue } from "./presetSettings";
 

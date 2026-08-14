@@ -53,7 +53,7 @@ import {
   resetIdfConfigurationSource,
   setIdfConfigurationSource,
 } from "../../configuration/idfConfigurationSource";
-import { ProjectConfigStore } from "../../project-conf/utils";
+import { ProjectConfigStore } from "../../project-conf";
 import { createMockMemento } from "../mockUtils";
 
 const testWorkspaceFolder = {
