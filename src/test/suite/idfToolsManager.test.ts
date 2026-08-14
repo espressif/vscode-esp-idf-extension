@@ -22,7 +22,6 @@ import { ExtensionContext } from "vscode";
 import { IdfToolsManager } from "../../idfToolsManager";
 import { OutputChannel } from "../../common/outputChannel";
 import { PlatformInformation } from "../../PlatformInformation";
-import * as utils from "../../utils";
 import { ProjectConfigStore } from "../../project-conf/store";
 import { ESP } from "../../config";
 import { createMockMemento } from "../mockUtils";

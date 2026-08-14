@@ -11,8 +11,11 @@ import * as vscode from "vscode";
 import { resolve } from "path";
 import { ESP } from "../../config";
 import { Logger } from "../../common/logger";
-import { ProjectConfigStore } from "../../project-conf/store";
-import { ConfigurePreset, ESPIDFSettings } from "../../project-conf/projectConfiguration";
+import { ProjectConfigStore } from "../../project-conf";
+import {
+  ConfigurePreset,
+  ESPIDFSettings,
+} from "../../project-conf/projectConfiguration";
 import { createMockMemento } from "../mockUtils";
 import {
   checkTypeOfConfiguration,
@@ -30,28 +33,21 @@ import {
 
 const PROFILE = "test-profile";
 
-function vendorSettings(settings: ESPIDFSettings[]): ConfigurePreset["vendor"] {
-  return {
-    [ESP.CMakePresets.ESP_IDF_VENDOR_KEY]: {
-      schemaVersion: ESP.CMakePresets.CMAKE_PRESET_SCHEMA_VERSION,
-      settings,
-    },
+type MinimalPresetOverrides = {
+  binaryDir?: string;
+  ninjaArgs?: string[];
+  environment?: { [key: string]: string };
+  idfTarget?: string;
+  tasks?: {
+    preBuild?: string;
+    postBuild?: string;
+    preFlash?: string;
+    postFlash?: string;
   };
-}
+};
 
 function minimalConfigurePreset(
-  overrides: {
-    binaryDir?: string;
-    ninjaArgs?: string[];
-    environment?: { [key: string]: string };
-    idfTarget?: string;
-    tasks?: {
-      preBuild?: string;
-      postBuild?: string;
-      preFlash?: string;
-      postFlash?: string;
-    };
-  } = {}
+  overrides: MinimalPresetOverrides = {}
 ): ConfigurePreset {
   const settings: ESPIDFSettings[] = [];
   if (overrides.ninjaArgs) {
@@ -60,15 +56,26 @@ function minimalConfigurePreset(
   if (overrides.tasks) {
     settings.push({ type: "tasks", value: overrides.tasks });
   }
-  return {
+
+  const preset: ConfigurePreset = {
     name: PROFILE,
-    binaryDir: overrides.binaryDir,
+    binaryDir: overrides.binaryDir ?? "",
     cacheVariables: {
       IDF_TARGET: overrides.idfTarget ?? "esp32",
     },
-    environment: overrides.environment,
-    vendor: settings.length ? vendorSettings(settings) : undefined,
+    environment: overrides.environment ?? {},
   };
+
+  if (settings.length) {
+    preset.vendor = {
+      [ESP.CMakePresets.ESP_IDF_VENDOR_KEY]: {
+        schemaVersion: 1,
+        settings,
+      },
+    };
+  }
+
+  return preset;
 }
 
 function createFakeIdfSource(options: {
@@ -108,7 +115,9 @@ suite("configuration/idf.ts", () => {
 
   suiteSetup(() => {
     Logger.init(mockUpContext);
-    ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
+    ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(
+      mockUpContext
+    );
     resetIdfConfigurationSource();
   });
 
@@ -138,8 +147,9 @@ suite("configuration/idf.ts", () => {
   suite("parameterToProjectConfigMap", () => {
     test("returns empty string when project configuration store is missing", () => {
       const prev = ESP.ProjectConfiguration.store;
-      (ESP.ProjectConfiguration as { store?: ProjectConfigStore }).store =
-        undefined as unknown as ProjectConfigStore;
+      (ESP.ProjectConfiguration as {
+        store?: ProjectConfigStore;
+      }).store = (undefined as unknown) as ProjectConfigStore;
       try {
         assert.strictEqual(parameterToProjectConfigMap("idf.buildPath"), "");
       } finally {
@@ -148,7 +158,9 @@ suite("configuration/idf.ts", () => {
     });
 
     test("returns empty string when no profile is selected", () => {
-      ESP.ProjectConfiguration.store.clear(ESP.ProjectConfiguration.SELECTED_CONFIG);
+      ESP.ProjectConfiguration.store.clear(
+        ESP.ProjectConfiguration.SELECTED_CONFIG
+      );
       assert.strictEqual(parameterToProjectConfigMap("idf.buildPath"), "");
     });
 
@@ -159,8 +171,14 @@ suite("configuration/idf.ts", () => {
           ninjaArgs: ["-j", "4"],
         })
       );
-      assert.strictEqual(parameterToProjectConfigMap("idf.buildPath"), "/abs/build");
-      assert.deepStrictEqual(parameterToProjectConfigMap("idf.ninjaArgs"), ["-j", "4"]);
+      assert.strictEqual(
+        parameterToProjectConfigMap("idf.buildPath"),
+        "/abs/build"
+      );
+      assert.deepStrictEqual(parameterToProjectConfigMap("idf.ninjaArgs"), [
+        "-j",
+        "4",
+      ]);
     });
 
     test("maps task names from the active profile", () => {
@@ -174,10 +192,22 @@ suite("configuration/idf.ts", () => {
           },
         })
       );
-      assert.strictEqual(parameterToProjectConfigMap("idf.preBuildTask"), "task-a");
-      assert.strictEqual(parameterToProjectConfigMap("idf.postBuildTask"), "task-b");
-      assert.strictEqual(parameterToProjectConfigMap("idf.preFlashTask"), "task-c");
-      assert.strictEqual(parameterToProjectConfigMap("idf.postFlashTask"), "task-d");
+      assert.strictEqual(
+        parameterToProjectConfigMap("idf.preBuildTask"),
+        "task-a"
+      );
+      assert.strictEqual(
+        parameterToProjectConfigMap("idf.postBuildTask"),
+        "task-b"
+      );
+      assert.strictEqual(
+        parameterToProjectConfigMap("idf.preFlashTask"),
+        "task-c"
+      );
+      assert.strictEqual(
+        parameterToProjectConfigMap("idf.postFlashTask"),
+        "task-d"
+      );
     });
   });
 
@@ -189,7 +219,10 @@ suite("configuration/idf.ts", () => {
           getValues: { "idf.unmappedSetting": "from-workspace" },
         })
       );
-      assert.strictEqual(readParameter("idf.unmappedSetting"), "from-workspace");
+      assert.strictEqual(
+        readParameter("idf.unmappedSetting"),
+        "from-workspace"
+      );
     });
 
     test("prefers truthy project value without calling configuration getScoped", () => {
@@ -198,7 +231,9 @@ suite("configuration/idf.ts", () => {
           binaryDir: "/only-from-project",
         })
       );
-      setIdfConfigurationSource(createFakeIdfSource({ throwOnGetScoped: true }));
+      setIdfConfigurationSource(
+        createFakeIdfSource({ throwOnGetScoped: true })
+      );
       assert.strictEqual(readParameter("idf.buildPath"), "/only-from-project");
     });
 
@@ -214,10 +249,9 @@ suite("configuration/idf.ts", () => {
           getValues: { "idf.customExtraVars": { FROM_WS: "w" } },
         })
       );
-      const merged = parameterToProjectConfigMap("idf.customExtraVars") as Record<
-        string,
-        string
-      >;
+      const merged = parameterToProjectConfigMap(
+        "idf.customExtraVars"
+      ) as Record<string, string>;
       assert.strictEqual(merged.FROM_WS, "w");
       assert.strictEqual(merged.FROM_PROF, "p");
       assert.strictEqual(merged.IDF_TARGET, "esp32c3");
@@ -250,12 +284,15 @@ suite("configuration/idf.ts", () => {
       );
       setIdfConfigurationSource(createFakeIdfSource({}));
       const folder = vscode.Uri.file("/ws/folder");
-      const withConfig = resolveVariables("p ${config:idf.buildPath} end", folder);
+      const withConfig = resolveVariables(
+        "p ${config:idf.buildPath} end",
+        folder
+      );
       assert.strictEqual(withConfig, "p /cfg/build end");
 
       seedSelectedProfile(
         minimalConfigurePreset({
-          binaryDir: "build"
+          binaryDir: "build",
         })
       );
       const withRelativeBuild = resolveVariables(
@@ -321,7 +358,10 @@ suite("configuration/idf.ts", () => {
       const pathValue = process.env.PATH ?? process.env.Path;
       if (pathValue !== undefined) {
         const key = process.platform === "win32" ? "Path" : "PATH";
-        assert.strictEqual(resolveVariables(`\${env:${key}}`, undefined), pathValue);
+        assert.strictEqual(
+          resolveVariables(`\${env:${key}}`, undefined),
+          pathValue
+        );
       }
     });
   });

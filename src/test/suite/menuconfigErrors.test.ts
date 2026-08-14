@@ -33,9 +33,9 @@ import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
 import { KconfigMenuLoader } from "../../espIdf/menuconfig/kconfigMenus/loader";
 import { kconfigMenusPath, requireIdfPath, requireKconfigMenusJson } from "../../espIdf/menuconfig/validation";
-import { ConfigurePreset } from "../../project-conf/projectConfiguration";
-import { ProjectConfigStore } from "../../project-conf/store";
 import { menuconfigErrorPresentation } from "../../espIdf/menuconfig/menuconfigErrorPresentation";
+import { ConfigurePreset } from "../../project-conf/projectConfiguration";
+import { ProjectConfigStore } from "../../project-conf";
 import {
   IdfConfigurationSource,
   IdfInspectResult,
@@ -46,8 +46,13 @@ import { createMockMemento } from "../mockUtils";
 
 const PROFILE = "menuconfig-test-profile";
 
-function presetWithBuildDir(binaryDir: string): ConfigurePreset {
-  return { name: PROFILE, binaryDir };
+function minimalConfigurePreset(binaryDir: string = ""): ConfigurePreset {
+  return {
+    name: PROFILE,
+    binaryDir,
+    cacheVariables: { IDF_TARGET: "esp32" },
+    environment: {},
+  };
 }
 
 function createFakeIdfSource(options: {
@@ -165,7 +170,7 @@ suite("menuconfig errors", () => {
     });
 
     test("kconfigMenusPath joins build dir with config/kconfig_menus.json", () => {
-      seedSelectedProfile(presetWithBuildDir("/tmp/project-build"));
+      seedSelectedProfile(minimalConfigurePreset("/tmp/project-build"));
       setIdfConfigurationSource(createFakeIdfSource({ throwOnGetScoped: true }));
       const workspace = Uri.file("/tmp/project");
       assert.strictEqual(
@@ -176,7 +181,7 @@ suite("menuconfig errors", () => {
 
     test("requireKconfigMenusJson throws fileNotFound when kconfig_menus.json is missing", async () => {
       const buildDir = mkdtempSync(join(tmpdir(), "menuconfig-build-"));
-      seedSelectedProfile(presetWithBuildDir(buildDir));
+      seedSelectedProfile(minimalConfigurePreset(buildDir));
       setIdfConfigurationSource(createFakeIdfSource({ throwOnGetScoped: true }));
       const workspace = Uri.file(join(buildDir, "project"));
       await assert.rejects(
@@ -191,7 +196,7 @@ suite("menuconfig errors", () => {
       const configDir = join(buildDir, "config");
       mkdirSync(configDir, { recursive: true });
       writeFileSync(join(configDir, "kconfig_menus.json"), "{ invalid", "utf-8");
-      seedSelectedProfile(presetWithBuildDir(buildDir));
+      seedSelectedProfile(minimalConfigurePreset(buildDir));
       setIdfConfigurationSource(createFakeIdfSource({ throwOnGetScoped: true }));
       const workspace = Uri.file(join(buildDir, "project"));
       await assert.rejects(
@@ -205,7 +210,7 @@ suite("menuconfig errors", () => {
   suite("KconfigMenuLoader", () => {
     test("delegates kconfig_menus validation to requireKconfigMenusJson", async () => {
       const buildDir = mkdtempSync(join(tmpdir(), "menuconfig-build-"));
-      seedSelectedProfile(presetWithBuildDir(buildDir));
+      seedSelectedProfile(minimalConfigurePreset(buildDir));
       setIdfConfigurationSource(createFakeIdfSource({ throwOnGetScoped: true }));
       const workspace = Uri.file(join(buildDir, "project"));
       const loader = new KconfigMenuLoader(workspace);
@@ -221,7 +226,7 @@ suite("menuconfig errors", () => {
       const configDir = join(buildDir, "config");
       mkdirSync(configDir, { recursive: true });
       writeFileSync(join(configDir, "kconfig_menus.json"), "{ invalid", "utf-8");
-      seedSelectedProfile(presetWithBuildDir(buildDir));
+      seedSelectedProfile(minimalConfigurePreset(buildDir));
       setIdfConfigurationSource(createFakeIdfSource({ throwOnGetScoped: true }));
       const workspace = Uri.file(join(buildDir, "project"));
       const loader = new KconfigMenuLoader(workspace);
