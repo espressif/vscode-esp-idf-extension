@@ -214,16 +214,22 @@ export async function updateProjectNameInCMakeLists(
   newProjectName: string
 ) {
   const cmakeListFile = join(dirPath, "CMakeLists.txt");
-  if (existsSync(cmakeListFile)) {
-    let content = await readFile(cmakeListFile, "utf-8");
-    const projectMatches = content.match(/(project\(.*?\))/g);
-    if (projectMatches && projectMatches.length) {
-      content = content.replace(
-        /(project\(.*?\))/g,
-        `project(${newProjectName})`
-      );
-      await writeFile(cmakeListFile, content);
+  let content: string;
+  try {
+    content = await readFile(cmakeListFile, "utf-8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return;
     }
+    throw error;
+  }
+  const projectMatches = content.match(/(project\(.*?\))/g);
+  if (projectMatches && projectMatches.length) {
+    content = content.replace(
+      /(project\(.*?\))/g,
+      `project(${newProjectName})`
+    );
+    await writeFile(cmakeListFile, content);
   }
 }
 
