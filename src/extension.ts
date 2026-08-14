@@ -186,7 +186,6 @@ import {
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
-const DEBUG_DEFAULT_PORT = 43474;
 let covRenderer: CoverageRenderer;
 
 // OpenOCD  and Debug Adapter Manager
@@ -247,8 +246,6 @@ const minIdfVersionCheck = async function (
 };
 
 let projectConfigManager: ProjectConfigurationManager | undefined;
-
-let cdtDebugAdapterFactory: CDTDebugAdapterDescriptorFactory | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
@@ -1179,22 +1176,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.workspace.onDidChangeConfiguration(async (e) => {
     const winFlag = process.platform === "win32" ? "Win" : "";
-    // Launch.json changes
-    if (e.affectsConfiguration("launch.configurations")) {
-      const config = vscode.workspace.getConfiguration("launch", workspaceRoot);
-      const configurations =
-        config.get<vscode.DebugConfiguration[]>("configurations") || [];
-      for (const conf of configurations) {
-        if (
-          conf.type === "gdbtarget" &&
-          conf.debugPort &&
-          !cdtDebugAdapterFactory.checkCurrentPort(conf.debugPort)
-        ) {
-          cdtDebugAdapterFactory.dispose();
-        }
-      }
-    }
-
     // Refresh OpenOCD adapter status bar item when adapter location is manually edited
     if (
       workspaceRoot &&
@@ -1292,11 +1273,10 @@ export async function activate(context: vscode.ExtensionContext) {
     )
   );
 
-  cdtDebugAdapterFactory = new CDTDebugAdapterDescriptorFactory();
   context.subscriptions.push(
     vscode.debug.registerDebugAdapterDescriptorFactory(
       "gdbtarget",
-      cdtDebugAdapterFactory
+      new CDTDebugAdapterDescriptorFactory()
     )
   );
 
