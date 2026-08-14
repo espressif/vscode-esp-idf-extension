@@ -8,7 +8,7 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
-## [2.2.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.2.0)
+## [2.2.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.2.0) - 2026-08-14
 ## Features and enhancements
 
 **Remove ESP-IDF Project Configuration Editor in favor of [CMakePresets](https://github.com/espressif/vscode-esp-idf-extension/pull/1842)** Please see the documentation for migration changes.
