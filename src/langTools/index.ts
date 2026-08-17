@@ -144,16 +144,16 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       }
 
       let partitionToUse = options.input.partitionToUse as
-        | ESP.BuildType
+        | ESP.PartitionType
         | undefined;
 
       // If partitionToUse is explicitly set to undefined, keep it undefined
       // If it's not provided (null/undefined), use the default from configuration
       if (options.input.partitionToUse === undefined) {
         partitionToUse = readParameter(
-          "idf.flashPartitionToUse",
+          "idf.partitionToUse",
           workspaceURI
-        ) as ESP.BuildType;
+        ) as ESP.PartitionType;
       }
 
       if (

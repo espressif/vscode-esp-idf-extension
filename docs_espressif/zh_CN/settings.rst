@@ -100,8 +100,8 @@ Visual Studio Code 允许你在不同级别配置设置：**全局（用户设�
       - OpenOCD 配置文件，相对于 ``OPENOCD_SCRIPTS``。若已设置 **idf.openOcdLaunchArgs** 则此项被忽略。作用域：Resource。
     * - **idf.flashType**
       - 首选烧录方式：``UART``、``JTAG`` 或 ``DFU``。作用域：Resource。
-    * - **idf.flashPartitionToUse**
-      - 构建与烧录时烧录的分区（默认：``all``）。可选：``all``、``app``、``bootloader``、``partition-table``。作用域：Resource。
+    * - **idf.partitionToUse**
+      - 构建与烧录（包括“构建、烧录并监视”）时使用的分区（默认：``all``）。可选：``all``、``app``、``bootloader``、``partition-table``。作用域：Resource。
     * - **idf.jtagFlashCommandExtraArgs**
       - OpenOCD JTAG 烧录额外参数（默认：``["verify", "compress", "reset"]``）。作用域：Resource。
     * - **idf.preFlashTask**
