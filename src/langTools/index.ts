@@ -147,9 +147,11 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
         | ESP.PartitionType
         | undefined;
 
-      // If partitionToUse is explicitly set to undefined, keep it undefined
-      // If it's not provided (null/undefined), use the default from configuration
-      if (options.input.partitionToUse === undefined) {
+      // Null and undefined mean "use the configured partition".
+      if (
+        options.input.partitionToUse === undefined ||
+        options.input.partitionToUse === null
+      ) {
         partitionToUse = readParameter(
           "idf.partitionToUse",
           workspaceURI
@@ -371,7 +373,10 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               );
             }
             const eraseFlashTask = new EraseFlashTask(workspaceURI);
-            const eraseFlashExecution = await eraseFlashTask.eraseFlash(port, true); // captureOutput = true for language tool
+            const eraseFlashExecution = await eraseFlashTask.eraseFlash(
+              port,
+              true
+            ); // captureOutput = true for language tool
             const eraseFlashResult = await TaskManager.runTasksWithBoolean();
             taskExecutions.push(eraseFlashExecution);
             if (!token.isCancellationRequested) {
@@ -455,8 +460,10 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
 
           if (TASK_COMMANDS.has(commandName)) {
             for (const execution of taskExecutions) {
-              if (execution && 'getOutput' in execution) {
-                const output = await (execution as OutputCapturingExecution | ShellOutputCapturingExecution).getOutput();
+              if (execution && "getOutput" in execution) {
+                const output = await (execution as
+                  | OutputCapturingExecution
+                  | ShellOutputCapturingExecution).getOutput();
                 outputs.push(new vscode.LanguageModelTextPart(output.stdout));
                 outputs.push(new vscode.LanguageModelTextPart(output.stderr));
               }
