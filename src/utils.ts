@@ -378,9 +378,11 @@ export async function updateCCppPropertiesJson(
     cCppPropertiesJson.configurations.length
   ) {
     cCppPropertiesJson.configurations[0][fieldToUpdate] = newFieldValue;
-    await updateJsonPreservingComments(cCppPropertiesJsonPath, cCppPropertiesJson, [
-      ["configurations", 0, fieldToUpdate],
-    ]);
+    await updateJsonPreservingComments(
+      cCppPropertiesJsonPath,
+      cCppPropertiesJson,
+      [["configurations", 0, fieldToUpdate]]
+    );
   }
 }
 
