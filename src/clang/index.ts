@@ -82,7 +82,9 @@ export async function configureClangSettings(
   }
 
   const errors: ParseError[] = [];
-  settingsJson = parse(settingsContent, errors);
+  settingsJson = parse(settingsContent, errors, {
+    allowTrailingComma: true,
+  });
   if (errors.length > 0) {
     Logger.errorNotify(
       "Failed to parse settings.json. Ensure it has valid JSON syntax.",

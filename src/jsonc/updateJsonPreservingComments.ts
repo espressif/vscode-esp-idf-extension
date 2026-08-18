@@ -33,7 +33,9 @@ export async function updateJsonPreservingComments(
   }
 
   const errors: ParseError[] = [];
-  const existingJson = parse(content, errors) as { [key: string]: any };
+  const existingJson = parse(content, errors, {
+    allowTrailingComma: true,
+  }) as { [key: string]: any };
   if (errors.length > 0) {
     throw new Error(`Failed to parse JSON file with ${errors.length} errors`);
   }

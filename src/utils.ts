@@ -366,7 +366,9 @@ export async function updateCCppPropertiesJson(
   }
   const cCppPropertiesContent = await readFile(cCppPropertiesJsonPath, "utf8");
   const parseErrors: ParseError[] = [];
-  const cCppPropertiesJson = parse(cCppPropertiesContent, parseErrors);
+  const cCppPropertiesJson = parse(cCppPropertiesContent, parseErrors, {
+    allowTrailingComma: true,
+  });
   if (parseErrors.length > 0) {
     throw new Error(
       `Failed to parse c_cpp_properties.json with ${parseErrors.length} errors`
