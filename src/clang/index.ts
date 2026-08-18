@@ -16,15 +16,16 @@
  * limitations under the License.
  */
 
-import { l10n, Uri, workspace } from "vscode";
+import { l10n, Uri } from "vscode";
 import { isBinInPath } from "../utils";
-import { pathExists, writeJSON, writeFile } from "fs-extra";
+import { pathExists, readFile, writeFile } from "fs-extra";
 import { readParameter } from "../idfConfiguration";
 import { join } from "path";
 import { Logger } from "../logger/logger";
-import { parse } from "jsonc-parser";
+import { ParseError, parse } from "jsonc-parser";
 import { EOL } from "os";
 import { configureEnvVariables } from "../common/prepareEnv";
+import { updateJsonPreservingComments } from "../jsonc/updateJsonPreservingComments";
 
 export async function validateEspClangExists(workspaceFolder: Uri) {
   const modifiedEnv = await configureEnvVariables(workspaceFolder);
@@ -74,28 +75,26 @@ export async function configureClangSettings(
     "settings.json"
   );
   let settingsJson: any = {};
+  let settingsContent = "{}";
   const settingsPathExists = await pathExists(settingsJsonPath);
   if (settingsPathExists) {
-    try {
-      const settingsContent = await workspace.fs.readFile(
-        Uri.file(settingsJsonPath)
-      );
-      settingsJson = parse(settingsContent.toString());
-    } catch (error) {
-      Logger.errorNotify(
-        "Failed to parse settings.json. Ensure it has valid JSON syntax.",
-        error,
-        "clang index configureClangSettings"
-      );
-      return;
-    }
+    settingsContent = await readFile(settingsJsonPath, "utf8");
+  }
+
+  const errors: ParseError[] = [];
+  settingsJson = parse(settingsContent, errors);
+  if (errors.length > 0) {
+    Logger.errorNotify(
+      "Failed to parse settings.json. Ensure it has valid JSON syntax.",
+      new Error(`settings.json parse errors: ${errors.length}`),
+      "clang index configureClangSettings"
+    );
+    return;
   }
 
   await setClangSettings(settingsJson, workspaceFolder, showError);
 
-  await writeJSON(settingsJsonPath, settingsJson, {
-    spaces: 2,
-  });
+  await updateJsonPreservingComments(settingsJsonPath, settingsJson);
 
   await createClangdFile(workspaceFolder);
 }
