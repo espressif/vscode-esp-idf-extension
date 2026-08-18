@@ -38,35 +38,21 @@ export async function updateJsonPreservingComments(
     throw new Error(`Failed to parse JSON file with ${errors.length} errors`);
   }
 
-  const keys = keysToUpdate ?? getChangedKeys(existingJson, json);
-
-  for (const key of keys) {
-    const path = Array.isArray(key) ? key : [key];
-    content = updateJsonContent(content, path, getValueAtPath(json, path));
+  if (keysToUpdate && keysToUpdate.length > 0) {
+    for (const key of keysToUpdate) {
+      const path = Array.isArray(key) ? key : [key];
+      content = applyValueDiff(
+        content,
+        path,
+        getValueAtPath(existingJson, path),
+        getValueAtPath(json, path)
+      );
+    }
+  } else {
+    content = applyValueDiff(content, [], existingJson, json);
   }
 
   await writeFile(filePath, content, { encoding: "utf8" });
-}
-
-function getChangedKeys(
-  existingJson: { [key: string]: any } = {},
-  newJson: { [key: string]: any } = {}
-) {
-  const allKeys = new Set([
-    ...Object.keys(existingJson),
-    ...Object.keys(newJson),
-  ]);
-
-  return Array.from(allKeys).filter((key) => {
-    const existingHasKey = Object.prototype.hasOwnProperty.call(existingJson, key);
-    const newHasKey = Object.prototype.hasOwnProperty.call(newJson, key);
-
-    if (existingHasKey !== newHasKey) {
-      return true;
-    }
-
-    return !isDeepStrictEqual(existingJson[key], newJson[key]);
-  });
 }
 
 function getValueAtPath(json: { [key: string]: any }, path: JsonPath) {
@@ -78,6 +64,87 @@ function getValueAtPath(json: { [key: string]: any }, path: JsonPath) {
     current = current[part];
   }
   return current;
+}
+
+function applyValueDiff(
+  content: string,
+  path: JsonPath,
+  currentValue: any,
+  nextValue: any
+) {
+  if (isDeepStrictEqual(currentValue, nextValue)) {
+    return content;
+  }
+
+  if (Array.isArray(currentValue) && Array.isArray(nextValue)) {
+    return applyArrayDiff(content, path, currentValue, nextValue);
+  }
+
+  if (isObject(currentValue) && isObject(nextValue)) {
+    return applyObjectDiff(content, path, currentValue, nextValue);
+  }
+
+  return updateJsonContent(content, path, nextValue);
+}
+
+function applyObjectDiff(
+  content: string,
+  path: JsonPath,
+  currentObject: { [key: string]: any },
+  nextObject: { [key: string]: any }
+) {
+  for (const key of Object.keys(currentObject)) {
+    if (!Object.prototype.hasOwnProperty.call(nextObject, key)) {
+      content = updateJsonContent(content, [...path, key], undefined);
+    }
+  }
+
+  for (const key of Object.keys(nextObject)) {
+    if (!Object.prototype.hasOwnProperty.call(currentObject, key)) {
+      content = updateJsonContent(content, [...path, key], nextObject[key]);
+      continue;
+    }
+
+    content = applyValueDiff(
+      content,
+      [...path, key],
+      currentObject[key],
+      nextObject[key]
+    );
+  }
+
+  return content;
+}
+
+function applyArrayDiff(
+  content: string,
+  path: JsonPath,
+  currentArray: any[],
+  nextArray: any[]
+) {
+  const sharedLength = Math.min(currentArray.length, nextArray.length);
+  for (let i = 0; i < sharedLength; i++) {
+    content = applyValueDiff(
+      content,
+      [...path, i],
+      currentArray[i],
+      nextArray[i]
+    );
+  }
+
+  for (let i = currentArray.length - 1; i >= nextArray.length; i--) {
+    content = updateJsonContent(content, [...path, i], undefined);
+  }
+
+  for (let i = currentArray.length; i < nextArray.length; i++) {
+    content = updateJsonContent(content, [...path, i], nextArray[i]);
+  }
+
+  return content;
+}
+
+function isObject(value: any): value is { [key: string]: any } {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function updateJsonContent(content: string, path: JsonPath, value: any) {
