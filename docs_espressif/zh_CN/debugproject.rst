@@ -158,7 +158,7 @@
 - ``gdb``: 要使用的 GDB 可执行文件。默认情况下，"${command:espIdf.getToolchainGdb}" 将查询扩展以查找当前 ESP-IDF 项目的 IDF_TARGET（esp32、esp32c6 等）对应的 ESP-IDF 工具链 GDB。
 
 .. note::
-     ``IDF_TARGET_CPU_WATCHPOINT_NUM`` 由扩展根据当前 ESP-IDF 项目的 ``IDF_TARGET`` （esp32、esp32c6 等）解析，适用于默认和用户自定义的 ``initCommands``。该占位符的花括号形式同样受支持。
+     ``IDF_TARGET_CPU_WATCHPOINT_NUM`` 由扩展从项目 ``sdkconfig`` 中的 ``CONFIG_SOC_CPU_WATCHPOINTS_NUM`` 解析，适用于默认和用户自定义的 ``initCommands``。如果该值缺失，则回退为 ``2``。该占位符的花括号形式同样受支持。
 
 你可能使用的其他参数包括：
 
@@ -224,7 +224,7 @@
                 "target": {
                     "connectCommands": [
                         "set remotetimeout 20",
-                        "-target-select extended-remote localhost:3333"
+                        "target remote localhost:3333"
                     ]
                 }
             }
@@ -589,7 +589,7 @@ ESP-IDF 扩展提供了 **ESP-IDF：图像查看器** 功能，允许你在调�
                 "type": "gdb",
                 "request": "attach",
                 "name": "NativeDebug",
-                "target": "extended-remote :3333",
+                "target": "target remote :3333",
                 "executable": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
                 "gdbpath": "${command:espIdf.getToolchainGdb}",
                 "cwd": "${workspaceRoot}",

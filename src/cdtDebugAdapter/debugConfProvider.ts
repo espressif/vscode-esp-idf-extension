@@ -26,7 +26,7 @@ import {
   workspace,
 } from "vscode";
 import { readParameter } from "../idfConfiguration";
-import { getIdfTargetFromSdkconfig, getProjectElfFilePath } from "../workspaceConfig";
+import { getProjectElfFilePath } from "../workspaceConfig";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { verifyAppBinary } from "../espIdf/debugAdapter/verifyApp";
@@ -180,40 +180,22 @@ export class CDTDebugConfigurationProvider
       }
 
       if (config.initCommands && Array.isArray(config.initCommands)) {
-        let idfTarget = await getIdfTargetFromSdkconfig(folder.uri);
-        type IdfTarget =
-          | "esp32"
-          | "esp32s2"
-          | "esp32s3"
-          | "esp32s31"
-          | "esp32c2"
-          | "esp32c3"
-          | "esp32c5"
-          | "esp32c6"
-          | "esp32c61"
-          | "esp32h2"
-          | "esp32h21"
-          | "esp32h4"
-          | "esp32p4";
-        // SOC_CPU_WATCHPOINTS_NUM from ESP-IDF components/soc/*/include/soc/soc_caps.h
-        const idfTargetWatchpointMap: Record<IdfTarget, number> = {
-          esp32: 2,
-          esp32s2: 2,
-          esp32s3: 2,
-          esp32s31: 4,
-          esp32c2: 2,
-          esp32c3: 8,
-          esp32c5: 3,
-          esp32c6: 4,
-          esp32c61: 3,
-          esp32h2: 4,
-          esp32h21: 4,
-          esp32h4: 3,
-          esp32p4: 3,
-        };
-        const watchpointNum = String(
-          idfTargetWatchpointMap[idfTarget as IdfTarget] || 2
-        );
+        let watchpointNum = "2";
+        try {
+          const sdkWatchpointNum = await getConfigValueFromSDKConfig(
+            "CONFIG_SOC_CPU_WATCHPOINTS_NUM",
+            folder.uri
+          );
+          if (sdkWatchpointNum) {
+            watchpointNum = sdkWatchpointNum;
+          }
+        } catch (error) {
+          Logger.error(
+            "Failed to read CONFIG_SOC_CPU_WATCHPOINTS_NUM from sdkconfig",
+            error as Error,
+            "CDTDebugConfigurationProvider resolveDebugConfiguration"
+          );
+        }
         config.initCommands = config.initCommands.map((cmd: string) =>
           cmd.replace(
             /\{IDF_TARGET_CPU_WATCHPOINT_NUM\}|IDF_TARGET_CPU_WATCHPOINT_NUM/g,
@@ -230,7 +212,7 @@ export class CDTDebugConfigurationProvider
         config.target = {
           connectCommands: [
             "set remotetimeout 20",
-            "-target-select extended-remote localhost:3333",
+            "target remote localhost:3333",
           ],
         };
       }

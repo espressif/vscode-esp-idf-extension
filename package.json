@@ -1988,7 +1988,7 @@
                 "default": {
                   "connectCommands": [
                     "set remotetimeout 20",
-                    "-target-select extended-remote localhost:3333"
+                    "target remote localhost:3333"
                   ]
                 },
                 "properties": {
@@ -2007,13 +2007,13 @@
                   },
                   "connectCommands": {
                     "type": "array",
-                    "description": "Commands to execute for target connection. Normally something like [`-target-select extended-remote localhost:3333`]",
+                    "description": "Commands to execute for target connection. Normally something like [`target remote localhost:3333`]",
                     "items": {
                       "type": "string"
                     },
                     "default": [
                       "set remotetimeout 20",
-                      "-target-select extended-remote localhost:3333"
+                      "target remote localhost:3333"
                     ]
                   },
                   "host": {
@@ -2262,7 +2262,7 @@
                 "default": {
                   "connectCommands": [
                     "set remotetimeout 20",
-                    "-target-select extended-remote localhost:3333"
+                    "target remote localhost:3333"
                   ]
                 },
                 "properties": {
@@ -2363,13 +2363,13 @@
                   },
                   "connectCommands": {
                     "type": "array",
-                    "description": "Commands to execute for target connection. Normally something like [`-target-select extended-remote localhost:3333`]",
+                    "description": "Commands to execute for target connection. Normally something like [`target remote localhost:3333`]",
                     "items": {
                       "type": "string"
                     },
                     "default": [
                       "set remotetimeout 20",
-                      "-target-select extended-remote localhost:3333"
+                      "target remote localhost:3333"
                     ]
                   }
                 }
