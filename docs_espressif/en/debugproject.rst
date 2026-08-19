@@ -153,12 +153,26 @@ You can modify the configuration to suit your needs. Let's describe the configur
 
 - ``type``: The type of the debug configuration. It should be set to ``gdbtarget``.
 - ``program``: ELF file of your project build directory to execute the debug session. You can use the command ``${command:espIdf.getProjectName}`` to query the extension to find the current build directory project name.
-- ``initCommands``: GDB Commands to initialize GDB and target. The default value is ``["set remote hardware-watchpoint-limit IDF_TARGET_CPU_WATCHPOINT_NUM", "mon reset halt", "maintenance flush register-cache"]``.
-- ``initialBreakpoint``: When ``initCommands`` is not defined, this command will add to default ``initCommands`` a hardware breakpoint at the given function name. For example app_main, the default value, will add ``thb app_main`` to default initCommmands. If set to "", an empty string, no initial breakpoint will be set and if let undefined it will use the default thb app_main.
+- ``initCommands``: Optional GDB commands run **after** the target is connected via ``target.connectCommands``. The extension does not inject a default ``initCommands`` list.
+- ``initialBreakpoint``: When set to a non-empty string (for example ``app_main``), the extension appends ``thb <value>`` to ``initCommands``. If set to ``""`` (empty string) or omitted, no breakpoint is added from this setting.
 - ``gdb``: GDB executable to be used. By default "${command:espIdf.getToolchainGdb}" will query the extension to find the ESP-IDF toolchain GDB for the current IDF_TARGET of your esp-idf project (esp32, esp32c6, etc.).
 
 .. note::
-     ``IDF_TARGET_CPU_WATCHPOINT_NUM`` is resolved by the extension from ``CONFIG_SOC_CPU_WATCHPOINTS_NUM`` in your project's ``sdkconfig``, for both default and user-defined ``initCommands``. If the value is missing, it falls back to ``2``. The braced form of this placeholder is also supported.
+     **GDB command order.** The Eclipse CDT GDB Adapter runs ``target.connectCommands`` first to attach to the target, then runs ``initCommands``.
+
+     When files exist under ``idf.buildPath``, the extension **prepends** commands to ``target.connectCommands`` (before any user-defined ``connectCommands``), in this order:
+
+     1. ``gdbinit/gdbinit`` — ESP-IDF aggregate script (typically sources symbols and connect; available from ESP-IDF v5.3.3). If this file is missing, the extension prepends the same connect sequence as ESP-IDF's ``gdbinit/connect``:
+
+        - ``set remotetimeout 10``
+        - ``target remote :3333``
+        - ``monitor reset halt``
+        - ``maintenance flush register-cache``
+        - ``thbreak app_main``
+
+     2. ``gdbinit/prefix_map``, or fallback ``prefix_map_gdbinit`` — path remapping for reproducible builds. This is a separate file and is **not** included inside ``gdbinit/gdbinit``.
+
+     On ESP-IDF ≥ 5.3.3, ``build/gdbinit/gdbinit`` usually already connects to OpenOCD, so extra user ``connectCommands`` are optional and additive. If ``CONFIG_APP_REPRODUCIBLE_BUILD`` is enabled and no prefix map file is found, the extension shows an information message.
 
 Some additional arguments you might use are:
 
@@ -200,11 +214,11 @@ Some additional arguments you might use are:
             "host": "Target host to connect to (defaults to 'localhost', ignored if parameters is set)",
             "port": "Target port to connect to (defaults to value captured by serverPortRegExp, ignored if parameters is set)",
             "parameters": "Target parameters for the type of target. Normally something like localhost:12345. (defaults to `${host}:${port}`)",
-            "connectCommands": "Replace all previous parameters to specify an array of commands to establish connection"
+            "connectCommands": "Array of GDB commands to establish the connection. Auto-sourced gdbinit ``source`` lines are prepended before these user-defined commands"
         }
     }
 
-An example of a modified launch.json file is shown below:
+An example of a customized ``launch.json`` is shown below. The minimal default configuration above is enough for most projects when ESP-IDF has generated ``build/gdbinit/gdbinit``. Optional fields can be added as needed:
 
 .. code-block:: JSON
 
@@ -215,23 +229,19 @@ An example of a modified launch.json file is shown below:
                 "request": "attach",
                 "name": "Eclipse CDT GDB Adapter",
                 "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
-                "initCommands": [
-                    "set remote hardware-watchpoint-limit IDF_TARGET_CPU_WATCHPOINT_NUM",
-                    "mon reset halt",
-                    "maintenance flush register-cache"
-                ],
                 "gdb": "${command:espIdf.getToolchainGdb}",
+                "initialBreakpoint": "app_main",
+                "initCommands": [
+                    "set remote hardware-watchpoint-limit 2"
+                ],
                 "target": {
                     "connectCommands": [
-                        "set remotetimeout 20",
-                        "target remote localhost:3333"
+                        "set remotetimeout 20"
                     ]
                 }
             }
         ]
     }
-
-While the previous example is explicitly using the default values, it can be customized to suit your needs.
 
 There are other, less used arguments documented in the ESP-IDF VS Code extension's package.json gdbtarget debugger contribution.
 
