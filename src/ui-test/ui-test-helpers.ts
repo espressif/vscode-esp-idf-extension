@@ -15,9 +15,23 @@
  * limitations under the License.
  */
 
+import { exec } from "child_process";
 import { pathExists } from "fs-extra";
 import { resolve } from "path";
-import { BottomBarPanel, InputBox, Workbench } from "vscode-extension-tester";
+import { promisify } from "util";
+import {
+  ActivityBar,
+  BottomBarPanel,
+  DebugConsoleView,
+  DebugView,
+  EditorView,
+  InputBox,
+  OutputView,
+  TextEditor,
+  Workbench,
+} from "vscode-extension-tester";
+
+const execAsync = promisify(exec);
 
 const BUILD_FAILURE_PATTERN =
   /ninja: build stopped|CMake Error|FAILED:|ninja: error|Compilation failed/i;
@@ -134,6 +148,7 @@ export const ESP_IDF_COMMANDS = {
   selectMonitorPort:
     "ESP-IDF: Select Monitor Port to Use (COM, tty, usbserial)",
   selectFlashMethod: "ESP-IDF: Select Flash Method",
+  setTarget: "ESP-IDF: Set Espressif Device Target",
   flash: "ESP-IDF: Flash Your Project",
   monitor: "ESP-IDF: Monitor Device",
   buildFlashMonitor:
@@ -236,4 +251,274 @@ async function findQuickPickByExactLabel(inputBox: InputBox, exactLabel: string)
 async function listQuickPickLabels(inputBox: InputBox): Promise<string[]> {
   const picks = await inputBox.getQuickPicks();
   return Promise.all(picks.map((pick) => pick.getLabel()));
+}
+
+/**
+ * Polls until a quick pick containing `option` appears and selects it.
+ * Used for pickers that open asynchronously after a command (e.g. the OpenOCD
+ * board-config picker shown by Set Espressif Device Target).
+ */
+export async function selectFromCurrentPicker(
+  option: string,
+  timeoutMs = 20000
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  let lastVisibleLabels: string[] = [];
+
+  while (Date.now() < deadline) {
+    try {
+      const inputBox = await InputBox.create(2000);
+      const rawPicks = await inputBox.getQuickPicks();
+      if (rawPicks.length === 0) {
+        await new Promise((res) => setTimeout(res, 1000));
+        continue;
+      }
+      await inputBox.setText(option);
+      await new Promise((res) => setTimeout(res, 500));
+      const filtered = await inputBox.getQuickPicks();
+      for (const pick of filtered) {
+        if ((await pick.getLabel()) === option) {
+          await pick.select();
+          await new Promise((res) => setTimeout(res, 1000));
+          return;
+        }
+      }
+      // Option not yet visible — the list may still be loading. Record what
+      // was visible for the timeout error message, then keep polling.
+      lastVisibleLabels = await Promise.all(filtered.map((p) => p.getLabel()));
+    } catch {
+      // InputBox not ready yet — keep polling.
+    }
+    await new Promise((res) => setTimeout(res, 1000));
+  }
+
+  throw new Error(
+    `Quick pick option "${option}" did not appear within ${timeoutMs} ms.` +
+      (lastVisibleLabels.length
+        ? ` Last visible: [${lastVisibleLabels.join(" | ")}]`
+        : "")
+  );
+}
+
+/** Returns a snapshot of the active terminal text without waiting. */
+export async function readCurrentTerminalText(): Promise<string> {
+  const panel = new BottomBarPanel();
+  const terminalView = await panel.openTerminalView();
+  return terminalView.getText();
+}
+
+/**
+ * Opens `filePath` in the editor via Quick Open and sets a breakpoint at
+ * `lineNumber`.
+ *
+ * `EditorView.openEditor()` only works on already-open tabs, so we first open
+ * the file through the Quick Open palette using its full absolute path.  This
+ * also guarantees we open the workspace copy of the file rather than any
+ * same-named file from the ESP-IDF installation.
+ *
+ * Idempotent: any pre-existing breakpoint on that line is removed first.
+ */
+export async function setBreakpointInFile(
+  filePath: string,
+  lineNumber: number
+): Promise<void> {
+  await new Workbench().executeCommand("workbench.action.quickOpen");
+  const input = await InputBox.create(5000);
+  await input.setText(filePath);
+  await new Promise((res) => setTimeout(res, 1000));
+  await input.confirm();
+  await new Promise((res) => setTimeout(res, 1500));
+
+  const fileName = filePath.split("/").pop() ?? filePath;
+  const editor = (await new EditorView().openEditor(fileName)) as TextEditor;
+
+  const existing = await editor.getBreakpoint(lineNumber);
+  if (existing) {
+    await existing.remove();
+    await new Promise((res) => setTimeout(res, 500));
+  }
+  await editor.toggleBreakpoint(lineNumber);
+  await new Promise((res) => setTimeout(res, 500));
+}
+
+/**
+ * Polls `TextEditor.getPausedBreakpoint().getLineNumber()` until the reported
+ * line differs from `previousLine` and returns the new line number.
+ *
+ * `getPausedBreakpoint()` reads the yellow-arrow gutter element VS Code renders
+ * on every GDB halt — the canonical vscode-extension-tester API for this.
+ * It requires no DOM hacks, no aria-hidden workarounds, and no regex parsing.
+ *
+ * Returns `undefined` if the pause indicator does not move within `timeoutMs`.
+ */
+export async function waitForPausedLineChange(
+  fileName: string,
+  previousLine: number,
+  timeoutMs: number
+): Promise<number | undefined> {
+  const editor = (await new EditorView().openEditor(fileName)) as TextEditor;
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    try {
+      const paused = await editor.getPausedBreakpoint();
+      if (paused) {
+        const line = await paused.getLineNumber();
+        if (line !== previousLine) {
+          return line;
+        }
+      }
+    } catch {
+      // getPausedBreakpoint throws when 0 or >1 pause indicators are present;
+      // swallow and retry until the gutter settles.
+    }
+    await new Promise((res) => setTimeout(res, 1000));
+  }
+
+  return undefined;
+}
+
+/**
+ * Opens the Run and Debug sidebar and reads the current source line from the
+ * top Call Stack frame.
+ *
+ * Reads the raw text of the entire CALL STACK section element — VS Code
+ * renders each frame as visible text ("app_main  hello_world_main.c 11"),
+ * and `WebElement.getText()` collects it all.  The first `.c N` / `.c:N`
+ * match in that text is always frame 0 (the innermost / most-recent frame).
+ *
+ * Unlike the Debug Console, the call stack IS updated after every GDB halt,
+ * including step-over halts that emit no new source listing to the console.
+ *
+ * Returns `undefined` if no frame with a `.c` file reference is visible.
+ */
+export async function readCallStackTopFrameLine(): Promise<number | undefined> {
+  const debugControl = await new ActivityBar().getViewControl("Run and Debug");
+  if (!debugControl) {
+    return undefined;
+  }
+  const debugView = (await debugControl.openView()) as DebugView;
+  const callStackSection = await debugView.getCallStackSection();
+
+  // Read the full visible text of the section; ANSI codes are not present here
+  // because the sidebar uses normal DOM rendering, not a terminal emulator.
+  const rawText = await callStackSection.getText();
+
+  // First ".c N" or ".c:N" occurrence = frame 0 (app_main after step-over)
+  const m = rawText.match(/\.c[:\s]+(\d+)/);
+  if (!m) {
+    return undefined;
+  }
+  return parseInt(m[1], 10);
+}
+
+/**
+ * Removes ANSI/VT100 escape sequences from a string.
+ * `WebElement.getText()` on terminal-like views (Debug Console, Terminal) can
+ * return raw bytes including colour codes that break regex matching.
+ */
+export function stripAnsi(text: string): string {
+  // eslint-disable-next-line no-control-regex
+  return text.replace(/\x1B\[[0-9;]*[A-Za-z]/g, "");
+}
+
+/**
+ * Returns a clean (ANSI-stripped) snapshot of the Debug Console text.
+ * GDB output appears in the Debug Console, not in the Terminal view.
+ * `DebugConsoleView` inherits `getText()` from Selenium's `WebElement`, which
+ * returns raw DOM text including ANSI codes — we strip them here so callers
+ * can use plain-text regex patterns.
+ */
+export async function readDebugConsoleText(): Promise<string> {
+  const panel = new BottomBarPanel();
+  const debugConsole: DebugConsoleView = await panel.openDebugConsoleView();
+  return stripAnsi(await debugConsole.getText());
+}
+
+/**
+ * Polls the named VS Code Output channel until `pattern` matches or the
+ * timeout expires.  Used to detect long-running background operations that
+ * write their completion status to an Output channel (e.g. idf.py set-target).
+ */
+export async function waitForOutputChannelText(
+  channel: string,
+  pattern: RegExp,
+  timeoutMs: number
+): Promise<string> {
+  const panel = new BottomBarPanel();
+  const outputView: OutputView = await panel.openOutputView();
+  await outputView.selectChannel(channel);
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const text = await outputView.getText();
+    if (pattern.test(text)) {
+      return text;
+    }
+    await new Promise((res) => setTimeout(res, 2000));
+  }
+
+  const text = await outputView.getText();
+  throw new Error(
+    `Timed out waiting for output channel "${channel}" to match ${pattern}.\nLast output:\n${text}`
+  );
+}
+
+/**
+ * Like `waitForTerminalOutput` but only matches text that is NEW since
+ * `snapshot` was captured.  Pass `readCurrentTerminalText()` taken just before
+ * issuing the action to avoid a false-positive match on pre-existing output.
+ */
+export async function waitForNewTerminalOutput(
+  snapshot: string,
+  pattern: RegExp,
+  timeoutMs: number
+): Promise<string> {
+  const panel = new BottomBarPanel();
+  const terminalView = await panel.openTerminalView();
+  const deadline = Date.now() + timeoutMs;
+
+  // Use the last 200 characters of the snapshot as an anchor instead of
+  // slicing at snapshot.length.  This survives scrollback truncation (where
+  // the leading part of the snapshot may have been dropped from the buffer)
+  // and avoids scanning an arbitrarily large snapshot string on every poll.
+  const anchor = snapshot.slice(-200);
+
+  function newTextSince(full: string): string {
+    const idx = full.lastIndexOf(anchor);
+    return idx >= 0 ? full.slice(idx + anchor.length) : full;
+  }
+
+  while (Date.now() < deadline) {
+    const full = await terminalView.getText();
+    if (pattern.test(newTextSince(full))) {
+      return full;
+    }
+    await new Promise((res) => setTimeout(res, 2000));
+  }
+
+  const full = await terminalView.getText();
+  throw new Error(
+    `Timed out waiting for NEW terminal output matching ${pattern}.\nNew text since snapshot:\n${newTextSince(full)}`
+  );
+}
+
+/**
+ * Force-terminates OpenOCD and GDB processes left behind by a debug session.
+ *
+ * Called from both the normal "stop" path inside the test AND from the suite's
+ * `after` hook so that stale processes never block the next CI iteration.
+ * `pkill -f` matches the full argv string, catching every chip-specific GDB
+ * variant.  Exit code 1 ("no process matched") is silently swallowed.
+ */
+export async function killDebugProcesses(): Promise<void> {
+  const patterns = [
+    "openocd",
+    "xtensa-esp.*-gdb",
+    "riscv32-esp.*-gdb",
+  ];
+  await Promise.all(
+    patterns.map((p) => execAsync(`pkill -f "${p}"`).catch(() => undefined))
+  );
+  await new Promise((res) => setTimeout(res, 1500));
 }
