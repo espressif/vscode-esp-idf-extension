@@ -158,7 +158,7 @@ You can modify the configuration to suit your needs. Let's describe the configur
 - ``gdb``: GDB executable to be used. By default "${command:espIdf.getToolchainGdb}" will query the extension to find the ESP-IDF toolchain GDB for the current IDF_TARGET of your esp-idf project (esp32, esp32c6, etc.).
 
 .. note::
-     ``IDF_TARGET_CPU_WATCHPOINT_NUM`` is resolved by the extension according to the current ``IDF_TARGET`` of your esp-idf project (esp32, esp32c6, etc.), for both default and user-defined ``initCommands``. The braced form of this placeholder is also supported.
+     ``IDF_TARGET_CPU_WATCHPOINT_NUM`` is resolved by the extension from ``CONFIG_SOC_CPU_WATCHPOINTS_NUM`` in your project's ``sdkconfig``, for both default and user-defined ``initCommands``. If the value is missing, it falls back to ``2``. The braced form of this placeholder is also supported.
 
 Some additional arguments you might use are:
 
@@ -224,7 +224,7 @@ An example of a modified launch.json file is shown below:
                 "target": {
                     "connectCommands": [
                         "set remotetimeout 20",
-                        "-target-select extended-remote localhost:3333"
+                        "target remote localhost:3333"
                     ]
                 }
             }
@@ -589,7 +589,7 @@ Another recommended debug extension is the `Native Debug <https://marketplace.vi
                 "type": "gdb",
                 "request": "attach",
                 "name": "NativeDebug",
-                "target": "extended-remote :3333",
+                "target": "target remote localhost:3333",
                 "executable": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
                 "gdbpath": "${command:espIdf.getToolchainGdb}",
                 "cwd": "${workspaceRoot}",
