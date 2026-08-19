@@ -2007,7 +2007,7 @@
                   },
                   "connectCommands": {
                     "type": "array",
-                    "description": "Commands to execute for target connection. Normally something like [`target remote localhost:3333`]",
+                    "description": "%debug.target.connectCommands.description%",
                     "items": {
                       "type": "string"
                     },
@@ -2363,7 +2363,7 @@
                   },
                   "connectCommands": {
                     "type": "array",
-                    "description": "Commands to execute for target connection. Normally something like [`target remote localhost:3333`]",
+                    "description": "%debug.target.connectCommands.description%",
                     "items": {
                       "type": "string"
                     },
