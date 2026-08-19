@@ -72,15 +72,15 @@ export class CDTDebugConfigurationProvider
       await createNewIdfMonitor(folder.uri, true);
     }
     const openOCDManager = OpenOCDManager.init();
-      if (
-        !openOCDManager.isRunning() &&
-        debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
-        debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
-        debugConfiguration.sessionID !== "qemu.debug.session" &&
-        debugConfiguration.runOpenOCD !== false
-      ) {
-        await openOCDManager.start();
-      }
+    if (
+      !openOCDManager.isRunning() &&
+      debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
+      debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
+      debugConfiguration.sessionID !== "qemu.debug.session" &&
+      debugConfiguration.runOpenOCD !== false
+    ) {
+      await openOCDManager.start();
+    }
     return debugConfiguration;
   }
   public async resolveDebugConfiguration(
@@ -120,10 +120,21 @@ export class CDTDebugConfigurationProvider
       const buildDirPath = readParameter("idf.buildPath", folder) as string;
       const preConnectCommands: string[] = [];
       let prefixMapFound = false;
+      const isPostMortemSession =
+        config.sessionID === "core-dump.debug.session.ws" ||
+        config.sessionID === "gdbstub.debug.session.ws";
       if (buildDirPath) {
-        const gdbinitSymbols = join(buildDirPath, "gdbinit", "symbols");
-        if (await pathExists(gdbinitSymbols)) {
-          preConnectCommands.push(`source ${gdbinitSymbols}`);
+        const gdbinitFromBuild = join(buildDirPath, "gdbinit", "gdbinit");
+        if (await pathExists(gdbinitFromBuild)) {
+          preConnectCommands.push(`source ${gdbinitFromBuild}`);
+        } else if (!isPostMortemSession) {
+          preConnectCommands.push(
+            "set remotetimeout 10",
+            "target remote :3333",
+            "monitor reset halt",
+            "maintenance flush register-cache",
+            "thbreak app_main"
+          );
         }
 
         const gdbinitPrefixMap = join(buildDirPath, "gdbinit", "prefix_map");
@@ -139,9 +150,6 @@ export class CDTDebugConfigurationProvider
         }
       }
 
-      const isPostMortemSession =
-        config.sessionID === "core-dump.debug.session.ws" ||
-        config.sessionID === "gdbstub.debug.session.ws";
       if (!isPostMortemSession && !prefixMapFound) {
         try {
           const isAppReproducibleBuildEnabled = await getConfigValueFromSDKConfig(
@@ -162,59 +170,11 @@ export class CDTDebugConfigurationProvider
         }
       }
 
-      if (
-        config.sessionID !== "core-dump.debug.session.ws" &&
-        config.sessionID !== "gdbstub.debug.session.ws" &&
-        (!config.initCommands || config.initCommands.length === 0)
-      ) {
-        config.initCommands = [
-          "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
-          "mon reset halt",
-          "maintenance flush register-cache",
-        ];
-        if (typeof config.initialBreakpoint === "undefined") {
-          config.initCommands.push(`thb app_main`);
-        } else if (config.initialBreakpoint) {
-          config.initCommands.push(`thb ${config.initialBreakpoint.trim()}`);
+      if (!isPostMortemSession && config.initialBreakpoint) {
+        if (!Array.isArray(config.initCommands)) {
+          config.initCommands = [];
         }
-      }
-
-      if (config.initCommands && Array.isArray(config.initCommands)) {
-        let watchpointNum = "2";
-        try {
-          const sdkWatchpointNum = await getConfigValueFromSDKConfig(
-            "CONFIG_SOC_CPU_WATCHPOINTS_NUM",
-            folder.uri
-          );
-          if (sdkWatchpointNum) {
-            watchpointNum = sdkWatchpointNum;
-          }
-        } catch (error) {
-          Logger.error(
-            "Failed to read CONFIG_SOC_CPU_WATCHPOINTS_NUM from sdkconfig",
-            error as Error,
-            "CDTDebugConfigurationProvider resolveDebugConfiguration"
-          );
-        }
-        config.initCommands = config.initCommands.map((cmd: string) =>
-          cmd.replace(
-            /\{IDF_TARGET_CPU_WATCHPOINT_NUM\}|IDF_TARGET_CPU_WATCHPOINT_NUM/g,
-            watchpointNum
-          )
-        );
-      }
-
-      if (
-        config.sessionID !== "core-dump.debug.session.ws" &&
-        config.sessionID !== "gdbstub.debug.session.ws" &&
-        !config.target
-      ) {
-        config.target = {
-          connectCommands: [
-            "set remotetimeout 20",
-            "target remote localhost:3333",
-          ],
-        };
+        config.initCommands.push(`thb ${config.initialBreakpoint.trim()}`);
       }
 
       if (preConnectCommands.length > 0) {
