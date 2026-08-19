@@ -17,6 +17,7 @@
   "configuration.section.other": "Other",
   "debug.initConfig.description": "A new configuration for launch ESP-IDF projects",
   "debug.initConfig.name": "ESP-IDF Debug: Launch",
+  "debug.target.connectCommands.description": "Commands to execute for target connection. Normally something like [`target remote localhost:3333`]",
   "esp.component-manager.cli.addDependencyError": "Error encountered while adding dependency to the component",
   "esp.component-manager.ui.show.title": "Show ESP Component Registry",
   "esp.component-manager.url.description": "ESP Component Registry URL",

@@ -599,7 +599,7 @@ ESP-IDF 扩展提供了 **ESP-IDF：图像查看器** 功能，允许你在调�
                 "type": "gdb",
                 "request": "attach",
                 "name": "NativeDebug",
-                "target": "target remote :3333",
+                "target": "target remote localhost:3333",
                 "executable": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
                 "gdbpath": "${command:espIdf.getToolchainGdb}",
                 "cwd": "${workspaceRoot}",
