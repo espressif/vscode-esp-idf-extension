@@ -191,7 +191,6 @@ let covRenderer: CoverageRenderer;
 // OpenOCD  and Debug Adapter Manager
 
 let openOCDManager: OpenOCDManager;
-let isOpenOCDLaunchedByDebug: boolean = false;
 let isDebugRestarted: boolean = false;
 
 // QEMU
@@ -623,10 +622,27 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   vscode.debug.onDidTerminateDebugSession((e) => {
-    if (isOpenOCDLaunchedByDebug && !isDebugRestarted) {
-      isOpenOCDLaunchedByDebug = false;
+    if (openOCDManager.isLaunchedByDebug() && !isDebugRestarted) {
       openOCDManager.stop();
     }
+  });
+
+  openOCDManager.on("close", () => {
+    const session = vscode.debug.activeDebugSession;
+    if (
+      !session ||
+      session.type !== "gdbtarget" ||
+      session.configuration.sessionID === "core-dump.debug.session.ws" ||
+      session.configuration.sessionID === "gdbstub.debug.session.ws" ||
+      session.configuration.sessionID === "qemu.debug.session" ||
+      session.configuration.runOpenOCD === false
+    ) {
+      return;
+    }
+    vscode.window.showWarningMessage(
+      "OpenOCD has stopped. Ending the debug session."
+    );
+    void vscode.debug.stopDebugging(session);
   });
 
   const kconfigMenusWatcher = vscode.workspace.createFileSystemWatcher(
@@ -1286,14 +1302,6 @@ export async function activate(context: vscode.ExtensionContext) {
       workspaceRoot
     ) as string;
     peripheralTreeProvider.debugSessionStarted(session, svdFile, 16); // Move svdFile and threshold as conf settings
-    if (
-      openOCDManager.isRunning() &&
-      session.type === "gdbtarget" &&
-      session.configuration.sessionID !== "core-dump.debug.session.ws" &&
-      session.configuration.sessionID !== "gdbstub.debug.session.ws"
-    ) {
-      isOpenOCDLaunchedByDebug = true;
-    }
     isDebugRestarted = false;
   });
 

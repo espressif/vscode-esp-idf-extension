@@ -26,7 +26,7 @@ import {
   workspace,
 } from "vscode";
 import { readParameter } from "../idfConfiguration";
-import { getIdfTargetFromSdkconfig, getProjectElfFilePath } from "../workspaceConfig";
+import { getProjectElfFilePath } from "../workspaceConfig";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { verifyAppBinary } from "../espIdf/debugAdapter/verifyApp";
@@ -72,15 +72,15 @@ export class CDTDebugConfigurationProvider
       await createNewIdfMonitor(folder.uri, true);
     }
     const openOCDManager = OpenOCDManager.init();
-      if (
-        !openOCDManager.isRunning() &&
-        debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
-        debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
-        debugConfiguration.sessionID !== "qemu.debug.session" &&
-        debugConfiguration.runOpenOCD !== false
-      ) {
-        await openOCDManager.start();
-      }
+    if (
+      !openOCDManager.isRunning() &&
+      debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
+      debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
+      debugConfiguration.sessionID !== "qemu.debug.session" &&
+      debugConfiguration.runOpenOCD !== false
+    ) {
+      await openOCDManager.start({ launchedByDebug: true });
+    }
     return debugConfiguration;
   }
   public async resolveDebugConfiguration(
@@ -116,97 +116,81 @@ export class CDTDebugConfigurationProvider
       if (!config.gdb) {
         config.gdb = await getToolchainPath(folder.uri, "gdb");
       }
-      if (
-        config.sessionID !== "core-dump.debug.session.ws" &&
-        config.sessionID !== "gdbstub.debug.session.ws" &&
-        (!config.initCommands || config.initCommands.length === 0)
-      ) {
-        config.initCommands = [
-          "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
-          "mon reset halt",
-          "maintenance flush register-cache",
-        ];
-        const isAppReproducibleBuildEnabled = await getConfigValueFromSDKConfig(
-          "CONFIG_APP_REPRODUCIBLE_BUILD",
-          folder.uri
-        );
-        if (isAppReproducibleBuildEnabled === "y") {
-          const buildDirPath = readParameter("idf.buildPath", folder) as string;
-          if (!buildDirPath) {
-            throw new Error("Failed to get build directory path.");
+
+      const buildDirPath = readParameter("idf.buildPath", folder) as string;
+      const preConnectCommands: string[] = [];
+      let prefixMapFound = false;
+      const isPostMortemSession =
+        config.sessionID === "core-dump.debug.session.ws" ||
+        config.sessionID === "gdbstub.debug.session.ws";
+      if (buildDirPath) {
+        const gdbinitFromBuild = join(buildDirPath, "gdbinit", "gdbinit");
+        if (await pathExists(gdbinitFromBuild)) {
+          preConnectCommands.push(`source ${gdbinitFromBuild}`);
+        } else if (!isPostMortemSession) {
+          preConnectCommands.push(
+            "set remotetimeout 10",
+            "target remote :3333",
+            "monitor reset halt",
+            "maintenance flush register-cache",
+            "thbreak app_main"
+          );
+        }
+
+        const gdbinitPrefixMap = join(buildDirPath, "gdbinit", "prefix_map");
+        if (await pathExists(gdbinitPrefixMap)) {
+          preConnectCommands.push(`source ${gdbinitPrefixMap}`);
+          prefixMapFound = true;
+        } else {
+          const prefixMapGdbinit = join(buildDirPath, "prefix_map_gdbinit");
+          if (await pathExists(prefixMapGdbinit)) {
+            preConnectCommands.push(`source ${prefixMapGdbinit}`);
+            prefixMapFound = true;
           }
-          const gdbinitPrefixMap = join(buildDirPath, "gdbinit", "prefix_map");
-          const gdbinitPrefixMapExists = await pathExists(gdbinitPrefixMap);
-          if (gdbinitPrefixMapExists) {
-            config.initCommands.push(`source ${gdbinitPrefixMap}`);
-          } else {
-            const prefix_map_gdbinit = join(buildDirPath, "prefix_map_gdbinit");
-            const prefix_map_gdbinitExists = await pathExists(
-              prefix_map_gdbinit
+        }
+      }
+
+      if (!isPostMortemSession && !prefixMapFound) {
+        try {
+          const isAppReproducibleBuildEnabled = await getConfigValueFromSDKConfig(
+            "CONFIG_APP_REPRODUCIBLE_BUILD",
+            folder.uri
+          );
+          if (isAppReproducibleBuildEnabled === "y") {
+            window.showInformationMessage(
+              `CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found.`
             );
-            if (prefix_map_gdbinitExists) {
-              config.initCommands.push(`source ${prefix_map_gdbinit}`);
-            } else {
-              window.showInformationMessage(
-                `CONFIG_APP_REPRODUCIBLE_BUILD is enabled but no gdbinit prefix map was found.`
-              );
-            }
+          }
+        } catch (error) {
+          Logger.error(
+            "Failed to read CONFIG_APP_REPRODUCIBLE_BUILD from sdkconfig",
+            error as Error,
+            "CDTDebugConfigurationProvider resolveDebugConfiguration"
+          );
+        }
+      }
+
+      if (!isPostMortemSession && config.initialBreakpoint) {
+        if (!Array.isArray(config.initCommands)) {
+          config.initCommands = [];
+        }
+        config.initCommands.push(`thb ${config.initialBreakpoint.trim()}`);
+      }
+
+      if (preConnectCommands.length > 0) {
+        if (!config.target) {
+          config.target = { connectCommands: [] };
+        }
+        if (!Array.isArray(config.target.connectCommands)) {
+          config.target.connectCommands = [];
+        }
+        const connectCommands = config.target.connectCommands as string[];
+        for (let i = preConnectCommands.length - 1; i >= 0; i--) {
+          const cmd = preConnectCommands[i];
+          if (!connectCommands.includes(cmd)) {
+            connectCommands.unshift(cmd);
           }
         }
-        if (typeof config.initialBreakpoint === "undefined") {
-          config.initCommands.push(`thb app_main`);
-        } else if (config.initialBreakpoint) {
-          config.initCommands.push(`thb ${config.initialBreakpoint.trim()}`);
-        }
-      }
-
-      if (config.initCommands && Array.isArray(config.initCommands)) {
-        let idfTarget = await getIdfTargetFromSdkconfig(folder.uri);
-        type IdfTarget =
-          | "esp32"
-          | "esp32s2"
-          | "esp32s3"
-          | "esp32c2"
-          | "esp32c3"
-          | "esp32c6"
-          | "esp32h2"
-          | "esp32p4"
-          | "esp32c4"
-          | "esp32c5"
-          | "esp32c61";
-        // Mapping of idfTarget to corresponding CPU watchpoint numbers
-        const idfTargetWatchpointMap: Record<IdfTarget, number> = {
-          esp32: 2,
-          esp32s2: 2,
-          esp32s3: 2,
-          esp32c2: 2,
-          esp32c3: 8,
-          esp32c6: 4,
-          esp32h2: 4,
-          esp32p4: 3,
-          esp32c4: 2,
-          esp32c5: 4,
-          esp32c61: 4,
-        };
-        config.initCommands = config.initCommands.map((cmd: string) =>
-          cmd.replace(
-            "{IDF_TARGET_CPU_WATCHPOINT_NUM}",
-            idfTargetWatchpointMap[idfTarget] || 2
-          )
-        );
-      }
-
-      if (
-        config.sessionID !== "core-dump.debug.session.ws" &&
-        config.sessionID !== "gdbstub.debug.session.ws" &&
-        !config.target
-      ) {
-        config.target = {
-          connectCommands: [
-            "set remotetimeout 20",
-            "-target-select extended-remote localhost:3333",
-          ],
-        };
       }
       if (folder && folder.uri && config.verifyAppBinBeforeDebug) {
         const isSameAppBinary = await verifyAppBinary(folder.uri);

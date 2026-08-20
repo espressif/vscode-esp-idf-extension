@@ -153,12 +153,26 @@
 
 - ``type``: 调试配置的类型。应设置为 ``gdbtarget``。
 - ``program``: 项目构建目录中的 ELF 文件，用于执行调试会话。可以使用命令 ``${command:espIdf.getProjectName}`` 查询扩展以查找当前构建目录的项目名称。
-- ``initCommands``: 用于初始化 GDB 和目标设备的 GDB 命令。默认值为 ``["set remote hardware-watchpoint-limit IDF_TARGET_CPU_WATCHPOINT_NUM", "mon reset halt", "maintenance flush register-cache"]``。
-- ``initialBreakpoint``: 当未定义 ``initCommands`` 时，此命令将在默认 ``initCommands`` 中添加指定函数名的硬件断点。例如 app_main（默认值）将在默认 initCommands 中添加 ``thb app_main``。如果设置为 ""（空字符串），则不会设置初始断点；如果未定义，则使用默认值 thb app_main。
+- ``initCommands``: 可选的 GDB 命令，在通过 ``target.connectCommands`` **连接目标之后** 执行。扩展不会注入默认的 ``initCommands`` 列表。
+- ``initialBreakpoint``: 当设置为非空字符串（例如 ``app_main``）时，扩展会向 ``initCommands`` 追加 ``thb <value>``\ 。如果设置为 ``""``\ （空字符串）或省略，则不会通过此设置添加断点。
 - ``gdb``: 要使用的 GDB 可执行文件。默认情况下，"${command:espIdf.getToolchainGdb}" 将查询扩展以查找当前 ESP-IDF 项目的 IDF_TARGET（esp32、esp32c6 等）对应的 ESP-IDF 工具链 GDB。
 
 .. note::
-     **IDF_TARGET_CPU_WATCHPOINT_NUM** 由扩展根据当前 ESP-IDF 项目的 ``IDF_TARGET`` （esp32、esp32c6 等）解析。
+     **GDB 命令顺序。** Eclipse CDT GDB 适配器会先执行 ``target.connectCommands`` 以附加到目标，然后再执行 ``initCommands``。
+
+     当 ``idf.buildPath`` 下存在相应路径时，扩展会将这些命令 **前置** 到 ``target.connectCommands``（位于任何用户定义的 ``connectCommands`` 之前），顺序如下：
+
+     1. ``gdbinit/gdbinit`` — ESP-IDF 聚合脚本（通常会 source symbols 和 connect；自 ESP-IDF v5.3.3 起可用）。如果该文件缺失，扩展会前置与 ESP-IDF ``gdbinit/connect`` 相同的连接命令序列：
+
+        - ``set remotetimeout 10``
+        - ``target remote :3333``
+        - ``monitor reset halt``
+        - ``maintenance flush register-cache``
+        - ``thbreak app_main``
+
+     2. ``gdbinit/prefix_map``，或回退到 ``prefix_map_gdbinit`` — 用于可复现构建的路径重映射。这是单独的文件，**不会** 包含在 ``gdbinit/gdbinit`` 中。
+
+     在 ESP-IDF ≥ 5.3.3 上，``build/gdbinit/gdbinit`` 通常已连接到 OpenOCD，因此额外的用户 ``connectCommands`` 是可选且可叠加的。如果启用了 ``CONFIG_APP_REPRODUCIBLE_BUILD`` 但未找到 prefix map 文件，扩展会显示一条提示信息。
 
 你可能使用的其他参数包括：
 
@@ -200,11 +214,11 @@
             "host": "要连接的目标主机（默认为 'localhost'，如果设置了 parameters 则忽略）",
             "port": "要连接的目标端口（默认为 serverPortRegExp 捕获的值，如果设置了 parameters 则忽略）",
             "parameters": "目标类型的目标参数。通常是类似 localhost:12345 的内容。（默认为 `${host}:${port}`）",
-            "connectCommands": "替换所有先前的参数，指定用于建立连接的命令数组"
+            "connectCommands": "用于建立连接的 GDB 命令数组。自动 source 的 gdbinit ``source`` 行会前置到这些用户定义的命令之前"
         }
     }
 
-下面显示了一个修改后的 launch.json 文件示例：
+下面显示了一个自定义的 ``launch.json`` 示例。当 ESP-IDF 已生成 ``build/gdbinit/gdbinit`` 时，上面的最小默认配置对大多数项目已足够。可按需添加可选字段：
 
 .. code-block:: JSON
 
@@ -215,23 +229,19 @@
                 "request": "attach",
                 "name": "Eclipse CDT GDB Adapter",
                 "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
-                "initCommands": [
-                    "set remote hardware-watchpoint-limit IDF_TARGET_CPU_WATCHPOINT_NUM",
-                    "mon reset halt",
-                    "maintenance flush register-cache"
-                ],
                 "gdb": "${command:espIdf.getToolchainGdb}",
+                "initialBreakpoint": "app_main",
+                "initCommands": [
+                    "set remote hardware-watchpoint-limit 2"
+                ],
                 "target": {
                     "connectCommands": [
-                        "set remotetimeout 20",
-                        "-target-select extended-remote localhost:3333"
+                        "set remotetimeout 20"
                     ]
                 }
             }
         ]
     }
-
-虽然前面的示例明确使用了默认值，但可以根据需要进行自定义。
 
 ESP-IDF VS Code 扩展的 package.json gdbtarget 调试器贡献中记录了其他较少使用的参数。
 
@@ -589,7 +599,7 @@ ESP-IDF 扩展提供了 **ESP-IDF：图像查看器** 功能，允许你在调�
                 "type": "gdb",
                 "request": "attach",
                 "name": "NativeDebug",
-                "target": "extended-remote :3333",
+                "target": "target remote localhost:3333",
                 "executable": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
                 "gdbpath": "${command:espIdf.getToolchainGdb}",
                 "cwd": "${workspaceRoot}",
