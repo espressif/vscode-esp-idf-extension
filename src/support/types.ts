@@ -35,7 +35,7 @@ export class Configuration {
   espAdfPath: string;
   customExtraPaths: string;
   flashType: string;
-  flashPartitionToUse: string;
+  partitionToUse: string;
   idfExtraVars: { [key: string]: string };
   userExtraVars: { [key: string]: string };
   notificationMode: string;

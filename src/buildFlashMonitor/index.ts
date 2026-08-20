@@ -20,7 +20,6 @@ import {
   CancellationToken,
   commands,
   env,
-  l10n,
   Progress,
   ProgressLocation,
   UIKind,
@@ -40,7 +39,8 @@ import { createNewIdfMonitor } from "../espIdf/monitor/command";
 
 export async function buildFlashAndMonitor(
   workspaceFolderUri: Uri,
-  noResetMonitor?: boolean
+  noResetMonitor?: boolean,
+  partitionToUse?: ESP.PartitionType
 ) {
   await PreCheck.perform([openFolderCheck], async () => {
     const notificationMode = readParameter(
@@ -65,10 +65,23 @@ export async function buildFlashAndMonitor(
       ) => {
         progress.report({ message: "Building project...", increment: 20 });
         const flashType = readParameter("idf.flashType", workspaceFolderUri);
+        if (!partitionToUse) {
+          partitionToUse = readParameter(
+            "idf.partitionToUse",
+            workspaceFolderUri
+          ) as ESP.PartitionType;
+        }
+        if (
+          partitionToUse &&
+          !["app", "bootloader", "partition-table"].includes(partitionToUse)
+        ) {
+          partitionToUse = undefined;
+        }
         let canContinue = await buildCommand(
           workspaceFolderUri,
           cancelToken,
-          flashType
+          flashType,
+          partitionToUse
         );
         if (!canContinue) {
           return;
@@ -86,18 +99,6 @@ export async function buildFlashAndMonitor(
         let encryptPartitions = await isFlashEncryptionEnabled(
           workspaceFolderUri
         );
-
-        let partitionToUse = readParameter(
-          "idf.flashPartitionToUse",
-          workspaceFolderUri
-        ) as ESP.BuildType;
-
-        if (
-          partitionToUse &&
-          !["app", "bootloader", "partition-table"].includes(partitionToUse)
-        ) {
-          partitionToUse = undefined;
-        }
 
         canContinue = await startFlashing(
           workspaceFolderUri,

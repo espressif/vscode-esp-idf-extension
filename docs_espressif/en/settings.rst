@@ -100,8 +100,8 @@ Flash
       - Configuration files for OpenOCD, relative to ``OPENOCD_SCRIPTS`` folder. If **idf.openOcdLaunchArgs** is defined this setting is ignored. Scope: Resource.
     * - **idf.flashType**
       - Preferred flash method: ``UART``, ``JTAG`` or ``DFU``. Scope: Resource.
-    * - **idf.flashPartitionToUse**
-      - Partition to flash during build and flash (default: ``all``). Options: ``all``, ``app``, ``bootloader``, ``partition-table``. Scope: Resource.
+    * - **idf.partitionToUse**
+      - Partition to use during build and flash, including Build, Flash and Monitor (default: ``all``). Options: ``all``, ``app``, ``bootloader``, ``partition-table``. Scope: Resource.
     * - **idf.jtagFlashCommandExtraArgs**
       - OpenOCD JTAG flash extra arguments (default: ``["verify", "compress", "reset"]``). Scope: Resource.
     * - **idf.preFlashTask**

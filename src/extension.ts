@@ -1928,26 +1928,34 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.monitorQemu", createQemuMonitor);
 
   registerIDFCommand("espIdf.buildApp", () =>
-    build(undefined, ESP.BuildType.App)
+    build(undefined, ESP.PartitionType.App)
   );
   registerIDFCommand("espIdf.flashAppUart", async () => {
     const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
-    return flash(isEncrypted, ESP.FlashType.UART, ESP.BuildType.App);
+    return flash(isEncrypted, ESP.FlashType.UART, ESP.PartitionType.App);
   });
   registerIDFCommand("espIdf.buildBootloader", () =>
-    build(undefined, ESP.BuildType.Bootloader)
+    build(undefined, ESP.PartitionType.Bootloader)
   );
   registerIDFCommand("espIdf.flashBootloaderUart", async () => {
     const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
-    return flash(isEncrypted, ESP.FlashType.UART, ESP.BuildType.Bootloader);
+    return flash(isEncrypted, ESP.FlashType.UART, ESP.PartitionType.Bootloader);
   });
   registerIDFCommand("espIdf.buildPartitionTable", () =>
-    build(undefined, ESP.BuildType.PartitionTable)
+    build(undefined, ESP.PartitionType.PartitionTable)
   );
   registerIDFCommand("espIdf.flashPartitionTableUart", async () => {
     const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
-    return flash(isEncrypted, ESP.FlashType.UART, ESP.BuildType.PartitionTable);
+    return flash(
+      isEncrypted,
+      ESP.FlashType.UART,
+      ESP.PartitionType.PartitionTable
+    );
   });
+
+  registerIDFCommand("espIdf.buildAppFlashAppMonitor", () =>
+    buildFlashAndMonitor(workspaceRoot, undefined, ESP.PartitionType.App)
+  );
 
   registerIDFCommand("espIdf.menuconfig.start", async () => {
     PreCheck.perform([openFolderCheck], () => {
@@ -4056,7 +4064,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   );
 }
 
-const build = (flashType?: ESP.FlashType, buildType?: ESP.BuildType) => {
+const build = (flashType?: ESP.FlashType, buildType?: ESP.PartitionType) => {
   PreCheck.perform([openFolderCheck], async () => {
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode",
@@ -4091,7 +4099,7 @@ const build = (flashType?: ESP.FlashType, buildType?: ESP.BuildType) => {
 const flash = (
   encryptPartitions: boolean = false,
   flashType?: ESP.FlashType,
-  partitionToUse?: ESP.BuildType
+  partitionToUse?: ESP.PartitionType
 ) => {
   PreCheck.perform([openFolderCheck], async () => {
     // Re route to ESP-IDF Web extension if using Codespaces or Browser
@@ -4126,9 +4134,9 @@ const flash = (
         }
         if (!partitionToUse) {
           partitionToUse = idfConf.readParameter(
-            "idf.flashPartitionToUse",
+            "idf.partitionToUse",
             workspaceRoot
-          ) as ESP.BuildType;
+          ) as ESP.PartitionType;
 
           if (
             partitionToUse &&

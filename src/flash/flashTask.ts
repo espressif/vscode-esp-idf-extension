@@ -87,7 +87,7 @@ export class FlashTask {
     }
   }
 
-  public async flash(flashType: ESP.FlashType, partitionToUse?: ESP.BuildType, captureOutput?: boolean) {
+  public async flash(flashType: ESP.FlashType, partitionToUse?: ESP.PartitionType, captureOutput?: boolean) {
     if (FlashTask.isFlashing) {
       throw new Error("ALREADY_FLASHING");
     }
