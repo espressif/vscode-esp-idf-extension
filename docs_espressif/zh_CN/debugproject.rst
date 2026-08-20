@@ -154,7 +154,7 @@
 - ``type``: 调试配置的类型。应设置为 ``gdbtarget``。
 - ``program``: 项目构建目录中的 ELF 文件，用于执行调试会话。可以使用命令 ``${command:espIdf.getProjectName}`` 查询扩展以查找当前构建目录的项目名称。
 - ``initCommands``: 可选的 GDB 命令，在通过 ``target.connectCommands`` **连接目标之后** 执行。扩展不会注入默认的 ``initCommands`` 列表。
-- ``initialBreakpoint``: 当设置为非空字符串（例如 ``app_main``）时，扩展会向 ``initCommands`` 追加 ``thb <value>``。如果设置为 ``""``（空字符串）或省略，则不会通过此设置添加断点。
+- ``initialBreakpoint``: 当设置为非空字符串（例如 ``app_main``）时，扩展会向 ``initCommands`` 追加 ``thb <value>``\ 。如果设置为 ``""``\ （空字符串）或省略，则不会通过此设置添加断点。
 - ``gdb``: 要使用的 GDB 可执行文件。默认情况下，"${command:espIdf.getToolchainGdb}" 将查询扩展以查找当前 ESP-IDF 项目的 IDF_TARGET（esp32、esp32c6 等）对应的 ESP-IDF 工具链 GDB。
 
 .. note::
