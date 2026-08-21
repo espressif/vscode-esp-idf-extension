@@ -23,7 +23,7 @@ import { pathExists } from "fs-extra";
 import { getIdfBuildPath, getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { selectedDFUAdapterId } from "../flash/transports/dfu/helpers";
 import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
-import { addProcessTask, type IdfTaskExecution } from "../taskManager/taskManager";
+import { addProcessTask } from "../taskManager/taskManager";
 import {
   dfuTargetNotCompatible,
   flasherArgsMissing,
@@ -73,11 +73,7 @@ export function setDfuExecutionTestHooks(
   getIdfTargetFromSdkconfigForTests = hooks?.getIdfTargetFromSdkconfig;
 }
 
-export async function appendDfuExecution(
-  executions: IdfTaskExecution[],
-  workspace: Uri,
-  captureOutput?: boolean
-): Promise<void> {
+export async function appendDfuExecution(workspace: Uri): Promise<void> {
   const buildPath = getIdfBuildPath(workspace);
   if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
     throw flasherArgsMissing(buildFlasherArgsMissingPresentation);
@@ -115,15 +111,12 @@ export async function appendDfuExecution(
   if (!pythonBinPath) {
     throw missingDependency("Python", buildMissingDependencyPresentation);
   }
-  const buildDfuExecution = addProcessTask(
+  addProcessTask(
     "Write DFU bin",
     workspace,
     pythonBinPath,
     args,
     buildPath,
-    modifiedEnv,
-    { captureOutput }
+    modifiedEnv
   );
-
-  executions.push(buildDfuExecution);
 }

@@ -27,12 +27,12 @@ export async function createDfuFlashProcessTask(
   workspace: Uri,
   buildDirPath: string,
   model: FlashModel,
-  modifiedEnv: { [key: string]: string },
-  captureOutput?: boolean
+  modifiedEnv: { [key: string]: string }
 ) {
   assertFlashSectionsReadable(buildDirPath, model);
-  const { pythonPath: pythonBinPath } =
-    await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
+  const { pythonPath: pythonBinPath } = await resolveEsptoolInvocation(
+    modifiedEnv["IDF_PATH"]!
+  );
   const dfuResult = await dfuFlashingArgs(
     pythonBinPath,
     modifiedEnv,
@@ -48,7 +48,6 @@ export async function createDfuFlashProcessTask(
     dfuResult.cmdToUse,
     dfuResult.args,
     buildDirPath,
-    modifiedEnv,
-    { captureOutput }
+    modifiedEnv
   );
 }

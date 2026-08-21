@@ -18,8 +18,7 @@ export async function enqueueCompileTaskIfNoCache(
   workspaceUri: Uri,
   buildDirPath: string,
   modifiedEnv: { [key: string]: string },
-  cmakeBin: string,
-  captureOutput?: boolean,
+  cmakeBin: string
 ) {
   const defaultCompilerArgs: string[] = [
     "-G",
@@ -48,6 +47,6 @@ export async function enqueueCompileTaskIfNoCache(
     compilerArgs,
     buildDirPath,
     modifiedEnv,
-    { captureOutput, presentation: { clear: true } }
+    { presentation: { clear: true } }
   );
 }

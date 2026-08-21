@@ -16,12 +16,7 @@
  * limitations under the License.
  */
 
-import {
-  ShellExecution,
-  ShellExecutionOptions,
-  TaskPanelKind,
-  Uri,
-} from "vscode";
+import { ShellExecutionOptions, TaskPanelKind, Uri } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { getWorkspaceFolderForTask, TaskManager } from "./taskManager";
 import { ShellOutputCapturingExecution } from "./shellCaptureExecution";
@@ -46,41 +41,48 @@ export class CustomTask {
 
   public getShellExecution(
     cmdString: string,
-    options: ShellExecutionOptions,
-    captureOutput?: boolean
-  ): ShellOutputCapturingExecution | ShellExecution {
-    if (captureOutput) {
-      return new ShellOutputCapturingExecution(cmdString, options);
-    } else {
-      return new ShellExecution(cmdString, options);
-    }
+    options: ShellExecutionOptions
+  ): ShellOutputCapturingExecution {
+    return new ShellOutputCapturingExecution(cmdString, options);
   }
 
-  public async addCustomTask(
-    taskType: CustomTaskType,
-    captureOutput?: boolean
-  ) {
+  public async addCustomTask(taskType: CustomTaskType) {
     let command: string = "";
     let taskName: string = "";
     switch (taskType) {
       case CustomTaskType.PreBuild:
-        command = readParameter("idf.preBuildTask", this.currentWorkspace) as string;
+        command = readParameter(
+          "idf.preBuildTask",
+          this.currentWorkspace
+        ) as string;
         taskName = "Pre Build";
         break;
       case CustomTaskType.PostBuild:
-        command = readParameter("idf.postBuildTask", this.currentWorkspace) as string;
+        command = readParameter(
+          "idf.postBuildTask",
+          this.currentWorkspace
+        ) as string;
         taskName = "Post Build";
         break;
       case CustomTaskType.PreFlash:
-        command = readParameter("idf.preFlashTask", this.currentWorkspace) as string;
+        command = readParameter(
+          "idf.preFlashTask",
+          this.currentWorkspace
+        ) as string;
         taskName = "Pre Flash";
         break;
       case CustomTaskType.PostFlash:
-        command = readParameter("idf.postFlashTask", this.currentWorkspace) as string;
+        command = readParameter(
+          "idf.postFlashTask",
+          this.currentWorkspace
+        ) as string;
         taskName = "Post Flash";
         break;
       case CustomTaskType.Custom:
-        command = readParameter("idf.customTask", this.currentWorkspace) as string;
+        command = readParameter(
+          "idf.customTask",
+          this.currentWorkspace
+        ) as string;
         taskName = "Custom task";
       default:
         break;
@@ -107,11 +109,7 @@ export class CustomTask {
     if (shellExecutableArgs && shellExecutableArgs.length) {
       options.shellArgs = shellExecutableArgs;
     }
-    const customExecution = this.getShellExecution(
-      command,
-      options,
-      captureOutput
-    );
+    const customExecution = this.getShellExecution(command, options);
     TaskManager.addTask(
       taskName,
       getWorkspaceFolderForTask(this.currentWorkspace),

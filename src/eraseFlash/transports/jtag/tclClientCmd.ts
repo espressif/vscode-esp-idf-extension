@@ -17,15 +17,24 @@
  */
 
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
-import {
-  createCapturedExecution,
-  quoteTclArg,
-} from "../../../flash/transports/jtag/flashTclClient";
+import { quoteTclArg } from "../../../flash/transports/jtag/flashTclClient";
 import {
   CapturedTaskOutput,
   CustomExecutionTaskResult,
 } from "../../../taskManager/types";
+import { TaskManager } from "../../../taskManager/taskManager";
 import { isJtagEraseFlashResponseSuccess } from "./eraseFlashJtagResponse";
+
+function recordJtagEraseOutput(
+  output: CapturedTaskOutput
+): CustomExecutionTaskResult {
+  TaskManager.recordTaskResult({
+    taskId: "idf-erase-flash-task",
+    taskName: "ESP-IDF Erase Flash",
+    output,
+  });
+  return { continueFlag: output.success };
+}
 
 export async function eraseFlashTelnetCommand(
   client: TCLClient,
@@ -61,10 +70,7 @@ export async function eraseFlashTelnetCommand(
         success,
         exitCode: success ? 0 : -1,
       };
-      finish({
-        continueFlag: success,
-        executions: [createCapturedExecution(output)],
-      });
+      finish(recordJtagEraseOutput(output));
     };
 
     const onError = (err: unknown) => {
@@ -78,10 +84,7 @@ export async function eraseFlashTelnetCommand(
         success: false,
         exitCode: -1,
       };
-      finish({
-        continueFlag: false,
-        executions: [createCapturedExecution(output)],
-      });
+      finish(recordJtagEraseOutput(output));
     };
 
     client.once("response", onResponse);

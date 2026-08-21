@@ -23,8 +23,7 @@ import { getCurrentIdfConfiguration } from "../../../configuration/env";
 
 export async function createEraseFlashProcessTask(
   workspace: Uri,
-  port: string,
-  captureOutput?: boolean
+  port: string
 ) {
   const modifiedEnv = getCurrentIdfConfiguration();
   const {
@@ -38,7 +37,6 @@ export async function createEraseFlashProcessTask(
     pythonBinPath,
     args,
     workspace.fsPath || process.cwd(),
-    modifiedEnv,
-    { captureOutput }
+    modifiedEnv
   );
 }

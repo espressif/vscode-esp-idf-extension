@@ -52,15 +52,13 @@ import { eraseJtagOpenOcdPresentation } from "./jtagOpenOcdPresentation";
 export async function eraseFlashMain(
   workspaceFolder: WorkspaceFolder,
   cancelToken: CancellationToken,
-  flashType?: ESP.FlashType,
-  captureOutput?: boolean
+  flashType?: ESP.FlashType
 ): Promise<CustomExecutionTaskResult> {
   let session: EraseFlashSession | undefined;
   let cancelSubscription: Disposable | undefined;
   let failure: unknown;
   let eraseFlashCmdResult: CustomExecutionTaskResult = {
     continueFlag: false,
-    executions: [],
   };
 
   try {
@@ -105,7 +103,7 @@ export async function eraseFlashMain(
         workspaceFolder.uri
       );
       if (!eraseFlashCmdResult.continueFlag) {
-        await throwEraseCapturedTaskFailure(eraseFlashCmdResult.executions);
+        await throwEraseCapturedTaskFailure();
       }
       if (eraseFlashCmdResult.continueFlag) {
         const msg =
@@ -116,11 +114,10 @@ export async function eraseFlashMain(
     } else {
       eraseFlashCmdResult = await uartEraseFlashCmd(
         workspaceFolder.uri,
-        cancelToken,
-        captureOutput
+        cancelToken
       );
       if (!eraseFlashCmdResult.continueFlag) {
-        await throwEraseCapturedTaskFailure(eraseFlashCmdResult.executions);
+        await throwEraseCapturedTaskFailure();
       }
     }
 
@@ -131,10 +128,7 @@ export async function eraseFlashMain(
       throw eraseTerminated();
     }
     if (!eraseFlashCmdResult.continueFlag) {
-      return {
-        continueFlag: false,
-        executions: eraseFlashCmdResult.executions,
-      };
+      return { continueFlag: false };
     }
     return eraseFlashCmdResult;
   } catch (error) {

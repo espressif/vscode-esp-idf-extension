@@ -70,7 +70,6 @@ suite("hard-tier commands", () => {
         () =>
           assertBuildFlashMonitorSucceeded({
             continueFlag: false,
-            executions: [],
           }),
         (error: unknown) =>
           isKnownError(error) && error.code === ErrorCode.TaskFailed
@@ -81,7 +80,6 @@ suite("hard-tier commands", () => {
       assert.doesNotThrow(() =>
         assertBuildFlashMonitorSucceeded({
           continueFlag: true,
-          executions: [],
         })
       );
     });

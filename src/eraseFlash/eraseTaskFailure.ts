@@ -18,7 +18,6 @@
 import { ErrorCode, ErrorPresentation } from "../common/error/types";
 import { isKnownError, known } from "../common/error/knownError";
 import { throwCapturedTaskFailure } from "../taskManager/taskManager";
-import type { CustomExecutionTaskResult } from "../taskManager/types";
 
 const eraseTaskFailedWithOutputPresentation: ErrorPresentation = {
   userMessage:
@@ -27,11 +26,9 @@ const eraseTaskFailedWithOutputPresentation: ErrorPresentation = {
   outputChannel: "Erase flash",
 };
 
-export async function throwEraseCapturedTaskFailure(
-  executions: CustomExecutionTaskResult["executions"]
-): Promise<void> {
+export async function throwEraseCapturedTaskFailure(): Promise<void> {
   try {
-    await throwCapturedTaskFailure(executions);
+    await throwCapturedTaskFailure();
   } catch (error) {
     if (
       isKnownError(error) &&
