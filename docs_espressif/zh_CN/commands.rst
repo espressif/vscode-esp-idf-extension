@@ -32,6 +32,8 @@
      - 打开一个带有安装向导的窗口，可以安装 ESP-IDF、IDF 工具和 Python 虚拟环境。
    * - 配置 SDKConfig 文件以启用代码覆盖率
      - 在项目的 SDKConfig 文件中设置必要的值，启用代码覆盖率分析。
+   * - 配置项目以启用运行时 GDB Stub
+     - 将 ``esp_gdbstub`` 组件添加到项目 ``idf_component_register`` 的私有依赖中，在项目 sdkconfig 中启用 ``CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME``，并添加 ``ESP-IDF Runtime GDB Stub`` 调试配置。构建并烧录后，选择该配置并按 ``F5``，即可通过串口调试正在运行的应用程序。
    * - 配置项目以使用 ESP-Clang
      - 配置当前 ESP-IDF 项目使用 esp-clang 作为工具链，并在 settings.json 中配置 LLVM Clang 扩展。
    * - 创建新 ESP-IDF 组件

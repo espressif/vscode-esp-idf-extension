@@ -42,6 +42,10 @@ import {
   noWorkspaceOpen,
 } from "../../common/error/knownError";
 import { debugErrorPresentation } from "../debugErrorPresentation";
+import { configureProjectForRuntimeGdbStub } from "../../espIdf/gdbstub/configureProject";
+import { ensureRuntimeGdbStubLaunchJson } from "../../espIdf/gdbstub/launchJson";
+import { Logger } from "../../common/logger";
+import { checkIsProjectCmakeLists, createVscodeFolder } from "../../newProject/utils";
 
 function registerDebugCommand(
   context: ExtensionContext,
@@ -203,6 +207,52 @@ export function registerEspIdfDebugCommand(
         throw fileNotFound(launchJsonPath, debugErrorPresentation.fileNotFound);
       }
       await startFirstGdbTargetConfiguration(workspaceFolder, cdtDebugProvider);
+    });
+  });
+
+  registerDebugCommand(context, "espIdf.configureRuntimeGdbStub", async () => {
+    await PreCheck.perform([openFolderCheck], async () => {
+      const workspaceFolder =
+        ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      if (!workspaceFolder) {
+        throw noWorkspaceOpen(debugErrorPresentation.noWorkspaceOpen);
+      }
+      if (!checkIsProjectCmakeLists(workspaceFolder.uri.fsPath)) {
+        Logger.infoNotify(
+          l10n.t("The current directory is not an ESP-IDF project.")
+        );
+        return;
+      }
+      const result = await configureProjectForRuntimeGdbStub(
+        workspaceFolder.uri
+      );
+      if (result === "cancelled") {
+        return;
+      }
+      const launchJsonPath = join(
+        workspaceFolder.uri.fsPath,
+        ".vscode",
+        "launch.json"
+      );
+      if (!(await pathExists(launchJsonPath))) {
+        await createVscodeFolder(context.extensionPath, workspaceFolder.uri);
+      }
+      const launchChanged = await ensureRuntimeGdbStubLaunchJson(
+        workspaceFolder.uri
+      );
+      if (result === "unchanged" && !launchChanged) {
+        Logger.infoNotify(
+          l10n.t(
+            'Runtime GDB Stub is already configured. Build and flash, select "ESP-IDF Runtime GDB Stub" in Run and Debug, then press F5.'
+          )
+        );
+        return;
+      }
+      Logger.infoNotify(
+        l10n.t(
+          'Runtime GDB Stub is configured. Build and flash, select "ESP-IDF Runtime GDB Stub" in Run and Debug, then press F5.'
+        )
+      );
     });
   });
 }
