@@ -16,12 +16,7 @@
  * limitations under the License.
  */
 
-import { CustomExecution, EventEmitter } from "vscode";
-import {
-  ChildProcess,
-  execFile,
-  ExecFileOptions,
-} from "child_process";
+import { CustomExecution } from "vscode";
 import { CapturedTaskOutput } from "./types";
 import { OutputCapturingPseudoterminal } from "./outputCapturePseudoTerminal";
 
@@ -29,15 +24,17 @@ export class OutputCapturingExecution extends CustomExecution {
   private outputPromise: Promise<CapturedTaskOutput> | undefined;
   private resolveOutput: ((output: CapturedTaskOutput) => void) | undefined;
   private rejectOutput: ((error: Error) => void) | undefined;
-  private writeEmitter: EventEmitter<string> | undefined;
-  private childProcess: ChildProcess | undefined;
+  private pseudoterminal: OutputCapturingPseudoterminal | undefined;
 
   constructor(
     private command: string,
     private args: string[],
-    private options: ExecFileOptions
+    private options: {
+      cwd?: string;
+      env?: { [key: string]: string | undefined };
+    }
   ) {
-    super(async (resolvedDefinition) => {
+    super(async () => {
       this.outputPromise = new Promise<CapturedTaskOutput>(
         (resolve, reject) => {
           this.resolveOutput = resolve;
@@ -45,81 +42,22 @@ export class OutputCapturingExecution extends CustomExecution {
         }
       );
 
-      const pseudoterminal = new OutputCapturingPseudoterminal(
-        this.outputPromise!
+      this.pseudoterminal = new OutputCapturingPseudoterminal(
+        {
+          file: this.command,
+          args: this.args,
+          cwd: this.options.cwd,
+          env: this.options.env,
+        },
+        (output) => this.resolveOutput?.(output),
+        (error) => this.rejectOutput?.(error)
       );
-      this.writeEmitter = pseudoterminal.getWriteEmitter();
-
-      pseudoterminal.setStartHandler(() => this.executeCommand());
-      return pseudoterminal;
-    });
-  }
-
-  private executeCommand(): void {
-    let stdout = "";
-    let stderr = "";
-    let exitCode = 0;
-
-    if (this.options.env) {
-      this.options.env.FORCE_COLOR = "1";
-      this.options.env.TERM = "xterm-256color";
-      this.options.env.COLORTERM = "truecolor";
-    }
-
-    this.childProcess = execFile(
-      this.command,
-      this.args,
-      this.options,
-      () => {
-        // Output is captured through stream listeners below.
-      }
-    );
-
-    // Stream stdout in real-time
-    this.childProcess.stdout?.on("data", (data: Buffer) => {
-      const output = data.toString();
-      const formattedOutput = output.replace(/\r/g, "").replace(/\n/g, "\r\n");
-      stdout += formattedOutput;
-      if (this.writeEmitter) {
-        this.writeEmitter.fire(formattedOutput);
-      }
-    });
-
-    // Stream stderr in real-time
-    this.childProcess.stderr?.on("data", (data: Buffer) => {
-      const output = data.toString();
-      const formattedOutput = output.replace(/\r/g, "").replace(/\n/g, "\r\n");
-      stderr += formattedOutput;
-      if (this.writeEmitter) {
-        this.writeEmitter.fire(formattedOutput);
-      }
-    });
-
-    this.childProcess.on("close", (code) => {
-      exitCode = code || 0;
-      const output: CapturedTaskOutput = {
-        stdout,
-        stderr,
-        exitCode,
-        success: exitCode === 0,
-      };
-
-      if (this.resolveOutput) {
-        this.resolveOutput(output);
-      }
-    });
-
-    this.childProcess.on("error", (error) => {
-      if (this.rejectOutput) {
-        this.rejectOutput(error);
-      }
+      return this.pseudoterminal;
     });
   }
 
   public terminate(): void {
-    if (this.childProcess) {
-      this.childProcess.kill();
-    }
+    this.pseudoterminal?.close();
   }
 
   public async getOutput(): Promise<CapturedTaskOutput> {
@@ -129,7 +67,7 @@ export class OutputCapturingExecution extends CustomExecution {
         stderr: "",
         exitCode: -1,
         success: false,
-      } as CapturedTaskOutput;
+      };
     }
     return this.outputPromise;
   }
@@ -137,7 +75,10 @@ export class OutputCapturingExecution extends CustomExecution {
   public static create(
     command: string,
     args: string[],
-    options: ExecFileOptions
+    options: {
+      cwd?: string;
+      env?: { [key: string]: string | undefined };
+    }
   ): OutputCapturingExecution {
     return new OutputCapturingExecution(command, args, options);
   }

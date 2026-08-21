@@ -18,7 +18,7 @@
 
 import { CancellationToken, Uri } from "vscode";
 import { createEraseFlashProcessTask } from "./task";
-import { collectExecutions, TaskManager } from "../../../taskManager/taskManager";
+import { TaskManager } from "../../../taskManager/taskManager";
 import { OutputChannel } from "../../../common/outputChannel";
 import { Logger } from "../../../common/logger";
 import { CustomExecutionTaskResult } from "../../../taskManager/types";
@@ -28,18 +28,13 @@ import { noSerialPort } from "../../../common/error/knownError";
 
 export async function uartEraseFlashCmd(
   workspaceFolderUri: Uri,
-  cancelToken: CancellationToken,
-  captureOutput?: boolean
+  cancelToken: CancellationToken
 ): Promise<CustomExecutionTaskResult> {
   const port = await readSerialPort(workspaceFolderUri, false);
   if (!port) {
     throw noSerialPort(await getIdfTargetFromSdkconfig(workspaceFolderUri));
   }
-  const eraseFlashExecution = await createEraseFlashProcessTask(
-    workspaceFolderUri,
-    port,
-    captureOutput
-  );
+  await createEraseFlashProcessTask(workspaceFolderUri, port);
   const eraseFlashResult = await TaskManager.runTasksWithBoolean();
   if (eraseFlashResult && !cancelToken.isCancellationRequested) {
     const msg = "⚡️ Erase flash done";
@@ -48,8 +43,5 @@ export async function uartEraseFlashCmd(
     OutputChannel.appendLine("Flash memory content has been erased.");
     Logger.infoNotify("Flash memory content has been erased.");
   }
-  return {
-    continueFlag: eraseFlashResult,
-    executions: collectExecutions(eraseFlashExecution),
-  };
+  return { continueFlag: eraseFlashResult };
 }

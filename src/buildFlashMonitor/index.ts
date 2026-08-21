@@ -52,8 +52,7 @@ export const buildFlashMonitorTaskFailedPresentation: ErrorPresentation = {
 };
 
 const buildFlashMonitorFlashTypeNotSelectedPresentation: ErrorPresentation = {
-  logMessage:
-    "Build-flash-monitor blocked: idf.flashType is not configured.",
+  logMessage: "Build-flash-monitor blocked: idf.flashType is not configured.",
 };
 
 function registerBuildFlashMonitorCommand(
@@ -95,18 +94,20 @@ function rethrowWithBuildFlashMonitorPresentation(error: unknown): never {
   throw error;
 }
 
-export function registerBuildFlashMonitorCommands(
-  context: ExtensionContext
-) {
-  registerBuildFlashMonitorCommand(context, "espIdf.buildFlashMonitor", async () => {
-    const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-    await buildFlashAndMonitor(wsFolder.uri);
-  });
+export function registerBuildFlashMonitorCommands(context: ExtensionContext) {
+  registerBuildFlashMonitorCommand(
+    context,
+    "espIdf.buildFlashMonitor",
+    async () => {
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      await buildFlashAndMonitor(wsFolder.uri);
+    }
+  );
 }
 
 /**
  * Build, then flash, then open the serial monitor — same ordering as
- * {@link buildFlashAndMonitor} — with optional captured task output for LM tools.
+ * {@link buildFlashAndMonitor} — with captured task output for LM tools.
  * Callers supply pre-resolved flash type, partition, and encryption flag (same as
  * `readParameter` / tool-input resolution in language tools).
  *
@@ -117,30 +118,25 @@ export function registerBuildFlashMonitorCommands(
 export async function buildFlashAndMonitorCapture(
   workspaceFolder: WorkspaceFolder,
   token: CancellationToken,
-  captureOutput: boolean,
   flashType: ESP.FlashType,
   partitionToUse: ESP.BuildType | undefined,
   monitorNoReset?: boolean,
   onBeforeFlash?: () => void,
   onBeforeMonitor?: () => void
 ): Promise<CustomExecutionTaskResult> {
-  const executions: CustomExecutionTaskResult["executions"] = [];
-
   const buildCmdResults = await buildMain(
     workspaceFolder.uri,
     token,
     flashType,
-    partitionToUse,
-    captureOutput
+    partitionToUse
   );
-  executions.push(...buildCmdResults.executions);
   if (!buildCmdResults.continueFlag) {
-    return { continueFlag: false, executions };
+    return { continueFlag: false };
   }
 
   if (env.uiKind === UIKind.Web) {
     await commands.executeCommand(IDFWebCommandKeys.FlashAndMonitor);
-    return { continueFlag: true, executions };
+    return { continueFlag: true };
   }
 
   onBeforeFlash?.();
@@ -152,19 +148,17 @@ export async function buildFlashAndMonitorCapture(
     token,
     flashType,
     encryptPartitions,
-    partitionToUse,
-    captureOutput
+    partitionToUse
   );
-  executions.push(...flashResult.executions);
   if (!flashResult.continueFlag) {
-    return { continueFlag: false, executions };
+    return { continueFlag: false };
   }
 
   onBeforeMonitor?.();
 
   await monitorMain(workspaceFolder, monitorNoReset);
 
-  return { continueFlag: true, executions };
+  return { continueFlag: true };
 }
 
 export async function buildFlashAndMonitor(
@@ -192,7 +186,6 @@ export async function buildFlashAndMonitor(
           await buildFlashAndMonitorCapture(
             taskWsFolder,
             cancelToken,
-            false,
             flashType,
             partitionToUse,
             noResetMonitor,

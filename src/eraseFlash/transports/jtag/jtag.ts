@@ -20,7 +20,6 @@ import { CancellationToken, Disposable, Uri } from "vscode";
 import { connectOpenOcdForJtag } from "../../../espIdf/openOcd/jtagPreflight";
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
 import { eraseFlashTelnetCommand } from "./tclClientCmd";
-import { collectExecutions } from "../../../taskManager/taskManager";
 import { CustomExecutionTaskResult } from "../../../taskManager/types";
 import { eraseJtagOpenOcdPresentation } from "../../jtagOpenOcdPresentation";
 import { throwEraseCapturedTaskFailure } from "../../eraseTaskFailure";
@@ -44,16 +43,10 @@ export async function jtagEraseFlashCommand(
       "halt; flash erase_sector 0 0 last; reset"
     );
     if (!eraseResult.continueFlag) {
-      await throwEraseCapturedTaskFailure(eraseResult.executions);
-      return {
-        continueFlag: false,
-        executions: collectExecutions(...eraseResult.executions),
-      };
+      await throwEraseCapturedTaskFailure();
+      return { continueFlag: false };
     }
-    return {
-      continueFlag: true,
-      executions: collectExecutions(...eraseResult.executions),
-    };
+    return { continueFlag: true };
   } finally {
     cancelSubscription?.dispose();
     client?.stop();

@@ -29,8 +29,7 @@ import { requireIdfPath, resolvePythonForIdfPy } from "./validation";
 
 export async function saveDefSdkconfig(
   workspaceFolder: Uri,
-  cancelToken?: CancellationToken,
-  captureOutput: boolean = false
+  cancelToken?: CancellationToken
 ) {
   if (cancelToken) {
     cancelToken.onCancellationRequested(() => {
@@ -41,22 +40,18 @@ export async function saveDefSdkconfig(
   const modifiedEnv = getCurrentIdfConfiguration();
   const idfPath = requireIdfPath(modifiedEnv);
   const pythonBinPath = await resolvePythonForIdfPy();
-  const saveDefConfArgs = [
-    join(idfPath, "tools", "idf.py"),
-    "save-defconfig",
-  ];
+  const saveDefConfArgs = [join(idfPath, "tools", "idf.py"), "save-defconfig"];
   const saveDefSdkconfigExecution = addProcessTask(
     "Save Default SDKCONFIG",
     workspaceFolder,
     pythonBinPath,
     saveDefConfArgs,
     workspaceFolder.fsPath,
-    modifiedEnv,
-    { captureOutput: captureOutput || true }
+    modifiedEnv
   );
   try {
     await TaskManager.runTasks();
-    await throwCapturedTaskFailure([saveDefSdkconfigExecution]);
+    await throwCapturedTaskFailure();
     if (!cancelToken?.isCancellationRequested) {
       Logger.infoNotify("def-config has been generated");
     }

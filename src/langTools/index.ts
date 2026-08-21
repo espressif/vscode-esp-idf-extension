@@ -13,7 +13,8 @@ import { buildMain } from "../build/buildMain";
 import { readParameter, writeParameter } from "../configuration/idf";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
-import { IdfTaskExecution } from "../taskManager/taskManager";
+import { getCurrentIdfConfiguration } from "../configuration/env";
+import { TaskManager } from "../taskManager/taskManager";
 import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
 import { setTargetErrorPresentation } from "../espIdf/setTarget/setTargetErrorPresentation";
 import { updateCurrentProfileIdfTarget } from "../project-conf";
@@ -24,13 +25,10 @@ import {
   isSettingIDFTarget,
   setIsSettingIDFTarget,
 } from "../espIdf/setTarget/main";
-import { OutputCapturingExecution } from "../taskManager/customExecution";
 import { flashMain } from "../flash/main";
 import { eraseFlashMain } from "../eraseFlash/main";
 import { buildFlashAndMonitorCapture } from "../buildFlashMonitor";
 import { monitorMain } from "../espIdf/monitor/main";
-import { ShellOutputCapturingExecution } from "../taskManager/shellCaptureExecution";
-import { getCurrentIdfConfiguration } from "../configuration/env";
 
 // Map of command names to their corresponding VS Code command IDs
 const COMMAND_MAP: Record<string, string> = {
@@ -153,7 +151,6 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       const modifiedEnv = getCurrentIdfConfiguration();
 
       let continueFlag = true;
-      let taskExecutions: IdfTaskExecution[] = [];
       if (commandId) {
         let outputs: vscode.LanguageModelTextPart[] = [];
         try {
@@ -163,22 +160,18 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
               workspaceFolder.uri,
               token,
               flashType,
-              partitionToUse,
-              true // captureOutput = true for language tool
+              partitionToUse
             );
             continueFlag = buildCmdResults.continueFlag;
-            taskExecutions.push(...buildCmdResults.executions);
           } else if (commandName === "flash") {
             let flashResults = await flashMain(
               workspaceFolder.uri,
               token,
               flashType,
               encryptPartitions,
-              partitionToUse,
-              true // captureOutput = true for language tool
+              partitionToUse
             );
             continueFlag = flashResults.continueFlag;
-            taskExecutions.push(...flashResults.executions);
           } else if (commandName === "monitor") {
             if (vscode.env.uiKind === vscode.UIKind.Web) {
               vscode.commands.executeCommand(IDFWebCommandKeys.Monitor);
@@ -193,21 +186,17 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             const bfmResults = await buildFlashAndMonitorCapture(
               workspaceFolder,
               token,
-              true,
               flashType,
               partitionToUse
             );
             continueFlag = bfmResults.continueFlag;
-            taskExecutions.push(...bfmResults.executions);
           } else if (commandName === "eraseFlash") {
             let eraseFlashResult = await eraseFlashMain(
               workspaceFolder,
               token,
-              flashType,
-              true // captureOutput = true for language tool
+              flashType
             );
             continueFlag = eraseFlashResult.continueFlag;
-            taskExecutions.push(...eraseFlashResult.executions);
           } else if (commandName === "setTarget") {
             if (!target) {
               return new vscode.LanguageModelToolResult([
@@ -288,10 +277,9 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             } catch (error) {
               if (isKnownError(error)) {
                 const userMessage =
-                  resolveKnownErrorUserMessage(
-                    error,
-                    { outputChannel: "Set Target" }
-                  ) ?? error.message;
+                  resolveKnownErrorUserMessage(error, {
+                    outputChannel: "Set Target",
+                  }) ?? error.message;
                 return new vscode.LanguageModelToolResult([
                   new vscode.LanguageModelTextPart(userMessage),
                 ]);
@@ -310,14 +298,13 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 )
               );
             }
-            for (const execution of taskExecutions) {
-              if (execution && "getOutput" in execution) {
-                const output = await (execution as
-                  | OutputCapturingExecution
-                  | ShellOutputCapturingExecution).getOutput();
-                outputs.push(new vscode.LanguageModelTextPart(output.stdout));
-                outputs.push(new vscode.LanguageModelTextPart(output.stderr));
-              }
+            for (const result of TaskManager.getTaskResults()) {
+              outputs.push(
+                new vscode.LanguageModelTextPart(result.output.stdout)
+              );
+              outputs.push(
+                new vscode.LanguageModelTextPart(result.output.stderr)
+              );
             }
             return new vscode.LanguageModelToolResult(outputs);
           }

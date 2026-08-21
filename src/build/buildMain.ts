@@ -27,11 +27,7 @@ import {
   IdfTaskName,
 } from "../common/error/knownError";
 import { ErrorPresentation } from "../common/error/types";
-import {
-  collectExecutions,
-  TaskManager,
-  throwCapturedTaskFailure,
-} from "../taskManager/taskManager";
+import { TaskManager, throwCapturedTaskFailure } from "../taskManager/taskManager";
 import { updateIdfComponentsTree } from "../configuration/workspace";
 import { CustomTask, CustomTaskType } from "../taskManager/customTaskProvider";
 import { ESP } from "../config";
@@ -53,9 +49,7 @@ const buildIdfTaskInProgressPresentation: ErrorPresentation = {
  * is DFU may append a DFU image generation step.
  *
  * @returns A {@link CustomExecutionTaskResult}: `continueFlag` is whether the
- * build path succeeded; `executions` collects task executions (including
- * captured output where used) for follow-up checks or
- * {@link throwCapturedTaskFailure}.
+ * build path succeeded.
  *
  * @throws {KnownError} On validation failures, concurrent build/flash conflicts,
  * task failures, or user cancellation. Callers that need a soft failure result
@@ -65,12 +59,10 @@ export async function buildMain(
   workspace: Uri,
   cancelToken: CancellationToken,
   flashType: ESP.FlashType,
-  buildType?: ESP.BuildType,
-  captureOutput?: boolean
+  buildType?: ESP.BuildType
 ): Promise<CustomExecutionTaskResult> {
   const buildTask = new BuildTask(workspace);
   const customTask = new CustomTask(workspace);
-  let executions = collectExecutions();
   let cancelSubscription: Disposable | undefined;
   let failure: unknown;
   let session: BuildSession | undefined;
@@ -93,48 +85,26 @@ export async function buildMain(
     cancelSubscription = cancelToken.onCancellationRequested(() => {
       TaskManager.cancelTasks();
     });
-    const preBuildExecution = await customTask.addCustomTask(
-      CustomTaskType.PreBuild,
-      captureOutput
-    );
-    const [compileExecution, buildExecution] = await buildTask.build(
-      buildType,
-      captureOutput
-    );
-    executions = collectExecutions(
-      preBuildExecution,
-      compileExecution,
-      buildExecution
-    );
+    await customTask.addCustomTask(CustomTaskType.PreBuild);
+    await buildTask.build(buildType);
 
     if (flashType === ESP.FlashType.DFU) {
-      await appendDfuExecution(executions, workspace, captureOutput);
+      await appendDfuExecution(workspace);
     }
-    const postBuildExecution = await customTask.addCustomTask(
-      CustomTaskType.PostBuild,
-      captureOutput
-    );
-    executions.push(...collectExecutions(postBuildExecution));
+    await customTask.addCustomTask(CustomTaskType.PostBuild);
     const buildResult = await TaskManager.runTasksWithBoolean();
     let sizeResult = true;
     if (buildResult && typeof buildType === "undefined") {
-      sizeResult = await runSizeTaskIfEnabled(
-        executions,
-        workspace,
-        captureOutput
-      );
+      sizeResult = await runSizeTaskIfEnabled(workspace);
     }
     if (!buildResult || !sizeResult) {
-      await throwCapturedTaskFailure(executions);
+      await throwCapturedTaskFailure();
     }
-    if (
-      cancelToken.isCancellationRequested &&
-      !(buildResult && sizeResult)
-    ) {
+    if (cancelToken.isCancellationRequested && !(buildResult && sizeResult)) {
       throw buildTerminated();
     }
     if (!(buildResult && sizeResult)) {
-      return { continueFlag: false, executions };
+      return { continueFlag: false };
     }
     if (!cancelToken.isCancellationRequested) {
       updateIdfComponentsTree(workspace);
@@ -143,8 +113,11 @@ export async function buildMain(
       if (flashCmd) {
         OutputChannel.appendLine(flashCmd, "Build");
       }
+      for (const result of TaskManager.getTaskResults()) {
+        OutputChannel.appendLine(result.output.stdout, "Build");
+      }
     }
-    return { continueFlag: true, executions };
+    return { continueFlag: true };
   } catch (error) {
     failure = error;
   } finally {
@@ -155,5 +128,5 @@ export async function buildMain(
   if (failure !== undefined) {
     throw failure;
   }
-  return { continueFlag: true, executions };
+  return { continueFlag: true };
 }

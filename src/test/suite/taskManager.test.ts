@@ -39,31 +39,42 @@ suite("taskManager helpers", () => {
   });
 
   suite("throwCapturedTaskFailure", () => {
-    test("skips undefined and executions without getOutput", async () => {
-      const noGetOutput = {} as IdfTaskExecution;
-      await throwCapturedTaskFailure(
-        collectExecutions(undefined, noGetOutput)
-      );
+    teardown(() => {
+      TaskManager.clearTaskResults();
     });
 
-    test("does not throw when getOutput reports success", async () => {
-      await throwCapturedTaskFailure([
-        {
-          getOutput: async () => ({ success: true, stderr: "noise" }),
-        } as unknown as IdfTaskExecution,
-      ]);
+    test("does not throw when there are no recorded results", async () => {
+      TaskManager.clearTaskResults();
+      await throwCapturedTaskFailure();
+    });
+
+    test("does not throw when recorded results succeeded", async () => {
+      TaskManager.recordTaskResult({
+        taskId: "idf-build-task",
+        taskName: "ESP-IDF Build",
+        output: {
+          success: true,
+          stderr: "noise",
+          stdout: "",
+          exitCode: 0,
+        },
+      });
+      await throwCapturedTaskFailure();
     });
 
     test("throws KnownError with stderr metadata when task failed with stderr", async () => {
+      TaskManager.recordTaskResult({
+        taskId: "idf-build-task",
+        taskName: "ESP-IDF Build",
+        output: {
+          success: false,
+          stderr: "  cmake error  ",
+          stdout: "",
+          exitCode: 1,
+        },
+      });
       await assert.rejects(
-        throwCapturedTaskFailure([
-          {
-            getOutput: async () => ({
-              success: false,
-              stderr: "  cmake error  ",
-            }),
-          } as unknown as IdfTaskExecution,
-        ]),
+        throwCapturedTaskFailure(),
         (e: unknown) =>
           isKnownError(e) &&
           e.code === ErrorCode.TaskFailedWithOutput &&
@@ -72,16 +83,18 @@ suite("taskManager helpers", () => {
     });
 
     test("throws KnownError with stdout metadata when stderr is empty", async () => {
+      TaskManager.recordTaskResult({
+        taskId: "idf-build-task",
+        taskName: "ESP-IDF Build",
+        output: {
+          success: false,
+          stderr: "   ",
+          stdout: "ninja failed",
+          exitCode: 1,
+        },
+      });
       await assert.rejects(
-        throwCapturedTaskFailure([
-          {
-            getOutput: async () => ({
-              success: false,
-              stderr: "   ",
-              stdout: "ninja failed",
-            }),
-          } as unknown as IdfTaskExecution,
-        ]),
+        throwCapturedTaskFailure(),
         (e: unknown) =>
           isKnownError(e) &&
           e.code === ErrorCode.TaskFailedWithOutput &&
@@ -90,17 +103,18 @@ suite("taskManager helpers", () => {
     });
 
     test("throws KnownError with exit code when stdout and stderr are blank", async () => {
+      TaskManager.recordTaskResult({
+        taskId: "idf-build-task",
+        taskName: "ESP-IDF Build",
+        output: {
+          success: false,
+          stderr: "",
+          stdout: "  ",
+          exitCode: 7,
+        },
+      });
       await assert.rejects(
-        throwCapturedTaskFailure([
-          {
-            getOutput: async () => ({
-              success: false,
-              stderr: "",
-              stdout: "  ",
-              exitCode: 7,
-            }),
-          } as unknown as IdfTaskExecution,
-        ]),
+        throwCapturedTaskFailure(),
         (e: unknown) =>
           isKnownError(e) &&
           e.code === ErrorCode.TaskFailedWithOutput &&
@@ -109,47 +123,13 @@ suite("taskManager helpers", () => {
           e.metadata?.stderr === ""
       );
     });
-
-    test("ignores falsy executionOutput", async () => {
-      await throwCapturedTaskFailure([
-        {
-          getOutput: async () =>
-            undefined as unknown as {
-              success: boolean;
-              stderr?: string;
-              stdout?: string;
-              exitCode?: number;
-            },
-        } as unknown as IdfTaskExecution,
-      ]);
-    });
   });
 });
 
 suite("getTaskProcessExecution", () => {
-  test("returns OutputCapturingExecution when captureOutput is true", () => {
-    const exec = getTaskProcessExecution(
-      "echo",
-      ["hi"],
-      "/tmp",
-      {},
-      true
-    );
+  test("returns OutputCapturingExecution", () => {
+    const exec = getTaskProcessExecution("echo", ["hi"], "/tmp", {});
     assert.ok(exec instanceof OutputCapturingExecution);
-  });
-
-  test("returns ProcessExecution when captureOutput is false or omitted", () => {
-    const withoutFlag = getTaskProcessExecution("echo", ["a"], "/tmp", {});
-    assert.ok(withoutFlag instanceof vscode.ProcessExecution);
-
-    const explicitFalse = getTaskProcessExecution(
-      "echo",
-      ["b"],
-      "/tmp",
-      {},
-      false
-    );
-    assert.ok(explicitFalse instanceof vscode.ProcessExecution);
   });
 });
 
@@ -171,6 +151,27 @@ suite("TaskManager", () => {
   test("clearTaskResults leaves getTaskResults empty", () => {
     TaskManager.clearTaskResults();
     assert.deepStrictEqual(TaskManager.getTaskResults(), []);
+  });
+
+  test("getTaskResult returns undefined for an unknown taskId", () => {
+    assert.strictEqual(TaskManager.getTaskResult("missing"), undefined);
+  });
+
+  test("getTaskResult returns the last recorded result for a taskId", () => {
+    const output = {
+      stdout: "ok",
+      stderr: "",
+      exitCode: 0,
+      success: true,
+    };
+    TaskManager.recordTaskResult({
+      taskId: "idf-flash-task",
+      taskName: "ESP-IDF Flash",
+      output,
+    });
+    const result = TaskManager.getTaskResult("idf-flash-task");
+    assert.strictEqual(result?.taskName, "ESP-IDF Flash");
+    assert.deepStrictEqual(result?.output, output);
   });
 
   test("disposeListeners is safe when already clean", () => {

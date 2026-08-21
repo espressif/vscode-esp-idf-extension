@@ -131,7 +131,7 @@ suite("build errors", () => {
       setIdfConfigurationSource(createFakeIdfSource());
 
       await assert.rejects(
-        () => appendDfuExecution([], testWorkspaceUri),
+        () => appendDfuExecution(testWorkspaceUri),
         (error: unknown) =>
           isKnownError(error) &&
           error.code === ErrorCode.FlasherArgsMissing &&
@@ -148,7 +148,7 @@ suite("build errors", () => {
       );
 
       await assert.rejects(
-        () => appendDfuExecution([], testWorkspaceUri),
+        () => appendDfuExecution(testWorkspaceUri),
         (error: unknown) =>
           isKnownError(error) &&
           error.code === ErrorCode.FlasherArgsMissing &&
@@ -169,7 +169,7 @@ suite("build errors", () => {
       });
 
       await assert.rejects(
-        () => appendDfuExecution([], testWorkspaceUri),
+        () => appendDfuExecution(testWorkspaceUri),
         (error: unknown) =>
           isKnownError(error) &&
           error.code === ErrorCode.DfuTargetNotCompatible &&
@@ -190,7 +190,7 @@ suite("build errors", () => {
       });
 
       await assert.rejects(
-        () => appendDfuExecution([], testWorkspaceUri),
+        () => appendDfuExecution(testWorkspaceUri),
         (error: unknown) =>
           isKnownError(error) &&
           error.code === ErrorCode.INVALID_CONFIGURATION &&

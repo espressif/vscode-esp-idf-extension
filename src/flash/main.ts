@@ -18,7 +18,10 @@
 
 import { CancellationToken, Disposable, Uri, workspace } from "vscode";
 import { readParameter, readSerialPort } from "../configuration/idf";
-import { getIdfBuildPath, getIdfTargetFromSdkconfig } from "../configuration/workspace";
+import {
+  getIdfBuildPath,
+  getIdfTargetFromSdkconfig,
+} from "../configuration/workspace";
 import { ESP } from "../config";
 import {
   checkFlashEncryption,
@@ -50,8 +53,7 @@ export { selectFlashMethod } from "./selectFlashMethod";
  * Runs the ESP-IDF flash pipeline for UART, DFU, or JTAG transports.
  *
  * @returns A {@link CustomExecutionTaskResult}: `continueFlag` is whether the
- * flash path succeeded; `executions` collects task executions for follow-up
- * checks or {@link throwFlashCapturedTaskFailure}.
+ * flash path succeeded.
  *
  * @throws {KnownError} On validation failures, concurrent build/flash conflicts,
  * task failures, or user cancellation. Callers that need a soft failure result
@@ -62,8 +64,7 @@ export async function flashMain(
   cancelToken: CancellationToken,
   flashTypeIn: ESP.FlashType | undefined,
   encryptPartitions: boolean,
-  partitionToUse?: ESP.BuildType,
-  captureOutput?: boolean
+  partitionToUse?: ESP.BuildType
 ): Promise<CustomExecutionTaskResult> {
   const wsFolder =
     workspace.getWorkspaceFolder(workspaceFolderUri) ??
@@ -74,7 +75,6 @@ export async function flashMain(
   let failure: unknown;
   let flashCmdResult: CustomExecutionTaskResult = {
     continueFlag: false,
-    executions: [],
   };
 
   try {
@@ -85,9 +85,7 @@ export async function flashMain(
         flashType,
         workspaceFolderUri
       );
-      if (
-        !throwIfFlashEncryptionCheckFailed(encryptionValidationResult)
-      ) {
+      if (!throwIfFlashEncryptionCheckFailed(encryptionValidationResult)) {
         encryptPartitions = false;
       }
     }
@@ -156,22 +154,18 @@ export async function flashMain(
         buildDirPath,
         flashType,
         encryptPartitions,
-        partitionToUse,
-        captureOutput
+        partitionToUse
       );
     }
 
     if (!flashCmdResult.continueFlag) {
-      await throwFlashCapturedTaskFailure(flashCmdResult.executions);
+      await throwFlashCapturedTaskFailure();
     }
-    if (
-      cancelToken.isCancellationRequested &&
-      !flashCmdResult.continueFlag
-    ) {
+    if (cancelToken.isCancellationRequested && !flashCmdResult.continueFlag) {
       throw flashTerminated();
     }
     if (!flashCmdResult.continueFlag) {
-      return { continueFlag: false, executions: flashCmdResult.executions };
+      return { continueFlag: false };
     }
     return flashCmdResult;
   } catch (error) {

@@ -26,10 +26,7 @@ import {
 } from "../../../taskManager/customTaskProvider";
 import { CancellationToken, Disposable, Uri } from "vscode";
 import { OutputChannel } from "../../../common/outputChannel";
-import {
-  collectExecutions,
-  TaskManager,
-} from "../../../taskManager/taskManager";
+import { TaskManager } from "../../../taskManager/taskManager";
 import { jtagFlash } from "./flashTclClient";
 import type { CustomExecutionTaskResult } from "../../../taskManager/types";
 import { throwFlashCapturedTaskFailure } from "../../shared/flashTaskFailure";
@@ -63,9 +60,7 @@ export async function jtagFlashCommandMain(
     if (forceUNIXPathSeparator === true) {
       buildDirPath = buildDirPath.replace(/\\/g, "/");
     }
-    const preFlashExecution = await customTask.addCustomTask(
-      CustomTaskType.PreFlash
-    );
+    await customTask.addCustomTask(CustomTaskType.PreFlash);
     await TaskManager.runTasks();
     const flashExecution = await jtagFlash(
       client,
@@ -75,27 +70,15 @@ export async function jtagFlashCommandMain(
       ...openOCDJTagFlashArguments
     );
     if (!flashExecution.continueFlag) {
-      await throwFlashCapturedTaskFailure(flashExecution.executions);
-      return {
-        continueFlag: false,
-        executions: [...collectExecutions(preFlashExecution), ...flashExecution.executions],
-      };
+      await throwFlashCapturedTaskFailure();
+      return { continueFlag: false };
     }
-    const postFlashExecution = await customTask.addCustomTask(
-      CustomTaskType.PostFlash
-    );
+    await customTask.addCustomTask(CustomTaskType.PostFlash);
     await TaskManager.runTasks();
     const msg = "⚡️ Flashed Successfully (JTAG)";
     OutputChannel.appendLineAndShow(msg, "Flash");
     Logger.infoNotify(msg);
-    return {
-      continueFlag: true,
-      executions: [
-        ...collectExecutions(preFlashExecution),
-        ...flashExecution.executions,
-        ...collectExecutions(postFlashExecution),
-      ],
-    };
+    return { continueFlag: true };
   } finally {
     cancelSubscription?.dispose();
     client?.stop();

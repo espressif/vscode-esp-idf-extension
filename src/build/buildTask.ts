@@ -21,7 +21,7 @@ import { join } from "path";
 import { addProcessTask } from "../taskManager/taskManager";
 import { ESP } from "../config";
 import type { OutputCapturingExecution } from "../taskManager/customExecution";
-import type { ProcessExecution, Uri } from "vscode";
+import type { Uri } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { getIdfBuildPath } from "../configuration/workspace";
 import { runValidationBeforeBuild } from "./validation";
@@ -40,14 +40,8 @@ export class BuildTask {
    * before this pipeline runs.
    */
   public async build(
-    buildType?: ESP.BuildType,
-    captureOutput?: boolean
-  ): Promise<
-    [
-      OutputCapturingExecution | ProcessExecution | undefined,
-      OutputCapturingExecution | ProcessExecution
-    ]
-  > {
+    buildType?: ESP.BuildType
+  ): Promise<[OutputCapturingExecution | undefined, OutputCapturingExecution]> {
     const modifiedEnv = getCurrentIdfConfiguration();
     const buildDirPath = getIdfBuildPath(this.currentWorkspace);
     await ensureDir(buildDirPath);
@@ -59,17 +53,13 @@ export class BuildTask {
     const cmakeCachePath = join(buildDirPath, "CMakeCache.txt");
     const cmakeCacheExists = await pathExists(cmakeCachePath);
 
-    let compileExecution:
-      | OutputCapturingExecution
-      | ProcessExecution
-      | undefined;
+    let compileExecution: OutputCapturingExecution | undefined;
     if (!cmakeCacheExists) {
       compileExecution = await enqueueCompileTaskIfNoCache(
         this.currentWorkspace,
         buildDirPath,
         modifiedEnv,
-        cmakeBin,
-        captureOutput
+        cmakeBin
       );
     }
 
@@ -86,8 +76,7 @@ export class BuildTask {
       ninjaBin,
       buildArgs,
       buildDirPath,
-      modifiedEnv,
-      { captureOutput }
+      modifiedEnv
     );
     return [compileExecution, buildExecution];
   }

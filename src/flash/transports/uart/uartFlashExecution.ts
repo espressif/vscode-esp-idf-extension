@@ -20,10 +20,7 @@ import { FlashModel } from "./types/flashModel";
 import { addProcessTask } from "../../../taskManager/taskManager";
 import { ESP } from "../../../config";
 import { resolveEsptoolInvocation } from "../../shared/esptool/resolveEsptoolInvocation";
-import {
-  getFlasherArgs,
-  getSingleBinFlasherArgs,
-} from "./flashArgsBuilder";
+import { getFlasherArgs, getSingleBinFlasherArgs } from "./flashArgsBuilder";
 import { assertFlashSectionsReadable } from "../../shared/verifyFlashBins";
 
 export async function createUartFlashProcessTask(
@@ -32,12 +29,13 @@ export async function createUartFlashProcessTask(
   modifiedEnv: { [key: string]: string },
   buildDirPath: string,
   encryptPartitions: boolean,
-  partitionToUse?: ESP.BuildType,
-  captureOutput?: boolean
+  partitionToUse?: ESP.BuildType
 ) {
   assertFlashSectionsReadable(buildDirPath, model);
-  const { pythonPath: pythonBinPath, esptoolScriptPath } =
-    await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
+  const {
+    pythonPath: pythonBinPath,
+    esptoolScriptPath,
+  } = await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
   const flasherArgs = partitionToUse
     ? getSingleBinFlasherArgs(model, esptoolScriptPath, partitionToUse)
     : getFlasherArgs(model, esptoolScriptPath, encryptPartitions);
@@ -47,7 +45,6 @@ export async function createUartFlashProcessTask(
     pythonBinPath,
     flasherArgs,
     buildDirPath,
-    modifiedEnv,
-    { captureOutput }
+    modifiedEnv
   );
 }
