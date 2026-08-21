@@ -308,20 +308,28 @@ export async function readCurrentTerminalText(): Promise<string> {
 }
 
 /**
- * Opens `filePath` in the editor via Quick Open and sets a breakpoint at
- * `lineNumber`.
- *
- * `EditorView.openEditor()` only works on already-open tabs, so we first open
- * the file through the Quick Open palette using its full absolute path.  This
- * also guarantees we open the workspace copy of the file rather than any
- * same-named file from the ESP-IDF installation.
- *
- * Idempotent: any pre-existing breakpoint on that line is removed first.
+ * Debug toolbar buttons are often not visible: VS Code hides the floating bar
+ * after the Run and Debug view takes focus. Commands do not need that bar.
  */
-export async function setBreakpointInFile(
-  filePath: string,
-  lineNumber: number
+const DEBUG_ACTIONS = {
+  continue: "workbench.action.debug.continue",
+  stepOver: "workbench.action.debug.stepOver",
+  pause: "workbench.action.debug.pause",
+  stop: "workbench.action.debug.stop",
+} as const;
+
+export async function executeDebugAction(
+  action: keyof typeof DEBUG_ACTIONS
 ): Promise<void> {
+  await new Workbench().executeCommand(DEBUG_ACTIONS[action]);
+}
+
+/**
+ * Opens `filePath` via Quick Open. `EditorView.openEditor()` only works on
+ * already-open tabs, and Quick Open with an absolute path avoids same-named
+ * files from the ESP-IDF tree.
+ */
+export async function openFileInEditor(filePath: string): Promise<TextEditor> {
   await new Workbench().executeCommand("workbench.action.quickOpen");
   const input = await InputBox.create(5000);
   await input.setText(filePath);
@@ -330,7 +338,17 @@ export async function setBreakpointInFile(
   await new Promise((res) => setTimeout(res, 1500));
 
   const fileName = filePath.split("/").pop() ?? filePath;
-  const editor = (await new EditorView().openEditor(fileName)) as TextEditor;
+  return (await new EditorView().openEditor(fileName)) as TextEditor;
+}
+
+/**
+ * Idempotent: any pre-existing breakpoint on that line is removed first.
+ */
+export async function setBreakpointInFile(
+  filePath: string,
+  lineNumber: number
+): Promise<void> {
+  const editor = await openFileInEditor(filePath);
 
   const existing = await editor.getBreakpoint(lineNumber);
   if (existing) {
@@ -342,35 +360,34 @@ export async function setBreakpointInFile(
 }
 
 /**
- * Polls `TextEditor.getPausedBreakpoint().getLineNumber()` until the reported
- * line differs from `previousLine` and returns the new line number.
- *
- * `getPausedBreakpoint()` reads the yellow-arrow gutter element VS Code renders
- * on every GDB halt — the canonical vscode-extension-tester API for this.
- * It requires no DOM hacks, no aria-hidden workarounds, and no regex parsing.
- *
- * Returns `undefined` if the pause indicator does not move within `timeoutMs`.
+ * `getPausedBreakpoint()` reads the yellow-arrow gutter on a GDB halt.
+ * It throws when 0 or >1 pause indicators are present — callers retry.
  */
-export async function waitForPausedLineChange(
-  fileName: string,
-  previousLine: number,
-  timeoutMs: number
+async function pollPausedLine(
+  filePath: string,
+  timeoutMs: number,
+  match: (line: number) => boolean
 ): Promise<number | undefined> {
-  const editor = (await new EditorView().openEditor(fileName)) as TextEditor;
+  const fileName = filePath.split("/").pop() ?? filePath;
+  try {
+    await new EditorView().openEditor(fileName);
+  } catch {
+    await openFileInEditor(filePath);
+  }
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() < deadline) {
     try {
+      const editor = (await new EditorView().openEditor(fileName)) as TextEditor;
       const paused = await editor.getPausedBreakpoint();
       if (paused) {
         const line = await paused.getLineNumber();
-        if (line !== previousLine) {
+        if (match(line)) {
           return line;
         }
       }
     } catch {
-      // getPausedBreakpoint throws when 0 or >1 pause indicators are present;
-      // swallow and retry until the gutter settles.
+      // Gutter has not settled on a single pause indicator yet.
     }
     await new Promise((res) => setTimeout(res, 1000));
   }
@@ -378,38 +395,90 @@ export async function waitForPausedLineChange(
   return undefined;
 }
 
+/** Returns `undefined` if the pause indicator does not move within `timeoutMs`. */
+export async function waitForPausedLineChange(
+  filePath: string,
+  previousLine: number,
+  timeoutMs: number
+): Promise<number | undefined> {
+  return pollPausedLine(filePath, timeoutMs, (line) => line !== previousLine);
+}
+
+export async function waitForPausedLine(
+  filePath: string,
+  timeoutMs: number
+): Promise<number> {
+  const line = await pollPausedLine(filePath, timeoutMs, () => true);
+  if (typeof line !== "number") {
+    const fileName = filePath.split("/").pop() ?? filePath;
+    throw new Error(`Timed out waiting for a pause indicator in ${fileName}.`);
+  }
+  return line;
+}
+
+export async function waitForPausedAtLine(
+  filePath: string,
+  expectedLine: number,
+  timeoutMs: number
+): Promise<number> {
+  const line = await pollPausedLine(
+    filePath,
+    timeoutMs,
+    (current) => current === expectedLine
+  );
+  if (typeof line !== "number") {
+    const fileName = filePath.split("/").pop() ?? filePath;
+    throw new Error(
+      `Timed out waiting to pause at ${fileName}:${expectedLine}.`
+    );
+  }
+  return line;
+}
+
 /**
- * Opens the Run and Debug sidebar and reads the current source line from the
- * top Call Stack frame.
- *
- * Reads the raw text of the entire CALL STACK section element — VS Code
- * renders each frame as visible text ("app_main  hello_world_main.c 11"),
- * and `WebElement.getText()` collects it all.  The first `.c N` / `.c:N`
- * match in that text is always frame 0 (the innermost / most-recent frame).
- *
- * Unlike the Debug Console, the call stack IS updated after every GDB halt,
- * including step-over halts that emit no new source listing to the console.
- *
- * Returns `undefined` if no frame with a `.c` file reference is visible.
+ * VS Code renders frames as visible text ("app_main  hello_world_main.c 11").
+ * Unlike the Debug Console, the call stack updates after every GDB halt.
  */
-export async function readCallStackTopFrameLine(): Promise<number | undefined> {
+export async function readCallStackSectionText(): Promise<string | undefined> {
   const debugControl = await new ActivityBar().getViewControl("Run and Debug");
   if (!debugControl) {
     return undefined;
   }
   const debugView = (await debugControl.openView()) as DebugView;
   const callStackSection = await debugView.getCallStackSection();
+  return callStackSection.getText();
+}
 
-  // Read the full visible text of the section; ANSI codes are not present here
-  // because the sidebar uses normal DOM rendering, not a terminal emulator.
-  const rawText = await callStackSection.getText();
-
-  // First ".c N" or ".c:N" occurrence = frame 0 (app_main after step-over)
+export async function readCallStackTopFrameLine(): Promise<number | undefined> {
+  const rawText = await readCallStackSectionText();
+  if (!rawText) {
+    return undefined;
+  }
   const m = rawText.match(/\.c[:\s]+(\d+)/);
   if (!m) {
     return undefined;
   }
   return parseInt(m[1], 10);
+}
+
+export async function waitForCallStackMatching(
+  pattern: RegExp,
+  timeoutMs: number
+): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  let lastText = "";
+
+  while (Date.now() < deadline) {
+    lastText = (await readCallStackSectionText()) ?? "";
+    if (pattern.test(lastText)) {
+      return lastText;
+    }
+    await new Promise((res) => setTimeout(res, 1000));
+  }
+
+  throw new Error(
+    `Timed out waiting for call stack to match ${pattern}.\nLast call stack:\n${lastText}`
+  );
 }
 
 /**
