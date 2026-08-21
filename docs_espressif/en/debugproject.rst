@@ -355,11 +355,26 @@ ESP-IDF extension provides an ``ESP-IDF: Peripheral View`` tree in the ``Run and
 Post-mortem Debugging Use Cases
 -------------------------------
 
-You can start a monitor session to capture fatal error events with **ESP-IDF: Launch IDF Monitor for Core Dump Mode/GDB Stub Modec** command. If configured in your project's sdkconfig, it can trigger the start of a debug session for GDB remote protocol server (GDBStub) or `ESP-IDF Core Dump <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/core_dump.html#core-dump>`_ when an error occurs. For more information, see `Panic Handler <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/fatal-errors.html#panic-handler>`_.
+You can start a monitor session to capture fatal error events with **ESP-IDF: Launch IDF Monitor for Core Dump Mode/GDB Stub Mode** command. If configured in your project's sdkconfig, it can trigger the start of a debug session for GDB remote protocol server (GDBStub) or `ESP-IDF Core Dump <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/core_dump.html#core-dump>`_ when an error occurs. For more information, see `Panic Handler <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/fatal-errors.html#panic-handler>`_.
 
 - **Core Dump** is configured when **Core Dump's Data Destination** is set to either ``UART`` or ``FLASH`` using the ``ESP-IDF: SDK Configuration Editor`` extension command or ``idf.py menuconfig`` in a terminal.
 - **GDB Stub** is configured when **Panic Handler Behaviour** is set to ``Invoke GDBStub`` using the ``ESP-IDF: SDK Configuration Editor`` extension command or ``idf.py menuconfig`` in a terminal.
 
+
+Runtime GDB Stub
+----------------
+
+Besides the panic handler, the GDB Stub can also be entered on demand while the application is running. Use the ``ESP-IDF: Configure Project for Runtime GDB Stub`` command to prepare the project:
+
+- ``esp_gdbstub`` is added to the ``PRIV_REQUIRES`` list of the project ``idf_component_register`` call, which is required since ESP-IDF 6.0 builds only the components requested by the project.
+- ``CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y`` is set in the project sdkconfig.
+- An ``ESP-IDF Runtime GDB Stub`` configuration is added at the top of ``.vscode/launch.json``.
+
+Build and flash the project, select **ESP-IDF Runtime GDB Stub** in **Run and Debug**, then press ``F5``. The extension resets the chip over the serial port, sends Ctrl-C (``0x03``) so the firmware enters GDB Stub, and attaches GDB to that port. Close **IDF Monitor** first if it is using the same serial port.
+
+The default **Eclipse CDT GDB Adapter** configuration is unchanged and still uses OpenOCD/JTAG.
+
+The **ESP-IDF: Launch IDF Monitor for Core Dump Mode/GDB Stub Mode** command is unchanged: it still starts a post-mortem session when the panic handler invokes GDB Stub.
 
 ESP-IDF: Image Viewer
 ---------------------

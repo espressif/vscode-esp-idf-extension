@@ -361,6 +361,21 @@ ESP-IDF 扩展在 ``运行和调试`` 视图中提供了 ``ESP-IDF：外设视�
 - 配置 **GDB Stub**：在扩展中使用命令 ``ESP-IDF：SDK 配置编辑器`` 或在终端中使用 ``idf.py menuconfig``，将 **紧急处理程序行为** 设置为 ``Invoke GDBStub``。
 
 
+运行时 GDB Stub
+----------------
+
+除了紧急处理程序外，还可以在应用程序运行期间按需进入 GDB Stub。使用 ``ESP-IDF：配置项目以启用运行时 GDB Stub`` 命令配置项目：
+
+- 将 ``esp_gdbstub`` 添加到项目 ``idf_component_register`` 的 ``PRIV_REQUIRES`` 列表中。自 ESP-IDF 6.0 起，构建系统仅编译项目显式依赖的组件，因此该步骤是必需的。
+- 在项目 sdkconfig 中设置 ``CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y``。
+- 在 ``.vscode/launch.json`` 顶部添加 ``ESP-IDF Runtime GDB Stub`` 调试配置。
+
+构建并烧录项目，在 **运行和调试** 中选择 **ESP-IDF Runtime GDB Stub**，然后按 ``F5``。扩展会通过串口复位芯片，发送 Ctrl-C（``0x03``）使固件进入 GDB Stub，并将 GDB 附加到该串口。若 **IDF 监视器** 正在使用同一串口，请先关闭它。
+
+默认的 **Eclipse CDT GDB Adapter** 配置保持不变，仍使用 OpenOCD/JTAG。
+
+**ESP-IDF：启动 IDF 监视器以支持核心转储模式/GDB 存根模式** 命令保持不变：当紧急处理程序调用 GDB Stub 时，仍会启动事后调试会话。
+
 ESP-IDF：图像查看器
 --------------------
 

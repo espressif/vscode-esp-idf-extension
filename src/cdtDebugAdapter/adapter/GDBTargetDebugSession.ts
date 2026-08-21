@@ -23,6 +23,14 @@ import { SerialPort, ReadlineParser } from "serialport";
 import { Socket } from "net";
 import { createEnvValues, getGdbCwd } from "./util";
 import { OpenOCDManager } from "../../espIdf/openOcd/openOcdManager";
+import { Logger as EspLogger } from "../../logger/logger";
+import {
+  CORE_DUMP_SESSION_ID,
+  PANIC_GDBSTUB_SESSION_ID,
+  RUNTIME_GDBSTUB_SESSION_ID,
+  isNonJtagDebugSession,
+} from "../../espIdf/gdbstub/debugConfig";
+import { enterRuntimeGdbStub } from "../../espIdf/gdbstub/uart";
 
 interface UARTArguments {
   // Path to the serial port connected to the UART on the board.
@@ -95,6 +103,7 @@ export interface TargetAttachRequestArguments extends RequestArguments {
   // Optional commands to issue between loading image and resuming target
   preRunCommands?: string[];
   runOpenOCD?: boolean;
+  gdbStubUart?: { port: string; baudRate: number };
 }
 
 export interface TargetLaunchRequestArguments
@@ -129,15 +138,46 @@ export class GDBTargetDebugSession extends GDBDebugSession {
     this.setupCommonLoggerAndHandlers(args);
 
     if (
-      args.sessionID === "gdbstub.debug.session.ws" ||
-      args.sessionID === "core-dump.debug.session.ws"
+      args.sessionID === PANIC_GDBSTUB_SESSION_ID ||
+      args.sessionID === CORE_DUMP_SESSION_ID
     ) {
       this.isPostMortem = true;
     }
+    if (args.sessionID === RUNTIME_GDBSTUB_SESSION_ID || args.gdbStubUart) {
+      this.isHaltedOnAttach = true;
+    }
 
+    if (args.gdbStubUart) {
+      try {
+        this.sendEvent(
+          new OutputEvent(`Resetting target on ${args.gdbStubUart.port}\n`)
+        );
+        this.sendEvent(
+          new OutputEvent(
+            `Sending GDB Stub interrupt on ${args.gdbStubUart.port}\n`
+          )
+        );
+        await enterRuntimeGdbStub(
+          args.gdbStubUart.port,
+          args.gdbStubUart.baudRate
+        );
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        this.sendEvent(new OutputEvent(`❌ ${message}`, "stderr"));
+        EspLogger.errorNotify(
+          message,
+          err instanceof Error ? err : new Error(message),
+          "GDBTargetDebugSession gdbstub interrupt"
+        );
+        this.sendErrorResponse(response, 1, message);
+        return;
+      }
+    }
 
-
-    if (request === "launch") {
+    if (
+      request === "launch" &&
+      args.sessionID !== RUNTIME_GDBSTUB_SESSION_ID
+    ) {
       const launchArgs = args as TargetLaunchRequestArguments;
       if (
         launchArgs.target?.serverParameters === undefined &&
@@ -451,7 +491,9 @@ export class GDBTargetDebugSession extends GDBDebugSession {
       
       await this.spawn(args);
       await this.gdb.sendFileExecAndSymbols(args.program);
-      await this.gdb.sendEnablePrettyPrint();
+      if (args.sessionID !== RUNTIME_GDBSTUB_SESSION_ID) {
+        await this.gdb.sendEnablePrettyPrint();
+      }
       if (args.imageAndSymbols) {
         if (args.imageAndSymbols.symbolFileName) {
           if (args.imageAndSymbols.symbolOffset) {
@@ -469,8 +511,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
 
       // Check if OpenOCD is running before GDB tries to connect to it
       if (
-        args.sessionID !== "gdbstub.debug.session.ws" &&
-        args.sessionID !== "core-dump.debug.session.ws" &&
+        !isNonJtagDebugSession(args.sessionID) &&
         args.sessionID !== "qemu.debug.session" &&
         args.runOpenOCD !== false
       ) {
@@ -535,11 +576,15 @@ export class GDBTargetDebugSession extends GDBDebugSession {
       this.sendResponse(response);
       this.isInitialized = true;
     } catch (err) {
-      this.sendErrorResponse(
-        response,
-        1,
-        err instanceof Error ? err.message : String(err)
-      );
+      const message = err instanceof Error ? err.message : String(err);
+      if (args.sessionID === RUNTIME_GDBSTUB_SESSION_ID) {
+        EspLogger.errorNotify(
+          message,
+          err instanceof Error ? err : new Error(message),
+          "GDBTargetDebugSession startGDBAndAttachToTarget"
+        );
+      }
+      this.sendErrorResponse(response, 1, message);
     }
   }
 

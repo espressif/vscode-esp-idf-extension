@@ -22,20 +22,35 @@ import {
   DebugConfigurationProvider,
   Uri,
   WorkspaceFolder,
+  l10n,
   window,
   workspace,
 } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { readParameter, readSerialPort } from "../idfConfiguration";
 import { getIdfTargetFromSdkconfig, getProjectElfFilePath } from "../workspaceConfig";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { verifyAppBinary } from "../espIdf/debugAdapter/verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
-import { getConfigValueFromSDKConfig, getToolchainPath } from "../utils";
+import {
+  getConfigValueFromSDKConfig,
+  getMonitorBaudRate,
+  getToolchainPath,
+  sleep,
+} from "../utils";
 import { createNewIdfMonitor } from "../espIdf/monitor/command";
+import { IDFMonitor } from "../espIdf/monitor";
 import { ESP } from "../config";
 import { buildFlashAndMonitor } from "../buildFlashMonitor";
+import {
+  RUNTIME_GDBSTUB_SESSION_ID,
+  applyRuntimeGdbStubDebugConfig,
+  isNonJtagDebugSession,
+  isSdkconfigOptionEnabled,
+  parseMonitorBaudRate,
+  shouldUseRuntimeGdbStub,
+} from "../espIdf/gdbstub/debugConfig";
 
 export class CDTDebugConfigurationProvider
   implements DebugConfigurationProvider {
@@ -44,44 +59,55 @@ export class CDTDebugConfigurationProvider
     debugConfiguration: DebugConfiguration,
     token?: CancellationToken
   ) {
-    if (!folder) {
-      const workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
-        ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
-      );
-      folder = workspace.getWorkspaceFolder(workspaceFolderUri);
+    try {
       if (!folder) {
-        folder = await window.showWorkspaceFolderPick({
-          placeHolder: "Pick a workspace folder to start a debug session.",
-        });
+        const workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
+          ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
+        );
+        folder = workspace.getWorkspaceFolder(workspaceFolderUri);
         if (!folder) {
-          throw new Error("No folder was selected to start debug session");
+          folder = await window.showWorkspaceFolderPick({
+            placeHolder: "Pick a workspace folder to start a debug session.",
+          });
+          if (!folder) {
+            throw new Error("No folder was selected to start debug session");
+          }
         }
       }
-    }
-    const useMonitorWithDebug = readParameter(
-      "idf.launchMonitorOnDebugSession",
-      folder
-    );
-    if (debugConfiguration.buildFlashMonitor) {
-      await buildFlashAndMonitor(folder.uri, true);
-    } else if (
-      debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
-      debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
-      useMonitorWithDebug
-    ) {
-      await createNewIdfMonitor(folder.uri, true);
-    }
-    const openOCDManager = OpenOCDManager.init();
+      if (debugConfiguration.sessionID === RUNTIME_GDBSTUB_SESSION_ID) {
+        await prepareSerialPortForRuntimeGdbStub(folder);
+      }
+      const useMonitorWithDebug = readParameter(
+        "idf.launchMonitorOnDebugSession",
+        folder
+      );
+      if (debugConfiguration.buildFlashMonitor) {
+        await buildFlashAndMonitor(folder.uri, true);
+      } else if (
+        !isNonJtagDebugSession(debugConfiguration.sessionID) &&
+        useMonitorWithDebug
+      ) {
+        await createNewIdfMonitor(folder.uri, true);
+      }
+      const openOCDManager = OpenOCDManager.init();
       if (
         !openOCDManager.isRunning() &&
-        debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
-        debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
+        !isNonJtagDebugSession(debugConfiguration.sessionID) &&
         debugConfiguration.sessionID !== "qemu.debug.session" &&
         debugConfiguration.runOpenOCD !== false
       ) {
         await openOCDManager.start();
       }
-    return debugConfiguration;
+      return debugConfiguration;
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      Logger.errorNotify(
+        err.message,
+        err,
+        "CDTDebugConfigurationProvider resolve substituted"
+      );
+      return;
+    }
   }
   public async resolveDebugConfiguration(
     folder: WorkspaceFolder | undefined,
@@ -116,9 +142,14 @@ export class CDTDebugConfigurationProvider
       if (!config.gdb) {
         config.gdb = await getToolchainPath(folder.uri, "gdb");
       }
+      if (!config.gdb) {
+        throw new Error(
+          l10n.t("GDB is not found in the current ESP-IDF setup.")
+        );
+      }
+      await applyRuntimeGdbStubIfNeeded(folder, config);
       if (
-        config.sessionID !== "core-dump.debug.session.ws" &&
-        config.sessionID !== "gdbstub.debug.session.ws" &&
+        !isNonJtagDebugSession(config.sessionID) &&
         (!config.initCommands || config.initCommands.length === 0)
       ) {
         config.initCommands = [
@@ -130,7 +161,7 @@ export class CDTDebugConfigurationProvider
           "CONFIG_APP_REPRODUCIBLE_BUILD",
           folder.uri
         );
-        if (isAppReproducibleBuildEnabled === "y") {
+        if (isSdkconfigOptionEnabled(isAppReproducibleBuildEnabled)) {
           const buildDirPath = readParameter("idf.buildPath", folder) as string;
           if (!buildDirPath) {
             throw new Error("Failed to get build directory path.");
@@ -160,7 +191,11 @@ export class CDTDebugConfigurationProvider
         }
       }
 
-      if (config.initCommands && Array.isArray(config.initCommands)) {
+      if (
+        config.initCommands &&
+        Array.isArray(config.initCommands) &&
+        config.initCommands.length > 0
+      ) {
         let idfTarget = await getIdfTargetFromSdkconfig(folder.uri);
         type IdfTarget =
           | "esp32"
@@ -196,11 +231,7 @@ export class CDTDebugConfigurationProvider
         );
       }
 
-      if (
-        config.sessionID !== "core-dump.debug.session.ws" &&
-        config.sessionID !== "gdbstub.debug.session.ws" &&
-        !config.target
-      ) {
+      if (!isNonJtagDebugSession(config.sessionID) && !config.target) {
         config.target = {
           connectCommands: [
             "set remotetimeout 20",
@@ -217,12 +248,70 @@ export class CDTDebugConfigurationProvider
         }
       }
     } catch (error) {
-      const msg = error.message
-        ? error.message
-        : "Some build files doesn't exist. Build this project first.";
-      Logger.error(msg, error, "CDTDebugConfigurationProvider");
+      const err = error instanceof Error ? error : new Error(String(error));
+      Logger.errorNotify(
+        err.message ||
+          l10n.t("Some build files doesn't exist. Build this project first."),
+        err,
+        "CDTDebugConfigurationProvider"
+      );
       return;
     }
     return config;
+  }
+}
+
+async function applyRuntimeGdbStubIfNeeded(
+  folder: WorkspaceFolder,
+  config: DebugConfiguration
+): Promise<void> {
+  const flashType = readParameter("idf.flashType", folder) as string;
+  let runtimeEnabled = false;
+  try {
+    runtimeEnabled = isSdkconfigOptionEnabled(
+      await getConfigValueFromSDKConfig(
+        "CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME",
+        folder.uri
+      )
+    );
+  } catch {
+    runtimeEnabled = false;
+  }
+
+  if (!shouldUseRuntimeGdbStub(config, { flashType, runtimeEnabled })) {
+    return;
+  }
+
+  const port = await readSerialPort(folder.uri, false);
+  if (!port) {
+    throw new Error(
+      l10n.t(
+        "Select a serial port (idf.port) before debugging with UART GDB Stub."
+      )
+    );
+  }
+
+  applyRuntimeGdbStubDebugConfig(config, {
+    port,
+    baudRate: parseMonitorBaudRate(await getMonitorBaudRate(folder.uri)),
+  });
+  Logger.info(`Using UART GDB Stub on ${port}`);
+}
+
+async function prepareSerialPortForRuntimeGdbStub(
+  folder: WorkspaceFolder
+): Promise<void> {
+  const openOCDManager = OpenOCDManager.init();
+  if (openOCDManager.isRunning()) {
+    throw new Error(
+      l10n.t(
+        "Stop OpenOCD before debugging with UART GDB Stub. JTAG and the serial port cannot be used at the same time."
+      )
+    );
+  }
+  if (IDFMonitor.terminal) {
+    IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
+    const monitorDelay = readParameter("idf.monitorDelay", folder) as number;
+    await sleep(typeof monitorDelay === "number" ? monitorDelay : 1000);
   }
 }
