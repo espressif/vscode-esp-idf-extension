@@ -169,7 +169,7 @@ suite("size errors", () => {
       });
 
       await assert.rejects(
-        () => runSizeTaskIfEnabled([], testWorkspaceUri),
+        () => runSizeTaskIfEnabled(testWorkspaceUri),
         (error: unknown) =>
           isKnownError(error) &&
           error.code === ErrorCode.MISSING_DEPENDENCY &&

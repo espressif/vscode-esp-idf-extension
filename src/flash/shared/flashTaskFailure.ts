@@ -18,7 +18,6 @@
 import { ErrorCode, ErrorPresentation } from "../../common/error/types";
 import { isKnownError, known, noDfuDeviceFound } from "../../common/error/knownError";
 import { throwCapturedTaskFailure } from "../../taskManager/taskManager";
-import type { CustomExecutionTaskResult } from "../../taskManager/types";
 
 const flashTaskFailedWithOutputPresentation: ErrorPresentation = {
   userMessage: "Flash task failed. Check the terminal output for details.",
@@ -26,11 +25,9 @@ const flashTaskFailedWithOutputPresentation: ErrorPresentation = {
   outputChannel: "Flash",
 };
 
-export async function throwFlashCapturedTaskFailure(
-  executions: CustomExecutionTaskResult["executions"]
-): Promise<void> {
+export async function throwFlashCapturedTaskFailure(): Promise<void> {
   try {
-    await throwCapturedTaskFailure(executions);
+    await throwCapturedTaskFailure();
   } catch (error) {
     if (
       isKnownError(error) &&

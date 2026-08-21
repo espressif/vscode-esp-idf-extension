@@ -17,10 +17,7 @@
  */
 
 import {
-  CustomExecution,
   Disposable,
-  ProcessExecution,
-  ShellExecution,
   Task,
   TaskDefinition,
   TaskExecution,
@@ -36,7 +33,7 @@ import {
 import { ESP } from "../config";
 import { NotificationMode, readParameter } from "../configuration/idf";
 import { Logger } from "../common/logger";
-import type { CaptureableTaskExecution } from "./types";
+import type { CapturedTaskOutput, IdfTaskResult } from "./types";
 import { OutputCapturingExecution } from "./customExecution";
 import { ShellOutputCapturingExecution } from "./shellCaptureExecution";
 import { known } from "../common/error/knownError";
@@ -51,19 +48,13 @@ export function getTaskProcessExecution(
   cmdString: string,
   args: string[],
   cwd: string,
-  env: { [key: string]: string },
-  captureOutput?: boolean
-): OutputCapturingExecution | ProcessExecution {
-  return captureOutput
-    ? OutputCapturingExecution.create(cmdString, args, { cwd, env })
-    : new ProcessExecution(cmdString, args, { cwd, env });
+  env: { [key: string]: string }
+): OutputCapturingExecution {
+  return OutputCapturingExecution.create(cmdString, args, { cwd, env });
 }
 
 export type IdfTaskExecution =
   | ShellOutputCapturingExecution
-  | ShellExecution
-  | ProcessExecution
-  | CustomExecution
   | OutputCapturingExecution;
 
 export type MaybeIdfTaskExecution = IdfTaskExecution | undefined;
@@ -82,32 +73,16 @@ export function collectExecutions(
 }
 
 /**
- * Throws if any output-capturing execution reports failure (see
- * {@link OutputCapturingExecution} / {@link ShellOutputCapturingExecution}); other
- * execution types are ignored.
- *
- * Callers that must always surface a command failure as an exception cannot rely
- * on this alone: pass at least one output-capturing execution, or check
- * `continueFlag` / task results separately.
+ * Throws if any recorded {@link IdfTaskResult} reports failure.
  */
-export async function throwCapturedTaskFailure(
-  executions: ReadonlyArray<MaybeIdfTaskExecution | CaptureableTaskExecution>
-) {
-  for (const execution of executions) {
-    if (!execution || !("getOutput" in execution)) {
-      continue;
-    }
-
-    const executionOutput = await (execution as
-      | OutputCapturingExecution
-      | ShellOutputCapturingExecution
-      | CaptureableTaskExecution).getOutput();
-    if (executionOutput && !executionOutput.success) {
+export async function throwCapturedTaskFailure() {
+  for (const result of TaskManager.getTaskResults()) {
+    if (!result.output.success) {
       throw known(ErrorCode.TaskFailedWithOutput, {
-        stdout: executionOutput.stdout,
-        stderr: executionOutput.stderr,
-        exitCode: executionOutput.exitCode,
-        success: executionOutput.success,
+        stdout: result.output.stdout,
+        stderr: result.output.stderr,
+        exitCode: result.output.exitCode,
+        success: result.output.success,
       });
     }
   }
@@ -123,13 +98,7 @@ export class TaskManager {
   private static tasks: Task[] = [];
   private static disposables: Disposable[] = [];
   private static activeRunReject: ((error: Error) => void) | undefined;
-  private static taskResults: Array<{
-    taskId: string;
-    exitCode?: number;
-    taskName?: string;
-    output?: any;
-    error?: Error;
-  }> = [];
+  private static taskResults: IdfTaskResult[] = [];
 
   private static getTaskDefinitionId(
     definition: TaskDefinition
@@ -176,33 +145,35 @@ export class TaskManager {
     );
   }
 
-  private static taskUsesProcessExecution(task: Task): boolean {
-    return (
-      task.execution instanceof ProcessExecution ||
-      task.execution instanceof ShellExecution
-    );
+  private static failedCapturedOutput(): CapturedTaskOutput {
+    return {
+      stdout: "",
+      stderr: "",
+      exitCode: 1,
+      success: false,
+    };
   }
 
-  private static async resolveExitCodeForPendingTask(
-    pendingId: string,
-    processExitCode: number | undefined
-  ): Promise<number> {
-    if (typeof processExitCode === "number") {
-      return processExitCode;
-    }
+  private static async resolveOutputForPendingTask(
+    pendingId: string
+  ): Promise<CapturedTaskOutput> {
     const pendingTask = TaskManager.getInFlightTask(pendingId);
-    if (pendingTask && "getOutput" in pendingTask.execution) {
-      const output = await (
-        pendingTask.execution as {
-          getOutput: () => Promise<{
-            success: boolean;
-            exitCode?: number;
-          }>;
-        }
-      ).getOutput();
-      return output.success ? 0 : (output.exitCode ?? 1);
+    const execution = pendingTask?.execution;
+    if (execution && "getOutput" in execution) {
+      try {
+        return await (execution as
+          | OutputCapturingExecution
+          | ShellOutputCapturingExecution).getOutput();
+      } catch {
+        return TaskManager.failedCapturedOutput();
+      }
     }
-    return 0;
+    return {
+      stdout: "",
+      stderr: "",
+      exitCode: 0,
+      success: true,
+    };
   }
 
   private static clearActiveRunReject(): void {
@@ -295,20 +266,9 @@ export class TaskManager {
 
   public static runTasks(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      let processEndDisposable: Disposable | undefined;
       let taskEndDisposable: Disposable | undefined;
-      const processExitCodes = new Map<string, number | undefined>();
 
       const disposeTaskListeners = () => {
-        if (processEndDisposable) {
-          processEndDisposable.dispose();
-          const processIndex =
-            TaskManager.disposables.indexOf(processEndDisposable);
-          if (processIndex !== -1) {
-            TaskManager.disposables.splice(processIndex, 1);
-          }
-          processEndDisposable = undefined;
-        }
         if (taskEndDisposable) {
           taskEndDisposable.dispose();
           const taskIndex = TaskManager.disposables.indexOf(taskEndDisposable);
@@ -354,7 +314,9 @@ export class TaskManager {
       };
 
       const handleTaskFinished = async (execution: TaskExecution) => {
-        if (!TaskManager.executionMatchesPending(execution, pendingTaskMatchId)) {
+        if (
+          !TaskManager.executionMatchesPending(execution, pendingTaskMatchId)
+        ) {
           return;
         }
 
@@ -364,27 +326,14 @@ export class TaskManager {
         }
         handledCompletionIds.add(matchedTaskId);
 
-        const inFlightTask = TaskManager.getInFlightTask(matchedTaskId);
-        let processExitCode = processExitCodes.get(matchedTaskId);
-        if (
-          processExitCode === undefined &&
-          inFlightTask &&
-          TaskManager.taskUsesProcessExecution(inFlightTask)
-        ) {
-          await new Promise<void>((r) => setImmediate(r));
-          processExitCode = processExitCodes.get(matchedTaskId);
-        }
-        processExitCodes.delete(matchedTaskId);
-
-        const exitCode = await TaskManager.resolveExitCodeForPendingTask(
-          matchedTaskId,
-          processExitCode
+        const output = await TaskManager.resolveOutputForPendingTask(
+          matchedTaskId
         );
 
         TaskManager.taskResults.push({
           taskId: matchedTaskId,
-          exitCode,
           taskName: execution.task.name,
+          output,
         });
 
         const taskIndex = TaskManager.tasks.findIndex(
@@ -395,6 +344,7 @@ export class TaskManager {
           TaskManager.tasks.splice(taskIndex, 1);
         }
 
+        const exitCode = output.success ? 0 : output.exitCode ?? 1;
         if (exitCode !== 0) {
           const taskExitError = new Error(
             `Task ${execution.task.name} exited with code ${exitCode}`
@@ -413,28 +363,11 @@ export class TaskManager {
           return;
         }
 
-        processEndDisposable = tasks.onDidEndTaskProcess((e) => {
-          try {
-            if (
-              !TaskManager.executionMatchesPending(
-                e.execution,
-                pendingTaskMatchId
-              )
-            ) {
-              return;
-            }
-            const matchedTaskId = pendingTaskMatchId!;
-            processExitCodes.set(matchedTaskId, e.exitCode);
-          } catch (listenerErr) {
-            rejectTaskRun(listenerErr);
-          }
-        });
-
         taskEndDisposable = tasks.onDidEndTask((e) => {
           void handleTaskFinished(e.execution).catch(rejectTaskRun);
         });
 
-        TaskManager.disposables.push(processEndDisposable, taskEndDisposable);
+        TaskManager.disposables.push(taskEndDisposable);
         startNextTask();
       } catch (err) {
         rejectTaskRun(err);
@@ -442,8 +375,22 @@ export class TaskManager {
     });
   }
 
-  public static getTaskResults() {
+  public static getTaskResults(): IdfTaskResult[] {
     return TaskManager.taskResults;
+  }
+
+  public static getTaskResult(taskId: string): IdfTaskResult | undefined {
+    for (let i = TaskManager.taskResults.length - 1; i >= 0; i--) {
+      const result = TaskManager.taskResults[i];
+      if (result.taskId === taskId) {
+        return result;
+      }
+    }
+    return undefined;
+  }
+
+  public static recordTaskResult(result: IdfTaskResult): void {
+    TaskManager.taskResults.push(result);
   }
 
   public static clearTaskResults() {
@@ -468,17 +415,10 @@ export function addProcessTask(
   cwd: string,
   env: { [key: string]: string },
   options?: {
-    captureOutput?: boolean;
     presentation?: TaskPresentationOptions;
   }
-): OutputCapturingExecution | ProcessExecution {
-  const execution = getTaskProcessExecution(
-    command,
-    args,
-    cwd,
-    env,
-    options?.captureOutput
-  );
+): OutputCapturingExecution {
+  const execution = getTaskProcessExecution(command, args, cwd, env);
   TaskManager.addTask(
     name,
     getWorkspaceFolderForTask(workspaceUri),

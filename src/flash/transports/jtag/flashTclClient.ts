@@ -19,18 +19,10 @@
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
 import { Logger } from "../../../common/logger";
 import {
-  CaptureableTaskExecution,
   CapturedTaskOutput,
   CustomExecutionTaskResult,
 } from "../../../taskManager/types";
-
-export function createCapturedExecution(
-  output: CapturedTaskOutput
-): CaptureableTaskExecution {
-  return {
-    getOutput: async () => output,
-  };
-}
+import { TaskManager } from "../../../taskManager/taskManager";
 
 /**
  * Escapes characters that would break or reinterpret a TCL double-quoted string
@@ -44,6 +36,17 @@ export function quoteTclArg(arg: string): string {
     .replace(/\$/g, "\\$")
     .replace(/\[/g, "\\[");
   return `"${escaped}"`;
+}
+
+function recordJtagFlashOutput(
+  output: CapturedTaskOutput
+): CustomExecutionTaskResult {
+  TaskManager.recordTaskResult({
+    taskId: "idf-flash-task",
+    taskName: "ESP-IDF Flash",
+    output,
+  });
+  return { continueFlag: output.success };
 }
 
 const JTAG_FLASH_TCL_RESPONSE_TIMEOUT_MS = 120_000;
@@ -88,10 +91,7 @@ export async function jtagFlash(
         success,
         exitCode: success ? 0 : -1,
       };
-      finish({
-        continueFlag: success,
-        executions: [createCapturedExecution(output)],
-      });
+      finish(recordJtagFlashOutput(output));
     };
 
     const onError = (err: unknown) => {
@@ -110,10 +110,7 @@ export async function jtagFlash(
         success: false,
         exitCode: -1,
       };
-      finish({
-        continueFlag: false,
-        executions: [createCapturedExecution(output)],
-      });
+      finish(recordJtagFlashOutput(output));
     };
 
     client.once("response", onResponse);
@@ -125,10 +122,7 @@ export async function jtagFlash(
         success: false,
         exitCode: -1,
       };
-      finish({
-        continueFlag: false,
-        executions: [createCapturedExecution(output)],
-      });
+      finish(recordJtagFlashOutput(output));
     }, JTAG_FLASH_TCL_RESPONSE_TIMEOUT_MS);
     try {
       client.sendCommand(fullCommand);

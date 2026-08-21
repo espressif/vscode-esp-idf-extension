@@ -19,7 +19,6 @@
 import { TaskPanelKind, Uri, commands } from "vscode";
 import {
   addProcessTask,
-  type MaybeIdfTaskExecution,
   TaskManager,
 } from "../taskManager/taskManager";
 import { readParameter } from "../configuration/idf";
@@ -67,9 +66,7 @@ function resolveVirtualEnvPythonPath(): string | undefined {
 }
 
 export async function runSizeTaskIfEnabled(
-  executions: Exclude<MaybeIdfTaskExecution, undefined>[],
-  workspace: Uri,
-  captureOutput?: boolean
+  workspace: Uri
 ): Promise<boolean> {
   const enableSizeTask = (await readParameter(
     "idf.enableSizeTaskAfterBuildTask",
@@ -96,7 +93,7 @@ export async function runSizeTaskIfEnabled(
   const idfSizePath = join(idfPath, "tools", "idf_size.py");
   const args = [idfSizePath, mapFilePath];
 
-  const sizeExecution = addProcessTask(
+  addProcessTask(
     "Size",
     workspace,
     pythonCommand,
@@ -104,10 +101,8 @@ export async function runSizeTaskIfEnabled(
     buildDirPath,
     modifiedEnv,
     {
-      captureOutput,
       presentation: { panel: TaskPanelKind.Dedicated, clear: true },
     }
   );
-  executions.push(sizeExecution);
   return TaskManager.runTasksWithBoolean();
 }
