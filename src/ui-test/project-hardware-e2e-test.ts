@@ -38,9 +38,11 @@ import {
   testHardwareSerialPort,
   testWorkspaceDir,
   waitForBuildComplete,
+  waitForCallStackMatching,
   waitForOutputChannelText,
   waitForPathAbsent,
-  waitForPausedLineChange,
+  waitForPausedAtLine,
+  waitForPausedLine,
   waitForTerminalOutput,
 } from "./ui-test-helpers";
 
@@ -57,13 +59,15 @@ const SET_TARGET_COMPLETE_PATTERN =
 const DEBUG_FATAL_ERROR_PATTERN =
   /Target failure|Error: .*failed to halt|OpenOCD failed|LIBUSB_ERROR|failed to connect/i;
 
-// Breakpoint at a volatile assignment so the compiler cannot optimise it away.
-// Line 8: volatile int a = 1;  → GDB halts here
-// Line 9: volatile int b = a+1 → expected after step-over
-const BREAKPOINT_LINE = 8;
-const STEP_OVER_TARGET_LINE = BREAKPOINT_LINE + 1;
+// Default launch injects `thb app_main`, which lands on the prologue or first
+// statement (lines 6–8). The user breakpoint is the next volatile assignment
+// so Continue cannot be confused with that halt. Step-over target is ESP_LOGI
+// (a statement, not a step-into of the log macro).
+const USER_BREAKPOINT_LINE = 9;
+const STEP_OVER_TARGET_LINE = 10;
 const SOURCE_FILE_NAME = "hello_world_main.c";
 const SOURCE_FILE_PATH = resolve(testWorkspaceDir, "main", SOURCE_FILE_NAME);
+const APP_MAIN_STACK_PATTERN = /app_main/;
 
 // ─── shared state ────────────────────────────────────────────────────────────
 
@@ -88,6 +92,15 @@ async function step(
     const orig = err instanceof Error ? err.message : String(err);
     console.log(`  ✗ [step] ${stepName}\n${orig}`);
     throw new Error(`Test failed at: ${stepName}\n${orig}`);
+  }
+}
+
+async function assertNoOpenOcdFatal(when: string): Promise<void> {
+  const openocdLog = await waitForOutputChannelText("ESP-IDF", /.*/, 5000).catch(
+    () => ""
+  );
+  if (DEBUG_FATAL_ERROR_PATTERN.test(openocdLog)) {
+    throw new Error(`Fatal OpenOCD error ${when}.\nESP-IDF output:\n${openocdLog}`);
   }
 }
 
@@ -247,15 +260,6 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await waitForBuildComplete(helloWorldBinPath, 300000);
     });
 
-    // Set an explicit breakpoint so GDB halts at a known line rather than the
-    // default entry point, making step-over deterministic.
-    await step(
-      `Set breakpoint at ${SOURCE_FILE_NAME}:${BREAKPOINT_LINE}`,
-      async () => {
-        await setBreakpointInFile(SOURCE_FILE_PATH, BREAKPOINT_LINE);
-      }
-    );
-
     let debugToolbar: DebugToolbar;
 
     await step("Launch debugger", async () => {
@@ -264,61 +268,65 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       state.activeDebugToolbar = debugToolbar;
     });
 
-    // Declared here so the summary block at the end can reference both values.
-    let haltedLine: number | undefined;
-    let lineAfterStep: number | undefined;
+    await step("Wait for default halt at app_main", async () => {
+      await debugToolbar!.waitForBreakPoint(60000);
+      await assertNoOpenOcdFatal("on attach");
+
+      const haltedLine = await waitForPausedLine(SOURCE_FILE_PATH, 30000);
+      expect(
+        haltedLine,
+        `Default thb app_main should stop before user breakpoint (line ${USER_BREAKPOINT_LINE}), got ${haltedLine}`
+      ).to.be.lessThan(USER_BREAKPOINT_LINE);
+      expect(haltedLine, `GDB halted at ${haltedLine}, expected app_main`).to.be.at.least(6);
+
+      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
+    });
 
     await step(
-      `Wait for GDB to halt at ${SOURCE_FILE_NAME}:${BREAKPOINT_LINE}`,
+      `Set gutter breakpoint at ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
       async () => {
-        await debugToolbar!.waitForBreakPoint(60000);
-
-        // OpenOCD errors appear in the ESP-IDF channel, not in the terminal.
-        const openocdLog = await waitForOutputChannelText("ESP-IDF", /.*/, 5000).catch(() => "");
-        if (DEBUG_FATAL_ERROR_PATTERN.test(openocdLog)) {
-          throw new Error(`Fatal OpenOCD error.\nESP-IDF output:\n${openocdLog}`);
-        }
-
-        const editor = (await new EditorView().openEditor(SOURCE_FILE_NAME)) as TextEditor;
-        const paused = await editor.getPausedBreakpoint();
-        if (!paused) {
+        await setBreakpointInFile(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE);
+        const editor = (await new EditorView().openEditor(
+          SOURCE_FILE_NAME
+        )) as TextEditor;
+        const gutterBp = await editor.getBreakpoint(USER_BREAKPOINT_LINE);
+        if (!gutterBp) {
           throw new Error(
-            `No pause indicator in ${SOURCE_FILE_NAME}. ` +
-              "OpenOCD may not have connected or GDB did not set the breakpoint."
+            `Gutter breakpoint was not set at ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`
           );
         }
-        haltedLine = await paused.getLineNumber();
-        expect(haltedLine, `GDB halted at ${haltedLine}, expected ${BREAKPOINT_LINE}`).to.equal(
-          BREAKPOINT_LINE
-        );
+        await new Promise((res) => setTimeout(res, 1500));
+      }
+    );
+
+    await step(
+      `Continue and halt at user breakpoint ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
+      async () => {
+        await debugToolbar!.continue();
+        await debugToolbar!.waitForBreakPoint(60000);
+        await assertNoOpenOcdFatal("after Continue");
+
+        await waitForPausedAtLine(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE, 30000);
+        await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
       }
     );
 
     await step("Step Over and verify program counter advanced", async () => {
       await debugToolbar!.stepOver();
-
-      lineAfterStep = await waitForPausedLineChange(SOURCE_FILE_NAME, BREAKPOINT_LINE, 30000);
-
-      if (typeof lineAfterStep !== "number") {
-        throw new Error(
-          `GDB pause indicator did not move from line ${BREAKPOINT_LINE} within 30 s after Step Over.`
-        );
-      }
-
-      expect(
-        lineAfterStep,
-        `Expected step ${BREAKPOINT_LINE} → ${STEP_OVER_TARGET_LINE}, got ${lineAfterStep}`
-      ).to.equal(STEP_OVER_TARGET_LINE);
+      await waitForPausedAtLine(
+        SOURCE_FILE_PATH,
+        STEP_OVER_TARGET_LINE,
+        30000
+      );
     });
 
     await step("Verify debug session still active after Step Over", async () => {
       const sessionAlive = await debugToolbar!.isDisplayed().catch(() => false);
-      expect(sessionAlive, "Debug toolbar disappeared — session may have crashed").to.be.true;
-
-      const openocdLog = await waitForOutputChannelText("ESP-IDF", /.*/, 5000).catch(() => "");
-      if (DEBUG_FATAL_ERROR_PATTERN.test(openocdLog)) {
-        throw new Error(`Fatal OpenOCD error after Step Over.\nESP-IDF output:\n${openocdLog}`);
-      }
+      expect(
+        sessionAlive,
+        "Debug toolbar disappeared — session may have crashed"
+      ).to.be.true;
+      await assertNoOpenOcdFatal("after Step Over");
     });
 
     await step("Stop debug session", async () => {
