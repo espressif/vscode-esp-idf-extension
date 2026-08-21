@@ -308,6 +308,23 @@ export async function readCurrentTerminalText(): Promise<string> {
 }
 
 /**
+ * Debug toolbar buttons are often not visible: VS Code hides the floating bar
+ * after the Run and Debug view takes focus. Commands do not need that bar.
+ */
+const DEBUG_ACTIONS = {
+  continue: "workbench.action.debug.continue",
+  stepOver: "workbench.action.debug.stepOver",
+  pause: "workbench.action.debug.pause",
+  stop: "workbench.action.debug.stop",
+} as const;
+
+export async function executeDebugAction(
+  action: keyof typeof DEBUG_ACTIONS
+): Promise<void> {
+  await new Workbench().executeCommand(DEBUG_ACTIONS[action]);
+}
+
+/**
  * Opens `filePath` via Quick Open. `EditorView.openEditor()` only works on
  * already-open tabs, and Quick Open with an absolute path avoids same-named
  * files from the ESP-IDF tree.
@@ -351,8 +368,12 @@ async function pollPausedLine(
   timeoutMs: number,
   match: (line: number) => boolean
 ): Promise<number | undefined> {
-  await openFileInEditor(filePath);
   const fileName = filePath.split("/").pop() ?? filePath;
+  try {
+    await new EditorView().openEditor(fileName);
+  } catch {
+    await openFileInEditor(filePath);
+  }
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() < deadline) {

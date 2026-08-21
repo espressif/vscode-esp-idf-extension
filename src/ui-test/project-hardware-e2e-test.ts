@@ -28,6 +28,7 @@ import {
 import {
   ESP_IDF_COMMANDS,
   dismissNotifications,
+  executeDebugAction,
   executeEspIdfCommand,
   executeEspIdfCommandAndSelectOption,
   helloWorldBinPath,
@@ -302,7 +303,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
     await step(
       `Continue and halt at user breakpoint ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
       async () => {
-        await debugToolbar!.continue();
+        await executeDebugAction("continue");
         await debugToolbar!.waitForBreakPoint(60000);
         await assertNoOpenOcdFatal("after Continue");
 
@@ -312,7 +313,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
     );
 
     await step("Step Over and verify program counter advanced", async () => {
-      await debugToolbar!.stepOver();
+      await executeDebugAction("stepOver");
       await waitForPausedAtLine(
         SOURCE_FILE_PATH,
         STEP_OVER_TARGET_LINE,
