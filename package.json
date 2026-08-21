@@ -53,6 +53,7 @@
   ],
   "activationEvents": [
     "onCommand:espIdf.addArduinoAsComponentToCurFolder",
+    "onCommand:espIdf.configureRuntimeGdbStub",
     "onCommand:espIdf.createIdfTerminal",
     "onCommand:espIdf.createVsCodeFolder",
     "onCommand:espIdf.selectConfTarget",
@@ -1854,6 +1855,11 @@
       {
         "command": "espIdf.setClangSettings",
         "title": "%espIdf.setClangSettings.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.configureRuntimeGdbStub",
+        "title": "%espIdf.configureRuntimeGdbStub.title%",
         "category": "ESP-IDF"
       }
     ],

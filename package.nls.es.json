@@ -95,6 +95,7 @@
 	"espIdf.selectOpenOcdConfigFiles.title": "Seleccionar archivos de configuración de placa OpenOCD",
 	"espIdf.selectPort.title": "Seleccionar puerto a usar (COM, tty, usbserial)",
 	"espIdf.detectSerialPort.title": "Detectar puerto serie",
+	"espIdf.configureRuntimeGdbStub.title": "Configurar el proyecto para GDB Stub en tiempo de ejecución",
   "espIdf.setClangSettings.title": "Configurar el proyecto para usar ESP-Clang",
 	"espIdf.setGcovConfig.title": "Configurar SDKConfig del proyecto para cobertura",
 	"espIdf.setTarget.title": "Establecer Objetivo del Dispositivo Espressif",

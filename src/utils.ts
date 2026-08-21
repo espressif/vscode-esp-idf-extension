@@ -480,7 +480,7 @@ export async function getConfigValueFromSDKConfig(
   const configs = readFileSync(sdkconfigFilePath);
   const re = new RegExp(`${key}=(.*)?`);
   const match = configs.match(re);
-  return match ? match[1] : "";
+  return match ? match[1].trim() : "";
 }
 
 export async function getMonitorBaudRate(workspacePath: vscode.Uri) {

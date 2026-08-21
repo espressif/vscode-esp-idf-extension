@@ -162,6 +162,26 @@ export function base64ToHex(base64: string): string {
   return buffer.toString("hex");
 }
 
+function raceTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  message: string
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
 export class GDBDebugSession extends LoggingDebugSession {
   /**
    * Initial (aka default) configuration for launch/attach request
@@ -184,6 +204,10 @@ export class GDBDebugSession extends LoggingDebugSession {
   protected supportsGdbConsole = false;
 
   protected isPostMortem = false;
+  // Target is already halted (e.g. UART GDB Stub). Do not auto-continue on attach.
+  protected isHaltedOnAttach = false;
+  // Set after configurationDone so attach *stopped is not forwarded too early.
+  protected gdbStubUiReady = false;
 
   /* A reference to the logger to be used by subclasses */
   protected logger: Logger.Logger;
@@ -955,14 +979,25 @@ export class GDBDebugSession extends LoggingDebugSession {
           "console"
         )
       );
-      if (!this.isPostMortem) {
-        if (this.isAttach) {
-          await mi.sendExecContinue(this.gdb);
-        } else {
-          await mi.sendExecRun(this.gdb);
-        }
-      } else {
+      if (this.isPostMortem) {
+        this.sendResponse(response);
         this.sendEvent(new StoppedEvent("exception", 1, true));
+        return;
+      }
+      if (this.isHaltedOnAttach) {
+        if (this.threads.length === 0) {
+          this.threads = [new ThreadWithStatus(1, "thread 1", false)];
+        }
+        this.gdbStubUiReady = true;
+        // VS Code ignores stopped events until configurationDone has been answered.
+        this.sendResponse(response);
+        this.sendEvent(new StoppedEvent("pause", 1, true));
+        return;
+      }
+      if (this.isAttach) {
+        await mi.sendExecContinue(this.gdb);
+      } else {
+        await mi.sendExecRun(this.gdb);
       }
       this.sendResponse(response);
     } catch (err) {
@@ -990,6 +1025,14 @@ export class GDBDebugSession extends LoggingDebugSession {
     response: DebugProtocol.ThreadsResponse
   ): Promise<void> {
     try {
+      if (this.isHaltedOnAttach) {
+        if (this.threads.length === 0) {
+          this.threads = [new ThreadWithStatus(1, "thread 1", false)];
+        }
+        response.body = { threads: this.threads };
+        this.sendResponse(response);
+        return;
+      }
       if (!this.isRunning) {
         const result = await mi.sendThreadInfoRequest(this.gdb, {});
         this.threads = result.threads
@@ -1011,17 +1054,27 @@ export class GDBDebugSession extends LoggingDebugSession {
     }
   }
 
+  protected async getStackDepth(
+    threadId?: number,
+    maxDepth = 100
+  ): Promise<number> {
+    if (this.isHaltedOnAttach || this.isPostMortem) {
+      return Math.min(maxDepth, 8);
+    }
+    const depthResult = await mi.sendStackInfoDepth(this.gdb, {
+      maxDepth,
+      threadId,
+    });
+    return parseInt(depthResult.depth, 10);
+  }
+
   protected async stackTraceRequest(
     response: DebugProtocol.StackTraceResponse,
     args: DebugProtocol.StackTraceArguments
   ): Promise<void> {
     try {
       const threadId = args.threadId;
-      const depthResult = await mi.sendStackInfoDepth(this.gdb, {
-        maxDepth: 100,
-        threadId,
-      });
-      const depth = parseInt(depthResult.depth, 10);
+      const depth = await this.getStackDepth(threadId);
       const levels = args.levels
         ? args.levels > depth
           ? depth
@@ -1029,13 +1082,17 @@ export class GDBDebugSession extends LoggingDebugSession {
         : depth;
       const lowFrame = args.startFrame || 0;
       const highFrame = lowFrame + levels - 1;
-      const listResult = await mi.sendStackListFramesRequest(this.gdb, {
+      const frameRequest = mi.sendStackListFramesRequest(this.gdb, {
         lowFrame,
         highFrame,
-        threadId,
+        ...(this.isHaltedOnAttach ? {} : { threadId }),
       });
+      const listResult = this.isHaltedOnAttach
+        ? await raceTimeout(frameRequest, 1500, "stack-list-frames timed out")
+        : await frameRequest;
+      const frames = listResult.stack || [];
 
-      const stack = listResult.stack.map((frame) => {
+      const stack = frames.map((frame) => {
         let source;
         if (frame.fullname) {
           source = new Source(
@@ -1069,6 +1126,11 @@ export class GDBDebugSession extends LoggingDebugSession {
 
       this.sendResponse(response);
     } catch (err) {
+      if (this.isHaltedOnAttach) {
+        response.body = { stackFrames: [], totalFrames: 0 };
+        this.sendResponse(response);
+        return;
+      }
       this.sendErrorResponse(
         response,
         1,
@@ -1186,7 +1248,11 @@ export class GDBDebugSession extends LoggingDebugSession {
 
     response.body = {
       scopes: [
-        new Scope("Local", this.variableHandles.create(frame), false),
+        new Scope(
+          "Local",
+          this.variableHandles.create(frame),
+          this.isHaltedOnAttach
+        ),
         new Scope("Registers", this.variableHandles.create(registers), true),
       ],
     };
@@ -1251,10 +1317,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       const depth =
         ref.type === "registers"
           ? this.getRegisterVarDepth()
-          : parseInt(
-              (await mi.sendStackInfoDepth(this.gdb, { maxDepth: 100 })).depth,
-              10
-            );
+          : await this.getStackDepth();
       let varobj = this.gdb.varManager.getVar(
         frame.frameId,
         frame.threadId,
@@ -1397,10 +1460,7 @@ export class GDBDebugSession extends LoggingDebugSession {
         return;
       }
 
-      const stackDepth = await mi.sendStackInfoDepth(this.gdb, {
-        maxDepth: 100,
-      });
-      const depth = parseInt(stackDepth.depth, 10);
+      const depth = await this.getStackDepth();
       let varobj = this.gdb.varManager.getVar(
         frame.frameId,
         frame.threadId,
@@ -1734,8 +1794,10 @@ export class GDBDebugSession extends LoggingDebugSession {
   }
 
   protected handleGDBStopped(result: any) {
-    const getThreadId = (resultData: any) =>
-      parseInt(resultData["thread-id"], 10);
+    const getThreadId = (resultData: any) => {
+      const parsed = parseInt(resultData["thread-id"], 10);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+    };
     const getAllThreadsStopped = (resultData: any) => {
       return (
         !!resultData["stopped-threads"] &&
@@ -1855,7 +1917,9 @@ export class GDBDebugSession extends LoggingDebugSession {
         updateIsRunning();
         if (
           !suppressHandleGDBStopped &&
-          (this.gdb.isNonStopMode() || (wasRunning && !this.isRunning))
+          (this.gdb.isNonStopMode() ||
+            (wasRunning && !this.isRunning) ||
+            (this.isHaltedOnAttach && this.gdbStubUiReady))
         ) {
           if (this.isInitialized) {
             this.handleGDBStopped(resultData);
@@ -1913,10 +1977,7 @@ export class GDBDebugSession extends LoggingDebugSession {
     let numVars = 0;
 
     // stack depth necessary for differentiating between similarly named variables at different stack depths
-    const stackDepth = await mi.sendStackInfoDepth(this.gdb, {
-      maxDepth: 100,
-    });
-    const depth = parseInt(stackDepth.depth, 10);
+    const depth = await this.getStackDepth();
 
     // array of varnames to delete. Cannot delete while iterating through the vars array below.
     const toDelete = new Array<string>();
@@ -2074,10 +2135,7 @@ export class GDBDebugSession extends LoggingDebugSession {
     }
 
     // fetch stack depth to obtain frameId/threadId/depth tuple
-    const stackDepth = await mi.sendStackInfoDepth(this.gdb, {
-      maxDepth: 100,
-    });
-    const depth = parseInt(stackDepth.depth, 10);
+    const depth = await this.getStackDepth();
     // we need to keep track of children and the parent varname in GDB
     let children;
     let parentVarname = ref.varobjName;

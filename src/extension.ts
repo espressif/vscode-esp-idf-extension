@@ -97,6 +97,9 @@ import { isFlashEncryptionEnabled } from "./flash/verifyFlashEncryption";
 import { createNewIdfMonitor } from "./espIdf/monitor/command";
 import { KconfigLangClient } from "./kconfig";
 import { configureProjectWithGcov } from "./coverage/configureProject";
+import { configureProjectForRuntimeGdbStub } from "./espIdf/gdbstub/configureProject";
+import { isNonJtagDebugSession } from "./espIdf/gdbstub/debugConfig";
+import { ensureRuntimeGdbStubLaunchJson } from "./espIdf/gdbstub/launchJson";
 import { ComponentManagerUIPanel } from "./component-manager/panel";
 import { QemuLaunchMode, QemuManager } from "./qemu/qemuManager";
 import {
@@ -1289,8 +1292,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (
       openOCDManager.isRunning() &&
       session.type === "gdbtarget" &&
-      session.configuration.sessionID !== "core-dump.debug.session.ws" &&
-      session.configuration.sessionID !== "gdbstub.debug.session.ws"
+      !isNonJtagDebugSession(session.configuration.sessionID)
     ) {
       isOpenOCDLaunchedByDebug = true;
     }
@@ -1302,6 +1304,9 @@ export async function activate(context: vscode.ExtensionContext) {
       return {
         onDidSendMessage: async (m) => {
           if (m && m.type === "event" && m.event === "stopped") {
+            if (isNonJtagDebugSession(session.configuration.sessionID)) {
+              return;
+            }
             const peripherals = await peripheralTreeProvider.getChildren();
             for (const p of peripherals) {
               p.getPeripheral().updateData();
@@ -2457,6 +2462,54 @@ export async function activate(context: vscode.ExtensionContext) {
         await configureProjectWithGcov(workspaceRoot);
       } catch (error) {
         Logger.errorNotify(error.message, error, "extension setGcovConfig");
+      }
+    });
+  });
+
+  registerIDFCommand("espIdf.configureRuntimeGdbStub", async () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      try {
+        if (!utils.checkIsProjectCmakeLists(workspaceRoot.fsPath)) {
+          Logger.infoNotify(
+            vscode.l10n.t("The current directory is not an ESP-IDF project.")
+          );
+          return;
+        }
+        const result = await configureProjectForRuntimeGdbStub(workspaceRoot);
+        if (result === "cancelled") {
+          return;
+        }
+        const launchJsonPath = path.join(
+          workspaceRoot.fsPath,
+          ".vscode",
+          "launch.json"
+        );
+        if (!(await pathExists(launchJsonPath))) {
+          await utils.createVscodeFolder(workspaceRoot);
+        }
+        const launchChanged = await ensureRuntimeGdbStubLaunchJson(
+          workspaceRoot
+        );
+        if (result === "unchanged" && !launchChanged) {
+          Logger.infoNotify(
+            vscode.l10n.t(
+              "Runtime GDB Stub is already configured. Build and flash, select \"ESP-IDF Runtime GDB Stub\" in Run and Debug, then press F5."
+            )
+          );
+          return;
+        }
+        Logger.infoNotify(
+          vscode.l10n.t(
+            "Runtime GDB Stub is configured. Build and flash, select \"ESP-IDF Runtime GDB Stub\" in Run and Debug, then press F5."
+          )
+        );
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error));
+        Logger.errorNotify(
+          err.message || vscode.l10n.t("Failed to configure Runtime GDB Stub"),
+          err,
+          "extension configureRuntimeGdbStub"
+        );
       }
     });
   });
