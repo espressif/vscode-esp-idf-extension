@@ -15,15 +15,13 @@
  */
 
 import { existsSync } from "fs";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { spawn } from "../utils";
 import { CancellationToken, Uri, l10n } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { join } from "path";
-import { getVirtualEnvPythonPath } from "../pythonManager";
 import { EOL } from "os";
-import { configureEnvVariables } from "../common/prepareEnv";
-import { ESP } from "../config";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
 
 export async function addDependency(
   workspace: Uri,
@@ -32,13 +30,19 @@ export async function addDependency(
   cancelToken: CancellationToken
 ) {
   try {
-    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-      [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    const currentEnvVars = getCurrentIdfConfiguration();
     const idfPathDir = currentEnvVars["IDF_PATH"];
     const idfPy = join(idfPathDir, "tools", "idf.py");
-    const modifiedEnv = await configureEnvVariables(workspace);
-    const pythonBinPath = await getVirtualEnvPythonPath();
+    const modifiedEnv = getCurrentIdfConfiguration();
+    const pythonBinPath = getVirtualEnvPythonPath();
+    if (
+      !existsSync(idfPathDir) ||
+      !existsSync(idfPy) ||
+      !pythonBinPath ||
+      !existsSync(pythonBinPath)
+    ) {
+      throw new Error("The paths to idf, idf.py or pythonBin do not exist.");
+    }
     const enableCCache = readParameter(
       "idf.enableCCache",
       workspace
@@ -53,15 +57,11 @@ export async function addDependency(
       dependency,
       "reconfigure"
     );
-    const addDependencyResult = await spawn(
-      pythonBinPath,
-      addDependencyArgs,
-      {
-        cwd: workspace.fsPath,
-        env: modifiedEnv,
-        cancelToken
-      },
-    );
+    const addDependencyResult = await spawn(pythonBinPath, addDependencyArgs, {
+      cwd: workspace.fsPath,
+      env: modifiedEnv,
+      cancelToken,
+    });
     Logger.infoNotify(
       `Added dependency ${dependency} to the component "${component}"`
     );
@@ -73,7 +73,8 @@ export async function addDependency(
         { dependency, component }
       )
     );
-    Logger.error(error.message, error, "Component manager addDependency");
+    const msg = error instanceof Error ? error.message : String(error);
+    Logger.error(msg, error as Error, "Component manager addDependency");
     throw throwableError;
   }
 }
@@ -83,17 +84,16 @@ export async function createProject(
   example: string
 ): Promise<Uri> {
   try {
-    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-      [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    const currentEnvVars = getCurrentIdfConfiguration();
     const idfPathDir = currentEnvVars["IDF_PATH"];
     const idfPy = join(idfPathDir, "tools", "idf.py");
-    const modifiedEnv = await configureEnvVariables(workspace);
-    const pythonBinPath = await getVirtualEnvPythonPath();
+    const modifiedEnv = getCurrentIdfConfiguration();
+    const pythonBinPath = getVirtualEnvPythonPath();
 
     if (
       !existsSync(idfPathDir) ||
       !existsSync(idfPy) ||
+      !pythonBinPath ||
       !existsSync(pythonBinPath)
     ) {
       throw new Error("The paths to idf, idf.py or pythonBin do not exist.");
@@ -101,7 +101,7 @@ export async function createProject(
 
     const match = example.match(/(?<=:).*/);
     if (!match) {
-      return;
+      throw new Error(`Unexpected example format: ${example}. Expected format is "example:example_name"`);
     }
     const projectPath = Uri.joinPath(workspace, match[0]);
 
@@ -140,13 +140,14 @@ export async function createProject(
 
     return projectPath;
   } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
     const throwableError = new Error(
       `${l10n.t(
         `Error encountered while creating project from example "{example}"`,
         { example }
-      )}. Original error: ${error.message}`
+      )}. Original error: ${msg}`
     );
-    Logger.error(error.message, error, "Component manager createProject");
+    Logger.error(msg, error as Error, "Component manager createProject");
     throw throwableError;
   }
 }

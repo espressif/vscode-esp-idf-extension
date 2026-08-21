@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import * as path from "path";
+import { join } from "path";
 import {
   env,
   StatusBarAlignment,
@@ -27,17 +27,21 @@ import {
   window,
   l10n,
   ThemeColor,
+  ExtensionContext,
 } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
 import { ESP } from "../config";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 import { CommandItem } from "../cmdTreeView/cmdTreeDataProvider";
-import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { CommandKeys, commandDictionary } from "../cmdTreeView/cmdStore";
+import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { pathExists } from "fs-extra";
 import { getStoredAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 import { getEspIdfFromCMake } from "../utils";
 import { getProjectConfigurationElements } from "../project-conf";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
+import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
+import { QemuManager } from "../qemu/qemuManager";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
 
@@ -64,31 +68,34 @@ export function updateOpenOcdAdapterStatusBarItem(workspaceFolder: Uri) {
 
 export function updateStatusBarItemVisibility(cmdItem: CommandItem) {
   for (let statusBarItemKey of Object.keys(statusBarItems)) {
-    if (statusBarItems[statusBarItemKey].command === cmdItem.command.command) {
+    if (
+      cmdItem.command &&
+      statusBarItems[statusBarItemKey].command === cmdItem.command.command
+    ) {
       cmdItem.checkboxState === TreeItemCheckboxState.Checked
         ? statusBarItems[statusBarItemKey].show()
         : statusBarItems[statusBarItemKey].hide();
 
       ESP.GlobalConfiguration.store.set(
-        cmdItem.command.command,
+        cmdItem.command?.command,
         cmdItem.checkboxState
       );
 
       // Ensure OpenOCD adapter item text is refreshed when it becomes visible.
       if (cmdItem.command.command === CommandKeys.OpenOcdAdapterStatusBar) {
-        const selectedWorkspace = ESP.GlobalConfiguration.store.get<Uri>(
-          ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
-        );
+        const selectedWorkspace = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
         if (selectedWorkspace) {
-          updateOpenOcdAdapterStatusBarItem(selectedWorkspace);
+          updateOpenOcdAdapterStatusBarItem(selectedWorkspace.uri);
         }
       }
     }
   }
 }
 
-export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
-  const commandDictionary = createCommandDictionary();
+export async function createCmdsStatusBarItems(
+  context: ExtensionContext,
+  workspaceFolder: Uri
+) {
   const enableStatusBar = readParameter("idf.enableStatusBar") as boolean;
   if (!enableStatusBar) {
     return {};
@@ -103,11 +110,11 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   let projectConf = ESP.ProjectConfiguration.store.get<string>(
     ESP.ProjectConfiguration.SELECTED_CONFIG
   );
-  const cmakePresetsPath = path.join(
+  const cmakePresetsPath = join(
     workspaceFolder.fsPath,
     ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
   );
-  const cmakeUserPresetsPath = path.join(
+  const cmakeUserPresetsPath = join(
     workspaceFolder.fsPath,
     ESP.ProjectConfiguration.USER_CONFIGURATION_FILENAME
   );
@@ -124,15 +131,13 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     } catch (error) {
       Logger.error(
         "Failed to read project configuration presets for status bar",
-        error,
+        error as Error,
         "createCmdsStatusBarItems"
       );
       hasConfigurePresets = false;
     }
   }
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const currentEnvVars = getCurrentIdfConfiguration();
 
   statusBarItems["workspace"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.pickWorkspace].iconId})`,
@@ -228,7 +233,7 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   } else if (statusBarItems["projectConf"]) {
     // If no configuration files exist but the status bar item does, remove it
     statusBarItems["projectConf"].dispose();
-    statusBarItems["projectConf"] = undefined;
+    delete statusBarItems["projectConf"];
   }
 
   statusBarItems["target"] = createStatusBarItem(
@@ -313,6 +318,12 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     TreeItemCheckboxState.Unchecked
   );
   statusBarItems["hints"].hide();
+
+  OpenOCDManager.init();
+  QemuManager.init();
+  for (const key of Object.keys(statusBarItems)) {
+    context.subscriptions.push(statusBarItems[key]);
+  }
   return statusBarItems;
 }
 
@@ -321,7 +332,7 @@ export function createStatusBarItem(
   tooltip: string,
   cmd: string,
   priority: number,
-  showItem: TreeItemCheckboxState
+  showItem: TreeItemCheckboxState | undefined
 ) {
   const alignment: StatusBarAlignment = StatusBarAlignment.Left;
   const statusBarItem = window.createStatusBarItem(cmd, alignment, priority);
@@ -329,7 +340,10 @@ export function createStatusBarItem(
   statusBarItem.text = icon;
   statusBarItem.tooltip = tooltip;
   statusBarItem.command = cmd;
-  if (showItem === TreeItemCheckboxState.Checked) {
+  if (
+    typeof showItem !== "undefined" &&
+    showItem === TreeItemCheckboxState.Checked
+  ) {
     statusBarItem.show();
   }
   return statusBarItem;
@@ -362,6 +376,6 @@ export function updateHintsStatusBarItem(hasHints: boolean) {
 export function disposeHintsStatusBarItem() {
   if (statusBarItems["hints"]) {
     statusBarItems["hints"].dispose();
-    statusBarItems["hints"] = undefined;
+    delete statusBarItems["hints"];
   }
 }

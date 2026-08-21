@@ -15,13 +15,13 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { IFileInfo, IPackage } from "./IPackage";
-import { PackageError } from "./packageError";
 import { PlatformInformation } from "./PlatformInformation";
 import * as utils from "./utils";
-import { Logger } from "./logger/logger";
-import { OutputChannel } from "./logger/outputChannel";
-import { readJSON } from "fs-extra";
+import { Logger } from "./common/logger";
+import { OutputChannel } from "./common/outputChannel";
+import { pathExists, readJSON } from "fs-extra";
 import { ESP } from "./config";
+import { getEspIdfFromCMake } from "./utils";
 
 export interface IEspIdfTool {
   actual: string;
@@ -33,10 +33,41 @@ export interface IEspIdfTool {
   path: string;
 }
 
+class PackageError extends Error {
+  constructor(
+    public message: string,
+    public methodName: string,
+    public innerError: any = null,
+    public errorCode: string = " "
+  ) {
+    super(message);
+  }
+}
+
+export async function getToolsJsonPath(
+  extensionPath: string,
+  idfPath: string
+): Promise<string> {
+  const espIdfVersion = await getEspIdfFromCMake(idfPath);
+  let jsonToUse: string = path.join(idfPath, "tools", "tools.json");
+  const toolsJsonExists = await pathExists(jsonToUse);
+  if (!toolsJsonExists) {
+    const idfToolsJsonToUse =
+      espIdfVersion.localeCompare("4.0") < 0
+        ? "fallback-tools.json"
+        : "tools.json";
+    jsonToUse = path.join(extensionPath, idfToolsJsonToUse);
+  }
+  return jsonToUse;
+}
+
 export class IdfToolsManager {
-  public static async createIdfToolsManager(idfPath: string) {
+  public static async createIdfToolsManager(
+    extensionPath: string,
+    idfPath: string
+  ) {
     const platformInfo = PlatformInformation.GetPlatformInformation();
-    const toolsJsonPath = await utils.getToolsJsonPath(idfPath);
+    const toolsJsonPath = await getToolsJsonPath(extensionPath, idfPath);
     const toolsObj = await readJSON(toolsJsonPath);
     const idfToolsManager = new IdfToolsManager(
       toolsObj,
@@ -47,7 +78,7 @@ export class IdfToolsManager {
     return idfToolsManager;
   }
 
-  private allPackages: IPackage[];
+  private allPackages: IPackage[] = [];
 
   constructor(
     private toolsJson: any,
@@ -58,7 +89,7 @@ export class IdfToolsManager {
 
   public getPackageList(onReqPkgs?: string[]): Promise<IPackage[]> {
     return new Promise<IPackage[]>((resolve, reject) => {
-      if (!this.allPackages) {
+      if (this.allPackages.length === 0) {
         if (this.toolsJson.tools) {
           this.allPackages = this.toolsJson.tools as IPackage[];
           // Change relative path to desired full paths.
@@ -191,7 +222,7 @@ export class IdfToolsManager {
         `${pkg.name} doesn't have a compatible version for ${this.platformInfo.platformToUse}`
       );
     }
-    return versions.length > 0 ? versions[0].name : undefined;
+    return versions[0].name;
   }
 
   public async checkBinariesVersion(
@@ -199,9 +230,8 @@ export class IdfToolsManager {
     pathsToVerify: string,
     logToChannel: boolean = true
   ) {
-    const pathNameInEnv: string = Object.keys(process.env).find(
-      (k) => k.toUpperCase() == "PATH"
-    );
+    const pathNameInEnv: string =
+      Object.keys(process.env).find((k) => k.toUpperCase() == "PATH") || "PATH";
     let modifiedPath = process.env[pathNameInEnv];
     if (
       process.env[pathNameInEnv] &&
@@ -211,6 +241,7 @@ export class IdfToolsManager {
     }
     const modifiedEnv = Object.assign({}, process.env);
     if (
+      modifiedPath &&
       modifiedEnv[pathNameInEnv] &&
       !modifiedEnv[pathNameInEnv].includes(modifiedPath)
     ) {
@@ -259,13 +290,15 @@ export class IdfToolsManager {
       return "No match";
     } catch (error) {
       const errMsg = `Error checking ${pkg.name} version`;
+      const errorMessage =
+        error instanceof Error ? error.message : JSON.stringify(error);
       if (logToChannel) {
         this.toolsManagerChannel.appendLine(errMsg);
-        this.toolsManagerChannel.appendLine(error);
+        this.toolsManagerChannel.appendLine(errorMessage);
       }
       Logger.error(
         errMsg,
-        error,
+        error as Error,
         "IdfToolsManager checkBinariesVersion",
         undefined,
         false
@@ -294,7 +327,7 @@ export class IdfToolsManager {
   }
 
   public async getListOfReqEnvVars(onReqPkgs?: string[]) {
-    const exportedVarDict = {};
+    const exportedVarDict: { [key: string]: string } = {};
     const pkgs = await this.getPackageList(onReqPkgs);
     for (const pkg of pkgs) {
       Object.keys(pkg.export_vars).forEach((key) => {
@@ -321,7 +354,7 @@ export class IdfToolsManager {
   }
 
   public exportVarsForPkg(pkg: IPackage, basePath: string) {
-    const exportedVars = {};
+    const exportedVars: { [key: string]: string } = {};
     Object.keys(pkg.export_vars).forEach((key, index, arr) => {
       const versionToUse = this.getVersionToUse(pkg);
       const toolPath = path.join(basePath, pkg.name, versionToUse);

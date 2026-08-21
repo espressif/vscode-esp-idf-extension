@@ -1,4 +1,4 @@
-const del = require("del");
+const { glob, rm } = require("node:fs/promises");
 
 (async () => {
   const pathsToDelete = [
@@ -13,7 +13,11 @@ const del = require("del");
   ];
 
   try {
-    await del(pathsToDelete);
+    for (const pattern of pathsToDelete) {
+      for await (const entry of glob(pattern)) {
+        await rm(entry, { recursive: true, force: true });
+      }
+    }
     console.log("Build files and directories cleaned successfully.");
   } catch (error) {
     console.error("Error while cleaning files:", error);

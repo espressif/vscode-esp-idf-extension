@@ -9,17 +9,15 @@ import {
   ConfigurationTarget,
   RelativePattern,
 } from "vscode";
-import {
-  fileExists,
-  readFileSync,
-  setCCppPropertiesJsonCompileCommands,
-} from "../utils";
 import { ESP } from "../config";
-import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
-import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
+import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
+import { CommandKeys, commandDictionary } from "../cmdTreeView/cmdStore";
 import { createStatusBarItem } from "../statusBar";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
-import { Logger } from "../logger/logger";
+import {
+  getIdfTargetFromSdkconfig,
+  setCCppPropertiesJsonCompileCommands,
+} from "../configuration/workspace";
+import { Logger } from "../common/logger";
 import { getProjectConfigurationElements } from "./presetsReader";
 import { createStarterPresetsFile } from "./presetsWriter";
 import { migrateLegacyConfiguration } from "./legacy";
@@ -28,7 +26,8 @@ import { configureClangSettings } from "../clang";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { clearAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../statusBar";
-import * as idfConf from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
+import { existsSync, readFileSync } from "fs";
 
 export function clearSelectedProjectConfiguration(): void {
   if (ESP.ProjectConfiguration.store) {
@@ -47,6 +46,7 @@ export function clearSelectedProjectConfiguration(): void {
 export class ProjectConfigurationManager {
   private readonly cmakePresetsFilePath: string;
   private readonly cmakeUserPresetsFilePath: string;
+  public static instance: ProjectConfigurationManager | undefined = undefined;
   private configVersions: string[] = [];
   private cmakePresetsWatcher: FileSystemWatcher;
   private cmakeUserPresetsWatcher: FileSystemWatcher;
@@ -64,7 +64,6 @@ export class ProjectConfigurationManager {
     this.workspaceUri = workspaceUri;
     this.context = context;
     this.statusBarItems = statusBarItems;
-    this.commandDictionary = createCommandDictionary();
 
     this.cmakePresetsFilePath = Uri.joinPath(
       workspaceUri,
@@ -100,11 +99,13 @@ export class ProjectConfigurationManager {
     this.registerEventHandlers();
     // Initialize asynchronously and store the promise to prevent race conditions
     this.initPromise = this.initialize();
+    ProjectConfigurationManager.instance = this;
+    context.subscriptions.push(this);
   }
 
   private async initialize(): Promise<void> {
-    const cmakePresetsExists = fileExists(this.cmakePresetsFilePath);
-    const cmakeUserPresetsExists = fileExists(this.cmakeUserPresetsFilePath);
+    const cmakePresetsExists = existsSync(this.cmakePresetsFilePath);
+    const cmakeUserPresetsExists = existsSync(this.cmakeUserPresetsFilePath);
 
     if (!cmakePresetsExists && !cmakeUserPresetsExists) {
       // Neither CMakePresets.json nor CMakeUserPresets.json exists - check for legacy file
@@ -130,7 +131,7 @@ export class ProjectConfigurationManager {
         currentSelectedConfig &&
         this.configVersions.includes(currentSelectedConfig)
       ) {
-        const saveLastProjectConfiguration = idfConf.readParameter(
+        const saveLastProjectConfiguration = readParameter(
           "idf.saveLastProjectConfiguration",
           this.workspaceUri
         );
@@ -167,11 +168,12 @@ export class ProjectConfigurationManager {
         this.clearConfigurationState();
       }
     } catch (error) {
-      Logger.errorNotify(
-        `${l10n.t("Failed to parse project configuration files")}: ${
+      const errMsg = error instanceof Error ? `${l10n.t("Failed to parse project configuration files")}: ${
           error.message
-        }`,
-        error,
+        }` : String(error);
+      Logger.errorNotify(
+        errMsg,
+        error as Error,
         "ProjectConfigurationManager initialize"
       );
       this.suspendConfigurationState();
@@ -286,9 +288,10 @@ export class ProjectConfigurationManager {
         }
       }
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        `Error parsing configuration files: ${error.message}`,
-        error,
+        `Error parsing configuration files: ${errMsg}`,
+        error as Error,
         "ProjectConfigurationManager handleConfigFileChange"
       );
       this.suspendConfigurationState();
@@ -348,9 +351,10 @@ export class ProjectConfigurationManager {
         this.clearConfigurationState();
       }
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        `Error parsing newly created configuration file: ${error.message}`,
-        error,
+        `Error parsing newly created configuration file: ${errMsg}`,
+        error as Error,
         "ProjectConfigurationManager handleConfigFileCreate"
       );
       this.suspendConfigurationState();
@@ -378,13 +382,12 @@ export class ProjectConfigurationManager {
 
     this.statusBarItems["projectConf"] = createStatusBarItem(
       `$(${
-        this.commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
+        commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
       }) ${statusBarItemName}`,
       statusBarItemTooltip,
       commandToUse,
       99,
-      this.commandDictionary[CommandKeys.SelectProjectConfiguration]
-        .checkboxState
+      commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
     );
   }
 
@@ -443,13 +446,12 @@ export class ProjectConfigurationManager {
 
     this.statusBarItems["projectConf"] = createStatusBarItem(
       `$(${
-        this.commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
+        commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
       }) ${configName}`,
-      this.commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
+      commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
       CommandKeys.SelectProjectConfiguration,
       99,
-      this.commandDictionary[CommandKeys.SelectProjectConfiguration]
-        .checkboxState
+      commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
     );
 
     // Update related configurations
@@ -531,9 +533,10 @@ export class ProjectConfigurationManager {
 
       await this.updateConfiguration(option.target);
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        `Error selecting configuration: ${error.message}`,
-        error,
+        `Error selecting configuration: ${errMsg}`,
+        error as Error,
         "ProjectConfigurationManager selectProjectConfiguration"
       );
     }
@@ -548,12 +551,12 @@ export class ProjectConfigurationManager {
       "esp_idf_project_configuration.json"
     ).fsPath;
 
-    if (fileExists(legacyFilePath)) {
+    if (existsSync(legacyFilePath)) {
       // Legacy file exists - show status bar with migration option
       this.configVersions = [];
 
       try {
-        const legacyContent = readFileSync(legacyFilePath);
+        const legacyContent = readFileSync(legacyFilePath, "utf-8");
         if (legacyContent && legacyContent.trim() !== "") {
           const legacyData = JSON.parse(legacyContent);
           const legacyConfigNames = Object.keys(legacyData);
@@ -568,8 +571,9 @@ export class ProjectConfigurationManager {
           }
         }
       } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
         Logger.warn(
-          `Failed to parse legacy configuration file: ${error.message}`
+          `Failed to parse legacy configuration file: ${errMsg}`
         );
       }
     }
@@ -646,7 +650,7 @@ export class ProjectConfigurationManager {
     legacyFilePath: Uri
   ): Promise<void> {
     try {
-      const legacyContent = readFileSync(legacyFilePath.fsPath);
+      const legacyContent = readFileSync(legacyFilePath.fsPath, "utf-8");
       const legacyData = JSON.parse(legacyContent);
       const legacyConfigNames = Object.keys(legacyData);
 
@@ -667,9 +671,10 @@ export class ProjectConfigurationManager {
         await this.performMigration(legacyFilePath);
       }
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        l10n.t("Failed to handle legacy migration: {0}", error.message),
-        error,
+        l10n.t("Failed to handle legacy migration: {0}", errMsg),
+        error as Error,
         "ProjectConfigurationManager handleLegacyMigrationDialog"
       );
     }
@@ -691,9 +696,10 @@ export class ProjectConfigurationManager {
         )
       );
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
-        l10n.t("Failed to migrate project configuration: {0}", error.message),
-        error,
+        l10n.t("Failed to migrate project configuration: {0}", errMsg),
+        error as Error,
         "ProjectConfigurationManager performMigration"
       );
     }
@@ -731,7 +737,7 @@ export class ProjectConfigurationManager {
     } catch (error) {
       Logger.errorNotify(
         l10n.t("Could not open {0}", fileName),
-        error,
+        error as Error,
         "ProjectConfigurationManager createProjectConfiguration"
       );
     }
@@ -780,7 +786,7 @@ export class ProjectConfigurationManager {
   private disposeConfigurationStatusBar(): void {
     if (this.statusBarItems["projectConf"]) {
       this.statusBarItems["projectConf"].dispose();
-      this.statusBarItems["projectConf"] = undefined;
+      delete this.statusBarItems["projectConf"];
     }
   }
 
@@ -790,5 +796,6 @@ export class ProjectConfigurationManager {
   public dispose(): void {
     this.cmakePresetsWatcher.dispose();
     this.cmakeUserPresetsWatcher.dispose();
+    ProjectConfigurationManager.instance = undefined;
   }
 }

@@ -18,7 +18,7 @@
 
 import { Uri } from "vscode";
 import { readJson } from "fs-extra";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { ESP } from "../config";
 import {
   ConfigurePreset,

@@ -11,24 +11,57 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import { Uri } from "vscode";
+import { ExtensionContext, Uri } from "vscode";
 import { AbstractCloning } from "../common/abstractCloning";
-import { readParameter } from "../idfConfiguration";
+import { readParameter } from "../configuration/idf";
+import { registerIDFCommand } from "../common/registerCommand";
+import { ESP } from "../config";
+import { PreCheck } from "../common/PreCheck";
+import {
+  isKnownError,
+  missingDependency,
+  noWorkspaceOpen,
+} from "../common/error/knownError";
+import { ErrorCode } from "../common/error/types";
+import { espAdfErrorPresentation } from "./espAdfErrorPresentation";
 
 export class AdfCloning extends AbstractCloning {
-  constructor(gitBinPath: string = "git") {
+  constructor() {
     super(
       "https://github.com/espressif/esp-adf.git",
       "ESP-ADF",
       "master",
-      gitBinPath,
       "https://gitee.com/EspressifSystems/esp-adf.git"
     );
   }
 }
 
 export async function getEspAdf(workspace?: Uri) {
-  const gitPath = (await readParameter("idf.gitPath", workspace)) || "git";
-  const adfInstaller = new AdfCloning(gitPath);
-  await adfInstaller.getRepository("ADF_PATH", workspace);
+  const adfInstaller = new AdfCloning();
+  try {
+    await adfInstaller.getRepository("ADF_PATH", workspace);
+  } catch (error) {
+    if (isKnownError(error) && error.code === ErrorCode.MISSING_DEPENDENCY) {
+      throw missingDependency(
+        String(error.metadata?.dependency),
+        espAdfErrorPresentation.missingDependency
+      );
+    }
+    throw error;
+  }
+}
+
+export function registerEspAdfCmd(context: ExtensionContext) {
+  registerIDFCommand(
+    context,
+    "espIdf.getEspAdf",
+    async () => {
+      if (!PreCheck.isWorkspaceFolderOpen()) {
+        throw noWorkspaceOpen(espAdfErrorPresentation.noWorkspaceOpen);
+      }
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      await getEspAdf(wsFolder?.uri);
+    },
+    { outputChannel: "ESP-ADF" }
+  );
 }

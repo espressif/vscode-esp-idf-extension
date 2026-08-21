@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-import { Uri } from "vscode";
-import { readParameter } from "../idfConfiguration";
-import { Logger } from "../logger/logger";
+import { WorkspaceFolder } from "vscode";
+import { readParameter } from "../configuration/idf";
+import { Logger } from "./logger";
 import { delimiter, dirname, join } from "path";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 import { ESP } from "../config";
-import { isBinInPath, getEspIdfFromCMake, compareVersion } from "../utils";
+import { getEspIdfFromCMake, compareVersion } from "../utils";
+import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { pathExists } from "fs-extra";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 
@@ -49,8 +49,11 @@ import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
  * @returns {Promise<{[key: string]: string}>} A promise resolving to the configured
  * environment variables object, ready for use in ESP-IDF tasks.
  */
-export async function configureEnvVariables(
-  curWorkspace: Uri
+export async function expandEnvVariablesForIdfSetup(
+  currentEnvVars: {
+    [key: string]: string;
+  },
+  workspaceFolder: WorkspaceFolder
 ): Promise<{ [key: string]: string }> {
   const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
     Object.assign({}, process.env)
@@ -58,10 +61,6 @@ export async function configureEnvVariables(
 
   let pathNameInEnv: string =
     Object.keys(process.env).find((k) => k.toUpperCase() == "PATH") || "PATH";
-
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
 
   if (currentEnvVars) {
     try {
@@ -78,14 +77,14 @@ export async function configureEnvVariables(
       Logger.errorNotify(
         "Invalid project configuration environment variables format",
         error as Error,
-        "configureEnvVariables ProjectConfiguration.CURRENT_IDF_CONFIGURATION"
+        "expandEnvVariablesForIdfSetup ProjectConfiguration.CURRENT_IDF_CONFIGURATION"
       );
     }
   }
 
   const customExtraVars = readParameter(
     "idf.customExtraVars",
-    curWorkspace
+    workspaceFolder
   ) as { [key: string]: string };
   if (customExtraVars) {
     try {
@@ -98,14 +97,14 @@ export async function configureEnvVariables(
       Logger.errorNotify(
         "Invalid user environment variables format",
         error as Error,
-        "configureEnvVariables idf.customExtraVars"
+        "expandEnvVariablesForIdfSetup idf.customExtraVars"
       );
     }
   }
 
   try {
     const openOcdPath = await OpenOCDManager.getOpenOcdPath(
-      curWorkspace,
+      workspaceFolder.uri,
       modifiedEnv
     );
     if (openOcdPath) {
@@ -133,7 +132,7 @@ export async function configureEnvVariables(
           : "Unknown error"
       }`,
       error as Error,
-      "configureEnvVariables OPENOCD_SCRIPTS"
+      "expandEnvVariablesForIdfSetup OPENOCD_SCRIPTS"
     );
   }
 
@@ -146,53 +145,9 @@ export async function configureEnvVariables(
   const defaultToolsPath = join(containerPath, ".espressif");
   modifiedEnv.IDF_TOOLS_PATH = modifiedEnv.IDF_TOOLS_PATH || defaultToolsPath;
 
-  let pathToPigweed: string;
-
-  if (modifiedEnv.ESP_MATTER_PATH) {
-    pathToPigweed = join(
-      modifiedEnv.ESP_MATTER_PATH,
-      "connectedhomeip",
-      "connectedhomeip",
-      ".environment",
-      "cipd",
-      "packages",
-      "pigweed"
-    );
-    modifiedEnv.ZAP_INSTALL_PATH = join(
-      modifiedEnv.ESP_MATTER_PATH,
-      "connectedhomeip",
-      "connectedhomeip",
-      ".environment",
-      "cipd",
-      "packages",
-      "zap"
-    );
-    if (
-      pathToPigweed &&
-      modifiedEnv[pathNameInEnv] &&
-      typeof modifiedEnv[pathNameInEnv] === "string" &&
-      !modifiedEnv[pathNameInEnv].split(delimiter).includes(pathToPigweed)
-    ) {
-      modifiedEnv[pathNameInEnv] += delimiter + pathToPigweed;
-    }
-  }
-
-  const gitPath = readParameter("idf.gitPath", curWorkspace) as string;
-  let pathToGitDir;
-  if (gitPath && gitPath !== "git") {
-    pathToGitDir = dirname(gitPath);
-  }
-
-  if (
-    pathToGitDir &&
-    !modifiedEnv[pathNameInEnv].split(delimiter).includes(pathToGitDir)
-  ) {
-    modifiedEnv[pathNameInEnv] += delimiter + pathToGitDir;
-  }
-
-  if (currentEnvVars["IDF_PYTHON_ENV_PATH"]) {
+  if (modifiedEnv["IDF_PYTHON_ENV_PATH"]) {
     const pyDir = process.platform === "win32" ? "Scripts" : "bin";
-    const venvPyContainer = join(currentEnvVars["IDF_PYTHON_ENV_PATH"], pyDir);
+    const venvPyContainer = join(modifiedEnv["IDF_PYTHON_ENV_PATH"], pyDir);
     if (
       modifiedEnv[pathNameInEnv] &&
       !modifiedEnv[pathNameInEnv].includes(venvPyContainer)
@@ -242,14 +197,14 @@ export async function configureEnvVariables(
     pathNameInEnv
   ] = `${IDF_ADD_PATHS_EXTRAS}${delimiter}${modifiedEnv[pathNameInEnv]}`;
 
-  let idfTarget = await getIdfTargetFromSdkconfig(curWorkspace);
+  let idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder.uri);
   if (idfTarget) {
     modifiedEnv.IDF_TARGET = idfTarget;
   }
 
   let enableComponentManager = readParameter(
     "idf.enableIdfComponentManager",
-    curWorkspace
+    workspaceFolder
   ) as boolean;
 
   if (enableComponentManager) {
@@ -258,7 +213,7 @@ export async function configureEnvVariables(
 
   let sdkconfigFilePath = readParameter(
     "idf.sdkconfigFilePath",
-    curWorkspace
+    workspaceFolder
   ) as string;
   if (sdkconfigFilePath) {
     modifiedEnv.SDKCONFIG = sdkconfigFilePath;

@@ -50,14 +50,8 @@ Setup & Installation
       - Path to the currently selected ESP-IDF directory. Scope: Resource.
     * - **idf.saveLastProjectConfiguration**
       - Restore the project configuration that was selected last when the workspace is reopened (default: ``true``). When disabled, no configuration is selected on startup. Scope: Resource.
-    * - **idf.gitPath**
-      - Path to the Git executable (default: ``/usr/bin/git``). Scope: Application.
-    * - **idf.gitPathWin**
-      - Path to the Git executable in Windows (default: ``${env:programfiles}\\Git\\cmd\\git.exe``). Scope: Application.
     * - **idf.extensionActivationMode**
       - Controls extension activation mode: ``"detect"`` (default), ``"always"``, or ``"never"``.
-
-**idf.gitPath** (or **idf.gitPathWin** on Windows) is used by the extension to clone ESP-IDF or additional supported frameworks such as ESP-ADF, ESP-MDF and Arduino-ESP32.
 
 Serial Port
 -----------
@@ -70,8 +64,6 @@ Serial Port
       - Description
     * - **idf.port**
       - Path of selected device port (default: ``detect``). Scope: Resource.
-    * - **idf.portWin**
-      - Path of selected device port in Windows (default: ``detect``). Scope: Resource.
     * - **idf.monitorPort**
       - Optional path of selected device port for monitor. If undefined, **idf.port** is used. Scope: Resource.
     * - **idf.flashBaudRate**
@@ -123,9 +115,7 @@ Build
     * - Setting ID
       - Description
     * - **idf.buildPath**
-      - Custom build directory for extension commands (default: ``${workspaceFolder}/build``). Scope: Resource.
-    * - **idf.buildPathWin**
-      - Custom build directory in Windows (default: ``${workspaceFolder}\\build``). Scope: Resource.
+      - Custom build directory for extension commands (default: ``build``, relative to the workspace folder). Scope: Resource.
     * - **idf.cmakeCompilerArgs**
       - Arguments for CMake configuration (default includes ``-G Ninja``, ``-DPYTHON_DEPS_CHECKED=1``, ``-DESP_PLATFORM=1``). Scope: Resource.
     * - **idf.sdkconfigDefaults**
