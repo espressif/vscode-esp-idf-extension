@@ -28,6 +28,7 @@ import {
   pathExists,
   ReadStream,
   readFile,
+  readdir,
   remove,
   WriteStream,
 } from "fs-extra";
@@ -90,12 +91,12 @@ function getEimInstallDir(mode: "cli" | "gui"): string {
   return join(getEimHomeDir(), ".espressif", subdir);
 }
 
-function getCliBinaryPath(): string {
+function getCliBinaryPath(): Promise<string> {
   if (process.platform === "win32") {
-    return join(getEimInstallDir("cli"), "eim-cli-windows-x64.exe");
+    return findWindowsEimBinary(getEimInstallDir("cli"), "cli");
   }
 
-  return join(getEimInstallDir("cli"), "eim");
+  return Promise.resolve(join(getEimInstallDir("cli"), "eim"));
 }
 
 function getGuiAssetArch(arch: string): "aarch64" | "x64" {
@@ -122,25 +123,145 @@ function getLinuxCliAssetArch(arch: string): "aarch64" | "armv7" | "x64" {
   }
 }
 
+/** OS/arch/mode prefix used to filter release assets (no extension, no version). */
 function getEimAssetName(mode: "cli" | "gui", arch: string): string {
   if (process.platform === "win32") {
     if (arch !== "x64") {
       throw new Error(`Unsupported architecture: ${arch}`);
     }
 
-    return `eim-${mode}-windows-x64.exe`;
+    return `eim-${mode}-windows-x64`;
   }
 
   if (process.platform === "darwin") {
-    return `eim-${mode}-macos-${getGuiAssetArch(arch)}.zip`;
+    return `eim-${mode}-macos-${getGuiAssetArch(arch)}`;
   }
 
   if (process.platform === "linux") {
     const linuxArch = mode === "cli" ? getLinuxCliAssetArch(arch) : getGuiAssetArch(arch);
-    return `eim-${mode}-linux-${linuxArch}.zip`;
+    return `eim-${mode}-linux-${linuxArch}`;
   }
 
   throw new Error(`Unsupported platform: ${process.platform}`);
+}
+
+function getEimAssetExtension(): ".exe" | ".zip" {
+  return process.platform === "win32" ? ".exe" : ".zip";
+}
+
+/** Matches prefix.ext or prefix-vX.Y.Z.ext from eim_unified_release.json. */
+function isEimPortableAsset(
+  assetName: string,
+  prefix: string,
+  extension: string
+): boolean {
+  if (!assetName.startsWith(prefix) || !assetName.endsWith(extension)) {
+    return false;
+  }
+
+  const middle = assetName.slice(prefix.length, -extension.length);
+  return middle === "" || /^-v\d+\.\d+\.\d+$/.test(middle);
+}
+
+function isVersionedEimAsset(assetName: string, prefix: string, extension: string): boolean {
+  if (!assetName.startsWith(prefix) || !assetName.endsWith(extension)) {
+    return false;
+  }
+
+  const middle = assetName.slice(prefix.length, -extension.length);
+  return /^-v\d+\.\d+\.\d+$/.test(middle);
+}
+
+function compareEimAssetVersions(
+  left: string,
+  right: string,
+  prefix: string,
+  extension: string
+): number {
+  const versionOf = (name: string) =>
+    name
+      .slice(prefix.length + 2, -extension.length)
+      .split(".")
+      .map(Number);
+
+  const leftVersion = versionOf(left);
+  const rightVersion = versionOf(right);
+  for (let index = 0; index < leftVersion.length; index++) {
+    const difference = leftVersion[index] - rightVersion[index];
+    if (difference !== 0) {
+      return difference;
+    }
+  }
+  return 0;
+}
+
+function pickPreferredEimAssetName(names: string[], prefix: string, extension: string): string | undefined {
+  const matches = names.filter((name) => isEimPortableAsset(name, prefix, extension));
+  if (matches.length === 0) {
+    return undefined;
+  }
+
+  const versioned = matches
+    .filter((name) => isVersionedEimAsset(name, prefix, extension))
+    .sort((left, right) =>
+      compareEimAssetVersions(left, right, prefix, extension)
+    );
+  if (versioned.length > 0) {
+    return versioned[versioned.length - 1];
+  }
+
+  return matches[0];
+}
+
+function findEimReleaseAsset(
+  assets: Array<{ name: string; browser_download_url: string }>,
+  prefix: string,
+  extension: string
+): { name: string; browser_download_url: string } | undefined {
+  const preferredName = pickPreferredEimAssetName(
+    assets.map((asset) => asset.name),
+    prefix,
+    extension
+  );
+  if (!preferredName) {
+    return undefined;
+  }
+
+  return assets.find((asset) => asset.name === preferredName);
+}
+
+async function findWindowsEimBinary(
+  installDir: string,
+  mode: "cli" | "gui"
+): Promise<string> {
+  const prefix = `eim-${mode}-windows-x64`;
+  const extension = ".exe";
+  const fallback = join(installDir, `${prefix}${extension}`);
+
+  try {
+    if (!(await pathExists(installDir))) {
+      return fallback;
+    }
+
+    const preferredName = pickPreferredEimAssetName(
+      await readdir(installDir),
+      prefix,
+      extension
+    );
+    if (!preferredName) {
+      return fallback;
+    }
+
+    return join(installDir, preferredName);
+  } catch (error) {
+    const err = error as Error;
+    Logger.error(
+      `Error while discovering Windows EIM binary: ${err.message}`,
+      err,
+      "findWindowsEimBinary"
+    );
+    return fallback;
+  }
 }
 
 export async function resolveEimPath(): Promise<string> {
@@ -175,8 +296,8 @@ export async function resolveEimPath(): Promise<string> {
   }
   // 4. Check managed install locations — GUI first unless headless/snap/remote/web
   const forceCliMode = shouldForceCliMode() || isVSCodeInstalledViaSnap();
-  const guiPath = getEimBinaryPath(getEimInstallDir("gui"), false);
-  const cliPath = getCliBinaryPath();
+  const guiPath = await getEimBinaryPath(getEimInstallDir("gui"), false);
+  const cliPath = await getCliBinaryPath();
   const orderedPaths = forceCliMode ? [cliPath, guiPath] : [guiPath, cliPath];
   Logger.info(
     `[resolveEimPath] Step 4: checking managed install locations (order: ${orderedPaths.join(", ")})`
@@ -425,8 +546,10 @@ export async function downloadAndInstallEIM(
     const data = response.data;
 
     const arch = process.arch;
-    const osKey = getEimAssetName(installCliMode ? "cli" : "gui", arch);
-    const fileInfo = data.assets.find((asset: any) => asset.name === osKey);
+    const mode = installCliMode ? "cli" : "gui";
+    const osKey = getEimAssetName(mode, arch);
+    const extension = getEimAssetExtension();
+    const fileInfo = findEimReleaseAsset(data.assets, osKey, extension);
     if (!fileInfo) {
       throw new Error(`No file found for OS and architecture: ${osKey}`);
     }
@@ -537,7 +660,11 @@ export async function downloadAndInstallEIM(
       Logger.infoNotify(`File ${osKey} extracted to: ${eimInstallPath}`);
     }
 
-    return getEimBinaryPath(eimInstallPath, installCliMode);
+    if (process.platform === "win32") {
+      return downloadPath;
+    }
+
+    return await getEimBinaryPath(eimInstallPath, installCliMode);
   } catch (error) {
     Logger.errorNotify(
       `Error during download and extraction: ${error.message}`,
@@ -548,16 +675,16 @@ export async function downloadAndInstallEIM(
   }
 }
 
-function getEimBinaryPath(
+async function getEimBinaryPath(
   eimInstallPath: string,
   installCliMode: boolean
-): string {
+): Promise<string> {
   if (installCliMode) {
     return getCliBinaryPath();
   }
 
   if (process.platform === "win32") {
-    return join(eimInstallPath, "eim-gui-windows-x64.exe");
+    return findWindowsEimBinary(eimInstallPath, "gui");
   } else if (process.platform === "darwin") {
     return join(eimInstallPath, "eim.app");
   }
