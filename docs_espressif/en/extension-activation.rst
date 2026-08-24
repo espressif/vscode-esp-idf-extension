@@ -18,12 +18,13 @@ Before the extension's own code can run, VS Code itself must decide to load it. 
 - ``onCommand:espIdf.*`` — VS Code loads the extension when you run any ESP-IDF command from the Command Palette (e.g., *ESP-IDF: Build your Project*, *ESP-IDF: Flash your Project*).
 - ``onView:idfPartitionExplorer``, ``onView:espRainmaker``, etc. — VS Code loads the extension when you open one of its registered sidebar views.
 - ``onLanguageModelTool:espIdfCommands`` — VS Code loads the extension when a language-model integration (e.g., Copilot) invokes the ESP-IDF commands tool.
+- ``contributes.mcpServerDefinitionProviders`` (``espIdf.mcpServers``) — VS Code can load the extension when Chat discovers MCP servers. The Espressif Documentation and ESP Component Registry servers are registered at this point unless ``idf.extensionActivationMode`` is ``never``.
 
 If **none** of these triggers fire, VS Code will never load the extension and its ``activate()`` function will never run. This means:
 
 .. important::
 
-   The ``idf.extensionActivationMode`` setting has **no effect** unless VS Code loads the extension first. If none of the activation events listed above fire (no ``CMakeLists.txt`` in the workspace, no ESP-IDF command run, no sidebar view opened, no language-model tool invocation), the extension will not activate — even if ``idf.extensionActivationMode`` is set to ``"always"``.
+   The ``idf.extensionActivationMode`` setting has **no effect** unless VS Code loads the extension first. If none of the activation events listed above fire (no ``CMakeLists.txt`` in the workspace, no ESP-IDF command run, no sidebar view opened, no language-model tool invocation, no MCP server discovery), the extension will not activate — even if ``idf.extensionActivationMode`` is set to ``"always"``.
 
 **Phase 2: Extension Decides Whether to Fully Initialize**
 
@@ -263,6 +264,7 @@ The extension's ``package.json`` declares the following activation events:
 - **onCommand:espIdf.\***: Each ESP-IDF command is registered as an activation trigger. Running any command from the Command Palette will load the extension.
 - **onView:\***: Opening ESP-IDF sidebar panels (App Tracer, Partition Explorer, Rainmaker, Components) triggers loading.
 - **onLanguageModelTool:espIdfCommands**: Fires when a language-model integration (e.g., Copilot) invokes the ESP-IDF commands tool, enabling AI-assisted workflows.
+- **mcpServerDefinitionProviders (espIdf.mcpServers)**: VS Code can load the extension when Chat discovers MCP servers contributed by the extension.
 
 These events are defined by the `VS Code Extension API <https://code.visualstudio.com/api/references/activation-events>`_ and cannot be changed via user settings. The only way to prevent Phase 1 loading is to disable the extension entirely in VS Code's Extensions view.
 
