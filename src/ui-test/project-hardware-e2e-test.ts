@@ -40,6 +40,7 @@ import {
   testWorkspaceDir,
   waitForBuildComplete,
   waitForCallStackMatching,
+  waitForLocalVariable,
   waitForOutputChannelText,
   waitForPathAbsent,
   waitForPausedAtLine,
@@ -312,6 +313,10 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       }
     );
 
+    await step("Verify local a == 1 at user breakpoint", async () => {
+      await waitForLocalVariable("a", 1, 20000);
+    });
+
     await step("Step Over and verify program counter advanced", async () => {
       await executeDebugAction("stepOver");
       await waitForPausedAtLine(
@@ -319,6 +324,10 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
         STEP_OVER_TARGET_LINE,
         30000
       );
+    });
+
+    await step("Verify local b == 2 after Step Over", async () => {
+      await waitForLocalVariable("b", 2, 20000);
     });
 
     await step("Verify debug session still active after Step Over", async () => {

@@ -481,6 +481,134 @@ export async function waitForCallStackMatching(
   );
 }
 
+type VariableTreeItem = {
+  getVariableName?: () => Promise<string>;
+  getVariableValue?: () => Promise<string>;
+  getLabel?: () => Promise<string>;
+};
+
+type VariablesSection = {
+  expand?: () => Promise<unknown>;
+  openItem: (...path: string[]) => Promise<unknown>;
+  findItem: (label: string) => Promise<VariableTreeItem | undefined>;
+  getText: () => Promise<string>;
+  getVisibleItems?: () => Promise<VariableTreeItem[]>;
+};
+
+function localValueMatches(raw: string, expectedValue: number): boolean {
+  const trimmed = raw.trim();
+  if (trimmed === String(expectedValue)) {
+    return true;
+  }
+  const numeric = Number(trimmed);
+  return Number.isFinite(numeric) && numeric === expectedValue;
+}
+
+function variablesTextHasValue(
+  text: string,
+  name: string,
+  expectedValue: number
+): boolean {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(
+    `\\b${escaped}\\b[^\\n]*=\\s*(?:0x)?0*${expectedValue}\\b`,
+    "i"
+  );
+  const alt = new RegExp(
+    `\\b${escaped}\\b\\s*:\\s*(?:0x)?0*${expectedValue}\\b`,
+    "i"
+  );
+  return pattern.test(text) || alt.test(text);
+}
+
+async function readVariableValueFromTree(
+  name: string
+): Promise<{ value?: string; text: string }> {
+  const debugControl = await new ActivityBar().getViewControl("Run and Debug");
+  if (!debugControl) {
+    return { text: "" };
+  }
+  const debugView = (await debugControl.openView()) as DebugView;
+  const section = (await debugView.getVariablesSection()) as VariablesSection;
+  try {
+    await section.expand?.();
+  } catch {
+    // Pane may already be expanded.
+  }
+  for (const scope of ["Local", "Locals"]) {
+    try {
+      await section.openItem(scope);
+    } catch {
+      // CDT may use a different scope label, or locals are already top-level.
+    }
+  }
+
+  const text = (await section.getText().catch(() => "")) ?? "";
+
+  try {
+    const item = await section.findItem(name);
+    if (item?.getVariableValue) {
+      return { value: await item.getVariableValue(), text };
+    }
+  } catch {
+    // findItem throws when the tree has not populated yet.
+  }
+
+  if (section.getVisibleItems) {
+    try {
+      const items = await section.getVisibleItems();
+      for (const item of items) {
+        const label =
+          (await item.getVariableName?.().catch(() => undefined)) ??
+          (await item.getLabel?.().catch(() => undefined)) ??
+          "";
+        if (label === name || label.startsWith(`${name} `) || label.startsWith(`${name}:`) || label.startsWith(`${name}=`)) {
+          if (item.getVariableValue) {
+            return { value: await item.getVariableValue(), text };
+          }
+        }
+      }
+    } catch {
+      // Visible-item scan is best-effort.
+    }
+  }
+
+  return { text };
+}
+
+/**
+ * Polls the Run and Debug VARIABLES tree until `name` equals `expectedValue`.
+ * Accepts decimal or hex (GDB may show `1` or `0x1`).
+ */
+export async function waitForLocalVariable(
+  name: string,
+  expectedValue: number,
+  timeoutMs: number
+): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  let lastText = "";
+  let lastValue = "";
+
+  while (Date.now() < deadline) {
+    const snapshot = await readVariableValueFromTree(name);
+    lastText = snapshot.text;
+    lastValue = snapshot.value ?? "";
+    if (snapshot.value && localValueMatches(snapshot.value, expectedValue)) {
+      return snapshot.value;
+    }
+    if (variablesTextHasValue(snapshot.text, name, expectedValue)) {
+      return snapshot.text;
+    }
+    await new Promise((res) => setTimeout(res, 1000));
+  }
+
+  throw new Error(
+    `Timed out waiting for local ${name} == ${expectedValue}.` +
+      (lastValue ? `\nLast tree value: ${lastValue}` : "") +
+      `\nVariables:\n${lastText}`
+  );
+}
+
 /**
  * Removes ANSI/VT100 escape sequences from a string.
  * `WebElement.getText()` on terminal-like views (Debug Console, Terminal) can
