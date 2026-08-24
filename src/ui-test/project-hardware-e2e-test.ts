@@ -46,7 +46,7 @@ import {
   waitForPathAbsent,
   waitForPauseIndicatorGone,
   waitForPausedAtLine,
-  waitForPausedLine,
+  waitForPausedLineInRange,
   waitForTerminalOutput,
 } from "./ui-test-helpers";
 
@@ -279,13 +279,12 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await debugToolbar!.waitForBreakPoint(60000);
       await assertNoOpenOcdFatal("on attach");
 
-      const haltedLine = await waitForPausedLine(SOURCE_FILE_PATH, 30000);
-      expect(
-        haltedLine,
-        `Default thb app_main should stop before user breakpoint (line ${USER_BREAKPOINT_LINE}), got ${haltedLine}`
-      ).to.be.lessThan(USER_BREAKPOINT_LINE);
-      expect(haltedLine, `GDB halted at ${haltedLine}, expected app_main`).to.be.at.least(6);
-
+      await waitForPausedLineInRange(
+        SOURCE_FILE_PATH,
+        6,
+        USER_BREAKPOINT_LINE,
+        30000
+      );
       await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
     });
 
@@ -345,6 +344,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
     });
 
     await step("Stop debug session", async () => {
+      await removeBreakpointInFile(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE);
       await stopDebugSession(debugToolbar!);
       state.activeDebugToolbar = undefined;
       await new BottomBarPanel().toggle(false);
@@ -359,6 +359,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
 
     await stopDebugSession(state.activeDebugToolbar);
     state.activeDebugToolbar = undefined;
+    await removeBreakpointInFile(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE);
     await dismissNotifications();
 
     let debugToolbar: DebugToolbar;
@@ -372,9 +373,27 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
     await step("Wait for default halt at app_main", async () => {
       await debugToolbar!.waitForBreakPoint(60000);
       await assertNoOpenOcdFatal("on attach");
-      const haltedLine = await waitForPausedLine(SOURCE_FILE_PATH, 30000);
-      expect(haltedLine).to.be.at.least(6);
-      expect(haltedLine).to.be.lessThan(USER_BREAKPOINT_LINE);
+      try {
+        await waitForPausedLineInRange(
+          SOURCE_FILE_PATH,
+          6,
+          USER_BREAKPOINT_LINE,
+          15000
+        );
+      } catch {
+        // Previous session can leave the CPU halted past app_main; reset and retry.
+        await executeDebugAction("restart");
+        debugToolbar = await DebugToolbar.create(60000);
+        state.activeDebugToolbar = debugToolbar;
+        await debugToolbar.waitForBreakPoint(60000);
+        await assertNoOpenOcdFatal("on restart after leftover halt");
+        await waitForPausedLineInRange(
+          SOURCE_FILE_PATH,
+          6,
+          USER_BREAKPOINT_LINE,
+          30000
+        );
+      }
       await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
     });
 
@@ -392,9 +411,12 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       state.activeDebugToolbar = debugToolbar;
       await debugToolbar.waitForBreakPoint(60000);
       await assertNoOpenOcdFatal("after Restart");
-      const haltedLine = await waitForPausedLine(SOURCE_FILE_PATH, 30000);
-      expect(haltedLine).to.be.at.least(6);
-      expect(haltedLine).to.be.lessThan(USER_BREAKPOINT_LINE);
+      await waitForPausedLineInRange(
+        SOURCE_FILE_PATH,
+        6,
+        USER_BREAKPOINT_LINE,
+        30000
+      );
       await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
     });
 

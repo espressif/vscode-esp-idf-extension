@@ -430,6 +430,28 @@ export async function waitForPausedLine(
   return line;
 }
 
+export async function waitForPausedLineInRange(
+  filePath: string,
+  minLine: number,
+  maxExclusive: number,
+  timeoutMs: number
+): Promise<number> {
+  const line = await pollPausedLine(
+    filePath,
+    timeoutMs,
+    (current) => current >= minLine && current < maxExclusive
+  );
+  if (typeof line !== "number") {
+    const fileName = filePath.split("/").pop() ?? filePath;
+    throw new Error(
+      `Timed out waiting to pause in ${fileName} at lines ${minLine}–${
+        maxExclusive - 1
+      }.`
+    );
+  }
+  return line;
+}
+
 export async function waitForPausedAtLine(
   filePath: string,
   expectedLine: number,
