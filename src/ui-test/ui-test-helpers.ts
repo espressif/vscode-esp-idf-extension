@@ -388,17 +388,19 @@ async function sendShiftF5(): Promise<void> {
 }
 
 async function sendDisconnectActions(): Promise<void> {
-  // launch.json is request: attach — the toolbar shows Disconnect, not Stop.
-  // Workbench.executeCommand("workbench.action.debug.stop") types the command
-  // id and hits Enter on a fuzzy match; logs showed it never ended the session.
+  if (!(await isDebugToolbarVisible())) {
+    logDebugSession("Debug toolbar not visible; skipping Disconnect clicks");
+    return;
+  }
   await clickDebugToolbarAction("disconnect");
   await delay(2000);
-  if (!(await sessionHasGdbAdapter())) {
+  if (!(await isDebugToolbarVisible())) {
+    logDebugSession("Toolbar gone after Disconnect click");
     return;
   }
   await clickDebugToolbarAction("stop");
   await delay(2000);
-  if (!(await sessionHasGdbAdapter())) {
+  if (!(await isDebugToolbarVisible())) {
     return;
   }
   try {
@@ -408,20 +410,16 @@ async function sendDisconnectActions(): Promise<void> {
       `Shift+F5 failed: ${err instanceof Error ? err.message : String(err)}`
     );
   }
-  await delay(2000);
-  if (!(await sessionHasGdbAdapter())) {
-    return;
-  }
-  await tryExecuteExactPaletteCommand("Debug: Disconnect");
-  await delay(2000);
-  if (!(await sessionHasGdbAdapter())) {
-    return;
-  }
-  await tryExecuteExactPaletteCommand("Debug: Stop");
 }
 
-async function sessionHasGdbAdapter(): Promise<boolean> {
-  return hasGdbAdapterStatus(await readStatusBarTexts());
+async function isDebugSessionAlive(): Promise<boolean> {
+  if (await isDebugToolbarVisible()) {
+    return true;
+  }
+  if (hasOpenOcdRunningStatus(await readStatusBarTexts())) {
+    return true;
+  }
+  return (await leftoverDebugProcesses()).length > 0;
 }
 
 /**
@@ -1068,22 +1066,14 @@ export async function stopOpenOcdViaManager(): Promise<void> {
 export async function stopDebugSession(): Promise<void> {
   const startedAt = Date.now();
   logDebugSession("=== stopDebugSession begin ===");
+  await dismissNotifications().catch(() => undefined);
   await logDebugRelatedProcesses("before stop");
-  const statusBefore = await logStatusBar("before stop");
-  const leftover = await leftoverDebugProcesses();
-  const openOcdRunning = hasOpenOcdRunningStatus(statusBefore);
+  await logStatusBar("before stop");
 
-  if (!openOcdRunning && leftover.length === 0) {
+  if (!(await isDebugSessionAlive())) {
     logDebugSession(
-      "OpenOCD and chip GDB already stopped; skipping Stop / Manager / pkill"
+      "Session already stopped (no toolbar, OpenOCD not Running, no gdb/openocd). Ignoring leftover GDB Adapter status text."
     );
-    if (hasGdbAdapterStatus(statusBefore)) {
-      logDebugSession(
-        "Status bar still shows GDB Adapter (inline session); one Disconnect click"
-      );
-      await clickDebugToolbarAction("disconnect").catch(() => undefined);
-      await delay(3000);
-    }
     await logStatusBar("after already-stopped short-circuit");
     logDebugSession(
       `=== stopDebugSession end (already stopped, ${Date.now() - startedAt}ms) ===`
@@ -1092,41 +1082,26 @@ export async function stopDebugSession(): Promise<void> {
   }
 
   await dismissAlreadyRunningDebugDialog();
-
-  logDebugSession(
-    "Ending attach session: toolbar Disconnect, then Stop, Shift+F5, palette"
-  );
+  logDebugSession("Ending attach session: toolbar Disconnect");
   await sendDisconnectActions();
   await delay(3000);
 
-  let gdbGone = await waitUntilStatusBarClears(
-    hasGdbAdapterStatus,
-    15000,
-    "GDB Adapter"
-  );
-  if (!gdbGone) {
-    logDebugSession("GDB Adapter still present; repeating Disconnect actions");
+  if (await isDebugToolbarVisible()) {
+    logDebugSession("Toolbar still visible; Disconnect once more");
     await sendDisconnectActions();
-    await delay(5000);
-    gdbGone = await waitUntilStatusBarClears(
-      hasGdbAdapterStatus,
-      15000,
-      "GDB Adapter"
-    );
+    await delay(3000);
   }
-  logDebugSession(`GDB Adapter left status bar: ${gdbGone}`);
 
-  const toolbarGone = await waitForDebugToolbarGone(10000);
+  const toolbarGone = !(await isDebugToolbarVisible());
   logDebugSession(`Debug toolbar gone: ${toolbarGone}`);
 
   if (hasOpenOcdRunningStatus(await readStatusBarTexts())) {
     await stopOpenOcdViaManager();
-    const openOcdGone = await waitUntilStatusBarClears(
+    await waitUntilStatusBarClears(
       hasOpenOcdRunningStatus,
       15000,
       "OpenOCD Server (Running)"
     );
-    logDebugSession(`OpenOCD left Running status: ${openOcdGone}`);
   } else {
     logDebugSession("OpenOCD already Stopped; not opening OpenOCD Manager");
   }
@@ -1140,12 +1115,6 @@ export async function stopDebugSession(): Promise<void> {
     logDebugSession("No leftover OpenOCD / GDB processes to pkill");
   }
   await logStatusBar("after stopDebugSession");
-
-  if (await sessionHasGdbAdapter()) {
-    logDebugSession(
-      "WARNING: GDB Adapter still in status bar after Disconnect + pkill (inline adapter zombie)"
-    );
-  }
   logDebugSession(
     `=== stopDebugSession end (${Date.now() - startedAt}ms) ===`
   );
@@ -1275,19 +1244,17 @@ async function waitForAlreadyRunningDialog(
  */
 export async function launchDebugger(timeoutMs = 60000): Promise<DebugToolbar> {
   logDebugSession("=== launchDebugger begin ===");
+  await dismissNotifications().catch(() => undefined);
   await logDebugRelatedProcesses("before launch");
   await logStatusBar("before launch");
 
-  if (await sessionHasGdbAdapter()) {
-    logDebugSession(
-      "GDB Adapter still in status bar before F5; Disconnect first"
-    );
+  if (await isDebugSessionAlive()) {
+    logDebugSession("Live session (toolbar/OpenOCD/gdb) before F5; Disconnect first");
     await stopDebugSession();
-    if (await sessionHasGdbAdapter()) {
-      throw new Error(
-        "Cannot launch debugger: Eclipse CDT GDB Adapter is still in the status bar after Disconnect"
-      );
-    }
+  } else {
+    logDebugSession(
+      "No live session (stale GDB Adapter status text is ignored); F5"
+    );
   }
 
   logDebugSession("Sending workbench.action.debug.start");
@@ -1296,11 +1263,6 @@ export async function launchDebugger(timeoutMs = 60000): Promise<DebugToolbar> {
   if (await waitForAlreadyRunningDialog(10000)) {
     logDebugSession("Cancelled leftover-session dialog; stopping then relaunching");
     await stopDebugSession();
-    if (await sessionHasGdbAdapter()) {
-      throw new Error(
-        "Eclipse CDT GDB Adapter still running after Cancel + Disconnect"
-      );
-    }
     logDebugSession("Relaunching debugger");
     await new Workbench().executeCommand("workbench.action.debug.start");
     if (await waitForAlreadyRunningDialog(10000)) {
@@ -1328,14 +1290,11 @@ export async function launchDebugger(timeoutMs = 60000): Promise<DebugToolbar> {
 export async function reuseOrLaunchDebugger(
   timeoutMs = 60000
 ): Promise<DebugToolbar> {
-  const adapter = await sessionHasGdbAdapter();
   const toolbarVisible = await isDebugToolbarVisible();
   await logStatusBar("reuseOrLaunchDebugger");
-  logDebugSession(
-    `reuseOrLaunchDebugger: GDB Adapter=${adapter} toolbar=${toolbarVisible}`
-  );
+  logDebugSession(`reuseOrLaunchDebugger: toolbarVisible=${toolbarVisible}`);
 
-  if (adapter || toolbarVisible) {
+  if (toolbarVisible) {
     logDebugSession("Reusing session via Restart (not F5)");
     try {
       const toolbar = await DebugToolbar.create(4000);
@@ -1355,7 +1314,7 @@ export async function reuseOrLaunchDebugger(
     return toolbar;
   }
 
-  logDebugSession("No active session; launching");
+  logDebugSession("No debug toolbar; launching");
   return launchDebugger(timeoutMs);
 }
 
