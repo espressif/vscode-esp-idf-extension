@@ -23,10 +23,13 @@ import {
   ActivityBar,
   BottomBarPanel,
   DebugConsoleView,
+  DebugToolbar,
   DebugView,
   EditorView,
   InputBox,
+  ModalDialog,
   OutputView,
+  StatusBar,
   TextEditor,
   Workbench,
 } from "vscode-extension-tester";
@@ -153,6 +156,7 @@ export const ESP_IDF_COMMANDS = {
   monitor: "ESP-IDF: Monitor Device",
   buildFlashMonitor:
     "ESP-IDF: Build, Flash and Start a Monitor on Your Device",
+  openOcdManager: "ESP-IDF: OpenOCD Manager",
 } as const;
 
 export async function openTestProject(): Promise<void> {
@@ -325,6 +329,14 @@ export async function executeDebugAction(
   await new Workbench().executeCommand(DEBUG_ACTIONS[action]);
 }
 
+async function delay(ms: number): Promise<void> {
+  await new Promise((res) => setTimeout(res, ms));
+}
+
+function logDebugSession(message: string): void {
+  console.log(`[hardware-debug] ${message}`);
+}
+
 /**
  * Opens `filePath` via Quick Open. `EditorView.openEditor()` only works on
  * already-open tabs, and Quick Open with an absolute path avoids same-named
@@ -353,11 +365,20 @@ export async function setBreakpointInFile(
 
   const existing = await editor.getBreakpoint(lineNumber);
   if (existing) {
-    await existing.remove();
-    await new Promise((res) => setTimeout(res, 500));
+    await editor.toggleBreakpoint(lineNumber);
+    await delay(500);
   }
   await editor.toggleBreakpoint(lineNumber);
-  await new Promise((res) => setTimeout(res, 500));
+  await delay(500);
+}
+
+/** Command-based: avoids Selenium waiting for a gutter glyph to go stale. */
+export async function removeAllBreakpoints(): Promise<void> {
+  logDebugSession("Removing all breakpoints via workbench.debug.viewlet.action.removeAllBreakpoints");
+  await new Workbench().executeCommand(
+    "workbench.debug.viewlet.action.removeAllBreakpoints"
+  );
+  await delay(2000);
 }
 
 export async function removeBreakpointInFile(
@@ -369,8 +390,8 @@ export async function removeBreakpointInFile(
   if (!existing) {
     return;
   }
-  await existing.remove();
-  await new Promise((res) => setTimeout(res, 1500));
+  await editor.toggleBreakpoint(lineNumber);
+  await delay(1500);
 }
 
 /**
@@ -397,8 +418,12 @@ async function pollPausedLine(
       if (paused) {
         const line = await paused.getLineNumber();
         if (match(line)) {
+          logDebugSession(`Pause indicator at ${fileName}:${line} (match)`);
           return line;
         }
+        logDebugSession(
+          `Pause indicator at ${fileName}:${line} (waiting for expected line)`
+        );
       }
     } catch {
       // Gutter has not settled on a single pause indicator yet.
@@ -511,13 +536,17 @@ export async function waitForPauseIndicatorGone(
  * Unlike the Debug Console, the call stack updates after every GDB halt.
  */
 export async function readCallStackSectionText(): Promise<string | undefined> {
-  const debugControl = await new ActivityBar().getViewControl("Run and Debug");
-  if (!debugControl) {
+  try {
+    const debugControl = await new ActivityBar().getViewControl("Run and Debug");
+    if (!debugControl) {
+      return undefined;
+    }
+    const debugView = (await debugControl.openView()) as DebugView;
+    const callStackSection = await debugView.getCallStackSection();
+    return callStackSection.getText();
+  } catch {
     return undefined;
   }
-  const debugView = (await debugControl.openView()) as DebugView;
-  const callStackSection = await debugView.getCallStackSection();
-  return callStackSection.getText();
 }
 
 export async function readCallStackTopFrameLine(): Promise<number | undefined> {
@@ -540,9 +569,13 @@ export async function waitForCallStackMatching(
   let lastText = "";
 
   while (Date.now() < deadline) {
-    lastText = (await readCallStackSectionText()) ?? "";
-    if (pattern.test(lastText)) {
-      return lastText;
+    try {
+      lastText = (await readCallStackSectionText()) ?? "";
+      if (pattern.test(lastText)) {
+        return lastText;
+      }
+    } catch {
+      // Call stack pane may not be ready yet (default 5s locator).
     }
     await new Promise((res) => setTimeout(res, 1000));
   }
@@ -772,21 +805,299 @@ export async function waitForNewTerminalOutput(
 }
 
 /**
- * Force-terminates OpenOCD and GDB processes left behind by a debug session.
- *
- * Called from both the normal "stop" path inside the test AND from the suite's
- * `after` hook so that stale processes never block the next CI iteration.
- * `pkill -f` matches the full argv string, catching every chip-specific GDB
- * variant.  Exit code 1 ("no process matched") is silently swallowed.
+ * Force-terminates leftover OpenOCD, CDT gdb-adapter, and chip GDB processes.
+ * Last resort after VS Code Stop + OpenOCD Manager; `pkill` exit 1 is ignored.
  */
 export async function killDebugProcesses(): Promise<void> {
   const patterns = [
+    "gdb-adapter",
     "openocd",
     "xtensa-esp.*-gdb",
     "riscv32-esp.*-gdb",
   ];
-  await Promise.all(
-    patterns.map((p) => execAsync(`pkill -f "${p}"`).catch(() => undefined))
+  for (const pattern of patterns) {
+    logDebugSession(`pkill -f "${pattern}"`);
+    await execAsync(`pkill -f "${pattern}"`).catch(() => undefined);
+  }
+  await delay(3000);
+}
+
+async function logDebugRelatedProcesses(when: string): Promise<void> {
+  try {
+    const { stdout } = await execAsync(
+      'pgrep -af "openocd|gdb-adapter|xtensa-esp|riscv32-esp" || true'
+    );
+    logDebugSession(`${when} processes:\n${stdout.trim() || "(none)"}`);
+  } catch {
+    logDebugSession(`${when} processes: (pgrep failed)`);
+  }
+}
+
+async function readStatusBarTexts(): Promise<string[]> {
+  try {
+    const items = await new StatusBar().getItems();
+    const texts: string[] = [];
+    for (const item of items) {
+      const text = (await item.getText().catch(() => "")).trim();
+      if (text) {
+        texts.push(text);
+      }
+    }
+    return texts;
+  } catch {
+    return [];
+  }
+}
+
+async function logStatusBar(when: string): Promise<string[]> {
+  const texts = await readStatusBarTexts();
+  logDebugSession(`${when} status bar: [${texts.join(" | ")}]`);
+  return texts;
+}
+
+function hasGdbAdapterStatus(texts: string[]): boolean {
+  return texts.some((text) => /GDB Adapter/i.test(text));
+}
+
+function hasOpenOcdRunningStatus(texts: string[]): boolean {
+  return texts.some(
+    (text) => /OpenOCD/i.test(text) && /Running/i.test(text)
   );
-  await new Promise((res) => setTimeout(res, 1500));
+}
+
+async function isDebugToolbarVisible(): Promise<boolean> {
+  try {
+    const toolbar = await DebugToolbar.create(2000);
+    return await toolbar.isDisplayed();
+  } catch {
+    return false;
+  }
+}
+
+async function waitForDebugToolbarGone(timeoutMs: number): Promise<boolean> {
+  logDebugSession(`Waiting up to ${timeoutMs}ms for debug toolbar to disappear`);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const visible = await isDebugToolbarVisible();
+    logDebugSession(`Debug toolbar visible: ${visible}`);
+    if (!visible) {
+      return true;
+    }
+    await delay(2000);
+  }
+  return false;
+}
+
+async function waitUntilStatusBarClears(
+  stillPresent: (texts: string[]) => boolean,
+  timeoutMs: number,
+  what: string
+): Promise<boolean> {
+  logDebugSession(`Waiting up to ${timeoutMs}ms for ${what} to leave the status bar`);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const texts = await logStatusBar(`waiting for ${what} to clear`);
+    if (!stillPresent(texts)) {
+      return true;
+    }
+    await delay(2000);
+  }
+  return false;
+}
+
+/**
+ * Palette: ESP-IDF: OpenOCD Manager → Stop OpenOCD.
+ * If only Start OpenOCD is listed, the manager already considers it stopped.
+ */
+export async function stopOpenOcdViaManager(): Promise<void> {
+  logDebugSession("Opening ESP-IDF: OpenOCD Manager");
+  try {
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.openOcdManager);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logDebugSession(`Failed to open OpenOCD Manager: ${message}`);
+    return;
+  }
+
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    try {
+      const inputBox = await InputBox.create(3000);
+      const labels = await listQuickPickLabels(inputBox);
+      logDebugSession(`OpenOCD Manager picks: [${labels.join(" | ")}]`);
+      const stopPick = await findQuickPickByExactLabel(inputBox, "Stop OpenOCD");
+      if (stopPick) {
+        await stopPick.select();
+        logDebugSession("Stop OpenOCD selected; waiting for SIGKILL and status bar");
+        await delay(5000);
+        return;
+      }
+      if (labels.includes("Start OpenOCD")) {
+        logDebugSession("Only Start OpenOCD listed; cancelling picker");
+        await inputBox.cancel();
+        await delay(1000);
+        return;
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      logDebugSession(`Waiting for OpenOCD Manager picker: ${message}`);
+    }
+    await delay(1000);
+  }
+
+  logDebugSession("Timed out waiting for OpenOCD Manager picker");
+  try {
+    const input = await InputBox.create(2000);
+    await input.cancel();
+  } catch {
+    // Picker already closed.
+  }
+}
+
+/**
+ * Stops the VS Code gdbtarget session, then OpenOCD via the manager.
+ * pkill is only the last resort if UI teardown left processes behind.
+ */
+export async function stopDebugSession(): Promise<void> {
+  const startedAt = Date.now();
+  logDebugSession("=== stopDebugSession begin ===");
+  await logDebugRelatedProcesses("before stop");
+  await logStatusBar("before stop");
+
+  logDebugSession("Sending workbench.action.debug.stop");
+  logDebugSession(
+    "CDT gdbtarget adapter is inline in the extension host; session end is debug.stop plus GDB Adapter leaving the status bar"
+  );
+  await executeDebugAction("stop").catch((err) => {
+    logDebugSession(
+      `debug.stop threw: ${err instanceof Error ? err.message : String(err)}`
+    );
+  });
+  await delay(3000);
+
+  let toolbarGone = await waitForDebugToolbarGone(20000);
+  if (!toolbarGone) {
+    logDebugSession("Toolbar still present; sending debug.stop again");
+    await executeDebugAction("stop").catch(() => undefined);
+    await delay(5000);
+    toolbarGone = await waitForDebugToolbarGone(15000);
+  }
+  logDebugSession(`Debug toolbar gone: ${toolbarGone}`);
+
+  let gdbGone = await waitUntilStatusBarClears(
+    hasGdbAdapterStatus,
+    30000,
+    "GDB Adapter"
+  );
+  if (!gdbGone) {
+    logDebugSession("GDB Adapter still in status bar; sending debug.stop once more");
+    await executeDebugAction("stop").catch(() => undefined);
+    await delay(5000);
+    gdbGone = await waitUntilStatusBarClears(
+      hasGdbAdapterStatus,
+      15000,
+      "GDB Adapter"
+    );
+  }
+  logDebugSession(`GDB Adapter left status bar: ${gdbGone}`);
+
+  await stopOpenOcdViaManager();
+  const openOcdGone = await waitUntilStatusBarClears(
+    hasOpenOcdRunningStatus,
+    15000,
+    "OpenOCD Server (Running)"
+  );
+  logDebugSession(`OpenOCD left Running status: ${openOcdGone}`);
+
+  await logDebugRelatedProcesses("after UI stop");
+  logDebugSession("Force-killing leftover gdb-adapter / OpenOCD / chip GDB");
+  await killDebugProcesses();
+  await logDebugRelatedProcesses("after pkill");
+  await logStatusBar("after stopDebugSession");
+  logDebugSession(
+    `=== stopDebugSession end (${Date.now() - startedAt}ms) ===`
+  );
+}
+
+/**
+ * Cancel — never Yes. A second gdbtarget on the same OpenOCD port 3333 races.
+ */
+export async function dismissAlreadyRunningDebugDialog(): Promise<boolean> {
+  try {
+    const dialog = new ModalDialog();
+    const message = await dialog.getMessage();
+    logDebugSession(`Modal dialog: ${message}`);
+    if (!/already running/i.test(message)) {
+      logDebugSession("Modal is not the already-running adapter prompt; leaving it");
+      return false;
+    }
+    logDebugSession("Clicking Cancel on already-running GDB Adapter dialog");
+    await dialog.pushButton("Cancel");
+    await delay(2000);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * F5, dismiss leftover-session modal if it appears, then wait for the toolbar.
+ */
+export async function launchDebugger(timeoutMs = 60000): Promise<DebugToolbar> {
+  logDebugSession("=== launchDebugger begin ===");
+  await logDebugRelatedProcesses("before launch");
+  await logStatusBar("before launch");
+
+  logDebugSession("Sending workbench.action.debug.start");
+  await new Workbench().executeCommand("workbench.action.debug.start");
+  await delay(5000);
+
+  if (await dismissAlreadyRunningDebugDialog()) {
+    logDebugSession("Leftover GDB Adapter; stopping it before relaunch");
+    await stopDebugSession();
+    await delay(5000);
+    logDebugSession("Relaunching debugger");
+    await new Workbench().executeCommand("workbench.action.debug.start");
+    await delay(5000);
+    if (await dismissAlreadyRunningDebugDialog()) {
+      await logStatusBar("after failed relaunch");
+      throw new Error(
+        "Eclipse CDT GDB Adapter still running after stop and relaunch"
+      );
+    }
+  }
+
+  logDebugSession(
+    `Waiting up to ${timeoutMs}ms for debug toolbar (OpenOCD + GDB Adapter startup)`
+  );
+  const toolbar = await DebugToolbar.create(timeoutMs);
+  logDebugSession("Debug toolbar appeared");
+  await logStatusBar("after launch");
+  logDebugSession("=== launchDebugger end ===");
+  return toolbar;
+}
+
+/**
+ * `waitForBreakPoint` locates Continue with the driver default (~5s).
+ * Retry until `timeoutMs` so a hidden/Pause toolbar does not fail the step.
+ */
+export async function waitUntilDebugPaused(timeoutMs: number): Promise<void> {
+  logDebugSession(`Waiting up to ${timeoutMs}ms for debug pause (Continue enabled)`);
+  const deadline = Date.now() + timeoutMs;
+  let lastError = "";
+  while (Date.now() < deadline) {
+    try {
+      const toolbar = await DebugToolbar.create(5000);
+      await toolbar.waitForBreakPoint(5000);
+      logDebugSession("Debug pause detected (Continue enabled)");
+      return;
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+      logDebugSession(`Not paused yet: ${lastError}`);
+    }
+    await delay(2000);
+  }
+  throw new Error(
+    `Timed out waiting for debug pause after ${timeoutMs}ms. Last: ${lastError}`
+  );
 }

@@ -32,11 +32,12 @@ import {
   executeEspIdfCommand,
   executeEspIdfCommandAndSelectOption,
   helloWorldBinPath,
-  killDebugProcesses,
+  launchDebugger,
   openTestProject,
-  removeBreakpointInFile,
+  removeAllBreakpoints,
   selectFromCurrentPicker,
   setBreakpointInFile,
+  stopDebugSession,
   testHardwareSerialPort,
   testWorkspaceDir,
   waitForBuildComplete,
@@ -48,6 +49,7 @@ import {
   waitForPausedAtLine,
   waitForPausedLineInRange,
   waitForTerminalOutput,
+  waitUntilDebugPaused,
 } from "./ui-test-helpers";
 
 // ─── patterns ────────────────────────────────────────────────────────────────
@@ -109,22 +111,6 @@ async function assertNoOpenOcdFatal(when: string): Promise<void> {
   }
 }
 
-/** Stops any active debug session and force-kills OpenOCD / GDB processes. */
-async function stopDebugSession(toolbar?: DebugToolbar): Promise<void> {
-  if (toolbar) {
-    const alive = await toolbar.isDisplayed().catch(() => false);
-    if (alive) {
-      await toolbar.stop().catch(() => undefined);
-      await new Promise((res) => setTimeout(res, 3000));
-    }
-  }
-  await new Workbench()
-    .executeCommand("workbench.action.debug.stop")
-    .catch(() => undefined);
-  await new Promise((res) => setTimeout(res, 2000));
-  await killDebugProcesses();
-}
-
 // ─── test suite ──────────────────────────────────────────────────────────────
 
 describe("Hardware E2E: build → flash → monitor → debug", () => {
@@ -137,7 +123,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
   after(async function () {
     this.timeout(30000);
     console.log("[after] Cleanup: stopping debug session and killing processes");
-    await stopDebugSession(state.activeDebugToolbar);
+    await stopDebugSession();
     state.activeDebugToolbar = undefined;
     await new BottomBarPanel().toggle(false).catch(() => undefined);
     console.log("[after] Cleanup complete");
@@ -270,8 +256,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
     let debugToolbar: DebugToolbar;
 
     await step("Launch debugger", async () => {
-      await new Workbench().executeCommand("workbench.action.debug.start");
-      debugToolbar = await DebugToolbar.create(60000);
+      debugToolbar = await launchDebugger(60000);
       state.activeDebugToolbar = debugToolbar;
     });
 
@@ -344,10 +329,10 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
     });
 
     await step("Stop debug session", async () => {
-      await removeBreakpointInFile(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE);
-      await stopDebugSession(debugToolbar!);
+      await stopDebugSession();
       state.activeDebugToolbar = undefined;
-      await new BottomBarPanel().toggle(false);
+      await removeAllBreakpoints().catch(() => undefined);
+      await new BottomBarPanel().toggle(false).catch(() => undefined);
     });
 
   }).timeout(999999);
@@ -357,74 +342,81 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       this.skip();
     }
 
-    await stopDebugSession(state.activeDebugToolbar);
+    console.log(
+      "[hardware-debug] lifecycle it: ensuring previous GDB/OpenOCD session is fully stopped"
+    );
+    await stopDebugSession();
     state.activeDebugToolbar = undefined;
-    await removeBreakpointInFile(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE);
+    await removeAllBreakpoints().catch(() => undefined);
     await dismissNotifications();
 
     let debugToolbar: DebugToolbar;
 
     await step("Launch debugger", async () => {
-      await new Workbench().executeCommand("workbench.action.debug.start");
-      debugToolbar = await DebugToolbar.create(60000);
+      debugToolbar = await launchDebugger(60000);
       state.activeDebugToolbar = debugToolbar;
     });
 
     await step("Wait for default halt at app_main", async () => {
-      await debugToolbar!.waitForBreakPoint(60000);
+      await waitUntilDebugPaused(60000);
       await assertNoOpenOcdFatal("on attach");
       try {
         await waitForPausedLineInRange(
           SOURCE_FILE_PATH,
           6,
           USER_BREAKPOINT_LINE,
-          15000
+          30000
         );
       } catch {
-        // Previous session can leave the CPU halted past app_main; reset and retry.
+        console.log(
+          "[hardware-debug] Halt was not in app_main; Restart and wait again"
+        );
         await executeDebugAction("restart");
+        await new Promise((res) => setTimeout(res, 5000));
         debugToolbar = await DebugToolbar.create(60000);
         state.activeDebugToolbar = debugToolbar;
-        await debugToolbar.waitForBreakPoint(60000);
+        await waitUntilDebugPaused(60000);
         await assertNoOpenOcdFatal("on restart after leftover halt");
         await waitForPausedLineInRange(
           SOURCE_FILE_PATH,
           6,
           USER_BREAKPOINT_LINE,
-          30000
+          60000
         );
       }
-      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
+      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 30000);
     });
 
     await step("Continue, then Pause while target is running", async () => {
       await executeDebugAction("continue");
-      await waitForPauseIndicatorGone(SOURCE_FILE_PATH, 15000);
+      await waitForPauseIndicatorGone(SOURCE_FILE_PATH, 30000);
+      await new Promise((res) => setTimeout(res, 2000));
       await executeDebugAction("pause");
-      await debugToolbar!.waitForBreakPoint(30000);
+      await waitUntilDebugPaused(60000);
       await assertNoOpenOcdFatal("after Pause");
     });
 
     await step("Restart and halt at app_main again", async () => {
       await executeDebugAction("restart");
+      await new Promise((res) => setTimeout(res, 5000));
       debugToolbar = await DebugToolbar.create(60000);
       state.activeDebugToolbar = debugToolbar;
-      await debugToolbar.waitForBreakPoint(60000);
+      await waitUntilDebugPaused(60000);
       await assertNoOpenOcdFatal("after Restart");
       await waitForPausedLineInRange(
         SOURCE_FILE_PATH,
         6,
         USER_BREAKPOINT_LINE,
-        30000
+        60000
       );
-      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
+      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 30000);
     });
 
     await step(
       `Set gutter breakpoint at ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
       async () => {
         await setBreakpointInFile(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE);
-        await new Promise((res) => setTimeout(res, 1500));
+        await new Promise((res) => setTimeout(res, 2000));
       }
     );
 
@@ -432,7 +424,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       `Continue and halt at user breakpoint ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
       async () => {
         await executeDebugAction("continue");
-        await debugToolbar!.waitForBreakPoint(60000);
+        await waitUntilDebugPaused(60000);
         await waitForPausedAtLine(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE, 30000);
       }
     );
@@ -440,7 +432,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
     await step(
       `Remove breakpoint and Continue past ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
       async () => {
-        await removeBreakpointInFile(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE);
+        await removeAllBreakpoints();
         const editor = (await new EditorView().openEditor(
           SOURCE_FILE_NAME
         )) as TextEditor;
@@ -452,15 +444,16 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
         }
 
         await executeDebugAction("continue");
-        await waitForPauseIndicatorGone(SOURCE_FILE_PATH, 15000);
+        await waitForPauseIndicatorGone(SOURCE_FILE_PATH, 30000);
         await assertNoOpenOcdFatal("after removing breakpoint");
       }
     );
 
     await step("Stop debug session", async () => {
-      await stopDebugSession(debugToolbar!);
+      await stopDebugSession();
       state.activeDebugToolbar = undefined;
-      await new BottomBarPanel().toggle(false);
+      await removeAllBreakpoints().catch(() => undefined);
+      await new BottomBarPanel().toggle(false).catch(() => undefined);
     });
   }).timeout(999999);
 });
