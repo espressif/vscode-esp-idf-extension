@@ -216,5 +216,6 @@
 	"command.errorHints.clearAll.title": "Limpar Todas as Dicas de Erro",
 	"command.errorHints.clearBuild.title": "Limpar Dicas de Erro de Compilação",
 	"command.errorHints.clearOpenOCD.title": "Limpar Dicas de Erro do OpenOCD",
-	"param.saveLastProjectConfiguration": "Salvar e restaurar a última configuração de projeto selecionada ao reabrir um espaço de trabalho. Quando habilitado, a extensão restaurará a última configuração utilizada se existir, caso contrário nenhuma configuração será selecionada. Quando desabilitado, nenhuma configuração é selecionada por padrão."
+	"param.saveLastProjectConfiguration": "Salvar e restaurar a última configuração de projeto selecionada ao reabrir um espaço de trabalho. Quando habilitado, a extensão restaurará a última configuração utilizada se existir, caso contrário nenhuma configuração será selecionada. Quando desabilitado, nenhuma configuração é selecionada por padrão.",
+	"mcp.espIdf.provider.label": "Servidores MCP do ESP-IDF"
 }

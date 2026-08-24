@@ -8,6 +8,12 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## Unreleased
+
+### Features and enhancements
+
+- Contribute Espressif Documentation and ESP Component Registry MCP servers to VS Code Chat (Documentation MCP requires GitHub or WeChat login)
+
 ## [2.2.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.2.0) - 2026-08-14
 ## Features and enhancements
 

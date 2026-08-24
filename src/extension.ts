@@ -163,6 +163,7 @@ import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
 import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
+import { registerEspressifMcpServers } from "./mcp/espressifMcpServers";
 import { readSerialPort } from "./idfConfiguration";
 import { openFolderCheck, webIdeCheck } from "./common/PreCheck";
 import { buildFlashAndMonitor } from "./buildFlashMonitor";
@@ -247,6 +248,28 @@ const minIdfVersionCheck = async function (
 
 let projectConfigManager: ProjectConfigurationManager | undefined;
 
+function shouldRegisterEspressifMcpServers(): boolean {
+  const activationModeConfigKey = "idf.extensionActivationMode";
+  const workspaceValue = idfConf.readParameter(activationModeConfigKey);
+  if (workspaceValue === "never") {
+    return false;
+  }
+  if (workspaceValue === "always") {
+    return true;
+  }
+  const folders = vscode.workspace.workspaceFolders;
+  if (folders && folders.length > 0) {
+    const allFoldersNever = folders.every(
+      (folder) =>
+        idfConf.readParameter(activationModeConfigKey, folder.uri) === "never"
+    );
+    if (allFoldersNever) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
   Logger.init(context);
@@ -266,6 +289,10 @@ export async function activate(context: vscode.ExtensionContext) {
   Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
   utils.setExtensionContext(context);
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
+
+  if (shouldRegisterEspressifMcpServers()) {
+    registerEspressifMcpServers(context);
+  }
 
   // Check if running in a VS Code fork and prompt for clangd extension installation
   if (PreCheck.isRunningInVSCodeFork()) {

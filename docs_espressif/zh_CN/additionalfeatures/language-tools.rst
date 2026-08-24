@@ -142,4 +142,30 @@ ESP-IDF 聊天命令
 * "构建并烧录引导加载程序使用 JTAG"
 * "#espIdfCommands buildFlashMonitor bootloader JTAG"
 * "构建并烧录分区表使用 DFU"
-* "#espIdfCommands buildFlashMonitor partition-table DFU" 
+* "#espIdfCommands buildFlashMonitor partition-table DFU"
+
+乐鑫 MCP 服务器
+---------------
+
+扩展会注册远程 `模型上下文协议 (MCP) <https://code.visualstudio.com/api/extension-guides/ai/mcp>`_ 服务器，使聊天（例如 GitHub Copilot）无需单独的 ``mcp.json`` 条目即可调用乐鑫工具。
+
+贡献的 HTTP 服务器如下：
+
+* **乐鑫文档** (``https://mcp.espressif.com/docs``) — 对官方乐鑫文档进行中英文语义检索（``search_espressif_sources``）。
+* **ESP 组件注册表** (``https://components.espressif.com/mcp``) — 搜索组件并获取组件文档。
+
+这些服务器不要求本地存在 ESP-IDF 项目。扩展加载时即会注册它们，除非将 ``idf.extensionActivationMode`` 设置为 ``never``。
+
+首次使用
+~~~~~~~~
+
+1. 打开聊天（``View`` > ``Chat``），或从命令面板运行 **MCP: List Servers**。
+2. 如果尚未运行，请启动乐鑫文档服务器。
+3. VS Code 会打开浏览器进行身份验证。请使用 **GitHub** 或 **微信** 账号登录。仅会使用匿名化的账号 ID 来执行速率限制。请参阅 `Espressif Documentation MCP Server <https://developer.espressif.com/blog/2026/04/doc-mcp-server/>`_ 文章和 `乐鑫 MCP 服务器 <https://mcp.espressif.com>`_。
+4. 如果组件注册表服务器也要求身份验证，请以同样方式完成该提示。
+
+登录后，聊天可以同时使用文档搜索、组件注册表工具，以及上文所述的 ESP-IDF 命令工具。
+
+.. note::
+
+    MCP 工具需要 VS Code 1.101 或更高版本，并且 MCP 必须处于启用状态。组织可以通过 GitHub Copilot 策略禁用 MCP；此时 ``chat.mcp.enabled`` 会保持关闭，已贡献的服务器将无法启动。 
