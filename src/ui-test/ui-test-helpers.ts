@@ -315,6 +315,7 @@ const DEBUG_ACTIONS = {
   continue: "workbench.action.debug.continue",
   stepOver: "workbench.action.debug.stepOver",
   pause: "workbench.action.debug.pause",
+  restart: "workbench.action.debug.restart",
   stop: "workbench.action.debug.stop",
 } as const;
 
@@ -357,6 +358,19 @@ export async function setBreakpointInFile(
   }
   await editor.toggleBreakpoint(lineNumber);
   await new Promise((res) => setTimeout(res, 500));
+}
+
+export async function removeBreakpointInFile(
+  filePath: string,
+  lineNumber: number
+): Promise<void> {
+  const editor = await openFileInEditor(filePath);
+  const existing = await editor.getBreakpoint(lineNumber);
+  if (!existing) {
+    return;
+  }
+  await existing.remove();
+  await new Promise((res) => setTimeout(res, 1500));
 }
 
 /**
@@ -433,6 +447,41 @@ export async function waitForPausedAtLine(
     );
   }
   return line;
+}
+
+/**
+ * After Continue with no remaining source breakpoint, GDB should leave this
+ * file. Success = no pause indicator in `filePath` (the chip may still be
+ * running in ROM/idle — Pause checks that separately).
+ */
+export async function waitForPauseIndicatorGone(
+  filePath: string,
+  timeoutMs: number
+): Promise<void> {
+  const fileName = filePath.split("/").pop() ?? filePath;
+  try {
+    await new EditorView().openEditor(fileName);
+  } catch {
+    await openFileInEditor(filePath);
+  }
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    try {
+      const editor = (await new EditorView().openEditor(fileName)) as TextEditor;
+      const paused = await editor.getPausedBreakpoint();
+      if (!paused) {
+        return;
+      }
+    } catch {
+      return;
+    }
+    await new Promise((res) => setTimeout(res, 1000));
+  }
+
+  throw new Error(
+    `Pause indicator was still present in ${fileName} after ${timeoutMs}ms.`
+  );
 }
 
 /**
