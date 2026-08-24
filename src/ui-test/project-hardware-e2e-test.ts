@@ -34,6 +34,7 @@ import {
   helloWorldBinPath,
   killDebugProcesses,
   openTestProject,
+  removeBreakpointInFile,
   selectFromCurrentPicker,
   setBreakpointInFile,
   testHardwareSerialPort,
@@ -43,6 +44,7 @@ import {
   waitForLocalVariable,
   waitForOutputChannelText,
   waitForPathAbsent,
+  waitForPauseIndicatorGone,
   waitForPausedAtLine,
   waitForPausedLine,
   waitForTerminalOutput,
@@ -77,6 +79,7 @@ const state = {
   buildSucceeded: false,
   flashSucceeded: false,
   monitorSucceeded: false,
+  jtagReady: false,
   activeDebugToolbar: undefined as DebugToolbar | undefined,
 };
 
@@ -262,6 +265,8 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await waitForBuildComplete(helloWorldBinPath, 300000);
     });
 
+    state.jtagReady = true;
+
     let debugToolbar: DebugToolbar;
 
     await step("Launch debugger", async () => {
@@ -345,5 +350,95 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await new BottomBarPanel().toggle(false);
     });
 
+  }).timeout(999999);
+
+  it("debugs session lifecycle via JTAG", async function () {
+    if (!state.jtagReady) {
+      this.skip();
+    }
+
+    await stopDebugSession(state.activeDebugToolbar);
+    state.activeDebugToolbar = undefined;
+    await dismissNotifications();
+
+    let debugToolbar: DebugToolbar;
+
+    await step("Launch debugger", async () => {
+      await new Workbench().executeCommand("workbench.action.debug.start");
+      debugToolbar = await DebugToolbar.create(60000);
+      state.activeDebugToolbar = debugToolbar;
+    });
+
+    await step("Wait for default halt at app_main", async () => {
+      await debugToolbar!.waitForBreakPoint(60000);
+      await assertNoOpenOcdFatal("on attach");
+      const haltedLine = await waitForPausedLine(SOURCE_FILE_PATH, 30000);
+      expect(haltedLine).to.be.at.least(6);
+      expect(haltedLine).to.be.lessThan(USER_BREAKPOINT_LINE);
+      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
+    });
+
+    await step("Continue, then Pause while target is running", async () => {
+      await executeDebugAction("continue");
+      await waitForPauseIndicatorGone(SOURCE_FILE_PATH, 15000);
+      await executeDebugAction("pause");
+      await debugToolbar!.waitForBreakPoint(30000);
+      await assertNoOpenOcdFatal("after Pause");
+    });
+
+    await step("Restart and halt at app_main again", async () => {
+      await executeDebugAction("restart");
+      debugToolbar = await DebugToolbar.create(60000);
+      state.activeDebugToolbar = debugToolbar;
+      await debugToolbar.waitForBreakPoint(60000);
+      await assertNoOpenOcdFatal("after Restart");
+      const haltedLine = await waitForPausedLine(SOURCE_FILE_PATH, 30000);
+      expect(haltedLine).to.be.at.least(6);
+      expect(haltedLine).to.be.lessThan(USER_BREAKPOINT_LINE);
+      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
+    });
+
+    await step(
+      `Set gutter breakpoint at ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
+      async () => {
+        await setBreakpointInFile(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE);
+        await new Promise((res) => setTimeout(res, 1500));
+      }
+    );
+
+    await step(
+      `Continue and halt at user breakpoint ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
+      async () => {
+        await executeDebugAction("continue");
+        await debugToolbar!.waitForBreakPoint(60000);
+        await waitForPausedAtLine(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE, 30000);
+      }
+    );
+
+    await step(
+      `Remove breakpoint and Continue past ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
+      async () => {
+        await removeBreakpointInFile(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE);
+        const editor = (await new EditorView().openEditor(
+          SOURCE_FILE_NAME
+        )) as TextEditor;
+        const leftover = await editor.getBreakpoint(USER_BREAKPOINT_LINE);
+        if (leftover) {
+          throw new Error(
+            `Gutter breakpoint still present at ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`
+          );
+        }
+
+        await executeDebugAction("continue");
+        await waitForPauseIndicatorGone(SOURCE_FILE_PATH, 15000);
+        await assertNoOpenOcdFatal("after removing breakpoint");
+      }
+    );
+
+    await step("Stop debug session", async () => {
+      await stopDebugSession(debugToolbar!);
+      state.activeDebugToolbar = undefined;
+      await new BottomBarPanel().toggle(false);
+    });
   }).timeout(999999);
 });
