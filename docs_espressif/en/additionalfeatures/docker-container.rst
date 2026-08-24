@@ -30,7 +30,12 @@ Docker Desktop is an application for macOS and Windows that builds and shares co
 
 .. note::
 
-    The default installation path for Docker is the C drive. Use ``mklink`` commands to move it to another drive if space is limited on the C drive.
+    The default installation path for Docker is the C drive. If space is limited on the C drive, install it to another location ``<path>`` with:
+
+    .. code-block:: powershell
+
+        Start-Process 'Docker Desktop Installer.exe' -Wait -ArgumentList 'install', '--accept-license', '--installation-dir=<path>'
+
 
 Installing Ubuntu on Windows for Docker
 ---------------------------------------
