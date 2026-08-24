@@ -35,6 +35,7 @@ import {
   launchDebugger,
   openTestProject,
   removeAllBreakpoints,
+  reuseOrLaunchDebugger,
   selectFromCurrentPicker,
   setBreakpointInFile,
   stopDebugSession,
@@ -328,11 +329,8 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await assertNoOpenOcdFatal("after Step Over");
     });
 
-    await step("Stop debug session", async () => {
-      await stopDebugSession();
-      state.activeDebugToolbar = undefined;
+    await step("Clear breakpoints; leave session running for lifecycle", async () => {
       await removeAllBreakpoints().catch(() => undefined);
-      await new BottomBarPanel().toggle(false).catch(() => undefined);
     });
 
   }).timeout(999999);
@@ -342,18 +340,12 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       this.skip();
     }
 
-    console.log(
-      "[hardware-debug] lifecycle it: ensuring previous GDB/OpenOCD session is fully stopped"
-    );
-    await stopDebugSession();
-    state.activeDebugToolbar = undefined;
-    await removeAllBreakpoints().catch(() => undefined);
     await dismissNotifications();
 
     let debugToolbar: DebugToolbar;
 
-    await step("Launch debugger", async () => {
-      debugToolbar = await launchDebugger(60000);
+    await step("Reuse debug session via Restart (do not F5)", async () => {
+      debugToolbar = await reuseOrLaunchDebugger(60000);
       state.activeDebugToolbar = debugToolbar;
     });
 

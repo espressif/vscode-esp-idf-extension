@@ -909,6 +909,25 @@ export async function killDebugProcesses(): Promise<void> {
   await delay(3000);
 }
 
+async function leftoverDebugProcesses(): Promise<string[]> {
+  try {
+    const { stdout } = await execAsync(
+      'pgrep -af "openocd|xtensa-esp|riscv32-esp" || true'
+    );
+    return stdout
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(
+        (line) =>
+          line.length > 0 &&
+          !line.includes("pgrep") &&
+          !/\/bin\/sh -c/.test(line)
+      );
+  } catch {
+    return [];
+  }
+}
+
 async function logDebugRelatedProcesses(when: string): Promise<void> {
   try {
     const { stdout } = await execAsync(
@@ -1050,7 +1069,28 @@ export async function stopDebugSession(): Promise<void> {
   const startedAt = Date.now();
   logDebugSession("=== stopDebugSession begin ===");
   await logDebugRelatedProcesses("before stop");
-  await logStatusBar("before stop");
+  const statusBefore = await logStatusBar("before stop");
+  const leftover = await leftoverDebugProcesses();
+  const openOcdRunning = hasOpenOcdRunningStatus(statusBefore);
+
+  if (!openOcdRunning && leftover.length === 0) {
+    logDebugSession(
+      "OpenOCD and chip GDB already stopped; skipping Stop / Manager / pkill"
+    );
+    if (hasGdbAdapterStatus(statusBefore)) {
+      logDebugSession(
+        "Status bar still shows GDB Adapter (inline session); one Disconnect click"
+      );
+      await clickDebugToolbarAction("disconnect").catch(() => undefined);
+      await delay(3000);
+    }
+    await logStatusBar("after already-stopped short-circuit");
+    logDebugSession(
+      `=== stopDebugSession end (already stopped, ${Date.now() - startedAt}ms) ===`
+    );
+    return;
+  }
+
   await dismissAlreadyRunningDebugDialog();
 
   logDebugSession(
@@ -1070,7 +1110,7 @@ export async function stopDebugSession(): Promise<void> {
     await delay(5000);
     gdbGone = await waitUntilStatusBarClears(
       hasGdbAdapterStatus,
-      20000,
+      15000,
       "GDB Adapter"
     );
   }
@@ -1079,18 +1119,26 @@ export async function stopDebugSession(): Promise<void> {
   const toolbarGone = await waitForDebugToolbarGone(10000);
   logDebugSession(`Debug toolbar gone: ${toolbarGone}`);
 
-  await stopOpenOcdViaManager();
-  const openOcdGone = await waitUntilStatusBarClears(
-    hasOpenOcdRunningStatus,
-    15000,
-    "OpenOCD Server (Running)"
-  );
-  logDebugSession(`OpenOCD left Running status: ${openOcdGone}`);
+  if (hasOpenOcdRunningStatus(await readStatusBarTexts())) {
+    await stopOpenOcdViaManager();
+    const openOcdGone = await waitUntilStatusBarClears(
+      hasOpenOcdRunningStatus,
+      15000,
+      "OpenOCD Server (Running)"
+    );
+    logDebugSession(`OpenOCD left Running status: ${openOcdGone}`);
+  } else {
+    logDebugSession("OpenOCD already Stopped; not opening OpenOCD Manager");
+  }
 
   await logDebugRelatedProcesses("after UI stop");
-  logDebugSession("Force-killing leftover OpenOCD / chip GDB");
-  await killDebugProcesses();
-  await logDebugRelatedProcesses("after pkill");
+  if ((await leftoverDebugProcesses()).length > 0) {
+    logDebugSession("Force-killing leftover OpenOCD / chip GDB");
+    await killDebugProcesses();
+    await logDebugRelatedProcesses("after pkill");
+  } else {
+    logDebugSession("No leftover OpenOCD / GDB processes to pkill");
+  }
   await logStatusBar("after stopDebugSession");
 
   if (await sessionHasGdbAdapter()) {
@@ -1271,6 +1319,44 @@ export async function launchDebugger(timeoutMs = 60000): Promise<DebugToolbar> {
   await logStatusBar("after launch");
   logDebugSession("=== launchDebugger end ===");
   return toolbar;
+}
+
+/**
+ * Lifecycle must not F5 while the first debug `it` still owns the attach
+ * session — that is the already-running dialog. Restart re-runs `thb app_main`.
+ */
+export async function reuseOrLaunchDebugger(
+  timeoutMs = 60000
+): Promise<DebugToolbar> {
+  const adapter = await sessionHasGdbAdapter();
+  const toolbarVisible = await isDebugToolbarVisible();
+  await logStatusBar("reuseOrLaunchDebugger");
+  logDebugSession(
+    `reuseOrLaunchDebugger: GDB Adapter=${adapter} toolbar=${toolbarVisible}`
+  );
+
+  if (adapter || toolbarVisible) {
+    logDebugSession("Reusing session via Restart (not F5)");
+    try {
+      const toolbar = await DebugToolbar.create(4000);
+      logDebugSession("Clicking debug toolbar restart");
+      await toolbar.restart();
+    } catch (err) {
+      logDebugSession(
+        `Toolbar restart failed, using command: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+      await executeDebugAction("restart");
+    }
+    await delay(5000);
+    const toolbar = await DebugToolbar.create(timeoutMs);
+    logDebugSession("Debug toolbar present after Restart");
+    return toolbar;
+  }
+
+  logDebugSession("No active session; launching");
+  return launchDebugger(timeoutMs);
 }
 
 /**
