@@ -19,6 +19,7 @@ import { exec } from "child_process";
 import { pathExists } from "fs-extra";
 import { resolve } from "path";
 import { promisify } from "util";
+import { By, Key } from "selenium-webdriver";
 import {
   ActivityBar,
   BottomBarPanel,
@@ -335,6 +336,92 @@ async function delay(ms: number): Promise<void> {
 
 function logDebugSession(message: string): void {
   console.log(`[hardware-debug] ${message}`);
+}
+
+async function tryExecuteExactPaletteCommand(exactLabel: string): Promise<boolean> {
+  try {
+    logDebugSession(`Command palette exact: "${exactLabel}"`);
+    await executeEspIdfCommand(exactLabel);
+    return true;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logDebugSession(`Palette "${exactLabel}" failed: ${message}`);
+    try {
+      const input = await InputBox.create(2000);
+      await input.cancel();
+    } catch {
+      // Picker already closed.
+    }
+    return false;
+  }
+}
+
+async function clickDebugToolbarAction(
+  action: "disconnect" | "stop"
+): Promise<boolean> {
+  try {
+    const toolbar = await DebugToolbar.create(4000);
+    logDebugSession(`Clicking debug toolbar ${action}`);
+    if (action === "disconnect") {
+      await toolbar.disconnect();
+    } else {
+      await toolbar.stop();
+    }
+    logDebugSession(`Toolbar ${action} click sent`);
+    return true;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logDebugSession(`Toolbar ${action} not available: ${message}`);
+    return false;
+  }
+}
+
+async function sendShiftF5(): Promise<void> {
+  logDebugSession("Sending Shift+F5 (Stop/Disconnect keybinding)");
+  const driver = new Workbench().getDriver();
+  await driver
+    .actions()
+    .keyDown(Key.SHIFT)
+    .sendKeys(Key.F5)
+    .keyUp(Key.SHIFT)
+    .perform();
+}
+
+async function sendDisconnectActions(): Promise<void> {
+  // launch.json is request: attach — the toolbar shows Disconnect, not Stop.
+  // Workbench.executeCommand("workbench.action.debug.stop") types the command
+  // id and hits Enter on a fuzzy match; logs showed it never ended the session.
+  await clickDebugToolbarAction("disconnect");
+  await delay(2000);
+  if (!(await sessionHasGdbAdapter())) {
+    return;
+  }
+  await clickDebugToolbarAction("stop");
+  await delay(2000);
+  if (!(await sessionHasGdbAdapter())) {
+    return;
+  }
+  try {
+    await sendShiftF5();
+  } catch (err) {
+    logDebugSession(
+      `Shift+F5 failed: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+  await delay(2000);
+  if (!(await sessionHasGdbAdapter())) {
+    return;
+  }
+  await tryExecuteExactPaletteCommand("Debug: Disconnect");
+  await delay(2000);
+  if (!(await sessionHasGdbAdapter())) {
+    return;
+  }
+  await tryExecuteExactPaletteCommand("Debug: Stop");
+}
+
+async function sessionHasGdbAdapter(): Promise<boolean> {
+  return hasGdbAdapterStatus(await readStatusBarTexts());
 }
 
 /**
@@ -955,51 +1042,42 @@ export async function stopOpenOcdViaManager(): Promise<void> {
 }
 
 /**
- * Stops the VS Code gdbtarget session, then OpenOCD via the manager.
- * pkill is only the last resort if UI teardown left processes behind.
+ * Stops the VS Code gdbtarget attach session, then OpenOCD via the manager.
+ * Attach sessions end with Disconnect (toolbar / Shift+F5), not debug.stop via
+ * fuzzy command-palette confirm.
  */
 export async function stopDebugSession(): Promise<void> {
   const startedAt = Date.now();
   logDebugSession("=== stopDebugSession begin ===");
   await logDebugRelatedProcesses("before stop");
   await logStatusBar("before stop");
+  await dismissAlreadyRunningDebugDialog();
 
-  logDebugSession("Sending workbench.action.debug.stop");
   logDebugSession(
-    "CDT gdbtarget adapter is inline in the extension host; session end is debug.stop plus GDB Adapter leaving the status bar"
+    "Ending attach session: toolbar Disconnect, then Stop, Shift+F5, palette"
   );
-  await executeDebugAction("stop").catch((err) => {
-    logDebugSession(
-      `debug.stop threw: ${err instanceof Error ? err.message : String(err)}`
-    );
-  });
+  await sendDisconnectActions();
   await delay(3000);
-
-  let toolbarGone = await waitForDebugToolbarGone(20000);
-  if (!toolbarGone) {
-    logDebugSession("Toolbar still present; sending debug.stop again");
-    await executeDebugAction("stop").catch(() => undefined);
-    await delay(5000);
-    toolbarGone = await waitForDebugToolbarGone(15000);
-  }
-  logDebugSession(`Debug toolbar gone: ${toolbarGone}`);
 
   let gdbGone = await waitUntilStatusBarClears(
     hasGdbAdapterStatus,
-    30000,
+    15000,
     "GDB Adapter"
   );
   if (!gdbGone) {
-    logDebugSession("GDB Adapter still in status bar; sending debug.stop once more");
-    await executeDebugAction("stop").catch(() => undefined);
+    logDebugSession("GDB Adapter still present; repeating Disconnect actions");
+    await sendDisconnectActions();
     await delay(5000);
     gdbGone = await waitUntilStatusBarClears(
       hasGdbAdapterStatus,
-      15000,
+      20000,
       "GDB Adapter"
     );
   }
   logDebugSession(`GDB Adapter left status bar: ${gdbGone}`);
+
+  const toolbarGone = await waitForDebugToolbarGone(10000);
+  logDebugSession(`Debug toolbar gone: ${toolbarGone}`);
 
   await stopOpenOcdViaManager();
   const openOcdGone = await waitUntilStatusBarClears(
@@ -1010,56 +1088,174 @@ export async function stopDebugSession(): Promise<void> {
   logDebugSession(`OpenOCD left Running status: ${openOcdGone}`);
 
   await logDebugRelatedProcesses("after UI stop");
-  logDebugSession("Force-killing leftover gdb-adapter / OpenOCD / chip GDB");
+  logDebugSession("Force-killing leftover OpenOCD / chip GDB");
   await killDebugProcesses();
   await logDebugRelatedProcesses("after pkill");
   await logStatusBar("after stopDebugSession");
+
+  if (await sessionHasGdbAdapter()) {
+    logDebugSession(
+      "WARNING: GDB Adapter still in status bar after Disconnect + pkill (inline adapter zombie)"
+    );
+  }
   logDebugSession(
     `=== stopDebugSession end (${Date.now() - startedAt}ms) ===`
   );
+}
+
+async function dismissAlreadyRunningViaModal(): Promise<boolean> {
+  try {
+    const dialog = new ModalDialog();
+    const message = await dialog.getMessage();
+    logDebugSession(`Modal dialog: ${message}`);
+    if (!/already running/i.test(message)) {
+      return false;
+    }
+    for (const title of ["Cancel", "No"]) {
+      logDebugSession(`Modal: pushing "${title}"`);
+      await dialog.pushButton(title);
+      await delay(1000);
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+async function dismissAlreadyRunningViaNotification(): Promise<boolean> {
+  try {
+    const notifications = await new Workbench().getNotifications();
+    for (const notification of notifications) {
+      const message = await notification.getMessage().catch(() => "");
+      logDebugSession(`Notification: ${message}`);
+      if (!/already running/i.test(message)) {
+        continue;
+      }
+      for (const title of ["Cancel", "No"]) {
+        try {
+          logDebugSession(`Notification: takeAction "${title}"`);
+          await notification.takeAction(title);
+          await delay(1000);
+          return true;
+        } catch {
+          // Button title may differ.
+        }
+      }
+      await notification.dismiss().catch(() => undefined);
+      return true;
+    }
+  } catch {
+    // No notifications.
+  }
+  return false;
+}
+
+async function dismissAlreadyRunningViaDom(): Promise<boolean> {
+  try {
+    const driver = new Workbench().getDriver();
+    const nodes = await driver.findElements(
+      By.css(
+        ".monaco-dialog-box, .dialog-shadow, [role='dialog'], .monaco-dialog-modal-block"
+      )
+    );
+    for (const node of nodes) {
+      const text = (await node.getText().catch(() => "")).trim();
+      if (!text) {
+        continue;
+      }
+      logDebugSession(`DOM dialog text: ${text.replace(/\s+/g, " ").slice(0, 300)}`);
+      if (!/already running/i.test(text)) {
+        continue;
+      }
+      const buttons = await node.findElements(
+        By.css("a.monaco-button, .monaco-button, button")
+      );
+      for (const button of buttons) {
+        const label = (await button.getText().catch(() => "")).trim();
+        logDebugSession(`DOM dialog button: "${label}"`);
+        if (/^(cancel|no)$/i.test(label)) {
+          logDebugSession(`DOM dialog: clicking "${label}"`);
+          await button.click();
+          await delay(1000);
+          return true;
+        }
+      }
+    }
+  } catch (err) {
+    logDebugSession(
+      `DOM dialog scan failed: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+  return false;
 }
 
 /**
  * Cancel — never Yes. A second gdbtarget on the same OpenOCD port 3333 races.
  */
 export async function dismissAlreadyRunningDebugDialog(): Promise<boolean> {
-  try {
-    const dialog = new ModalDialog();
-    const message = await dialog.getMessage();
-    logDebugSession(`Modal dialog: ${message}`);
-    if (!/already running/i.test(message)) {
-      logDebugSession("Modal is not the already-running adapter prompt; leaving it");
-      return false;
-    }
-    logDebugSession("Clicking Cancel on already-running GDB Adapter dialog");
-    await dialog.pushButton("Cancel");
-    await delay(2000);
+  if (await dismissAlreadyRunningViaModal()) {
     return true;
-  } catch {
-    return false;
   }
+  if (await dismissAlreadyRunningViaNotification()) {
+    return true;
+  }
+  if (await dismissAlreadyRunningViaDom()) {
+    return true;
+  }
+  return false;
+}
+
+async function waitForAlreadyRunningDialog(
+  timeoutMs: number
+): Promise<boolean> {
+  logDebugSession(`Polling up to ${timeoutMs}ms for already-running adapter dialog`);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await dismissAlreadyRunningDebugDialog()) {
+      return true;
+    }
+    await delay(1000);
+  }
+  logDebugSession("No already-running dialog detected");
+  return false;
 }
 
 /**
- * F5, dismiss leftover-session modal if it appears, then wait for the toolbar.
+ * F5 only after GDB Adapter is gone. Attach leftover + Start opens the
+ * already-running modal; OpenOCD can still start in resolveDebugConfiguration.
  */
 export async function launchDebugger(timeoutMs = 60000): Promise<DebugToolbar> {
   logDebugSession("=== launchDebugger begin ===");
   await logDebugRelatedProcesses("before launch");
   await logStatusBar("before launch");
 
+  if (await sessionHasGdbAdapter()) {
+    logDebugSession(
+      "GDB Adapter still in status bar before F5; Disconnect first"
+    );
+    await stopDebugSession();
+    if (await sessionHasGdbAdapter()) {
+      throw new Error(
+        "Cannot launch debugger: Eclipse CDT GDB Adapter is still in the status bar after Disconnect"
+      );
+    }
+  }
+
   logDebugSession("Sending workbench.action.debug.start");
   await new Workbench().executeCommand("workbench.action.debug.start");
-  await delay(5000);
 
-  if (await dismissAlreadyRunningDebugDialog()) {
-    logDebugSession("Leftover GDB Adapter; stopping it before relaunch");
+  if (await waitForAlreadyRunningDialog(10000)) {
+    logDebugSession("Cancelled leftover-session dialog; stopping then relaunching");
     await stopDebugSession();
-    await delay(5000);
+    if (await sessionHasGdbAdapter()) {
+      throw new Error(
+        "Eclipse CDT GDB Adapter still running after Cancel + Disconnect"
+      );
+    }
     logDebugSession("Relaunching debugger");
     await new Workbench().executeCommand("workbench.action.debug.start");
-    await delay(5000);
-    if (await dismissAlreadyRunningDebugDialog()) {
+    if (await waitForAlreadyRunningDialog(10000)) {
       await logStatusBar("after failed relaunch");
       throw new Error(
         "Eclipse CDT GDB Adapter still running after stop and relaunch"
