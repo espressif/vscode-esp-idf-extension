@@ -19,7 +19,6 @@
 import { ExtensionContext, l10n, Uri, window } from "vscode";
 import { isBinInPath } from "../utils";
 import { pathExists, readFile, writeFile } from "fs-extra";
-import { readParameter } from "../configuration/idf";
 import { getIdfBuildPath } from "../configuration/workspace";
 import { join } from "path";
 import { Logger } from "../common/logger";

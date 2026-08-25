@@ -23,7 +23,7 @@ import { execChildProcess, getEspIdfFromCMake } from "../utils";
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import { join } from "path";
 import { ConfigurationTarget, WorkspaceFolder } from "vscode";
-import { readParameter, writeParameter } from "../configuration/idf";
+import { writeParameter } from "../configuration/idf";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { getEnvVariables } from "./loadSettings";
 import { ESP } from "../config";
