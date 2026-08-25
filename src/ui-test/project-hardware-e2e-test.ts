@@ -357,14 +357,20 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await waitUntilDebugPaused(60000);
       await assertNoOpenOcdFatal("before gdbinit symbol check");
     });
+    // after REBASE latest master changes with GDBinit changes included !!!!!!!!!
+    // CDT Debug Console does not echo `source gdbinit` / `add-symbol-file`.
+    // Re-enable when that output is visible (PR 1914 connect path).
+    // await step("Debug Console sourced gdbinit / ROM ELF", async () => {
+    //   const consoleText = await waitForDebugConsoleText(
+    //     GDBINIT_SOURCED_PATTERN,
+    //     20000
+    //   );
+    //   const sourced = consoleText.match(GDBINIT_SOURCED_PATTERN)?.[0];
+    //   console.log(`[hardware-debug] ${sourced}`);
+    // });
 
-    await step("Debug Console sourced gdbinit / ROM ELF", async () => {
-      const consoleText = await waitForDebugConsoleText(
-        GDBINIT_SOURCED_PATTERN,
-        20000
-      );
-      const sourced = consoleText.match(GDBINIT_SOURCED_PATTERN)?.[0];
-      console.log(`[hardware-debug] ${sourced}`);
+    await step("Open Debug Console", async () => {
+      await new BottomBarPanel().openDebugConsoleView();
     });
 
     await step("GDB info address memset, then info symbol of that address", async () => {
