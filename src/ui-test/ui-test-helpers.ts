@@ -19,14 +19,18 @@ import { exec } from "child_process";
 import { pathExists } from "fs-extra";
 import { resolve } from "path";
 import { promisify } from "util";
+import { By, Key } from "selenium-webdriver";
 import {
   ActivityBar,
   BottomBarPanel,
   DebugConsoleView,
+  DebugToolbar,
   DebugView,
   EditorView,
   InputBox,
+  ModalDialog,
   OutputView,
+  StatusBar,
   TextEditor,
   Workbench,
 } from "vscode-extension-tester";
@@ -153,6 +157,7 @@ export const ESP_IDF_COMMANDS = {
   monitor: "ESP-IDF: Monitor Device",
   buildFlashMonitor:
     "ESP-IDF: Build, Flash and Start a Monitor on Your Device",
+  openOcdManager: "ESP-IDF: OpenOCD Manager",
 } as const;
 
 export async function openTestProject(): Promise<void> {
@@ -308,20 +313,123 @@ export async function readCurrentTerminalText(): Promise<string> {
 }
 
 /**
- * Opens `filePath` in the editor via Quick Open and sets a breakpoint at
- * `lineNumber`.
- *
- * `EditorView.openEditor()` only works on already-open tabs, so we first open
- * the file through the Quick Open palette using its full absolute path.  This
- * also guarantees we open the workspace copy of the file rather than any
- * same-named file from the ESP-IDF installation.
- *
- * Idempotent: any pre-existing breakpoint on that line is removed first.
+ * Debug toolbar buttons are often not visible: VS Code hides the floating bar
+ * after the Run and Debug view takes focus. Commands do not need that bar.
  */
-export async function setBreakpointInFile(
-  filePath: string,
-  lineNumber: number
+const DEBUG_ACTIONS = {
+  continue: "workbench.action.debug.continue",
+  stepOver: "workbench.action.debug.stepOver",
+  stepInto: "workbench.action.debug.stepInto",
+  stepOut: "workbench.action.debug.stepOut",
+  pause: "workbench.action.debug.pause",
+  restart: "workbench.action.debug.restart",
+  stop: "workbench.action.debug.stop",
+} as const;
+
+export async function executeDebugAction(
+  action: keyof typeof DEBUG_ACTIONS
 ): Promise<void> {
+  await new Workbench().executeCommand(DEBUG_ACTIONS[action]);
+}
+
+async function delay(ms: number): Promise<void> {
+  await new Promise((res) => setTimeout(res, ms));
+}
+
+function logDebugSession(message: string): void {
+  console.log(`[hardware-debug] ${message}`);
+}
+
+async function tryExecuteExactPaletteCommand(exactLabel: string): Promise<boolean> {
+  try {
+    logDebugSession(`Command palette exact: "${exactLabel}"`);
+    await executeEspIdfCommand(exactLabel);
+    return true;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logDebugSession(`Palette "${exactLabel}" failed: ${message}`);
+    try {
+      const input = await InputBox.create(2000);
+      await input.cancel();
+    } catch {
+      // Picker already closed.
+    }
+    return false;
+  }
+}
+
+async function clickDebugToolbarAction(
+  action: "disconnect" | "stop"
+): Promise<boolean> {
+  try {
+    const toolbar = await DebugToolbar.create(4000);
+    logDebugSession(`Clicking debug toolbar ${action}`);
+    if (action === "disconnect") {
+      await toolbar.disconnect();
+    } else {
+      await toolbar.stop();
+    }
+    logDebugSession(`Toolbar ${action} click sent`);
+    return true;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logDebugSession(`Toolbar ${action} not available: ${message}`);
+    return false;
+  }
+}
+
+async function sendShiftF5(): Promise<void> {
+  logDebugSession("Sending Shift+F5 (Stop/Disconnect keybinding)");
+  const driver = new Workbench().getDriver();
+  await driver
+    .actions()
+    .keyDown(Key.SHIFT)
+    .sendKeys(Key.F5)
+    .keyUp(Key.SHIFT)
+    .perform();
+}
+
+async function sendDisconnectActions(): Promise<void> {
+  if (!(await isDebugToolbarVisible())) {
+    logDebugSession("Debug toolbar not visible; skipping Disconnect clicks");
+    return;
+  }
+  await clickDebugToolbarAction("disconnect");
+  await delay(2000);
+  if (!(await isDebugToolbarVisible())) {
+    logDebugSession("Toolbar gone after Disconnect click");
+    return;
+  }
+  await clickDebugToolbarAction("stop");
+  await delay(2000);
+  if (!(await isDebugToolbarVisible())) {
+    return;
+  }
+  try {
+    await sendShiftF5();
+  } catch (err) {
+    logDebugSession(
+      `Shift+F5 failed: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+}
+
+async function isDebugSessionAlive(): Promise<boolean> {
+  if (await isDebugToolbarVisible()) {
+    return true;
+  }
+  if (hasOpenOcdRunningStatus(await readStatusBarTexts())) {
+    return true;
+  }
+  return (await leftoverDebugProcesses()).length > 0;
+}
+
+/**
+ * Opens `filePath` via Quick Open. `EditorView.openEditor()` only works on
+ * already-open tabs, and Quick Open with an absolute path avoids same-named
+ * files from the ESP-IDF tree.
+ */
+export async function openFileInEditor(filePath: string): Promise<TextEditor> {
   await new Workbench().executeCommand("workbench.action.quickOpen");
   const input = await InputBox.create(5000);
   await input.setText(filePath);
@@ -330,47 +438,82 @@ export async function setBreakpointInFile(
   await new Promise((res) => setTimeout(res, 1500));
 
   const fileName = filePath.split("/").pop() ?? filePath;
-  const editor = (await new EditorView().openEditor(fileName)) as TextEditor;
-
-  const existing = await editor.getBreakpoint(lineNumber);
-  if (existing) {
-    await existing.remove();
-    await new Promise((res) => setTimeout(res, 500));
-  }
-  await editor.toggleBreakpoint(lineNumber);
-  await new Promise((res) => setTimeout(res, 500));
+  return (await new EditorView().openEditor(fileName)) as TextEditor;
 }
 
 /**
- * Polls `TextEditor.getPausedBreakpoint().getLineNumber()` until the reported
- * line differs from `previousLine` and returns the new line number.
- *
- * `getPausedBreakpoint()` reads the yellow-arrow gutter element VS Code renders
- * on every GDB halt — the canonical vscode-extension-tester API for this.
- * It requires no DOM hacks, no aria-hidden workarounds, and no regex parsing.
- *
- * Returns `undefined` if the pause indicator does not move within `timeoutMs`.
+ * Idempotent: any pre-existing breakpoint on that line is removed first.
  */
-export async function waitForPausedLineChange(
-  fileName: string,
-  previousLine: number,
-  timeoutMs: number
+export async function setBreakpointInFile(
+  filePath: string,
+  lineNumber: number
+): Promise<void> {
+  const editor = await openFileInEditor(filePath);
+
+  const existing = await editor.getBreakpoint(lineNumber);
+  if (existing) {
+    await editor.toggleBreakpoint(lineNumber);
+    await delay(500);
+  }
+  await editor.toggleBreakpoint(lineNumber);
+  await delay(500);
+}
+
+/** Command-based: avoids Selenium waiting for a gutter glyph to go stale. */
+export async function removeAllBreakpoints(): Promise<void> {
+  logDebugSession("Removing all breakpoints via workbench.debug.viewlet.action.removeAllBreakpoints");
+  await new Workbench().executeCommand(
+    "workbench.debug.viewlet.action.removeAllBreakpoints"
+  );
+  await delay(2000);
+}
+
+export async function removeBreakpointInFile(
+  filePath: string,
+  lineNumber: number
+): Promise<void> {
+  const editor = await openFileInEditor(filePath);
+  const existing = await editor.getBreakpoint(lineNumber);
+  if (!existing) {
+    return;
+  }
+  await editor.toggleBreakpoint(lineNumber);
+  await delay(1500);
+}
+
+/**
+ * `getPausedBreakpoint()` reads the yellow-arrow gutter on a GDB halt.
+ * It throws when 0 or >1 pause indicators are present — callers retry.
+ */
+async function pollPausedLine(
+  filePath: string,
+  timeoutMs: number,
+  match: (line: number) => boolean
 ): Promise<number | undefined> {
-  const editor = (await new EditorView().openEditor(fileName)) as TextEditor;
+  const fileName = filePath.split("/").pop() ?? filePath;
+  try {
+    await new EditorView().openEditor(fileName);
+  } catch {
+    await openFileInEditor(filePath);
+  }
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() < deadline) {
     try {
+      const editor = (await new EditorView().openEditor(fileName)) as TextEditor;
       const paused = await editor.getPausedBreakpoint();
       if (paused) {
         const line = await paused.getLineNumber();
-        if (line !== previousLine) {
+        if (match(line)) {
+          logDebugSession(`Pause indicator at ${fileName}:${line} (match)`);
           return line;
         }
+        logDebugSession(
+          `Pause indicator at ${fileName}:${line} (waiting for expected line)`
+        );
       }
     } catch {
-      // getPausedBreakpoint throws when 0 or >1 pause indicators are present;
-      // swallow and retry until the gutter settles.
+      // Gutter has not settled on a single pause indicator yet.
     }
     await new Promise((res) => setTimeout(res, 1000));
   }
@@ -378,38 +521,283 @@ export async function waitForPausedLineChange(
   return undefined;
 }
 
+/** Returns `undefined` if the pause indicator does not move within `timeoutMs`. */
+export async function waitForPausedLineChange(
+  filePath: string,
+  previousLine: number,
+  timeoutMs: number
+): Promise<number | undefined> {
+  return pollPausedLine(filePath, timeoutMs, (line) => line !== previousLine);
+}
+
+export async function waitForPausedLine(
+  filePath: string,
+  timeoutMs: number
+): Promise<number> {
+  const line = await pollPausedLine(filePath, timeoutMs, () => true);
+  if (typeof line !== "number") {
+    const fileName = filePath.split("/").pop() ?? filePath;
+    throw new Error(`Timed out waiting for a pause indicator in ${fileName}.`);
+  }
+  return line;
+}
+
+export async function waitForPausedLineInRange(
+  filePath: string,
+  minLine: number,
+  maxExclusive: number,
+  timeoutMs: number
+): Promise<number> {
+  const line = await pollPausedLine(
+    filePath,
+    timeoutMs,
+    (current) => current >= minLine && current < maxExclusive
+  );
+  if (typeof line !== "number") {
+    const fileName = filePath.split("/").pop() ?? filePath;
+    throw new Error(
+      `Timed out waiting to pause in ${fileName} at lines ${minLine}–${
+        maxExclusive - 1
+      }.`
+    );
+  }
+  return line;
+}
+
+export async function waitForPausedAtLine(
+  filePath: string,
+  expectedLine: number,
+  timeoutMs: number
+): Promise<number> {
+  const line = await pollPausedLine(
+    filePath,
+    timeoutMs,
+    (current) => current === expectedLine
+  );
+  if (typeof line !== "number") {
+    const fileName = filePath.split("/").pop() ?? filePath;
+    throw new Error(
+      `Timed out waiting to pause at ${fileName}:${expectedLine}.`
+    );
+  }
+  return line;
+}
+
 /**
- * Opens the Run and Debug sidebar and reads the current source line from the
- * top Call Stack frame.
- *
- * Reads the raw text of the entire CALL STACK section element — VS Code
- * renders each frame as visible text ("app_main  hello_world_main.c 11"),
- * and `WebElement.getText()` collects it all.  The first `.c N` / `.c:N`
- * match in that text is always frame 0 (the innermost / most-recent frame).
- *
- * Unlike the Debug Console, the call stack IS updated after every GDB halt,
- * including step-over halts that emit no new source listing to the console.
- *
- * Returns `undefined` if no frame with a `.c` file reference is visible.
+ * After Continue with no remaining source breakpoint, GDB should leave this
+ * file. Success = no pause indicator in `filePath` (the chip may still be
+ * running in ROM/idle — Pause checks that separately).
  */
-export async function readCallStackTopFrameLine(): Promise<number | undefined> {
-  const debugControl = await new ActivityBar().getViewControl("Run and Debug");
-  if (!debugControl) {
+export async function waitForPauseIndicatorGone(
+  filePath: string,
+  timeoutMs: number
+): Promise<void> {
+  const fileName = filePath.split("/").pop() ?? filePath;
+  try {
+    await new EditorView().openEditor(fileName);
+  } catch {
+    await openFileInEditor(filePath);
+  }
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    try {
+      const editor = (await new EditorView().openEditor(fileName)) as TextEditor;
+      const paused = await editor.getPausedBreakpoint();
+      if (!paused) {
+        return;
+      }
+    } catch {
+      return;
+    }
+    await new Promise((res) => setTimeout(res, 1000));
+  }
+
+  throw new Error(
+    `Pause indicator was still present in ${fileName} after ${timeoutMs}ms.`
+  );
+}
+
+/**
+ * VS Code renders frames as visible text ("app_main  hello_world_main.c 11").
+ * Unlike the Debug Console, the call stack updates after every GDB halt.
+ */
+export async function readCallStackSectionText(): Promise<string | undefined> {
+  try {
+    const debugControl = await new ActivityBar().getViewControl("Run and Debug");
+    if (!debugControl) {
+      return undefined;
+    }
+    const debugView = (await debugControl.openView()) as DebugView;
+    const callStackSection = await debugView.getCallStackSection();
+    return callStackSection.getText();
+  } catch {
     return undefined;
   }
-  const debugView = (await debugControl.openView()) as DebugView;
-  const callStackSection = await debugView.getCallStackSection();
+}
 
-  // Read the full visible text of the section; ANSI codes are not present here
-  // because the sidebar uses normal DOM rendering, not a terminal emulator.
-  const rawText = await callStackSection.getText();
-
-  // First ".c N" or ".c:N" occurrence = frame 0 (app_main after step-over)
+export async function readCallStackTopFrameLine(): Promise<number | undefined> {
+  const rawText = await readCallStackSectionText();
+  if (!rawText) {
+    return undefined;
+  }
   const m = rawText.match(/\.c[:\s]+(\d+)/);
   if (!m) {
     return undefined;
   }
   return parseInt(m[1], 10);
+}
+
+export async function waitForCallStackMatching(
+  pattern: RegExp,
+  timeoutMs: number
+): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  let lastText = "";
+
+  while (Date.now() < deadline) {
+    try {
+      lastText = (await readCallStackSectionText()) ?? "";
+      if (pattern.test(lastText)) {
+        return lastText;
+      }
+    } catch {
+      // Call stack pane may not be ready yet (default 5s locator).
+    }
+    await new Promise((res) => setTimeout(res, 1000));
+  }
+
+  throw new Error(
+    `Timed out waiting for call stack to match ${pattern}.\nLast call stack:\n${lastText}`
+  );
+}
+
+type VariableTreeItem = {
+  getVariableName?: () => Promise<string>;
+  getVariableValue?: () => Promise<string>;
+  getLabel?: () => Promise<string>;
+};
+
+type VariablesSection = {
+  expand?: () => Promise<unknown>;
+  openItem: (...path: string[]) => Promise<unknown>;
+  findItem: (label: string) => Promise<VariableTreeItem | undefined>;
+  getText: () => Promise<string>;
+  getVisibleItems?: () => Promise<VariableTreeItem[]>;
+};
+
+function localValueMatches(raw: string, expectedValue: number): boolean {
+  const trimmed = raw.trim();
+  if (trimmed === String(expectedValue)) {
+    return true;
+  }
+  const numeric = Number(trimmed);
+  return Number.isFinite(numeric) && numeric === expectedValue;
+}
+
+function variablesTextHasValue(
+  text: string,
+  name: string,
+  expectedValue: number
+): boolean {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(
+    `\\b${escaped}\\b[^\\n]*=\\s*(?:0x)?0*${expectedValue}\\b`,
+    "i"
+  );
+  const alt = new RegExp(
+    `\\b${escaped}\\b\\s*:\\s*(?:0x)?0*${expectedValue}\\b`,
+    "i"
+  );
+  return pattern.test(text) || alt.test(text);
+}
+
+async function readVariableValueFromTree(
+  name: string
+): Promise<{ value?: string; text: string }> {
+  const debugControl = await new ActivityBar().getViewControl("Run and Debug");
+  if (!debugControl) {
+    return { text: "" };
+  }
+  const debugView = (await debugControl.openView()) as DebugView;
+  const section = (await debugView.getVariablesSection()) as VariablesSection;
+  try {
+    await section.expand?.();
+  } catch {
+    // Pane may already be expanded.
+  }
+  for (const scope of ["Local", "Locals"]) {
+    try {
+      await section.openItem(scope);
+    } catch {
+      // CDT may use a different scope label, or locals are already top-level.
+    }
+  }
+
+  const text = (await section.getText().catch(() => "")) ?? "";
+
+  try {
+    const item = await section.findItem(name);
+    if (item?.getVariableValue) {
+      return { value: await item.getVariableValue(), text };
+    }
+  } catch {
+    // findItem throws when the tree has not populated yet.
+  }
+
+  if (section.getVisibleItems) {
+    try {
+      const items = await section.getVisibleItems();
+      for (const item of items) {
+        const label =
+          (await item.getVariableName?.().catch(() => undefined)) ??
+          (await item.getLabel?.().catch(() => undefined)) ??
+          "";
+        if (label === name || label.startsWith(`${name} `) || label.startsWith(`${name}:`) || label.startsWith(`${name}=`)) {
+          if (item.getVariableValue) {
+            return { value: await item.getVariableValue(), text };
+          }
+        }
+      }
+    } catch {
+      // Visible-item scan is best-effort.
+    }
+  }
+
+  return { text };
+}
+
+/**
+ * Polls the Run and Debug VARIABLES tree until `name` equals `expectedValue`.
+ * Accepts decimal or hex (GDB may show `1` or `0x1`).
+ */
+export async function waitForLocalVariable(
+  name: string,
+  expectedValue: number,
+  timeoutMs: number
+): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  let lastText = "";
+  let lastValue = "";
+
+  while (Date.now() < deadline) {
+    const snapshot = await readVariableValueFromTree(name);
+    lastText = snapshot.text;
+    lastValue = snapshot.value ?? "";
+    if (snapshot.value && localValueMatches(snapshot.value, expectedValue)) {
+      return snapshot.value;
+    }
+    if (variablesTextHasValue(snapshot.text, name, expectedValue)) {
+      return snapshot.text;
+    }
+    await new Promise((res) => setTimeout(res, 1000));
+  }
+
+  throw new Error(
+    `Timed out waiting for local ${name} == ${expectedValue}.` +
+      (lastValue ? `\nLast tree value: ${lastValue}` : "") +
+      `\nVariables:\n${lastText}`
+  );
 }
 
 /**
@@ -433,6 +821,79 @@ export async function readDebugConsoleText(): Promise<string> {
   const panel = new BottomBarPanel();
   const debugConsole: DebugConsoleView = await panel.openDebugConsoleView();
   return stripAnsi(await debugConsole.getText());
+}
+
+/**
+ * Types into the Debug Console REPL. CDT treats `>…` as a GDB CLI command.
+ */
+export async function evaluateDebugConsole(expression: string): Promise<void> {
+  const panel = new BottomBarPanel();
+  const debugConsole: DebugConsoleView = await panel.openDebugConsoleView();
+  logDebugSession(`Debug Console: ${expression}`);
+  await debugConsole.evaluateExpression(expression);
+  await delay(1500);
+}
+
+export async function waitForDebugConsoleText(
+  pattern: RegExp,
+  timeoutMs: number
+): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  let last = "";
+  while (Date.now() < deadline) {
+    last = await readDebugConsoleText();
+    if (pattern.test(last)) {
+      return last;
+    }
+    await delay(1000);
+  }
+  throw new Error(
+    `Timed out waiting for Debug Console to match ${pattern}.\nLast console:\n${last}`
+  );
+}
+
+/**
+ * Visible Debug Console text is often a sliding window, not a full append-only
+ * log. Reconstruct text that appeared after `before`.
+ */
+function debugConsoleNewText(before: string, last: string): string {
+  if (last.startsWith(before)) {
+    return last.slice(before.length);
+  }
+  const maxOverlap = Math.min(before.length, last.length, 8192);
+  for (let overlap = maxOverlap; overlap > 0; overlap--) {
+    if (last.startsWith(before.slice(-overlap))) {
+      return last.slice(overlap);
+    }
+  }
+  return last;
+}
+
+/**
+ * Evaluates a Debug Console expression and waits for `pattern` in text that
+ * appeared after the call, so earlier REPL output cannot satisfy the assertion.
+ */
+export async function evaluateDebugConsoleAndWait(
+  expression: string,
+  pattern: RegExp,
+  timeoutMs: number
+): Promise<string> {
+  const before = await readDebugConsoleText();
+  await evaluateDebugConsole(expression);
+  const deadline = Date.now() + timeoutMs;
+  let last = before;
+  let delta = "";
+  while (Date.now() < deadline) {
+    last = await readDebugConsoleText();
+    delta = debugConsoleNewText(before, last);
+    if (pattern.test(delta)) {
+      return delta;
+    }
+    await delay(1000);
+  }
+  throw new Error(
+    `Timed out waiting for Debug Console append to match ${pattern} after ${expression}.\nAppended:\n${delta}`
+  );
 }
 
 /**
@@ -504,21 +965,455 @@ export async function waitForNewTerminalOutput(
 }
 
 /**
- * Force-terminates OpenOCD and GDB processes left behind by a debug session.
- *
- * Called from both the normal "stop" path inside the test AND from the suite's
- * `after` hook so that stale processes never block the next CI iteration.
- * `pkill -f` matches the full argv string, catching every chip-specific GDB
- * variant.  Exit code 1 ("no process matched") is silently swallowed.
+ * Force-terminates leftover OpenOCD, CDT gdb-adapter, and chip GDB processes.
+ * Last resort after VS Code Stop + OpenOCD Manager; `pkill` exit 1 is ignored.
  */
 export async function killDebugProcesses(): Promise<void> {
   const patterns = [
+    "gdb-adapter",
     "openocd",
     "xtensa-esp.*-gdb",
     "riscv32-esp.*-gdb",
   ];
-  await Promise.all(
-    patterns.map((p) => execAsync(`pkill -f "${p}"`).catch(() => undefined))
+  for (const pattern of patterns) {
+    logDebugSession(`pkill -f "${pattern}"`);
+    await execAsync(`pkill -f "${pattern}"`).catch(() => undefined);
+  }
+  await delay(3000);
+}
+
+async function leftoverDebugProcesses(): Promise<string[]> {
+  try {
+    const { stdout } = await execAsync(
+      'pgrep -af "openocd|xtensa-esp|riscv32-esp" || true'
+    );
+    return stdout
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(
+        (line) =>
+          line.length > 0 &&
+          !line.includes("pgrep") &&
+          !/\/bin\/sh -c/.test(line)
+      );
+  } catch {
+    return [];
+  }
+}
+
+async function logDebugRelatedProcesses(when: string): Promise<void> {
+  try {
+    const { stdout } = await execAsync(
+      'pgrep -af "openocd|gdb-adapter|xtensa-esp|riscv32-esp" || true'
+    );
+    logDebugSession(`${when} processes:\n${stdout.trim() || "(none)"}`);
+  } catch {
+    logDebugSession(`${when} processes: (pgrep failed)`);
+  }
+}
+
+async function readStatusBarTexts(): Promise<string[]> {
+  try {
+    const items = await new StatusBar().getItems();
+    const texts: string[] = [];
+    for (const item of items) {
+      const text = (await item.getText().catch(() => "")).trim();
+      if (text) {
+        texts.push(text);
+      }
+    }
+    return texts;
+  } catch {
+    return [];
+  }
+}
+
+async function logStatusBar(when: string): Promise<string[]> {
+  const texts = await readStatusBarTexts();
+  logDebugSession(`${when} status bar: [${texts.join(" | ")}]`);
+  return texts;
+}
+
+function hasGdbAdapterStatus(texts: string[]): boolean {
+  return texts.some((text) => /GDB Adapter/i.test(text));
+}
+
+function hasOpenOcdRunningStatus(texts: string[]): boolean {
+  return texts.some(
+    (text) => /OpenOCD/i.test(text) && /Running/i.test(text)
   );
-  await new Promise((res) => setTimeout(res, 1500));
+}
+
+async function isDebugToolbarVisible(): Promise<boolean> {
+  try {
+    const toolbar = await DebugToolbar.create(2000);
+    return await toolbar.isDisplayed();
+  } catch {
+    return false;
+  }
+}
+
+async function waitForDebugToolbarGone(timeoutMs: number): Promise<boolean> {
+  logDebugSession(`Waiting up to ${timeoutMs}ms for debug toolbar to disappear`);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const visible = await isDebugToolbarVisible();
+    logDebugSession(`Debug toolbar visible: ${visible}`);
+    if (!visible) {
+      return true;
+    }
+    await delay(2000);
+  }
+  return false;
+}
+
+async function waitUntilStatusBarClears(
+  stillPresent: (texts: string[]) => boolean,
+  timeoutMs: number,
+  what: string
+): Promise<boolean> {
+  logDebugSession(`Waiting up to ${timeoutMs}ms for ${what} to leave the status bar`);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const texts = await logStatusBar(`waiting for ${what} to clear`);
+    if (!stillPresent(texts)) {
+      return true;
+    }
+    await delay(2000);
+  }
+  return false;
+}
+
+/**
+ * Palette: ESP-IDF: OpenOCD Manager → Stop OpenOCD.
+ * If only Start OpenOCD is listed, the manager already considers it stopped.
+ */
+export async function stopOpenOcdViaManager(): Promise<void> {
+  logDebugSession("Opening ESP-IDF: OpenOCD Manager");
+  try {
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.openOcdManager);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logDebugSession(`Failed to open OpenOCD Manager: ${message}`);
+    return;
+  }
+
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    try {
+      const inputBox = await InputBox.create(3000);
+      const labels = await listQuickPickLabels(inputBox);
+      logDebugSession(`OpenOCD Manager picks: [${labels.join(" | ")}]`);
+      const stopPick = await findQuickPickByExactLabel(inputBox, "Stop OpenOCD");
+      if (stopPick) {
+        await stopPick.select();
+        logDebugSession("Stop OpenOCD selected; waiting for SIGKILL and status bar");
+        await delay(5000);
+        return;
+      }
+      if (labels.includes("Start OpenOCD")) {
+        logDebugSession("Only Start OpenOCD listed; cancelling picker");
+        await inputBox.cancel();
+        await delay(1000);
+        return;
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      logDebugSession(`Waiting for OpenOCD Manager picker: ${message}`);
+    }
+    await delay(1000);
+  }
+
+  logDebugSession("Timed out waiting for OpenOCD Manager picker");
+  try {
+    const input = await InputBox.create(2000);
+    await input.cancel();
+  } catch {
+    // Picker already closed.
+  }
+}
+
+/**
+ * Stops the VS Code gdbtarget attach session, then OpenOCD via the manager.
+ * Attach sessions end with Disconnect (toolbar / Shift+F5), not debug.stop via
+ * fuzzy command-palette confirm.
+ */
+export async function stopDebugSession(): Promise<void> {
+  const startedAt = Date.now();
+  logDebugSession("=== stopDebugSession begin ===");
+  await dismissNotifications().catch(() => undefined);
+  await logDebugRelatedProcesses("before stop");
+  await logStatusBar("before stop");
+
+  if (!(await isDebugSessionAlive())) {
+    logDebugSession(
+      "Session already stopped (no toolbar, OpenOCD not Running, no gdb/openocd). Ignoring leftover GDB Adapter status text."
+    );
+    await logStatusBar("after already-stopped short-circuit");
+    logDebugSession(
+      `=== stopDebugSession end (already stopped, ${Date.now() - startedAt}ms) ===`
+    );
+    return;
+  }
+
+  await dismissAlreadyRunningDebugDialog();
+  logDebugSession("Ending attach session: toolbar Disconnect");
+  await sendDisconnectActions();
+  await delay(3000);
+
+  if (await isDebugToolbarVisible()) {
+    logDebugSession("Toolbar still visible; Disconnect once more");
+    await sendDisconnectActions();
+    await delay(3000);
+  }
+
+  const toolbarGone = !(await isDebugToolbarVisible());
+  logDebugSession(`Debug toolbar gone: ${toolbarGone}`);
+
+  if (hasOpenOcdRunningStatus(await readStatusBarTexts())) {
+    await stopOpenOcdViaManager();
+    await waitUntilStatusBarClears(
+      hasOpenOcdRunningStatus,
+      15000,
+      "OpenOCD Server (Running)"
+    );
+  } else {
+    logDebugSession("OpenOCD already Stopped; not opening OpenOCD Manager");
+  }
+
+  await logDebugRelatedProcesses("after UI stop");
+  if ((await leftoverDebugProcesses()).length > 0) {
+    logDebugSession("Force-killing leftover OpenOCD / chip GDB");
+    await killDebugProcesses();
+    await logDebugRelatedProcesses("after pkill");
+  } else {
+    logDebugSession("No leftover OpenOCD / GDB processes to pkill");
+  }
+  await logStatusBar("after stopDebugSession");
+  logDebugSession(
+    `=== stopDebugSession end (${Date.now() - startedAt}ms) ===`
+  );
+}
+
+async function dismissAlreadyRunningViaModal(): Promise<boolean> {
+  try {
+    const dialog = new ModalDialog();
+    const message = await dialog.getMessage();
+    logDebugSession(`Modal dialog: ${message}`);
+    if (!/already running/i.test(message)) {
+      return false;
+    }
+    for (const title of ["Cancel", "No"]) {
+      logDebugSession(`Modal: pushing "${title}"`);
+      await dialog.pushButton(title);
+      await delay(1000);
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+async function dismissAlreadyRunningViaNotification(): Promise<boolean> {
+  try {
+    const notifications = await new Workbench().getNotifications();
+    for (const notification of notifications) {
+      const message = await notification.getMessage().catch(() => "");
+      logDebugSession(`Notification: ${message}`);
+      if (!/already running/i.test(message)) {
+        continue;
+      }
+      for (const title of ["Cancel", "No"]) {
+        try {
+          logDebugSession(`Notification: takeAction "${title}"`);
+          await notification.takeAction(title);
+          await delay(1000);
+          return true;
+        } catch {
+          // Button title may differ.
+        }
+      }
+      await notification.dismiss().catch(() => undefined);
+      return true;
+    }
+  } catch {
+    // No notifications.
+  }
+  return false;
+}
+
+async function dismissAlreadyRunningViaDom(): Promise<boolean> {
+  try {
+    const driver = new Workbench().getDriver();
+    const nodes = await driver.findElements(
+      By.css(
+        ".monaco-dialog-box, .dialog-shadow, [role='dialog'], .monaco-dialog-modal-block"
+      )
+    );
+    for (const node of nodes) {
+      const text = (await node.getText().catch(() => "")).trim();
+      if (!text) {
+        continue;
+      }
+      logDebugSession(`DOM dialog text: ${text.replace(/\s+/g, " ").slice(0, 300)}`);
+      if (!/already running/i.test(text)) {
+        continue;
+      }
+      const buttons = await node.findElements(
+        By.css("a.monaco-button, .monaco-button, button")
+      );
+      for (const button of buttons) {
+        const label = (await button.getText().catch(() => "")).trim();
+        logDebugSession(`DOM dialog button: "${label}"`);
+        if (/^(cancel|no)$/i.test(label)) {
+          logDebugSession(`DOM dialog: clicking "${label}"`);
+          await button.click();
+          await delay(1000);
+          return true;
+        }
+      }
+    }
+  } catch (err) {
+    logDebugSession(
+      `DOM dialog scan failed: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+  return false;
+}
+
+/**
+ * Cancel — never Yes. A second gdbtarget on the same OpenOCD port 3333 races.
+ */
+export async function dismissAlreadyRunningDebugDialog(): Promise<boolean> {
+  if (await dismissAlreadyRunningViaModal()) {
+    return true;
+  }
+  if (await dismissAlreadyRunningViaNotification()) {
+    return true;
+  }
+  if (await dismissAlreadyRunningViaDom()) {
+    return true;
+  }
+  return false;
+}
+
+async function waitForAlreadyRunningDialog(
+  timeoutMs: number
+): Promise<boolean> {
+  logDebugSession(`Polling up to ${timeoutMs}ms for already-running adapter dialog`);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await dismissAlreadyRunningDebugDialog()) {
+      return true;
+    }
+    await delay(1000);
+  }
+  logDebugSession("No already-running dialog detected");
+  return false;
+}
+
+/**
+ * F5 only after GDB Adapter is gone. Attach leftover + Start opens the
+ * already-running modal; OpenOCD can still start in resolveDebugConfiguration.
+ */
+export async function launchDebugger(timeoutMs = 60000): Promise<DebugToolbar> {
+  logDebugSession("=== launchDebugger begin ===");
+  await dismissNotifications().catch(() => undefined);
+  await logDebugRelatedProcesses("before launch");
+  await logStatusBar("before launch");
+
+  if (await isDebugSessionAlive()) {
+    logDebugSession("Live session (toolbar/OpenOCD/gdb) before F5; Disconnect first");
+    await stopDebugSession();
+  } else {
+    logDebugSession(
+      "No live session (stale GDB Adapter status text is ignored); F5"
+    );
+  }
+
+  logDebugSession("Sending workbench.action.debug.start");
+  await new Workbench().executeCommand("workbench.action.debug.start");
+
+  if (await waitForAlreadyRunningDialog(10000)) {
+    logDebugSession("Cancelled leftover-session dialog; stopping then relaunching");
+    await stopDebugSession();
+    logDebugSession("Relaunching debugger");
+    await new Workbench().executeCommand("workbench.action.debug.start");
+    if (await waitForAlreadyRunningDialog(10000)) {
+      await logStatusBar("after failed relaunch");
+      throw new Error(
+        "Eclipse CDT GDB Adapter still running after stop and relaunch"
+      );
+    }
+  }
+
+  logDebugSession(
+    `Waiting up to ${timeoutMs}ms for debug toolbar (OpenOCD + GDB Adapter startup)`
+  );
+  const toolbar = await DebugToolbar.create(timeoutMs);
+  logDebugSession("Debug toolbar appeared");
+  await logStatusBar("after launch");
+  logDebugSession("=== launchDebugger end ===");
+  return toolbar;
+}
+
+/**
+ * Lifecycle must not F5 while the first debug `it` still owns the attach
+ * session — that is the already-running dialog. Restart re-runs `thb app_main`.
+ */
+export async function reuseOrLaunchDebugger(
+  timeoutMs = 60000
+): Promise<DebugToolbar> {
+  const toolbarVisible = await isDebugToolbarVisible();
+  await logStatusBar("reuseOrLaunchDebugger");
+  logDebugSession(`reuseOrLaunchDebugger: toolbarVisible=${toolbarVisible}`);
+
+  if (toolbarVisible) {
+    logDebugSession("Reusing session via Restart (not F5)");
+    try {
+      const toolbar = await DebugToolbar.create(4000);
+      logDebugSession("Clicking debug toolbar restart");
+      await toolbar.restart();
+    } catch (err) {
+      logDebugSession(
+        `Toolbar restart failed, using command: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+      await executeDebugAction("restart");
+    }
+    await delay(5000);
+    const toolbar = await DebugToolbar.create(timeoutMs);
+    logDebugSession("Debug toolbar present after Restart");
+    return toolbar;
+  }
+
+  logDebugSession("No debug toolbar; launching");
+  return launchDebugger(timeoutMs);
+}
+
+/**
+ * `waitForBreakPoint` locates Continue with the driver default (~5s).
+ * Retry until `timeoutMs` so a hidden/Pause toolbar does not fail the step.
+ */
+export async function waitUntilDebugPaused(timeoutMs: number): Promise<void> {
+  logDebugSession(`Waiting up to ${timeoutMs}ms for debug pause (Continue enabled)`);
+  const deadline = Date.now() + timeoutMs;
+  let lastError = "";
+  while (Date.now() < deadline) {
+    try {
+      const toolbar = await DebugToolbar.create(5000);
+      await toolbar.waitForBreakPoint(5000);
+      logDebugSession("Debug pause detected (Continue enabled)");
+      return;
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+      logDebugSession(`Not paused yet: ${lastError}`);
+    }
+    await delay(2000);
+  }
+  throw new Error(
+    `Timed out waiting for debug pause after ${timeoutMs}ms. Last: ${lastError}`
+  );
 }
