@@ -95,7 +95,9 @@ function applyVariablesResponseToHexView(
     if (!existingItem) {
       continue;
     }
-    const numericValue = parseInt(variable.value, 10);
+    const numericValue = variable.value.toLowerCase().startsWith("0x")
+      ? parseInt(variable.value, 16)
+      : parseInt(variable.value, 10);
     if (!isNaN(numericValue)) {
       hexViewProvider.updateElement(variable.name, numericValue);
     }

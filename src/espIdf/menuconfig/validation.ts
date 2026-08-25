@@ -19,7 +19,6 @@ import { join } from "path";
 import { Uri } from "vscode";
 import { pathExists, readFile } from "fs-extra";
 import { getVirtualEnvPythonPath } from "../../configuration/env";
-import { readParameter } from "../../configuration/idf";
 import { getIdfBuildPath } from "../../configuration/workspace";
 import {
   fileNotFound,

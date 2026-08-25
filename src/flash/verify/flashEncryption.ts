@@ -15,6 +15,7 @@ import { ConfserverProcess } from "../../espIdf/menuconfig/confserver/confServer
 import { ESPEFuseManager } from "../../efuse/manager";
 import { getDocsUrl } from "../../espIdf/documentation/getDocsVersion";
 import {
+  getConfigValueFromBuild,
   getConfigValueFromSDKConfig,
   getIdfTargetFromSdkconfig,
 } from "../../configuration/workspace";
@@ -27,7 +28,6 @@ import {
   Uri,
   window,
 } from "vscode";
-import { getConfigValueFromBuild } from "../../utils";
 
 export enum FlashCheckResultType {
   Success,
