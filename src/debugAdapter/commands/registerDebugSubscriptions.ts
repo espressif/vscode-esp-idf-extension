@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  debug,
-  DebugSession,
-  ExtensionContext,
-  window,
-} from "vscode";
+import { debug, DebugSession, ExtensionContext, window } from "vscode";
 import { PeripheralTreeView } from "../svd/peripheralTreeView";
 import { HexViewProvider } from "../hexViewProvider";
 import { OpenOCDManager } from "../../espIdf/openOcd/openOcdManager";
@@ -74,7 +69,10 @@ export function registerDebugSessionLifecycle(
     }),
     debug.onDidTerminateDebugSession((session) => {
       peripheralTreeProvider.debugSessionTerminated(session);
-      if (flags.isOpenOCDLaunchedByDebug.value && !flags.isDebugRestarted.value) {
+      if (
+        flags.isOpenOCDLaunchedByDebug.value &&
+        !flags.isDebugRestarted.value
+      ) {
         flags.isOpenOCDLaunchedByDebug.value = false;
         OpenOCDManager.init().stop();
       }
@@ -106,7 +104,9 @@ function applyVariablesResponseToHexView(
     if (!existingItem) {
       continue;
     }
-    const numericValue = parseInt(variable.value, 10);
+    const numericValue = variable.value.toLowerCase().startsWith("0x")
+      ? parseInt(variable.value, 16)
+      : parseInt(variable.value, 10);
     if (!isNaN(numericValue)) {
       hexViewProvider.updateElement(variable.name, numericValue);
     }
@@ -133,11 +133,17 @@ export function registerGdbTargetDebugAdapterTracker(
               m.body &&
               Array.isArray(m.body.variables)
             ) {
-              applyVariablesResponseToHexView(hexViewProvider, m.body.variables);
+              applyVariablesResponseToHexView(
+                hexViewProvider,
+                m.body.variables
+              );
             }
           },
           onWillReceiveMessage(message) {
-            if (message?.command === "disconnect" && message.arguments?.restart) {
+            if (
+              message?.command === "disconnect" &&
+              message.arguments?.restart
+            ) {
               isDebugRestarted.value = true;
             }
           },

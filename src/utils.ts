@@ -18,8 +18,6 @@ import { copy, move, pathExists, readFile, remove, stat } from "fs-extra";
 import { EOL } from "os";
 import * as path from "path";
 import * as vscode from "vscode";
-import { readParameter } from "./configuration/idf";
-import { getIdfBuildPath } from "./configuration/workspace";
 import { Logger } from "./common/logger";
 import { OutputChannel } from "./common/outputChannel";
 import { ESP } from "./config";
@@ -485,27 +483,5 @@ export async function robustMove(
         Logger.error(errorMessage, error as Error, "robustMove");
       }
     }
-  }
-}
-
-export async function getConfigValueFromBuild(
-  configKey: string,
-  workspacePath: vscode.Uri
-): Promise<string> {
-  const buildPath = getIdfBuildPath(workspacePath);
-  const jsonFilePath = path.join(buildPath, "config", "sdkconfig.json");
-  try {
-    const data = await readFile(jsonFilePath, "utf-8");
-    const config = JSON.parse(data);
-    if (config[configKey] !== undefined) {
-      // Key found, return the value assigned to it
-      return config[configKey];
-    } else {
-      // Key not found, throw an error
-      throw new Error(`The key ${configKey} was not found in ${jsonFilePath}.`);
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to read or parse the JSON file: ${errorMessage}`);
   }
 }

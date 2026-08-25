@@ -13,7 +13,6 @@ import { buildMain } from "../build/buildMain";
 import { readParameter, writeParameter } from "../configuration/idf";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
-import { getCurrentIdfConfiguration } from "../configuration/env";
 import { TaskManager } from "../taskManager/taskManager";
 import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
 import { setTargetErrorPresentation } from "../espIdf/setTarget/setTargetErrorPresentation";
@@ -148,7 +147,6 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       ) {
         partitionToUse = undefined;
       }
-      const modifiedEnv = getCurrentIdfConfiguration();
 
       let continueFlag = true;
       if (commandId) {

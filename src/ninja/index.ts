@@ -21,7 +21,6 @@ import { registerIDFCommand } from "../common/registerCommand";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { join } from "path";
 import { getVirtualEnvPythonPath } from "../configuration/env";
-import { readParameter } from "../configuration/idf";
 import { getIdfBuildPath } from "../configuration/workspace";
 import { execChildProcess } from "../utils";
 import { OutputChannel } from "../common/outputChannel";

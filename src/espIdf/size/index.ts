@@ -39,7 +39,7 @@ export function registerIdfSizeUICmd(context: ExtensionContext) {
           }
           const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
           const idfSize = new IDFSize(wsFolder.uri);
-          _cancelToken.onCancellationRequested(idfSize.cancel);
+          _cancelToken.onCancellationRequested(() => idfSize.cancel());
 
           const results = await idfSize.calculateWithProgress(
             _progress,

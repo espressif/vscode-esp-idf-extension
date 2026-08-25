@@ -13,7 +13,6 @@
 // limitations under the License.
 import { ExtensionContext, Uri } from "vscode";
 import { AbstractCloning } from "../common/abstractCloning";
-import { readParameter } from "../configuration/idf";
 import { registerIDFCommand } from "../common/registerCommand";
 import { ESP } from "../config";
 import { PreCheck } from "../common/PreCheck";

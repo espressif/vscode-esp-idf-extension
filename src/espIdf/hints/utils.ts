@@ -1,7 +1,6 @@
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { Logger } from "../../common/logger";
-import { readParameter } from "../../configuration/idf";
 import { getIdfBuildPath } from "../../configuration/workspace";
 import { Uri } from "vscode";
 import { OpenOCDManager } from "../openOcd/openOcdManager";

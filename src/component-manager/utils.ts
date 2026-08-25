@@ -30,10 +30,9 @@ export async function addDependency(
   cancelToken: CancellationToken
 ) {
   try {
-    const currentEnvVars = getCurrentIdfConfiguration();
-    const idfPathDir = currentEnvVars["IDF_PATH"];
-    const idfPy = join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = getCurrentIdfConfiguration();
+    const idfPathDir = modifiedEnv["IDF_PATH"];
+    const idfPy = join(idfPathDir, "tools", "idf.py");
     const pythonBinPath = getVirtualEnvPythonPath();
     if (
       !existsSync(idfPathDir) ||

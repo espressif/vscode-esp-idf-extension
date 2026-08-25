@@ -21,7 +21,6 @@ import {
   StatusBarItem,
   Uri,
   window,
-  workspace,
 } from "vscode";
 import {
   buildRequiredBeforeFlash,
@@ -95,6 +94,28 @@ export function updateIdfComponentsTree(workspaceFolder: Uri) {
   idfDataProvider.refresh(workspaceFolder);
 }
 
+export async function getConfigValueFromBuild(
+  configKey: string,
+  workspacePath: Uri
+): Promise<string> {
+  const buildPath = getIdfBuildPath(workspacePath);
+  const jsonFilePath = join(buildPath, "config", "sdkconfig.json");
+  try {
+    const data = await promises.readFile(jsonFilePath, { encoding: "utf8" });
+    const config = JSON.parse(data);
+    if (config[configKey] !== undefined) {
+      // Key found, return the value assigned to it
+      return config[configKey];
+    } else {
+      // Key not found, throw an error
+      throw new Error(`The key ${configKey} was not found in ${jsonFilePath}.`);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to read or parse the JSON file: ${errorMessage}`);
+  }
+}
+
 /**
  * Reads and maps `${idf.buildPath}/project_description.json` into a typed object.
  *
@@ -117,7 +138,9 @@ export async function getProjectDescriptionJson(
     if (!doesExists) {
       return undefined;
     }
-    const projDescJsonContent = await promises.readFile(projDescJsonPath);
+    const projDescJsonContent = await promises.readFile(projDescJsonPath, {
+      encoding: "utf8",
+    });
     const projDescJson = JSON.parse(projDescJsonContent.toString()) as Record<
       string,
       unknown
@@ -255,10 +278,7 @@ export async function getConfigValueFromSDKConfig(
   workspacePath: Uri
 ): Promise<string> {
   const sdkconfigFilePath = await getSDKConfigFilePath(workspacePath);
-  if (
-    !sdkconfigFilePath ||
-    !canAccessFile(sdkconfigFilePath, constants.R_OK)
-  ) {
+  if (!sdkconfigFilePath || !canAccessFile(sdkconfigFilePath, constants.R_OK)) {
     throw new Error("sdkconfig file doesn't exists or can't be read");
   }
   const configs = readFileSync(sdkconfigFilePath, "utf-8");
@@ -273,9 +293,7 @@ export async function getConfigValueFromSDKConfig(
  * @param {Uri} workspacePath - Workspace URI to get the project name from its project description.
  * @returns {Promise<string>}
  */
-export async function getProjectName(
-  workspacePath: Uri
-): Promise<string> {
+export async function getProjectName(workspacePath: Uri): Promise<string> {
   const projectDescription = await getProjectDescriptionJson(workspacePath);
   if (projectDescription && projectDescription.projectName) {
     return projectDescription.projectName;

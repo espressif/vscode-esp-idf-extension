@@ -27,7 +27,6 @@ import {
   workspace,
 } from "vscode";
 import { Logger } from "../common/logger";
-import { readParameter } from "../configuration/idf";
 import { getIdfBuildPath } from "../configuration/workspace";
 
 export const CLANGD_EXTENSION_ID = "llvm-vs-code-extensions.vscode-clangd";
@@ -63,7 +62,7 @@ export async function restartClangdLanguageServer() {
     } catch (error) {
       Logger.error(
         "Failed to restart clangd language server",
-        error,
+        error as Error,
         "checkClangExtension restartClangdLanguageServer"
       );
     }
@@ -113,7 +112,7 @@ export async function checkAndPromptForClangdExtension() {
       } catch (error) {
         Logger.error(
           "Failed to install clangd extension",
-          error,
+          error as Error,
           "checkAndPromptForClangdExtension"
         );
 

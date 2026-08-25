@@ -17,7 +17,6 @@
  */
 
 import { commands, Uri } from "vscode";
-import { readParameter } from "../configuration/idf";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { getIdfBuildPath, getIdfTargetFromSdkconfig } from "../configuration/workspace";
