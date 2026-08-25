@@ -853,8 +853,25 @@ export async function waitForDebugConsoleText(
 }
 
 /**
- * Evaluates a Debug Console expression and waits for `pattern` in text appended
- * after the call, so earlier REPL output cannot satisfy the assertion.
+ * Visible Debug Console text is often a sliding window, not a full append-only
+ * log. Reconstruct text that appeared after `before`.
+ */
+function debugConsoleNewText(before: string, last: string): string {
+  if (last.startsWith(before)) {
+    return last.slice(before.length);
+  }
+  const maxOverlap = Math.min(before.length, last.length, 8192);
+  for (let overlap = maxOverlap; overlap > 0; overlap--) {
+    if (last.startsWith(before.slice(-overlap))) {
+      return last.slice(overlap);
+    }
+  }
+  return last;
+}
+
+/**
+ * Evaluates a Debug Console expression and waits for `pattern` in text that
+ * appeared after the call, so earlier REPL output cannot satisfy the assertion.
  */
 export async function evaluateDebugConsoleAndWait(
   expression: string,
@@ -865,17 +882,15 @@ export async function evaluateDebugConsoleAndWait(
   await evaluateDebugConsole(expression);
   const deadline = Date.now() + timeoutMs;
   let last = before;
+  let delta = "";
   while (Date.now() < deadline) {
     last = await readDebugConsoleText();
-    const delta =
-      last.length >= before.length ? last.slice(before.length) : last;
+    delta = debugConsoleNewText(before, last);
     if (pattern.test(delta)) {
       return delta;
     }
     await delay(1000);
   }
-  const delta =
-    last.length >= before.length ? last.slice(before.length) : last;
   throw new Error(
     `Timed out waiting for Debug Console append to match ${pattern} after ${expression}.\nAppended:\n${delta}`
   );
