@@ -204,6 +204,8 @@ export class GDBDebugSession extends LoggingDebugSession {
   // therefore be resumed after breakpoints are inserted.
   protected waitPausedNeeded = false;
   protected isInitialized = false;
+  protected pendingInitialBreakpointStop?: any;
+  protected stopAtInitialBreakpoint = false;
 
   constructor() {
     super();
@@ -472,15 +474,17 @@ export class GDBDebugSession extends LoggingDebugSession {
       accessTypes: undefined,
       canPersist: false,
     };
-    const ref = this.variableHandles.get(args.variablesReference);
-    const parentVarname = ref.type === "object" ? ref.varobjName : "";
-    const varname =
+    if (args.variablesReference) {
+      const ref = this.variableHandles.get(args.variablesReference);
+      const parentVarname = ref.type === "object" ? ref.varobjName : "";
+      const varname =
       parentVarname +
       (parentVarname === "" ? "" : ".") +
       args.name.replace(/^\[(\d+)\]/, "$1");
-    response.body.dataId = varname;
-    response.body.description = varname;
-    response.body.accessTypes = ["read", "write", "readWrite"];
+      response.body.dataId = varname;
+      response.body.description = varname;
+      response.body.accessTypes = ["read", "write", "readWrite"];
+    }
 
     this.sendResponse(response);
   }
@@ -670,6 +674,7 @@ export class GDBDebugSession extends LoggingDebugSession {
         vsbp: DebugProtocol.SourceBreakpoint,
         gdbbp: mi.MIBreakpointInfo
       ): DebugProtocol.Breakpoint => {
+        this.matchInitialBreakpointStop(gdbbp);
         if (vsbp.logMessage) {
           this.logPointMessages[gdbbp.number] = vsbp.logMessage;
         }
@@ -741,6 +746,9 @@ export class GDBDebugSession extends LoggingDebugSession {
             file,
             line,
             options
+          );
+          gdbbp.multiple?.forEach((location) =>
+            this.matchInitialBreakpointStop(location)
           );
           actual.push(createState(vsbp, gdbbp.bkpt));
         } catch (err) {
@@ -838,7 +846,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       ): DebugProtocol.Breakpoint => ({
         id: parseInt(breakpoint.number, 10),
         verified: true,
-        line: parseInt(breakpoint.line, 10),
+        line: breakpoint.line ? parseInt(breakpoint.line, 10) : undefined,
         source: {
           name: breakpoint.file,
           path: breakpoint.fullname,
@@ -955,7 +963,9 @@ export class GDBDebugSession extends LoggingDebugSession {
           "console"
         )
       );
-      if (!this.isPostMortem) {
+      if (this.stopAtInitialBreakpoint && this.pendingInitialBreakpointStop) {
+        this.handleGDBStopped(this.pendingInitialBreakpointStop);
+      } else if (!this.isPostMortem) {
         if (this.isAttach) {
           await mi.sendExecContinue(this.gdb);
         } else {
@@ -964,6 +974,8 @@ export class GDBDebugSession extends LoggingDebugSession {
       } else {
         this.sendEvent(new StoppedEvent("exception", 1, true));
       }
+      this.pendingInitialBreakpointStop = undefined;
+      this.stopAtInitialBreakpoint = false;
       this.sendResponse(response);
     } catch (err) {
       this.sendErrorResponse(
@@ -1245,9 +1257,9 @@ export class GDBDebugSession extends LoggingDebugSession {
         parentVarname +
         (parentVarname === "" ? "" : ".") +
         args.name.replace(/^\[(\d+)\]/, "$1");
-        if (ref.type === "registers") {
-          varname = "$" + args.name;
-        }
+      if (ref.type === "registers") {
+        varname = "$" + args.name;
+      }
       const depth =
         ref.type === "registers"
           ? this.getRegisterVarDepth()
@@ -1333,7 +1345,11 @@ export class GDBDebugSession extends LoggingDebugSession {
           ref.varobjName
         );
         if (isRegisterVariable) {
-          this.sendInvalidatedEvent(["variables"], frame.threadId, frame.frameId);
+          this.sendInvalidatedEvent(
+            ["variables"],
+            frame.threadId,
+            frame.frameId
+          );
         }
       }
       response.body = {
@@ -1790,6 +1806,26 @@ export class GDBDebugSession extends LoggingDebugSession {
     }
   }
 
+  private matchInitialBreakpointStop(breakpoint: mi.MIBreakpointInfo) {
+    const stopAddress = this.pendingInitialBreakpointStop?.frame?.addr;
+    if (!stopAddress) {
+      return;
+    }
+    const breakpointAddresses = [
+      breakpoint.addr,
+      ...(breakpoint.locations?.map((location) => location.addr) ?? [])
+    ];
+    this.stopAtInitialBreakpoint ||= breakpointAddresses.some((address) => address && this.addressesEqual(address, stopAddress));
+  }
+
+  private addressesEqual(left: string, right: string): boolean {
+    try {
+      return BigInt(left) === BigInt(right);
+    } catch {
+      return left.toLowerCase() === right.toLowerCase();
+    }
+  }
+
   protected handleGDBAsync(resultClass: string, resultData: any) {
     const updateIsRunning = () => {
       this.isRunning = this.threads.length ? true : false;
@@ -1816,6 +1852,9 @@ export class GDBDebugSession extends LoggingDebugSession {
         updateIsRunning();
         break;
       case "stopped": {
+        if (!this.isInitialized && resultData.reason === "breakpoint-hit") {
+          this.pendingInitialBreakpointStop = resultData;
+        }
         let suppressHandleGDBStopped = false;
         if (this.gdb.isNonStopMode()) {
           const id = parseInt(resultData["thread-id"], 10);
@@ -1972,14 +2011,13 @@ export class GDBDebugSession extends LoggingDebugSession {
               value: displayValue,
               type: varobj.type,
               memoryReference: `&(${varobj.expression})`,
-              variablesReference:
-                hasChildren
-                  ? this.variableHandles.create({
-                      type: "object",
-                      frameHandle: ref.frameHandle,
-                      varobjName: varobj.varname,
-                    })
-                  : 0,
+              variablesReference: hasChildren
+                ? this.variableHandles.create({
+                    type: "object",
+                    frameHandle: ref.frameHandle,
+                    varobjName: varobj.varname,
+                  })
+                : 0,
             });
           }
         }
@@ -2049,14 +2087,13 @@ export class GDBDebugSession extends LoggingDebugSession {
           value: displayValue,
           type: varobj.type,
           memoryReference: `&(${varobj.expression})`,
-          variablesReference:
-            hasChildren
-              ? this.variableHandles.create({
-                  type: "object",
-                  frameHandle: ref.frameHandle,
-                  varobjName: varobj.varname,
-                })
-              : 0,
+          variablesReference: hasChildren
+            ? this.variableHandles.create({
+                type: "object",
+                frameHandle: ref.frameHandle,
+                varobjName: varobj.varname,
+              })
+            : 0,
         });
       }
     }
@@ -2125,20 +2162,16 @@ export class GDBDebugSession extends LoggingDebugSession {
             name: objChild.exp,
             evaluateName: `${parentClassName}.${objChild.exp}`,
             value: hasChildren
-              ? this.valueForVariableWithChildren(
-                  objChild.value,
-                  objChild.type
-                )
-              : (objChild.value ?? objChild.type),
+              ? this.valueForVariableWithChildren(objChild.value, objChild.type)
+              : objChild.value ?? objChild.type,
             type: objChild.type,
-            variablesReference:
-              hasChildren
-                ? this.variableHandles.create({
-                    type: "object",
-                    frameHandle: ref.frameHandle,
-                    varobjName: childName,
-                  })
-                : 0,
+            variablesReference: hasChildren
+              ? this.variableHandles.create({
+                  type: "object",
+                  frameHandle: ref.frameHandle,
+                  varobjName: childName,
+                })
+              : 0,
           });
         }
       } else {
@@ -2213,14 +2246,13 @@ export class GDBDebugSession extends LoggingDebugSession {
           evaluateName,
           value: displayValue,
           type: child.type,
-          variablesReference:
-            hasChildren
-              ? this.variableHandles.create({
-                  type: "object",
-                  frameHandle: ref.frameHandle,
-                  varobjName,
-                })
-              : 0,
+          variablesReference: hasChildren
+            ? this.variableHandles.create({
+                type: "object",
+                frameHandle: ref.frameHandle,
+                varobjName,
+              })
+            : 0,
         });
       }
     }
@@ -2241,7 +2273,12 @@ export class GDBDebugSession extends LoggingDebugSession {
     const v = (rawValue ?? "").trim();
     const isUnion = /union\s/i.test(type);
     const fullUnionStr = (flatVal ?? "").trim();
-    if (isUnion && fullUnionStr.length > 0 && fullUnionStr !== "{}" && fullUnionStr !== "{...}") {
+    if (
+      isUnion &&
+      fullUnionStr.length > 0 &&
+      fullUnionStr !== "{}" &&
+      fullUnionStr !== "{...}"
+    ) {
       const scalarMatch = fullUnionStr.match(
         /\w+\s*=\s*(0x[0-9a-fA-F]+|\d+)\s*[,}]/
       );
@@ -2291,7 +2328,10 @@ export class GDBDebugSession extends LoggingDebugSession {
     if (!parentVarname) return false;
     try {
       const regDepth = this.getRegisterVarDepth();
-      const rootName = parentVarname.indexOf(".") !== -1 ? parentVarname.split(".")[0] : parentVarname;
+      const rootName =
+        parentVarname.indexOf(".") !== -1
+          ? parentVarname.split(".")[0]
+          : parentVarname;
       const rootVar = this.gdb.varManager.getVarByName(
         frame.frameId,
         frame.threadId,
@@ -2314,7 +2354,11 @@ export class GDBDebugSession extends LoggingDebugSession {
    * @param threadId The ID of the thread to invalidate.
    * @param stackFrameId The ID of the stack frame to invalidate.
    */
-  private sendInvalidatedEvent(areas: string[] = ["variables"], threadId?: number, stackFrameId?: number): void {
+  private sendInvalidatedEvent(
+    areas: string[] = ["variables"],
+    threadId?: number,
+    stackFrameId?: number
+  ): void {
     const ev = new InvalidatedEvent(areas, threadId, stackFrameId);
     this.sendEvent(ev);
   }
@@ -2568,8 +2612,10 @@ export class GDBDebugSession extends LoggingDebugSession {
         continue;
       }
       const rawFlatVal = flatValuesByReg.get(reg) ?? reg_values[i].value;
-      const flatVal = /^[0-9a-fA-F]+$/.test(rawFlatVal) && !rawFlatVal.startsWith("0x")
-        ? "0x" + rawFlatVal : rawFlatVal;
+      const flatVal =
+        /^[0-9a-fA-F]+$/.test(rawFlatVal) && !rawFlatVal.startsWith("0x")
+          ? "0x" + rawFlatVal
+          : rawFlatVal;
       const settled = varCreateResults[i];
       if (settled.status === "rejected") {
         variables.push({
