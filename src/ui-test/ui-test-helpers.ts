@@ -319,6 +319,8 @@ export async function readCurrentTerminalText(): Promise<string> {
 const DEBUG_ACTIONS = {
   continue: "workbench.action.debug.continue",
   stepOver: "workbench.action.debug.stepOver",
+  stepInto: "workbench.action.debug.stepInto",
+  stepOut: "workbench.action.debug.stepOut",
   pause: "workbench.action.debug.pause",
   restart: "workbench.action.debug.restart",
   stop: "workbench.action.debug.stop",
@@ -819,6 +821,64 @@ export async function readDebugConsoleText(): Promise<string> {
   const panel = new BottomBarPanel();
   const debugConsole: DebugConsoleView = await panel.openDebugConsoleView();
   return stripAnsi(await debugConsole.getText());
+}
+
+/**
+ * Types into the Debug Console REPL. CDT treats `>…` as a GDB CLI command.
+ */
+export async function evaluateDebugConsole(expression: string): Promise<void> {
+  const panel = new BottomBarPanel();
+  const debugConsole: DebugConsoleView = await panel.openDebugConsoleView();
+  logDebugSession(`Debug Console: ${expression}`);
+  await debugConsole.evaluateExpression(expression);
+  await delay(1500);
+}
+
+export async function waitForDebugConsoleText(
+  pattern: RegExp,
+  timeoutMs: number
+): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  let last = "";
+  while (Date.now() < deadline) {
+    last = await readDebugConsoleText();
+    if (pattern.test(last)) {
+      return last;
+    }
+    await delay(1000);
+  }
+  throw new Error(
+    `Timed out waiting for Debug Console to match ${pattern}.\nLast console:\n${last}`
+  );
+}
+
+/**
+ * Evaluates a Debug Console expression and waits for `pattern` in text appended
+ * after the call, so earlier REPL output cannot satisfy the assertion.
+ */
+export async function evaluateDebugConsoleAndWait(
+  expression: string,
+  pattern: RegExp,
+  timeoutMs: number
+): Promise<string> {
+  const before = await readDebugConsoleText();
+  await evaluateDebugConsole(expression);
+  const deadline = Date.now() + timeoutMs;
+  let last = before;
+  while (Date.now() < deadline) {
+    last = await readDebugConsoleText();
+    const delta =
+      last.length >= before.length ? last.slice(before.length) : last;
+    if (pattern.test(delta)) {
+      return delta;
+    }
+    await delay(1000);
+  }
+  const delta =
+    last.length >= before.length ? last.slice(before.length) : last;
+  throw new Error(
+    `Timed out waiting for Debug Console append to match ${pattern} after ${expression}.\nAppended:\n${delta}`
+  );
 }
 
 /**

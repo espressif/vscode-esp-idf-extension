@@ -43,6 +43,8 @@ import {
   testWorkspaceDir,
   waitForBuildComplete,
   waitForCallStackMatching,
+  evaluateDebugConsoleAndWait,
+  waitForDebugConsoleText,
   waitForLocalVariable,
   waitForOutputChannelText,
   waitForPathAbsent,
@@ -69,12 +71,20 @@ const DEBUG_FATAL_ERROR_PATTERN =
 // Default launch injects `thb app_main`, which lands on the prologue or first
 // statement (lines 6–8). The user breakpoint is the next volatile assignment
 // so Continue cannot be confused with that halt. Step-over target is ESP_LOGI
-// (a statement, not a step-into of the log macro).
+// (a statement, not a step-into of the log macro). add_one() is after printf
+// so these line numbers stay put.
 const USER_BREAKPOINT_LINE = 9;
 const STEP_OVER_TARGET_LINE = 10;
+const STEP_INTO_CALL_LINE = 12;
+const ADD_ONE_BODY_START = 16;
+const ADD_ONE_BODY_END_EXCLUSIVE = 19;
 const SOURCE_FILE_NAME = "hello_world_main.c";
 const SOURCE_FILE_PATH = resolve(testWorkspaceDir, "main", SOURCE_FILE_NAME);
 const APP_MAIN_STACK_PATTERN = /app_main/;
+const GDBINIT_SOURCED_PATTERN =
+  /source\s+\S*gdbinit|add-symbol-file\s+\S+/i;
+const MEMSET_ADDRESS_PATTERN =
+  /Symbol\s+"memset"\s+is[^\n]*\b(0x[0-9A-Fa-f]{4,})/i;
 
 // ─── shared state ────────────────────────────────────────────────────────────
 
@@ -83,6 +93,7 @@ const state = {
   flashSucceeded: false,
   monitorSucceeded: false,
   jtagReady: false,
+  debugSmokeSucceeded: false,
   activeDebugToolbar: undefined as DebugToolbar | undefined,
 };
 
@@ -329,10 +340,60 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await assertNoOpenOcdFatal("after Step Over");
     });
 
-    await step("Clear breakpoints; leave session running for lifecycle", async () => {
+    await step("Clear breakpoints; leave session paused for gdbinit and lifecycle", async () => {
       await removeAllBreakpoints().catch(() => undefined);
     });
 
+    state.debugSmokeSucceeded = true;
+
+  }).timeout(999999);
+
+  it("resolves ROM symbols via gdbinit", async function () {
+    if (!state.debugSmokeSucceeded) {
+      this.skip();
+    }
+
+    await step("Wait until the leftover debug session is paused", async () => {
+      await waitUntilDebugPaused(60000);
+      await assertNoOpenOcdFatal("before gdbinit symbol check");
+    });
+
+    await step("Debug Console sourced gdbinit / ROM ELF", async () => {
+      const consoleText = await waitForDebugConsoleText(
+        GDBINIT_SOURCED_PATTERN,
+        20000
+      );
+      const sourced = consoleText.match(GDBINIT_SOURCED_PATTERN)?.[0];
+      console.log(`[hardware-debug] ${sourced}`);
+    });
+
+    await step("GDB info address memset, then info symbol of that address", async () => {
+      const addressText = await evaluateDebugConsoleAndWait(
+        ">info address memset",
+        MEMSET_ADDRESS_PATTERN,
+        20000
+      );
+      if (/No symbol\s+"memset"/i.test(addressText)) {
+        throw new Error(`GDB did not resolve memset:\n${addressText}`);
+      }
+      const memsetAddr = addressText.match(MEMSET_ADDRESS_PATTERN)?.[1];
+      if (!memsetAddr) {
+        throw new Error(`Could not parse memset address:\n${addressText}`);
+      }
+      console.log(`[hardware-debug] memset at ${memsetAddr}`);
+
+      const symbolText = await evaluateDebugConsoleAndWait(
+        `>info symbol ${memsetAddr}`,
+        /in section|No symbol matches|\bmemset\b|\b__call_memset\b/i,
+        20000
+      );
+      if (/No symbol matches/i.test(symbolText)) {
+        throw new Error(
+          `GDB did not reverse-lookup ${memsetAddr} (ROM symbols missing?):\n${symbolText}`
+        );
+      }
+      console.log(`[hardware-debug] ${symbolText.trim().split("\n").slice(0, 4).join(" ")}`);
+    });
   }).timeout(999999);
 
   it("debugs session lifecycle via JTAG", async function () {
@@ -395,6 +456,49 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       state.activeDebugToolbar = debugToolbar;
       await waitUntilDebugPaused(60000);
       await assertNoOpenOcdFatal("after Restart");
+      await waitForPausedLineInRange(
+        SOURCE_FILE_PATH,
+        6,
+        USER_BREAKPOINT_LINE,
+        60000
+      );
+      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 30000);
+    });
+
+    await step("Step Into add_one, then Step Out", async () => {
+      await setBreakpointInFile(SOURCE_FILE_PATH, STEP_INTO_CALL_LINE);
+      await new Promise((res) => setTimeout(res, 1500));
+      await executeDebugAction("continue");
+      await waitUntilDebugPaused(60000);
+      await waitForPausedAtLine(SOURCE_FILE_PATH, STEP_INTO_CALL_LINE, 30000);
+
+      await executeDebugAction("stepInto");
+      await waitUntilDebugPaused(30000);
+      await waitForPausedLineInRange(
+        SOURCE_FILE_PATH,
+        ADD_ONE_BODY_START,
+        ADD_ONE_BODY_END_EXCLUSIVE,
+        30000
+      );
+      await waitForCallStackMatching(/add_one/, 15000);
+
+      await executeDebugAction("stepOut");
+      await waitUntilDebugPaused(30000);
+      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
+      await waitForPausedLineInRange(
+        SOURCE_FILE_PATH,
+        STEP_INTO_CALL_LINE,
+        15,
+        30000
+      );
+
+      await removeAllBreakpoints();
+      await executeDebugAction("restart");
+      await new Promise((res) => setTimeout(res, 5000));
+      debugToolbar = await DebugToolbar.create(60000);
+      state.activeDebugToolbar = debugToolbar;
+      await waitUntilDebugPaused(60000);
+      await assertNoOpenOcdFatal("after Step Out restart");
       await waitForPausedLineInRange(
         SOURCE_FILE_PATH,
         6,
