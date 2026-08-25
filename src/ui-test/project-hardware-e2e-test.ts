@@ -390,7 +390,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
 
       const symbolText = await evaluateDebugConsoleAndWait(
         `>info symbol ${memsetAddr}`,
-        /in section|No symbol matches|\bmemset\b|\b__call_memset\b/i,
+        /in section|No symbol matches/i,
         20000
       );
       if (/No symbol matches/i.test(symbolText)) {
