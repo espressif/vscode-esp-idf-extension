@@ -32,7 +32,6 @@ import { CustomTask, CustomTaskType } from "../taskManager/customTaskProvider";
 import { ESP } from "../config";
 import { OutputChannel } from "../common/outputChannel";
 import { CustomExecutionTaskResult } from "../taskManager/types";
-import { buildFinishFlashCmd } from "./buildFinishFlashCmd";
 import { appendDfuExecution } from "./dfuExecution";
 import { runSizeTaskIfEnabled } from "./sizeExecution";
 import { CancellationToken, Disposable, Uri } from "vscode";
@@ -102,10 +101,6 @@ export async function buildMain(
     if (!cancelToken.isCancellationRequested) {
       updateIdfComponentsTree(workspace);
       Logger.infoNotify("Build Successful");
-      const flashCmd = await buildFinishFlashCmd(workspace);
-      if (flashCmd) {
-        OutputChannel.appendLine(flashCmd, "Build");
-      }
       for (const result of TaskManager.getTaskResults()) {
         OutputChannel.appendLine(result.output.stdout, "Build");
       }
