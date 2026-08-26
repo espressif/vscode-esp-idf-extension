@@ -43,7 +43,6 @@ export const debugErrorPresentation = {
     severity: ErrorSeverity.Error,
     userMessage: "Required dependency {dependency} is missing for debugging.",
     logMessage: "Debug missing dependency: {dependency}.",
-    actions: [],
     outputChannel: debugOutputChannel,
   } satisfies ErrorPresentation,
   idfToolNotFound: {

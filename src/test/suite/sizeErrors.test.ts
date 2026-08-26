@@ -74,7 +74,9 @@ suite("size errors", () => {
       globalState: createMockMemento(),
     } as vscode.ExtensionContext;
     Logger.init(mockUpContext);
-    ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
+    ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(
+      mockUpContext
+    );
   });
 
   teardown(() => {
@@ -122,6 +124,22 @@ suite("size errors", () => {
       );
       assert.strictEqual(descriptor?.actions[0].label, "View Output");
       assert.strictEqual(descriptor?.actions[1].label, "Ask AI to Fix");
+    });
+
+    test("omitting actions keeps Install Manager for MISSING_DEPENDENCY", () => {
+      const descriptor = resolveKnownErrorDescriptor(
+        known(
+          ErrorCode.MISSING_DEPENDENCY,
+          { dependency: "Python" },
+          sizeErrorPresentation.missingDependency
+        )
+      );
+      assert.ok(descriptor);
+      assert.strictEqual(descriptor?.outputChannel, "Size");
+      assert.strictEqual(
+        descriptor?.actions[0].label,
+        "Open ESP-IDF Install Manager"
+      );
     });
   });
 
