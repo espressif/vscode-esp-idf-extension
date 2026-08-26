@@ -19,6 +19,7 @@ import * as assert from "assert";
 import {
   isKnownError,
   missingDependency,
+  noWorkspaceOpen,
   repositoryCloneFailed,
 } from "../../common/error/knownError";
 import {
@@ -37,6 +38,15 @@ suite("ESP-ADF command errors", () => {
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "ESP-ADF");
       assert.strictEqual(descriptor?.actions[0].label, "View Output");
+    });
+
+    test("omitting actions keeps Open Folder for NO_WORKSPACE_OPEN", () => {
+      const descriptor = resolveKnownErrorDescriptor(
+        noWorkspaceOpen(espAdfErrorPresentation.noWorkspaceOpen)
+      );
+      assert.ok(descriptor);
+      assert.strictEqual(descriptor?.outputChannel, "ESP-ADF");
+      assert.strictEqual(descriptor?.actions[0].label, "Open Folder…");
     });
 
     test("registry interpolates repo name for RepositoryCloneFailed", () => {

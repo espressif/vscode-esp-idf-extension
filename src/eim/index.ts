@@ -57,7 +57,6 @@ export function installManagerCommand(context: ExtensionContext) {
         userMessage:
           "Open a workspace folder before selecting an ESP-IDF version.",
         logMessage: "Select ESP-IDF version blocked: no workspace open.",
-        actions: [],
         outputChannel: "EIM",
       });
     }

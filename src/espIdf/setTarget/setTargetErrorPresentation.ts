@@ -39,7 +39,6 @@ export const setTargetErrorPresentation = {
   missingDependency: {
     userMessage: "Required dependency {dependency} is missing.",
     logMessage: "Missing dependency: {dependency}.",
-    actions: [],
     outputChannel,
   },
 } satisfies Record<string, ErrorPresentation>;

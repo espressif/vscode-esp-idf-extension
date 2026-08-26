@@ -25,7 +25,6 @@ export const sizeErrorPresentation = {
   missingDependency: {
     userMessage: "Required dependency {dependency} is missing.",
     logMessage: "Missing dependency: {dependency}.",
-    actions: [],
     outputChannel,
   },
   parseError: {
