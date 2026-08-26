@@ -38,7 +38,7 @@ export async function enqueueCompileTaskIfNoCache(
   if (compilerArgs.indexOf("-S") === -1) {
     compilerArgs.push("-S", workspaceUri.fsPath);
   }
-  await appendSdkconfigDefaultsAndCcache(compilerArgs, workspaceUri);
+  appendSdkconfigDefaultsAndCcache(compilerArgs, workspaceUri);
 
   return addProcessTask(
     "Compile",

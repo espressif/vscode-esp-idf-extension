@@ -26,6 +26,7 @@ import {
   idfTaskInProgress,
   isKnownError,
   known,
+  missingDependency,
 } from "../../common/error/knownError";
 import {
   resolveKnownErrorDescriptor,
@@ -123,6 +124,17 @@ suite("build errors", () => {
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Build");
       assert.strictEqual(descriptor?.actions[0].label, "Build");
+    });
+
+    test("registry includes Install Manager action for MISSING_DEPENDENCY", () => {
+      const descriptor = resolveKnownErrorDescriptor(
+        missingDependency("Python")
+      );
+      assert.ok(descriptor);
+      assert.strictEqual(
+        descriptor?.actions[0].label,
+        "Open ESP-IDF Install Manager"
+      );
     });
   });
 
