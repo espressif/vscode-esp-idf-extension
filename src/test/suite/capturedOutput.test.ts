@@ -81,7 +81,13 @@ function runPseudoterminal(
       output: undefined,
     };
     const terminal = new OutputCapturingPseudoterminal(
-      { file: process.execPath, args: ["-e", script] },
+      {
+        file: process.execPath,
+        args: ["-e", script],
+        // In the extension host process.execPath is VS Code's Electron binary,
+        // which only evaluates the script when it runs as Node.
+        env: { ELECTRON_RUN_AS_NODE: "1" },
+      },
       (output) => {
         run.output = output;
       },
@@ -108,6 +114,7 @@ suite("OutputCapturingPseudoterminal epilogue", () => {
       () => "To flash, run:\nidf.py flash"
     );
     assert.ok(run.written.includes("To flash, run:\r\nidf.py flash"));
+    assert.ok(run.written.includes("build done"));
     assert.ok(
       run.written.indexOf("build done") < run.written.indexOf("To flash, run:")
     );
