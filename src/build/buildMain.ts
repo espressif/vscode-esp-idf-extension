@@ -21,13 +21,12 @@ import { BuildSession } from "./buildSession";
 import { FlashSession } from "../flash/shared/flashSession";
 import { EraseFlashSession } from "../eraseFlash/eraseFlashSession";
 import { Logger } from "../common/logger";
-import {
-  buildTerminated,
-  idfTaskInProgress,
-  IdfTaskName,
-} from "../common/error/knownError";
+import { idfTaskInProgress, IdfTaskName } from "../common/error/knownError";
 import { ErrorPresentation } from "../common/error/types";
-import { TaskManager, throwCapturedTaskFailure } from "../taskManager/taskManager";
+import {
+  TaskManager,
+  throwCapturedTaskFailure,
+} from "../taskManager/taskManager";
 import { updateIdfComponentsTree } from "../configuration/workspace";
 import { CustomTask, CustomTaskType } from "../taskManager/customTaskProvider";
 import { ESP } from "../config";
@@ -100,12 +99,6 @@ export async function buildMain(
     if (!buildResult || !sizeResult) {
       await throwCapturedTaskFailure();
     }
-    if (cancelToken.isCancellationRequested && !(buildResult && sizeResult)) {
-      throw buildTerminated();
-    }
-    if (!(buildResult && sizeResult)) {
-      return { continueFlag: false };
-    }
     if (!cancelToken.isCancellationRequested) {
       updateIdfComponentsTree(workspace);
       Logger.infoNotify("Build Successful");
@@ -125,8 +118,5 @@ export async function buildMain(
     session?.end();
   }
 
-  if (failure !== undefined) {
-    throw failure;
-  }
-  return { continueFlag: true };
+  throw failure;
 }

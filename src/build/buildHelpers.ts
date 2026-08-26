@@ -34,10 +34,10 @@ export function applySdkconfigDefaultsAndCcacheArgs(
   }
 }
 
-export async function appendSdkconfigDefaultsAndCcache(
+export function appendSdkconfigDefaultsAndCcache(
   args: string[],
   workspaceUri: Uri
-): Promise<void> {
+) {
   const sdkconfigFile = readParameter(
     "idf.sdkconfigFilePath",
     workspaceUri

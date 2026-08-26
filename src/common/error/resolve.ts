@@ -101,8 +101,3 @@ export function resolveKnownErrorLogMessage(
 ): string | undefined {
   return resolveKnownErrorDescriptor(error, options)?.logMessage;
 }
-
-/** @internal Test helper to reset one-time unregistered-code warnings. */
-export function resetUnregisteredCodeWarningsForTests(): void {
-  unregisteredCodeWarnings.clear();
-}

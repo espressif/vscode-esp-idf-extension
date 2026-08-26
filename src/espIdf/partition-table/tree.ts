@@ -29,7 +29,7 @@ import {
   Uri,
   window,
 } from "vscode";
-import { readParameter } from "../../configuration/idf";
+import { readParameter, readSerialPort } from "../../configuration/idf";
 import { getIdfBuildPath } from "../../configuration/workspace";
 import {
   flasherArgsMissing,
@@ -39,7 +39,10 @@ import {
   partitionPopulateFailed,
 } from "../../common/error/knownError";
 import { CSV2JSON } from "../../views/partition-table/util";
-import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
+import {
+  getCurrentIdfConfiguration,
+  getVirtualEnvPythonPath,
+} from "../../configuration/env";
 import { createFlashModel } from "../../flash/transports/uart/flashModelBuilder";
 import { formatAsPartitionSize } from "./partitionReader";
 import { spawn } from "../../utils";
@@ -56,9 +59,7 @@ export interface PartitionItem extends TreeItem {
 
 export class PartitionTreeDataProvider
   implements TreeDataProvider<PartitionItem> {
-  public OnDidChangeTreeData: EventEmitter<PartitionItem | null> = new EventEmitter<
-    PartitionItem | null
-  >();
+  public OnDidChangeTreeData: EventEmitter<PartitionItem | null> = new EventEmitter<PartitionItem | null>();
   public readonly onDidChangeTreeData: Event<PartitionItem | null> = this
     .OnDidChangeTreeData.event;
 
@@ -85,12 +86,15 @@ export class PartitionTreeDataProvider
     this.partitionItems = Array<PartitionItem>(0);
     try {
       const modifiedEnv = getCurrentIdfConfiguration();
-      const serialPort = readParameter("idf.port", workspace) as string;
+      const serialPort = await readSerialPort(workspace);
       if (!serialPort) {
         throw noSerialPort(modifiedEnv["IDF_TARGET"]);
       }
       const buildPath = getIdfBuildPath(workspace);
-      const flashBaudRate = readParameter("idf.flashBaudRate", workspace) as string;
+      const flashBaudRate = readParameter(
+        "idf.flashBaudRate",
+        workspace
+      ) as string;
       const idfPath = modifiedEnv["IDF_PATH"];
       const pythonBinPath = getVirtualEnvPythonPath();
       if (!pythonBinPath) {
@@ -212,7 +216,7 @@ export class PartitionTreeDataProvider
     let partitionItems: PartitionItem[] = [];
 
     for (const item of csvItems) {
-      const partitionTableNode =  {} as PartitionItem;
+      const partitionTableNode = {} as PartitionItem;
       partitionTableNode.name = item.name;
       partitionTableNode.type = item.type;
       partitionTableNode.subtype = item.subtype;

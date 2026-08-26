@@ -16,45 +16,27 @@
  * limitations under the License.
  */
 
-import { TaskPanelKind, Uri, commands } from "vscode";
-import {
-  addProcessTask,
-  TaskManager,
-} from "../taskManager/taskManager";
+import { TaskPanelKind, Uri } from "vscode";
+import { addProcessTask, TaskManager } from "../taskManager/taskManager";
 import { readParameter } from "../configuration/idf";
-import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
+import {
+  getCurrentIdfConfiguration,
+  getVirtualEnvPythonPath,
+} from "../configuration/env";
 import { join } from "path";
 import { getIdfBuildPath, getProjectName } from "../configuration/workspace";
 import {
   invalidConfiguration,
   missingDependency,
 } from "../common/error/knownError";
-import { ErrorPresentation } from "../common/error/types";
+import { buildErrorPresentation } from "../common/error/buildErrorPresentation";
 
-const buildInvalidConfigurationPresentation: ErrorPresentation = {
-  actions: [
-    {
-      label: "Open Settings",
-      execute: () =>
-        commands.executeCommand(
-          "workbench.action.openSettings",
-          "idf.buildPath"
-        ),
-    },
-  ],
-};
-
-const buildMissingDependencyPresentation: ErrorPresentation = {
-  actions: [],
-};
 let getVirtualEnvPythonPathForTests: (() => string | undefined) | undefined;
 
 /** @internal Test helper to stub Python path resolution. */
-export function setSizeExecutionTestHooks(
-  hooks?: {
-    getVirtualEnvPythonPath?: () => string | undefined;
-  }
-): void {
+export function setSizeExecutionTestHooks(hooks?: {
+  getVirtualEnvPythonPath?: () => string | undefined;
+}): void {
   getVirtualEnvPythonPathForTests = hooks?.getVirtualEnvPythonPath;
 }
 
@@ -65,9 +47,7 @@ function resolveVirtualEnvPythonPath(): string | undefined {
   return getVirtualEnvPythonPath();
 }
 
-export async function runSizeTaskIfEnabled(
-  workspace: Uri
-): Promise<boolean> {
+export async function runSizeTaskIfEnabled(workspace: Uri): Promise<boolean> {
   const enableSizeTask = (await readParameter(
     "idf.enableSizeTaskAfterBuildTask",
     workspace
@@ -80,14 +60,14 @@ export async function runSizeTaskIfEnabled(
   const mapFilePath = join(buildDirPath, `${projectName}.map`);
   const pythonCommand = resolveVirtualEnvPythonPath();
   if (!pythonCommand) {
-    throw missingDependency("Python", buildMissingDependencyPresentation);
+    throw missingDependency("Python");
   }
   const modifiedEnv = getCurrentIdfConfiguration();
   const idfPath = modifiedEnv["IDF_PATH"];
   if (!idfPath) {
     throw invalidConfiguration(
       "IDF_PATH",
-      buildInvalidConfigurationPresentation
+      buildErrorPresentation.invalidConfiguration
     );
   }
   const idfSizePath = join(idfPath, "tools", "idf_size.py");

@@ -7,13 +7,6 @@ const viewErrorHints = {
 };
 
 export const hintsErrorPresentation = {
-  fileNotFound: {
-    userMessage:
-      "OpenOCD hints file not found at {filePath}. Hints may require a specific OpenOCD version.",
-    logMessage: "OpenOCD hints file not found: {filePath}.",
-    actions: [viewErrorHints],
-    outputChannel: "OpenOCD",
-  },
   parseError: {
     userMessage:
       "Failed to parse OpenOCD hints file at {filePath}. Please check the syntax.",
