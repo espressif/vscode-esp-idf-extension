@@ -33,7 +33,11 @@ import {
 import { ESP } from "../config";
 import { NotificationMode, readParameter } from "../configuration/idf";
 import { Logger } from "../common/logger";
-import type { CapturedTaskOutput, IdfTaskResult } from "./types";
+import type {
+  CapturedTaskOutput,
+  IdfTaskResult,
+  TaskSuccessEpilogue,
+} from "./types";
 import { OutputCapturingExecution } from "./customExecution";
 import { ShellOutputCapturingExecution } from "./shellCaptureExecution";
 import { known } from "../common/error/knownError";
@@ -48,9 +52,14 @@ export function getTaskProcessExecution(
   cmdString: string,
   args: string[],
   cwd: string,
-  env: { [key: string]: string }
+  env: { [key: string]: string },
+  epilogue?: TaskSuccessEpilogue
 ): OutputCapturingExecution {
-  return OutputCapturingExecution.create(cmdString, args, { cwd, env });
+  return OutputCapturingExecution.create(cmdString, args, {
+    cwd,
+    env,
+    epilogue,
+  });
 }
 
 export type IdfTaskExecution =
@@ -416,9 +425,16 @@ export function addProcessTask(
   env: { [key: string]: string },
   options?: {
     presentation?: TaskPresentationOptions;
+    epilogue?: TaskSuccessEpilogue;
   }
 ): OutputCapturingExecution {
-  const execution = getTaskProcessExecution(command, args, cwd, env);
+  const execution = getTaskProcessExecution(
+    command,
+    args,
+    cwd,
+    env,
+    options?.epilogue
+  );
   TaskManager.addTask(
     name,
     getWorkspaceFolderForTask(workspaceUri),

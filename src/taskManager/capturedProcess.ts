@@ -105,7 +105,7 @@ function spawnWithNodePty(
 }
 
 /** Pipes emit bare line feeds, which a terminal renders without a carriage return. */
-function toTerminalNewlines(chunk: string): string {
+export function toTerminalNewlines(chunk: string): string {
   return chunk.replace(/\r?\n/g, "\r\n");
 }
 
