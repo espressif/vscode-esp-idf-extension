@@ -25,6 +25,7 @@ import { readParameter } from "../configuration/idf";
 import { getIdfBuildPath } from "../configuration/workspace";
 import { runValidationBeforeBuild } from "./validation";
 import { enqueueCompileTaskIfNoCache } from "./cmakeConfigure";
+import { buildFinishFlashCmd } from "./buildFinishFlashCmd";
 import { getCurrentIdfConfiguration } from "../configuration/env";
 
 export class BuildTask {
@@ -72,7 +73,10 @@ export class BuildTask {
       ninjaBin,
       buildArgs,
       buildDirPath,
-      modifiedEnv
+      modifiedEnv,
+      {
+        epilogue: () => buildFinishFlashCmd(this.currentWorkspace),
+      }
     );
   }
 }

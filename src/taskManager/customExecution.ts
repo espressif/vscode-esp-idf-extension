@@ -17,8 +17,14 @@
  */
 
 import { CustomExecution } from "vscode";
-import { CapturedTaskOutput } from "./types";
+import { CapturedTaskOutput, TaskSuccessEpilogue } from "./types";
 import { OutputCapturingPseudoterminal } from "./outputCapturePseudoTerminal";
+
+export interface OutputCapturingExecutionOptions {
+  cwd?: string;
+  env?: { [key: string]: string | undefined };
+  epilogue?: TaskSuccessEpilogue;
+}
 
 export class OutputCapturingExecution extends CustomExecution {
   private outputPromise: Promise<CapturedTaskOutput> | undefined;
@@ -29,10 +35,7 @@ export class OutputCapturingExecution extends CustomExecution {
   constructor(
     private command: string,
     private args: string[],
-    private options: {
-      cwd?: string;
-      env?: { [key: string]: string | undefined };
-    }
+    private options: OutputCapturingExecutionOptions
   ) {
     super(async () => {
       this.outputPromise = new Promise<CapturedTaskOutput>(
@@ -50,7 +53,8 @@ export class OutputCapturingExecution extends CustomExecution {
           env: this.options.env,
         },
         (output) => this.resolveOutput?.(output),
-        (error) => this.rejectOutput?.(error)
+        (error) => this.rejectOutput?.(error),
+        this.options.epilogue
       );
       return this.pseudoterminal;
     });
@@ -75,10 +79,7 @@ export class OutputCapturingExecution extends CustomExecution {
   public static create(
     command: string,
     args: string[],
-    options: {
-      cwd?: string;
-      env?: { [key: string]: string | undefined };
-    }
+    options: OutputCapturingExecutionOptions
   ): OutputCapturingExecution {
     return new OutputCapturingExecution(command, args, options);
   }

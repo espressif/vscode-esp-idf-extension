@@ -21,12 +21,14 @@ import {
   Pseudoterminal,
   TerminalDimensions,
 } from "vscode";
-import { CapturedTaskOutput } from "./types";
+import { CapturedTaskOutput, TaskSuccessEpilogue } from "./types";
 import {
   ICapturedProcess,
   SpawnCapturedProcessRequest,
   spawnCapturedProcess,
+  toTerminalNewlines,
 } from "./capturedProcess";
+import { Logger } from "../common/logger";
 
 const ANSI_ESCAPE = /[\u001B\u009B][[\]()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
 
@@ -54,7 +56,8 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
   constructor(
     private spawnRequest: Omit<SpawnCapturedProcessRequest, "cols" | "rows">,
     private resolveOutput: (output: CapturedTaskOutput) => void,
-    private rejectOutput: (error: Error) => void
+    private rejectOutput: (error: Error) => void,
+    private epilogue?: TaskSuccessEpilogue
   ) {}
 
   onDidWrite: Event<string> = this.writeEmitter.event;
@@ -76,7 +79,7 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
           }
           this.writeEmitter.fire(chunk);
         },
-        onExit: (exitCode) => this.finish(exitCode),
+        onExit: (exitCode) => void this.finish(exitCode),
         onError: (error) => this.fail(error),
       }
     );
@@ -94,11 +97,14 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
     this.capturedProcess?.resize(dimensions.columns, dimensions.rows);
   }
 
-  private finish(exitCode: number): void {
+  private async finish(exitCode: number): Promise<void> {
     if (this.settled) {
       return;
     }
     this.settled = true;
+    if (exitCode === 0) {
+      await this.writeEpilogue();
+    }
     this.resolveOutput({
       stdout: sanitizeCapturedText(this.stdout),
       stderr: sanitizeCapturedText(this.stderr),
@@ -106,6 +112,24 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
       success: exitCode === 0,
     });
     this.closeEmitter.fire(exitCode);
+  }
+
+  private async writeEpilogue(): Promise<void> {
+    if (!this.epilogue) {
+      return;
+    }
+    try {
+      const text = await this.epilogue();
+      if (text) {
+        this.writeEmitter.fire(toTerminalNewlines(`\n${text}\n`));
+      }
+    } catch (error) {
+      Logger.error(
+        "Failed to write the task terminal epilogue",
+        error instanceof Error ? error : new Error(String(error)),
+        "OutputCapturingPseudoterminal writeEpilogue"
+      );
+    }
   }
 
   private fail(error: Error): void {

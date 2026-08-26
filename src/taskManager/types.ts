@@ -32,3 +32,13 @@ export interface IdfTaskResult {
 export interface CustomExecutionTaskResult {
   continueFlag: boolean;
 }
+
+/**
+ * Text written to the task terminal once the process exits with code 0. It is
+ * not part of {@link CapturedTaskOutput.stdout}, so it never reaches error
+ * metadata, hints parsing or language model tool results.
+ */
+export type TaskSuccessEpilogue = () =>
+  | Promise<string | undefined>
+  | string
+  | undefined;
