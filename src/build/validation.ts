@@ -17,19 +17,10 @@
  */
 
 import { Logger } from "../common/logger";
-import {
-  idfTargetNotSet,
-  idfToolNotFound,
-} from "../common/error/knownError";
-import { BuildSession } from "./buildSession";
+import { idfTargetNotSet, idfToolNotFound } from "../common/error/knownError";
 import { getToolchainToolName, isBinInPath } from "../utils";
 import { readParameter } from "../configuration/idf";
 import { Uri, workspace } from "vscode";
-
-/** Synchronous acquire for callers outside `buildMain` (e.g. tests). */
-export function reserveBuildSlotOrThrow(): void {
-  BuildSession.acquire();
-}
 
 export async function runValidationBeforeBuild(
   envVariables: NodeJS.ProcessEnv,

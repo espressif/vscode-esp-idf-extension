@@ -19,9 +19,15 @@
 import { commands, Uri } from "vscode";
 import { join } from "path";
 import { pathExists } from "fs-extra";
-import { getIdfBuildPath, getIdfTargetFromSdkconfig } from "../configuration/workspace";
+import {
+  getIdfBuildPath,
+  getIdfTargetFromSdkconfig,
+} from "../configuration/workspace";
 import { selectedDFUAdapterId } from "../flash/transports/dfu/helpers";
-import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
+import {
+  getCurrentIdfConfiguration,
+  getVirtualEnvPythonPath,
+} from "../configuration/env";
 import { addProcessTask } from "../taskManager/taskManager";
 import {
   dfuTargetNotCompatible,
@@ -30,20 +36,8 @@ import {
   invalidConfiguration,
   missingDependency,
 } from "../common/error/knownError";
+import { buildErrorPresentation } from "../common/error/buildErrorPresentation";
 import { ErrorPresentation } from "../common/error/types";
-
-const buildInvalidConfigurationPresentation: ErrorPresentation = {
-  actions: [
-    {
-      label: "Open Settings",
-      execute: () =>
-        commands.executeCommand(
-          "workbench.action.openSettings",
-          "idf.buildPath"
-        ),
-    },
-  ],
-};
 
 const buildFlasherArgsMissingPresentation: ErrorPresentation = {
   actions: [
@@ -55,20 +49,14 @@ const buildFlasherArgsMissingPresentation: ErrorPresentation = {
   outputChannel: "Build",
 };
 
-const buildMissingDependencyPresentation: ErrorPresentation = {
-  actions: [],
-};
-
 let getIdfTargetFromSdkconfigForTests:
   | ((workspace: Uri) => Promise<string | undefined>)
   | undefined;
 
 /** @internal Test helper to stub IDF target resolution for DFU build. */
-export function setDfuExecutionTestHooks(
-  hooks?: {
-    getIdfTargetFromSdkconfig?: (workspace: Uri) => Promise<string | undefined>;
-  }
-): void {
+export function setDfuExecutionTestHooks(hooks?: {
+  getIdfTargetFromSdkconfig?: (workspace: Uri) => Promise<string | undefined>;
+}): void {
   getIdfTargetFromSdkconfigForTests = hooks?.getIdfTargetFromSdkconfig;
 }
 
@@ -93,7 +81,7 @@ export async function appendDfuExecution(workspace: Uri): Promise<void> {
   if (!idfPathDir) {
     throw invalidConfiguration(
       "IDF_PATH",
-      buildInvalidConfigurationPresentation
+      buildErrorPresentation.invalidConfiguration
     );
   }
   const args = [
@@ -108,7 +96,7 @@ export async function appendDfuExecution(workspace: Uri): Promise<void> {
   ];
   const pythonBinPath = getVirtualEnvPythonPath();
   if (!pythonBinPath) {
-    throw missingDependency("Python", buildMissingDependencyPresentation);
+    throw missingDependency("Python");
   }
   addProcessTask(
     "Write DFU bin",
