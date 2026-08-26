@@ -96,7 +96,6 @@ export const tracingIdfToolNotFoundPresentation: ErrorPresentation = {
   userMessage:
     "{toolName} was not found. Please install {toolName} and ensure it's in your PATH.",
   logMessage: "{toolName} executable not found.",
-  actions: [],
   outputChannel: tracingOutputChannel,
 };
 

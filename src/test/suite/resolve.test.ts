@@ -19,8 +19,11 @@ import * as assert from "assert";
 import {
   alreadyBuilding,
   idfTaskInProgress,
+  idfToolNotFound,
   invalidIdfVersion,
   IdfTaskName,
+  missingDependency,
+  noWorkspaceOpen,
   sectionBinNotAccessible,
 } from "../../common/error/knownError";
 import {
@@ -28,6 +31,9 @@ import {
   resolveKnownErrorDescriptor,
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
+import { sizeErrorPresentation } from "../../espIdf/size/sizeErrorPresentation";
+import { espAdfErrorPresentation } from "../../espAdf/espAdfErrorPresentation";
+import { tracingIdfToolNotFoundPresentation } from "../../espIdf/tracing/tracingOpenOcdPresentation";
 
 suite("error resolve", () => {
   suite("interpolate", () => {
@@ -86,6 +92,29 @@ suite("error resolve", () => {
         outputChannel: "Build",
       });
       assert.strictEqual(descriptor?.outputChannel, "Build");
+    });
+
+    test("omitted presentation actions keep registry buttons", () => {
+      const missing = resolveKnownErrorDescriptor(
+        missingDependency("Python", sizeErrorPresentation.missingDependency)
+      );
+      assert.strictEqual(
+        missing?.actions[0].label,
+        "Open ESP-IDF Install Manager"
+      );
+
+      const workspace = resolveKnownErrorDescriptor(
+        noWorkspaceOpen(espAdfErrorPresentation.noWorkspaceOpen)
+      );
+      assert.strictEqual(workspace?.actions[0].label, "Open Folder…");
+
+      const tool = resolveKnownErrorDescriptor(
+        idfToolNotFound("gdb", tracingIdfToolNotFoundPresentation)
+      );
+      assert.strictEqual(
+        tool?.actions[0].label,
+        "Open ESP-IDF Install Manager"
+      );
     });
   });
 });

@@ -69,6 +69,10 @@ suite("Unit test command errors", () => {
       );
       assert.ok(descriptor);
       assert.strictEqual(descriptor?.outputChannel, "Unit Test");
+      assert.strictEqual(
+        descriptor?.actions[0].label,
+        "Open ESP-IDF Install Manager"
+      );
     });
   });
 

@@ -12,7 +12,6 @@ export const espAdfErrorPresentation = {
   noWorkspaceOpen: {
     userMessage: "Open a workspace folder before installing ESP-ADF.",
     logMessage: "ESP-ADF install blocked: no workspace open.",
-    actions: [],
     outputChannel: "ESP-ADF",
   },
 } satisfies Record<string, ErrorPresentation>;
