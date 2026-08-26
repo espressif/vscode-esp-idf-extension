@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { ErrorSeverity } from "../customNotifications";
+import { ErrorSeverity, NotificationButton } from "../customNotifications";
 import { Logger } from "../logger";
 import { KnownError } from "./knownError";
+import { openTaskFailedOutputInAiChat } from "./openTaskFailedChat";
 import { getErrorDescriptor } from "./registry";
 import {
   ErrorCode,
@@ -75,12 +76,22 @@ export function resolveKnownErrorDescriptor(
     error.metadata
   );
 
+  const actions: NotificationButton[] = [
+    ...(presentation?.actions ?? base?.actions ?? []),
+  ];
+  if (error.code === ErrorCode.TaskFailedWithOutput) {
+    actions.push({
+      label: "Ask AI to Fix",
+      execute: () => openTaskFailedOutputInAiChat(error.metadata),
+    });
+  }
+
   return {
     code: error.code,
     severity: presentation?.severity ?? base?.severity ?? ErrorSeverity.Error,
     userMessage,
     logMessage,
-    actions: presentation?.actions ?? base?.actions ?? [],
+    actions,
     outputChannel:
       presentation?.outputChannel ??
       base?.outputChannel ??

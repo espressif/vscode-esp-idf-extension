@@ -65,8 +65,9 @@ suite("setTarget errors", () => {
         descriptor?.userMessage,
         "Set target failed. Check the output for details."
       );
-      assert.strictEqual(descriptor?.actions.length, 1);
+      assert.strictEqual(descriptor?.actions.length, 2);
       assert.strictEqual(descriptor?.actions[0].label, "View Output");
+      assert.strictEqual(descriptor?.actions[1].label, "Ask AI to Fix");
     });
 
     test("presentation applies set-target wording for IdfTaskInProgress", () => {

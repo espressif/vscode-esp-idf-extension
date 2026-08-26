@@ -121,6 +121,7 @@ suite("size errors", () => {
         "Size analysis failed. Check the output for details."
       );
       assert.strictEqual(descriptor?.actions[0].label, "View Output");
+      assert.strictEqual(descriptor?.actions[1].label, "Ask AI to Fix");
     });
   });
 
