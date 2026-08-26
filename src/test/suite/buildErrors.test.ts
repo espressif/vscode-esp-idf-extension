@@ -82,6 +82,7 @@ suite("build errors", () => {
         "Build task failed. Check the terminal output for details."
       );
       assert.strictEqual(descriptor?.actions[0].label, "View Terminal Output");
+      assert.strictEqual(descriptor?.actions[1].label, "Ask AI to Fix");
     });
 
     test("call-site presentation applies build-specific wording for IdfTaskInProgress", () => {
