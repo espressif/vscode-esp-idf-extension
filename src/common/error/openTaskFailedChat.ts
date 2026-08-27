@@ -40,16 +40,31 @@ function streamFromMetadata(
   return typeof value === "string" ? value : "";
 }
 
+export function appendBoundedFromEnd(
+  existing: string,
+  chunk: string,
+  maxChars: number = STREAM_CHAR_LIMIT
+): string {
+  return truncateFromEnd(`${existing}${chunk}`, maxChars);
+}
+
 export function buildTaskFailedChatPrompt(
   metadata?: Record<string, unknown>
 ): string {
   const exitCode = metadata?.exitCode ?? "(unknown)";
   const stdout = truncateFromEnd(streamFromMetadata(metadata, "stdout"));
   const stderr = truncateFromEnd(streamFromMetadata(metadata, "stderr"));
-  return [
+  const phase =
+    typeof metadata?.phase === "string" ? metadata.phase : undefined;
+  const lines = [
     "Help me fix the issue in the output of this ESP-IDF task.",
     "",
     `Exit code: ${exitCode}`,
+  ];
+  if (phase) {
+    lines.push(`Phase: ${phase}`);
+  }
+  lines.push(
     "",
     "stdout:",
     "```",
@@ -59,8 +74,9 @@ export function buildTaskFailedChatPrompt(
     "stderr:",
     "```",
     stderr,
-    "```",
-  ].join("\n");
+    "```"
+  );
+  return lines.join("\n");
 }
 
 function isCursor(): boolean {

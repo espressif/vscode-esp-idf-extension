@@ -21,7 +21,11 @@ import { EventEmitter } from "events";
 import { Logger } from "../../../common/logger";
 import { OutputChannel } from "../../../common/outputChannel";
 import { handleError } from "../../../common/error/handler";
-import { confserverProcessFailed } from "../../../common/error/knownError";
+import {
+  confserverProcessFailed,
+  confserverProtocolError,
+} from "../../../common/error/knownError";
+import { appendBoundedFromEnd } from "../../../common/error/openTaskFailedChat";
 import { KconfigMenuLoader } from "../kconfigMenus/loader";
 import { Menu } from "../Menu";
 import { MenuConfigPanel } from "../panel/panel";
@@ -54,10 +58,25 @@ import { buildIdfPyConfigSubcommandArgs } from "../../common/idfPySubCmdBuilder"
 import { requireIdfPath, resolvePythonForIdfPy } from "../validation";
 
 const CONFSERVER_COMMAND_ID = "espIdf.menuconfig.confserver";
+const PROTOCOL_ERROR_NOTIFY_MS = 300;
+const PROTOCOL_ERROR_DETAIL_MAX_CHARS = 200;
 
 function logSdkConfigEditorSubprocessLine(chunk: string): void {
   OutputChannel.appendLine(chunk, "SDK Configuration Editor");
   Logger.info(chunk);
+}
+
+function firstNonEmptyLine(
+  text: string,
+  maxChars: number = PROTOCOL_ERROR_DETAIL_MAX_CHARS
+): string {
+  const line =
+    text.split(/\r?\n/).find((candidate) => candidate.trim()) ?? text.trim();
+  const trimmed = line.trim();
+  if (trimmed.length <= maxChars) {
+    return trimmed;
+  }
+  return `${trimmed.slice(0, maxChars)}...`;
 }
 
 export class ConfserverProcess {
@@ -110,6 +129,9 @@ export class ConfserverProcess {
         reject(error instanceof Error ? error : new Error(String(error)));
       });
     });
+    if (!ConfserverProcess.instance) {
+      return;
+    }
     ConfserverProcess.instance.sdkconfigResolvedPath = await getSDKConfigFilePath(
       workspaceFolder
     );
@@ -248,6 +270,7 @@ export class ConfserverProcess {
     progress.report({ increment: 10, message: "Loading default values..." });
 
     return new Promise<void>((resolve, reject) => {
+      let stdoutAccumulator = "";
       let stderrAccumulator = "";
       let settled = false;
 
@@ -277,17 +300,23 @@ export class ConfserverProcess {
 
       getSdkconfigProcess.stderr.on("data", (data) => {
         const chunk = data.toString();
+        stderrAccumulator = appendBoundedFromEnd(stderrAccumulator, chunk);
         if (!!chunk.trim()) {
-          stderrAccumulator += chunk;
           logSdkConfigEditorSubprocessLine(chunk);
         }
       });
       getSdkconfigProcess.stdout.on("data", (data) => {
-        logSdkConfigEditorSubprocessLine(data.toString());
+        const chunk = data.toString();
+        stdoutAccumulator = appendBoundedFromEnd(stdoutAccumulator, chunk);
+        logSdkConfigEditorSubprocessLine(chunk);
       });
       getSdkconfigProcess.on("error", (err) => {
         finishFailure(
-          confserverProcessFailed("reconfigure", { detail: err.message })
+          confserverProcessFailed("reconfigure", {
+            detail: err.message,
+            stdout: stdoutAccumulator,
+            stderr: stderrAccumulator,
+          })
         );
       });
       getSdkconfigProcess.on("exit", (code, signal) => {
@@ -301,6 +330,8 @@ export class ConfserverProcess {
               exitCode: code ?? undefined,
               signal,
               detail,
+              stdout: stdoutAccumulator,
+              stderr: stderrAccumulator,
             })
           );
           return;
@@ -308,6 +339,16 @@ export class ConfserverProcess {
         void finishSuccess();
       });
     });
+  }
+
+  public static capturedProtocolErrorMetadata() {
+    if (!ConfserverProcess.instance) {
+      return {};
+    }
+    return {
+      ...ConfserverProcess.instance.capturedProcessOutput(),
+      lastRequest: ConfserverProcess.instance.lastRequest,
+    };
   }
 
   public static areValuesSaved() {
@@ -318,6 +359,10 @@ export class ConfserverProcess {
 
   public static dispose() {
     if (ConfserverProcess.instance) {
+      ConfserverProcess.instance.clearProtocolErrorNotify();
+      ConfserverProcess.instance.failPendingInit(
+        new Error("SDK Configuration editor process was stopped.")
+      );
       const proc = ConfserverProcess.instance.confServerProcess;
       if (proc) {
         proc.stdout?.removeAllListeners();
@@ -366,6 +411,12 @@ export class ConfserverProcess {
   private isSavingSdkconfig: boolean = false;
   private jsonListener: (values: string) => void;
   private receivedDataBuffer: string = "";
+  private stdoutAccumulator: string = "";
+  private stderrAccumulator: string = "";
+  private valuesLoadSettled: boolean = false;
+  private lastRequest: string = "";
+  private pendingProtocolErrorChunks: string = "";
+  private protocolErrorNotifyTimer: NodeJS.Timeout | undefined;
   private workspaceFolder: Uri;
   private extensionPath: string;
   private kconfigsMenus: Menu[] = [];
@@ -403,6 +454,7 @@ export class ConfserverProcess {
   }
 
   private writeConfserverRequest(request: string): void {
+    this.lastRequest = request;
     OutputChannel.appendLine(request, "SDK Configuration Editor");
     this.confServerProcess?.stdin?.write(request);
   }
@@ -453,20 +505,91 @@ export class ConfserverProcess {
         ConfserverProcess.confserverVersion = parsed.version;
       }
 
-      ConfserverProcess.instance?.emitter.emit("valuesLoaded");
+      if (this.valuesLoadSettled) {
+        return;
+      }
+      this.succeedInit();
       MenuConfigPanel.createOrShow(
         this.extensionPath,
         this.workspaceFolder,
         this.kconfigsMenus
       );
     } catch (error) {
-      ConfserverProcess.instance?.emitter.emit("valuesLoadFailed", error);
+      this.failPendingInit(error);
       ConfserverProcess.dispose();
     }
   }
 
+  private succeedInit(): void {
+    if (this.valuesLoadSettled) {
+      return;
+    }
+    this.valuesLoadSettled = true;
+    this.emitter.emit("valuesLoaded");
+  }
+
+  /** Unblocks `init()` when confserver dies or is disposed before values load. */
+  private failPendingInit(error: unknown): void {
+    if (this.valuesLoadSettled) {
+      return;
+    }
+    this.valuesLoadSettled = true;
+    this.emitter.emit(
+      "valuesLoadFailed",
+      error instanceof Error ? error : new Error(String(error))
+    );
+  }
+
+  private capturedProcessOutput() {
+    return {
+      stdout: this.stdoutAccumulator,
+      stderr: this.stderrAccumulator,
+    };
+  }
+
+  private clearProtocolErrorNotify(): void {
+    if (this.protocolErrorNotifyTimer) {
+      clearTimeout(this.protocolErrorNotifyTimer);
+      this.protocolErrorNotifyTimer = undefined;
+    }
+    this.pendingProtocolErrorChunks = "";
+  }
+
+  private scheduleProtocolErrorNotification(chunk: string): void {
+    this.pendingProtocolErrorChunks = appendBoundedFromEnd(
+      this.pendingProtocolErrorChunks,
+      chunk
+    );
+    if (this.protocolErrorNotifyTimer) {
+      clearTimeout(this.protocolErrorNotifyTimer);
+    }
+    this.protocolErrorNotifyTimer = setTimeout(() => {
+      this.protocolErrorNotifyTimer = undefined;
+      const combined = this.pendingProtocolErrorChunks;
+      this.pendingProtocolErrorChunks = "";
+      const detail = firstNonEmptyLine(combined);
+      if (!detail) {
+        return;
+      }
+      void handleError(
+        CONFSERVER_COMMAND_ID,
+        confserverProtocolError(detail, {
+          ...this.capturedProcessOutput(),
+          lastRequest: this.lastRequest,
+        }),
+        undefined,
+        { outputChannel: "SDK Configuration Editor" }
+      );
+    }, PROTOCOL_ERROR_NOTIFY_MS);
+  }
+
   private setupConfigServer() {
     this.confServerProcess?.stdout?.on("data", (data) => {
+      const chunk = data.toString();
+      this.stdoutAccumulator = appendBoundedFromEnd(
+        this.stdoutAccumulator,
+        chunk
+      );
       this.receivedDataBuffer += data;
       if (ConfserverProcess.progress) {
         ConfserverProcess.progress.report({
@@ -474,12 +597,16 @@ export class ConfserverProcess {
           message: "Loading initial values...",
         });
       }
-      Logger.info(data.toString());
-      OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
+      Logger.info(chunk);
+      OutputChannel.appendLine(chunk, "SDK Configuration Editor");
       this.checkIfJsonIsReceived();
     });
     this.confServerProcess?.stderr?.on("data", (data) => {
       const dataStr = data.toString();
+      this.stderrAccumulator = appendBoundedFromEnd(
+        this.stderrAccumulator,
+        dataStr
+      );
       const ignoreList = [
         "Server running, waiting for requests on stdin..",
         "Saving config to",
@@ -495,29 +622,51 @@ export class ConfserverProcess {
           OutputChannel.appendLine(dataStr, "SDK Configuration Editor");
         } else {
           this.printError(dataStr);
+          if (this.valuesLoadSettled) {
+            this.scheduleProtocolErrorNotification(dataStr);
+          }
         }
       }
     });
     this.confServerProcess?.on("error", (err) => {
       const detail = err.stack ? `${err.message}\n${err.stack}` : err.message;
       this.printError(detail);
-      void handleError(
-        CONFSERVER_COMMAND_ID,
-        confserverProcessFailed("startup", { detail }),
-        undefined,
-        { outputChannel: "SDK Configuration Editor" }
-      );
-    });
-    this.confServerProcess?.on("exit", (code, signal) => {
-      if (code !== 0) {
-        const msg = `SDK Configuration editor confserver process exited with code: ${code}`;
-        this.printError(msg);
+      const error = confserverProcessFailed("startup", {
+        detail,
+        ...this.capturedProcessOutput(),
+      });
+      if (!this.valuesLoadSettled) {
+        this.failPendingInit(error);
+      } else {
         void handleError(
           CONFSERVER_COMMAND_ID,
-          confserverProcessFailed("runtime", {
-            exitCode: code ?? undefined,
-            signal,
-          }),
+          error,
+          undefined,
+          { outputChannel: "SDK Configuration Editor" }
+        );
+      }
+      ConfserverProcess.dispose();
+    });
+    this.confServerProcess?.on("exit", (code, signal) => {
+      const error = confserverProcessFailed("runtime", {
+        exitCode: code ?? undefined,
+        signal,
+        ...this.capturedProcessOutput(),
+      });
+      if (!this.valuesLoadSettled) {
+        if (code !== 0) {
+          this.printError(
+            `SDK Configuration editor confserver process exited with code: ${code}`
+          );
+        }
+        this.failPendingInit(error);
+      } else if (code !== 0) {
+        this.printError(
+          `SDK Configuration editor confserver process exited with code: ${code}`
+        );
+        void handleError(
+          CONFSERVER_COMMAND_ID,
+          error,
           undefined,
           { outputChannel: "SDK Configuration Editor" }
         );

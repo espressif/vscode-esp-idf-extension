@@ -173,7 +173,7 @@ export class MenuConfigPanel {
 
   private updateConfigValues(values: string) {
     let jsonValues: {
-      values: Record<string, unknown>;
+      values?: Record<string, unknown>;
       error?: string;
     };
     try {
@@ -187,17 +187,22 @@ export class MenuConfigPanel {
       );
       return;
     }
-    if (Object.keys(jsonValues.values).length <= 0) {
-      return;
-    }
-
     if (jsonValues.error) {
       void handleError(
         "espIdf.menuconfig.panel",
-        confserverProtocolError(jsonValues.error),
+        confserverProtocolError(
+          jsonValues.error,
+          ConfserverProcess.capturedProtocolErrorMetadata()
+        ),
         undefined,
         { outputChannel: "SDK Configuration Editor" }
       );
+      return;
+    }
+    if (
+      !jsonValues.values ||
+      Object.keys(jsonValues.values).length <= 0
+    ) {
       return;
     }
     const updatedMenus = ConfserverProcess.updateValues(values);

@@ -376,16 +376,33 @@ export function openOcdVersionTooLow(
 
 export function openOcdStartFailed(
   detail: string,
+  metadata?: {
+    stdout?: string;
+    stderr?: string;
+    exitCode?: number;
+  },
   presentation?: ErrorPresentation
 ): KnownError {
-  return known(ErrorCode.OpenOcdStartFailed, { detail }, presentation);
+  return known(
+    ErrorCode.OpenOcdStartFailed,
+    { detail, ...metadata },
+    presentation
+  );
 }
 
 export function openOcdProcessExited(
   exitCode: number,
+  metadata?: {
+    stdout?: string;
+    stderr?: string;
+  },
   presentation?: ErrorPresentation
 ): KnownError {
-  return known(ErrorCode.OpenOcdProcessExited, { exitCode }, presentation);
+  return known(
+    ErrorCode.OpenOcdProcessExited,
+    { exitCode, ...metadata },
+    presentation
+  );
 }
 
 export function openOcdNoBoardsForTarget(
@@ -517,6 +534,8 @@ export function confserverProcessFailed(
     exitCode?: number;
     signal?: string | null;
     detail?: string;
+    stdout?: string;
+    stderr?: string;
   },
   presentation?: ErrorPresentation
 ): KnownError {
@@ -529,9 +548,18 @@ export function confserverProcessFailed(
 
 export function confserverProtocolError(
   detail: string,
+  metadata?: {
+    stdout?: string;
+    stderr?: string;
+    lastRequest?: string;
+  },
   presentation?: ErrorPresentation
 ): KnownError {
-  return known(ErrorCode.ConfserverProtocolError, { detail }, presentation);
+  return known(
+    ErrorCode.ConfserverProtocolError,
+    { detail, ...metadata },
+    presentation
+  );
 }
 
 export function efuseSummaryFailed(
