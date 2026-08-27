@@ -13,6 +13,10 @@ import {
   resetValueRequest,
   saveValueRequest,
   setValueRequest,
+  configIdFromConfserverRequest,
+  configIdFromProtocolError,
+  configIdFromProtocolErrorDetail,
+  isConfserverInformationalStderr,
 } from "../../espIdf/menuconfig/confserver/protocol";
 
 function createMenu(
@@ -107,6 +111,83 @@ suite("menuconfig protocol", () => {
     assert.deepStrictEqual(parseRequest(loadValueRequest("/tmp/sdkconfig")), {
       version: 2,
       load: "/tmp/sdkconfig",
+    });
+  });
+
+  suite("configIdFromConfserverRequest", () => {
+    test("returns first set key", () => {
+      assert.strictEqual(
+        configIdFromConfserverRequest(setValueRequest(createMenu(menuType.int))),
+        "CFG_ID"
+      );
+    });
+
+    test("returns first reset id", () => {
+      assert.strictEqual(
+        configIdFromConfserverRequest(resetValueRequest(["CONFIG_A", "CONFIG_B"])),
+        "CONFIG_A"
+      );
+    });
+
+    test("returns undefined for save requests", () => {
+      assert.strictEqual(
+        configIdFromConfserverRequest(saveValueRequest("/tmp/sdkconfig")),
+        undefined
+      );
+    });
+  });
+
+  suite("configIdFromProtocolError", () => {
+    test("prefers request over detail", () => {
+      assert.strictEqual(
+        configIdFromProtocolError(
+          setValueRequest(createMenu(menuType.int)),
+          "CONFIG_OTHER is invalid"
+        ),
+        "CFG_ID"
+      );
+    });
+
+    test("falls back to CONFIG_ token in detail", () => {
+      assert.strictEqual(
+        configIdFromProtocolErrorDetail("value 99 is out of range for CONFIG_FOO_BAR"),
+        "CONFIG_FOO_BAR"
+      );
+      assert.strictEqual(
+        configIdFromProtocolError(undefined, "CONFIG_FOO_BAR is invalid"),
+        "CONFIG_FOO_BAR"
+      );
+    });
+  });
+
+  suite("isConfserverInformationalStderr", () => {
+    test("treats Set SYMBOL as informational", () => {
+      assert.strictEqual(
+        isConfserverInformationalStderr("Set APP_RETRIEVE_LEN_ELF_SHA"),
+        true
+      );
+    });
+
+    test("treats reset messages as informational", () => {
+      assert.strictEqual(
+        isConfserverInformationalStderr("Reset CONFIG_ID to default value"),
+        true
+      );
+      assert.strictEqual(
+        isConfserverInformationalStderr(
+          "Reset the whole configuration to default values"
+        ),
+        true
+      );
+    });
+
+    test("treats out-of-range NOTE as an error", () => {
+      assert.strictEqual(
+        isConfserverInformationalStderr(
+          "NOTE: user value 444 on the int symbol APP_RETRIEVE_LEN_ELF_SHA (defined at /idf/components/esp_app_format/Kconfig.projbuild:40) ignored due to being outside the active range ([8, 64]) -- falling back on defaults"
+        ),
+        false
+      );
     });
   });
 });

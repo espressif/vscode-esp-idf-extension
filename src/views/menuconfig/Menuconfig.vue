@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch, nextTick } from "vue";
 import { useMenuconfigStore } from "./store";
 import { Menu } from "../../espIdf/menuconfig/Menu";
 import ConfigElement from "./components/configElement.vue";
 import SearchBar from "./components/SearchBar.vue";
 import SettingsTree from "./components/SettingsTree.vue";
+import { nearestMenuAncestorId } from "../../espIdf/menuconfig/findMenuPath";
 
 const store = useMenuconfigStore();
 const isDragging = ref(false);
@@ -119,6 +120,27 @@ function handleMenuSelect(value: string) {
     secNew.scrollIntoView({ behavior: "auto", block: "start" });
   }
 }
+
+watch(
+  () => store.focusedConfigId,
+  async (id) => {
+    if (!id) {
+      return;
+    }
+    const path = store.menuPathToId(id);
+    if (path) {
+      const menuId = nearestMenuAncestorId(path);
+      if (menuId) {
+        store.selectedMenu = menuId;
+      }
+    }
+    await nextTick();
+    document.getElementById(id)?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }
+);
 
 function handleMouseDown(e: MouseEvent) {
   isDragging.value = true;
