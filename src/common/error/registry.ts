@@ -665,9 +665,14 @@ registerNewErrorInRegistry({
   code: ErrorCode.ConfserverProtocolError,
   severity: ErrorSeverity.Error,
   userMessage:
-    "SDK Configuration editor returned an error: {detail}.",
+    "SDK Configuration editor rejected a configuration update: {detail}.",
   logMessage: "Confserver protocol error: {detail}.",
-  actions: [],
+  actions: [
+    {
+      label: "View Output",
+      execute: () => OutputChannel.show(),
+    },
+  ],
   outputChannel: menuconfigOutputChannel,
 });
 

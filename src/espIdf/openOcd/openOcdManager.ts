@@ -28,6 +28,7 @@ import {
   openOcdProcessExited,
   openOcdStartFailed,
 } from "../../common/error/knownError";
+import { appendBoundedFromEnd } from "../../common/error/openTaskFailedChat";
 import { isBinInPath, spawn as sspawn } from "../../utils";
 import { ESP } from "../../config";
 import {
@@ -87,6 +88,8 @@ export class OpenOCDManager extends EventEmitter {
   private workspace: vscode.Uri | undefined;
   private encounteredErrors: boolean = false;
   private startFailureNotified: boolean = false;
+  private stdoutAccumulator: string = "";
+  private stderrAccumulator: string = "";
 
   private constructor() {
     super();
@@ -182,6 +185,7 @@ export class OpenOCDManager extends EventEmitter {
       return;
     }
     this.startFailureNotified = false;
+    this.resetProcessOutput();
     const modifiedEnv = getCurrentIdfConfiguration();
     const workspace = requireOpenOcdWorkspace(this.workspace);
     this.workspace = workspace;
@@ -274,6 +278,10 @@ export class OpenOCDManager extends EventEmitter {
       this.encounteredErrors = true;
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
+      this.stderrAccumulator = appendBoundedFromEnd(
+        this.stderrAccumulator,
+        data.toString()
+      );
 
       if (!useDetectConfigSerial) {
         const serialNumber = parseAdapterSerialFromLog(data);
@@ -300,7 +308,7 @@ export class OpenOCDManager extends EventEmitter {
           this.startFailureNotified = true;
           void handleError(
             "espIdf.openOCDCommand",
-            openOcdStartFailed(matchArr.join(" ")),
+            openOcdStartFailed(matchArr.join(" "), this.capturedProcessOutput()),
             undefined,
             { outputChannel: "OpenOCD" }
           );
@@ -312,6 +320,10 @@ export class OpenOCDManager extends EventEmitter {
     this.server.stdout?.on("data", (data) => {
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
+      this.stdoutAccumulator = appendBoundedFromEnd(
+        this.stdoutAccumulator,
+        data.toString()
+      );
 
       if (!useDetectConfigSerial) {
         const serialNumber = parseAdapterSerialFromLog(data);
@@ -325,6 +337,15 @@ export class OpenOCDManager extends EventEmitter {
     });
     this.server.on("error", (error) => {
       this.emit("error", error, this.chan);
+      if (!this.startFailureNotified) {
+        this.startFailureNotified = true;
+        void handleError(
+          "espIdf.openOCDCommand",
+          openOcdStartFailed(error.message, this.capturedProcessOutput()),
+          undefined,
+          { outputChannel: "OpenOCD" }
+        );
+      }
       this.stop();
     });
     this.server.on("close", (code: number, signal: string) => {
@@ -349,7 +370,7 @@ export class OpenOCDManager extends EventEmitter {
           this.startFailureNotified = true;
           void handleError(
             "espIdf.openOCDCommand",
-            openOcdProcessExited(code),
+            openOcdProcessExited(code, this.capturedProcessOutput()),
             undefined,
             { outputChannel: "OpenOCD" }
           );
@@ -367,6 +388,7 @@ export class OpenOCDManager extends EventEmitter {
       this.server = undefined;
       this.updateStatusText(`❌ ${vscode.l10n.t("OpenOCD Server (Stopped)")}`);
       this.startFailureNotified = false;
+      this.resetProcessOutput();
       const endMsg = "[Stopped] : OpenOCD Server";
       OutputChannel.appendLine(endMsg, "OpenOCD");
       Logger.info(endMsg);
@@ -412,5 +434,17 @@ export class OpenOCDManager extends EventEmitter {
 
   private sendToOutputChannel(data: Buffer) {
     this.chan = Buffer.concat([this.chan, data]);
+  }
+
+  private capturedProcessOutput() {
+    return {
+      stdout: this.stdoutAccumulator,
+      stderr: this.stderrAccumulator,
+    };
+  }
+
+  private resetProcessOutput() {
+    this.stdoutAccumulator = "";
+    this.stderrAccumulator = "";
   }
 }

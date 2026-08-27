@@ -29,6 +29,14 @@ import {
 
 const unregisteredCodeWarnings = new Set<ErrorCode>();
 
+const PROCESS_OUTPUT_AI_CHAT_CODES = new Set<ErrorCode>([
+  ErrorCode.TaskFailedWithOutput,
+  ErrorCode.ConfserverProcessFailed,
+  ErrorCode.ConfserverProtocolError,
+  ErrorCode.OpenOcdStartFailed,
+  ErrorCode.OpenOcdProcessExited,
+]);
+
 export function interpolate(
   template: string,
   metadata?: Record<string, unknown>
@@ -79,7 +87,7 @@ export function resolveKnownErrorDescriptor(
   const actions: NotificationButton[] = [
     ...(presentation?.actions ?? base?.actions ?? []),
   ];
-  if (error.code === ErrorCode.TaskFailedWithOutput) {
+  if (PROCESS_OUTPUT_AI_CHAT_CODES.has(error.code)) {
     actions.push({
       label: "Ask AI to Fix",
       execute: () => openTaskFailedOutputInAiChat(error.metadata),

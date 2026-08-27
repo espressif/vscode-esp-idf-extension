@@ -69,16 +69,25 @@ suite("OpenOCD errors", () => {
   });
 
   suite("knownError factories", () => {
-    test("openOcdStartFailed carries detail metadata", () => {
-      const error = openOcdStartFailed("adapter not found");
+    test("openOcdStartFailed carries detail and stream metadata", () => {
+      const error = openOcdStartFailed("adapter not found", {
+        stdout: "",
+        stderr: "Error: adapter not found",
+      });
       assert.strictEqual(error.code, ErrorCode.OpenOcdStartFailed);
       assert.strictEqual(error.metadata?.detail, "adapter not found");
+      assert.strictEqual(error.metadata?.stderr, "Error: adapter not found");
     });
 
-    test("openOcdProcessExited carries exitCode metadata", () => {
-      const error = openOcdProcessExited(1);
+    test("openOcdProcessExited carries exitCode and stream metadata", () => {
+      const error = openOcdProcessExited(1, {
+        stdout: "out",
+        stderr: "err",
+      });
       assert.strictEqual(error.code, ErrorCode.OpenOcdProcessExited);
       assert.strictEqual(error.metadata?.exitCode, 1);
+      assert.strictEqual(error.metadata?.stdout, "out");
+      assert.strictEqual(error.metadata?.stderr, "err");
     });
 
     test("openOcdNoBoardsForTarget carries target metadata", () => {
