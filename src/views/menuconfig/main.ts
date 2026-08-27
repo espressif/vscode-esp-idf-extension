@@ -49,6 +49,11 @@ window.addEventListener("message", (event) => {
         store.textDictionary = message.text_dictionary;
       }
       break;
+    case "focus_config":
+      if (typeof message.id === "string" && message.id) {
+        store.focusConfig(message.id);
+      }
+      break;
     default:
       break;
   }

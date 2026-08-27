@@ -16,6 +16,9 @@ const props = defineProps<{
 const store = useMenuconfigStore();
 
 const canResetMenu = computed(() => store.confserverVersion >= 3);
+const isFocused = computed(
+  () => store.focusedConfigId === props.config.id
+);
 
 function onChange(e: any) {
   if (props.config.type === menuType.hex) {
@@ -38,7 +41,11 @@ function resetElementChildren(children: string[]) {
 <template>
   <div
     v-if="props.config.isVisible"
-    :class="{ 'config-el': props.config.type !== 'menu' }"
+    :id="props.config.id"
+    :class="{
+      'config-el': props.config.type !== 'menu',
+      'config-focused': isFocused,
+    }"
   >
     <SelectDropdown
       v-if="props.config.type === 'choice'"
@@ -77,7 +84,6 @@ function resetElementChildren(children: string[]) {
     />
     <div
       v-if="props.config.type === 'menu'"
-      :id="props.config.id"
       class="submenu form-group"
     >
       <div class="menu-title-wrapper">
@@ -121,6 +127,10 @@ function resetElementChildren(children: string[]) {
 }
 .config-el:hover {
   background-color: var(--vscode-notifications-background);
+}
+.config-focused {
+  outline: 1px solid var(--vscode-focusBorder);
+  background-color: var(--vscode-list-hoverBackground);
 }
 .submenu {
   padding-left: 0px;

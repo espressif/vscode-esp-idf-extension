@@ -26,6 +26,7 @@ import { Menu } from "../Menu";
 import { NotificationMode, readParameter } from "../../../configuration/idf";
 import { createMenuconfigPanelController } from "./controller";
 import { kconfigMenusPath } from "../validation";
+import { configIdFromProtocolError } from "../confserver/protocol";
 
 export class MenuConfigPanel {
   public static currentPanel: MenuConfigPanel | undefined;
@@ -48,6 +49,17 @@ export class MenuConfigPanel {
         initialValues
       );
     }
+  }
+
+  public static focusConfig(id: string | undefined): void {
+    if (!id || !MenuConfigPanel.currentPanel) {
+      return;
+    }
+    MenuConfigPanel.currentPanel.panel.reveal();
+    void MenuConfigPanel.currentPanel.panel.webview.postMessage({
+      command: "focus_config",
+      id,
+    });
   }
 
   private static readonly viewType = "menuconfig";
@@ -188,14 +200,15 @@ export class MenuConfigPanel {
       return;
     }
     if (jsonValues.error) {
+      const metadata = ConfserverProcess.capturedProtocolErrorMetadata();
       void handleError(
         "espIdf.menuconfig.panel",
-        confserverProtocolError(
-          jsonValues.error,
-          ConfserverProcess.capturedProtocolErrorMetadata()
-        ),
+        confserverProtocolError(jsonValues.error, metadata),
         undefined,
         { outputChannel: "SDK Configuration Editor" }
+      );
+      MenuConfigPanel.focusConfig(
+        configIdFromProtocolError(metadata.lastRequest, jsonValues.error)
       );
       return;
     }
