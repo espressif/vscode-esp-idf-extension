@@ -19,11 +19,12 @@ import * as assert from "assert";
 import * as vscode from "vscode";
 import {
   STREAM_CHAR_LIMIT,
+  appendBoundedFromEnd,
   buildTaskFailedChatPrompt,
   openTaskFailedOutputInAiChat,
   truncateFromEnd,
 } from "../../common/error/openTaskFailedChat";
-import { known } from "../../common/error/knownError";
+import { confserverProcessFailed, confserverProtocolError, known } from "../../common/error/knownError";
 import { resolveKnownErrorDescriptor } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
 
@@ -65,11 +66,34 @@ suite("task failed AI chat", () => {
       assert.ok(prompt.includes("stdout:"));
       assert.ok(prompt.includes("stderr:"));
     });
+
+    test("includes phase when present", () => {
+      const prompt = buildTaskFailedChatPrompt({
+        phase: "runtime",
+        exitCode: 1,
+        stdout: "",
+        stderr: "confserver died",
+      });
+      assert.ok(prompt.includes("Phase: runtime"));
+      assert.ok(prompt.includes("confserver died"));
+    });
   });
 
   suite("truncateFromEnd", () => {
     test("returns short text unchanged", () => {
       assert.strictEqual(truncateFromEnd("ok", 10), "ok");
+    });
+  });
+
+  suite("appendBoundedFromEnd", () => {
+    test("keeps the tail when the combined stream exceeds the limit", () => {
+      const combined = appendBoundedFromEnd(
+        `UNIQUE_HEAD${"x".repeat(40)}`,
+        "UNIQUE_TAIL",
+        30
+      );
+      assert.ok(combined.includes("UNIQUE_TAIL"));
+      assert.ok(!combined.includes("UNIQUE_HEAD"));
     });
   });
 
@@ -85,6 +109,52 @@ suite("task failed AI chat", () => {
       assert.deepStrictEqual(
         descriptor?.actions.map((action) => action.label),
         ["View Terminal Output", "Ask AI to Fix"]
+      );
+    });
+
+    test("appends Ask AI to Fix for ConfserverProcessFailed", () => {
+      const descriptor = resolveKnownErrorDescriptor(
+        confserverProcessFailed("runtime", {
+          stdout: "json",
+          stderr: "error",
+          exitCode: 1,
+        })
+      );
+      assert.ok(
+        descriptor?.actions.some((action) => action.label === "Ask AI to Fix")
+      );
+    });
+
+    test("appends Ask AI to Fix for ConfserverProtocolError", () => {
+      const descriptor = resolveKnownErrorDescriptor(
+        confserverProtocolError("value out of range", {
+          stderr: "value out of range",
+        })
+      );
+      assert.deepStrictEqual(
+        descriptor?.actions.map((action) => action.label),
+        ["View Output", "Ask AI to Fix"]
+      );
+    });
+
+    test("appends Ask AI to Fix for OpenOcdStartFailed and OpenOcdProcessExited", () => {
+      const startFailed = resolveKnownErrorDescriptor(
+        known(ErrorCode.OpenOcdStartFailed, {
+          detail: "adapter not found",
+          stderr: "Error: adapter not found",
+        })
+      );
+      const processExited = resolveKnownErrorDescriptor(
+        known(ErrorCode.OpenOcdProcessExited, {
+          exitCode: 1,
+          stderr: "OpenOCD exit",
+        })
+      );
+      assert.ok(
+        startFailed?.actions.some((action) => action.label === "Ask AI to Fix")
+      );
+      assert.ok(
+        processExited?.actions.some((action) => action.label === "Ask AI to Fix")
       );
     });
   });

@@ -109,22 +109,33 @@ suite("menuconfig errors", () => {
   });
 
   suite("KnownError factories", () => {
-    test("confserverProcessFailed carries phase and exit metadata", () => {
+    test("confserverProcessFailed carries phase, exit, and stream metadata", () => {
       const error = confserverProcessFailed("reconfigure", {
         exitCode: 1,
         detail: "stderr output",
+        stdout: "reconfigure stdout",
+        stderr: "stderr output",
       });
       assert.strictEqual(isKnownError(error), true);
       assert.strictEqual(error.code, ErrorCode.ConfserverProcessFailed);
       assert.strictEqual(error.metadata?.phase, "reconfigure");
       assert.strictEqual(error.metadata?.exitCode, 1);
       assert.strictEqual(error.metadata?.detail, "stderr output");
+      assert.strictEqual(error.metadata?.stdout, "reconfigure stdout");
+      assert.strictEqual(error.metadata?.stderr, "stderr output");
     });
 
-    test("confserverProtocolError carries detail metadata", () => {
-      const error = confserverProtocolError("invalid symbol");
+    test("confserverProtocolError carries detail and stream metadata", () => {
+      const error = confserverProtocolError("invalid symbol", {
+        stdout: "req json",
+        stderr: "invalid symbol",
+        lastRequest: '{"set":{}}',
+      });
       assert.strictEqual(error.code, ErrorCode.ConfserverProtocolError);
       assert.strictEqual(error.metadata?.detail, "invalid symbol");
+      assert.strictEqual(error.metadata?.stdout, "req json");
+      assert.strictEqual(error.metadata?.stderr, "invalid symbol");
+      assert.strictEqual(error.metadata?.lastRequest, '{"set":{}}');
     });
   });
 
@@ -141,7 +152,7 @@ suite("menuconfig errors", () => {
     test("interpolates detail for ConfserverProtocolError", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(confserverProtocolError("bad request")),
-        "SDK Configuration editor returned an error: bad request."
+        "SDK Configuration editor rejected a configuration update: bad request."
       );
     });
 
