@@ -37,6 +37,58 @@ export function setValueRequest(updatedValue: Menu): string {
   return `${JSON.stringify({ version: 2, set: getSetPayload(updatedValue) })}\n`;
 }
 
+export function configIdFromConfserverRequest(
+  request: string | undefined
+): string | undefined {
+  if (!request?.trim()) {
+    return undefined;
+  }
+  try {
+    const parsed = JSON.parse(request.trim()) as {
+      set?: Record<string, unknown>;
+      reset?: unknown;
+    };
+    if (parsed.set && typeof parsed.set === "object") {
+      const [firstKey] = Object.keys(parsed.set);
+      if (firstKey) {
+        return firstKey;
+      }
+    }
+    if (Array.isArray(parsed.reset)) {
+      const firstId = parsed.reset.find(
+        (id): id is string => typeof id === "string" && id.length > 0
+      );
+      if (firstId) {
+        return firstId;
+      }
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
+
+const CONFIG_ID_IN_DETAIL = /\bCONFIG_[A-Za-z0-9_]+\b/;
+
+export function configIdFromProtocolErrorDetail(
+  detail: string | undefined
+): string | undefined {
+  if (!detail) {
+    return undefined;
+  }
+  return detail.match(CONFIG_ID_IN_DETAIL)?.[0];
+}
+
+export function configIdFromProtocolError(
+  request: string | undefined,
+  detail: string | undefined
+): string | undefined {
+  return (
+    configIdFromConfserverRequest(request) ??
+    configIdFromProtocolErrorDetail(detail)
+  );
+}
+
 export function resetValueRequest(ids: string[]): string {
   return `${JSON.stringify({ version: 3, reset: ids })}\n`;
 }
@@ -47,4 +99,24 @@ export function saveValueRequest(filePath: string): string {
 
 export function loadValueRequest(filePath: string): string {
   return `${JSON.stringify({ version: 2, load: filePath })}\n`;
+}
+
+const CONFSERVER_INFORMATIONAL_STDERR = new RegExp(
+  [
+    "Server running, waiting for requests on stdin\\.\\.",
+    "Saving config to",
+    "Loading config from",
+    "The following config symbol\\(s\\) were not visible so were not updated",
+    "WARNING:",
+    "Reset .* to default values?",
+    "Set [A-Za-z0-9_]+",
+  ].join("|")
+);
+
+export function isConfserverInformationalStderr(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) {
+    return true;
+  }
+  return CONFSERVER_INFORMATIONAL_STDERR.test(trimmed);
 }

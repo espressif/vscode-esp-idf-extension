@@ -125,7 +125,7 @@ suite("task failed AI chat", () => {
       );
     });
 
-    test("appends Ask AI to Fix for ConfserverProtocolError", () => {
+    test("does not append Ask AI to Fix for ConfserverProtocolError", () => {
       const descriptor = resolveKnownErrorDescriptor(
         confserverProtocolError("value out of range", {
           stderr: "value out of range",
@@ -133,7 +133,7 @@ suite("task failed AI chat", () => {
       );
       assert.deepStrictEqual(
         descriptor?.actions.map((action) => action.label),
-        ["View Output", "Ask AI to Fix"]
+        ["View Output"]
       );
     });
 

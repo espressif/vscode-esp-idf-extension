@@ -40,6 +40,8 @@ import {
   resetValueRequest,
   saveValueRequest,
   setValueRequest,
+  configIdFromProtocolError,
+  isConfserverInformationalStderr,
 } from "./protocol";
 import {
   parseConfserverValues,
@@ -341,7 +343,11 @@ export class ConfserverProcess {
     });
   }
 
-  public static capturedProtocolErrorMetadata() {
+  public static capturedProtocolErrorMetadata(): {
+    stdout?: string;
+    stderr?: string;
+    lastRequest?: string;
+  } {
     if (!ConfserverProcess.instance) {
       return {};
     }
@@ -571,14 +577,18 @@ export class ConfserverProcess {
       if (!detail) {
         return;
       }
+      const lastRequest = this.lastRequest;
       void handleError(
         CONFSERVER_COMMAND_ID,
         confserverProtocolError(detail, {
           ...this.capturedProcessOutput(),
-          lastRequest: this.lastRequest,
+          lastRequest,
         }),
         undefined,
         { outputChannel: "SDK Configuration Editor" }
+      );
+      MenuConfigPanel.focusConfig(
+        configIdFromProtocolError(lastRequest, detail)
       );
     }, PROTOCOL_ERROR_NOTIFY_MS);
   }
@@ -607,24 +617,18 @@ export class ConfserverProcess {
         this.stderrAccumulator,
         dataStr
       );
-      const ignoreList = [
-        "Server running, waiting for requests on stdin..",
-        "Saving config to",
-        "Loading config from",
-        "The following config symbol(s) were not visible so were not updated",
-        "WARNING:",
-      ];
-
-      if (!!dataStr.trim()) {
-        const regexPattern = new RegExp(ignoreList.join("|"));
-        if (regexPattern.test(dataStr)) {
-          Logger.info(dataStr);
-          OutputChannel.appendLine(dataStr, "SDK Configuration Editor");
-        } else {
-          this.printError(dataStr);
-          if (this.valuesLoadSettled) {
-            this.scheduleProtocolErrorNotification(dataStr);
-          }
+      for (const line of dataStr.split(/\r?\n/)) {
+        if (!line.trim()) {
+          continue;
+        }
+        if (isConfserverInformationalStderr(line)) {
+          Logger.info(line);
+          OutputChannel.appendLine(line, "SDK Configuration Editor");
+          continue;
+        }
+        this.printError(line);
+        if (this.valuesLoadSettled) {
+          this.scheduleProtocolErrorNotification(line);
         }
       }
     });
