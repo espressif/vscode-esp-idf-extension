@@ -45,6 +45,7 @@ export async function handleError(
     mergedMetadata = {
       ...mergedMetadata,
       ...(error instanceof KnownError ? error.metadata : {}),
+      command: commandId,
     };
     if (descriptor) {
       const logMsg = `[${commandId}] ${descriptor.logMessage} (code: ${descriptor.code})`;

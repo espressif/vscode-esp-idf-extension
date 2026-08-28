@@ -20,6 +20,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "./common/logger";
 import { OutputChannel } from "./common/outputChannel";
+import { processInvocationMetadata } from "./common/processTelemetry";
 import { ESP } from "./config";
 import { getCurrentIdfConfiguration } from "./configuration/env";
 import { idfToolNotFound, isKnownError } from "./common/error/knownError";
@@ -104,7 +105,7 @@ export function spawn(
           err.message,
           err,
           "src utils spawn",
-          { command },
+          processInvocationMetadata(command, args),
           options.sendToTelemetry
         );
         reject(err);
@@ -231,9 +232,12 @@ export function execChildProcess(
 
         if (error) {
           if (error.message) {
-            Logger.error(error.message, error, "utils execChildProcess", {
-              command,
-            });
+            Logger.error(
+              error.message,
+              error,
+              "utils execChildProcess",
+              processInvocationMetadata(command, args)
+            );
           }
           return reject(error);
         }
@@ -246,7 +250,7 @@ export function execChildProcess(
               stderr,
               new Error(stderr),
               "utils execChildProcess stderr",
-              { command }
+              processInvocationMetadata(command, args)
             );
           }
           if (

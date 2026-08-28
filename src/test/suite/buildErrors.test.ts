@@ -139,6 +139,31 @@ suite("build errors", () => {
     });
   });
 
+  suite("technical message", () => {
+    test("summarizes long metadata strings and keeps metadata intact", () => {
+      const stdout = "FAILED: esp-idf/main/CMakeFiles\n".repeat(1000);
+      const error = known(ErrorCode.TaskFailedWithOutput, {
+        stdout,
+        exitCode: 1,
+        processCommand: "ninja",
+      });
+
+      assert.strictEqual(error.metadata?.stdout, stdout);
+      assert.ok(error.message.length < 500);
+      assert.ok(error.message.includes(`[${stdout.length} chars]`));
+      assert.ok(error.message.includes('"processCommand":"ninja"'));
+      assert.ok(!error.message.includes("FAILED: esp-idf"));
+      assert.ok(!(error.stack ?? "").includes("FAILED: esp-idf"));
+    });
+
+    test("keeps short metadata values verbatim", () => {
+      const error = known(ErrorCode.TaskFailedWithOutput, {
+        stderr: "cmake error",
+      });
+      assert.ok(error.message.includes('"stderr":"cmake error"'));
+    });
+  });
+
   suite("appendDfuExecution", () => {
     test("throws flasherArgsMissing when idf.buildPath falls back and flasher_args.json is absent", async () => {
       setIdfConfigurationSource(createFakeIdfSource());

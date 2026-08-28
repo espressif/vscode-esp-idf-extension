@@ -27,7 +27,10 @@ export class ShellOutputCapturingExecution extends CustomExecution {
   private rejectOutput: ((error: Error) => void) | undefined;
   private pseudoterminal: OutputCapturingPseudoterminal | undefined;
 
-  constructor(private command: string, private options: ShellExecutionOptions) {
+  constructor(
+    public readonly command: string,
+    private options: ShellExecutionOptions
+  ) {
     super(async () => {
       this.outputPromise = new Promise<CapturedTaskOutput>(
         (resolve, reject) => {
