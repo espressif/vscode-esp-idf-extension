@@ -33,8 +33,8 @@ export class OutputCapturingExecution extends CustomExecution {
   private pseudoterminal: OutputCapturingPseudoterminal | undefined;
 
   constructor(
-    private command: string,
-    private args: string[],
+    public readonly command: string,
+    public readonly args: string[],
     private options: OutputCapturingExecutionOptions
   ) {
     super(async () => {

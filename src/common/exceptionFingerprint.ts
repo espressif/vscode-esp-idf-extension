@@ -8,5 +8,9 @@ export function exceptionFingerprint(
     err?.message ?? String(error ?? ""),
     properties?.category ?? "",
     properties?.command ?? "",
+    properties?.processCommand ?? "",
+    properties?.args ?? "",
+    properties?.taskName ?? "",
+    properties?.knownErrorCode ?? "",
   ].join("\0");
 }

@@ -20,6 +20,12 @@ import * as vscode from "vscode";
 import * as winston from "winston";
 import UserNotificationManagerTransport from "./userNotificationManager";
 import { Telemetry } from "./telemetry";
+import {
+  sanitizeTelemetryText,
+  TELEMETRY_MESSAGE_MAX_LENGTH,
+  TELEMETRY_STACK_MAX_LENGTH,
+} from "./processTelemetry";
+import { isKnownError } from "./error/knownError";
 
 export class Logger {
   public static init(context: vscode.ExtensionContext): Logger {
@@ -76,20 +82,48 @@ export class Logger {
   ) {
     Logger.checkInitialized();
     if (sendTelemetry) {
-      Telemetry.sendException(error, {
-        givenMessage: message,
-        errorMessage: error.message,
-        errorStack: error.stack || metadata?.stack,
+      const properties: { [key: string]: string } = {
+        givenMessage: sanitizeTelemetryText(
+          message ?? "",
+          TELEMETRY_MESSAGE_MAX_LENGTH
+        ),
+        errorMessage: sanitizeTelemetryText(
+          error?.message ?? "",
+          TELEMETRY_MESSAGE_MAX_LENGTH
+        ),
+        errorStack: sanitizeTelemetryText(
+          error?.stack || metadata?.stack || "",
+          TELEMETRY_STACK_MAX_LENGTH
+        ),
         category,
         capturedBy: "Logger",
-        command: metadata?.command
-      });
+      };
+      if (isKnownError(error)) {
+        properties.knownErrorCode = error.code;
+      }
+      if (typeof metadata?.command === "string") {
+        properties.command = metadata.command;
+      }
+      if (typeof metadata?.taskName === "string") {
+        properties.taskName = metadata.taskName;
+      }
+      if (typeof metadata?.processCommand === "string") {
+        properties.processCommand = metadata.processCommand;
+      }
+      if (typeof metadata?.args === "string") {
+        properties.args = metadata.args;
+      }
+      if (typeof metadata?.script === "string") {
+        properties.script = metadata.script;
+      }
+      Telemetry.sendException(error, properties);
     }
     winston.log("error", message, {
       ...metadata,
       message: error.message,
       stack: error.stack || metadata?.stack,
       category,
+      ...(isKnownError(error) ? { knownErrorCode: error.code } : {}),
     });
   }
 

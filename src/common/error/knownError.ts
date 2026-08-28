@@ -48,6 +48,22 @@ export function isKnownError(error: unknown): error is KnownError {
   );
 }
 
+const MESSAGE_VALUE_MAX_LENGTH = 200;
+const MESSAGE_MAX_LENGTH = 1000;
+
+/**
+ * Captured process output can be megabytes long. It is kept in
+ * {@link KnownError.metadata} and replaced by a size marker in the message so
+ * the message (and the stack that embeds it) stays short and stable enough for
+ * telemetry deduplication.
+ */
+function summarizeMetadataValue(value: unknown): unknown {
+  if (typeof value === "string" && value.length > MESSAGE_VALUE_MAX_LENGTH) {
+    return `[${value.length} chars]`;
+  }
+  return value;
+}
+
 function formatTechnicalMessage(
   code: ErrorCode,
   metadata?: Record<string, unknown>
@@ -55,7 +71,20 @@ function formatTechnicalMessage(
   if (!metadata || Object.keys(metadata).length === 0) {
     return `[${code}]`;
   }
-  return `[${code}] ${JSON.stringify(metadata)}`;
+  const summarized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(metadata)) {
+    summarized[key] = summarizeMetadataValue(value);
+  }
+  let serialized: string;
+  try {
+    serialized = JSON.stringify(summarized) ?? "";
+  } catch {
+    serialized = "[unserializable metadata]";
+  }
+  if (serialized.length > MESSAGE_MAX_LENGTH) {
+    serialized = `${serialized.slice(0, MESSAGE_MAX_LENGTH)}…`;
+  }
+  return `[${code}] ${serialized}`;
 }
 
 export function known(
