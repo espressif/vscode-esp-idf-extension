@@ -102,6 +102,39 @@ suite("taskManager helpers", () => {
       );
     });
 
+    test("throws KnownError with process invocation metadata", async () => {
+      TaskManager.recordTaskResult({
+        taskId: "idf-flash-task",
+        taskName: "ESP-IDF Flash",
+        processCommand: "/usr/bin/python3",
+        processArgs: [
+          "/opt/esp/idf/components/esptool_py/esptool/esptool.py",
+          "-p",
+          "/dev/ttyUSB0",
+          "write_flash",
+        ],
+        output: {
+          success: false,
+          stderr: "flash failed",
+          stdout: "",
+          exitCode: 1,
+        },
+      });
+      await assert.rejects(
+        throwCapturedTaskFailure(),
+        (e: unknown) =>
+          isKnownError(e) &&
+          e.code === ErrorCode.TaskFailedWithOutput &&
+          e.metadata?.processCommand === "python3" &&
+          e.metadata?.taskName === "ESP-IDF Flash" &&
+          e.metadata?.script === "esptool.py" &&
+          typeof e.metadata?.args === "string" &&
+          (e.metadata.args as string).includes("esptool.py") &&
+          (e.metadata.args as string).includes("[redacted]") &&
+          !(e.metadata.args as string).includes("ttyUSB0")
+      );
+    });
+
     test("throws KnownError with exit code when stdout and stderr are blank", async () => {
       TaskManager.recordTaskResult({
         taskId: "idf-build-task",
@@ -123,13 +156,41 @@ suite("taskManager helpers", () => {
           e.metadata?.stderr === ""
       );
     });
+
+    test("keeps large captured output out of the error message", async () => {
+      const stdout = "ninja: build stopped\n".repeat(2000);
+      TaskManager.recordTaskResult({
+        taskId: "idf-build-task",
+        taskName: "ESP-IDF Build",
+        processCommand: "ninja",
+        processArgs: [],
+        output: {
+          success: false,
+          stderr: "",
+          stdout,
+          exitCode: 1,
+        },
+      });
+      await assert.rejects(
+        throwCapturedTaskFailure(),
+        (e: unknown) =>
+          isKnownError(e) &&
+          e.metadata?.stdout === stdout &&
+          e.message.length < 500 &&
+          e.message.includes(`[${stdout.length} chars]`) &&
+          !e.message.includes("ninja: build stopped") &&
+          !(e.stack ?? "").includes("ninja: build stopped")
+      );
+    });
   });
 });
 
 suite("getTaskProcessExecution", () => {
-  test("returns OutputCapturingExecution", () => {
+  test("returns OutputCapturingExecution with command and args", () => {
     const exec = getTaskProcessExecution("echo", ["hi"], "/tmp", {});
     assert.ok(exec instanceof OutputCapturingExecution);
+    assert.strictEqual(exec.command, "echo");
+    assert.deepStrictEqual(exec.args, ["hi"]);
   });
 });
 

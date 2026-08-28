@@ -27,6 +27,8 @@ export interface IdfTaskResult {
   taskId: string;
   taskName: string;
   output: CapturedTaskOutput;
+  processCommand?: string;
+  processArgs?: string[];
 }
 
 export interface CustomExecutionTaskResult {

@@ -33,6 +33,7 @@ import {
 import { ESP } from "../config";
 import { NotificationMode, readParameter } from "../configuration/idf";
 import { Logger } from "../common/logger";
+import { sanitizeProcessInvocation } from "../common/processTelemetry";
 import type {
   CapturedTaskOutput,
   IdfTaskResult,
@@ -87,11 +88,26 @@ export function collectExecutions(
 export async function throwCapturedTaskFailure() {
   for (const result of TaskManager.getTaskResults()) {
     if (!result.output.success) {
+      const invocation =
+        result.processCommand !== undefined
+          ? sanitizeProcessInvocation(
+              result.processCommand,
+              result.processArgs ?? []
+            )
+          : undefined;
       throw known(ErrorCode.TaskFailedWithOutput, {
         stdout: result.output.stdout,
         stderr: result.output.stderr,
         exitCode: result.output.exitCode,
         success: result.output.success,
+        ...(result.taskName ? { taskName: result.taskName } : {}),
+        ...(invocation
+          ? {
+              processCommand: invocation.processCommand,
+              args: invocation.args,
+              ...(invocation.script ? { script: invocation.script } : {}),
+            }
+          : {}),
       });
     }
   }
@@ -152,6 +168,21 @@ export class TaskManager {
     return TaskManager.tasks.find(
       (task) => TaskManager.getTaskDefinitionId(task.definition) === pendingId
     );
+  }
+
+  private static processInvocationFromExecution(
+    execution: IdfTaskExecution | undefined
+  ): { processCommand?: string; processArgs?: string[] } {
+    if (execution instanceof OutputCapturingExecution) {
+      return {
+        processCommand: execution.command,
+        processArgs: execution.args,
+      };
+    }
+    if (execution instanceof ShellOutputCapturingExecution) {
+      return { processCommand: execution.command, processArgs: [] };
+    }
+    return {};
   }
 
   private static failedCapturedOutput(): CapturedTaskOutput {
@@ -338,11 +369,16 @@ export class TaskManager {
         const output = await TaskManager.resolveOutputForPendingTask(
           matchedTaskId
         );
+        const pendingTask = TaskManager.getInFlightTask(matchedTaskId);
+        const invocation = TaskManager.processInvocationFromExecution(
+          pendingTask?.execution as IdfTaskExecution | undefined
+        );
 
         TaskManager.taskResults.push({
           taskId: matchedTaskId,
           taskName: execution.task.name,
           output,
+          ...invocation,
         });
 
         const taskIndex = TaskManager.tasks.findIndex(

@@ -32,6 +32,45 @@ suite("exceptionFingerprint Tests", () => {
     );
   });
 
+  test("different process args produce different fingerprints", () => {
+    const error = new Error("non zero exit code 1");
+    const category = { category: "src utils spawn", command: "python" };
+
+    assert.notEqual(
+      exceptionFingerprint(error, { ...category, args: "idf.py set-target" }),
+      exceptionFingerprint(error, { ...category, args: "idf.py build" })
+    );
+  });
+
+  test("different task names produce different fingerprints", () => {
+    const error = new Error("[TASK_FAILED_WITH_OUTPUT]");
+    const properties = {
+      category: "handleError espIdf.buildDevice",
+      processCommand: "ninja",
+    };
+
+    assert.notEqual(
+      exceptionFingerprint(error, { ...properties, taskName: "ESP-IDF Build" }),
+      exceptionFingerprint(error, { ...properties, taskName: "ESP-IDF Size" })
+    );
+  });
+
+  test("different knownErrorCodes produce different fingerprints", () => {
+    const error = new Error("[TASK_FAILED_WITH_OUTPUT]");
+    const properties = { category: "handleError espIdf.buildDevice" };
+
+    assert.notEqual(
+      exceptionFingerprint(error, {
+        ...properties,
+        knownErrorCode: "TaskFailedWithOutput",
+      }),
+      exceptionFingerprint(error, {
+        ...properties,
+        knownErrorCode: "ConfserverProcessFailed",
+      })
+    );
+  });
+
   test("null and undefined errors produce stable fingerprints", () => {
     const properties = { category: "test" };
 
@@ -41,7 +80,7 @@ suite("exceptionFingerprint Tests", () => {
     );
     assert.equal(
       exceptionFingerprint(null, properties),
-      "Error\0\0test\0"
+      "Error\0\0test\0\0\0\0\0"
     );
   });
 });
