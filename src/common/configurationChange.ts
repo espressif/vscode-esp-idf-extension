@@ -147,7 +147,9 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
           Logger.error(
             "Failed to refresh unit test controller",
             error as Error,
-            "refreshUnitTestController"
+            "refreshUnitTestController",
+            undefined,
+            false
           );
           const errorMsg =
             error instanceof Error ? error.message : String(error);

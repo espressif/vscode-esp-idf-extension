@@ -193,7 +193,9 @@ export function checkAndNotifyMissingCompileCommands() {
         Logger.error(
           msg,
           error as Error,
-          "checkAndNotifyMissingCompileCommands"
+          "checkAndNotifyMissingCompileCommands",
+          undefined,
+          false
         );
       }
     });

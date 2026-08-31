@@ -330,7 +330,13 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
           const sanitizedMessage = `Failed to execute command "${commandName}": ${errorMessage}`;
           const errorForLog =
             error instanceof Error ? error : new Error(String(error));
-          Logger.error(sanitizedMessage, errorForLog, "langToolsInvoke");
+          Logger.error(
+            sanitizedMessage,
+            errorForLog,
+            "langToolsInvoke",
+            undefined,
+            false
+          );
           return new vscode.LanguageModelToolResult([
             ...outputs,
             new vscode.LanguageModelTextPart(sanitizedMessage),

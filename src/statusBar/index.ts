@@ -132,7 +132,9 @@ export async function createCmdsStatusBarItems(
       Logger.error(
         "Failed to read project configuration presets for status bar",
         error as Error,
-        "createCmdsStatusBarItems"
+        "createCmdsStatusBarItems",
+        undefined,
+        false
       );
       hasConfigurePresets = false;
     }

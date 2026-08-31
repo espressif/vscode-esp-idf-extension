@@ -161,7 +161,9 @@ export async function generateCoverageForEditors(
         "Check the ESP-IDF output for more details." +
         msg,
       error instanceof Error ? error : new Error(String(error)),
-      "coverageService generateCoverageForEditors"
+      "coverageService generateCoverageForEditors",
+      undefined,
+      false
     );
     OutputChannel.appendLine(
       msg +
@@ -200,7 +202,9 @@ export async function previewReport(extensionPath: string, dirPath: Uri) {
       "Error building gcov html.\n" +
         "Check the ESP-IDF output for more details.",
       e instanceof Error ? e : new Error(String(e)),
-      "coverageService previewReport"
+      "coverageService previewReport",
+      undefined,
+      false
     );
     OutputChannel.appendLine(
       msg +

@@ -221,7 +221,9 @@ export async function getProjectDescriptionJson(
     Logger.error(
       `Error reading project description JSON from ${buildDirPath}`,
       error as Error,
-      "workspaceConfig getProjectDescriptionJson"
+      "workspaceConfig getProjectDescriptionJson",
+      undefined,
+      false
     );
     return undefined;
   }
@@ -263,7 +265,13 @@ export async function getSDKConfigFilePath(
       error && typeof error === "object" && "message" in error
         ? (error as Error).message
         : String(error);
-    Logger.error(errMsg, error as Error, "workspaceConfig getSdkconfigPath");
+    Logger.error(
+      errMsg,
+      error as Error,
+      "workspaceConfig getSdkconfigPath",
+      undefined,
+      false
+    );
     return join(workspacePath.fsPath, "sdkconfig");
   }
 }

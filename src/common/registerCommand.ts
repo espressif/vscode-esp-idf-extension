@@ -21,6 +21,20 @@ import { Telemetry } from "./telemetry";
 import { handleError } from "./error/handler";
 import { HandleErrorOptions } from "./error/types";
 
+export const COMMANDS_WITHOUT_USAGE_TELEMETRY = new Set([
+  "espIdf.getExtensionPath",
+  "espIdf.getIDFTarget",
+  "espIdf.getOpenOcdConfigs",
+  "espIdf.getOpenOcdScriptValue",
+  "espIdf.getProjectName",
+  "espIdf.getToolchainGcc",
+  "espIdf.getToolchainGdb",
+]);
+
+export function shouldSendCommandUsageEvent(commandName: string): boolean {
+  return !COMMANDS_WITHOUT_USAGE_TELEMETRY.has(commandName);
+}
+
 export function registerIDFCommand(
   context: ExtensionContext,
   name: string,
@@ -38,8 +52,10 @@ export function registerIDFCommand(
     } catch (error) {
       handleError(name, error, undefined, options);
     } finally {
-      const timeSpent = Date.now() - startTime;
-      Telemetry.sendEvent("command", { commandName: name }, { timeSpent });
+      if (shouldSendCommandUsageEvent(name)) {
+        const timeSpent = Date.now() - startTime;
+        Telemetry.sendEvent("command", { commandName: name }, { timeSpent });
+      }
     }
   };
   const disposable = commands.registerCommand(name, telemetryCallback);

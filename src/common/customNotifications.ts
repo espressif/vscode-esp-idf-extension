@@ -84,7 +84,9 @@ export async function showNotificationWithMultipleActions(
         Logger.error(
           `Error executing action for notification: ${error}`,
           error as Error,
-          "showNotificationWithMultipleActions"
+          "showNotificationWithMultipleActions",
+          undefined,
+          false
         );
       }
     }

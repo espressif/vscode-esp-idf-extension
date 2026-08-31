@@ -97,7 +97,9 @@ export async function configureClangSettings(
       Logger.error(
         "Failed to parse settings.json. Ensure it has valid JSON syntax.",
         error as Error,
-        "clang index configureClangSettings"
+        "clang index configureClangSettings",
+        undefined,
+        false
       );
       return;
     }
@@ -138,7 +140,9 @@ export async function createClangdFile(
     Logger.error(
       "Failed to create .clangd file.",
       error as Error,
-      "clang index createClangdFile"
+      "clang index createClangdFile",
+      undefined,
+      false
     );
   }
 }

@@ -301,7 +301,13 @@ export class OpenOCDManager extends EventEmitter {
           " "
         )}`;
         const err = new Error(errorMsg);
-        Logger.error(errorMsg + `\n❌ ${errStr}`, err, "OpenOCDManager stderr");
+        Logger.error(
+          errorMsg + `\n❌ ${errStr}`,
+          err,
+          "OpenOCDManager stderr",
+          undefined,
+          false
+        );
         OutputChannel.appendLine(`❌ ${errStr}`, "OpenOCD");
         this.emit("error", err, this.chan);
         if (!this.startFailureNotified) {
@@ -360,7 +366,9 @@ export class OpenOCDManager extends EventEmitter {
         Logger.error(
           `OpenOCD Exit with non-zero error code ${code}`,
           new Error("Spawn exit with non-zero" + code),
-          "OpenOCDManager close"
+          "OpenOCDManager close",
+          undefined,
+          false
         );
         OutputChannel.appendLine(
           `OpenOCD Exit with non-zero error code ${code}`,

@@ -692,7 +692,9 @@ export class ConfserverProcess {
     Logger.error(
       data.toString(),
       new Error(data.toString()),
-      "ConfserverProcess printError"
+      "ConfserverProcess printError",
+      undefined,
+      false
     );
   }
 }

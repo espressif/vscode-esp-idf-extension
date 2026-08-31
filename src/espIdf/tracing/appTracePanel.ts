@@ -146,7 +146,9 @@ export class AppTracePanel {
             Logger.error(
               err.message,
               err,
-              "AppTracePanel unrecognized command"
+              "AppTracePanel unrecognized command",
+              undefined,
+              false
             );
             break;
         }
@@ -184,7 +186,7 @@ export class AppTracePanel {
       return;
     }
     const err = error instanceof Error ? error : new Error(String(error));
-    Logger.error(err.message, err, "AppTracePanel");
+    Logger.error(err.message, err, "AppTracePanel", undefined, false);
     await handleError(
       "espIdf.apptrace.archive.showReport",
       fileNotFound(
