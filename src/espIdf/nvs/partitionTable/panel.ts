@@ -127,7 +127,9 @@ export class NVSPartitionTable {
       Logger.errorNotify(
         errMsg,
         error as Error,
-        "NVSPartitionTable getCSVFromFile"
+        "NVSPartitionTable getCSVFromFile",
+        undefined,
+        false
       );
     }
   }
@@ -290,7 +292,9 @@ export class NVSPartitionTable {
           Logger.errorNotify(
             message.error,
             new Error(message.error),
-            "NVSPartitionTable showErrorMessage"
+            "NVSPartitionTable showErrorMessage",
+            undefined,
+            false
           );
         }
       case "saveDataRequest":
@@ -332,7 +336,9 @@ export class NVSPartitionTable {
           err instanceof Error ? err.message : "Unknown error"
         }`,
         err instanceof Error ? err : new Error("Unknown error"),
-        "NVSPartitionTable writeCSVDataToFile"
+        "NVSPartitionTable writeCSVDataToFile",
+        undefined,
+        false
       );
     }
   }

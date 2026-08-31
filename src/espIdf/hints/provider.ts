@@ -186,7 +186,9 @@ export class ErrorHintProvider implements TreeDataProvider<ErrorHintTreeItem> {
       Logger.error(
         `Error showing OpenOCD error hint: ${errorMessage}`,
         error as Error,
-        "ErrorHintProvider showOpenOCDErrorHint"
+        "ErrorHintProvider showOpenOCDErrorHint",
+        undefined,
+        false
       );
       return false;
     }
@@ -233,7 +235,9 @@ export class ErrorHintProvider implements TreeDataProvider<ErrorHintTreeItem> {
       Logger.error(
         `Failed to initialize OpenOCDManager or get version: ${errorMessage}`,
         error as Error,
-        "ErrorHintProvider searchError"
+        "ErrorHintProvider searchError",
+        undefined,
+        false
       );
     }
 
@@ -256,7 +260,9 @@ export class ErrorHintProvider implements TreeDataProvider<ErrorHintTreeItem> {
           Logger.errorNotify(
             `Error processing ESP-IDF hints file (line ${error.mark?.line}): ${errorMessage}`,
             error as Error,
-            "ErrorHintProvider searchError"
+            "ErrorHintProvider searchError",
+            undefined,
+            false
           );
         }
       } else {
@@ -281,7 +287,9 @@ export class ErrorHintProvider implements TreeDataProvider<ErrorHintTreeItem> {
           Logger.error(
             `Error processing OpenOCD hints file (line ${error.mark?.line}): ${errorMessage}`,
             error as Error,
-            "ErrorHintProvider searchError"
+            "ErrorHintProvider searchError",
+            undefined,
+            false
           );
           void handleError(
             "espIdf.errorHints",
@@ -307,7 +315,9 @@ export class ErrorHintProvider implements TreeDataProvider<ErrorHintTreeItem> {
       Logger.errorNotify(
         `Error processing hints file: ${errorMessage}`,
         error as Error,
-        "ErrorHintProvider searchError"
+        "ErrorHintProvider searchError",
+        undefined,
+        false
       );
       return false;
     }

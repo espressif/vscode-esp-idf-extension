@@ -138,7 +138,9 @@ export class IDFMonitor {
       Logger.error(
         "Failed to dispose IDF monitor terminal",
         error as Error,
-        "IDFMonitor.dispose"
+        "IDFMonitor.dispose",
+        undefined,
+        false
       );
     }
   }

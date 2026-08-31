@@ -39,7 +39,13 @@ export async function getMonitorBaudRate(workspacePath: Uri) {
       error instanceof Error
         ? error.message
         : "ERROR reading CONFIG_ESP_CONSOLE_UART_BAUDRATE from sdkconfig";
-    Logger.error(errMsg, error as Error, "src utils getMonitorBaudRate");
+    Logger.error(
+      errMsg,
+      error as Error,
+      "src utils getMonitorBaudRate",
+      undefined,
+      false
+    );
   }
   return sdkMonitorBaudRate;
 }
