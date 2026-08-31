@@ -285,7 +285,9 @@ export class OpenOCDErrorMonitor {
       Logger.error(
         `Error analyzing OpenOCD output: ${errMsg}`,
         error as Error,
-        "analyzeErrors"
+        "analyzeErrors",
+        undefined,
+        false
       );
     }
   }
@@ -325,7 +327,9 @@ export class OpenOCDErrorMonitor {
       Logger.error(
         `Error showing OpenOCD error hint: ${errMsg}`,
         error as Error,
-        "showErrorHint"
+        "showErrorHint",
+        undefined,
+        false
       );
     }
   }

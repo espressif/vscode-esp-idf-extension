@@ -22,7 +22,7 @@ import { pathExists, readFile, writeFile } from "fs-extra";
 import { getIdfBuildPath } from "../configuration/workspace";
 import { join } from "path";
 import { Logger } from "../common/logger";
-import { ParseError, parse } from "jsonc-parser";
+import { ParseError, parse, printParseErrorCode } from "jsonc-parser";
 import { EOL } from "os";
 import { updateJsonPreservingComments } from "../jsonc/updateJsonPreservingComments";
 import { registerIDFCommand } from "../common/registerCommand";
@@ -95,10 +95,18 @@ export async function configureClangSettings(
     allowTrailingComma: true,
   });
   if (errors.length > 0) {
-    Logger.errorNotify(
+    let errSummary = "";
+    for (const error of errors) {
+      errSummary += `Offset ${error.offset}, Length ${
+        error.length
+      } ErrorCode ${printParseErrorCode(error.error)}\n`;
+    }
+    Logger.error(
       "Failed to parse settings.json. Ensure it has valid JSON syntax.",
-      new Error(`settings.json parse errors: ${errors.length}`),
-      "clang index configureClangSettings"
+      new Error(`settings.json parse errors: ${errors.length}\n${errSummary}`),
+      "clang index configureClangSettings",
+      undefined,
+      false
     );
     if (showError) {
       throw parseError(settingsJsonPath);
@@ -139,7 +147,9 @@ export async function createClangdFile(
     Logger.error(
       "Failed to create .clangd file.",
       error as Error,
-      "clang index createClangdFile"
+      "clang index createClangdFile",
+      undefined,
+      false
     );
   }
 }

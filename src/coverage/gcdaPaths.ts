@@ -75,7 +75,13 @@ export async function getGcovData(workspaceFolder: Uri) {
       (err, stdout, stderr) => {
         if (err) {
           const msg = err && err.message ? err.message : String(err);
-          Logger.error(`exec error: ${msg}`, err, "gcdaPaths getGcovData");
+          Logger.error(
+            `exec error: ${msg}`,
+            err,
+            "gcdaPaths getGcovData",
+            undefined,
+            false
+          );
           return reject(coverageGcovDataFailed(msg));
         }
         const output = [];

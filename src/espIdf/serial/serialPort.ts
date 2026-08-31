@@ -320,7 +320,9 @@ export class SerialPort {
           Logger.error(
             "Failed to detect default serial port",
             error as Error,
-            "serialPort detectDefaultPort"
+            "serialPort detectDefaultPort",
+            undefined,
+            false
           );
           const detail =
             error instanceof Error && error.message

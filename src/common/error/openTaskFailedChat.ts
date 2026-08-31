@@ -147,7 +147,9 @@ export async function openTaskFailedOutputInAiChat(
     Logger.error(
       "Failed to open AI Chat with the ESP-IDF task output",
       error instanceof Error ? error : new Error(String(error)),
-      "openTaskFailedOutputInAiChat"
+      "openTaskFailedOutputInAiChat",
+      undefined,
+      false
     );
     try {
       await copyPromptToClipboard(prompt);
@@ -157,7 +159,9 @@ export async function openTaskFailedOutputInAiChat(
         clipboardError instanceof Error
           ? clipboardError
           : new Error(String(clipboardError)),
-        "openTaskFailedOutputInAiChat"
+        "openTaskFailedOutputInAiChat",
+        undefined,
+        false
       );
     }
   }

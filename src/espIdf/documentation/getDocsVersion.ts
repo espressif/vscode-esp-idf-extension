@@ -58,7 +58,9 @@ export async function getDocsVersion() {
     Logger.error(
       `Error parsing object from ${ESP.URL.Docs.IDF_VERSIONS}`,
       error as Error,
-      "getDocsVersion"
+      "getDocsVersion",
+      undefined,
+      false
     );
   }
 }
@@ -79,7 +81,9 @@ export function getDocsLocaleLang() {
     Logger.error(
       "Error getting current vscode language",
       error as Error,
-      "getDocsVersion getDocsLocaleLang"
+      "getDocsVersion getDocsLocaleLang",
+      undefined,
+      false
     );
   }
   return localeLang;
@@ -144,7 +148,9 @@ async function downloadFile(url: string, outputLocationPath: string) {
     Logger.error(
       `Error downloading ${basename(url)}: ${error}`,
       error as Error,
-      "getDocsVersion downloadFile"
+      "getDocsVersion downloadFile",
+      undefined,
+      false
     );
     throw error;
   }
@@ -170,7 +176,9 @@ export async function getDocsUrl(
     Logger.error(
       "No documentation versions found",
       new Error("No documentation versions found"),
-      "getDocsVersion getDocsUrl"
+      "getDocsVersion getDocsUrl",
+      undefined,
+      false
     );
     return;
   }

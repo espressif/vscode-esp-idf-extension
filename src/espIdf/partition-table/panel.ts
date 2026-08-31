@@ -119,7 +119,9 @@ export class PartitionTableEditorPanel {
           return Logger.errorNotify(
             `Failed to save the partition data to the file ${filePath} due to some error. Error: ${err.message}`,
             err,
-            "PartitionTableEditorPanel writeCSVDataToFile"
+            "PartitionTableEditorPanel writeCSVDataToFile",
+            undefined,
+            false
           );
         }
         Logger.infoNotify(
@@ -153,7 +155,9 @@ export class PartitionTableEditorPanel {
           Logger.errorNotify(
             message.error,
             new Error(message.error),
-            "PartitionTableEditorPanel showErrorMessage"
+            "PartitionTableEditorPanel showErrorMessage",
+            undefined,
+            false
           );
         }
         break;

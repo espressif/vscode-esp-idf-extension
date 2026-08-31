@@ -63,7 +63,9 @@ export async function restartClangdLanguageServer() {
       Logger.error(
         "Failed to restart clangd language server",
         error as Error,
-        "checkClangExtension restartClangdLanguageServer"
+        "checkClangExtension restartClangdLanguageServer",
+        undefined,
+        false
       );
     }
   }
@@ -113,7 +115,9 @@ export async function checkAndPromptForClangdExtension() {
         Logger.error(
           "Failed to install clangd extension",
           error as Error,
-          "checkAndPromptForClangdExtension"
+          "checkAndPromptForClangdExtension",
+          undefined,
+          false
         );
 
         window.showErrorMessage(

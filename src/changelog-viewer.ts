@@ -62,7 +62,8 @@ export namespace ChangelogViewer {
             "showChangeLogAndUpdateVersion",
             {
               sev: 1,
-            }
+            },
+            false
           );
         }
       }

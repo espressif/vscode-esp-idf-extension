@@ -237,7 +237,13 @@ export class MenuConfigPanel {
     const err = new Error(
       `Menuconfig: Unrecognized command received, file: ${__filename}`
     );
-    Logger.error(err.message, err, "MenuconfigPanel Unrecognized command");
+    Logger.error(
+      err.message,
+      err,
+      "MenuconfigPanel Unrecognized command",
+      undefined,
+      false
+    );
   }
 
   private async handleSetDefault(extensionPath: string) {

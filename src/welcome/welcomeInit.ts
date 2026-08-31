@@ -179,7 +179,9 @@ export async function loadDeveloperPortalArticles() {
     Logger.error(
       "Failed to fetch blog articles from backend:",
       error as Error,
-      "loadDeveloperPortalArticles"
+      "loadDeveloperPortalArticles",
+      undefined,
+      false
     );
     return [];
   }

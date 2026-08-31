@@ -36,6 +36,16 @@ import { writeTextReport } from "./writeReport";
 import { EOL } from "os";
 import { Telemetry } from "../common/telemetry";
 
+export function userTroubleshootReportProperties(): {
+  submitted: string;
+  os: string;
+} {
+  return {
+    submitted: "true",
+    os: process.platform,
+  };
+}
+
 export class TroubleshootingPanel {
   public static currentPanel: TroubleshootingPanel | undefined;
 
@@ -151,12 +161,10 @@ export class TroubleshootingPanel {
           const reportOutput = await writeTextReport(reportedResult, context);
           troubleshootOutput += reportOutput;
           await env.clipboard.writeText(troubleshootOutput);
-          Telemetry.sendEvent("UserTroubleshootReport", {
-            title,
-            description,
-            stepsToReproduce,
-            report: reportOutput,
-          });
+          Telemetry.sendEvent(
+            "UserTroubleshootReport",
+            userTroubleshootReportProperties()
+          );
           Logger.infoNotify(
             l10n.t("ESP-IDF Troubleshoot Report has been generated.")
           );
@@ -176,12 +184,10 @@ export class TroubleshootingPanel {
           const reportOutput = await writeTextReport(reportedResult, context);
           troubleshootOutput += reportOutput;
           await env.clipboard.writeText(troubleshootOutput);
-          Telemetry.sendEvent("UserTroubleshootReport", {
-            title,
-            description,
-            stepsToReproduce,
-            report: reportOutput,
-          });
+          Telemetry.sendEvent(
+            "UserTroubleshootReport",
+            userTroubleshootReportProperties()
+          );
         }
       }
     );

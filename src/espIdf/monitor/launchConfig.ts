@@ -23,7 +23,6 @@ import { EraseFlashSession } from "../../eraseFlash/eraseFlashSession";
 import { getMonitorBaudRate } from "./getMonitorBaudRate";
 import { MonitorConfig } from "./types";
 import { canAccessFile, getEspIdfFromCMake, getToolchainToolName } from "../../utils";
-import { Logger } from "../../common/logger";
 import {
   fileNotFound,
   idfTargetNotSet,
@@ -32,7 +31,6 @@ import {
   invalidConfiguration,
   invalidIdfVersion,
   IdfTaskName,
-  isKnownError,
   missingDependency,
   noPortSelected,
 } from "../../common/error/knownError";
@@ -137,36 +135,9 @@ export async function loadMonitorLaunchConfig(
     throw idfTargetNotSet();
   }
 
-  let elfFilePath: string;
-  try {
-    elfFilePath = await getProjectElfFilePath(workspaceFolder.uri);
-    if (!(await pathExists(elfFilePath))) {
-      throw fileNotFound(elfFilePath, {
-        userMessage:
-          "Project ELF file not found at {filePath}. Build your project first.",
-        logMessage: "Monitor blocked: project ELF file not found: {filePath}.",
-        actions: [
-          {
-            label: "Build",
-            execute: () => commands.executeCommand("espIdf.buildDevice"),
-          },
-        ],
-      });
-    }
-  } catch (error) {
-    if (isKnownError(error)) {
-      throw error;
-    }
-    const errStr =
-      error instanceof Error
-        ? error.message
-        : "Failed to get project ELF file path";
-    Logger.error(
-      errStr,
-      error as Error,
-      "monitor launchConfig getProjectElfFilePath"
-    );
-    throw fileNotFound(errStr, {
+  const elfFilePath = await getProjectElfFilePath(workspaceFolder.uri);
+  if (!(await pathExists(elfFilePath))) {
+    throw fileNotFound(elfFilePath, {
       userMessage:
         "Project ELF file not found at {filePath}. Build your project first.",
       logMessage: "Monitor blocked: project ELF file not found: {filePath}.",

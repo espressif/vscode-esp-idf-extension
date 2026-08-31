@@ -127,7 +127,9 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
       Logger.error(
         "Failed to write the task terminal epilogue",
         error instanceof Error ? error : new Error(String(error)),
-        "OutputCapturingPseudoterminal writeEpilogue"
+        "OutputCapturingPseudoterminal writeEpilogue",
+        undefined,
+        false
       );
     }
   }

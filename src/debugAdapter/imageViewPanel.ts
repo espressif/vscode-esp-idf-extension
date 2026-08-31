@@ -193,7 +193,9 @@ export class ImageViewPanel {
       Logger.error(
         "Failed to load image from file:",
         error as Error,
-        "ImageViewPanel loadImageFromFile"
+        "ImageViewPanel loadImageFromFile",
+        undefined,
+        false
       );
       throw error instanceof Error ? error : new Error(String(error));
     }
@@ -267,7 +269,9 @@ export class ImageViewPanel {
       Logger.error(
         "Failed to load default image format configurations:",
         error as Error,
-        "ImageViewPanel loadDefaultConfigs"
+        "ImageViewPanel loadDefaultConfigs",
+        undefined,
+        false
       );
       return [];
     }
@@ -313,7 +317,9 @@ export class ImageViewPanel {
       Logger.error(
         "Failed to load user image format configurations:",
         error as Error,
-        "ImageViewPanel loadUserConfigs"
+        "ImageViewPanel loadUserConfigs",
+        undefined,
+        false
       );
       return [];
     }
@@ -992,7 +998,9 @@ export class ImageViewPanel {
       Logger.error(
         "Error parsing image data from C file:",
         error as Error,
-        "ImageViewPanel parseImageDataFromCFile"
+        "ImageViewPanel parseImageDataFromCFile",
+        undefined,
+        false
       );
       return null;
     }
@@ -1141,7 +1149,9 @@ export class ImageViewPanel {
       Logger.error(
         "Error extracting data address from C file:",
         error as Error,
-        "ImageViewPanel extractDataAddressFromCFile"
+        "ImageViewPanel extractDataAddressFromCFile",
+        undefined,
+        false
       );
       return null;
     }
@@ -1161,7 +1171,9 @@ export class ImageViewPanel {
       Logger.error(
         "Error extracting data array from C file:",
         error as Error,
-        "ImageViewPanel extractDataArrayFromCFile"
+        "ImageViewPanel extractDataArrayFromCFile",
+        undefined,
+        false
       );
       return null;
     }
@@ -1243,7 +1255,9 @@ export class ImageViewPanel {
       Logger.error(
         "Error parsing array content:",
         error as Error,
-        "ImageViewPanel parseArrayContent"
+        "ImageViewPanel parseArrayContent",
+        undefined,
+        false
       );
       return null;
     }
@@ -1274,7 +1288,9 @@ export class ImageViewPanel {
       Logger.error(
         "Error correcting endianness:",
         error as Error,
-        "ImageViewPanel correctEndianness"
+        "ImageViewPanel correctEndianness",
+        undefined,
+        false
       );
       return rawData;
     }

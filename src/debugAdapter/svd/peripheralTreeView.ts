@@ -297,7 +297,13 @@ export class PeripheralTreeView
         const err = new Error(
           `Internal Error: Session ${session.name} id=${session.id} already in the tree view?`
         );
-        Logger.errorNotify(err.message, err, "peripheralTreeView debugSessionStarted alreadyInTreeView");
+        Logger.errorNotify(
+          err.message,
+          err,
+          "peripheralTreeView debugSessionStarted alreadyInTreeView",
+          undefined,
+          false
+        );
         resolve(undefined);
         return;
       }
@@ -326,7 +332,9 @@ export class PeripheralTreeView
           Logger.error(
             e instanceof Error ? e.message : String(e),
             e as Error,
-            "peripheralTreeView debugSessionStarted"
+            "peripheralTreeView debugSessionStarted",
+            undefined,
+            false
           );
         }
       } finally {
