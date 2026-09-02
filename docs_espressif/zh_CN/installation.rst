@@ -27,9 +27,10 @@
     - ``GitHub``：使用 GitHub 发布链接。
 
 3.  使用 ESP-IDF 安装管理器安装 ESP-IDF 及工具。如需帮助，可参阅 `ESP-IDF 安装管理器文档 <https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest/general_info.html>`_。
+
     .. note::
 
-        在 SSH、WSL、Dev Containers、Codespaces 或基于浏览器的 VS Code 等远程或无头环境中，扩展会运行 ``eim wizard``，而不是启动 GUI。首次在 Linux 环境中启动该向导时，扩展还会将 EIM 可执行文件所在目录添加到远程用户的 shell PATH 中，以便后续可在新的终端里直接运行 ``eim``。可用命令请参考 `EIM CLI 命令文档 <https://docs.espressif.com/projects/idf-im-ui/en/latest/cli_commands.html>`_。
+        在 SSH、WSL、Dev Containers、Codespaces 或基于浏览器的 VS Code 等远程或无头环境中，扩展会运行 ``eim wizard``，而不是启动 GUI。在 Linux 上启动该向导时，扩展还会将 EIM 可执行文件所在目录添加到远程用户的 shell PATH 中，以便后续可在新的终端里直接运行 ``eim``。可用命令请参考 `EIM CLI 命令文档 <https://docs.espressif.com/projects/idf-im-ui/en/latest/cli_commands.html>`_。
 
 4. 通过读取 EIM 的 **eim_idf.json** 文件，使用 ESP-IDF 安装管理器安装的所有 ESP-IDF 版本都会被 ESP-IDF VS Code 扩展自动识别。
 
@@ -38,13 +39,13 @@
         **eim_idf.json** 默认路径为：Windows 下 ``C:\Espressif\tools\eim_idf.json``，macOS/Linux 下 ``$HOME/.espressif/tools/eim_idf.json``。
         若 **eim_idf.json** 不在默认位置，可在 Visual Studio Code 中通过 ``Preferences: Open Settings (UI)`` 命令，使用扩展配置项 ``idf.eimIdfJsonPath`` 指定 EIM **eim_idf.json** 的路径。
 
-5. 在 Visual Studio Code 中，前往 ``查看`` > ``命令面板``，输入 ``select current esp-idf version``，在列表中选择 **ESP-IDF: Select Current ESP-IDF Version**。
+5. 在 Visual Studio Code 中，前往 ``查看`` > ``命令面板``，输入 ``选择当前使用的 ESP-IDF 版本``，在列表中选择 **ESP-IDF: 选择当前使用的 ESP-IDF 版本**。
 
    将显示可用的 ESP-IDF 配置列表，选择要用于当前 ESP-IDF 项目的配置。
 
    - 所选配置将保存 idf.currentSetup（包含所选 ESP-IDF 路径），扩展会为当前 ESP-IDF 项目配置所需的环境变量，并保存为工作区文件夹状态。
 
-   - 可通过运行 **ESP-IDF: Doctor Command** 检查配置：前往 ``查看`` > ``命令面板``，输入 ``doctor command``，在列表中选择 **ESP-IDF: Doctor Command**。
+   - 可通过运行 **ESP-IDF: 诊断命令** 检查配置：前往 ``查看`` > ``命令面板``，输入 ``诊断命令``，在列表中选择 **ESP-IDF: 诊断命令**。
 
 6.  下一步请 :ref:`创建 ESP-IDF 项目 <create_an_esp-idf_project>`。
 
@@ -58,7 +59,7 @@
 .. note::
 
      若通过环境变量配置了扩展，扩展将优先使用这些环境变量，而不会使用在 ``idf.currentSetup`` 中选定的 ESP-IDF 配置。因此，若要使用在扩展中选定的 ESP-IDF 配置，请清除相关环境变量。
-     若使用 ``ESP-IDF: Select Current ESP-IDF Version`` 命令选择 ESP-IDF 配置，扩展将使用所选配置中的环境变量，并删除在设置中手动配置的环境变量 IDF_PATH、IDF_TOOLS_PATH 和 IDF_PYTHON_ENV_PATH。
+     若使用 ``ESP-IDF: 选择当前使用的 ESP-IDF 版本`` 命令选择 ESP-IDF 配置，扩展将使用所选配置中的环境变量，并删除在设置中手动配置的环境变量 IDF_PATH、IDF_TOOLS_PATH 和 IDF_PYTHON_ENV_PATH。
 
 您可以手动配置 VS Code 的 ESP-IDF 扩展，使其使用已有的 ESP-IDF 环境，方法是在 Visual Studio Code 设置中为扩展设置所需环境变量。配置扩展需要提供 ESP-IDF 路径 (IDF_PATH)、要追加到 PATH 的 ESP-IDF 工具集或 ESP-IDF 工具路径 (IDF_TOOLS_PATH)，以及 Python 环境路径 (IDF_PYTHON_ENV_PATH)。
 
@@ -124,3 +125,39 @@
     .. note::
 
         请将 `VERSION` 替换为已安装的 ESP-IDF 扩展的实际版本号。
+
+安装常见问题
+------------
+
+1. **如何确认 ESP-IDF 扩展已正确安装？**
+
+    - 打开命令面板（快捷键 F1），输入 ``ESP-IDF: 诊断命令``。选择该命令运行诊断命令，以检查 ESP-IDF 扩展及工具的安装与配置。
+
+2. **使用 ESP-IDF: 选择当前使用的 ESP-IDF 版本 命令时显示没有可用的 ESP-IDF 配置，该怎么办？**
+
+    - 请确认已通过 ESP-IDF 安装管理器 (EIM) 安装 ESP-IDF，或已使用正确的环境变量手动配置扩展。若通过 EIM 安装，请确保 **eim_idf.json** 位于默认位置，或在扩展设置 ``idf.eimIdfJsonPath`` 中指定其路径。
+
+3. **eim_idf.json 存在，但扩展仍未检测到任何 ESP-IDF 配置，该怎么办？**
+
+    - 请确认 **eim_idf.json** 格式正确，且其中包含有效的 ESP-IDF 安装路径。同时检查 EIM 是否已正确完成 ESP-IDF 安装。
+
+4. **EIM 未正确安装 ESP-IDF，该怎么办？**
+
+    - 检查 EIM 安装日志中是否有错误。日志位置参见 `EIM 日志目录 <https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest/issue_reporting.html#log-file-locations>`_。若仍有问题，可尝试使用 EIM 重新安装 ESP-IDF，或使用正确的环境变量手动配置扩展。
+
+5. **我安装了多个 ESP-IDF 版本，如何在它们之间切换？**
+
+    - 在命令面板中使用 ``ESP-IDF: 选择当前使用的 ESP-IDF 版本`` 命令，为当前项目选择所需的 ESP-IDF 版本。
+
+6. **我已通过环境变量手动配置了扩展，但想改用选定的 ESP-IDF 配置，该怎么做？**
+
+    - 清除扩展设置中手动配置的环境变量，然后使用 ``ESP-IDF: 选择当前使用的 ESP-IDF 版本`` 命令选择所需的 ESP-IDF 配置。
+
+7. **遇到具体问题需要帮助时，可以在哪里寻求支持？**
+
+    - 可在 `EIM GitHub <https://github.com/espressif/idf-im-ui/issues>`_ 或 `ESP-IDF Extension for VS Code GitHub <https://github.com/espressif/vscode-esp-idf-extension/issues>`_ 寻求帮助。
+
+8. **我使用 AI 工具排查 ESP-IDF 安装问题，但效果不好，该怎么办？**
+
+    - 请将 `Espressif Documentation MCP <https://mcp.espressif.com>`_ 添加到 AI 工具的知识库中。也可以直接添加 `EIM <https://docs.espressif.com/projects/idf-im-ui/zh_CN/latest>`_ 与 `ESP-IDF Extension for VS Code <https://docs.espressif.com/projects/vscode-esp-idf-extension/zh_CN/latest>`_ 的文档链接。
+    - 本扩展也会向当前使用的 IDE 贡献 MCP Servers。
