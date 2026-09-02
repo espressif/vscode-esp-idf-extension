@@ -263,7 +263,6 @@
   "ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs": "未选择 ESP-IDF 开发板。请记得通过 idf.openOcdConfigs 设置 OpenOCD 配置文件",
   "ESP-IDF: Setting device target...": "ESP-IDF：正在设置设备目标...",
   "Preview target": "预览目标",
-  "Default Boards": "默认开发板",
   "Status: CONNECTED": "状态：已连接",
   "Location: {0}": "位置：{0}",
   "Loaded {0} project configuration(s) from {1}: {2}. No configuration selected.": "已从 {1} 加载 {0} 个项目配置：{2}。未选择配置。",
@@ -281,5 +280,11 @@
   "Update launch.json": "更新 launch.json",
   "runOpenOCD is now true for '{0}'. Start the debug session again.": "已将 '{0}' 的 runOpenOCD 设置为 true。请重新启动调试会话。",
   "The debug session failed and 'runOpenOCD' is false in your launch.json, so the extension did not start OpenOCD and none is listening. Set 'runOpenOCD' to true to let the extension start it, or start OpenOCD yourself before debugging.": "调试会话失败，且 launch.json 中的 'runOpenOCD' 为 false，因此扩展未启动 OpenOCD，且当前没有 OpenOCD 在监听。将 'runOpenOCD' 设为 true 以让扩展启动它，或在调试前自行启动 OpenOCD。",
-  "Failed to update runOpenOCD in launch.json": "无法更新 launch.json 中的 runOpenOCD"
+  "Failed to update runOpenOCD in launch.json": "无法更新 launch.json 中的 runOpenOCD",
+  "Open a partition binary to inspect its filesystem.": "打开分区二进制文件以查看其文件系统。",
+  "This is an ESP-IDF application or bootloader image, not a filesystem partition. Open the binary generated for a data partition (for example storage.bin), or read the partition from the device with Device Partition Explorer.": "这是 ESP-IDF 应用程序或引导加载程序镜像，而不是文件系统分区。请打开为数据分区生成的二进制文件（例如 storage.bin），或使用设备分区资源管理器从设备读取该分区。",
+  "This is a partition table binary, not a filesystem partition.": "这是分区表二进制文件，而不是文件系统分区。",
+  "This is an ELF file, not a filesystem partition.": "这是 ELF 文件，而不是文件系统分区。",
+  "This partition is erased, so no filesystem has been written to it yet.": "该分区已被擦除，尚未写入任何文件系统。",
+  "Not a recognized SPIFFS, FAT, LittleFS, or NVS image. To inspect a filesystem created on the device, read the partition with Device Partition Explorer.": "无法识别为 SPIFFS、FAT、LittleFS 或 NVS 镜像。要查看在设备上创建的文件系统，请使用设备分区资源管理器读取该分区。"
 }
