@@ -18,19 +18,31 @@
 
 import axios from "axios";
 import os from "os";
-import { basename, dirname, extname, join, resolve as pathResolve } from "path";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  relative,
+  resolve as pathResolve,
+} from "path";
+import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 import {
   appendFile,
+  copy,
   createWriteStream,
   ensureDir,
+  lstat,
   move,
   pathExists,
-  ReadStream,
   readFile,
   readdir,
   remove,
+  symlink,
   WriteStream,
+  writeFile,
 } from "fs-extra";
 import { CancellationToken, env, Progress, UIKind, window } from "vscode";
 import { OutputChannel } from "../logger/outputChannel";
@@ -54,10 +66,7 @@ export function isVSCodeInstalledViaSnap(): boolean {
 }
 
 export function shouldForceCliMode(): boolean {
-  return (
-    typeof env.remoteName !== "undefined" ||
-    env.uiKind === UIKind.Web
-  );
+  return typeof env.remoteName !== "undefined" || env.uiKind === UIKind.Web;
 }
 
 function getEimHomeDir(): string {
@@ -92,11 +101,12 @@ function getEimInstallDir(mode: "cli" | "gui"): string {
 }
 
 function getCliBinaryPath(): Promise<string> {
+  const installDir = getEimInstallDir("cli");
   if (process.platform === "win32") {
-    return findWindowsEimBinary(getEimInstallDir("cli"), "cli");
+    return findWindowsEimBinary(installDir, "cli");
   }
 
-  return Promise.resolve(join(getEimInstallDir("cli"), "eim"));
+  return findUnixEimBinary(installDir, join(installDir, "eim"));
 }
 
 function getGuiAssetArch(arch: string): "aarch64" | "x64" {
@@ -138,7 +148,8 @@ function getEimAssetName(mode: "cli" | "gui", arch: string): string {
   }
 
   if (process.platform === "linux") {
-    const linuxArch = mode === "cli" ? getLinuxCliAssetArch(arch) : getGuiAssetArch(arch);
+    const linuxArch =
+      mode === "cli" ? getLinuxCliAssetArch(arch) : getGuiAssetArch(arch);
     return `eim-${mode}-linux-${linuxArch}`;
   }
 
@@ -163,13 +174,28 @@ function isEimPortableAsset(
   return middle === "" || /^-v\d+\.\d+\.\d+$/.test(middle);
 }
 
-function isVersionedEimAsset(assetName: string, prefix: string, extension: string): boolean {
+function isVersionedEimAsset(
+  assetName: string,
+  prefix: string,
+  extension: string
+): boolean {
   if (!assetName.startsWith(prefix) || !assetName.endsWith(extension)) {
     return false;
   }
 
   const middle = assetName.slice(prefix.length, -extension.length);
   return /^-v\d+\.\d+\.\d+$/.test(middle);
+}
+
+function compareVersionTuples(left: number[], right: number[]): number {
+  const length = Math.max(left.length, right.length);
+  for (let index = 0; index < length; index++) {
+    const difference = (left[index] || 0) - (right[index] || 0);
+    if (difference !== 0) {
+      return difference;
+    }
+  }
+  return 0;
 }
 
 function compareEimAssetVersions(
@@ -184,19 +210,17 @@ function compareEimAssetVersions(
       .split(".")
       .map(Number);
 
-  const leftVersion = versionOf(left);
-  const rightVersion = versionOf(right);
-  for (let index = 0; index < leftVersion.length; index++) {
-    const difference = leftVersion[index] - rightVersion[index];
-    if (difference !== 0) {
-      return difference;
-    }
-  }
-  return 0;
+  return compareVersionTuples(versionOf(left), versionOf(right));
 }
 
-function pickPreferredEimAssetName(names: string[], prefix: string, extension: string): string | undefined {
-  const matches = names.filter((name) => isEimPortableAsset(name, prefix, extension));
+function pickPreferredEimAssetName(
+  names: string[],
+  prefix: string,
+  extension: string
+): string | undefined {
+  const matches = names.filter((name) =>
+    isEimPortableAsset(name, prefix, extension)
+  );
   if (matches.length === 0) {
     return undefined;
   }
@@ -264,6 +288,44 @@ async function findWindowsEimBinary(
   }
 }
 
+async function findUnixEimBinary(
+  installDir: string,
+  fallback: string
+): Promise<string> {
+  const stablePath = join(installDir, "eim");
+  if (await pathExists(stablePath)) {
+    return stablePath;
+  }
+
+  try {
+    if (!(await pathExists(installDir))) {
+      return fallback;
+    }
+
+    const versioned = (await readdir(installDir))
+      .filter((name) => /^eim_v\d+\.\d+\.\d+$/.test(name))
+      .sort((left, right) =>
+        compareVersionTuples(
+          left.slice("eim_v".length).split(".").map(Number),
+          right.slice("eim_v".length).split(".").map(Number)
+        )
+      );
+    if (versioned.length === 0) {
+      return fallback;
+    }
+
+    return join(installDir, versioned[versioned.length - 1]);
+  } catch (error) {
+    const err = error as Error;
+    Logger.error(
+      `Error while discovering Unix EIM binary: ${err.message}`,
+      err,
+      "findUnixEimBinary"
+    );
+    return fallback;
+  }
+}
+
 export async function resolveEimPath(): Promise<string> {
   let eimPath = "";
 
@@ -276,7 +338,9 @@ export async function resolveEimPath(): Promise<string> {
   }
   // 2. Check eim_idf.json for existing EIM path
   if (!eimPath) {
-    Logger.info("[resolveEimPath] Step 2: checking eim_idf.json for existing EIM path");
+    Logger.info(
+      "[resolveEimPath] Step 2: checking eim_idf.json for existing EIM path"
+    );
     const eimJSON = await getEimIdfJson();
     if (eimJSON && eimJSON.eimPath) {
       Logger.info(`[resolveEimPath] eim_idf.json eimPath: ${eimJSON.eimPath}`);
@@ -290,7 +354,9 @@ export async function resolveEimPath(): Promise<string> {
   if (!eimPath) {
     const envEimPath = process.env.EIM_PATH;
     Logger.info(
-      `[resolveEimPath] Step 3: checking EIM_PATH env variable${envEimPath ? `: ${envEimPath}` : " (not set)"}`
+      `[resolveEimPath] Step 3: checking EIM_PATH env variable${
+        envEimPath ? `: ${envEimPath}` : " (not set)"
+      }`
     );
     eimPath = envEimPath || "";
   }
@@ -300,7 +366,9 @@ export async function resolveEimPath(): Promise<string> {
   const cliPath = await getCliBinaryPath();
   const orderedPaths = forceCliMode ? [cliPath, guiPath] : [guiPath, cliPath];
   Logger.info(
-    `[resolveEimPath] Step 4: checking managed install locations (order: ${orderedPaths.join(", ")})`
+    `[resolveEimPath] Step 4: checking managed install locations (order: ${orderedPaths.join(
+      ", "
+    )})`
   );
 
   for (const candidate of orderedPaths) {
@@ -438,7 +506,8 @@ function createEimPathProfileSnippet(
   shellType: "fish" | "posix",
   eimDir: string
 ) {
-  const header = "# Added by ESP-IDF extension so the EIM CLI can be launched directly.";
+  const header =
+    "# Added by ESP-IDF extension so the EIM CLI can be launched directly.";
 
   if (shellType === "fish") {
     return [
@@ -657,6 +726,17 @@ export async function downloadAndInstallEIM(
 
     if (extname(downloadPath) === ".zip") {
       await installZipFile(downloadPath, eimInstallPath, cancelToken);
+      await repairMaterializedEimSymlink(eimInstallPath);
+      try {
+        await remove(downloadPath);
+      } catch (error) {
+        const err = error as Error;
+        Logger.error(
+          `Error removing EIM zip ${downloadPath}: ${err.message}`,
+          err,
+          "downloadAndInstallEIM remove zip"
+        );
+      }
       Logger.infoNotify(`File ${osKey} extracted to: ${eimInstallPath}`);
     }
 
@@ -688,7 +768,152 @@ async function getEimBinaryPath(
   } else if (process.platform === "darwin") {
     return join(eimInstallPath, "eim.app");
   }
-  return join(eimInstallPath, "eim");
+  return findUnixEimBinary(eimInstallPath, join(eimInstallPath, "eim"));
+}
+
+const UNIX_ZIP_HOST = 3;
+const UNIX_SYMLINK_IFMT = 0o120000;
+const UNIX_IFMT = 0o170000;
+const MATERIALIZED_SYMLINK_MAX_BYTES = 256;
+
+type PendingZipSymlink = {
+  absolutePath: string;
+  target: string;
+};
+
+function getEntryUnixMode(entry: yauzl.Entry): number | undefined {
+  if (entry.versionMadeBy >> 8 !== UNIX_ZIP_HOST) {
+    return undefined;
+  }
+  return entry.externalFileAttributes >>> 16;
+}
+
+function isSymlinkEntry(unixMode: number | undefined): boolean {
+  return unixMode !== undefined && (unixMode & UNIX_IFMT) === UNIX_SYMLINK_IFMT;
+}
+
+function getExtractedFileMode(unixMode: number | undefined): number {
+  if (unixMode === undefined) {
+    return 0o755;
+  }
+  return unixMode & 0o777 || 0o755;
+}
+
+function isExtractedPathInsideDest(
+  destPath: string,
+  absolutePath: string
+): boolean {
+  const relativePath = relative(
+    pathResolve(destPath),
+    pathResolve(absolutePath)
+  );
+  return (
+    relativePath === "" ||
+    (!relativePath.startsWith("..") && !isAbsolute(relativePath))
+  );
+}
+
+function isSafeSymlinkTargetName(target: string): boolean {
+  if (
+    !target ||
+    target.includes("\n") ||
+    target.includes("\r") ||
+    target.includes("/") ||
+    target.includes("\\") ||
+    target.includes("..") ||
+    /[?*"<>|:]/.test(target)
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function readStreamToString(stream: Readable): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    stream.on("data", (chunk: string | Buffer) => {
+      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+    });
+    stream.on("error", reject);
+    stream.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+  });
+}
+
+async function createExtractedSymlink(
+  absolutePath: string,
+  target: string
+): Promise<void> {
+  if (!isSafeSymlinkTargetName(target)) {
+    OutputChannel.appendLine(
+      `Skipping unsafe zip symlink target for ${absolutePath}`
+    );
+    return;
+  }
+
+  const targetPath = join(dirname(absolutePath), target);
+  await ensureDir(dirname(absolutePath), { mode: 0o775 });
+  await remove(absolutePath);
+  try {
+    await symlink(target, absolutePath);
+  } catch {
+    if (await pathExists(targetPath)) {
+      await copy(targetPath, absolutePath);
+    } else {
+      await writeFile(absolutePath, target, { encoding: "utf8", mode: 0o755 });
+    }
+  }
+}
+
+async function repairMaterializedEimSymlink(destPath: string): Promise<void> {
+  const eimPath = join(destPath, "eim");
+  if (!(await pathExists(eimPath))) {
+    return;
+  }
+
+  let stats: Awaited<ReturnType<typeof lstat>>;
+  try {
+    stats = await lstat(eimPath);
+  } catch (error) {
+    const err = error as Error;
+    Logger.error(
+      `Error inspecting extracted EIM path: ${err.message}`,
+      err,
+      "repairMaterializedEimSymlink"
+    );
+    return;
+  }
+
+  if (
+    stats.isSymbolicLink() ||
+    !stats.isFile() ||
+    stats.size > MATERIALIZED_SYMLINK_MAX_BYTES
+  ) {
+    return;
+  }
+
+  const target = (await readFile(eimPath, "utf8")).trim();
+  if (
+    !isSafeSymlinkTargetName(target) ||
+    !/^eim_v\d+\.\d+\.\d+$/.test(target)
+  ) {
+    return;
+  }
+
+  const targetPath = join(destPath, target);
+  if (!(await pathExists(targetPath))) {
+    return;
+  }
+
+  try {
+    await createExtractedSymlink(eimPath, target);
+  } catch (error) {
+    const err = error as Error;
+    Logger.error(
+      `Error restoring EIM symlink: ${err.message}`,
+      err,
+      "repairMaterializedEimSymlink"
+    );
+  }
 }
 
 export class ZipFileError extends Error {
@@ -727,8 +952,22 @@ export async function installZipFile(
         );
       }
 
-      zipfile.on("end", () => {
-        return resolve();
+      const pendingSymlinks: PendingZipSymlink[] = [];
+      zipfile.on("end", async () => {
+        try {
+          for (const pending of pendingSymlinks) {
+            await createExtractedSymlink(pending.absolutePath, pending.target);
+          }
+          return resolve();
+        } catch (err) {
+          return reject(
+            new ZipFileError(
+              "Error restoring zip symlinks",
+              "InstallZipFile",
+              err
+            )
+          );
+        }
       });
       zipfile.on("error", (err) => {
         return reject(
@@ -739,6 +978,14 @@ export async function installZipFile(
       zipfile.readEntry();
       zipfile.on("entry", async (entry: yauzl.Entry) => {
         const absolutePath: string = pathResolve(destPath, entry.fileName);
+        if (!isExtractedPathInsideDest(destPath, absolutePath)) {
+          return reject(
+            new ZipFileError(
+              `Zip entry path is outside the destination: ${entry.fileName}`,
+              "InstallZipFile"
+            )
+          );
+        }
         const dirExists = await dirExistPromise(absolutePath);
         if (dirExists) {
           try {
@@ -770,100 +1017,127 @@ export async function installZipFile(
               )
             );
           }
-        } else {
-          const exists = await pathExists(absolutePath);
-          if (!exists) {
-            zipfile.openReadStream(
-              entry,
-              async (err, readStream: ReadStream) => {
-                if (err) {
-                  return reject(
-                    new ZipFileError(
-                      "Error reading zip stream",
-                      "InstallZipFile",
-                      err
-                    )
-                  );
-                }
-                readStream.on("error", (openErr) => {
-                  return reject(
-                    new ZipFileError(
-                      "Error in readstream",
-                      "InstallZipFile",
-                      openErr
-                    )
-                  );
-                });
+          return;
+        }
 
-                try {
-                  await ensureDir(dirname(absolutePath), {
-                    mode: 0o775,
-                  });
-                } catch (mkdirErr) {
-                  return reject(
-                    new ZipFileError(
-                      "Error creating directory",
-                      "InstallZipFile",
-                      mkdirErr
-                    )
-                  );
-                }
-                const absoluteEntryTmpPath: string = absolutePath + ".tmp";
-                const doesTmpPathExists = await pathExists(
-                  absoluteEntryTmpPath
-                );
-                if (doesTmpPathExists) {
-                  try {
-                    await remove(absoluteEntryTmpPath);
-                  } catch (rmError) {
-                    return reject(
-                      new ZipFileError(
-                        `Error unlinking tmp file ${absoluteEntryTmpPath}`,
-                        "InstallZipFile",
-                        rmError
-                      )
-                    );
-                  }
-                }
-                const writeStream: WriteStream = createWriteStream(
-                  absoluteEntryTmpPath,
-                  { mode: 0o755 }
-                );
-                writeStream.on("error", (writeStreamErr) => {
-                  return reject(
-                    new ZipFileError(
-                      "Error in writeStream",
-                      "InstallZipFile",
-                      writeStreamErr
-                    )
-                  );
-                });
-                writeStream.on("close", async () => {
-                  try {
-                    await move(absoluteEntryTmpPath, absolutePath);
-                  } catch (closeWriteStreamErr) {
-                    return reject(
-                      new ZipFileError(
-                        `Error renaming file ${absoluteEntryTmpPath}`,
-                        "InstallZipFile",
-                        closeWriteStreamErr
-                      )
-                    );
-                  }
-                  zipfile.readEntry();
-                });
-                readStream.pipe(writeStream);
-              }
-            );
-          } else {
-            if (extname(absolutePath) !== ".txt") {
-              OutputChannel.appendLine(
-                `Warning File ${absolutePath}
-                                      already exists and was not updated.`
+        const unixMode = getEntryUnixMode(entry);
+        if (isSymlinkEntry(unixMode)) {
+          zipfile.openReadStream(entry, async (err, readStream) => {
+            if (err || !readStream) {
+              return reject(
+                new ZipFileError(
+                  "Error reading zip stream",
+                  "InstallZipFile",
+                  err
+                )
               );
             }
-            zipfile.readEntry();
+            try {
+              const target = (await readStreamToString(readStream))
+                .replace(/\0+$/g, "")
+                .trim();
+              pendingSymlinks.push({ absolutePath, target });
+              zipfile.readEntry();
+            } catch (streamErr) {
+              return reject(
+                new ZipFileError(
+                  "Error reading symlink payload",
+                  "InstallZipFile",
+                  streamErr
+                )
+              );
+            }
+          });
+          return;
+        }
+
+        const exists = await pathExists(absolutePath);
+        if (!exists) {
+          zipfile.openReadStream(entry, async (err, readStream) => {
+            if (err || !readStream) {
+              return reject(
+                new ZipFileError(
+                  "Error reading zip stream",
+                  "InstallZipFile",
+                  err
+                )
+              );
+            }
+            readStream.on("error", (openErr) => {
+              return reject(
+                new ZipFileError(
+                  "Error in readstream",
+                  "InstallZipFile",
+                  openErr
+                )
+              );
+            });
+
+            try {
+              await ensureDir(dirname(absolutePath), {
+                mode: 0o775,
+              });
+            } catch (mkdirErr) {
+              return reject(
+                new ZipFileError(
+                  "Error creating directory",
+                  "InstallZipFile",
+                  mkdirErr
+                )
+              );
+            }
+            const absoluteEntryTmpPath: string = absolutePath + ".tmp";
+            const doesTmpPathExists = await pathExists(absoluteEntryTmpPath);
+            if (doesTmpPathExists) {
+              try {
+                await remove(absoluteEntryTmpPath);
+              } catch (rmError) {
+                return reject(
+                  new ZipFileError(
+                    `Error unlinking tmp file ${absoluteEntryTmpPath}`,
+                    "InstallZipFile",
+                    rmError
+                  )
+                );
+              }
+            }
+            const writeStream: WriteStream = createWriteStream(
+              absoluteEntryTmpPath,
+              { mode: getExtractedFileMode(unixMode) }
+            );
+            writeStream.on("error", (writeStreamErr) => {
+              return reject(
+                new ZipFileError(
+                  "Error in writeStream",
+                  "InstallZipFile",
+                  writeStreamErr
+                )
+              );
+            });
+            writeStream.on("close", async () => {
+              try {
+                await move(absoluteEntryTmpPath, absolutePath);
+              } catch (closeWriteStreamErr) {
+                return reject(
+                  new ZipFileError(
+                    `Error renaming file ${absoluteEntryTmpPath}`,
+                    "InstallZipFile",
+                    closeWriteStreamErr
+                  )
+                );
+              }
+              zipfile.readEntry();
+            });
+            readStream.pipe(writeStream);
+          });
+        } else {
+          if (extname(absolutePath) !== ".txt") {
+            OutputChannel.appendLine(
+              `Warning File ${absolutePath}
+                                      already exists and was not updated.`
+            );
           }
+          zipfile.readEntry();
         }
       });
     });
