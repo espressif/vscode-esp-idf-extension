@@ -195,11 +195,13 @@ export class SerialPort {
   /**
    * Detect the default serial port using esptool.py
    * @param workspaceFolder The workspace folder
+   * @param focusOnOutputChannel Whether to focus on the output channel during detection
    * @returns The detected port
    * @throws {KnownError} When prerequisites are missing or no matching device is found
    */
   public static async detectDefaultPort(
-    workspaceFolder: Uri
+    workspaceFolder: Uri,
+    focusOnOutputChannel: boolean = true
   ): Promise<string> {
     return window.withProgress(
       {
@@ -220,7 +222,9 @@ export class SerialPort {
             await resolveEsptool(idfPath);
           const expectedTarget = await getExpectedIdfTarget(workspaceFolder);
 
-          OutputChannel.show();
+          if (focusOnOutputChannel) {
+            OutputChannel.show();
+          }
           OutputChannel.appendLine(
             `Detecting default port using esptool.py...`
           );
