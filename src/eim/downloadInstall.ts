@@ -29,12 +29,14 @@ import {
 } from "path";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
+import { constants as fsConstants } from "fs";
+import { open } from "fs/promises";
+import type { FileHandle } from "fs/promises";
 import {
   appendFile,
   copy,
   createWriteStream,
   ensureDir,
-  lstat,
   move,
   pathExists,
   readFile,
@@ -808,8 +810,9 @@ function isExtractedPathInsideDest(
     pathResolve(absolutePath)
   );
   return (
-    relativePath === "" ||
-    (!relativePath.startsWith("..") && !isAbsolute(relativePath))
+    relativePath !== "" &&
+    !relativePath.startsWith("..") &&
+    !isAbsolute(relativePath)
   );
 }
 
@@ -856,55 +859,60 @@ async function createExtractedSymlink(
   try {
     await symlink(target, absolutePath);
   } catch {
-    if (await pathExists(targetPath)) {
+    try {
       await copy(targetPath, absolutePath);
-    } else {
+    } catch {
       await writeFile(absolutePath, target, { encoding: "utf8", mode: 0o755 });
     }
   }
 }
 
+const O_NOFOLLOW_IF_SUPPORTED =
+  typeof fsConstants.O_NOFOLLOW === "number" ? fsConstants.O_NOFOLLOW : 0;
+
+async function readMaterializedSymlinkPayload(
+  filePath: string
+): Promise<string | undefined> {
+  let handle: FileHandle;
+  try {
+    // O_NOFOLLOW makes the open fail on a healthy install, where eim is a real symlink.
+    handle = await open(
+      filePath,
+      fsConstants.O_RDONLY | O_NOFOLLOW_IF_SUPPORTED
+    );
+  } catch {
+    return undefined;
+  }
+
+  try {
+    const stats = await handle.stat();
+    if (!stats.isFile() || stats.size > MATERIALIZED_SYMLINK_MAX_BYTES) {
+      return undefined;
+    }
+    const buffer = Buffer.alloc(stats.size);
+    const { bytesRead } = await handle.read(buffer, 0, stats.size, 0);
+    return buffer.subarray(0, bytesRead).toString("utf8").trim();
+  } finally {
+    await handle.close();
+  }
+}
+
 async function repairMaterializedEimSymlink(destPath: string): Promise<void> {
   const eimPath = join(destPath, "eim");
-  if (!(await pathExists(eimPath))) {
-    return;
-  }
-
-  let stats: Awaited<ReturnType<typeof lstat>>;
   try {
-    stats = await lstat(eimPath);
-  } catch (error) {
-    const err = error as Error;
-    Logger.error(
-      `Error inspecting extracted EIM path: ${err.message}`,
-      err,
-      "repairMaterializedEimSymlink"
-    );
-    return;
-  }
+    const target = await readMaterializedSymlinkPayload(eimPath);
+    if (
+      !target ||
+      !isSafeSymlinkTargetName(target) ||
+      !/^eim_v\d+\.\d+\.\d+$/.test(target)
+    ) {
+      return;
+    }
 
-  if (
-    stats.isSymbolicLink() ||
-    !stats.isFile() ||
-    stats.size > MATERIALIZED_SYMLINK_MAX_BYTES
-  ) {
-    return;
-  }
+    if (!(await pathExists(join(destPath, target)))) {
+      return;
+    }
 
-  const target = (await readFile(eimPath, "utf8")).trim();
-  if (
-    !isSafeSymlinkTargetName(target) ||
-    !/^eim_v\d+\.\d+\.\d+$/.test(target)
-  ) {
-    return;
-  }
-
-  const targetPath = join(destPath, target);
-  if (!(await pathExists(targetPath))) {
-    return;
-  }
-
-  try {
     await createExtractedSymlink(eimPath, target);
   } catch (error) {
     const err = error as Error;
