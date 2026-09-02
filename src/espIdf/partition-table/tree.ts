@@ -218,6 +218,7 @@ export class PartitionTreeDataProvider
     for (const item of csvItems) {
       const partitionTableNode = {} as PartitionItem;
       partitionTableNode.name = item.name;
+      partitionTableNode.label = item.name;
       partitionTableNode.type = item.type;
       partitionTableNode.subtype = item.subtype;
       partitionTableNode.offset = item.offset;
@@ -233,6 +234,7 @@ export class PartitionTreeDataProvider
       partitionTableNode.description = `Offset (${item.offset
         .toUpperCase()
         .replace("0X", "0x")}) size: (${item.size})`;
+      partitionTableNode.tooltip = `${item.type} / ${item.subtype}`;
       partitionItems.push(partitionTableNode);
     }
     return partitionItems;
