@@ -75,7 +75,7 @@ export class BuildTask {
       buildDirPath,
       modifiedEnv,
       {
-        epilogue: () => buildFinishFlashCmd(this.currentWorkspace),
+        epilogue: async () => await buildFinishFlashCmd(this.currentWorkspace),
       }
     );
   }
