@@ -236,5 +236,16 @@
   "ESP-IDF Setup from environment variables is not valid: {0}": "A configuração do ESP-IDF a partir de variáveis de ambiente não é válida: {0}",
   "Classic Menuconfig": "Menuconfig clássico",
   "Right click on any CMakeLists.txt file!": "Clique com o botão direito em qualquer arquivo CMakeLists.txt!",
-  "ESP-IDF: Clang settings have been configured for the project.": "ESP-IDF: As configurações do Clang foram definidas para o projeto."
+  "ESP-IDF: Clang settings have been configured for the project.": "ESP-IDF: As configurações do Clang foram definidas para o projeto.",
+  "Open a partition binary to inspect its filesystem.": "Abra um binário de partição para inspecionar seu sistema de arquivos.",
+  "This is an ESP-IDF application or bootloader image, not a filesystem partition. Open the binary generated for a data partition (for example storage.bin), or read the partition from the device with Device Partition Explorer.": "Esta é uma imagem de aplicativo ou de bootloader do ESP-IDF, não uma partição de sistema de arquivos. Abra o binário gerado para uma partição de dados (por exemplo storage.bin) ou leia a partição do dispositivo com o Explorador de partições do dispositivo.",
+  "This is a partition table binary, not a filesystem partition.": "Este é um binário de tabela de partições, não uma partição de sistema de arquivos.",
+  "This is an ELF file, not a filesystem partition.": "Este é um arquivo ELF, não uma partição de sistema de arquivos.",
+  "This partition is erased, so no filesystem has been written to it yet.": "Esta partição está apagada, portanto nenhum sistema de arquivos foi gravado nela ainda.",
+  "Not a recognized SPIFFS, FAT, LittleFS, or NVS image. To inspect a filesystem created on the device, read the partition with Device Partition Explorer.": "Não é uma imagem reconhecida de SPIFFS, FAT, LittleFS ou NVS. Para inspecionar um sistema de arquivos criado no dispositivo, leia a partição com o Explorador de partições do dispositivo.",
+  "Explore filesystem": "Explorar sistema de arquivos",
+  "Remove obsolete entries": "Remover entradas obsoletas",
+  "Removed {0} from the idf.customExtraVars setting.": "{0} foi removido da configuração idf.customExtraVars.",
+  "Show setting": "Mostrar configuração",
+  "Some ESP-IDF settings in this workspace point to tools that are no longer installed: {0}. The paths from the current ESP-IDF setup are being used instead.": "Algumas configurações do ESP-IDF neste espaço de trabalho apontam para ferramentas que não estão mais instaladas: {0}. Os caminhos da configuração atual do ESP-IDF estão sendo usados no lugar."
 }

@@ -108,6 +108,8 @@
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:idfPartitionExplorer",
+    "onView:idfFsImageExplorer",
+    "onCommand:espIdf.fsImage.explore",
     "onView:espRainmaker",
     "onView:idfComponents",
     "onLanguageModelTool:espIdfCommands",
@@ -363,6 +365,11 @@
           "visibility": "collapsed"
         },
         {
+          "id": "idfFsImageExplorer",
+          "name": "%view.idf.idfFsImageExplorer%",
+          "visibility": "collapsed"
+        },
+        {
           "id": "idfAppTracer",
           "name": "%view.idf.idfAppTracer%",
           "visibility": "collapsed"
@@ -400,6 +407,10 @@
         "contents": "%viewWelcome.idfPartitionExplorer%"
       },
       {
+        "view": "idfFsImageExplorer",
+        "contents": "%viewWelcome.idfFsImageExplorer%"
+      },
+      {
         "view": "espIdf.peripheralView",
         "contents": "%viewWelcome.peripheralView%"
       }
@@ -433,6 +444,11 @@
           "command": "espIdf.partition.table.refresh",
           "group": "navigation",
           "when": "view == idfPartitionExplorer"
+        },
+        {
+          "command": "espIdf.fsImage.refresh",
+          "group": "navigation",
+          "when": "view == idfFsImageExplorer"
         },
         {
           "command": "esp.webview.open.partition-table",
@@ -539,6 +555,11 @@
           "when": "resourceExtname == .bin",
           "group": "navigation",
           "command": "espIdf.flashBinaryToPartition"
+        },
+        {
+          "when": "resourceExtname == .bin",
+          "group": "navigation",
+          "command": "espIdf.fsImage.explore"
         },
         {
           "when": "resourceExtname == .csv",
@@ -1544,6 +1565,17 @@
         "command": "espIdf.flashBinaryToPartition",
         "category": "ESP-IDF",
         "title": "%espIdf.flashBinaryToPartition.title%"
+      },
+      {
+        "command": "espIdf.fsImage.explore",
+        "category": "ESP-IDF",
+        "title": "%espIdf.fsImage.explore.title%"
+      },
+      {
+        "command": "espIdf.fsImage.refresh",
+        "category": "ESP-IDF",
+        "title": "%espIdf.fsImage.refresh.title%",
+        "icon": "$(refresh)"
       },
       {
         "command": "espIdf.apptrace.archive.refresh",

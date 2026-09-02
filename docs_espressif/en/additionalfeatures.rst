@@ -23,6 +23,7 @@ Additional IDE Features
     Install ESP-IDF Components<additionalfeatures/install-esp-components>
     Language Tools<additionalfeatures/language-tools>
     NVS Partition Table Editor<additionalfeatures/nvs-partition-editor>
+    Filesystem Image Explorer<additionalfeatures/fs-image-explorer>
     Partition Table Editor<additionalfeatures/partition-table-editor>
     Project Configuration Editor<additionalfeatures/project-configuration>
     QEMU Integration<additionalfeatures/qemu>

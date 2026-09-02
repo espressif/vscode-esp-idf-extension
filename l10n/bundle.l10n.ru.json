@@ -236,5 +236,16 @@
   "ESP-IDF Setup from environment variables is not valid: {0}": "Настройка ESP-IDF из переменных среды недопустима: {0}",
   "Classic Menuconfig": "Классический Menuconfig",
   "Right click on any CMakeLists.txt file!": "Щелкните правой кнопкой мыши любой файл CMakeLists.txt!",
-  "ESP-IDF: Clang settings have been configured for the project.": "ESP-IDF: Параметры Clang настроены для проекта."
+  "ESP-IDF: Clang settings have been configured for the project.": "ESP-IDF: Параметры Clang настроены для проекта.",
+  "Open a partition binary to inspect its filesystem.": "Откройте двоичный файл раздела, чтобы просмотреть его файловую систему.",
+  "This is an ESP-IDF application or bootloader image, not a filesystem partition. Open the binary generated for a data partition (for example storage.bin), or read the partition from the device with Device Partition Explorer.": "Это образ приложения или загрузчика ESP-IDF, а не раздел с файловой системой. Откройте двоичный файл, созданный для раздела данных (например storage.bin), или считайте раздел с устройства с помощью проводника разделов устройства.",
+  "This is a partition table binary, not a filesystem partition.": "Это двоичный файл таблицы разделов, а не раздел с файловой системой.",
+  "This is an ELF file, not a filesystem partition.": "Это файл ELF, а не раздел с файловой системой.",
+  "This partition is erased, so no filesystem has been written to it yet.": "Этот раздел стёрт, поэтому файловая система в него ещё не записана.",
+  "Not a recognized SPIFFS, FAT, LittleFS, or NVS image. To inspect a filesystem created on the device, read the partition with Device Partition Explorer.": "Не распознан как образ SPIFFS, FAT, LittleFS или NVS. Чтобы просмотреть файловую систему, созданную на устройстве, считайте раздел с помощью проводника разделов устройства.",
+  "Explore filesystem": "Просмотреть файловую систему",
+  "Remove obsolete entries": "Удалить устаревшие записи",
+  "Removed {0} from the idf.customExtraVars setting.": "{0} удалено из параметра idf.customExtraVars.",
+  "Show setting": "Показать параметр",
+  "Some ESP-IDF settings in this workspace point to tools that are no longer installed: {0}. The paths from the current ESP-IDF setup are being used instead.": "Некоторые параметры ESP-IDF в этом рабочем пространстве указывают на инструменты, которые больше не установлены: {0}. Вместо них используются пути из текущей установки ESP-IDF."
 }
