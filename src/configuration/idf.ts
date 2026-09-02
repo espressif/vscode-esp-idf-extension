@@ -331,11 +331,13 @@ export function resolveVariables(
  * Read serial port configuration and handle "detect" mode
  * @param workspaceFolder The workspace folder URI
  * @param useMonitorPort Whether to use monitor port setting instead of flash port
+ * @param focusOnOutputChannel Whether to focus on the output channel during detection
  * @returns The resolved port string or undefined if detection fails
  */
 export async function readSerialPort(
   workspaceFolder: Uri,
-  useMonitorPort: boolean = false
+  useMonitorPort: boolean = false,
+  focusOnOutputChannel: boolean = true
 ): Promise<string> {
   const portSetting = useMonitorPort ? "idf.monitorPort" : "idf.port";
   const port = readParameter(portSetting, workspaceFolder) as string;
@@ -343,7 +345,10 @@ export async function readSerialPort(
   if (port === "detect") {
     Logger.info("Port set to 'detect', running auto-detection...");
     try {
-      const detectedPort = await SerialPort.detectDefaultPort(workspaceFolder);
+      const detectedPort = await SerialPort.detectDefaultPort(
+        workspaceFolder,
+        focusOnOutputChannel
+      );
       Logger.info(`Auto-detected port: ${detectedPort}`);
       await SerialPort.shared().updatePortListStatus(
         detectedPort,
