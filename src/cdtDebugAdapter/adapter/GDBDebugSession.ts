@@ -204,8 +204,6 @@ export class GDBDebugSession extends LoggingDebugSession {
   // therefore be resumed after breakpoints are inserted.
   protected waitPausedNeeded = false;
   protected isInitialized = false;
-  protected pendingInitialBreakpointStop?: any;
-  protected stopAtInitialBreakpoint = false;
 
   constructor() {
     super();
@@ -478,9 +476,9 @@ export class GDBDebugSession extends LoggingDebugSession {
       const ref = this.variableHandles.get(args.variablesReference);
       const parentVarname = ref.type === "object" ? ref.varobjName : "";
       const varname =
-      parentVarname +
-      (parentVarname === "" ? "" : ".") +
-      args.name.replace(/^\[(\d+)\]/, "$1");
+        parentVarname +
+        (parentVarname === "" ? "" : ".") +
+        args.name.replace(/^\[(\d+)\]/, "$1");
       response.body.dataId = varname;
       response.body.description = varname;
       response.body.accessTypes = ["read", "write", "readWrite"];
@@ -674,7 +672,6 @@ export class GDBDebugSession extends LoggingDebugSession {
         vsbp: DebugProtocol.SourceBreakpoint,
         gdbbp: mi.MIBreakpointInfo
       ): DebugProtocol.Breakpoint => {
-        this.matchInitialBreakpointStop(gdbbp);
         if (vsbp.logMessage) {
           this.logPointMessages[gdbbp.number] = vsbp.logMessage;
         }
@@ -746,9 +743,6 @@ export class GDBDebugSession extends LoggingDebugSession {
             file,
             line,
             options
-          );
-          gdbbp.multiple?.forEach((location) =>
-            this.matchInitialBreakpointStop(location)
           );
           actual.push(createState(vsbp, gdbbp.bkpt));
         } catch (err) {
@@ -963,9 +957,7 @@ export class GDBDebugSession extends LoggingDebugSession {
           "console"
         )
       );
-      if (this.stopAtInitialBreakpoint && this.pendingInitialBreakpointStop) {
-        this.handleGDBStopped(this.pendingInitialBreakpointStop);
-      } else if (!this.isPostMortem) {
+      if (!this.isPostMortem) {
         if (this.isAttach) {
           await mi.sendExecContinue(this.gdb);
         } else {
@@ -974,8 +966,6 @@ export class GDBDebugSession extends LoggingDebugSession {
       } else {
         this.sendEvent(new StoppedEvent("exception", 1, true));
       }
-      this.pendingInitialBreakpointStop = undefined;
-      this.stopAtInitialBreakpoint = false;
       this.sendResponse(response);
     } catch (err) {
       this.sendErrorResponse(
@@ -1806,26 +1796,6 @@ export class GDBDebugSession extends LoggingDebugSession {
     }
   }
 
-  private matchInitialBreakpointStop(breakpoint: mi.MIBreakpointInfo) {
-    const stopAddress = this.pendingInitialBreakpointStop?.frame?.addr;
-    if (!stopAddress) {
-      return;
-    }
-    const breakpointAddresses = [
-      breakpoint.addr,
-      ...(breakpoint.locations?.map((location) => location.addr) ?? [])
-    ];
-    this.stopAtInitialBreakpoint ||= breakpointAddresses.some((address) => address && this.addressesEqual(address, stopAddress));
-  }
-
-  private addressesEqual(left: string, right: string): boolean {
-    try {
-      return BigInt(left) === BigInt(right);
-    } catch {
-      return left.toLowerCase() === right.toLowerCase();
-    }
-  }
-
   protected handleGDBAsync(resultClass: string, resultData: any) {
     const updateIsRunning = () => {
       this.isRunning = this.threads.length ? true : false;
@@ -1852,9 +1822,6 @@ export class GDBDebugSession extends LoggingDebugSession {
         updateIsRunning();
         break;
       case "stopped": {
-        if (!this.isInitialized && resultData.reason === "breakpoint-hit") {
-          this.pendingInitialBreakpointStop = resultData;
-        }
         let suppressHandleGDBStopped = false;
         if (this.gdb.isNonStopMode()) {
           const id = parseInt(resultData["thread-id"], 10);

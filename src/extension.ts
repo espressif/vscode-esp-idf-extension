@@ -2632,12 +2632,6 @@ export async function activate(context: vscode.ExtensionContext) {
               request: "attach",
               sessionID: "qemu.debug.session",
               gdb: gdbPath,
-              initCommands: [
-                "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
-                "mon reset halt",
-                "maintenance flush register-cache",
-                "thb app_main",
-              ],
               target: {
                 type: "remote",
                 host: "localhost",

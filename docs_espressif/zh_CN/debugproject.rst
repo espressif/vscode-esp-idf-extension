@@ -154,25 +154,31 @@
 - ``type``: 调试配置的类型。应设置为 ``gdbtarget``。
 - ``program``: 项目构建目录中的 ELF 文件，用于执行调试会话。可以使用命令 ``${command:espIdf.getProjectName}`` 查询扩展以查找当前构建目录的项目名称。
 - ``initCommands``: 可选的 GDB 命令，在通过 ``target.connectCommands`` **连接目标之后** 执行。扩展不会注入默认的 ``initCommands`` 列表。
-- ``initialBreakpoint``: 当设置为非空字符串（例如 ``app_main``）时，扩展会向 ``initCommands`` 追加 ``thb <value>``\ 。如果设置为 ``""``\ （空字符串）或省略，则不会通过此设置添加断点。
+- ``initialBreakpoint``: 当设置为非空字符串（例如 ``app_main``）时，扩展会向 ``initCommands`` 追加 ``thb <value>``\ 。当设置为 ``""``\ （空字符串）时，会话不会在初始断点处停止。当省略该字段时，扩展会向连接命令序列添加 ``thbreak app_main``\ 。
 - ``gdb``: 要使用的 GDB 可执行文件。默认情况下，"${command:espIdf.getToolchainGdb}" 将查询扩展以查找当前 ESP-IDF 项目的 IDF_TARGET（esp32、esp32c6 等）对应的 ESP-IDF 工具链 GDB。
 
 .. note::
      **GDB 命令顺序。** Eclipse CDT GDB 适配器会先执行 ``target.connectCommands`` 以附加到目标，然后再执行 ``initCommands``。
 
-     当 ``idf.buildPath`` 下存在相应路径时，扩展会将这些命令 **前置** 到 ``target.connectCommands``（位于任何用户定义的 ``connectCommands`` 之前），顺序如下：
+     扩展会将这些命令 **前置** 到 ``target.connectCommands``（位于任何用户定义的 ``connectCommands`` 之前），顺序如下：
 
-     1. ``gdbinit/gdbinit`` — ESP-IDF 聚合脚本（通常会 source symbols 和 connect；自 ESP-IDF v5.3.3 起可用）。如果该文件缺失，扩展会前置与 ESP-IDF ``gdbinit/connect`` 相同的连接命令序列：
+     1. 为 ``build/project_description.json`` 中 ``gdbinit_files`` 列出的每个 ESP-IDF 生成的 gdbinit 文件添加一条 ``source`` 命令，顺序与 ``idf.py gdb`` 相同：``symbols``\ 、``prefix_map`` 和 ``py_extensions``\ 。当所配置的 GDB 不支持 Python 时，会跳过 ``py_extensions``\ 。当 ``gdbinit_files`` 不可用时，扩展会在 ``${idf.buildPath}/gdbinit`` 下查找这些文件，并回退到 ``prefix_map_gdbinit`` 作为路径重映射文件。
+
+     2. ESP-IDF ``gdbinit/connect`` 文件中的命令。扩展会逐条重放这些命令，而不是 source 该文件，并进行以下调整：
+
+        - 删除结尾的 ``continue``\ 。连接命令在调试会话初始化完成之前执行，此时恢复目标运行会越过编辑器尚未插入的断点，并且产生的停止事件不会被上报。
+        - 当启动配置中定义了 ``initialBreakpoint`` 时，删除 ``thbreak app_main``\ ，使该设置成为决定会话首次停止位置的唯一依据。
+        - 当定义了 ``target.host`` 或 ``target.port`` 时，重写 ``target remote :3333``\ 。
+
+        当该文件缺失，或其结构无法被扩展展开时（例如没有远程目标的 ``CONFIG_IDF_TARGET_LINUX`` 变体），扩展会回退到等效的命令序列：
 
         - ``set remotetimeout 10``
-        - ``target remote :3333``
+        - ``target remote :3333`` — 当定义了 ``target.host`` 和 ``target.port`` 时会使用这些值
         - ``monitor reset halt``
         - ``maintenance flush register-cache``
-        - ``thbreak app_main``
+        - ``thbreak app_main`` — 仅当启动配置中省略了 ``initialBreakpoint`` 时添加
 
-     2. ``gdbinit/prefix_map``，或回退到 ``prefix_map_gdbinit`` — 用于可复现构建的路径重映射。这是单独的文件，**不会** 包含在 ``gdbinit/gdbinit`` 中。
-
-     在 ESP-IDF ≥ 5.3.3 上，``build/gdbinit/gdbinit`` 通常已连接到 OpenOCD，因此额外的用户 ``connectCommands`` 是可选且可叠加的。如果启用了 ``CONFIG_APP_REPRODUCIBLE_BUILD`` 但未找到 prefix map 文件，扩展会显示一条提示信息。
+     核心转储和 GDB Stub 事后调试会话只会前置 ``source`` 命令行，因为它们会提供各自的 ``connectCommands``\ 。如果启用了 ``CONFIG_APP_REPRODUCIBLE_BUILD`` 但未找到 prefix map 文件，扩展会显示一条提示信息。
 
 你可能使用的其他参数包括：
 
@@ -214,11 +220,11 @@
             "host": "要连接的目标主机（默认为 'localhost'，如果设置了 parameters 则忽略）",
             "port": "要连接的目标端口（默认为 serverPortRegExp 捕获的值，如果设置了 parameters 则忽略）",
             "parameters": "目标类型的目标参数。通常是类似 localhost:12345 的内容。（默认为 `${host}:${port}`）",
-            "connectCommands": "用于建立连接的 GDB 命令数组。自动 source 的 gdbinit ``source`` 行会前置到这些用户定义的命令之前"
+            "connectCommands": "用于建立连接的 GDB 命令数组。gdbinit ``source`` 命令行和连接命令序列会前置到这些用户定义的命令之前"
         }
     }
 
-下面显示了一个自定义的 ``launch.json`` 示例。当 ESP-IDF 已生成 ``build/gdbinit/gdbinit`` 时，上面的最小默认配置对大多数项目已足够。可按需添加可选字段：
+下面显示了一个自定义的 ``launch.json`` 示例。由于扩展会自行解析 ESP-IDF 生成的 gdbinit 文件和连接命令序列，上面的最小默认配置对大多数项目已足够。可按需添加可选字段：
 
 .. code-block:: JSON
 
