@@ -1946,7 +1946,7 @@
               },
               "initialBreakpoint": {
                 "type": "string",
-                "description": "Initial hardware breakpoint being set as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. If user set an empty string '' no initial breakpoint will be set and if let undefined it will use the default 'thb app_main'. Ignored if user defines initCommands argument.",
+                "description": "Initial hardware breakpoint being set as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. If user set an empty string '' no initial breakpoint will be set and if let undefined the extension adds 'thbreak app_main' to the connect commands.",
                 "default": "app_main"
               },
               "preRunCommands": {
@@ -1988,7 +1988,7 @@
                 "default": {
                   "connectCommands": [
                     "set remotetimeout 20",
-                    "-target-select extended-remote localhost:3333"
+                    "target remote localhost:3333"
                   ]
                 },
                 "properties": {
@@ -2007,13 +2007,13 @@
                   },
                   "connectCommands": {
                     "type": "array",
-                    "description": "Commands to execute for target connection. Normally something like [`-target-select extended-remote localhost:3333`]",
+                    "description": "%debug.target.connectCommands.description%",
                     "items": {
                       "type": "string"
                     },
                     "default": [
                       "set remotetimeout 20",
-                      "-target-select extended-remote localhost:3333"
+                      "target remote localhost:3333"
                     ]
                   },
                   "host": {
@@ -2220,7 +2220,7 @@
               },
               "initialBreakpoint": {
                 "type": "string",
-                "description": "Initial hardware breakpoint being set as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. If user set an empty string '' no initial breakpoint will be set and if let undefined it will use the default 'thb app_main'. Ignored if user defines initCommands argument.",
+                "description": "Initial hardware breakpoint being set as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. If user set an empty string '' no initial breakpoint will be set and if let undefined the extension adds 'thbreak app_main' to the connect commands.",
                 "default": "app_main"
               },
               "preRunCommands": {
@@ -2262,7 +2262,7 @@
                 "default": {
                   "connectCommands": [
                     "set remotetimeout 20",
-                    "-target-select extended-remote localhost:3333"
+                    "target remote localhost:3333"
                   ]
                 },
                 "properties": {
@@ -2363,13 +2363,13 @@
                   },
                   "connectCommands": {
                     "type": "array",
-                    "description": "Commands to execute for target connection. Normally something like [`-target-select extended-remote localhost:3333`]",
+                    "description": "%debug.target.connectCommands.description%",
                     "items": {
                       "type": "string"
                     },
                     "default": [
                       "set remotetimeout 20",
-                      "-target-select extended-remote localhost:3333"
+                      "target remote localhost:3333"
                     ]
                   }
                 }

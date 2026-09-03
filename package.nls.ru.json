@@ -17,6 +17,7 @@
 	"configuration.section.other": "Прочее",
 	"debug.initConfig.description": "Новая конфигурация для запуска проектов ESP-IDF",
 	"debug.initConfig.name": "ESP-IDF Отладка: Запуск",
+	"debug.target.connectCommands.description": "Команды для подключения к целевому устройству. Обычно что-то вроде [`target remote localhost:3333`]",
 	"esp.component-manager.cli.addDependencyError": "Произошла ошибка при добавлении зависимости к компоненту.",
 	"esp.component-manager.ui.show.title": "Показать Реестр Компонентов ESP",
 	"esp.component-manager.url.description": "URL-адрес Реестра Компонентов",

@@ -17,6 +17,7 @@
 	"configuration.section.other": "其他",
 	"debug.initConfig.description": "为启动 ESP-IDF 项目创建新配置",
 	"debug.initConfig.name": "ESP-IDF 调试：启动",
+	"debug.target.connectCommands.description": "用于建立目标连接的命令。通常类似 [`target remote localhost:3333`]",
 	"esp.component-manager.cli.addDependencyError": "添加依赖到组件时出错",
 	"esp.component-manager.ui.show.title": "乐鑫组件注册表",
 	"esp.component-manager.url.description": "乐鑫组件注册表 URL",

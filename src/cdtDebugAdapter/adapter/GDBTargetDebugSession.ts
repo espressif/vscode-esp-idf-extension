@@ -564,36 +564,88 @@ export class GDBTargetDebugSession extends GDBDebugSession {
     _args: DebugProtocol.DisconnectArguments
   ): Promise<void> {
     try {
-      if (this.serialPort !== undefined && this.serialPort.isOpen)
-        this.serialPort.close();
-
-      if (this.targetType === "remote") {
-        if (this.gdb.getAsyncMode() && this.isRunning) {
-          // See #295 - this use of "then" is to try to slightly delay the
-          // call to disconnect. A proper solution that waits for the
-          // interrupt to be successful is needed to avoid future
-          // "Cannot execute this command while the target is running"
-          // errors
-          this.gdb
-            .sendCommand("interrupt")
-            .then(() => this.gdb.sendCommand("disconnect"));
-        } else {
-          await this.gdb.sendCommand("disconnect");
+      if (this.serialPort !== undefined && this.serialPort.isOpen) {
+        try {
+          this.serialPort.close();
+        } catch (err) {
+          this.sendEvent(
+            new OutputEvent(
+              `Failed to close UART serial port: ${
+                err instanceof Error ? err.message : String(err)
+              }\n`,
+              "stderr"
+            )
+          );
         }
       }
 
-      await this.gdb.sendGDBExit();
+      if (this.targetType === "remote") {
+        try {
+          if (this.gdb.getAsyncMode() && this.isRunning) {
+            // See #295 - this use of "then" is to try to slightly delay the
+            // call to disconnect. A proper solution that waits for the
+            // interrupt to be successful is needed to avoid future
+            // "Cannot execute this command while the target is running"
+            // errors
+            await this.gdb
+              .sendCommand("interrupt")
+              .then(() => this.gdb.sendCommand("disconnect"));
+          } else {
+            await this.gdb.sendCommand("disconnect");
+          }
+        } catch (err) {
+          this.sendEvent(
+            new OutputEvent(
+              `Failed to disconnect from remote target: ${
+                err instanceof Error ? err.message : String(err)
+              }\n`,
+              "stderr"
+            )
+          );
+        }
+      }
+
+      try {
+        await this.gdb.sendGDBExit();
+      } catch (err) {
+        this.sendEvent(
+          new OutputEvent(
+            `Failed to exit GDB: ${
+              err instanceof Error ? err.message : String(err)
+            }\n`,
+            "stderr"
+          )
+        );
+      }
+
       if (this.killGdbServer) {
-        await this.stopGDBServer();
-        this.sendEvent(new OutputEvent("gdbserver stopped", "server"));
+        try {
+          await this.stopGDBServer();
+          this.sendEvent(new OutputEvent("gdbserver stopped", "server"));
+        } catch (err) {
+          this.sendEvent(
+            new OutputEvent(
+              `Failed to stop gdbserver: ${
+                err instanceof Error ? err.message : String(err)
+              }\n`,
+              "stderr"
+            )
+          );
+        }
       }
       this.sendResponse(response);
     } catch (err) {
-      this.sendErrorResponse(
-        response,
-        1,
-        err instanceof Error ? err.message : String(err)
+      // Still complete disconnect so VS Code can tear down the session
+      // even if OpenOCD/GDB are already gone.
+      this.sendEvent(
+        new OutputEvent(
+          `Disconnect completed with errors: ${
+            err instanceof Error ? err.message : String(err)
+          }\n`,
+          "stderr"
+        )
       );
+      this.sendResponse(response);
     }
   }
 }
