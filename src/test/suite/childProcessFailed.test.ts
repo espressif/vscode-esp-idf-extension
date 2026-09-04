@@ -16,8 +16,11 @@
  */
 
 import * as assert from "assert";
-import { resolve } from "path";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "fs";
+import { tmpdir } from "os";
+import { join, resolve } from "path";
 import * as vscode from "vscode";
+import { getEnvVariablesFromActivationScript } from "../../eim/loadSettings";
 import {
   capturedProcessText,
   childProcessFailed,
@@ -112,6 +115,37 @@ suite("ChildProcessFailed", () => {
           (error.metadata.detail as string).length > 0
       );
     });
+
+    test("rejects InvalidCommandInvocation when the command contains a newline", async () => {
+      await assert.rejects(
+        () =>
+          spawn(`${process.execPath}\n-e`, [], {
+            silent: true,
+            sendToTelemetry: false,
+          }),
+        (error: unknown) =>
+          isKnownError(error) &&
+          error.code === ErrorCode.InvalidCommandInvocation
+      );
+    });
+
+    test("rejects FILE_NOT_FOUND for a missing absolute executable", async () => {
+      const missing = resolve(
+        "/tmp",
+        "esp-idf-missing-absolute-binary-for-spawn-test"
+      );
+      await assert.rejects(
+        () =>
+          spawn(missing, [], {
+            silent: true,
+            sendToTelemetry: false,
+          }),
+        (error: unknown) =>
+          isKnownError(error) &&
+          error.code === ErrorCode.FILE_NOT_FOUND &&
+          error.metadata?.filePath === missing
+      );
+    });
   });
 
   suite("execChildProcess", () => {
@@ -144,6 +178,40 @@ suite("ChildProcessFailed", () => {
           error.code === ErrorCode.ChildProcessFailed &&
           error.metadata?.spawnErrorCode === "ENOENT"
       );
+    });
+  });
+
+  suite("getEnvVariablesFromActivationScript", () => {
+    let tempDir: string | undefined;
+
+    teardown(() => {
+      if (tempDir) {
+        rmSync(tempDir, { recursive: true, force: true });
+        tempDir = undefined;
+      }
+    });
+
+    test("reads env vars from a script path containing a space", async function () {
+      if (process.platform === "win32") {
+        this.skip();
+      }
+      tempDir = mkdtempSync(join(tmpdir(), "esp-idf-activation-"));
+      const scriptDir = join(tempDir, "idf tools");
+      mkdirSync(scriptDir);
+      const scriptPath = join(scriptDir, "activate_idf.sh");
+      writeFileSync(
+        scriptPath,
+        [
+          "#!/bin/sh",
+          'echo "FOO=bar"',
+          `echo "IDF_PYTHON_ENV_PATH=${join(scriptDir, "python_env")}"`,
+          "",
+        ].join("\n")
+      );
+
+      const envDict = await getEnvVariablesFromActivationScript(scriptPath);
+
+      assert.strictEqual(envDict["FOO"], "bar");
     });
   });
 });

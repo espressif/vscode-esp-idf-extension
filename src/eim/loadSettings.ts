@@ -42,10 +42,11 @@ export async function getEnvVariablesFromActivationScript(
             "-ExecutionPolicy",
             "Bypass",
             "-NoProfile",
-            `'${activationScriptPath.replace(/'/g, "''")}'`,
+            "-File",
+            activationScriptPath,
             "-e",
           ]
-        : [`"${activationScriptPath}"`, "-e"];
+        : [activationScriptPath, "-e"];
     const shellPath =
       process.platform === "win32"
         ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
@@ -53,7 +54,6 @@ export async function getEnvVariablesFromActivationScript(
     const envVarsOutput = await spawn(shellPath, args, {
       maxBuffer: 500 * 1024,
       cwd: process.cwd(),
-      shell: shellPath,
     });
     const envVarsArray = envVarsOutput.toString().trim().split(/\r?\n/g);
     for (const envVar of envVarsArray) {

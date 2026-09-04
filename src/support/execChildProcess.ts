@@ -17,24 +17,26 @@
  */
 import { execFile, ExecFileException, ExecOptions } from "child_process";
 import { childProcessFailedFromInvocation } from "../common/error/knownError";
+import { assertSafeSpawnInvocation } from "../utils";
 
 export function execChildProcess(
   command: string,
   args: string[] = [],
   pathWhereToExecute: string,
-  opts?: ExecOptions
+  opts?: Omit<ExecOptions, "shell">
 ) {
-  if (!opts) {
-    opts = {
-      cwd: pathWhereToExecute,
-      maxBuffer: 500 * 1024,
-    };
-  }
+  assertSafeSpawnInvocation(command, args);
+  const execOpts: ExecOptions = {
+    cwd: pathWhereToExecute,
+    maxBuffer: 500 * 1024,
+    ...(opts ?? {}),
+    shell: undefined,
+  };
   return new Promise<string>((resolve, reject) => {
     execFile(
       command,
       args,
-      opts,
+      execOpts,
       (error: ExecFileException | null, stdout: string, stderr: string) => {
         if (error) {
           return reject(
