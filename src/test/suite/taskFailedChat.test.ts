@@ -24,7 +24,7 @@ import {
   openTaskFailedOutputInAiChat,
   truncateFromEnd,
 } from "../../common/error/openTaskFailedChat";
-import { confserverProcessFailed, confserverProtocolError, known } from "../../common/error/knownError";
+import { confserverProcessFailed, confserverProtocolError, childProcessFailed, known } from "../../common/error/knownError";
 import { resolveKnownErrorDescriptor } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
 
@@ -77,6 +77,44 @@ suite("task failed AI chat", () => {
       assert.ok(prompt.includes("Phase: runtime"));
       assert.ok(prompt.includes("confserver died"));
     });
+
+    test("includes spawn error, command, and detail", () => {
+      const prompt = buildTaskFailedChatPrompt({
+        spawnErrorCode: "ENOENT",
+        processCommand: "python3",
+        detail: "spawn python3 ENOENT",
+        stdout: "",
+        stderr: "",
+      });
+      assert.ok(prompt.includes("Spawn error: ENOENT"));
+      assert.ok(prompt.includes("Command: python3"));
+      assert.ok(prompt.includes("spawn python3 ENOENT"));
+    });
+
+    test("prefers the raw command line over the sanitized invocation", () => {
+      const prompt = buildTaskFailedChatPrompt({
+        commandLine:
+          "/usr/bin/python3 /opt/esp/idf/tools/idf.py -p /dev/ttyUSB0 flash",
+        processCommand: "python3",
+        args: "idf.py -p [redacted] flash",
+        exitCode: 1,
+      });
+      assert.ok(
+        prompt.includes(
+          "Command: /usr/bin/python3 /opt/esp/idf/tools/idf.py -p /dev/ttyUSB0 flash"
+        )
+      );
+      assert.ok(!prompt.includes("[redacted]"));
+    });
+
+    test("falls back to sanitized args when no raw command line is present", () => {
+      const prompt = buildTaskFailedChatPrompt({
+        processCommand: "ninja",
+        args: "-C build all",
+        exitCode: 1,
+      });
+      assert.ok(prompt.includes("Command: ninja -C build all"));
+    });
   });
 
   suite("truncateFromEnd", () => {
@@ -98,6 +136,20 @@ suite("task failed AI chat", () => {
   });
 
   suite("resolveKnownErrorDescriptor", () => {
+    test("appends Ask AI to Fix for ChildProcessFailed", () => {
+      const descriptor = resolveKnownErrorDescriptor(
+        childProcessFailed({
+          stdout: "",
+          stderr: "spawn failed",
+          spawnErrorCode: "ENOENT",
+        })
+      );
+      assert.deepStrictEqual(
+        descriptor?.actions.map((action) => action.label),
+        ["View Output", "Ask AI to Fix"]
+      );
+    });
+
     test("appends Ask AI to Fix for TaskFailedWithOutput", () => {
       const descriptor = resolveKnownErrorDescriptor(
         known(ErrorCode.TaskFailedWithOutput, {

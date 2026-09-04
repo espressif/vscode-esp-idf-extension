@@ -30,7 +30,6 @@ import {
   fileNotFound,
   invalidIdfVersion,
   isKnownError,
-  known,
   missingDependency,
   parseError,
 } from "../../common/error/knownError";
@@ -167,6 +166,7 @@ export class IDFSize {
         cwd: join(idfPath, "tools"),
         silent: true,
         cancelToken,
+        errorPresentation: sizeErrorPresentation.childProcessFailed,
       });
       const buffStr = buffOut.toString();
       try {
@@ -175,18 +175,10 @@ export class IDFSize {
         throw parseError(mapFilePath, sizeErrorPresentation.parseError);
       }
     } catch (error) {
-      if (isKnownError(error)) {
-        throw error;
-      }
       if (this.isCanceled || cancelToken?.isCancellationRequested) {
         return;
       }
-      const msg = error instanceof Error ? error.message : String(error);
-      throw known(
-        ErrorCode.TaskFailedWithOutput,
-        { detail: msg },
-      sizeErrorPresentation.taskFailedWithOutput
-      );
+      throw error;
     }
   }
 }

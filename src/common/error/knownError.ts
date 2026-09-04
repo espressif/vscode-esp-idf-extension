@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { sanitizeProcessInvocation } from "../processTelemetry";
 import { ErrorCode, ErrorPresentation } from "./types";
 
 /**
@@ -52,6 +53,20 @@ const MESSAGE_VALUE_MAX_LENGTH = 200;
 const MESSAGE_MAX_LENGTH = 1000;
 
 /**
+ * Unsanitized values kept for the local AI chat prompt and log file. Excluded
+ * from the message so the telemetry `errorMessage` keeps the redaction
+ * documented in docs/TELEMETRY.md.
+ */
+const MESSAGE_EXCLUDED_METADATA_KEYS = new Set(["commandLine"]);
+
+/** Quotes whitespace-bearing tokens so the line stays copy-pasteable. */
+export function formatCommandLine(command: string, args: string[] = []): string {
+  return [command, ...args]
+    .map((token) => (/\s/.test(token) ? `"${token}"` : token))
+    .join(" ");
+}
+
+/**
  * Captured process output can be megabytes long. It is kept in
  * {@link KnownError.metadata} and replaced by a size marker in the message so
  * the message (and the stack that embeds it) stays short and stable enough for
@@ -73,6 +88,9 @@ function formatTechnicalMessage(
   }
   const summarized: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(metadata)) {
+    if (MESSAGE_EXCLUDED_METADATA_KEYS.has(key)) {
+      continue;
+    }
     summarized[key] = summarizeMetadataValue(value);
   }
   let serialized: string;
@@ -98,6 +116,74 @@ export function known(
     metadata,
     presentation
   );
+}
+
+export type ChildProcessFailedMetadata = {
+  stdout?: string;
+  stderr?: string;
+  exitCode?: number;
+  spawnErrorCode?: string;
+  detail?: string;
+  processCommand?: string;
+  args?: string;
+  script?: string;
+  /** Unsanitized invocation, for the AI chat prompt and local log only. */
+  commandLine?: string;
+};
+
+export function childProcessFailed(
+  metadata: ChildProcessFailedMetadata,
+  presentation?: ErrorPresentation
+): KnownError {
+  return known(ErrorCode.ChildProcessFailed, { ...metadata }, presentation);
+}
+
+export function capturedProcessText(error: unknown): string {
+  if (isKnownError(error)) {
+    const stdout =
+      typeof error.metadata?.stdout === "string" ? error.metadata.stdout : "";
+    const stderr =
+      typeof error.metadata?.stderr === "string" ? error.metadata.stderr : "";
+    const detail =
+      typeof error.metadata?.detail === "string" ? error.metadata.detail : "";
+    const combined = [stdout, stderr, detail]
+      .filter((part) => part.length > 0)
+      .join("\n");
+    if (combined) {
+      return combined;
+    }
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
+export function childProcessFailedFromInvocation(
+  command: string,
+  args: string[],
+  failure: {
+    stdout?: string;
+    stderr?: string;
+    exitCode?: number | null;
+    spawnError?: Error & { code?: string | number };
+  },
+  presentation?: ErrorPresentation
+): KnownError {
+  const invocation = sanitizeProcessInvocation(command, args);
+  const metadata: ChildProcessFailedMetadata = {
+    stdout: failure.stdout ?? "",
+    stderr: failure.stderr ?? "",
+    ...invocation,
+    commandLine: formatCommandLine(command, args),
+  };
+  if (typeof failure.exitCode === "number") {
+    metadata.exitCode = failure.exitCode;
+  }
+  if (failure.spawnError) {
+    if (typeof failure.spawnError.code === "string") {
+      metadata.spawnErrorCode = failure.spawnError.code;
+    }
+    metadata.detail = failure.spawnError.message;
+  }
+  return childProcessFailed(metadata, presentation);
 }
 
 export function idfToolNotFound(

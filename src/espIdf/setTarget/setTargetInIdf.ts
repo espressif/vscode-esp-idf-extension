@@ -31,11 +31,11 @@ import {
 import { l10n, Uri } from "vscode";
 import { getIdfBuildPath, setCCppPropertiesJsonCompilerPath } from "../../configuration/workspace";
 import {
+  capturedProcessText,
   isKnownError,
-  known,
+  childProcessFailed,
   missingDependency,
 } from "../../common/error/knownError";
-import { ErrorCode } from "../../common/error/types";
 import { setTargetErrorPresentation } from "./setTargetErrorPresentation";
 
 function isSetTargetBenignOutput(message: string): boolean {
@@ -93,6 +93,7 @@ export async function setTargetInIDF(
       cwd: workspaceFolder.fsPath,
       env: modifiedEnv,
       silent: false,
+      errorPresentation: setTargetErrorPresentation.childProcessFailed,
     });
     Logger.info(setTargetResult.toString());
     const msg = l10n.t(
@@ -105,19 +106,18 @@ export async function setTargetInIDF(
     await setCCppPropertiesJsonCompilerPath(workspaceFolder);
     return setTargetResult.toString();
   } catch (error) {
-    if (isKnownError(error)) {
-      throw error;
-    }
-    const errMsg = error instanceof Error ? error.message : String(error);
+    const errMsg = capturedProcessText(error);
     if (isSetTargetBenignOutput(errMsg)) {
       Logger.info(errMsg);
       OutputChannel.appendLine(errMsg, "Set Target");
       return errMsg;
     }
-    throw known(
-      ErrorCode.TaskFailedWithOutput,
+    if (isKnownError(error)) {
+      throw error;
+    }
+    throw childProcessFailed(
       { detail: errMsg },
-      setTargetErrorPresentation.taskFailedWithOutput
+      setTargetErrorPresentation.childProcessFailed
     );
   }
 }

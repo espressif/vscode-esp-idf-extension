@@ -16,9 +16,9 @@ export const sizeErrorPresentation = {
     ],
     outputChannel,
   },
-  taskFailedWithOutput: {
+  childProcessFailed: {
     userMessage: "Size analysis failed. Check the output for details.",
-    logMessage: "Size analysis task failed with captured output.",
+    logMessage: "Size analysis command failed with captured output.",
     actions: [{ label: "View Output", execute: () => OutputChannel.show() }],
     outputChannel,
   },

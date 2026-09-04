@@ -22,9 +22,13 @@ import {
 } from "../customNotifications";
 import { Logger } from "../logger";
 import { OutputChannel } from "../outputChannel";
-import { isKnownError, KnownError } from "./knownError";
+import {
+  capturedProcessText,
+  isKnownError,
+  KnownError,
+} from "./knownError";
 import { resolveKnownErrorDescriptor } from "./resolve";
-import { HandleErrorOptions } from "./types";
+import { ErrorCode, HandleErrorOptions } from "./types";
 
 /**
  * Central error handler. All command errors funnel through here.
@@ -62,6 +66,12 @@ export async function handleError(
           descriptor.userMessage,
           descriptor.outputChannel
         );
+        if (error.code === ErrorCode.ChildProcessFailed) {
+          appendChildProcessFailedOutput(
+            error,
+            descriptor.outputChannel
+          );
+        }
       }
 
       await showNotificationWithMultipleActions(
@@ -89,4 +99,32 @@ export async function handleError(
     `handleError ${commandId}`,
     mergedMetadata
   );
+}
+
+function metadataString(
+  metadata: Record<string, unknown> | undefined,
+  key: string
+): string {
+  const value = metadata?.[key];
+  return typeof value === "string" ? value : "";
+}
+
+function appendChildProcessFailedOutput(
+  error: KnownError,
+  outputChannel: string
+): void {
+  const commandLine = metadataString(error.metadata, "commandLine");
+  if (commandLine) {
+    OutputChannel.appendLine(`Command: ${commandLine}`, outputChannel);
+  }
+  const hasCapturedStreams = ["stdout", "stderr", "detail"].some(
+    (key) => metadataString(error.metadata, key).length > 0
+  );
+  if (!hasCapturedStreams) {
+    return;
+  }
+  const processText = capturedProcessText(error);
+  if (processText) {
+    OutputChannel.appendLine(processText, outputChannel);
+  }
 }

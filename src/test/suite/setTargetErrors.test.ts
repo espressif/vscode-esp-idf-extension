@@ -51,12 +51,12 @@ suite("setTarget errors", () => {
       );
     });
 
-    test("presentation applies Set Target output channel for TaskFailedWithOutput", () => {
+    test("presentation applies Set Target output channel for ChildProcessFailed", () => {
       const descriptor = resolveKnownErrorDescriptor(
         known(
-          ErrorCode.TaskFailedWithOutput,
+          ErrorCode.ChildProcessFailed,
           { detail: "set-target failed" },
-          setTargetErrorPresentation.taskFailedWithOutput
+          setTargetErrorPresentation.childProcessFailed
         )
       );
       assert.ok(descriptor);

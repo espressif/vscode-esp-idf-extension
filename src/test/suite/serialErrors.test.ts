@@ -18,6 +18,7 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
 import {
+  childProcessFailed,
   isKnownError,
   noSerialPort,
   noSerialPortsAvailable,
@@ -90,6 +91,21 @@ suite("serial errors", () => {
       assert.strictEqual(descriptor?.actions.length, 1);
       assert.strictEqual(descriptor?.actions[0].label, "Detect");
     });
+
+    test("presentation adds Ask AI to Fix for ChildProcessFailed", () => {
+      const descriptor = resolveKnownErrorDescriptor(
+        childProcessFailed(
+          { stderr: "esptool failed", exitCode: 2 },
+          serialErrorPresentation.childProcessFailed
+        )
+      );
+      assert.ok(descriptor);
+      assert.strictEqual(descriptor?.outputChannel, "Serial port");
+      assert.strictEqual(
+        descriptor?.actions[descriptor.actions.length - 1].label,
+        "Ask AI to Fix"
+      );
+    });
   });
 
   suite("SerialPort", () => {
@@ -137,6 +153,43 @@ suite("serial errors", () => {
           isKnownError(error) &&
           error.code === ErrorCode.NoSerialPort &&
           error.metadata?.idfTarget === "esp32"
+      );
+    });
+
+    test("detectDefaultPort rethrows ChildProcessFailed with process streams", async () => {
+      setIdfConfigurationSource(
+        createFakeIdfSource({
+          "idf.serialPortDetectionTimeout": 1,
+        })
+      );
+      setSerialPortModuleTestHooks({
+        getCurrentIdfConfiguration: () => ({ IDF_PATH: "/idf" }),
+        getExpectedIdfTarget: async () => "esp32",
+        resolveEsptoolInvocation: async () => ({
+          pythonPath: "/usr/bin/python3",
+          esptoolScriptPath: "/idf/components/esptool_py/esptool/esptool.py",
+        }),
+        spawn: async () => {
+          throw childProcessFailed(
+            {
+              stdout: "",
+              stderr: "A fatal error occurred: No serial ports found",
+              exitCode: 2,
+              processCommand: "python3",
+            },
+            serialErrorPresentation.childProcessFailed
+          );
+        },
+      });
+
+      await assert.rejects(
+        () => SerialPort.detectDefaultPort(testWorkspaceUri),
+        (error: unknown) =>
+          isKnownError(error) &&
+          error.code === ErrorCode.ChildProcessFailed &&
+          error.metadata?.stderr ===
+            "A fatal error occurred: No serial ports found" &&
+          error.metadata?.exitCode === 2
       );
     });
 

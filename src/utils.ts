@@ -15,12 +15,13 @@
 import * as childProcess from "child_process";
 import { accessSync, constants } from "fs";
 import { copy, move, pathExists, readFile, remove, stat } from "fs-extra";
-import { EOL } from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "./common/logger";
 import { OutputChannel } from "./common/outputChannel";
 import { processInvocationMetadata } from "./common/processTelemetry";
+import { childProcessFailedFromInvocation } from "./common/error/knownError";
+import { ErrorPresentation } from "./common/error/types";
 import { ESP } from "./config";
 import { getCurrentIdfConfiguration } from "./configuration/env";
 
@@ -41,6 +42,8 @@ export interface ISpawnOptions extends childProcess.SpawnOptions {
   /** Send error to telemetry */
   sendToTelemetry?: boolean;
   maxBuffer?: number;
+  /** Call-site presentation for ChildProcessFailed */
+  errorPresentation?: ErrorPresentation;
 }
 
 export function spawn(
@@ -53,42 +56,86 @@ export function spawn(
     sendToTelemetry: true,
   }
 ): Promise<Buffer> {
+  const {
+    cancelToken,
+    timeout,
+    silent = false,
+    appendMode = "appendLine",
+    sendToTelemetry = true,
+    errorPresentation,
+    ...spawnOptions
+  } = options;
   let buff: Buffer = Buffer.alloc(0);
-  const sendToOutputChannel = (data: any) => {
+  let stdoutBuff: Buffer = Buffer.alloc(0);
+  let stderrBuff: Buffer = Buffer.alloc(0);
+  const sendToOutputChannel = (data: Buffer, stream: "stdout" | "stderr") => {
     buff = Buffer.concat([buff, data]);
+    if (stream === "stdout") {
+      stdoutBuff = Buffer.concat([stdoutBuff, data]);
+    } else {
+      stderrBuff = Buffer.concat([stderrBuff, data]);
+    }
     options.outputString += buff.toString();
-    if (!options.silent) {
-      if (options.appendMode === "append") {
+    if (!silent) {
+      if (appendMode === "append") {
         OutputChannel.append(data.toString());
       } else {
         OutputChannel.appendLine(data.toString());
       }
     }
   };
+  const failedFromSpawn = (
+    spawnError?: NodeJS.ErrnoException | (Error & { code?: string | number }),
+    exitCode?: number | null
+  ) =>
+    childProcessFailedFromInvocation(
+      command,
+      args,
+      {
+        stdout: stdoutBuff.toString(),
+        stderr: stderrBuff.toString(),
+        exitCode,
+        spawnError,
+      },
+      errorPresentation
+    );
   return new Promise((resolve, reject) => {
-    options.cwd = options.cwd || path.resolve(path.join(__dirname, ".."));
-    const child = childProcess.spawn(command, args, options);
+    spawnOptions.cwd =
+      spawnOptions.cwd || path.resolve(path.join(__dirname, ".."));
+    const child = childProcess.spawn(command, args, spawnOptions);
     let timeoutHandler = undefined;
-    if (typeof options.timeout === "number" && options.timeout > 0) {
+    let settled = false;
+    const settle = (action: () => void) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      action();
+    };
+    if (typeof timeout === "number" && timeout > 0) {
       timeoutHandler = setTimeout(() => {
         child.kill();
-      }, options.timeout);
+      }, timeout);
     }
 
-    if (options.cancelToken) {
-      options.cancelToken.onCancellationRequested((e) => {
+    if (cancelToken) {
+      cancelToken.onCancellationRequested(() => {
         child.kill();
       });
     }
 
-    child.stdout?.on("data", sendToOutputChannel);
-    child.stderr?.on("data", sendToOutputChannel);
+    child.stdout?.on("data", (data: Buffer) =>
+      sendToOutputChannel(data, "stdout")
+    );
+    child.stderr?.on("data", (data: Buffer) =>
+      sendToOutputChannel(data, "stderr")
+    );
 
     child.on("error", (error) => {
       if (timeoutHandler) {
         clearTimeout(timeoutHandler);
       }
-      reject(error);
+      settle(() => reject(failedFromSpawn(error)));
     });
 
     child.on("exit", (code) => {
@@ -96,18 +143,20 @@ export function spawn(
         clearTimeout(timeoutHandler);
       }
       if (code === 0) {
-        resolve(buff);
-      } else {
-        const err = new Error("non zero exit code " + code + EOL + EOL + buff);
+        settle(() => resolve(buff));
+        return;
+      }
+      settle(() => {
+        const err = failedFromSpawn(undefined, code);
         Logger.error(
           err.message,
           err,
           "src utils spawn",
           processInvocationMetadata(command, args),
-          options.sendToTelemetry
+          sendToTelemetry
         );
         reject(err);
-      }
+      });
     });
   });
 }
@@ -224,15 +273,21 @@ export function execChildProcess(
         }
 
         if (error) {
+          const failed = childProcessFailedFromInvocation(command, args, {
+            stdout,
+            stderr,
+            exitCode: typeof error.code === "number" ? error.code : undefined,
+            spawnError: error,
+          });
           if (error.message) {
             Logger.error(
-              error.message,
-              error,
+              failed.message,
+              failed,
               "utils execChildProcess",
               processInvocationMetadata(command, args)
             );
           }
-          return reject(error);
+          return reject(failed);
         }
         if (stderr && stderr.length > 2) {
           if (
@@ -250,7 +305,12 @@ export function execChildProcess(
             !stderr.toLowerCase().startsWith("warning") &&
             stderr.includes("Error")
           ) {
-            return reject(new Error(stderr));
+            return reject(
+              childProcessFailedFromInvocation(command, args, {
+                stdout,
+                stderr,
+              })
+            );
           }
         }
         return resolve(stdout.concat(stderr));
