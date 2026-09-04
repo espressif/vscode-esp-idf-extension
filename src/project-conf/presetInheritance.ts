@@ -17,7 +17,7 @@
  */
 
 import { ESP } from "../config";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { ConfigurePreset, ESPIDFSettings } from "./projectConfiguration";
 
 /**

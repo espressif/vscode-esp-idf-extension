@@ -29,9 +29,7 @@ import {
 } from "fs-extra";
 import { ExtensionContext, Uri } from "vscode";
 import { ESP } from "../../config";
-import { Logger } from "../../logger/logger";
-import { parameterToProjectConfigMap } from "../../idfConfiguration";
-import { ProjectConfigStore } from "../../project-conf/store";
+import { ProjectConfigStore } from "../../project-conf";
 import { ConfigurePreset } from "../../project-conf/projectConfiguration";
 import {
   legacyConfigToConfigurePreset,
@@ -39,6 +37,8 @@ import {
 } from "../../project-conf/legacy";
 import { createStarterPresetsFile } from "../../project-conf/presetsWriter";
 import { createMockMemento } from "../mockUtils";
+import { parameterToProjectConfigMap } from "../../configuration/idf";
+import { Logger } from "../../common/logger";
 
 const fullPreset: ConfigurePreset = {
   name: "full",

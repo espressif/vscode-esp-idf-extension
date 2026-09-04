@@ -21,7 +21,6 @@ import * as os from "os";
 import { delimiter, join, resolve } from "path";
 import * as vscode from "vscode";
 import { ESP } from "../config";
-import { setExtensionContext } from "../utils";
 import { initializeReportObject } from "../support/initReportObj";
 import { getConfigurationAccess } from "../support/configurationAccess";
 import { getEspIdfVersion } from "../support/espIdfVersion";
@@ -36,11 +35,10 @@ import {
   checkLaunchJson,
 } from "../support/checkVscodeFiles";
 import { getPythonPackages } from "../support/pythonPackages";
-import { getGitVersion } from "../support/gitVersion";
 import { writeTextReport } from "../support/writeReport";
 import { ProjectConfigStore } from "../project-conf";
 import { createMockMemento } from "./mockUtils";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 
 suite("Doctor Command tests", () => {
   const reportObj = initializeReportObject();
@@ -53,9 +51,12 @@ suite("Doctor Command tests", () => {
     globalState: createMockMemento(),
   } as vscode.ExtensionContext;
   Logger.init(mockUpContext);
-  ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
   setup(async () => {
-    setExtensionContext(mockUpContext);
+    reportObj.workspaceFolder = join(
+      __dirname,
+      "../../testFiles/testWorkspace"
+    );
   });
 
   test("System information", () => {
@@ -125,10 +126,7 @@ suite("Doctor Command tests", () => {
       join(__dirname, "../../templates/.vscode/launch.json"),
       "utf8"
     );
-    await checkLaunchJson(
-      reportObj,
-      vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
-    );
+    await checkLaunchJson(reportObj);
     assert.equal(reportObj.launchJson, templateLaunchJson);
   });
 
@@ -137,10 +135,7 @@ suite("Doctor Command tests", () => {
       join(__dirname, "../../templates/.vscode/c_cpp_properties.json"),
       "utf8"
     );
-    await checkCCppPropertiesJson(
-      reportObj,
-      vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
-    );
+    await checkCCppPropertiesJson(reportObj);
     assert.equal(reportObj.cCppPropertiesJson, templateLaunchJson);
   });
 
@@ -150,7 +145,9 @@ suite("Doctor Command tests", () => {
     );
     await getConfigurationSettings(
       reportObj,
-      vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
+      vscode.workspace.getWorkspaceFolder(
+        vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
+      )
     );
     assert.equal(
       reportObj.configurationSettings.serialPort,
@@ -198,11 +195,6 @@ suite("Doctor Command tests", () => {
     }
   });
 
-  test("Match git version", async () => {
-    await getGitVersion(reportObj, mockUpContext);
-    assert.equal(reportObj.gitVersion.result, process.env.GIT_VERSION);
-  });
-
   test("Match ESP-IDF version", async () => {
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH || "";
     await getEspIdfVersion(reportObj);
@@ -233,82 +225,20 @@ suite("Doctor Command tests", () => {
     }
   });
 
-  function replaceUserPathInStr(strReport: string) {
-    const escapedHome = process.env.HOME?.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    if (!escapedHome) {
-      return strReport;
-    }
-    const re = new RegExp(escapedHome, "g");
-    return strReport.replace(re, "<HOMEPATH>");
-  }
-
   test("Match written report", async () => {
-    let customExtraPaths = "";
-    if (process.env.PATH) {
-      customExtraPaths = process.env.PATH.replace(
-        delimiter + process.env.OLD_PATH,
-        ""
-      );
-    }
-    const processPathEnvVar =
-      process.platform === "win32" ? process.env.Path : process.env.PATH;
-    const extensionObj = vscode.extensions.getExtension(ESP.extensionID);
-    let expectedOutput = `---------------------------------------------- ESP-IDF Extension for Visual Studio Code report ---------------------------------------------${os.EOL}`;
-    expectedOutput += `OS ${os.platform()} ${os.arch()} ${os.release()} ${
-      os.EOL
-    }`;
-    expectedOutput += `System environment variable IDF_PYTHON_ENV_PATH ${os.EOL} ${process.env.IDF_PYTHON_ENV_PATH} ${os.EOL}`;
-    expectedOutput += `System environment variable PATH ${os.EOL} ${processPathEnvVar} ${os.EOL}`;
-    expectedOutput += `System environment variable PYTHON ${os.EOL} ${process.env.PYTHON} ${os.EOL}`;
-    expectedOutput += `Visual Studio Code Remote name ${vscode.env.remoteName} ${os.EOL}`;
-    expectedOutput += `Visual Studio Code version ${vscode.version} ${os.EOL}`;
-    expectedOutput += `Visual Studio Code language ${vscode.env.language} ${os.EOL}`;
-    expectedOutput += `Visual Studio Code shell ${vscode.env.shell} ${os.EOL}`;
-    expectedOutput += `Visual Studio Code app name ${vscode.env.appName} ${os.EOL}`;
-    expectedOutput += `ESP-IDF Extension version ${extensionObj?.packageJSON.version} ${os.EOL}`;
-    expectedOutput += `Workspace folder ${reportObj.workspaceFolder} ${os.EOL}`;
-    expectedOutput += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${os.EOL}`;
-    expectedOutput += `ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportObj.configurationSettings.espAdfPath}${os.EOL}`;
-    expectedOutput += `ESP-IDF Path (Project setup IDF_PATH) ${process.env.IDF_PATH}${os.EOL}`;
-    expectedOutput += `Custom extra paths ${customExtraPaths}${os.EOL}`;
-    if (
-      reportObj.configurationSettings.idfExtraVars &&
-      Object.keys(reportObj.configurationSettings.idfExtraVars)
-    ) {
-      expectedOutput += `ESP-IDF Project Setup Variables${os.EOL}`;
-      for (let key in reportObj.configurationSettings.idfExtraVars) {
-        expectedOutput += `    ${key}: ${reportObj.configurationSettings.idfExtraVars[key]}${os.EOL}`;
-      }
-    }
-    if (
-      reportObj.configurationSettings.userExtraVars &&
-      Object.keys(reportObj.configurationSettings.userExtraVars)
-    ) {
-      expectedOutput += `User extra vars (idf.customExtraVars)${os.EOL}`;
-      for (let key in reportObj.configurationSettings.userExtraVars) {
-        expectedOutput += `    ${key}: ${reportObj.configurationSettings.userExtraVars[key]}${os.EOL}`;
-      }
-    }
-    expectedOutput += `Virtual environment Python path (computed) ${
-      process.env.IDF_PYTHON_ENV_PATH + "/bin/python"
-    }${os.EOL}`;
-    expectedOutput += `Serial port (idf.port) ${reportObj.configurationSettings.serialPort}${os.EOL}`;
-    expectedOutput += `OpenOCD Configs (idf.openOcdConfigs) ${reportObj.configurationSettings.openOcdConfigs}${os.EOL}`;
-    expectedOutput += `OpenOCD log level (idf.openOcdDebugLevel) ${reportObj.configurationSettings.openOCDDebugLevel}${os.EOL}`;
-    expectedOutput += `OpenOCD launch arguments (idf.openOcdLaunchArgs) ${reportObj.configurationSettings.openOcdLaunchArgs}${os.EOL}`;
-    expectedOutput += `ESP-IDF Tools Path ${reportObj.configurationSettings.toolsPath}${os.EOL}`;
-    expectedOutput += `Git Path (idf.gitPath) ${reportObj.configurationSettings.gitPath}${os.EOL}`;
-    expectedOutput += `Notification Mode (idf.notificationMode) ${reportObj.configurationSettings.notificationMode}${os.EOL}`;
-    expectedOutput += `Flash type (idf.flashType) ${reportObj.configurationSettings.flashType}${os.EOL}`;
-    expectedOutput += `Flash partition to use (idf.flashPartitionToUse) ${reportObj.configurationSettings.flashPartitionToUse}${os.EOL}`;
-    expectedOutput = replaceUserPathInStr(expectedOutput);
     const actualReport = await writeTextReport(reportObj, mockUpContext);
-    const subReport = actualReport.slice(
-      0,
-      actualReport.indexOf(
+    assert.ok(actualReport.includes("CONFIGURATION SUMMARY"));
+    assert.ok(actualReport.includes("Overall status:"));
+    assert.ok(actualReport.includes("Configuration checks"));
+    assert.ok(actualReport.includes("Additional extension settings"));
+    assert.ok(
+      !actualReport.includes(
         "-------------------------------------------------------- Configurations access -------------------------------------------------------------"
       )
     );
-    assert.equal(subReport, expectedOutput);
+    assert.ok(reportObj.reportSummary);
+    assert.ok(
+      ["PASS", "FAIL", "WARN"].includes(reportObj.reportSummary.overall)
+    );
   });
 });

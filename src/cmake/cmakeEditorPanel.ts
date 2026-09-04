@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import * as vscode from "vscode";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import {
   loadCmakeListBuilder,
   updateCmakeListFile,

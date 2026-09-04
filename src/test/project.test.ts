@@ -19,41 +19,44 @@ import * as assert from "assert";
 import { readdir, readFile, readJson, remove } from "fs-extra";
 import { join, resolve } from "path";
 import { ExtensionContext, Uri } from "vscode";
-import { getExamplesList } from "../examples/Example";
-import { setCurrentSettingsInTemplate } from "../newProject/utils";
+import { getExamplesList } from "../newProject/Example";
 import {
   copyFromSrcProject,
   createVscodeFolder,
-  isBinInPath,
   readProjectCMakeLists,
-  setExtensionContext,
+  setCurrentSettingsInTemplate,
   updateProjectNameInCMakeLists,
-} from "../utils";
+} from "../newProject/utils";
+import { isBinInPath } from "../utils";
 import { IdfSetup } from "../eim/types";
 import { ProjectConfigStore } from "../project-conf";
 import { ESP } from "../config";
 import { createMockMemento } from "./mockUtils";
+import { updateCCppPropertiesJson } from "../configuration/workspace";
 
 suite("Project tests", () => {
-  const absPath = (filename) => resolve(__dirname, "..", "..", filename);
+  const absPath = (filename: string) =>
+    resolve(__dirname, "..", "..", filename);
   const mockUpContext: ExtensionContext = {
     extensionPath: resolve(__dirname, "..", ".."),
     asAbsolutePath: absPath,
     workspaceState: createMockMemento(),
     globalState: createMockMemento(),
   } as ExtensionContext;
-  ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
   const templateFolder = join(mockUpContext.extensionPath, "templates");
   const wsFolder = process.env.GITHUB_WORKSPACE
     ? join(process.env.GITHUB_WORKSPACE, "project-test")
-    : join(process.env.HOME, "workspace", "project-test");
+    : process.env.HOME
+    ? join(process.env.HOME, "workspace", "project-test")
+    : join(__dirname, "..", "..", "project-test");
   const targetFolder = join(wsFolder, "targetProject");
-  setup(async () => {
-    setExtensionContext(mockUpContext);
-  });
 
   test("vscode folder creation", async () => {
-    await createVscodeFolder(Uri.file(targetFolder));
+    await createVscodeFolder(
+      mockUpContext.extensionPath,
+      Uri.file(targetFolder)
+    );
     const resultFiles = await readdir(join(targetFolder, ".vscode"));
     assert.equal(resultFiles.includes("c_cpp_properties.json"), true);
     assert.equal(resultFiles.includes("launch.json"), true);
@@ -85,6 +88,11 @@ suite("Project tests", () => {
       process.env
     );
     templateCCppPropertiesJsonJson.configurations[0].compilerPath = compilerAbsolutePath;
+    await updateCCppPropertiesJson(
+      Uri.file(targetFolder),
+      "compilerPath",
+      compilerAbsolutePath
+    );
     const targetCCppPropertiesJsonJson = await readJson(
       join(targetFolder, ".vscode", "c_cpp_properties.json")
     );
@@ -97,7 +105,11 @@ suite("Project tests", () => {
   test("Test project creation", async () => {
     const templatePath = join(templateFolder, "template-app");
     const projectPath = join(wsFolder, "new-project");
-    await copyFromSrcProject(templatePath, Uri.file(projectPath));
+    await copyFromSrcProject(
+      mockUpContext.extensionPath,
+      templatePath,
+      Uri.file(projectPath)
+    );
     const resultRootFiles = await readdir(projectPath);
     const resultVscodeFiles = await readdir(join(projectPath, ".vscode"));
     const resultMainFiles = await readdir(join(projectPath, "main"));
@@ -124,10 +136,9 @@ suite("Project tests", () => {
   });
 
   test("get templates projects", async () => {
-    const templatesCategories = getExamplesList(
-      mockUpContext.extensionPath,
-      ["templates"]
-    );
+    const templatesCategories = getExamplesList(mockUpContext.extensionPath, [
+      "templates",
+    ]);
     assert.notEqual(templatesCategories, undefined);
     assert.notEqual(templatesCategories.examples, undefined);
     assert.notEqual(templatesCategories.examples.length, 0);
@@ -135,6 +146,7 @@ suite("Project tests", () => {
   });
 
   test("get examples projects", async () => {
+    assert.notEqual(process.env.IDF_PATH, undefined);
     const examplesCategories = getExamplesList(process.env.IDF_PATH);
     assert.notEqual(examplesCategories, undefined);
     assert.notEqual(examplesCategories.subcategories, undefined);

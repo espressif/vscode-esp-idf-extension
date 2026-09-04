@@ -16,18 +16,34 @@
  * limitations under the License.
  */
 
-import { l10n, Uri, workspace } from "vscode";
+import { ExtensionContext, l10n, Uri, workspace, window } from "vscode";
 import { isBinInPath } from "../utils";
 import { pathExists, writeJSON, writeFile } from "fs-extra";
-import { readParameter } from "../idfConfiguration";
+import { getIdfBuildPath } from "../configuration/workspace";
 import { join } from "path";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { parse } from "jsonc-parser";
 import { EOL } from "os";
-import { configureEnvVariables } from "../common/prepareEnv";
+import { registerIDFCommand } from "../common/registerCommand";
+import { openFolderCheck, PreCheck } from "../common/PreCheck";
+import { idfToolNotFound, parseError } from "../common/error/knownError";
+import { ESP } from "../config";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 
-export async function validateEspClangExists(workspaceFolder: Uri) {
-  const modifiedEnv = await configureEnvVariables(workspaceFolder);
+export function registerClangCommands(context: ExtensionContext) {
+  registerIDFCommand(context, "espIdf.setClangSettings", async () => {
+    await PreCheck.perform([openFolderCheck], async () => {
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      await configureClangSettings(wsFolder.uri, true);
+      window.showInformationMessage(
+        l10n.t("ESP-IDF: Clang settings have been configured for the project.")
+      );
+    });
+  });
+}
+
+export async function validateEspClangExists() {
+  const modifiedEnv = getCurrentIdfConfiguration();
 
   const espClangdPath = await isBinInPath("clangd", modifiedEnv, ["esp-clang"]);
   if (espClangdPath && espClangdPath.includes("esp-clang")) {
@@ -41,21 +57,14 @@ export async function setClangSettings(
   workspaceFolder: Uri,
   showError = false
 ) {
-  const espClangPath = await validateEspClangExists(workspaceFolder);
+  const espClangPath = await validateEspClangExists();
   if (!espClangPath) {
     if (showError) {
-      const error = new Error(
-        l10n.t("esp-clang not found in PATH. Make sure esp-clang is installed.")
-      );
-      Logger.errorNotify(
-        error.message,
-        error,
-        "clang index configureClangSettings"
-      );
+      throw idfToolNotFound("esp-clang");
     }
     return;
   }
-  const buildPath = readParameter("idf.buildPath", workspaceFolder);
+  const buildPath = getIdfBuildPath(workspaceFolder);
   settingsJson["clangd.path"] = espClangPath;
   settingsJson["clangd.arguments"] = [
     "--background-index",
@@ -82,10 +91,15 @@ export async function configureClangSettings(
       );
       settingsJson = parse(settingsContent.toString());
     } catch (error) {
-      Logger.errorNotify(
+      if (showError) {
+        throw parseError(settingsJsonPath);
+      }
+      Logger.error(
         "Failed to parse settings.json. Ensure it has valid JSON syntax.",
-        error,
-        "clang index configureClangSettings"
+        error as Error,
+        "clang index configureClangSettings",
+        undefined,
+        false
       );
       return;
     }
@@ -97,17 +111,20 @@ export async function configureClangSettings(
     spaces: 2,
   });
 
-  await createClangdFile(workspaceFolder);
+  await createClangdFile(workspaceFolder, showError);
 }
 
-export async function createClangdFile(workspaceFolder: Uri) {
+export async function createClangdFile(
+  workspaceFolder: Uri,
+  showError = false
+) {
   const clangdFilePath = join(workspaceFolder.fsPath, ".clangd");
   const fileExists = await pathExists(clangdFilePath);
   if (fileExists) {
     Logger.info(".clangd file already exists. Skipping creation.");
     return;
   }
-  const espClangPath = await validateEspClangExists(workspaceFolder);
+  const espClangPath = await validateEspClangExists();
   if (!espClangPath) {
     return;
   }
@@ -117,10 +134,15 @@ export async function createClangdFile(workspaceFolder: Uri) {
     await writeFile(clangdFilePath, clangdContent, { encoding: "utf8" });
     Logger.infoNotify(".clangd file created successfully.");
   } catch (error) {
-    Logger.errorNotify(
+    if (showError) {
+      throw error;
+    }
+    Logger.error(
       "Failed to create .clangd file.",
-      error,
-      "clang index createClangdFile"
+      error as Error,
+      "clang index createClangdFile",
+      undefined,
+      false
     );
   }
 }

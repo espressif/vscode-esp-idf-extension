@@ -29,34 +29,41 @@ import {
   Uri,
   window,
 } from "vscode";
-import { readParameter, readSerialPort } from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
+import { readParameter, readSerialPort } from "../../configuration/idf";
+import { getIdfBuildPath } from "../../configuration/workspace";
+import {
+  flasherArgsMissing,
+  isKnownError,
+  missingDependency,
+  noSerialPort,
+  partitionPopulateFailed,
+} from "../../common/error/knownError";
 import { CSV2JSON } from "../../views/partition-table/util";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
-import { createFlashModel } from "../../flash/flashModelBuilder";
+import {
+  getCurrentIdfConfiguration,
+  getVirtualEnvPythonPath,
+} from "../../configuration/env";
+import { createFlashModel } from "../../flash/transports/uart/flashModelBuilder";
 import { formatAsPartitionSize } from "./partitionReader";
 import { spawn } from "../../utils";
-import { configureEnvVariables } from "../../common/prepareEnv";
 
-export class PartitionItem extends TreeItem {
+export interface PartitionItem extends TreeItem {
   name: string;
   type: string;
   subtype: string;
   offset: string;
   size: string;
-  flag: Boolean;
-  error: string;
+  flag?: boolean;
+  error?: string;
 }
 
 export class PartitionTreeDataProvider
   implements TreeDataProvider<PartitionItem> {
-  public OnDidChangeTreeData: EventEmitter<PartitionItem> = new EventEmitter<
-    PartitionItem
-  >();
-  public readonly onDidChangeTreeData: Event<PartitionItem> = this
+  public OnDidChangeTreeData: EventEmitter<PartitionItem | null> = new EventEmitter<PartitionItem | null>();
+  public readonly onDidChangeTreeData: Event<PartitionItem | null> = this
     .OnDidChangeTreeData.event;
 
-  public partitionItems: PartitionItem[];
+  public partitionItems: PartitionItem[] = [];
   private readonly PARTITION_TABLE_SIZE = "0xC00";
 
   public registerDataProvider(treeName: string): Disposable {
@@ -78,31 +85,27 @@ export class PartitionTreeDataProvider
   public async populatePartitionItems(workspace: Uri) {
     this.partitionItems = Array<PartitionItem>(0);
     try {
-      const modifiedEnv = await configureEnvVariables(workspace);
-      const serialPort = readParameter("idf.port", workspace) as string;
+      const modifiedEnv = getCurrentIdfConfiguration();
+      const serialPort = await readSerialPort(workspace);
       if (!serialPort) {
-        return Logger.warnNotify(
-          l10n.t(
-            "No serial port found for current IDF_TARGET: {0}",
-            modifiedEnv["IDF_TARGET"]
-          )
-        );
+        throw noSerialPort(modifiedEnv["IDF_TARGET"]);
       }
-      const buildPath = readParameter("idf.buildPath", workspace);
-      const flashBaudRate = readParameter("idf.flashBaudRate", workspace);
+      const buildPath = getIdfBuildPath(workspace);
+      const flashBaudRate = readParameter(
+        "idf.flashBaudRate",
+        workspace
+      ) as string;
       const idfPath = modifiedEnv["IDF_PATH"];
-      const pythonBinPath = await getVirtualEnvPythonPath();
+      const pythonBinPath = getVirtualEnvPythonPath();
+      if (!pythonBinPath) {
+        throw missingDependency("Python");
+      }
 
       const flasherArgsPath = join(buildPath, "flasher_args.json");
 
       const flasherArgsExists = await pathExists(flasherArgsPath);
       if (!flasherArgsExists) {
-        window.showInformationMessage(
-          l10n.t(`{buildFile} doesn't exist. Build first.`, {
-            flasherArgsPath,
-          })
-        );
-        return;
+        throw flasherArgsMissing();
       }
 
       const flasherArgsModel = await createFlashModel(
@@ -110,7 +113,7 @@ export class PartitionTreeDataProvider
         serialPort,
         flashBaudRate
       );
-      let partitionTableOffset = flasherArgsModel.partitionTable.address;
+      let partitionTableOffset = flasherArgsModel["partition-table"].address;
 
       const partitionTableItem: PartitionItem = {
         name: "partition_table",
@@ -197,14 +200,14 @@ export class PartitionTreeDataProvider
         ...csvItems,
       ]);
     } catch (error) {
-      let msg = error.message
-        ? error.message
-        : "Error getting partitions from device";
-      Logger.errorNotify(
-        msg,
-        error,
-        "PartitionTreeDataProvider populatePartitionItems"
-      );
+      if (isKnownError(error)) {
+        throw error;
+      }
+      const msg =
+        error instanceof Error && error.message
+          ? error.message
+          : "Error getting partitions from device";
+      throw partitionPopulateFailed(msg);
     }
     this.refresh();
   }
@@ -213,8 +216,9 @@ export class PartitionTreeDataProvider
     let partitionItems: PartitionItem[] = [];
 
     for (const item of csvItems) {
-      const partitionTableNode = new PartitionItem(item.name);
+      const partitionTableNode = {} as PartitionItem;
       partitionTableNode.name = item.name;
+      partitionTableNode.label = item.name;
       partitionTableNode.type = item.type;
       partitionTableNode.subtype = item.subtype;
       partitionTableNode.offset = item.offset;
@@ -230,6 +234,7 @@ export class PartitionTreeDataProvider
       partitionTableNode.description = `Offset (${item.offset
         .toUpperCase()
         .replace("0X", "0x")}) size: (${item.size})`;
+      partitionTableNode.tooltip = `${item.type} / ${item.subtype}`;
       partitionItems.push(partitionTableNode);
     }
     return partitionItems;

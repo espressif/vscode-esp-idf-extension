@@ -19,6 +19,7 @@
 import { constants } from "fs";
 import { join } from "path";
 import * as vscode from "vscode";
+import { fileNotFound } from "../../../common/error/knownError";
 
 import { AbstractTracingToolManager } from "./abstractTracingToolManager";
 
@@ -28,19 +29,12 @@ export class SysviewTraceProc extends AbstractTracingToolManager {
   }
 
   public async parse(): Promise<Buffer> {
-    if (!this.preCheck([this.traceFilePath], constants.R_OK)) {
-      throw new Error("Trace file does not exists or not accessible");
+    if (!this.traceFilePath) {
+      throw fileNotFound("");
     }
-    if (
-      !this.preCheck(
-        [join(this.appTraceToolsPath(), "sysviewtrace_proc.py")],
-        constants.X_OK
-      )
-    ) {
-      throw new Error(
-        "sysviewtrace_proc.py tool is not found or not accessible"
-      );
-    }
+    this.requireAccessible([this.traceFilePath], constants.R_OK);
+    const toolPath = join(this.appTraceToolsPath(), "sysviewtrace_proc.py");
+    this.requireExecutableTool(toolPath, "sysviewtrace_proc.py");
     return await this.parseInternal(
       "python",
       ["sysviewtrace_proc.py", "-j", "-b", `file://${this.elfFilePath}`, `file://${this.traceFilePath}`],

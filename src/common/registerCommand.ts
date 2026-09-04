@@ -1,0 +1,64 @@
+/*
+ * Project: ESP-IDF VSCode Extension
+ * File Created: Monday, 30th March 2026 3:19:35 pm
+ * Copyright 2026 Espressif Systems (Shanghai) CO LTD
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { commands, Disposable, ExtensionContext } from "vscode";
+import { Logger } from "./logger";
+import { Telemetry } from "./telemetry";
+import { handleError } from "./error/handler";
+import { HandleErrorOptions } from "./error/types";
+
+export const COMMANDS_WITHOUT_USAGE_TELEMETRY = new Set([
+  "espIdf.getExtensionPath",
+  "espIdf.getIDFTarget",
+  "espIdf.getOpenOcdConfigs",
+  "espIdf.getOpenOcdScriptValue",
+  "espIdf.getProjectName",
+  "espIdf.getToolchainGcc",
+  "espIdf.getToolchainGdb",
+]);
+
+export function shouldSendCommandUsageEvent(commandName: string): boolean {
+  return !COMMANDS_WITHOUT_USAGE_TELEMETRY.has(commandName);
+}
+
+export function registerIDFCommand(
+  context: ExtensionContext,
+  name: string,
+  callback: (...args: any[]) => any,
+  options?: HandleErrorOptions
+): Disposable {
+  const telemetryCallback = async function (
+    this: unknown,
+    ...args: any[]
+  ): Promise<any> {
+    const startTime = Date.now();
+    Logger.info(`Command::${name}::Executed`);
+    try {
+      return await callback.apply(this, args);
+    } catch (error) {
+      handleError(name, error, undefined, options);
+    } finally {
+      if (shouldSendCommandUsageEvent(name)) {
+        const timeSpent = Date.now() - startTime;
+        Telemetry.sendEvent("command", { commandName: name }, { timeSpent });
+      }
+    }
+  };
+  const disposable = commands.registerCommand(name, telemetryCallback);
+  context.subscriptions.push(disposable);
+  return disposable;
+}

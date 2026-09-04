@@ -17,7 +17,7 @@
  */
 
 import { Uri } from "vscode";
-import { Logger } from "../logger/logger";
+import { Logger } from "../common/logger";
 import { ConfigurePreset, PresetCondition } from "./projectConfiguration";
 import { substituteVariablesInConfigurePreset } from "./presetSubstitution";
 

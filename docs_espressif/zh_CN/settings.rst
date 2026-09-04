@@ -50,14 +50,8 @@ Visual Studio Code 允许你在不同级别配置设置：**全局（用户设�
       - 当前选定的 ESP-IDF 目录路径。作用域：Resource。
     * - **idf.saveLastProjectConfiguration**
       - 重新打开工作区时，恢复上次选择的项目配置（默认：``true``）。禁用后，启动时不会选择任何配置。作用域：Resource。
-    * - **idf.gitPath**
-      - Git 可执行文件路径（默认：``/usr/bin/git``）。作用域：Application。
-    * - **idf.gitPathWin**
-      - Windows 下 Git 可执行文件路径（默认：``${env:programfiles}\\Git\\cmd\\git.exe``）。作用域：Application。
     * - **idf.extensionActivationMode**
       - 控制扩展激活模式：``"detect"``（默认）、``"always"`` 或 ``"never"``。
-
-**idf.gitPath**（Windows 下为 **idf.gitPathWin**）在扩展中用于克隆 ESP-IDF 或 ESP-ADF、ESP-MDF、Arduino-ESP32 等支持的框架。
 
 串口
 ----
@@ -70,8 +64,6 @@ Visual Studio Code 允许你在不同级别配置设置：**全局（用户设�
       - 描述
     * - **idf.port**
       - 所选设备端口路径（默认：``detect``）。作用域：Resource。
-    * - **idf.portWin**
-      - Windows 下所选设备端口路径（默认：``detect``）。作用域：Resource。
     * - **idf.monitorPort**
       - 监视器所用设备端口（可选）。未设置时使用 **idf.port**。作用域：Resource。
     * - **idf.flashBaudRate**
@@ -123,9 +115,7 @@ Visual Studio Code 允许你在不同级别配置设置：**全局（用户设�
     * - 设置 ID
       - 描述
     * - **idf.buildPath**
-      - 扩展命令使用的构建目录（默认：``${workspaceFolder}/build``）。作用域：Resource。
-    * - **idf.buildPathWin**
-      - Windows 下构建目录（默认：``${workspaceFolder}\\build``）。作用域：Resource。
+      - 扩展命令使用的构建目录（默认：``build``，相对于工作区文件夹）。作用域：Resource。
     * - **idf.cmakeCompilerArgs**
       - CMake 配置参数（默认含 ``-G Ninja``、``-DPYTHON_DEPS_CHECKED=1``、``-DESP_PLATFORM=1``）。作用域：Resource。
     * - **idf.sdkconfigDefaults**

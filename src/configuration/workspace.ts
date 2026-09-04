@@ -1,0 +1,494 @@
+// Copyright 2019 Espressif Systems (Shanghai) CO LTD
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { constants, promises, readFileSync, unlinkSync } from "fs";
+import { join, isAbsolute } from "path";
+import {
+  commands,
+  ConfigurationScope,
+  l10n,
+  StatusBarItem,
+  Uri,
+  window,
+} from "vscode";
+import {
+  buildRequiredBeforeFlash,
+  fileNotFound,
+} from "../common/error/knownError";
+import { Logger } from "../common/logger";
+import {
+  getWorkspaceFsPathFromScope,
+  resolveIdfBuildPathValue,
+} from "./buildPath";
+import { readParameter } from "./idf";
+import { showInfoNotificationWithAction } from "../common/customNotifications";
+import { isSettingIDFTarget } from "../espIdf/setTarget/main";
+import { pathExists, readJSON, writeJSON } from "fs-extra";
+import { canAccessFile, getToolchainToolName, isBinInPath } from "../utils";
+import { IdfTreeDataProvider } from "../espIdf/idfComponent/treeDataProvider";
+import { getCurrentIdfConfiguration, updateCurrentIdfEnvVar } from "./env";
+
+/** Parsed subset of build/project_description.json; fields are optional for partial or evolving schemas. */
+export interface IProjectDescription {
+  version?: string;
+  projectName?: string;
+  projectVersion?: string;
+  projectPath?: string;
+  idfPath?: string;
+  buildDir?: string;
+  configFile?: string;
+  configDefaults?: string;
+  bootloaderElf?: string;
+  appElf?: string;
+  appBin?: string;
+  buildType?: string;
+  gitRevision?: string;
+  target?: string;
+  rev?: string;
+  minRev?: string;
+  maxRev?: string;
+  phyDataPartition?: string;
+  monitorBaud?: string;
+  monitorToolPrefix?: string;
+  cCompiler?: string;
+  configEnvironment?: {
+    ComponentKconfigs?: string;
+    ComponentKconfigsProjbuild?: string;
+  };
+  commonComponentReqs?: string[];
+  buildComponents?: string[];
+  buildComponentPaths?: string[];
+  buildComponentInfo?: { [key: string]: any };
+  allComponentInfo?: { [key: string]: any };
+  gdbinitFiles?: { [key: string]: string };
+  debugArgumentsOpenOCD?: string;
+}
+
+function optString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+let idfDataProvider: IdfTreeDataProvider;
+
+export function getIdfBuildPath(scope: ConfigurationScope): string {
+  const raw = readParameter("idf.buildPath", scope) as string;
+  return resolveIdfBuildPathValue(raw, getWorkspaceFsPathFromScope(scope));
+}
+
+export function updateIdfComponentsTree(workspaceFolder: Uri) {
+  if (typeof idfDataProvider === "undefined") {
+    idfDataProvider = new IdfTreeDataProvider(workspaceFolder);
+    window.registerTreeDataProvider("idfComponents", idfDataProvider);
+  }
+  idfDataProvider.refresh(workspaceFolder);
+}
+
+export async function getConfigValueFromBuild(
+  configKey: string,
+  workspacePath: Uri
+): Promise<string> {
+  const buildPath = getIdfBuildPath(workspacePath);
+  const jsonFilePath = join(buildPath, "config", "sdkconfig.json");
+  try {
+    const data = await promises.readFile(jsonFilePath, { encoding: "utf8" });
+    const config = JSON.parse(data);
+    if (config[configKey] !== undefined) {
+      // Key found, return the value assigned to it
+      return config[configKey];
+    } else {
+      // Key not found, throw an error
+      throw new Error(`The key ${configKey} was not found in ${jsonFilePath}.`);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to read or parse the JSON file: ${errorMessage}`);
+  }
+}
+
+/**
+ * Reads and maps `${idf.buildPath}/project_description.json` into a typed object.
+ *
+ * Returns `undefined` when the build directory or file is missing, content is invalid,
+ * or parsing/reading fails.
+ * @param {Uri} workspaceFolder - Workspace URI to read the project description JSON from its build directory.
+ * @returns {Promise<IProjectDescription | undefined>}
+ */
+export async function getProjectDescriptionJson(
+  workspaceFolder: Uri
+): Promise<IProjectDescription | undefined> {
+  const buildDirPath = getIdfBuildPath(workspaceFolder);
+  try {
+    const doesBuildPathExists = await pathExists(buildDirPath);
+    if (!doesBuildPathExists) {
+      return undefined;
+    }
+    const projDescJsonPath = join(buildDirPath, "project_description.json");
+    const doesExists = await pathExists(projDescJsonPath);
+    if (!doesExists) {
+      return undefined;
+    }
+    const projDescJsonContent = await promises.readFile(projDescJsonPath, {
+      encoding: "utf8",
+    });
+    const projDescJson = JSON.parse(projDescJsonContent.toString()) as Record<
+      string,
+      unknown
+    >;
+    if (
+      !projDescJson ||
+      typeof projDescJson !== "object" ||
+      Array.isArray(projDescJson)
+    ) {
+      return undefined;
+    }
+    const env = projDescJson.config_environment;
+    const envObj =
+      env !== null && typeof env === "object" && !Array.isArray(env)
+        ? (env as Record<string, unknown>)
+        : undefined;
+    const projectDescriptionObj: IProjectDescription = {
+      version: optString(projDescJson.version),
+      projectName: optString(projDescJson.project_name),
+      projectVersion: optString(projDescJson.project_version),
+      projectPath: optString(projDescJson.project_path),
+      idfPath: optString(projDescJson.idf_path),
+      buildDir: optString(projDescJson.build_dir),
+      configFile: optString(projDescJson.config_file),
+      configDefaults: optString(projDescJson.config_defaults),
+      bootloaderElf: optString(projDescJson.bootloader_elf),
+      appElf: optString(projDescJson.app_elf),
+      appBin: optString(projDescJson.app_bin),
+      buildType: optString(projDescJson.build_type),
+      gitRevision: optString(projDescJson.git_revision),
+      target: optString(projDescJson.target),
+      rev: optString(projDescJson.rev),
+      minRev: optString(projDescJson.min_rev),
+      maxRev: optString(projDescJson.max_rev),
+      phyDataPartition: optString(projDescJson.phy_data_partition),
+      monitorBaud: optString(projDescJson.monitor_baud),
+      monitorToolPrefix: optString(projDescJson.monitor_tool_prefix),
+      cCompiler: optString(projDescJson.c_compiler),
+      configEnvironment: envObj
+        ? {
+            ComponentKconfigs: optString(envObj.COMPONENT_KCONFIGS),
+            ComponentKconfigsProjbuild: optString(
+              envObj.COMPONENT_KCONFIGS_PROJBUILD
+            ),
+          }
+        : undefined,
+      commonComponentReqs: Array.isArray(projDescJson.common_component_reqs)
+        ? (projDescJson.common_component_reqs as string[])
+        : undefined,
+      buildComponents: Array.isArray(projDescJson.build_components)
+        ? (projDescJson.build_components as string[])
+        : undefined,
+      buildComponentPaths: Array.isArray(projDescJson.build_component_paths)
+        ? (projDescJson.build_component_paths as string[])
+        : undefined,
+      buildComponentInfo:
+        projDescJson.build_component_info !== null &&
+        typeof projDescJson.build_component_info === "object" &&
+        !Array.isArray(projDescJson.build_component_info)
+          ? (projDescJson.build_component_info as { [key: string]: any })
+          : undefined,
+      allComponentInfo:
+        projDescJson.all_component_info !== null &&
+        typeof projDescJson.all_component_info === "object" &&
+        !Array.isArray(projDescJson.all_component_info)
+          ? (projDescJson.all_component_info as { [key: string]: any })
+          : undefined,
+      gdbinitFiles:
+        projDescJson.gdbinit_files !== null &&
+        typeof projDescJson.gdbinit_files === "object" &&
+        !Array.isArray(projDescJson.gdbinit_files)
+          ? (projDescJson.gdbinit_files as { [key: string]: string })
+          : undefined,
+      debugArgumentsOpenOCD: optString(projDescJson.debug_arguments_openocd),
+    };
+    return projectDescriptionObj;
+  } catch (error) {
+    Logger.error(
+      `Error reading project description JSON from ${buildDirPath}`,
+      error as Error,
+      "workspaceConfig getProjectDescriptionJson",
+      undefined,
+      false
+    );
+    return undefined;
+  }
+}
+
+/**
+ * Resolves the sdkconfig file path for a workspace.
+ *
+ * Lookup order:
+ * 1) `configFile` from `project_description.json` (if present and exists),
+ * 2) `idf.sdkconfigFilePath` setting for the workspace,
+ * 3) `${workspace}/sdkconfig` fallback.
+ * @param {vscode.Uri} workspacePath - Workspace URI to resolve the sdkconfig file path for.
+ * @returns {Promise<string>}
+ */
+export async function getSDKConfigFilePath(
+  workspacePath: Uri
+): Promise<string> {
+  try {
+    const projDescObj = await getProjectDescriptionJson(workspacePath);
+    if (projDescObj?.configFile) {
+      const configFilePath = isAbsolute(projDescObj.configFile)
+        ? projDescObj.configFile
+        : join(workspacePath.fsPath, projDescObj.configFile);
+      if (await pathExists(configFilePath)) {
+        return configFilePath;
+      }
+    }
+    let sdkconfigFilePath = readParameter(
+      "idf.sdkconfigFilePath",
+      workspacePath
+    ) as string;
+    if (!sdkconfigFilePath) {
+      sdkconfigFilePath = join(workspacePath.fsPath, "sdkconfig");
+    }
+    return sdkconfigFilePath;
+  } catch (error) {
+    const errMsg =
+      error && typeof error === "object" && "message" in error
+        ? (error as Error).message
+        : String(error);
+    Logger.error(
+      errMsg,
+      error as Error,
+      "workspaceConfig getSdkconfigPath",
+      undefined,
+      false
+    );
+    return join(workspacePath.fsPath, "sdkconfig");
+  }
+}
+
+export async function delConfigFile(workspaceRoot: Uri) {
+  const sdkconfigFile = await getSDKConfigFilePath(workspaceRoot);
+  unlinkSync(sdkconfigFile);
+}
+
+export async function getConfigValueFromSDKConfig(
+  key: string,
+  workspacePath: Uri
+): Promise<string> {
+  const sdkconfigFilePath = await getSDKConfigFilePath(workspacePath);
+  if (!sdkconfigFilePath || !canAccessFile(sdkconfigFilePath, constants.R_OK)) {
+    throw new Error("sdkconfig file doesn't exists or can't be read");
+  }
+  const configs = readFileSync(sdkconfigFilePath, "utf-8");
+  const re = new RegExp(`${key}=(.*)?`);
+  const match = configs.match(re);
+  return match ? match[1] : "";
+}
+
+/**
+ * Returns `projectName` from `project_description.json`.
+ * Throws if the file cannot be read or `projectName` is missing.
+ * @param {Uri} workspacePath - Workspace URI to get the project name from its project description.
+ * @returns {Promise<string>}
+ */
+export async function getProjectName(workspacePath: Uri): Promise<string> {
+  const projectDescription = await getProjectDescriptionJson(workspacePath);
+  if (projectDescription && projectDescription.projectName) {
+    return projectDescription.projectName;
+  }
+  const buildDirPath = getIdfBuildPath(workspacePath);
+  throw buildRequiredBeforeFlash(buildDirPath, {
+    userMessage:
+      "Build the project first to read project_description.json. {buildDirPath} can't be accessed.",
+    logMessage:
+      "getProjectName blocked: build directory or project_description.json not accessible: {buildDirPath}.",
+    actions: [
+      {
+        label: "Build",
+        execute: () => commands.executeCommand("espIdf.buildDevice"),
+      },
+    ],
+  });
+}
+
+/**
+ * Returns the full path to the app ELF file using `idf.buildPath` and `appElf` from `project_description.json`.
+ * Throws if `project_description.json` is missing `appElf` or `idf.buildPath` is missing.
+ * @param {vscode.Uri} workspacePath - Workspace URI to get the project ELF file path from its project description json.
+ * @returns {Promise<string>}
+ */
+export async function getProjectElfFilePath(
+  workspacePath: Uri
+): Promise<string> {
+  const projectDescription = await getProjectDescriptionJson(workspacePath);
+  if (projectDescription && projectDescription.appElf) {
+    const buildDirPath = getIdfBuildPath(workspacePath);
+    const elfFilePath = join(buildDirPath, projectDescription.appElf);
+    return elfFilePath;
+  }
+  const buildDirPath = getIdfBuildPath(workspacePath);
+  throw buildRequiredBeforeFlash(buildDirPath, {
+    userMessage:
+      "Build the project first to read project_description.json. {buildDirPath} can't be accessed.",
+    logMessage:
+      "getProjectElfFilePath blocked: build directory or project_description.json not accessible: {buildDirPath}.",
+    actions: [
+      {
+        label: "Build",
+        execute: () => commands.executeCommand("espIdf.buildDevice"),
+      },
+    ],
+  });
+}
+
+/**
+ * Returns the full path to `${projectName}.map` using `idf.buildPath`.
+ * Throws if `projectName` cannot be read from `project_description.json`,
+ * if `idf.buildPath` is missing, or if the map file does not exist.
+ * @param {vscode.Uri} workspacePath - Workspace URI to get the project MAP file path from its project description json.
+ * @returns {Promise<string>}
+ */
+export async function getProjectMapFilePath(
+  workspacePath: Uri
+): Promise<string> {
+  const projectName = await getProjectName(workspacePath);
+  if (!projectName) {
+    throw new Error("Failed to get project name for MAP file path.");
+  }
+  const buildDirPath = getIdfBuildPath(workspacePath);
+  const mapFilePath = join(buildDirPath, `${projectName}.map`);
+  if (!(await pathExists(mapFilePath))) {
+    throw fileNotFound(mapFilePath);
+  }
+  return mapFilePath;
+}
+
+/**
+ * Returns the IDF target from `sdkconfig` (`CONFIG_IDF_TARGET`) if available.
+ * If not available, uses `idf.customExtraVars.IDF_TARGET`; if still missing, returns `"esp32"`.
+ * Updates `statusItem.text` with the resolved IDF target when `statusItem` is provided.
+ * @param {Uri} workspacePath - Workspace URI to get the IDF target from its SDK configuration.
+ * @param {StatusBarItem} [statusItem] - Optional status bar item to update with the resolved IDF target.
+ * @returns {Promise<string>} - The resolved IDF target.
+ */
+export async function getIdfTargetFromSdkconfig(
+  workspacePath: Uri,
+  statusItem?: StatusBarItem
+) {
+  try {
+    const configIdfTarget = await getConfigValueFromSDKConfig(
+      "CONFIG_IDF_TARGET",
+      workspacePath
+    );
+    let idfTarget = configIdfTarget.replace(/\"/g, "");
+    const customExtraVars = readParameter(
+      "idf.customExtraVars",
+      workspacePath
+    ) as { [key: string]: string };
+    const customIdfTarget = customExtraVars["IDF_TARGET"];
+
+    if (idfTarget && customIdfTarget && idfTarget !== customIdfTarget) {
+      if (!isSettingIDFTarget) {
+        showInfoNotificationWithAction(
+          l10n.t(
+            'IDF_TARGET mismatch: SDKConfig value is "{0}" but settings value is "{1}".',
+            idfTarget,
+            customIdfTarget
+          ),
+          l10n.t("Set IDF_TARGET"),
+          () => commands.executeCommand("espIdf.setTarget")
+        );
+      }
+    }
+
+    if (!idfTarget) {
+      idfTarget = customIdfTarget;
+    }
+    if (!idfTarget) {
+      idfTarget = "esp32";
+    }
+    if (statusItem) {
+      statusItem.text = "$(chip) " + idfTarget;
+    }
+    updateCurrentIdfEnvVar("IDF_TARGET", idfTarget);
+    return idfTarget;
+  } catch (error) {
+    const customExtraVars = readParameter(
+      "idf.customExtraVars",
+      workspacePath
+    ) as { [key: string]: string };
+    let idfTarget = customExtraVars["IDF_TARGET"] || "esp32";
+    if (statusItem) {
+      statusItem.text = `$(chip) ${idfTarget}`;
+    }
+    updateCurrentIdfEnvVar("IDF_TARGET", idfTarget);
+    return idfTarget;
+  }
+}
+
+export async function setCCppPropertiesJsonCompilerPath(
+  curWorkspaceFsPath: Uri
+) {
+  const modifiedEnv = getCurrentIdfConfiguration();
+  const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
+  const gccTool = getToolchainToolName(idfTarget, "gcc");
+  const compilerAbsolutePath = await isBinInPath(gccTool, modifiedEnv);
+  if (!compilerAbsolutePath) {
+    return;
+  }
+  await updateCCppPropertiesJson(
+    curWorkspaceFsPath,
+    "compilerPath",
+    compilerAbsolutePath
+  );
+}
+
+export async function setCCppPropertiesJsonCompileCommands(
+  curWorkspaceFsPath: Uri
+) {
+  const buildDirPath = getIdfBuildPath(curWorkspaceFsPath);
+  const compileCommandsPath = join(buildDirPath, "compile_commands.json");
+
+  await updateCCppPropertiesJson(
+    curWorkspaceFsPath,
+    "compileCommands",
+    compileCommandsPath
+  );
+}
+
+export async function updateCCppPropertiesJson(
+  workspaceUri: Uri,
+  fieldToUpdate: string,
+  newFieldValue: string
+) {
+  const cCppPropertiesJsonPath = join(
+    workspaceUri.fsPath,
+    ".vscode",
+    "c_cpp_properties.json"
+  );
+  const doesPathExists = await pathExists(cCppPropertiesJsonPath);
+  if (!doesPathExists) {
+    return;
+  }
+  const cCppPropertiesJson = await readJSON(cCppPropertiesJsonPath);
+  if (
+    cCppPropertiesJson &&
+    cCppPropertiesJson.configurations &&
+    cCppPropertiesJson.configurations.length
+  ) {
+    cCppPropertiesJson.configurations[0][fieldToUpdate] = newFieldValue;
+    await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
+      spaces: 2,
+    });
+  }
+}

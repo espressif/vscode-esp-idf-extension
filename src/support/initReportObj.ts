@@ -18,93 +18,90 @@
 import { reportObj } from "./types";
 
 export function initializeReportObject() {
-  const report = new reportObj();
-  report.configurationSettings = {
-    systemEnvPath: undefined,
-    espIdfPath: undefined,
-    espAdfPath: undefined,
-    flashType: undefined,
-    flashPartitionToUse: undefined,
-    customExtraPaths: undefined,
-    customOpenOcdPath: undefined,
-    idfExtraVars: undefined,
-    userExtraVars: undefined,
-    customTerminalExecutable: undefined,
-    customTerminalExecutableArgs: undefined,
-    notificationMode: undefined,
-    pythonBinPath: undefined,
-    pythonPackages: undefined,
-    serialPort: undefined,
-    openOcdConfigs: undefined,
-    openOCDDebugLevel: undefined,
-    openOcdLaunchArgs: undefined,
-    toolsPath: undefined,
-    gitPath: undefined,
+  const report: reportObj = {
+    configurationSettings: {
+      systemEnvPath: "",
+      espIdfPath: "",
+      espAdfPath: "",
+      flashType: "",
+      flashPartitionToUse: "",
+      customExtraPaths: "",
+      customOpenOcdPath: "",
+      idfExtraVars: {},
+      userExtraVars: {},
+      customTerminalExecutable: "",
+      customTerminalExecutableArgs: [],
+      notificationMode: "",
+      pythonBinPath: "",
+      pythonPackages: [],
+      serialPort: "",
+      openOcdConfigs: [],
+      openOCDDebugLevel: "",
+      openOcdLaunchArgs: [],
+      toolsPath: "",
+      gitPath: "",
+    },
+    configurationAccess: {
+      espIdfPath: false,
+      espAdfPath: false,
+      espIdfToolsPaths: {},
+      pythonBinPath: false,
+      cmakeInEnv: false,
+      ninjaInEnv: false,
+      toolsPath: false,
+      customOpenOcdPath: false,
+    },
+    configurationSpacesValidation: {
+      customExtraPaths: {},
+      espAdfPath: false,
+      espIdfPath: false,
+      pythonBinPath: false,
+      toolsPath: false,
+      systemEnvPath: false,
+    },
+    cCppPropertiesJson: [],
+    espIdfSetups: [],
+    espIdfToolsVersions: [],
+    espIdfVersion: {
+      output: "",
+      result: "",
+    },
+    formatedOutput: "",
+    idfCheckRequirements: {
+      output: "",
+      result: "",
+    },
+    launchJson: "",
+    latestError: new Error(""),
+    pipVersion: {
+      output: "",
+      result: "",
+    },
+    pythonPackages: {
+      output: "",
+      result: "",
+    },
+    pythonVersion: {
+      output: "",
+      result: "",
+    },
+    systemInfo: {
+      architecture: "",
+      envIdfPythonEnvPath: "",
+      envPath: "",
+      envPython: "",
+      extensionVersion: "",
+      language: "",
+      shell: "",
+      platform: "",
+      systemName: "",
+      vscodeVersion: "",
+      remoteName: "",
+      appName: "",
+    },
+    workspaceFolder: "",
+    projectConfigurations: {},
+    selectedProjectConfiguration: "",
   };
-  report.cCppPropertiesJson = undefined;
-  report.configurationAccess = {
-    espIdfPath: undefined,
-    espAdfPath: undefined,
-    espIdfToolsPaths: undefined,
-    pythonBinPath: undefined,
-    cmakeInEnv: undefined,
-    ninjaInEnv: undefined,
-    toolsPath: undefined,
-    customOpenOcdPath: undefined,
-  };
-  report.configurationSpacesValidation = {
-    customExtraPaths: undefined,
-    espAdfPath: undefined,
-    espIdfPath: undefined,
-    gitPath: undefined,
-    pythonBinPath: undefined,
-    toolsPath: undefined,
-    systemEnvPath: undefined,
-  };
-  report.espIdfSetups = [];
-  report.espIdfToolsVersions = undefined;
-  report.espIdfVersion = {
-    output: undefined,
-    result: undefined,
-  };
-  report.formatedOutput = undefined;
-  report.gitVersion = {
-    output: undefined,
-    result: undefined,
-  };
-  report.idfCheckRequirements = {
-    output: undefined,
-    result: undefined,
-  };
-  report.launchJson = undefined;
-  report.latestError = undefined;
-  report.pipVersion = {
-    output: undefined,
-    result: undefined,
-  };
-  report.pythonPackages = {
-    output: undefined,
-    result: undefined,
-  };
-  report.pythonVersion = {
-    output: undefined,
-    result: undefined,
-  };
-  report.systemInfo = {
-    architecture: undefined,
-    envIdfPythonEnvPath: undefined,
-    envPath: undefined,
-    envPython: undefined,
-    extensionVersion: undefined,
-    language: undefined,
-    shell: undefined,
-    platform: undefined,
-    systemName: undefined,
-    vscodeVersion: undefined,
-    remoteName: undefined,
-    appName: undefined,
-  };
-  report.workspaceFolder = undefined;
-  report.projectConfigurations = {};
   return report;
 }

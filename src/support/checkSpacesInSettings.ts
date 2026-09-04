@@ -16,8 +16,11 @@
  * limitations under the License.
  */
 import { delimiter } from "path";
-import { checkSpacesInPath } from "../utils";
 import { reportObj } from "./types";
+
+function checkSpacesInPath(pathStr: string) {
+  return /\s+/g.test(pathStr);
+}
 
 export function checkSpacesInSettings(reportedResult: reportObj) {
   reportedResult.configurationSpacesValidation.espAdfPath = checkSpacesInPath(
@@ -34,9 +37,6 @@ export function checkSpacesInSettings(reportedResult: reportObj) {
 
   reportedResult.configurationSpacesValidation.toolsPath = checkSpacesInPath(
     reportedResult.configurationSettings.toolsPath
-  );
-  reportedResult.configurationSpacesValidation.gitPath = checkSpacesInPath(
-    reportedResult.configurationSettings.gitPath
   );
 
   reportedResult.configurationSpacesValidation.customExtraPaths = {};

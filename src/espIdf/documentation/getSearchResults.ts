@@ -13,17 +13,16 @@
 // limitations under the License.
 
 import { Uri } from "vscode";
-import * as idfConf from "../../idfConfiguration";
 import { getEspIdfFromCMake } from "../../utils";
 import { getDocsBaseUrl, getDocsIndex, getDocsVersion } from "./getDocsVersion";
-import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
-import { ESP } from "../../config";
+import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 
-export class IDocResult {
-  public name: string;
-  public docName: string;
-  public resultType: string;
-  public url: string;
+export interface IDocResult {
+  name: string;
+  docName: string;
+  resultType: string;
+  url: string;
 }
 
 export function getIntersection(
@@ -40,14 +39,16 @@ export function getIntersection(
   });
 }
 
-export async function seachInEspDocs(
+export async function searchInEspDocs(
+  extensionPath: string,
   searchString: string,
   workspaceFolder: Uri
 ) {
   const docsVersions = await getDocsVersion();
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  if (!docsVersions) {
+    return [];
+  }
+  const currentEnvVars = getCurrentIdfConfiguration();
   const idfPath = currentEnvVars["IDF_PATH"];
   let idfVersion = "v" + (await getEspIdfFromCMake(idfPath));
   let idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder);
@@ -56,6 +57,9 @@ export async function seachInEspDocs(
   if (!docVersion) {
     docVersion = docsVersions.find((docVer) => docVer.name === "latest");
   }
+  if (!docVersion) {
+    docVersion = docsVersions[0];
+  }
   if (
     docVersion.supportedTargets &&
     docVersion.supportedTargets.indexOf(idfTarget) !== -1
@@ -63,13 +67,18 @@ export async function seachInEspDocs(
     targetToUse = idfTarget;
   }
   const baseUrl = getDocsBaseUrl(docVersion.name, targetToUse);
-  const docIndex = await getDocsIndex(baseUrl, docVersion.name, targetToUse);
+  const docIndex = await getDocsIndex(
+    extensionPath,
+    baseUrl,
+    docVersion.name,
+    targetToUse
+  );
 
   const termsToSearch = searchString.trim().split(" ");
 
-  let termsResults: IDocResult[];
+  let termsResults: IDocResult[] = [];
   for (const term of termsToSearch) {
-    if (!termsResults) {
+    if (termsResults.length === 0) {
       termsResults = getResultsForTerm(baseUrl, term, docIndex);
     } else {
       const newTermResults = getResultsForTerm(baseUrl, term, docIndex);
@@ -79,7 +88,7 @@ export async function seachInEspDocs(
   return Array.from(termsResults);
 }
 
-function getResultsForTerm(baseUrl: string, term: string, docIndex) {
+function getResultsForTerm(baseUrl: string, term: string, docIndex: any) {
   const objectResultsKeys = Object.keys(docIndex.objects[""]).filter(
     (d) => d.indexOf(term) !== -1
   );
@@ -99,14 +108,18 @@ function getResultsForTerm(baseUrl: string, term: string, docIndex) {
   const titleResults = getUrlsFromTerm(baseUrl, term, "titleterms", docIndex);
   const termResults = getUrlsFromTerm(baseUrl, term, "terms", docIndex);
 
-  return [].concat(objUrlResults, titleResults, termResults) as IDocResult[];
+  return new Array<IDocResult>(
+    ...objUrlResults,
+    ...titleResults,
+    ...termResults
+  );
 }
 
 function getUrlsFromTerm(
   baseUrl: string,
   searchTerm: string,
   section: string,
-  docIndex
+  docIndex: any
 ) {
   const highlightTerm = encodeURIComponent(searchTerm.toLowerCase());
   const sectionResults = Object.keys(docIndex[section]).filter(

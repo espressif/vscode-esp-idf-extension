@@ -15,29 +15,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { execFile, ExecOptions } from "child_process";
+import { execFile, ExecFileException, ExecOptions } from "child_process";
+import { childProcessFailedFromInvocation } from "../common/error/knownError";
+import { assertSafeSpawnInvocation } from "../utils";
 
 export function execChildProcess(
   command: string,
   args: string[] = [],
   pathWhereToExecute: string,
-  opts?: ExecOptions
+  opts?: Omit<ExecOptions, "shell">
 ) {
-  if (!opts) {
-    opts = {
-      cwd: pathWhereToExecute,
-      maxBuffer: 500 * 1024,
-    };
-  }
+  assertSafeSpawnInvocation(command, args);
+  const execOpts: ExecOptions = {
+    cwd: pathWhereToExecute,
+    maxBuffer: 500 * 1024,
+    ...(opts ?? {}),
+    shell: undefined,
+  };
   return new Promise<string>((resolve, reject) => {
-    execFile(command, args, opts, (error: Error, stdout: string, stderr: string) => {
-      if (error) {
-        return reject(error);
+    execFile(
+      command,
+      args,
+      execOpts,
+      (error: ExecFileException | null, stdout: string, stderr: string) => {
+        if (error) {
+          return reject(
+            childProcessFailedFromInvocation(command, args, {
+              stdout,
+              stderr,
+              exitCode: typeof error.code === "number" ? error.code : undefined,
+              spawnError: error,
+            })
+          );
+        }
+        if (stderr && stderr.length) {
+          return resolve("".concat(stderr, stdout));
+        }
+        return resolve(stdout);
       }
-      if (stderr && stderr.length) {
-        return resolve("".concat(stderr, stdout));
-      }
-      return resolve(stdout);
-    });
+    );
   });
 }

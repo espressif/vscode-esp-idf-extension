@@ -1,41 +1,33 @@
 import * as vscode from "vscode";
-import { OutputChannel } from "../logger/outputChannel";
+import { Logger } from "../common/logger";
+import {
+  isKnownError,
+  idfTaskInProgress,
+  invalidIdfTarget,
+  IdfTaskName,
+} from "../common/error/knownError";
+import { resolveKnownErrorUserMessage } from "../common/error/resolve";
+import { OutputChannel } from "../common/outputChannel";
 import { ESP } from "../config";
-import { buildCommandMain } from "../build/buildCmd";
-import {
-  readParameter,
-  readSerialPort,
-  writeParameter,
-} from "../idfConfiguration";
-import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
-import {
-  getEspIdfFromCMake,
-  PreCheck,
-  shouldDisableMonitorReset,
-  sleep,
-} from "../utils";
-import { Logger } from "../logger/logger";
-import { jtagFlashCommandMain } from "../flash/jtagCmd";
-import { verifyCanFlash } from "../flash/flashCmd";
-import { uartFlashCommandMain } from "../flash/uartFlash";
-import { IDFMonitor } from "../espIdf/monitor";
+import { buildMain } from "../build/buildMain";
+import { readParameter, writeParameter } from "../configuration/idf";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
-import { createNewIdfMonitor } from "../espIdf/monitor/command";
-import { isFlashEncryptionEnabled } from "../flash/verifyFlashEncryption";
-import { EraseFlashTask } from "../flash/eraseFlashTask";
-import { TaskManager } from "../taskManager";
+import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
+import { TaskManager } from "../taskManager/taskManager";
 import { getTargetsFromEspIdf } from "../espIdf/setTarget/getTargets";
+import { setTargetErrorPresentation } from "../espIdf/setTarget/setTargetErrorPresentation";
 import { updateCurrentProfileIdfTarget } from "../project-conf";
-import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { setTargetInIDF } from "../espIdf/setTarget/setTargetInIdf";
 import { statusBarItems } from "../statusBar";
-import { isSettingIDFTarget, setIsSettingIDFTarget } from "../espIdf/setTarget";
 import {
-  OutputCapturingExecution,
-  ShellOutputCapturingExecution,
-} from "../taskManager/customExecution";
-import { l10n } from "vscode";
-import { configureEnvVariables } from "../common/prepareEnv";
+  isSettingIDFTarget,
+  setIsSettingIDFTarget,
+} from "../espIdf/setTarget/main";
+import { flashMain } from "../flash/main";
+import { eraseFlashMain } from "../eraseFlash/main";
+import { buildFlashAndMonitorCapture } from "../buildFlashMonitor";
+import { monitorMain } from "../espIdf/monitor/main";
 
 // Map of command names to their corresponding VS Code command IDs
 const COMMAND_MAP: Record<string, string> = {
@@ -83,10 +75,8 @@ const WEBVIEW_COMMANDS = new Set([
   "componentManager",
 ]);
 
-let disposable: vscode.Disposable | undefined;
-
 export function activateLanguageTool(context: vscode.ExtensionContext) {
-  disposable = vscode.lm.registerTool("espIdfCommands", {
+  const disposable = vscode.lm.registerTool("espIdfCommands", {
     async invoke(
       options: {
         input: {
@@ -102,15 +92,10 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       const target = options.input.target;
       const commandId = COMMAND_MAP[commandName];
 
-      const defaultWorkspace = vscode.workspace.workspaceFolders?.[0];
-
-      const workspaceURI = ESP.GlobalConfiguration.store.get<vscode.Uri>(
-        ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER,
-        defaultWorkspace?.uri
-      );
+      const workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
 
       // Check if we have a valid workspace
-      if (!workspaceURI) {
+      if (!workspaceFolder) {
         return new vscode.LanguageModelToolResult([
           new vscode.LanguageModelTextPart(
             "No ESP-IDF workspace found. Please open an ESP-IDF project folder first."
@@ -122,7 +107,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       if (!flashType) {
         flashType = readParameter(
           "idf.flashType",
-          workspaceURI
+          workspaceFolder
         ) as ESP.FlashType;
         if (!flashType) {
           flashType = ESP.FlashType.UART;
@@ -140,7 +125,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
 
       let encryptPartitions: boolean = false;
       if (commandName === "flash" || commandName === "buildFlashMonitor") {
-        encryptPartitions = await isFlashEncryptionEnabled(workspaceURI);
+        encryptPartitions = await isFlashEncryptionEnabled(workspaceFolder.uri);
       }
 
       let partitionToUse = options.input.partitionToUse as
@@ -152,7 +137,7 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       if (options.input.partitionToUse === undefined) {
         partitionToUse = readParameter(
           "idf.flashPartitionToUse",
-          workspaceURI
+          workspaceFolder
         ) as ESP.BuildType;
       }
 
@@ -162,97 +147,30 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
       ) {
         partitionToUse = undefined;
       }
-      const modifiedEnv = await configureEnvVariables(workspaceURI);
 
       let continueFlag = true;
-      let taskExecutions: (
-        | OutputCapturingExecution
-        | ShellOutputCapturingExecution
-        | vscode.ProcessExecution
-        | vscode.ShellExecution
-      )[] = [];
       if (commandId) {
         let outputs: vscode.LanguageModelTextPart[] = [];
         try {
           await focusOnAppropriateOutput(commandName);
           if (commandName === "build") {
-            let buildCmdResults = await buildCommandMain(
-              workspaceURI,
+            let buildCmdResults = await buildMain(
+              workspaceFolder.uri,
               token,
               flashType,
-              partitionToUse,
-              true // captureOutput = true for language tool
+              partitionToUse
             );
             continueFlag = buildCmdResults.continueFlag;
-            taskExecutions.push(...buildCmdResults.executions);
           } else if (commandName === "flash") {
-            if (IDFMonitor.terminal) {
-              IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-              const monitorDelay = readParameter(
-                "idf.monitorDelay",
-                workspaceURI
-              ) as number;
-              await sleep(monitorDelay);
-            }
-            const port = await readSerialPort(workspaceURI, false);
-            if (!port) {
-              return new vscode.LanguageModelToolResult([
-                new vscode.LanguageModelTextPart(
-                  vscode.l10n.t(
-                    "No serial port found for current IDF_TARGET: {0}",
-                    await getIdfTargetFromSdkconfig(workspaceURI)
-                  )
-                ),
-              ]);
-            }
-            const flashBaudRate = readParameter(
-              "idf.flashBaudRate",
-              workspaceURI
-            );
-            const canFlash = await verifyCanFlash(
-              flashBaudRate,
-              port,
+            let flashResults = await flashMain(
+              workspaceFolder.uri,
+              token,
               flashType,
-              workspaceURI
+              encryptPartitions,
+              partitionToUse
             );
-            if (!canFlash) {
-              return;
-            }
-            if (flashType === ESP.FlashType.JTAG) {
-              const openOCDManager = OpenOCDManager.init();
-              const currOpenOcdVersion = await openOCDManager.version();
-              const openOCDVersionIsValid = PreCheck.openOCDVersionValidator(
-                "v0.10.0-esp32-20201125",
-                currOpenOcdVersion
-              );
-              if (!openOCDVersionIsValid) {
-                return new vscode.LanguageModelToolResult([
-                  new vscode.LanguageModelTextPart(
-                    `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currOpenOcdVersion} version installed`
-                  ),
-                ]);
-              }
-              await jtagFlashCommandMain(workspaceURI);
-            } else {
-              const idfPathDir = modifiedEnv["IDF_PATH"];
-              const flashCmdResult = await uartFlashCommandMain(
-                token,
-                flashBaudRate,
-                idfPathDir,
-                port,
-                workspaceURI,
-                flashType,
-                encryptPartitions,
-                partitionToUse,
-                true // captureOutput = true for language tool
-              );
-              continueFlag = flashCmdResult.continueFlag;
-              taskExecutions.push(...flashCmdResult.executions);
-            }
+            continueFlag = flashResults.continueFlag;
           } else if (commandName === "monitor") {
-            if (IDFMonitor.terminal) {
-              IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-            }
             if (vscode.env.uiKind === vscode.UIKind.Web) {
               vscode.commands.executeCommand(IDFWebCommandKeys.Monitor);
               return new vscode.LanguageModelToolResult([
@@ -261,128 +179,22 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 ),
               ]);
             }
-            const noReset = await shouldDisableMonitorReset(workspaceURI);
-            await createNewIdfMonitor(workspaceURI, noReset);
+            await monitorMain(workspaceFolder);
           } else if (commandName === "buildFlashMonitor") {
-            let buildCmdResults = await buildCommandMain(
-              workspaceURI,
+            const bfmResults = await buildFlashAndMonitorCapture(
+              workspaceFolder,
               token,
               flashType,
-              partitionToUse,
-              true // captureOutput = true for language tool
+              partitionToUse
             );
-            continueFlag = buildCmdResults.continueFlag;
-            taskExecutions.push(...buildCmdResults.executions);
-            if (!continueFlag) {
-              return new vscode.LanguageModelToolResult([
-                new vscode.LanguageModelTextPart(
-                  "Build ended without success."
-                ),
-              ]);
-            }
-            if (vscode.env.uiKind === vscode.UIKind.Web) {
-              vscode.commands.executeCommand(IDFWebCommandKeys.FlashAndMonitor);
-              return new vscode.LanguageModelToolResult([
-                new vscode.LanguageModelTextPart(
-                  "Redirecting to ESP-IDF Web Flash and Monitor command"
-                ),
-              ]);
-            }
-            if (IDFMonitor.terminal) {
-              IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-              const monitorDelay = readParameter(
-                "idf.monitorDelay",
-                workspaceURI
-              ) as number;
-              await sleep(monitorDelay);
-            }
-            const port = await readSerialPort(workspaceURI, false);
-            if (!port) {
-              return new vscode.LanguageModelToolResult([
-                new vscode.LanguageModelTextPart(
-                  vscode.l10n.t(
-                    "No serial port found for current IDF_TARGET: {0}",
-                    await getIdfTargetFromSdkconfig(workspaceURI)
-                  )
-                ),
-              ]);
-            }
-            const flashBaudRate = readParameter(
-              "idf.flashBaudRate",
-              workspaceURI
-            );
-            const canFlash = await verifyCanFlash(
-              flashBaudRate,
-              port,
-              flashType,
-              workspaceURI
-            );
-            if (!canFlash) {
-              return new vscode.LanguageModelToolResult([
-                new vscode.LanguageModelTextPart(
-                  "Flash verification has failed"
-                ),
-              ]);
-            }
-            if (flashType === ESP.FlashType.JTAG) {
-              const openOCDManager = OpenOCDManager.init();
-              const currOpenOcdVersion = await openOCDManager.version();
-              const openOCDVersionIsValid = PreCheck.openOCDVersionValidator(
-                "v0.10.0-esp32-20201125",
-                currOpenOcdVersion
-              );
-              if (!openOCDVersionIsValid) {
-                return new vscode.LanguageModelToolResult([
-                  new vscode.LanguageModelTextPart(
-                    `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currOpenOcdVersion} version installed`
-                  ),
-                ]);
-              }
-              await jtagFlashCommandMain(workspaceURI);
-            } else {
-              const idfPathDir = modifiedEnv["IDF_PATH"];
-              let flashCmdResult = await uartFlashCommandMain(
-                token,
-                flashBaudRate,
-                idfPathDir,
-                port,
-                workspaceURI,
-                flashType,
-                encryptPartitions,
-                partitionToUse,
-                true // captureOutput = true for language tool
-              );
-              continueFlag = flashCmdResult.continueFlag;
-              taskExecutions.push(...flashCmdResult.executions);
-            }
-            if (IDFMonitor.terminal) {
-              IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-            }
-            const noReset = await shouldDisableMonitorReset(workspaceURI);
-            await createNewIdfMonitor(workspaceURI, noReset);
+            continueFlag = bfmResults.continueFlag;
           } else if (commandName === "eraseFlash") {
-            const port = await readSerialPort(workspaceURI, false);
-            if (!port) {
-              Logger.warnNotify(
-                l10n.t(
-                  "No serial port found for current IDF_TARGET: {0}",
-                  await getIdfTargetFromSdkconfig(workspaceURI)
-                )
-              );
-            }
-            const eraseFlashTask = new EraseFlashTask(workspaceURI);
-            const eraseFlashExecution = await eraseFlashTask.eraseFlash(port, true); // captureOutput = true for language tool
-            const eraseFlashResult = await TaskManager.runTasksWithBoolean();
-            taskExecutions.push(eraseFlashExecution);
-            if (!token.isCancellationRequested) {
-              EraseFlashTask.isErasing = false;
-              const msg = "Erase flash done";
-              OutputChannel.appendLineAndShow(msg, "Erase flash");
-              Logger.infoNotify(msg);
-            }
-            TaskManager.disposeListeners();
-            OutputChannel.appendLine("Flash memory content has been erased.");
-            Logger.infoNotify("Flash memory content has been erased.");
+            let eraseFlashResult = await eraseFlashMain(
+              workspaceFolder,
+              token,
+              flashType
+            );
+            continueFlag = eraseFlashResult.continueFlag;
           } else if (commandName === "setTarget") {
             if (!target) {
               return new vscode.LanguageModelToolResult([
@@ -391,75 +203,106 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
                 ),
               ]);
             }
-            const targetsFromIdf = await getTargetsFromEspIdf(workspaceURI);
-            const selectedTarget = targetsFromIdf.find(
-              (t) => t.target === target
-            );
+            try {
+              const targetsFromIdf = await getTargetsFromEspIdf();
+              const selectedTarget = targetsFromIdf.find(
+                (t) => t.target === target
+              );
 
-            if (!selectedTarget) {
-              const espIdfPath = modifiedEnv["IDF_PATH"];
-              const espIdfVersion = await getEspIdfFromCMake(espIdfPath);
-              return new vscode.LanguageModelToolResult([
-                new vscode.LanguageModelTextPart(
-                  `${target} is not a valid target for ESP-IDF ${espIdfVersion}`
-                ),
-              ]);
+              if (!selectedTarget) {
+                const message =
+                  resolveKnownErrorUserMessage(
+                    invalidIdfTarget(
+                      target,
+                      targetsFromIdf.map((t) => t.target),
+                      setTargetErrorPresentation.invalidIdfTarget
+                    ),
+                    undefined
+                  ) ?? `${target} is not a valid target.`;
+                return new vscode.LanguageModelToolResult([
+                  new vscode.LanguageModelTextPart(message),
+                ]);
+              }
+              if (isSettingIDFTarget) {
+                const message =
+                  resolveKnownErrorUserMessage(
+                    idfTaskInProgress(
+                      IdfTaskName.SetTarget,
+                      setTargetErrorPresentation.idfTaskInProgress
+                    ),
+                    undefined
+                  ) ?? "Set target is already running.";
+                return new vscode.LanguageModelToolResult([
+                  new vscode.LanguageModelTextPart(message),
+                ]);
+              }
+              setIsSettingIDFTarget(true);
+              try {
+                const setTargetResult = await setTargetInIDF(
+                  workspaceFolder.uri,
+                  selectedTarget
+                );
+
+                const configurationTarget =
+                  vscode.ConfigurationTarget.WorkspaceFolder;
+                const customExtraVars = readParameter(
+                  "idf.customExtraVars",
+                  workspaceFolder
+                ) as { [key: string]: string };
+                customExtraVars["IDF_TARGET"] = selectedTarget.target;
+                await writeParameter(
+                  "idf.customExtraVars",
+                  customExtraVars,
+                  configurationTarget,
+                  workspaceFolder
+                );
+                await updateCurrentProfileIdfTarget(
+                  selectedTarget.target,
+                  workspaceFolder.uri
+                );
+
+                await getIdfTargetFromSdkconfig(
+                  workspaceFolder.uri,
+                  statusBarItems["target"]
+                );
+
+                return new vscode.LanguageModelToolResult([
+                  new vscode.LanguageModelTextPart(setTargetResult),
+                ]);
+              } finally {
+                setIsSettingIDFTarget(false);
+              }
+            } catch (error) {
+              if (isKnownError(error)) {
+                const userMessage =
+                  resolveKnownErrorUserMessage(error, {
+                    outputChannel: "Set Target",
+                  }) ?? error.message;
+                return new vscode.LanguageModelToolResult([
+                  new vscode.LanguageModelTextPart(userMessage),
+                ]);
+              }
+              throw error;
             }
-            const workspaceFolder = vscode.workspace.getWorkspaceFolder(
-              workspaceURI
-            );
-            if (isSettingIDFTarget) {
-              return new vscode.LanguageModelToolResult([
-                new vscode.LanguageModelTextPart(
-                  `"setTargetInIDF is already running."`
-                ),
-              ]);
-            }
-            setIsSettingIDFTarget(true);
-            const setTargetResult = await setTargetInIDF(
-              workspaceFolder,
-              selectedTarget
-            );
-
-            // Update configuration like setIdfTarget does
-            const configurationTarget =
-              vscode.ConfigurationTarget.WorkspaceFolder;
-            const customExtraVars = readParameter(
-              "idf.customExtraVars",
-              workspaceURI
-            ) as { [key: string]: string };
-            customExtraVars["IDF_TARGET"] = selectedTarget.target;
-            await writeParameter(
-              "idf.customExtraVars",
-              customExtraVars,
-              configurationTarget,
-              workspaceFolder.uri
-            );
-            await updateCurrentProfileIdfTarget(
-              selectedTarget.target,
-              workspaceFolder.uri
-            );
-
-            await getIdfTargetFromSdkconfig(
-              workspaceFolder.uri,
-              statusBarItems["target"]
-            );
-
-            setIsSettingIDFTarget(false);
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart(setTargetResult),
-            ]);
           } else {
             await vscode.commands.executeCommand(commandId);
           }
 
           if (TASK_COMMANDS.has(commandName)) {
-            for (const execution of taskExecutions) {
-              if (execution && 'getOutput' in execution) {
-                const output = await (execution as OutputCapturingExecution | ShellOutputCapturingExecution).getOutput();
-                outputs.push(new vscode.LanguageModelTextPart(output.stdout));
-                outputs.push(new vscode.LanguageModelTextPart(output.stderr));
-              }
+            if (!continueFlag) {
+              outputs.unshift(
+                new vscode.LanguageModelTextPart(
+                  `Command "${commandName}" did not complete successfully.`
+                )
+              );
+            }
+            for (const result of TaskManager.getTaskResults()) {
+              outputs.push(
+                new vscode.LanguageModelTextPart(result.output.stdout)
+              );
+              outputs.push(
+                new vscode.LanguageModelTextPart(result.output.stderr)
+              );
             }
             return new vscode.LanguageModelToolResult(outputs);
           }
@@ -474,61 +317,29 @@ export function activateLanguageTool(context: vscode.ExtensionContext) {
             new vscode.LanguageModelTextPart(feedback),
           ]);
         } catch (error) {
-          if (error.message === "ALREADY_BUILDING") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart("Already a build is running!"),
-            ]);
+          if (isKnownError(error)) {
+            const userMessage = resolveKnownErrorUserMessage(error);
+            if (userMessage) {
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart(userMessage),
+              ]);
+            }
           }
-          if (error.message === "BUILD_TERMINATED") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart("Build is Terminated"),
-            ]);
-          }
-          if (error.message === "ALREADY_FLASHING") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart(
-                "Already one flash process is running!"
-              ),
-            ]);
-          }
-          if (error.message === "NO_DFU_DEVICE_SELECTED") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart("No DFU was selected"),
-            ]);
-          }
-          if (error.message === "Task ESP-IDF Flash exited with code 74") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart(
-                "No DFU capable USB device available found"
-              ),
-            ]);
-          }
-          if (error.message === "FLASH_TERMINATED") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart("Flashing has been stopped!"),
-            ]);
-          }
-          if (error.message === "SECTION_BIN_FILE_NOT_ACCESSIBLE") {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart(
-                "Flash (.bin) files don't exists or can't be accessed!"
-              ),
-            ]);
-          }
-          if (
-            error.code === "ENOENT" ||
-            error.message === "SCRIPT_PERMISSION_ERROR"
-          ) {
-            return new vscode.LanguageModelToolResult([
-              new vscode.LanguageModelTextPart(
-                "Make sure you have the esptool.py installed and set in $PATH with proper permission"
-              ),
-            ]);
-          }
-          const errorMessage = `Failed to execute command "${commandName}": ${error.message}\n${error.stack}`;
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          const sanitizedMessage = `Failed to execute command "${commandName}": ${errorMessage}`;
+          const errorForLog =
+            error instanceof Error ? error : new Error(String(error));
+          Logger.error(
+            sanitizedMessage,
+            errorForLog,
+            "langToolsInvoke",
+            undefined,
+            false
+          );
           return new vscode.LanguageModelToolResult([
             ...outputs,
-            new vscode.LanguageModelTextPart(errorMessage),
+            new vscode.LanguageModelTextPart(sanitizedMessage),
           ]);
         }
       } else {
@@ -701,12 +512,5 @@ function getWebviewDescription(commandName: string): string {
       return "Component Manager - Browse and install ESP-IDF components";
     default:
       return "interface";
-  }
-}
-
-export function deactivateLanguageTool() {
-  if (disposable) {
-    disposable.dispose();
-    disposable = undefined;
   }
 }

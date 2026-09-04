@@ -16,19 +16,131 @@
  * limitations under the License.
  */
 
-import { join } from "path";
-import * as vscode from "vscode";
-import * as idfConf from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
+import { readParameter, writeParameter } from "../../configuration/idf";
+import { Logger } from "../../common/logger";
 import { spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
-import { OutputChannel } from "../../logger/outputChannel";
+import { OutputChannel } from "../../common/outputChannel";
 import * as SerialPortLib from "serialport";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
-import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
-import { showInfoNotificationWithAction } from "../../logger/utils";
-import { ESP } from "../../config";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
+import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
+import {
+  esptoolNotAccessible,
+  isKnownError,
+  childProcessFailed,
+  noSerialPort,
+  noSerialPortsAvailable,
+} from "../../common/error/knownError";
+import { ErrorCode } from "../../common/error/types";
+import { resolveEsptoolInvocation } from "../../flash/shared/esptool/resolveEsptoolInvocation";
+import {
+  ConfigurationTarget,
+  ProgressLocation,
+  QuickPickItem,
+  Uri,
+  l10n,
+  window,
+} from "vscode";
+import { serialErrorPresentation } from "./serialErrorPresentation";
+
+type SerialPortListItem = {
+  path: string;
+  manufacturer?: string;
+  vendorId?: string;
+  productId?: string;
+};
+
+type EsptoolInvocation = {
+  pythonPath: string;
+  esptoolScriptPath: string;
+};
+
+let listSerialPortsForTests: (() => Promise<SerialPortListItem[]>) | undefined;
+let spawnForTests: typeof spawn | undefined;
+let resolveEsptoolInvocationForTests:
+  | ((idfPath: string) => Promise<EsptoolInvocation>)
+  | undefined;
+let getExpectedIdfTargetForTests:
+  | ((workspaceFolder: Uri) => Promise<string>)
+  | undefined;
+let getCurrentIdfConfigurationForTests:
+  | (() => Record<string, string>)
+  | undefined;
+
+/** @internal Test helper to stub serial port dependencies. */
+export function setSerialPortModuleTestHooks(
+  hooks:
+    | {
+        listSerialPorts?: typeof listSerialPortsForTests;
+        spawn?: typeof spawnForTests;
+        resolveEsptoolInvocation?: typeof resolveEsptoolInvocationForTests;
+        getExpectedIdfTarget?: typeof getExpectedIdfTargetForTests;
+        getCurrentIdfConfiguration?: typeof getCurrentIdfConfigurationForTests;
+      }
+    | undefined
+): void {
+  listSerialPortsForTests = hooks?.listSerialPorts;
+  spawnForTests = hooks?.spawn;
+  resolveEsptoolInvocationForTests = hooks?.resolveEsptoolInvocation;
+  getExpectedIdfTargetForTests = hooks?.getExpectedIdfTarget;
+  getCurrentIdfConfigurationForTests = hooks?.getCurrentIdfConfiguration;
+}
+
+function readIdfConfiguration(): Record<string, string> {
+  if (getCurrentIdfConfigurationForTests) {
+    return getCurrentIdfConfigurationForTests();
+  }
+  return getCurrentIdfConfiguration();
+}
+
+async function getExpectedIdfTarget(workspaceFolder: Uri): Promise<string> {
+  if (getExpectedIdfTargetForTests) {
+    return getExpectedIdfTargetForTests(workspaceFolder);
+  }
+  return (await getIdfTargetFromSdkconfig(workspaceFolder)) ?? "esp32";
+}
+
+async function resolveEsptool(idfPath: string): Promise<EsptoolInvocation> {
+  if (resolveEsptoolInvocationForTests) {
+    return resolveEsptoolInvocationForTests(idfPath);
+  }
+  return resolveEsptoolInvocation(idfPath);
+}
+
+async function runSpawn(
+  ...args: Parameters<typeof spawn>
+): ReturnType<typeof spawn> {
+  if (spawnForTests) {
+    return spawnForTests(...args);
+  }
+  return spawn(...args);
+}
+
+function isChipIdRequestEnabled(
+  workspaceFolder: Uri,
+  skipEsptoolCall: boolean
+): boolean {
+  if (skipEsptoolCall) {
+    return false;
+  }
+  const setting = readParameter(
+    "idf.enableSerialPortChipIdRequest",
+    workspaceFolder
+  );
+  return setting !== false;
+}
+
+function getChipIdFromEsptoolOutput(output: string): string | undefined {
+  const connectedMatch = output.match(/Connected to\s+([^\s]+)\s+on/);
+  if (connectedMatch?.[1]) {
+    return connectedMatch[1].trim();
+  }
+  const chipMatch = output.match(/Chip is(.*?)[\r]?\n/);
+  if (chipMatch?.[1]) {
+    return chipMatch[1].trim();
+  }
+  return undefined;
+}
 
 export class SerialPort {
   /**
@@ -74,7 +186,7 @@ export class SerialPort {
 
   private static instance: SerialPort;
   public promptUserToSelect(
-    workspaceFolder: vscode.Uri,
+    workspaceFolder: Uri,
     useMonitorPort: boolean
   ) {
     return SerialPort.shared().displayList(workspaceFolder, useMonitorPort);
@@ -83,51 +195,54 @@ export class SerialPort {
   /**
    * Detect the default serial port using esptool.py
    * @param workspaceFolder The workspace folder
-   * @returns The detected port or undefined if no device found
+   * @param focusOnOutputChannel Whether to focus on the output channel during detection
+   * @returns The detected port
+   * @throws {KnownError} When prerequisites are missing or no matching device is found
    */
   public static async detectDefaultPort(
-    workspaceFolder: vscode.Uri
-  ): Promise<string | undefined> {
-    return vscode.window.withProgress(
+    workspaceFolder: Uri,
+    focusOnOutputChannel: boolean = true
+  ): Promise<string> {
+    return window.withProgress(
       {
-        location: vscode.ProgressLocation.Notification,
-        title: vscode.l10n.t("Detecting Espressif device serial port..."),
+        location: ProgressLocation.Notification,
+        title: l10n.t("Detecting Espressif device serial port..."),
         cancellable: false,
       },
       async (progress) => {
         try {
-          const modifiedEnv = await configureEnvVariables(workspaceFolder);
+          const modifiedEnv = readIdfConfiguration();
           const idfPath = modifiedEnv["IDF_PATH"];
-          const pythonBinPath = await getVirtualEnvPythonPath();
-          const esptoolPath = join(
-            idfPath,
-            "components",
-            "esptool_py",
-            "esptool",
-            "esptool.py"
-          );
+          if (!idfPath) {
+            throw esptoolNotAccessible(
+              serialErrorPresentation.esptoolNotAccessible
+            );
+          }
+          const { pythonPath, esptoolScriptPath } =
+            await resolveEsptool(idfPath);
+          const expectedTarget = await getExpectedIdfTarget(workspaceFolder);
 
-          const targetMatch = await getIdfTargetFromSdkconfig(workspaceFolder);
-          const expectedTarget = targetMatch ? targetMatch : "esp32";
-
-          OutputChannel.show();
+          if (focusOnOutputChannel) {
+            OutputChannel.show();
+          }
           OutputChannel.appendLine(
             `Detecting default port using esptool.py...`
           );
           const timeout =
-            (idfConf.readParameter(
+            (readParameter(
               "idf.serialPortDetectionTimeout",
               workspaceFolder
-            ) as number) * 1000; // Convert seconds to milliseconds
+            ) as number) * 1000;
 
-          const result = await spawn(
-            pythonBinPath,
-            [esptoolPath, "--chip", expectedTarget, "chip_id"],
+          const result = await runSpawn(
+            pythonPath,
+            [esptoolScriptPath, "--chip", expectedTarget, "chip_id"],
             {
               silent: false,
               appendMode: "append",
               timeout: timeout,
               sendToTelemetry: false,
+              errorPresentation: serialErrorPresentation.childProcessFailed,
             }
           );
 
@@ -139,7 +254,6 @@ export class SerialPort {
           let portCount = 0;
           let testedPorts = 0;
 
-          // Count total ports first
           for (const line of lines) {
             const portMatch = line.match(/Serial port\s+(\S+)/);
             if (portMatch) {
@@ -147,9 +261,7 @@ export class SerialPort {
             }
           }
 
-          // Parse the output to find the working port
           for (const line of lines) {
-            // Look for "Serial port" lines to track which port is being tested
             const portMatch = line.match(/Serial port\s+(\S+)/);
             if (portMatch) {
               currentPort = portMatch[1];
@@ -158,7 +270,7 @@ export class SerialPort {
               }
               testedPorts++;
               progress.report({
-                message: vscode.l10n.t(
+                message: l10n.t(
                   "Testing port {0} ({1}/{2})",
                   currentPort,
                   testedPorts,
@@ -169,7 +281,6 @@ export class SerialPort {
               continue;
             }
 
-            // Look for "Chip is" lines to identify successful connections
             const chipMatch =
               line.match(/Connected to\s+([^\s]+)\s+on/) ||
               line.match(/Chip is\s+([^\s(]+)/);
@@ -179,14 +290,12 @@ export class SerialPort {
                 .toLowerCase()
                 .replace(/-/g, "");
 
-              // Check if the chip type matches the expected target
               if (chipType === expectedTarget.toLowerCase()) {
                 foundWorkingPort = this.convertMacOSPortName(currentPort);
                 break;
               }
             }
 
-            // If we see a failure message, reset currentPort
             if (
               line.includes("failed to connect") ||
               line.includes("No serial data received")
@@ -197,143 +306,122 @@ export class SerialPort {
 
           if (!foundWorkingPort) {
             progress.report({
-              message: vscode.l10n.t(
+              message: l10n.t(
                 "No serial port found for current IDF_TARGET: {0}",
                 expectedTarget
               ),
             });
+            throw noSerialPort(
+              expectedTarget,
+              serialErrorPresentation.noSerialPort
+            );
           }
 
           return foundWorkingPort;
         } catch (error) {
+          if (isKnownError(error)) {
+            throw error;
+          }
           Logger.error(
             "Failed to detect default serial port",
-            error,
-            "serialPort detectDefaultPort"
+            error as Error,
+            "serialPort detectDefaultPort",
+            undefined,
+            false
           );
-          return undefined;
+          const detail =
+            error instanceof Error && error.message
+              ? error.message
+              : "Serial port detection failed.";
+          throw childProcessFailed(
+            { detail },
+            serialErrorPresentation.childProcessFailed
+          );
         }
       }
     );
   }
 
   private async displayList(
-    workspaceFolder: vscode.Uri,
+    workspaceFolder: Uri,
     useMonitorPort: boolean
   ) {
-    const msg = vscode.l10n.t(
+    const msg = l10n.t(
       "Select the available serial port where your device is connected."
     );
 
-    try {
-      let portList: SerialPortDetails[] = await this.list(
-        workspaceFolder,
-        false
-      );
+    const portList: SerialPortDetails[] = await this.list(
+      workspaceFolder,
+      false
+    );
 
-      // Get the currently selected port
-      const portSetting2Use = useMonitorPort ? "idf.monitorPort" : "idf.port";
-      const currentPort = idfConf.readParameter(
-        portSetting2Use,
-        workspaceFolder
-      ) as string;
+    const portSetting2Use = useMonitorPort ? "idf.monitorPort" : "idf.port";
+    const currentPort = readParameter(
+      portSetting2Use,
+      workspaceFolder
+    ) as string;
 
-      // Add the "detect" option at the beginning of the list
-      const detectOption = {
-        description: vscode.l10n.t(
-          "Auto-detect port (let esptool.py find the device automatically)"
-        ),
-        label: "detect",
-        picked: false,
+    const detectOption = {
+      description: l10n.t(
+        "Auto-detect port (let esptool.py find the device automatically)"
+      ),
+      label: "detect",
+      picked: false,
+    };
+
+    const portOptions = portList.map((l: SerialPortDetails) => {
+      return {
+        description: l.chipType || l.manufacturer || "",
+        label: l.comName,
+        picked: SerialPort.isSamePort(l.comName, currentPort),
       };
+    });
 
-      const portOptions = portList.map((l: SerialPortDetails) => {
-        return {
-          description: l.chipType || l.manufacturer,
-          label: l.comName,
-          picked: SerialPort.isSamePort(l.comName, currentPort),
-        };
+    const allOptions = [detectOption, ...portOptions];
+
+    const quickPick = window.createQuickPick<{
+      description: string;
+      label: string;
+      picked: boolean;
+    }>();
+    quickPick.placeholder = msg;
+    quickPick.items = allOptions;
+    quickPick.activeItems = quickPick.items.filter((item) => item.picked);
+
+    const chosen = await new Promise<QuickPickItem | undefined>((resolve) => {
+      quickPick.onDidAccept(() => {
+        resolve(quickPick.selectedItems[0]);
       });
+      quickPick.onDidHide(() => {
+        resolve(undefined);
+      });
+      quickPick.show();
+    });
 
-      const allOptions = [detectOption, ...portOptions];
+    quickPick.dispose();
 
-      // Create QuickPick and show currently selected port
-      const quickPick = vscode.window.createQuickPick<{
-        description: string;
-        label: string;
-        picked: boolean;
-      }>();
-      quickPick.placeholder = msg;
-      quickPick.items = allOptions;
-      quickPick.activeItems = quickPick.items.filter((item) => item.picked);
-
-      const chosen = await new Promise<vscode.QuickPickItem | undefined>(
-        (resolve) => {
-          quickPick.onDidAccept(() => {
-            resolve(quickPick.selectedItems[0]);
-          });
-          quickPick.onDidHide(() => {
-            resolve(undefined);
-          });
-          quickPick.show();
-        }
-      );
-
-      quickPick.dispose();
-
-      if (chosen && chosen.label) {
-        if (chosen.label === "detect") {
-          const detectedPort = await SerialPort.detectDefaultPort(
-            workspaceFolder
-          );
-          if (detectedPort) {
-            await this.updatePortListStatus(
-              detectedPort,
-              workspaceFolder,
-              useMonitorPort
-            );
-          } else {
-            const targetMatch = await getIdfTargetFromSdkconfig(
-              workspaceFolder
-            );
-            const currentTarget = targetMatch ? targetMatch : "esp32";
-            const noPortFoundMsg = vscode.l10n.t(
-              "No serial port found for current IDF_TARGET: {0}",
-              currentTarget
-            );
-            await showInfoNotificationWithAction(
-              noPortFoundMsg,
-              vscode.l10n.t("Detect"),
-              () => vscode.commands.executeCommand("espIdf.detectSerialPort")
-            );
-          }
-        } else {
-          await this.updatePortListStatus(
-            chosen.label,
-            workspaceFolder,
-            useMonitorPort
-          );
-        }
+    if (chosen && chosen.label) {
+      if (chosen.label === "detect") {
+        const detectedPort = await SerialPort.detectDefaultPort(
+          workspaceFolder
+        );
+        await this.updatePortListStatus(
+          detectedPort,
+          workspaceFolder,
+          useMonitorPort
+        );
+      } else {
+        await this.updatePortListStatus(
+          chosen.label,
+          workspaceFolder,
+          useMonitorPort
+        );
       }
-    } catch (error) {
-      const msg = error.message
-        ? error.message
-        : "Something went wrong while getting the serial port list";
-      const sendToTelemetry = msg.indexOf("No serial ports found") === -1;
-      Logger.errorNotify(
-        msg,
-        error,
-        "SerialPort displayList",
-        undefined,
-        sendToTelemetry
-      );
-      OutputChannel.appendLine(msg, "Serial port");
-      OutputChannel.appendLineAndShow(JSON.stringify(error));
     }
   }
 
   public async getListArray(
-    workspaceFolder: vscode.Uri,
+    workspaceFolder: Uri,
     skipEsptoolCall: boolean = false
   ) {
     return await this.list(workspaceFolder, skipEsptoolCall);
@@ -341,136 +429,122 @@ export class SerialPort {
 
   public async updatePortListStatus(
     l: string,
-    wsFolder: vscode.Uri,
+    wsFolder: Uri,
     useMonitorPort: boolean
   ) {
     const portSetting2Use = useMonitorPort ? "idf.monitorPort" : "idf.port";
-    const settingsSavedLocation = await idfConf.writeParameter(
+    const settingsSavedLocation = await writeParameter(
       portSetting2Use,
       l,
-      vscode.ConfigurationTarget.WorkspaceFolder,
+      ConfigurationTarget.WorkspaceFolder,
       wsFolder
     );
-    const portHasBeenSelectedMsg = vscode.l10n.t("Port has been updated to ");
+    const portHasBeenSelectedMsg = l10n.t("Port has been updated to ");
     Logger.infoNotify(
       `${portHasBeenSelectedMsg}${l} in ${settingsSavedLocation}`
     );
   }
 
-  private list(
-    workspaceFolder: vscode.Uri,
+  private async list(
+    workspaceFolder: Uri,
     skipEsptoolCall: boolean
-  ): Thenable<SerialPortDetails[]> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const listOfSerialPorts = await SerialPortLib.SerialPort.list();
+  ): Promise<SerialPortDetails[]> {
+    const listOfSerialPorts = listSerialPortsForTests
+      ? await listSerialPortsForTests()
+      : await SerialPortLib.SerialPort.list();
 
-        if (!listOfSerialPorts || listOfSerialPorts.length === 0) {
-          reject(new Error("No serial ports found"));
-          return;
-        }
+    if (!listOfSerialPorts || listOfSerialPorts.length === 0) {
+      throw noSerialPortsAvailable(
+        serialErrorPresentation.noSerialPortsAvailable
+      );
+    }
 
-        let choices = listOfSerialPorts.map((item) => {
-          return new SerialPortDetails(
-            item.path,
-            item.manufacturer,
-            item.vendorId,
-            item.productId
-          );
-        });
-        const enableSerialPortChipIdRequest = idfConf.readParameter(
-          "idf.enableSerialPortChipIdRequest",
-          workspaceFolder
-        ) as boolean;
-        const useSerialPortVendorProductFilter = idfConf.readParameter(
-          "idf.useSerialPortVendorProductFilter",
-          workspaceFolder
-        ) as boolean;
-        const usbSerialPortFilters = idfConf.readParameter(
-          "idf.usbSerialPortFilters",
-          workspaceFolder
-        ) as { [key: string]: { vendorId: string; productId: string } };
-        if (useSerialPortVendorProductFilter) {
-          const filterDictKeys = new Set<string>(
-            Object.keys(usbSerialPortFilters).map((key) => {
-              const { vendorId, productId } = usbSerialPortFilters[key];
-              return `${vendorId ? vendorId.toLowerCase() : undefined}-${
-                productId ? productId.toLowerCase() : undefined
-              }`;
-            })
-          );
-          choices = choices.filter(({ vendorId, productId }) => {
-            const key = `0x${vendorId ? vendorId.toLowerCase() : undefined}-0x${
-              productId ? productId.toLowerCase() : undefined
-            }`;
-            return filterDictKeys.has(key);
-          });
-        }
-
-        if (!enableSerialPortChipIdRequest) {
-          return resolve(choices);
-        }
-
-        if (skipEsptoolCall) {
-          resolve(choices);
-        } else {
-          const pythonBinPath = await getVirtualEnvPythonPath();
-          const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-            [key: string]: string;
-          }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-          const idfPath = currentEnvVars["IDF_PATH"];
-          const esptoolPath = join(
-            idfPath,
-            "components",
-            "esptool_py",
-            "esptool",
-            "esptool.py"
-          );
-          let stat: vscode.FileStat;
-          try {
-            stat = await vscode.workspace.fs.stat(vscode.Uri.file(esptoolPath));
-          } catch {
-            throw new Error(`esptool.py does not exist at ${esptoolPath}`);
-          }
-          if (stat.type !== vscode.FileType.File) {
-            throw new Error(`esptool.py at ${esptoolPath} is not a file`);
-          }
-          async function processPorts(
-            serialPort: SerialPortDetails,
-            esptoolPath: string
-          ) {
-            try {
-              const chipIdBuffer = await spawn(
-                pythonBinPath,
-                [esptoolPath, "--port", serialPort.comName, "chip_id"],
-                {
-                  timeout: 2000,
-                  silent: true,
-                  appendMode: "append",
-                  sendToTelemetry: false,
-                }
-              );
-              const regexp = /Chip is(.*?)[\r]?\n/;
-              const chipIdString = chipIdBuffer.toString().match(regexp);
-
-              serialPort.chipType =
-                chipIdString && chipIdString.length > 1
-                  ? chipIdString[1].trim()
-                  : undefined;
-            } catch (error) {
-              serialPort.chipType = undefined;
-            }
-            return serialPort;
-          }
-          resolve(
-            await Promise.all(
-              choices.map((item) => processPorts(item, esptoolPath))
-            )
-          );
-        }
-      } catch (error) {
-        reject(error);
-      }
+    let choices = listOfSerialPorts.map((item) => {
+      return new SerialPortDetails(
+        item.path,
+        item.manufacturer,
+        item.vendorId,
+        item.productId
+      );
     });
+    const enableSerialPortChipIdRequest = isChipIdRequestEnabled(
+      workspaceFolder,
+      skipEsptoolCall
+    );
+    const useSerialPortVendorProductFilter = readParameter(
+      "idf.useSerialPortVendorProductFilter",
+      workspaceFolder
+    ) as boolean;
+    const usbSerialPortFilters = readParameter(
+      "idf.usbSerialPortFilters",
+      workspaceFolder
+    ) as { [key: string]: { vendorId: string; productId: string } };
+    if (useSerialPortVendorProductFilter) {
+      const filterDictKeys = new Set<string>(
+        Object.keys(usbSerialPortFilters).map((key) => {
+          const { vendorId, productId } = usbSerialPortFilters[key];
+          return `${vendorId ? vendorId.toLowerCase() : undefined}-${
+            productId ? productId.toLowerCase() : undefined
+          }`;
+        })
+      );
+      choices = choices.filter(({ vendorId, productId }) => {
+        const key = `0x${vendorId ? vendorId.toLowerCase() : undefined}-0x${
+          productId ? productId.toLowerCase() : undefined
+        }`;
+        return filterDictKeys.has(key);
+      });
+    }
+
+    if (!enableSerialPortChipIdRequest) {
+      return choices;
+    }
+
+    const currentEnvVars = readIdfConfiguration();
+    const idfPath = currentEnvVars["IDF_PATH"];
+    if (!idfPath) {
+      throw esptoolNotAccessible(serialErrorPresentation.esptoolNotAccessible);
+    }
+
+    let pythonPath: string | undefined;
+    let esptoolScriptPath: string | undefined;
+    try {
+      ({ pythonPath, esptoolScriptPath } = await resolveEsptool(idfPath));
+    } catch (error) {
+      if (
+        !isKnownError(error) ||
+        error.code !== ErrorCode.MISSING_DEPENDENCY ||
+        error.metadata?.dependency !== "Python"
+      ) {
+        throw error;
+      }
+    }
+
+    async function processPorts(serialPort: SerialPortDetails) {
+      try {
+        if (!pythonPath || !esptoolScriptPath) {
+          serialPort.chipType = undefined;
+          return serialPort;
+        }
+        const chipIdBuffer = await runSpawn(
+          pythonPath,
+          [esptoolScriptPath, "--port", serialPort.comName, "chip_id"],
+          {
+            timeout: 2000,
+            silent: true,
+            appendMode: "append",
+            sendToTelemetry: false,
+          }
+        );
+        serialPort.chipType = getChipIdFromEsptoolOutput(
+          chipIdBuffer.toString()
+        );
+      } catch (e) {
+        serialPort.chipType = undefined;
+      }
+      return serialPort;
+    }
+
+    return Promise.all(choices.map((item) => processPorts(item)));
   }
 }

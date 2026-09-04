@@ -19,6 +19,7 @@
 import { defineStore } from "pinia";
 import { ref, Ref, computed } from "vue";
 import { Menu } from "../../espIdf/menuconfig/Menu";
+import { findMenuPath } from "../../espIdf/menuconfig/findMenuPath";
 
 declare var acquireVsCodeApi: any;
 let vscode: any;
@@ -44,6 +45,7 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
   const items: Ref<Menu[]> = ref([]);
   const _selectedMenu = ref("");
   const searchString = ref("");
+  const focusedConfigId = ref("");
   const textDictionary: Ref<{
     save: string;
     discard: string;
@@ -64,6 +66,9 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
   });
 
   function sendNewValue(newValue: any) {
+    if (newValue?.id && newValue.id === focusedConfigId.value) {
+      clearFocusedConfig();
+    }
     vscode.postMessage({
       command: "updateValue",
       updated_value: JSON.stringify(newValue),
@@ -71,13 +76,16 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
   }
 
   function saveGuiConfig() {
-    // Save current items
+    clearFocusedConfig();
     vscode.postMessage({
       command: "saveChanges",
     });
   }
 
   function resetElement(id: string) {
+    if (id === focusedConfigId.value) {
+      clearFocusedConfig();
+    }
     vscode.postMessage({
       command: "resetElement",
       id: id,
@@ -85,6 +93,9 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
   }
 
   function resetElementChildren(children: string[]) {
+    if (focusedConfigId.value && children.includes(focusedConfigId.value)) {
+      clearFocusedConfig();
+    }
     vscode.postMessage({
       command: "resetElementChildren",
       children: children,
@@ -92,7 +103,7 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
   }
 
   function resetGuiConfig() {
-    // Reset current items
+    clearFocusedConfig();
     vscode.postMessage({
       command: "discardChanges",
     });
@@ -105,16 +116,35 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
   }
 
   function setDefaultConfig() {
-    // Set default items
+    clearFocusedConfig();
     vscode.postMessage({
       command: "setDefault",
     });
+  }
+
+  function clearFocusedConfig() {
+    focusedConfigId.value = "";
+  }
+
+  function focusConfig(id: string) {
+    searchString.value = "";
+    if (focusedConfigId.value === id) {
+      focusedConfigId.value = "";
+    }
+    queueMicrotask(() => {
+      focusedConfigId.value = id;
+    });
+  }
+
+  function menuPathToId(id: string): Menu[] | undefined {
+    return findMenuPath(items.value, id);
   }
 
   return {
     confserverVersion,
     items,
     searchString,
+    focusedConfigId,
     selectedMenu,
     textDictionary,
     sendNewValue,
@@ -124,5 +154,7 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
     resetElementChildren,
     resetGuiConfig,
     requestInitValues,
+    focusConfig,
+    menuPathToId,
   };
 });
