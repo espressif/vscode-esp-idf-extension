@@ -20,7 +20,7 @@ import * as vscode from "vscode";
 import { Logger } from "./common/logger";
 import { OutputChannel } from "./common/outputChannel";
 import { processInvocationMetadata } from "./common/processTelemetry";
-import { childProcessFailedFromInvocation } from "./common/error/knownError";
+import { childProcessFailedFromInvocation, fileNotFound, invalidCommandInvocation } from "./common/error/knownError";
 import { ErrorPresentation } from "./common/error/types";
 import { ESP } from "./config";
 import { getCurrentIdfConfiguration } from "./configuration/env";
@@ -28,7 +28,8 @@ import { getCurrentIdfConfiguration } from "./configuration/env";
 export const packageJson = vscode.extensions.getExtension(ESP.extensionID)
   ?.packageJSON;
 
-export interface ISpawnOptions extends childProcess.SpawnOptions {
+export interface ISpawnOptions
+  extends Omit<childProcess.SpawnOptions, "shell"> {
   /** Cancellation token to cancel the spawn */
   cancelToken?: vscode.CancellationToken;
   /** The maximum time in milliseconds to wait for the command to complete */
@@ -44,6 +45,46 @@ export interface ISpawnOptions extends childProcess.SpawnOptions {
   maxBuffer?: number;
   /** Call-site presentation for ChildProcessFailed */
   errorPresentation?: ErrorPresentation;
+}
+
+const UNSAFE_SPAWN_CHARS = /[\n\r\0]/;
+const SAFE_PATH_BASENAME = /^[A-Za-z0-9._+-]+$/;
+
+function hasUnsafeSpawnChars(value: string): boolean {
+  return UNSAFE_SPAWN_CHARS.test(value);
+}
+
+function isPathLikeCommand(command: string): boolean {
+  return path.isAbsolute(command) || command.includes("/") || command.includes("\\");
+}
+
+/**
+ * Blocks env-tainted command strings from being interpreted as a shell line.
+ * Path-like executables must exist; PATH lookups must be a simple basename.
+ */
+export function assertSafeSpawnInvocation(
+  command: string,
+  args: string[] = []
+): void {
+  if (!command || hasUnsafeSpawnChars(command)) {
+    throw invalidCommandInvocation(
+      command ? "Command contains control characters." : "Command is empty."
+    );
+  }
+  for (const arg of args) {
+    if (hasUnsafeSpawnChars(arg)) {
+      throw invalidCommandInvocation("Process argument contains control characters.");
+    }
+  }
+  if (isPathLikeCommand(command)) {
+    if (!canAccessFile(command, constants.X_OK)) {
+      throw fileNotFound(command);
+    }
+    return;
+  }
+  if (!SAFE_PATH_BASENAME.test(command)) {
+    throw invalidCommandInvocation("Command is not a safe executable name.");
+  }
 }
 
 export function spawn(
@@ -65,6 +106,7 @@ export function spawn(
     errorPresentation,
     ...spawnOptions
   } = options;
+  assertSafeSpawnInvocation(command, args);
   let buff: Buffer = Buffer.alloc(0);
   let stdoutBuff: Buffer = Buffer.alloc(0);
   let stderrBuff: Buffer = Buffer.alloc(0);
@@ -102,7 +144,10 @@ export function spawn(
   return new Promise((resolve, reject) => {
     spawnOptions.cwd =
       spawnOptions.cwd || path.resolve(path.join(__dirname, ".."));
-    const child = childProcess.spawn(command, args, spawnOptions);
+    const child = childProcess.spawn(command, args, {
+      ...spawnOptions,
+      shell: false,
+    });
     let timeoutHandler = undefined;
     let settled = false;
     const settle = (action: () => void) => {
@@ -222,9 +267,10 @@ export function execChildProcess(
   args: string[] = [],
   workingDirectory: string,
   channel?: vscode.OutputChannel,
-  opts?: childProcess.ExecFileOptions,
+  opts?: Omit<childProcess.ExecFileOptions, "shell">,
   cancelToken?: vscode.CancellationToken
 ): Promise<string> {
+  assertSafeSpawnInvocation(command, args);
   const execOpts: childProcess.ExecFileOptionsWithStringEncoding = {
     cwd: workingDirectory,
     maxBuffer: 500 * 1024,
@@ -233,6 +279,7 @@ export function execChildProcess(
       opts?.encoding && opts.encoding !== "buffer"
         ? (opts.encoding as BufferEncoding)
         : "utf8",
+    shell: false,
   };
   return new Promise<string>((resolve, reject) => {
     childProcess.execFile(
