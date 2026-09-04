@@ -20,7 +20,11 @@ import * as vscode from "vscode";
 import { Logger } from "./common/logger";
 import { OutputChannel } from "./common/outputChannel";
 import { processInvocationMetadata } from "./common/processTelemetry";
-import { childProcessFailedFromInvocation, fileNotFound, invalidCommandInvocation } from "./common/error/knownError";
+import {
+  childProcessFailedFromInvocation,
+  fileNotFound,
+  invalidCommandInvocation,
+} from "./common/error/knownError";
 import { ErrorPresentation } from "./common/error/types";
 import { ESP } from "./config";
 import { getCurrentIdfConfiguration } from "./configuration/env";
@@ -57,7 +61,9 @@ function hasUnsafeSpawnChars(value: string): boolean {
 }
 
 function isPathLikeCommand(command: string): boolean {
-  return path.isAbsolute(command) || command.includes("/") || command.includes("\\");
+  return (
+    path.isAbsolute(command) || command.includes("/") || command.includes("\\")
+  );
 }
 
 /**
@@ -75,7 +81,9 @@ export function assertSafeSpawnInvocation(
   }
   for (const arg of args) {
     if (hasUnsafeSpawnChars(arg)) {
-      throw invalidCommandInvocation("Process argument contains control characters.");
+      throw invalidCommandInvocation(
+        "Process argument contains control characters."
+      );
     }
   }
   if (isPathLikeCommand(command)) {
