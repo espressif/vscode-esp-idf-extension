@@ -28,12 +28,12 @@ When telemetry is enabled, these named events are sent (`Telemetry.sendEvent`):
 
 Process and command failures are sent as exceptions. The only path to `Telemetry.sendException` is `Logger.error` / `Logger.errorNotify`. Duplicate exceptions are dropped using a fingerprint in `Telemetry.sendException`.
 
-| Funnel                                | Source                        | When                                                                              | Notes                                                                                                                                                                              |
-| ------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Logger.error` / `Logger.errorNotify` | `src/common/logger.ts`        | Any call that does not pass `sendTelemetry: false` (5th argument; default `true`) | Sets `capturedBy` to `Logger`. Other `Logger.error` call sites that still send all use this funnel.                                                                                |
-| `handleError`                         | `src/common/error/handler.ts` | Command failures from `registerIDFCommand`                                        | Category `handleError ${commandId}`; metadata includes `command`. Known errors with Warning or Info severity are not sent as exceptions.                                           |
-| `utils.spawn`                         | `src/utils.ts`                | Non-zero process exit                                                             | Category `src utils spawn`; metadata from `processInvocationMetadata`. Honors `sendToTelemetry` (default `true`).                                                                  |
-| `utils.execChildProcess`              | `src/utils.ts`                | Spawn `error`, or stderr that is not an OpenOCD banner / warning                  | Categories `utils execChildProcess` and `utils execChildProcess stderr`. Always sends (no opt-out flag). OpenOCD version banners and warning-only stderr are not logged as errors. |
+| Funnel                                | Source                        | When                                                                              | Notes                                                                                                                                                                                                                                                |
+| ------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Logger.error` / `Logger.errorNotify` | `src/common/logger.ts`        | Any call that does not pass `sendTelemetry: false` (5th argument; default `true`) | Sets `capturedBy` to `Logger`. Other `Logger.error` call sites that still send all use this funnel.                                                                                                                                                  |
+| `handleError`                         | `src/common/error/handler.ts` | Command failures from `registerIDFCommand`                                        | Category `handleError ${commandId}`; metadata includes `command`. Known errors with Warning or Info severity are not sent as exceptions.                                                                                                             |
+| `utils.spawn`                         | `src/utils.ts`                | Non-zero process exit                                                             | Category `src utils spawn`; metadata from `processInvocationMetadata`. Honors `sendToTelemetry` (default `true`). The rejected error is `ChildProcessFailed`. Spawn `error` events (for example `ENOENT`) reject the same code without this log.     |
+| `utils.execChildProcess`              | `src/utils.ts`                | Spawn `error`, or stderr that is not an OpenOCD banner / warning                  | Categories `utils execChildProcess` and `utils execChildProcess stderr`. Always sends (no opt-out flag). OpenOCD version banners and warning-only stderr are not logged as errors. Failures reject `ChildProcessFailed` with captured stdout/stderr. |
 
 #### Exception properties
 
@@ -45,12 +45,15 @@ Custom properties include:
 - `args` — sanitized argument list (path tokens reduced to basename, serial ports after `-p` / `--port` redacted, truncated)
 - `script` — first `*.py` argument basename when present (`idf.py`, `esptool.py`)
 - `taskName` — ESP-IDF task name for task failures (`ESP-IDF Build`, `ESP-IDF Flash`)
-- `knownErrorCode` — `KnownError.code` when the logged error is a KnownError (`TaskFailedWithOutput`, `MISSING_DEPENDENCY`); omitted for plain `Error`s such as spawn/exec failures
+- `knownErrorCode` — `KnownError.code` when the logged error is a KnownError (`TaskFailedWithOutput`, `ChildProcessFailed`, `MISSING_DEPENDENCY`); omitted for plain `Error`s
 - `givenMessage`, `errorMessage`, `errorStack`, `capturedBy`
 
 Captured build or flash output is never sent. It stays in the local
 `esp_idf_vsc_ext.log` file, while error messages replace long values with a size
-marker (for example `"stdout": "[27431 chars]"`). Before leaving the machine,
+marker (for example `"stdout": "[27431 chars]"`). The `commandLine` metadata key
+holds the unsanitized invocation for the **Ask AI to Fix** prompt and the log
+file; it is never an exception property, and `formatTechnicalMessage` omits it so
+it stays out of `errorMessage`. Before leaving the machine,
 `givenMessage`, `errorMessage` and `errorStack` are truncated (1000 and 4000
 characters) and home-directory paths are replaced with `~` so user names are not
 reported.

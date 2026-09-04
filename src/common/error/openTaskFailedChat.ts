@@ -54,8 +54,22 @@ export function buildTaskFailedChatPrompt(
   const exitCode = metadata?.exitCode ?? "(unknown)";
   const stdout = truncateFromEnd(streamFromMetadata(metadata, "stdout"));
   const stderr = truncateFromEnd(streamFromMetadata(metadata, "stderr"));
+  const detail = truncateFromEnd(streamFromMetadata(metadata, "detail"));
   const phase =
     typeof metadata?.phase === "string" ? metadata.phase : undefined;
+  const spawnErrorCode =
+    typeof metadata?.spawnErrorCode === "string"
+      ? metadata.spawnErrorCode
+      : undefined;
+  const processCommand =
+    typeof metadata?.processCommand === "string"
+      ? metadata.processCommand
+      : undefined;
+  const commandLine =
+    typeof metadata?.commandLine === "string"
+      ? metadata.commandLine
+      : undefined;
+  const args = typeof metadata?.args === "string" ? metadata.args : undefined;
   const lines = [
     "Help me fix the issue in the output of this ESP-IDF task.",
     "",
@@ -63,6 +77,14 @@ export function buildTaskFailedChatPrompt(
   ];
   if (phase) {
     lines.push(`Phase: ${phase}`);
+  }
+  if (spawnErrorCode) {
+    lines.push(`Spawn error: ${spawnErrorCode}`);
+  }
+  if (commandLine) {
+    lines.push(`Command: ${commandLine}`);
+  } else if (processCommand) {
+    lines.push(`Command: ${[processCommand, args].filter(Boolean).join(" ")}`);
   }
   lines.push(
     "",
@@ -76,6 +98,9 @@ export function buildTaskFailedChatPrompt(
     stderr,
     "```"
   );
+  if (detail) {
+    lines.push("", "Detail:", "```", detail, "```");
+  }
   return lines.join("\n");
 }
 

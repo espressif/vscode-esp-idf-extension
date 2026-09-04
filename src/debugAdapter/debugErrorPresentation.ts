@@ -9,6 +9,7 @@
 import { commands } from "vscode";
 import { ErrorSeverity } from "../common/customNotifications";
 import { ErrorPresentation } from "../common/error/types";
+import { OutputChannel } from "../common/outputChannel";
 
 const debugOutputChannel = "Debug";
 
@@ -80,11 +81,11 @@ export const debugErrorPresentation = {
     actions: [],
     outputChannel: debugOutputChannel,
   } satisfies ErrorPresentation,
-  taskFailedWithOutput: {
+  childProcessFailed: {
     severity: ErrorSeverity.Error,
-    userMessage: "App binary verification failed. Check the terminal output for details.",
-    logMessage: "Debug app verify task failed with captured output.",
-    actions: [{ label: "View Terminal Output", execute: () => commands.executeCommand("workbench.action.terminal.focus") }],
+    userMessage: "App binary verification failed. Check the output for details.",
+    logMessage: "Debug app verify command failed with captured output.",
+    actions: [{ label: "View Output", execute: () => OutputChannel.show() }],
     outputChannel: debugOutputChannel,
   } satisfies ErrorPresentation,
   parseError: {

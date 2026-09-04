@@ -18,6 +18,7 @@ import { existsSync } from "fs";
 import { Logger } from "../common/logger";
 import { spawn } from "../utils";
 import { CancellationToken, Uri, l10n } from "vscode";
+import { isKnownError } from "../common/error/knownError";
 import { readParameter } from "../configuration/idf";
 import { join } from "path";
 import { EOL } from "os";
@@ -66,6 +67,9 @@ export async function addDependency(
     );
     Logger.info(addDependencyResult.toString());
   } catch (error) {
+    if (isKnownError(error)) {
+      throw error;
+    }
     const throwableError = new Error(
       l10n.t(
         `Error encountered while adding dependency {dependency} to the component "{component}"`,
@@ -139,6 +143,9 @@ export async function createProject(
 
     return projectPath;
   } catch (error) {
+    if (isKnownError(error)) {
+      throw error;
+    }
     const msg = error instanceof Error ? error.message : String(error);
     const throwableError = new Error(
       `${l10n.t(

@@ -5,9 +5,9 @@ import { ErrorPresentation } from "../../common/error/types";
 const outputChannel = "Set Target";
 
 export const setTargetErrorPresentation = {
-  taskFailedWithOutput: {
+  childProcessFailed: {
     userMessage: "Set target failed. Check the output for details.",
-    logMessage: "Set target task failed with captured output.",
+    logMessage: "Set target command failed with captured output.",
     actions: [{ label: "View Output", execute: () => OutputChannel.show() }],
     outputChannel,
   },

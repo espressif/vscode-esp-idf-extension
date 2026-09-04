@@ -41,7 +41,7 @@ import type {
 } from "./types";
 import { OutputCapturingExecution } from "./customExecution";
 import { ShellOutputCapturingExecution } from "./shellCaptureExecution";
-import { known } from "../common/error/knownError";
+import { formatCommandLine, known } from "../common/error/knownError";
 import { ErrorCode } from "../common/error/types";
 
 export interface IdfTaskDefinition extends TaskDefinition {
@@ -88,12 +88,16 @@ export function collectExecutions(
 export async function throwCapturedTaskFailure() {
   for (const result of TaskManager.getTaskResults()) {
     if (!result.output.success) {
+      const processArgs = result.processArgs ?? [];
       const invocation =
         result.processCommand !== undefined
-          ? sanitizeProcessInvocation(
-              result.processCommand,
-              result.processArgs ?? []
-            )
+          ? {
+              ...sanitizeProcessInvocation(result.processCommand, processArgs),
+              commandLine: formatCommandLine(
+                result.processCommand,
+                processArgs
+              ),
+            }
           : undefined;
       throw known(ErrorCode.TaskFailedWithOutput, {
         stdout: result.output.stdout,
@@ -106,6 +110,7 @@ export async function throwCapturedTaskFailure() {
               processCommand: invocation.processCommand,
               args: invocation.args,
               ...(invocation.script ? { script: invocation.script } : {}),
+              commandLine: invocation.commandLine,
             }
           : {}),
       });

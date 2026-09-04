@@ -28,6 +28,13 @@ export const serialErrorPresentation = {
     actions: [],
     outputChannel,
   },
+  childProcessFailed: {
+    userMessage:
+      "Failed to detect the default serial port. Check the output for details.",
+    logMessage: "Serial port detection failed with captured process output.",
+    actions: [],
+    outputChannel,
+  },
   missingDependency: {
     userMessage: "Required dependency {dependency} is missing.",
     logMessage: "Missing dependency: {dependency}.",
