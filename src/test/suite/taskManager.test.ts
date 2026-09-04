@@ -135,6 +135,35 @@ suite("taskManager helpers", () => {
       );
     });
 
+    test("keeps the raw command line in metadata but out of the message", async () => {
+      TaskManager.recordTaskResult({
+        taskId: "idf-flash-task",
+        taskName: "ESP-IDF Flash",
+        processCommand: "/usr/bin/python3",
+        processArgs: [
+          "/opt/esp/idf/components/esptool_py/esptool/esptool.py",
+          "-p",
+          "/dev/ttyUSB0",
+          "write_flash",
+        ],
+        output: {
+          success: false,
+          stderr: "flash failed",
+          stdout: "",
+          exitCode: 1,
+        },
+      });
+      await assert.rejects(
+        throwCapturedTaskFailure(),
+        (e: unknown) =>
+          isKnownError(e) &&
+          e.metadata?.commandLine ===
+            "/usr/bin/python3 /opt/esp/idf/components/esptool_py/esptool/esptool.py -p /dev/ttyUSB0 write_flash" &&
+          !e.message.includes("commandLine") &&
+          !e.message.includes("ttyUSB0")
+      );
+    });
+
     test("throws KnownError with exit code when stdout and stderr are blank", async () => {
       TaskManager.recordTaskResult({
         taskId: "idf-build-task",

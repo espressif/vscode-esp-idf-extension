@@ -45,6 +45,7 @@ export enum ErrorCode {
   // Task-related
   TaskFailed = "TaskFailed",
   TaskFailedWithOutput = "TaskFailedWithOutput",
+  ChildProcessFailed = "ChildProcessFailed",
 
   // Build
   AlreadyBuilding = "AlreadyBuilding",

@@ -193,6 +193,19 @@ registerNewErrorInRegistry({
 });
 
 registerNewErrorInRegistry({
+  code: ErrorCode.ChildProcessFailed,
+  severity: ErrorSeverity.Error,
+  userMessage: "Command failed. Check the output for details.",
+  logMessage: "Child process failed with captured output.",
+  actions: [
+    {
+      label: "View Output",
+      execute: () => OutputChannel.show(),
+    },
+  ],
+});
+
+registerNewErrorInRegistry({
   code: ErrorCode.DfuTargetNotCompatible,
   severity: ErrorSeverity.Warning,
   userMessage:

@@ -31,6 +31,7 @@ const unregisteredCodeWarnings = new Set<ErrorCode>();
 
 const PROCESS_OUTPUT_AI_CHAT_CODES = new Set<ErrorCode>([
   ErrorCode.TaskFailedWithOutput,
+  ErrorCode.ChildProcessFailed,
   ErrorCode.ConfserverProcessFailed,
   ErrorCode.OpenOcdStartFailed,
   ErrorCode.OpenOcdProcessExited,

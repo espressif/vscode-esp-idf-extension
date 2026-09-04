@@ -30,15 +30,15 @@ import { pathExists } from "fs-extra";
 import { createFlashModel } from "../flash/transports/uart/flashModelBuilder";
 import { spawn } from "../utils";
 import {
+  capturedProcessText,
+  childProcessFailed,
   esptoolNotAccessible,
   flasherArgsMissing,
   invalidConfiguration,
   isKnownError,
-  known,
   missingDependency,
   noSerialPort,
 } from "../common/error/knownError";
-import { ErrorCode } from "../common/error/types";
 import { debugErrorPresentation } from "./debugErrorPresentation";
 
 let readSerialPortForTests:
@@ -139,6 +139,7 @@ export async function verifyAppBinary(workspaceFolder: Uri): Promise<void> {
       {
         cwd: workspaceFolder.fsPath,
         env: modifiedEnv,
+        errorPresentation: debugErrorPresentation.childProcessFailed,
       }
     );
     Logger.info(cmdResult.toString());
@@ -152,32 +153,30 @@ export async function verifyAppBinary(workspaceFolder: Uri): Promise<void> {
     if (output.indexOf("verify OK (digest matched)") !== -1) {
       return;
     }
-    throw known(
-      ErrorCode.TaskFailedWithOutput,
-      { detail: "Unexpected esptool verify_flash output" },
-      debugErrorPresentation.taskFailedWithOutput
+    throw childProcessFailed(
+      {
+        stdout: output,
+        detail: "Unexpected esptool verify_flash output",
+      },
+      debugErrorPresentation.childProcessFailed
     );
   } catch (error) {
-    if (isKnownError(error)) {
-      throw error;
-    }
-    if (
-      error instanceof Error &&
-      error.message.indexOf("verify FAILED (digest mismatch)") !== -1
-    ) {
+    if (capturedProcessText(error).includes("verify FAILED (digest mismatch)")) {
       throw invalidConfiguration(
         "verifyAppBinBeforeDebug",
         debugErrorPresentation.invalidConfiguration
       );
     }
+    if (isKnownError(error)) {
+      throw error;
+    }
     const msg =
       error instanceof Error && error.message
         ? error.message
         : "App binary verification failed.";
-    throw known(
-      ErrorCode.TaskFailedWithOutput,
+    throw childProcessFailed(
       { detail: msg },
-      debugErrorPresentation.taskFailedWithOutput
+      debugErrorPresentation.childProcessFailed
     );
   }
 }

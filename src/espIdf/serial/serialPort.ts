@@ -27,7 +27,7 @@ import { getIdfTargetFromSdkconfig } from "../../configuration/workspace";
 import {
   esptoolNotAccessible,
   isKnownError,
-  known,
+  childProcessFailed,
   noSerialPort,
   noSerialPortsAvailable,
 } from "../../common/error/knownError";
@@ -242,6 +242,7 @@ export class SerialPort {
               appendMode: "append",
               timeout: timeout,
               sendToTelemetry: false,
+              errorPresentation: serialErrorPresentation.childProcessFailed,
             }
           );
 
@@ -332,7 +333,10 @@ export class SerialPort {
             error instanceof Error && error.message
               ? error.message
               : "Serial port detection failed.";
-          throw known(ErrorCode.TaskFailedWithOutput, { detail });
+          throw childProcessFailed(
+            { detail },
+            serialErrorPresentation.childProcessFailed
+          );
         }
       }
     );

@@ -15,7 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { execFile, ExecOptions } from "child_process";
+import { execFile, ExecFileException, ExecOptions } from "child_process";
+import { childProcessFailedFromInvocation } from "../common/error/knownError";
 
 export function execChildProcess(
   command: string,
@@ -30,14 +31,26 @@ export function execChildProcess(
     };
   }
   return new Promise<string>((resolve, reject) => {
-    execFile(command, args, opts, (error: Error, stdout: string, stderr: string) => {
-      if (error) {
-        return reject(error);
+    execFile(
+      command,
+      args,
+      opts,
+      (error: ExecFileException | null, stdout: string, stderr: string) => {
+        if (error) {
+          return reject(
+            childProcessFailedFromInvocation(command, args, {
+              stdout,
+              stderr,
+              exitCode: typeof error.code === "number" ? error.code : undefined,
+              spawnError: error,
+            })
+          );
+        }
+        if (stderr && stderr.length) {
+          return resolve("".concat(stderr, stdout));
+        }
+        return resolve(stdout);
       }
-      if (stderr && stderr.length) {
-        return resolve("".concat(stderr, stdout));
-      }
-      return resolve(stdout);
-    });
+    );
   });
 }

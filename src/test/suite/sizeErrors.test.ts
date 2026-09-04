@@ -102,12 +102,12 @@ suite("size errors", () => {
       assert.strictEqual(descriptor?.actions[0].label, "Build");
     });
 
-    test("presentation applies Size output channel for TaskFailedWithOutput", () => {
+    test("presentation applies Size output channel for ChildProcessFailed", () => {
       const descriptor = resolveKnownErrorDescriptor(
         known(
-          ErrorCode.TaskFailedWithOutput,
+          ErrorCode.ChildProcessFailed,
           { detail: "idf_size.py failed" },
-          sizeErrorPresentation.taskFailedWithOutput
+          sizeErrorPresentation.childProcessFailed
         )
       );
       assert.ok(descriptor);
@@ -115,9 +115,9 @@ suite("size errors", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(
           known(
-            ErrorCode.TaskFailedWithOutput,
+            ErrorCode.ChildProcessFailed,
             { detail: "idf_size.py failed" },
-            sizeErrorPresentation.taskFailedWithOutput
+            sizeErrorPresentation.childProcessFailed
           )
         ),
         "Size analysis failed. Check the output for details."
