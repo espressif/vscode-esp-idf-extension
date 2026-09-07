@@ -27,6 +27,7 @@ import {
   isKnownError,
 } from "../../common/error/knownError";
 import { Logger } from "../../common/logger";
+import { OutputChannel } from "../../common/outputChannel";
 import { ErrorCode } from "../../common/error/types";
 import { execChildProcess as supportExecChildProcess } from "../../support/execChildProcess";
 import { execChildProcess, spawn } from "../../utils";
@@ -42,6 +43,8 @@ suite("ChildProcessFailed", () => {
       workspaceState: createMockMemento(),
       globalState: createMockMemento(),
     } as vscode.ExtensionContext);
+    // getEnvVariablesFromActivationScript spawns non-silently.
+    OutputChannel.init();
   });
 
   suite("capturedProcessText", () => {

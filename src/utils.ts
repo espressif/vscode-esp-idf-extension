@@ -116,7 +116,6 @@ export function spawn(
     errorPresentation,
     ...spawnOptions
   } = options;
-  assertSafeSpawnInvocation(command, args);
   let buff: Buffer = Buffer.alloc(0);
   let stdoutBuff: Buffer = Buffer.alloc(0);
   let stderrBuff: Buffer = Buffer.alloc(0);
@@ -152,6 +151,11 @@ export function spawn(
       errorPresentation
     );
   return new Promise((resolve, reject) => {
+    try {
+      assertSafeSpawnInvocation(command, args);
+    } catch (validationError) {
+      return reject(validationError);
+    }
     spawnOptions.cwd =
       spawnOptions.cwd || path.resolve(path.join(__dirname, ".."));
     const child = childProcess.spawn(command, args, {
@@ -285,7 +289,6 @@ export function execChildProcess(
   opts?: Omit<childProcess.ExecFileOptions, "shell">,
   cancelToken?: vscode.CancellationToken
 ): Promise<string> {
-  assertSafeSpawnInvocation(command, args);
   const execOpts: childProcess.ExecFileOptionsWithStringEncoding = {
     cwd: workingDirectory,
     maxBuffer: 500 * 1024,
@@ -297,6 +300,11 @@ export function execChildProcess(
     shell: false,
   };
   return new Promise<string>((resolve, reject) => {
+    try {
+      assertSafeSpawnInvocation(command, args);
+    } catch (validationError) {
+      return reject(validationError);
+    }
     childProcess.execFile(
       command,
       args,
