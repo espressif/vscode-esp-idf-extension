@@ -19,6 +19,7 @@ import {
   execFile,
   ExecFileException,
   ExecFileOptions,
+  ExecFileOptionsWithStringEncoding,
 } from "child_process";
 import { childProcessFailedFromInvocation } from "../common/error/knownError";
 import { sanitizeSpawnInvocation } from "../utils";
@@ -40,8 +41,8 @@ export function execChildProcess(
     } catch (validationError) {
       return reject(validationError);
     }
-    const execOpts: ExecFileOptions = {
-      cwd: pathWhereToExecute,
+    const execOpts: ExecFileOptionsWithStringEncoding = {
+      cwd: opts?.cwd ?? pathWhereToExecute,
       env: opts?.env,
       uid: opts?.uid,
       gid: opts?.gid,
@@ -50,7 +51,10 @@ export function execChildProcess(
       windowsHide: opts?.windowsHide,
       windowsVerbatimArguments: opts?.windowsVerbatimArguments,
       maxBuffer: opts?.maxBuffer ?? 500 * 1024,
-      encoding: opts?.encoding,
+      encoding:
+        opts?.encoding && opts.encoding !== "buffer"
+          ? (opts.encoding as BufferEncoding)
+          : "utf8",
       shell: false,
     };
     execFile(
