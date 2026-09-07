@@ -25,7 +25,6 @@ export function execChildProcess(
   pathWhereToExecute: string,
   opts?: Omit<ExecOptions, "shell">
 ) {
-  assertSafeSpawnInvocation(command, args);
   const execOpts: ExecOptions = {
     cwd: pathWhereToExecute,
     maxBuffer: 500 * 1024,
@@ -33,6 +32,11 @@ export function execChildProcess(
     shell: undefined,
   };
   return new Promise<string>((resolve, reject) => {
+    try {
+      assertSafeSpawnInvocation(command, args);
+    } catch (validationError) {
+      return reject(validationError);
+    }
     execFile(
       command,
       args,
