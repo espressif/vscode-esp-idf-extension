@@ -30,11 +30,13 @@ Docker Desktop is an application for macOS and Windows that builds and shares co
 
 .. note::
 
-    The default installation path for Docker is the C drive. If space is limited on the C drive, install it to another location ``<path>`` with:
+    The default installation path for Docker is the C drive. If space is limited on the C drive, install the Docker application to another location ``<path>`` and set the default WSL data root to ``<path>`` with:
 
     .. code-block:: powershell
 
-        Start-Process 'Docker Desktop Installer.exe' -Wait -ArgumentList 'install', '--accept-license', '--installation-dir=<path>'
+        Start-Process 'Docker Desktop Installer.exe' -Wait -ArgumentList 'install', '--accept-license', '--installation-dir=<path>', '--wsl-default-data-root=<path>'
+
+    The ``--installation-dir`` argument changes only the application location. Administrator privileges are required for an all-users installation.
 
 
 Installing Ubuntu on Windows for Docker
