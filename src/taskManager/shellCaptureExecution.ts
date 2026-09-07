@@ -20,6 +20,7 @@ import { CustomExecution, ShellExecutionOptions } from "vscode";
 import { basename } from "path";
 import { OutputCapturingPseudoterminal } from "./outputCapturePseudoTerminal";
 import { CapturedTaskOutput } from "./types";
+import { sanitizeSpawnInvocation } from "../utils";
 
 export class ShellOutputCapturingExecution extends CustomExecution {
   private outputPromise: Promise<CapturedTaskOutput> | undefined;
@@ -39,18 +40,27 @@ export class ShellOutputCapturingExecution extends CustomExecution {
         }
       );
 
-      const { file, args } = resolveShellInvocation(this.command, this.options);
-      this.pseudoterminal = new OutputCapturingPseudoterminal(
-        {
-          file,
-          args,
-          cwd: this.options.cwd,
-          env: this.options.env,
-        },
-        (output) => this.resolveOutput?.(output),
-        (error) => this.rejectOutput?.(error)
-      );
-      return this.pseudoterminal;
+      try {
+        const { file, args } = resolveShellInvocation(
+          this.command,
+          this.options
+        );
+        this.pseudoterminal = new OutputCapturingPseudoterminal(
+          {
+            file,
+            args,
+            cwd: this.options.cwd,
+            env: this.options.env,
+          },
+          (output) => this.resolveOutput?.(output),
+          (error) => this.rejectOutput?.(error)
+        );
+        return this.pseudoterminal;
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error));
+        this.rejectOutput?.(err);
+        throw err;
+      }
     });
   }
 
@@ -73,16 +83,19 @@ export class ShellOutputCapturingExecution extends CustomExecution {
   }
 }
 
-function resolveShellInvocation(
+export function defaultShellExecutable(): string {
+  return process.platform === "win32" ? "cmd.exe" : "/bin/bash";
+}
+
+export function resolveShellInvocation(
   command: string,
   options: ShellExecutionOptions
 ): { file: string; args: string[] } {
-  const shellPath =
-    options.executable ||
-    process.env.SHELL ||
-    (process.platform === "win32" ? "cmd.exe" : "/bin/sh");
+  const requestedShell = options.executable || defaultShellExecutable();
+  const { command: shellPath, args: sanitizedShellArgs } =
+    sanitizeSpawnInvocation(requestedShell, options.shellArgs || []);
   const shellBase = basename(shellPath).toLowerCase();
-  const args = [...(options.shellArgs || [])];
+  const args = [...sanitizedShellArgs];
 
   const ensureFlagWithCommand = (flag: string) => {
     const idx = args.findIndex((a) => a.toLowerCase() === flag.toLowerCase());

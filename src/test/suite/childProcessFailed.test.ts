@@ -149,6 +149,32 @@ suite("ChildProcessFailed", () => {
           error.metadata?.filePath === missing
       );
     });
+
+    test("rejects InvalidCommandInvocation when the executable contains a semicolon", async () => {
+      await assert.rejects(
+        () =>
+          spawn("python;id", [], {
+            silent: true,
+            sendToTelemetry: false,
+          }),
+        (error: unknown) =>
+          isKnownError(error) &&
+          error.code === ErrorCode.InvalidCommandInvocation
+      );
+    });
+
+    test("rejects InvalidCommandInvocation when the executable contains backticks", async () => {
+      await assert.rejects(
+        () =>
+          spawn("python`id`", [], {
+            silent: true,
+            sendToTelemetry: false,
+          }),
+        (error: unknown) =>
+          isKnownError(error) &&
+          error.code === ErrorCode.InvalidCommandInvocation
+      );
+    });
   });
 
   suite("execChildProcess", () => {
@@ -205,7 +231,7 @@ suite("ChildProcessFailed", () => {
       writeFileSync(
         scriptPath,
         [
-          "#!/bin/sh",
+          "#!/bin/bash",
           'echo "FOO=bar"',
           `echo "IDF_PYTHON_ENV_PATH=${join(scriptDir, "python_env")}"`,
           "",

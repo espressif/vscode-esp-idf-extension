@@ -53,12 +53,9 @@ export interface ISpawnOptions
   errorPresentation?: ErrorPresentation;
 }
 
-const UNSAFE_SPAWN_CHARS = /[\n\r\0]/;
+const UNSAFE_COMMAND_CHARS = /[\n\r\0;|&`$()<>]/g;
+const UNSAFE_ARG_CHARS = /[\n\r\0]/g;
 const SAFE_PATH_BASENAME = /^[A-Za-z0-9._+-]+$/;
-
-function hasUnsafeSpawnChars(value: string): boolean {
-  return UNSAFE_SPAWN_CHARS.test(value);
-}
 
 function isPathLikeCommand(command: string): boolean {
   return (
@@ -66,35 +63,53 @@ function isPathLikeCommand(command: string): boolean {
   );
 }
 
+function rejectIfStripped(original: string, cleaned: string, message: string) {
+  if (cleaned !== original) {
+    throw invalidCommandInvocation(message);
+  }
+  return cleaned;
+}
+
 /**
- * Blocks env-tainted command strings from being interpreted as a shell line.
+ * Returns argv that is safe to pass to execFile (no shell).
  * Path-like executables must exist; PATH lookups must be a simple basename.
  */
+export function sanitizeSpawnInvocation(
+  command: string,
+  args: string[] = []
+): { command: string; args: string[] } {
+  if (!command) {
+    throw invalidCommandInvocation("Command is empty.");
+  }
+  const safeCommand = rejectIfStripped(
+    command,
+    command.replace(UNSAFE_COMMAND_CHARS, ""),
+    "Command contains control characters."
+  );
+  const safeArgs = args.map((arg) =>
+    rejectIfStripped(
+      arg,
+      arg.replace(UNSAFE_ARG_CHARS, ""),
+      "Process argument contains control characters."
+    )
+  );
+  if (isPathLikeCommand(safeCommand)) {
+    if (!canAccessFile(safeCommand, constants.X_OK)) {
+      throw fileNotFound(safeCommand);
+    }
+    return { command: safeCommand, args: safeArgs };
+  }
+  if (!SAFE_PATH_BASENAME.test(safeCommand)) {
+    throw invalidCommandInvocation("Command is not a safe executable name.");
+  }
+  return { command: safeCommand, args: safeArgs };
+}
+
 export function assertSafeSpawnInvocation(
   command: string,
   args: string[] = []
 ): void {
-  if (!command || hasUnsafeSpawnChars(command)) {
-    throw invalidCommandInvocation(
-      command ? "Command contains control characters." : "Command is empty."
-    );
-  }
-  for (const arg of args) {
-    if (hasUnsafeSpawnChars(arg)) {
-      throw invalidCommandInvocation(
-        "Process argument contains control characters."
-      );
-    }
-  }
-  if (isPathLikeCommand(command)) {
-    if (!canAccessFile(command, constants.X_OK)) {
-      throw fileNotFound(command);
-    }
-    return;
-  }
-  if (!SAFE_PATH_BASENAME.test(command)) {
-    throw invalidCommandInvocation("Command is not a safe executable name.");
-  }
+  sanitizeSpawnInvocation(command, args);
 }
 
 export function spawn(
@@ -151,15 +166,29 @@ export function spawn(
       errorPresentation
     );
   return new Promise((resolve, reject) => {
+    let safeCommand: string;
+    let safeArgs: string[];
     try {
-      assertSafeSpawnInvocation(command, args);
+      ({ command: safeCommand, args: safeArgs } = sanitizeSpawnInvocation(
+        command,
+        args
+      ));
     } catch (validationError) {
       return reject(validationError);
     }
-    spawnOptions.cwd =
-      spawnOptions.cwd || path.resolve(path.join(__dirname, ".."));
-    const child = childProcess.spawn(command, args, {
-      ...spawnOptions,
+    const cwd = spawnOptions.cwd || path.resolve(path.join(__dirname, ".."));
+    const child = childProcess.spawn(safeCommand, safeArgs, {
+      cwd,
+      env: spawnOptions.env,
+      uid: spawnOptions.uid,
+      gid: spawnOptions.gid,
+      windowsHide: spawnOptions.windowsHide,
+      windowsVerbatimArguments: spawnOptions.windowsVerbatimArguments,
+      killSignal: spawnOptions.killSignal,
+      signal: spawnOptions.signal,
+      argv0: spawnOptions.argv0,
+      detached: spawnOptions.detached,
+      stdio: spawnOptions.stdio,
       shell: false,
     });
     let timeoutHandler = undefined;
@@ -211,7 +240,7 @@ export function spawn(
           err.message,
           err,
           "src utils spawn",
-          processInvocationMetadata(command, args),
+          processInvocationMetadata(safeCommand, safeArgs),
           sendToTelemetry
         );
         reject(err);
@@ -289,25 +318,36 @@ export function execChildProcess(
   opts?: Omit<childProcess.ExecFileOptions, "shell">,
   cancelToken?: vscode.CancellationToken
 ): Promise<string> {
-  const execOpts: childProcess.ExecFileOptionsWithStringEncoding = {
-    cwd: workingDirectory,
-    maxBuffer: 500 * 1024,
-    ...(opts ?? {}),
-    encoding:
-      opts?.encoding && opts.encoding !== "buffer"
-        ? (opts.encoding as BufferEncoding)
-        : "utf8",
-    shell: false,
-  };
   return new Promise<string>((resolve, reject) => {
+    let safeCommand: string;
+    let safeArgs: string[];
     try {
-      assertSafeSpawnInvocation(command, args);
+      ({ command: safeCommand, args: safeArgs } = sanitizeSpawnInvocation(
+        command,
+        args
+      ));
     } catch (validationError) {
       return reject(validationError);
     }
+    const execOpts: childProcess.ExecFileOptionsWithStringEncoding = {
+      cwd: workingDirectory,
+      env: opts?.env,
+      uid: opts?.uid,
+      gid: opts?.gid,
+      timeout: opts?.timeout,
+      killSignal: opts?.killSignal,
+      windowsHide: opts?.windowsHide,
+      windowsVerbatimArguments: opts?.windowsVerbatimArguments,
+      maxBuffer: opts?.maxBuffer ?? 500 * 1024,
+      encoding:
+        opts?.encoding && opts.encoding !== "buffer"
+          ? (opts.encoding as BufferEncoding)
+          : "utf8",
+      shell: false,
+    };
     childProcess.execFile(
-      command,
-      args,
+      safeCommand,
+      safeArgs,
       execOpts,
       (
         error: childProcess.ExecFileException | null,
@@ -347,7 +387,7 @@ export function execChildProcess(
             stdout,
             stderr,
             exitCode: typeof error.code === "number" ? error.code : undefined,
-            spawnError: error,
+            spawnError: error as NodeJS.ErrnoException,
           });
           if (error.message) {
             Logger.error(
