@@ -16,16 +16,17 @@
  * limitations under the License.
  */
 
+import { execFile } from "child_process";
 import { readdir, stat } from "fs-extra";
 import { extname, join } from "path";
 import { Uri } from "vscode";
 import { getGcovExecutable } from "./coverageService";
-import { exec } from "child_process";
 import { IGcovOutput } from "./gcovData";
 import { Logger } from "../common/logger";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { getCurrentIdfConfiguration } from "../configuration/env";
 import { coverageGcovDataFailed } from "../common/error/knownError";
+import { sanitizeSpawnInvocation } from "../utils";
 
 export async function getGcdaPaths(workspaceFolder: Uri) {
   const gcdaPaths: Set<string> = new Set();
@@ -51,26 +52,30 @@ export async function getGcdaPaths(workspaceFolder: Uri) {
   return Array.from(gcdaPaths);
 }
 
+export function getGcovArgs(gcdaPaths: string[]): string[] {
+  return ["-b", "--stdout", "--json-format", ...gcdaPaths];
+}
+
 export async function getGcovData(workspaceFolder: Uri) {
   const idfTarget =
     (await getIdfTargetFromSdkconfig(workspaceFolder)) || "esp32";
   const gcovExecutable = getGcovExecutable(idfTarget);
-
   const gcdaPaths = await getGcdaPaths(workspaceFolder);
+  const { command, args } = sanitizeSpawnInvocation(
+    gcovExecutable,
+    getGcovArgs(gcdaPaths)
+  );
+  const modifiedEnv = getCurrentIdfConfiguration();
 
-  let command = `"${gcovExecutable}" -b --stdout --json-format`;
-  for (const path of gcdaPaths) {
-    command += ` "${path}"`;
-  }
-
-  return new Promise<IGcovOutput[]>(async (resolve, reject) => {
-    const modifiedEnv = getCurrentIdfConfiguration();
-    exec(
+  return new Promise<IGcovOutput[]>((resolve, reject) => {
+    execFile(
       command,
+      args,
       {
         maxBuffer: 256 * 1024 * 1024,
         env: modifiedEnv,
         cwd: workspaceFolder.fsPath,
+        shell: false,
       },
       (err, stdout, stderr) => {
         if (err) {

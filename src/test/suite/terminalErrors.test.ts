@@ -91,7 +91,7 @@ function createValidTerminalFixture(): {
   mkdirSync(extensionPath, { recursive: true });
   mkdirSync(idfPath, { recursive: true });
   mkdirSync(workspacePath, { recursive: true });
-  writeFileSync(activationScript, "#!/bin/sh\n");
+  writeFileSync(activationScript, "#!/bin/bash\n");
   return { extensionPath, idfPath, activationScript, workspacePath };
 }
 

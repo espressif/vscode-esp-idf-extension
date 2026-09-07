@@ -12,6 +12,10 @@ import { isKnownError } from "../../common/error/knownError";
 import { ErrorCode } from "../../common/error/types";
 import { OutputCapturingExecution } from "../../taskManager/customExecution";
 import {
+  defaultShellExecutable,
+  resolveShellInvocation,
+} from "../../taskManager/shellCaptureExecution";
+import {
   collectExecutions,
   getTaskProcessExecution,
   getWorkspaceFolderForTask,
@@ -220,6 +224,30 @@ suite("getTaskProcessExecution", () => {
     assert.ok(exec instanceof OutputCapturingExecution);
     assert.strictEqual(exec.command, "echo");
     assert.deepStrictEqual(exec.args, ["hi"]);
+  });
+});
+
+suite("resolveShellInvocation", () => {
+  test("uses a hardcoded default shell instead of process.env.SHELL", () => {
+    const previousShell = process.env.SHELL;
+    process.env.SHELL = "/tmp/untrusted-shell";
+    try {
+      const invocation = resolveShellInvocation("echo hi", {});
+      assert.strictEqual(invocation.file, defaultShellExecutable());
+      assert.notStrictEqual(invocation.file, "/tmp/untrusted-shell");
+      if (process.platform === "win32") {
+        assert.ok(invocation.args.includes("/c"));
+      } else {
+        assert.ok(invocation.args.includes("-c"));
+      }
+      assert.ok(invocation.args.includes("echo hi"));
+    } finally {
+      if (previousShell === undefined) {
+        delete process.env.SHELL;
+      } else {
+        process.env.SHELL = previousShell;
+      }
+    }
   });
 });
 
