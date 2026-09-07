@@ -330,7 +330,7 @@ export function execChildProcess(
       return reject(validationError);
     }
     const execOpts: childProcess.ExecFileOptionsWithStringEncoding = {
-      cwd: workingDirectory,
+      cwd: opts?.cwd ?? workingDirectory,
       env: opts?.env,
       uid: opts?.uid,
       gid: opts?.gid,

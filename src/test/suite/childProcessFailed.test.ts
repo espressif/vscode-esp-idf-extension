@@ -208,6 +208,26 @@ suite("ChildProcessFailed", () => {
           error.metadata?.spawnErrorCode === "ENOENT"
       );
     });
+
+    test("utils.execChildProcess resolves decoded text, not a Buffer", async () => {
+      const output = await execChildProcess(
+        process.execPath,
+        ["-e", "process.stdout.write('decoded-out');"],
+        process.cwd()
+      );
+      assert.strictEqual(typeof output, "string");
+      assert.strictEqual(output.trim(), "decoded-out");
+    });
+
+    test("support.execChildProcess resolves decoded text, not a Buffer", async () => {
+      const output = await supportExecChildProcess(
+        process.execPath,
+        ["-e", "process.stdout.write('decoded-out');"],
+        process.cwd()
+      );
+      assert.strictEqual(typeof output, "string");
+      assert.strictEqual(output.trim(), "decoded-out");
+    });
   });
 
   suite("getEnvVariablesFromActivationScript", () => {
