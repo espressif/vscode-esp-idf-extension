@@ -43,9 +43,9 @@ function percentage() {
   return percentageStr === "(0.00%)" ? "" : percentageStr;
 }
 function openFileAtLine(filePath: string, lineNumber: string) {
-  let lineNumMatches = lineNumber.match(/[0-9]*/);
+  let lineNumMatches = lineNumber.match(/\d+/);
   if (lineNumMatches && lineNumMatches.length) {
-    const lineNumberInt = parseInt(lineNumMatches[0]);
+    const lineNumberInt = parseInt(lineNumMatches[0], 10);
     store.treeOpenFileHandler(filePath, lineNumberInt);
   }
 }

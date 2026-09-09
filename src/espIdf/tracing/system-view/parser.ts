@@ -16,16 +16,16 @@
  * limitations under the License.
  */
 
-import { AppTraceArchiveItems } from "../tree/appTraceArchiveTreeDataProvider";
-import { window, ProgressLocation } from "vscode";
+import { window, ProgressLocation, workspace } from "vscode";
 import { Logger } from "../../../logger/logger";
 import { SystemViewPanel } from "./panel";
 import { SysviewTraceProc } from "../tools/sysviewTraceProc";
 import { NotificationMode, readParameter } from "../../../idfConfiguration";
+import { getProjectElfFilePath } from "../../../workspaceConfig";
 
 export class SystemViewResultParser {
   public static parseWithProgress(
-    trace: AppTraceArchiveItems,
+    trace: { filePath: string },
     extensionPath: string
   ) {
     const notificationMode = readParameter(
@@ -58,7 +58,11 @@ export class SystemViewResultParser {
     );
   }
   private static async parseSVDATToJSON(filePath: string): Promise<any> {
-    const sysView = new SysviewTraceProc(undefined, filePath);
+    const workspaceRoot = workspace.workspaceFolders?.[0]?.uri;
+    const elfFilePath = workspaceRoot
+      ? await getProjectElfFilePath(workspaceRoot)
+      : undefined;
+    const sysView = new SysviewTraceProc(workspaceRoot, filePath, elfFilePath);
     const resp = await sysView.parse();
     return JSON.parse(resp.toString());
   }

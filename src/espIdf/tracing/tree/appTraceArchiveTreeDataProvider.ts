@@ -26,6 +26,12 @@ export enum TraceType {
   HeapTrace = 1,
 }
 
+export type AppTraceArchiveReportArgs = {
+  fileName: string;
+  filePath: string;
+  type: TraceType;
+};
+
 export class AppTraceArchiveItems extends vscode.TreeItem {
   public fileName: string;
   public filePath: string;
@@ -122,10 +128,17 @@ export class AppTraceArchiveTreeDataProvider
 
     // Only set command for Heap Trace items - App Trace items will open the file directly
     if (appTraceArchiveNode.type === TraceType.HeapTrace) {
+      // Pass a plain DTO — putting the TreeItem in arguments creates a circular
+      // structure (command.arguments[0] === this) that breaks JSON serialization.
+      const reportArgs: AppTraceArchiveReportArgs = {
+        fileName: appTraceArchiveNode.fileName,
+        filePath: appTraceArchiveNode.filePath,
+        type: appTraceArchiveNode.type,
+      };
       appTraceArchiveNode.command = {
         command: "espIdf.apptrace.archive.showReport",
         title: "Show Report",
-        arguments: [appTraceArchiveNode],
+        arguments: [reportArgs],
       };
       appTraceArchiveNode.iconPath = new vscode.ThemeIcon("pulse");
     } else {
