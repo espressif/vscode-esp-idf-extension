@@ -276,5 +276,9 @@
   "No project configuration selected. Click to select one": "Конфигурация проекта не выбрана. Нажмите, чтобы выбрать",
   "Legacy Configs ({0})": "Унаследованные конфигурации ({0})",
   "Found legacy project configurations: {0}. Click to migrate to the new CMakePresets.json format.": "Найдены устаревшие конфигурации проекта: {0}. Нажмите, чтобы выполнить миграцию в новый формат CMakePresets.json.",
-  "Project Configuration changes have been saved": "Изменения конфигурации проекта сохранены"
+  "Project Configuration changes have been saved": "Изменения конфигурации проекта сохранены",
+  "Update launch.json": "Обновить launch.json",
+  "runOpenOCD is now true for '{0}'. Start the debug session again.": "runOpenOCD теперь true для '{0}'. Запустите сеанс отладки снова.",
+  "The debug session failed and 'runOpenOCD' is false in your launch.json, so the extension did not start OpenOCD and none is listening. Set 'runOpenOCD' to true to let the extension start it, or start OpenOCD yourself before debugging.": "Сеанс отладки завершился с ошибкой, а 'runOpenOCD' имеет значение false в launch.json, поэтому расширение не запустило OpenOCD и никто не прослушивает. Установите 'runOpenOCD' в true, чтобы расширение запустило его, или запустите OpenOCD самостоятельно перед отладкой.",
+  "Failed to update runOpenOCD in launch.json": "Не удалось обновить runOpenOCD в launch.json"
 }

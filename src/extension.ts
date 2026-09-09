@@ -132,6 +132,7 @@ import { createSBOM, installEspSBOM } from "./espBom";
 import { selectIdfSetup } from "./versionSwitcher";
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
+import { RunOpenOCDWarningTrackerFactory } from "./cdtDebugAdapter/runOpenOcdWarning";
 import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
 import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
 import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
@@ -1293,6 +1294,13 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.debug.registerDebugAdapterDescriptorFactory(
       "gdbtarget",
       new CDTDebugAdapterDescriptorFactory()
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.debug.registerDebugAdapterTrackerFactory(
+      "gdbtarget",
+      new RunOpenOCDWarningTrackerFactory()
     )
   );
 
