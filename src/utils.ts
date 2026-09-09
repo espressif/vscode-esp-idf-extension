@@ -29,7 +29,6 @@ import { ErrorPresentation } from "./common/error/types";
 import { ESP } from "./config";
 import { getCurrentIdfConfiguration } from "./configuration/env";
 import { idfToolNotFound, isKnownError } from "./common/error/knownError";
-import { ErrorPresentation } from "./common/error/types";
 
 export const packageJson = vscode.extensions.getExtension(ESP.extensionID)
   ?.packageJSON;
