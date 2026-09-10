@@ -265,9 +265,10 @@ VS Code 中的扩展激活是一个 **两阶段过程**。理解这两个阶段�
 - **onCommand:espIdf.\***: 每个 ESP-IDF 命令都注册为激活触发器。从命令面板运行任何命令将加载扩展。
 - **onView:\***: 打开 ESP-IDF 侧边栏面板（应用追踪器、分区浏览器、Rainmaker、组件）会触发加载。
 - **onLanguageModelTool:espIdfCommands**: 当语言模型集成（例如 Copilot）调用 ESP-IDF 命令工具时触发，支持 AI 辅助工作流。
-- **mcpServerDefinitionProviders (espIdf.mcpServers)**: 当聊天发现扩展贡献的 MCP 服务器时，VS Code 可以加载扩展。
 
 这些事件由 `VS Code 扩展 API <https://code.visualstudio.com/api/references/activation-events>`_ 定义，无法通过用户设置更改。阻止阶段 1 加载的唯一方法是在 VS Code 的扩展视图中完全禁用扩展。
+
+扩展还声明了 ``contributes.mcpServerDefinitionProviders``（``espIdf.mcpServers``）。这是贡献点，而不是 ``activationEvents`` 条目。当聊天发现所贡献的 MCP 服务器时，VS Code 仍可以加载扩展。
 
 为什么使用"True 优先"策略？
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -265,9 +265,10 @@ The extension's ``package.json`` declares the following activation events:
 - **onCommand:espIdf.\***: Each ESP-IDF command is registered as an activation trigger. Running any command from the Command Palette will load the extension.
 - **onView:\***: Opening ESP-IDF sidebar panels (App Tracer, Partition Explorer, Rainmaker, Components) triggers loading.
 - **onLanguageModelTool:espIdfCommands**: Fires when a language-model integration (e.g., Copilot) invokes the ESP-IDF commands tool, enabling AI-assisted workflows.
-- **mcpServerDefinitionProviders (espIdf.mcpServers)**: VS Code can load the extension when Chat discovers MCP servers contributed by the extension.
 
 These events are defined by the `VS Code Extension API <https://code.visualstudio.com/api/references/activation-events>`_ and cannot be changed via user settings. The only way to prevent Phase 1 loading is to disable the extension entirely in VS Code's Extensions view.
+
+The extension also declares ``contributes.mcpServerDefinitionProviders`` (``espIdf.mcpServers``). This is a contribution point, not an ``activationEvents`` entry. VS Code can still load the extension when Chat discovers the contributed MCP servers.
 
 Why "True Wins" Strategy?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
