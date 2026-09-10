@@ -275,5 +275,9 @@
   "No project configuration selected. Click to select one": "No se seleccionó ninguna configuración de proyecto. Haga clic para seleccionar una",
   "Legacy Configs ({0})": "Configuraciones heredadas ({0})",
   "Found legacy project configurations: {0}. Click to migrate to the new CMakePresets.json format.": "Se encontraron configuraciones de proyecto heredadas: {0}. Haga clic para migrar al nuevo formato CMakePresets.json.",
-  "Project Configuration changes have been saved": "Se han guardado los cambios de configuración del proyecto"
+  "Project Configuration changes have been saved": "Se han guardado los cambios de configuración del proyecto",
+  "Update launch.json": "Actualizar launch.json",
+  "runOpenOCD is now true for '{0}'. Start the debug session again.": "runOpenOCD ahora es true para '{0}'. Inicie la sesión de depuración de nuevo.",
+  "The debug session failed and 'runOpenOCD' is false in your launch.json, so the extension did not start OpenOCD and none is listening. Set 'runOpenOCD' to true to let the extension start it, or start OpenOCD yourself before debugging.": "La sesión de depuración falló y 'runOpenOCD' es false en su launch.json, por lo que la extensión no inició OpenOCD y no hay ninguno escuchando. Establezca 'runOpenOCD' en true para que la extensión lo inicie, o inicie OpenOCD usted mismo antes de depurar.",
+  "Failed to update runOpenOCD in launch.json": "No se pudo actualizar runOpenOCD en launch.json"
 }

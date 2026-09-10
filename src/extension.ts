@@ -29,7 +29,7 @@ import { AppTracePanel } from "./espIdf/tracing/appTracePanel";
 import { GdbHeapTraceManager } from "./espIdf/tracing/gdbHeapTraceManager";
 import {
   AppTraceArchiveTreeDataProvider,
-  AppTraceArchiveItems,
+  AppTraceArchiveReportArgs,
   TraceType,
 } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
@@ -132,6 +132,7 @@ import { createSBOM, installEspSBOM } from "./espBom";
 import { selectIdfSetup } from "./versionSwitcher";
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
+import { RunOpenOCDWarningTrackerFactory } from "./cdtDebugAdapter/runOpenOcdWarning";
 import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
 import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
 import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
@@ -195,7 +196,6 @@ let covRenderer: CoverageRenderer;
 // OpenOCD  and Debug Adapter Manager
 
 let openOCDManager: OpenOCDManager;
-let isOpenOCDLaunchedByDebug: boolean = false;
 let isDebugRestarted: boolean = false;
 
 // QEMU
@@ -667,10 +667,27 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   vscode.debug.onDidTerminateDebugSession((e) => {
-    if (isOpenOCDLaunchedByDebug && !isDebugRestarted) {
-      isOpenOCDLaunchedByDebug = false;
+    if (openOCDManager.isLaunchedByDebug() && !isDebugRestarted) {
       openOCDManager.stop();
     }
+  });
+
+  openOCDManager.on("close", () => {
+    const session = vscode.debug.activeDebugSession;
+    if (
+      !session ||
+      session.type !== "gdbtarget" ||
+      session.configuration.sessionID === "core-dump.debug.session.ws" ||
+      session.configuration.sessionID === "gdbstub.debug.session.ws" ||
+      session.configuration.sessionID === "qemu.debug.session" ||
+      session.configuration.runOpenOCD === false
+    ) {
+      return;
+    }
+    vscode.window.showWarningMessage(
+      "OpenOCD has stopped. Ending the debug session."
+    );
+    void vscode.debug.stopDebugging(session);
   });
 
   const kconfigMenusWatcher = vscode.workspace.createFileSystemWatcher(
@@ -1324,20 +1341,19 @@ export async function activate(context: vscode.ExtensionContext) {
     )
   );
 
+  context.subscriptions.push(
+    vscode.debug.registerDebugAdapterTrackerFactory(
+      "gdbtarget",
+      new RunOpenOCDWarningTrackerFactory()
+    )
+  );
+
   vscode.debug.onDidStartDebugSession(async (session) => {
     const svdFile = idfConf.readParameter(
       "idf.svdFilePath",
       workspaceRoot
     ) as string;
     peripheralTreeProvider.debugSessionStarted(session, svdFile, 16); // Move svdFile and threshold as conf settings
-    if (
-      openOCDManager.isRunning() &&
-      session.type === "gdbtarget" &&
-      session.configuration.sessionID !== "core-dump.debug.session.ws" &&
-      session.configuration.sessionID !== "gdbstub.debug.session.ws"
-    ) {
-      isOpenOCDLaunchedByDebug = true;
-    }
     isDebugRestarted = false;
   });
 
@@ -1972,26 +1988,34 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.monitorQemu", createQemuMonitor);
 
   registerIDFCommand("espIdf.buildApp", () =>
-    build(undefined, ESP.BuildType.App)
+    build(undefined, ESP.PartitionType.App)
   );
   registerIDFCommand("espIdf.flashAppUart", async () => {
     const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
-    return flash(isEncrypted, ESP.FlashType.UART, ESP.BuildType.App);
+    return flash(isEncrypted, ESP.FlashType.UART, ESP.PartitionType.App);
   });
   registerIDFCommand("espIdf.buildBootloader", () =>
-    build(undefined, ESP.BuildType.Bootloader)
+    build(undefined, ESP.PartitionType.Bootloader)
   );
   registerIDFCommand("espIdf.flashBootloaderUart", async () => {
     const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
-    return flash(isEncrypted, ESP.FlashType.UART, ESP.BuildType.Bootloader);
+    return flash(isEncrypted, ESP.FlashType.UART, ESP.PartitionType.Bootloader);
   });
   registerIDFCommand("espIdf.buildPartitionTable", () =>
-    build(undefined, ESP.BuildType.PartitionTable)
+    build(undefined, ESP.PartitionType.PartitionTable)
   );
   registerIDFCommand("espIdf.flashPartitionTableUart", async () => {
     const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
-    return flash(isEncrypted, ESP.FlashType.UART, ESP.BuildType.PartitionTable);
+    return flash(
+      isEncrypted,
+      ESP.FlashType.UART,
+      ESP.PartitionType.PartitionTable
+    );
   });
+
+  registerIDFCommand("espIdf.buildAppFlashAppMonitor", () =>
+    buildFlashAndMonitor(workspaceRoot, undefined, ESP.PartitionType.App)
+  );
 
   registerIDFCommand("espIdf.menuconfig.start", async () => {
     PreCheck.perform([openFolderCheck], () => {
@@ -2668,12 +2692,6 @@ export async function activate(context: vscode.ExtensionContext) {
               request: "attach",
               sessionID: "qemu.debug.session",
               gdb: gdbPath,
-              initCommands: [
-                "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
-                "mon reset halt",
-                "maintenance flush register-cache",
-                "thb app_main",
-              ],
               target: {
                 type: "remote",
                 host: "localhost",
@@ -2915,7 +2933,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand(
     "espIdf.apptrace.archive.showReport",
-    (trace: AppTraceArchiveItems) => {
+    (trace: AppTraceArchiveReportArgs) => {
       if (!trace) {
         Logger.errorNotify(
           vscode.l10n.t(
@@ -4100,7 +4118,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   );
 }
 
-const build = (flashType?: ESP.FlashType, buildType?: ESP.BuildType) => {
+const build = (flashType?: ESP.FlashType, buildType?: ESP.PartitionType) => {
   PreCheck.perform([openFolderCheck], async () => {
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode",
@@ -4135,7 +4153,7 @@ const build = (flashType?: ESP.FlashType, buildType?: ESP.BuildType) => {
 const flash = (
   encryptPartitions: boolean = false,
   flashType?: ESP.FlashType,
-  partitionToUse?: ESP.BuildType
+  partitionToUse?: ESP.PartitionType
 ) => {
   PreCheck.perform([openFolderCheck], async () => {
     // Re route to ESP-IDF Web extension if using Codespaces or Browser
@@ -4170,9 +4188,9 @@ const flash = (
         }
         if (!partitionToUse) {
           partitionToUse = idfConf.readParameter(
-            "idf.flashPartitionToUse",
+            "idf.partitionToUse",
             workspaceRoot
-          ) as ESP.BuildType;
+          ) as ESP.PartitionType;
 
           if (
             partitionToUse &&

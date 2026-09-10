@@ -276,5 +276,9 @@
   "No project configuration selected. Click to select one": "未选择项目配置。单击选择一个",
   "Legacy Configs ({0})": "旧版配置（{0}）",
   "Found legacy project configurations: {0}. Click to migrate to the new CMakePresets.json format.": "发现旧版项目配置：{0}。单击迁移到新的 CMakePresets.json 格式。",
-  "Project Configuration changes have been saved": "项目配置更改已保存"
+  "Project Configuration changes have been saved": "项目配置更改已保存",
+  "Update launch.json": "更新 launch.json",
+  "runOpenOCD is now true for '{0}'. Start the debug session again.": "已将 '{0}' 的 runOpenOCD 设置为 true。请重新启动调试会话。",
+  "The debug session failed and 'runOpenOCD' is false in your launch.json, so the extension did not start OpenOCD and none is listening. Set 'runOpenOCD' to true to let the extension start it, or start OpenOCD yourself before debugging.": "调试会话失败，且 launch.json 中的 'runOpenOCD' 为 false，因此扩展未启动 OpenOCD，且当前没有 OpenOCD 在监听。将 'runOpenOCD' 设为 true 以让扩展启动它，或在调试前自行启动 OpenOCD。",
+  "Failed to update runOpenOCD in launch.json": "无法更新 launch.json 中的 runOpenOCD"
 }

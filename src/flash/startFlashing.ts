@@ -72,7 +72,7 @@ export async function startFlashing(
   cancelToken: CancellationToken,
   flashType: ESP.FlashType,
   encryptPartitions: boolean,
-  partitionToUse?: ESP.BuildType
+  partitionToUse?: ESP.PartitionType
 ): Promise<boolean> {
   if (!flashType) {
     flashType = await selectFlashMethod(workspaceFolderUri);

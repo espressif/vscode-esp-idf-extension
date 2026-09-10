@@ -87,6 +87,7 @@ export class OpenOCDManager extends EventEmitter {
   private statusBar: vscode.StatusBarItem;
   private workspace: vscode.Uri;
   private encounteredErrors: boolean = false;
+  private launchedByDebug: boolean = false;
 
   private constructor() {
     super();
@@ -170,6 +171,10 @@ export class OpenOCDManager extends EventEmitter {
     return this.server && !this.server.killed;
   }
 
+  public isLaunchedByDebug(): boolean {
+    return this.launchedByDebug;
+  }
+
   public async promptUserToLaunchOpenOCDServer(): Promise<boolean> {
     const host = idfConf.readParameter("openocd.tcl.host", this.workspace);
     const port = idfConf.readParameter("openocd.tcl.port", this.workspace);
@@ -191,7 +196,7 @@ export class OpenOCDManager extends EventEmitter {
     return true;
   }
 
-  public async start() {
+  public async start(options?: { launchedByDebug?: boolean }) {
     if (this.isRunning()) {
       return;
     }
@@ -300,6 +305,7 @@ export class OpenOCDManager extends EventEmitter {
       cwd: this.workspace.fsPath,
       env: modifiedEnv,
     });
+    this.launchedByDebug = !!options?.launchedByDebug;
     this.server.stderr.on("data", (data) => {
       this.encounteredErrors = true;
       data = typeof data === "string" ? Buffer.from(data) : data;
@@ -368,6 +374,7 @@ export class OpenOCDManager extends EventEmitter {
         );
       }
       this.stop();
+      this.emit("close", { code, signal });
     });
     this.updateStatusText(`❇️ ${vscode.l10n.t("OpenOCD Server (Running)")}`);
     OutputChannel.show();
@@ -377,6 +384,7 @@ export class OpenOCDManager extends EventEmitter {
     if (this.server && !this.server.killed) {
       this.server.kill("SIGKILL");
       this.server = undefined;
+      this.launchedByDebug = false;
       this.updateStatusText(`❌ ${vscode.l10n.t("OpenOCD Server (Stopped)")}`);
       const endMsg = "[Stopped] : OpenOCD Server";
       OutputChannel.appendLine(endMsg, "OpenOCD");

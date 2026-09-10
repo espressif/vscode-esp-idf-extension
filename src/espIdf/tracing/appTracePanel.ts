@@ -174,8 +174,13 @@ export class AppTracePanel {
   }
   private async openFileAtLineNumber(filePath: string, lineNumber: number) {
     try {
-      const textDocument = await vscode.workspace.openTextDocument(filePath);
-      const selectionRange = textDocument.lineAt(lineNumber - 1).range;
+      const textDocument = await vscode.workspace.openTextDocument(
+        vscode.Uri.file(filePath)
+      );
+      const targetLine = Number.isFinite(lineNumber)
+        ? Math.max(1, Math.min(lineNumber, textDocument.lineCount))
+        : 1;
+      const selectionRange = textDocument.lineAt(targetLine - 1).range;
 
       const column = vscode.window.activeTextEditor
         ? vscode.window.activeTextEditor.viewColumn
@@ -184,7 +189,6 @@ export class AppTracePanel {
         selection: selectionRange,
         viewColumn: column || vscode.ViewColumn.One,
       });
-      // editor.revealRange(selectionRange, vscode.TextEditorRevealType.InCenter);
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
       Logger.errorNotify(
@@ -238,6 +242,18 @@ export class AppTracePanel {
 
     return funcName;
   }
+  /** Parse addr2line "path:line" without breaking Windows drive letters. */
+  private parseAddr2LineLocation(respStr: string): {
+    filePath: string;
+    lineNumber: string;
+  } {
+    const match = respStr.match(/^(.*?):(\d+)(?::\d+)?(?:\s.*)?$/);
+    if (match) {
+      return { filePath: match[1], lineNumber: match[2] };
+    }
+    return { filePath: respStr, lineNumber: "" };
+  }
+
   private async resolveAddresses({
     addresses,
   }: {
@@ -262,10 +278,8 @@ export class AppTracePanel {
           );
           const resp = await addr2line.run();
           const respStr = resp.toString().trim();
-          const fileSplit = respStr.split(":");
-          const filePath = fileSplit[0];
-          const fileName = filePath.split("/");
-          const lineNumber = fileSplit[1];
+          const { filePath, lineNumber } = this.parseAddr2LineLocation(respStr);
+          const fileName = filePath.split(/[/\\]/);
           const funcName = this.functionNameForAddress(address);
           Object.assign(addresses[address], {
             filePath,
@@ -311,7 +325,8 @@ export class AppTracePanel {
     }
     const sysviewTraceProc = new SysviewTraceProc(
       workspaceRoot,
-      this._traceData.trace.filePath
+      this._traceData.trace.filePath,
+      await getProjectElfFilePath(workspaceRoot)
     );
     const resp = await sysviewTraceProc.parse();
     const respStr = resp.toString();

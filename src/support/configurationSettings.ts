@@ -68,7 +68,7 @@ export async function getConfigurationSettings(
     customTerminalExecutableArgs: conf.get("idf.customTerminalExecutableArgs"),
     customOpenOcdPath: conf.get("idf.customOpenOCDPath"),
     flashType: conf.get("idf.flashType"),
-    flashPartitionToUse: conf.get("idf.flashPartitionToUse"),
+    partitionToUse: conf.get("idf.partitionToUse"),
     customExtraPaths: currentEnvVars["PATH"],
     idfExtraVars: currentEnvVars,
     userExtraVars: userExtraVars,

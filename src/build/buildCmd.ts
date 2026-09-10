@@ -55,7 +55,7 @@ export async function buildCommandMain(
   workspace: vscode.Uri,
   cancelToken: vscode.CancellationToken,
   flashType: ESP.FlashType,
-  buildType?: ESP.BuildType,
+  buildType?: ESP.PartitionType,
   captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
   const buildTask = new BuildTask(workspace);
@@ -152,7 +152,7 @@ export async function buildCommand(
   workspace: vscode.Uri,
   cancelToken: vscode.CancellationToken,
   flashType: ESP.FlashType,
-  buildType?: ESP.BuildType
+  buildType?: ESP.PartitionType
 ): Promise<boolean> {
   let continueFlag = true;
   try {

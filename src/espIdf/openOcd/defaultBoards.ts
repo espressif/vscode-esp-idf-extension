@@ -176,6 +176,30 @@ export const defaultBoards = [
     ],
   } as IdfBoard,
   {
+    name: "ESP32-C5 chip with LP core (via builtin USB-JTAG)",
+    description: "ESP32-C5 with LP core debugging via builtin USB-JTAG",
+    target: "esp32c5",
+    configFiles: [
+      "board/esp32c5-lpcore-builtin.cfg"
+    ],
+  } as IdfBoard,
+  {
+    name: "ESP32-C5 chip with LP core (via ESP-PROG)",
+    description: "ESP32-C5 with LP core debugging via ESP-PROG board",
+    target: "esp32c5",
+    configFiles: [
+      "board/esp32c5-lpcore-ftdi.cfg"
+    ],
+  } as IdfBoard,
+  {
+    name: "ESP32-C5 chip with LP core (via ESP-PROG-2)",
+    description: "ESP32-C5 with LP core debugging via ESP-PROG-2 board",
+    target: "esp32c5",
+    configFiles: [
+      "board/esp32c5-lpcore-bridge.cfg"
+    ],
+  } as IdfBoard,
+  {
     name: "ESP32-C6 chip (via builtin USB-JTAG)",
     description: "ESP32-C6 debugging via builtin USB-JTAG",
     target: "esp32c6",
@@ -317,6 +341,30 @@ export const defaultBoards = [
     target: "esp32p4",
     configFiles: [
       "board/esp32p4-bridge.cfg"
+    ],
+  } as IdfBoard,
+    {
+    name: "ESP32-P4 chip with LP core (via builtin USB-JTAG)",
+    description: "ESP32-P4 with LP core debugging via builtin USB-JTAG",
+    target: "esp32p4",
+    configFiles: [
+      "board/esp32p4-lpcore-builtin.cfg"
+    ],
+  } as IdfBoard,
+  {
+    name: "ESP32-P4 chip with LP core (via ESP-PROG)",
+    description: "ESP32-P4 with LP core debugging via ESP-PROG board",
+    target: "esp32p4",
+    configFiles: [
+      "board/esp32p4-lpcore-ftdi.cfg"
+    ],
+  } as IdfBoard,
+  {
+    name: "ESP32-P4 chip with LP core (via ESP-PROG-2)",
+    description: "ESP32-P4 with LP core debugging via ESP-PROG-2 board",
+    target: "esp32p4",
+    configFiles: [
+      "board/esp32p4-lpcore-bridge.cfg"
     ],
   } as IdfBoard,
 ]; 

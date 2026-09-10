@@ -14,9 +14,9 @@ function toggle() {
 }
 
 function openFileAtLine(filePath: string, lineNumber: string) {
-  const matches = lineNumber.match(/[0-9]*/);
+  const matches = lineNumber.match(/\d+/);
   if (matches && matches.length) {
-    const lineNumberInt = parseInt(matches[0]);
+    const lineNumberInt = parseInt(matches[0], 10);
     store.treeOpenFileHandler(filePath, lineNumberInt);
   }
 }

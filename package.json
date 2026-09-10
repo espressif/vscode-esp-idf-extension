@@ -836,7 +836,7 @@
             "description": "%idf.flashType.description%",
             "scope": "resource"
           },
-          "idf.flashPartitionToUse": {
+          "idf.partitionToUse": {
             "type": "string",
             "enum": [
               "all",
@@ -845,7 +845,7 @@
               "partition-table"
             ],
             "default": "all",
-            "description": "%param.flashPartitionToUse%",
+            "description": "%param.partitionToUse%",
             "scope": "resource"
           },
           "idf.jtagFlashCommandExtraArgs": {
@@ -1522,6 +1522,12 @@
         "when": "!isWeb"
       },
       {
+        "command": "espIdf.buildAppFlashAppMonitor",
+        "title": "%espIdf.buildAppFlashAppMonitor.title%",
+        "category": "ESP-IDF",
+        "when": "!isWeb"
+      },
+      {
         "command": "espIdf.pickAWorkspaceFolder",
         "title": "%espIdf.pickAWorkspaceFolder.title%",
         "category": "ESP-IDF"
@@ -1959,7 +1965,7 @@
               },
               "initialBreakpoint": {
                 "type": "string",
-                "description": "Initial hardware breakpoint being set as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. If user set an empty string '' no initial breakpoint will be set and if let undefined it will use the default 'thb app_main'. Ignored if user defines initCommands argument.",
+                "description": "Initial hardware breakpoint being set as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. If user set an empty string '' no initial breakpoint will be set and if let undefined the extension adds 'thbreak app_main' to the connect commands.",
                 "default": "app_main"
               },
               "preRunCommands": {
@@ -2001,7 +2007,7 @@
                 "default": {
                   "connectCommands": [
                     "set remotetimeout 20",
-                    "-target-select extended-remote localhost:3333"
+                    "target remote localhost:3333"
                   ]
                 },
                 "properties": {
@@ -2020,13 +2026,13 @@
                   },
                   "connectCommands": {
                     "type": "array",
-                    "description": "Commands to execute for target connection. Normally something like [`-target-select extended-remote localhost:3333`]",
+                    "description": "%debug.target.connectCommands.description%",
                     "items": {
                       "type": "string"
                     },
                     "default": [
                       "set remotetimeout 20",
-                      "-target-select extended-remote localhost:3333"
+                      "target remote localhost:3333"
                     ]
                   },
                   "host": {
@@ -2233,7 +2239,7 @@
               },
               "initialBreakpoint": {
                 "type": "string",
-                "description": "Initial hardware breakpoint being set as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. If user set an empty string '' no initial breakpoint will be set and if let undefined it will use the default 'thb app_main'. Ignored if user defines initCommands argument.",
+                "description": "Initial hardware breakpoint being set as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. If user set an empty string '' no initial breakpoint will be set and if let undefined the extension adds 'thbreak app_main' to the connect commands.",
                 "default": "app_main"
               },
               "preRunCommands": {
@@ -2275,7 +2281,7 @@
                 "default": {
                   "connectCommands": [
                     "set remotetimeout 20",
-                    "-target-select extended-remote localhost:3333"
+                    "target remote localhost:3333"
                   ]
                 },
                 "properties": {
@@ -2376,13 +2382,13 @@
                   },
                   "connectCommands": {
                     "type": "array",
-                    "description": "Commands to execute for target connection. Normally something like [`-target-select extended-remote localhost:3333`]",
+                    "description": "%debug.target.connectCommands.description%",
                     "items": {
                       "type": "string"
                     },
                     "default": [
                       "set remotetimeout 20",
-                      "-target-select extended-remote localhost:3333"
+                      "target remote localhost:3333"
                     ]
                   }
                 }
@@ -2708,7 +2714,7 @@
     "plotly.js-dist": "^1.54.1",
     "plotly.js-dist-min": "^2.26.1",
     "postcss": "^8.5.23",
-    "sanitize-html": "^2.17.5",
+    "sanitize-html": "^2.17.7",
     "serialport": "^13.0.0",
     "stream-browserify": "^3.0.0",
     "tar-fs": "^3.1.1",
