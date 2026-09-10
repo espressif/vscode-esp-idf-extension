@@ -33,7 +33,6 @@ describe("SDKConfig Editor", () => {
     await dismissNotifications();
     await executeEspIdfCommand(ESP_IDF_COMMANDS.menuconfig);
     view = new WebView();
-    await view.switchToFrame(30000);
     await waitForWebViewElement(view, By.id("searchbar-save"), 120000);
   });
 

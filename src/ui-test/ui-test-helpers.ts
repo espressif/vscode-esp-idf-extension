@@ -476,12 +476,23 @@ export async function waitForWebViewElement(
 ): Promise<any> {
   const deadline = Date.now() + timeoutMs;
   let lastError: unknown;
+  let switchedToFrame = false;
 
   while (Date.now() < deadline) {
     try {
+      if (!switchedToFrame) {
+        await view.switchToFrame(5000);
+        switchedToFrame = true;
+      }
       return await view.findWebElement(locator);
     } catch (error) {
       lastError = error;
+      if (switchedToFrame) {
+        try {
+          await view.switchBack();
+        } catch {}
+        switchedToFrame = false;
+      }
       await new Promise((res) => setTimeout(res, 2000));
     }
   }
