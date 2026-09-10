@@ -470,30 +470,23 @@ export async function waitForOutputChannelText(
 }
 
 export async function switchToWebViewFrameContainingElement(
-  view: WebView,
   locator: By,
   timeoutMs: number
-): Promise<void> {
+): Promise<WebView> {
   const deadline = Date.now() + timeoutMs;
   let lastError: unknown;
-  let switchedToFrame = false;
 
   while (Date.now() < deadline) {
+    const view = new WebView();
     try {
-      if (!switchedToFrame) {
-        await view.switchToFrame(5000);
-        switchedToFrame = true;
-      }
+      await view.switchToFrame(5000);
       await view.findWebElement(locator);
-      return;
+      return view;
     } catch (error) {
       lastError = error;
-      if (switchedToFrame) {
-        try {
-          await view.switchBack();
-        } catch {}
-        switchedToFrame = false;
-      }
+      try {
+        await view.switchBack();
+      } catch {}
       await new Promise((res) => setTimeout(res, 2000));
     }
   }

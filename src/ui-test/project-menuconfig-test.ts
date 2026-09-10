@@ -32,9 +32,7 @@ describe("SDKConfig Editor", () => {
     this.timeout(180000);
     await dismissNotifications();
     await executeEspIdfCommand(ESP_IDF_COMMANDS.menuconfig);
-    view = new WebView();
-    await switchToWebViewFrameContainingElement(
-      view,
+    view = await switchToWebViewFrameContainingElement(
       By.id("searchbar-save"),
       120000
     );
