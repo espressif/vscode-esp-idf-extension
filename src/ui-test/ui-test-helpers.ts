@@ -473,7 +473,7 @@ export async function switchToWebViewFrameContainingElement(
   view: WebView,
   locator: By,
   timeoutMs: number
-): Promise<any> {
+): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   let lastError: unknown;
   let switchedToFrame = false;
@@ -484,7 +484,8 @@ export async function switchToWebViewFrameContainingElement(
         await view.switchToFrame(5000);
         switchedToFrame = true;
       }
-      return await view.findWebElement(locator);
+      await view.findWebElement(locator);
+      return;
     } catch (error) {
       lastError = error;
       if (switchedToFrame) {
