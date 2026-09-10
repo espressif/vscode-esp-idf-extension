@@ -17,6 +17,12 @@
     "type": "git",
     "url": "https://github.com/espressif/vscode-esp-idf-extension.git"
   },
+  "resolutions": {
+    "**/@textlint/linter-formatter/js-yaml": "3.15.2",
+    "mocha/js-yaml": "4.3.2",
+    "rc-config-loader/js-yaml": "4.3.2",
+    "vscode-extension-tester/js-yaml": "4.3.2"
+  },
   "categories": [
     "Programming Languages",
     "Snippets",
@@ -2658,7 +2664,7 @@
     "filemanager-webpack-plugin": "^8.0.0",
     "glob": "^7.1.4",
     "husky": "^6.0.0",
-    "js-yaml": "^4.3.1",
+    "js-yaml": "^4.3.2",
     "jsonic": "^1.0.1",
     "mocha": "^11.7.5",
     "ovsx": "^0.10.2",
