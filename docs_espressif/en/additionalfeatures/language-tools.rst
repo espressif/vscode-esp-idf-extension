@@ -159,10 +159,11 @@ These servers do not require a local ESP-IDF project. They are registered when t
 First use
 ~~~~~~~~~
 
-1. Open Chat (``View`` > ``Chat``) or run **MCP: List Servers** from the Command Palette.
-2. Start the Espressif Documentation server if it is not already running.
+1. Run **MCP: List Servers** from the Command Palette.
+2. Start the Espressif MCP Servers if they are not already running.
 3. VS Code opens a browser for authentication. Sign in with a **GitHub** or **WeChat** account. Only an anonymized account ID is used to enforce rate limits. See the `Espressif Documentation MCP Server <https://developer.espressif.com/blog/2026/04/doc-mcp-server/>`_ article and `Espressif MCP Servers <https://mcp.espressif.com>`_.
 4. If the Component Registry server also requests authentication, complete that prompt the same way.
+5. Open Chat (``View`` > ``Chat``) to start a chat session.
 
 After login, Chat can use the documentation search and component registry tools together with the ESP-IDF command tool described above.
 
