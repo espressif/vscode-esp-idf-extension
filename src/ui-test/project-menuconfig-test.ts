@@ -17,28 +17,24 @@
  */
 
 import { expect } from "chai";
-import { Workbench, EditorView, WebView, By } from "vscode-extension-tester";
+import { EditorView, WebView, By } from "vscode-extension-tester";
+import {
+  dismissNotifications,
+  ESP_IDF_COMMANDS,
+  executeEspIdfCommand,
+  waitForWebViewElement,
+} from "./ui-test-helpers";
 
 describe("SDKConfig Editor", () => {
   let view: WebView;
 
   before(async function () {
     this.timeout(100000);
-    
-    // Dismiss any notifications that might block the extension
-    const workbench = new Workbench();
-    const notifications = await workbench.getNotifications();
-    for (let n of notifications) {
-      await n.dismiss();
-    }
-    
-    // Wait a moment for extension activation to complete
-    await new Promise((res) => setTimeout(res, 3000));
-    
-    await workbench.executeCommand("espIdf.menuconfig.start");
-    await new Promise((res) => setTimeout(res, 50000));
+    await dismissNotifications();
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.menuconfig);
     view = new WebView();
-    await view.switchToFrame(5000);
+    await view.switchToFrame(30000);
+    await waitForWebViewElement(view, By.id("searchbar-save"), 120000);
   });
 
   after(async () => {

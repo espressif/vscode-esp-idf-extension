@@ -20,28 +20,32 @@ import {
   BottomBarPanel,
   EditorView,
   InputBox,
-  Workbench,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import { resolve } from "path";
 import { pathExists } from "fs-extra";
-import { openTestProject } from "./ui-test-helpers";
+import {
+  dismissNotifications,
+  ESP_IDF_COMMANDS,
+  executeEspIdfCommand,
+  helloWorldBinPath,
+  openTestProject,
+  waitForBuildComplete,
+  waitForPathAbsent,
+} from "./ui-test-helpers";
 
 describe("Build testing", async () => {
   let panel: BottomBarPanel;
 
   before(async function () {
     this.timeout(100000);
-    const notifications = await new Workbench().getNotifications();
-    for (let n of notifications) {
-      await n.dismiss();
-    }
+    await dismissNotifications();
     await openTestProject();
   });
 
   it("Log Doctor command configuration", async () => {
     await new Promise((res) => setTimeout(res, 3000));
-    await new Workbench().executeCommand("ESP-IDF: Doctor Command");
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.doctor);
     await new Promise((res) => setTimeout(res, 10000));
     const editorView = new EditorView();
     const editor = await editorView.openEditor("report.txt");
@@ -50,13 +54,10 @@ describe("Build testing", async () => {
   }).timeout(999999);
 
   it("Build bin is generated", async () => {
-    await new Workbench().executeCommand("ESP-IDF: Full Clean Project");
-    await new Promise((res) => setTimeout(res, 10000));
-    await new Workbench().executeCommand("ESP-IDF: Build your Project");
-    await new Promise((res) => setTimeout(res, 5000));
-    // get names of all available terminals
-    await new Promise((res) => setTimeout(res, 2000));
-    await new Promise((res) => setTimeout(res, 150000));
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.fullClean);
+    await waitForPathAbsent(helloWorldBinPath, 60000);
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.build);
+    await waitForBuildComplete(helloWorldBinPath, 300000);
     panel = new BottomBarPanel();
     const terminalView = await panel.openTerminalView();
     const names = await terminalView.getChannelNames();
@@ -64,23 +65,13 @@ describe("Build testing", async () => {
     // await terminalView.selectChannel();
     const text = await terminalView.getText();
     console.log(text);
-    const testBinPath = resolve(
-      __dirname,
-      "..",
-      "..",
-      "testFiles",
-      "testWorkspace",
-      "build",
-      "hello-world.bin"
-    );
-    const binExists = await pathExists(testBinPath);
+    const binExists = await pathExists(helloWorldBinPath);
     expect(binExists).to.be.true;
   }).timeout(999999);
 
   it("Create a test component", async function () {
     await new Promise((res) => setTimeout(res, 3000));
-    await new Workbench().executeCommand("espIdf.createNewComponent");
-    await new Promise((res) => setTimeout(res, 8000));
+    await executeEspIdfCommand(ESP_IDF_COMMANDS.createComponent);
     const inputBox = await InputBox.create();
     const componentName = "testComponent";
     await inputBox.setText(componentName);
