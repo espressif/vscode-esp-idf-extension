@@ -61,6 +61,7 @@ Once the extension is loaded by VS Code, it follows a strict priority hierarchy 
    - **Overrides**: All folder-level settings
    - **No prompt shown**: Respects your explicit choice
    - **Use case**: Explicitly disable extension in specific workspaces
+   - This still applies when VS Code loads the extension via MCP discovery with no workspace open; MCP servers are also not registered.
 
 3. **ANY Folder Setting = "always"**
 
