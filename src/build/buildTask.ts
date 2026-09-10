@@ -57,7 +57,7 @@ export class BuildTask {
     }
   }
 
-  public async build(buildType?: ESP.BuildType, captureOutput?: boolean) {
+  public async build(buildType?: ESP.PartitionType, captureOutput?: boolean) {
     try {
       await this.saveBeforeBuild();
     } catch (error) {

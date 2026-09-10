@@ -823,7 +823,7 @@
             "description": "%idf.flashType.description%",
             "scope": "resource"
           },
-          "idf.flashPartitionToUse": {
+          "idf.partitionToUse": {
             "type": "string",
             "enum": [
               "all",
@@ -832,7 +832,7 @@
               "partition-table"
             ],
             "default": "all",
-            "description": "%param.flashPartitionToUse%",
+            "description": "%param.partitionToUse%",
             "scope": "resource"
           },
           "idf.jtagFlashCommandExtraArgs": {
@@ -1505,6 +1505,12 @@
       {
         "command": "espIdf.buildFlashMonitor",
         "title": "%espIdf.buildFlashMonitor.title%",
+        "category": "ESP-IDF",
+        "when": "!isWeb"
+      },
+      {
+        "command": "espIdf.buildAppFlashAppMonitor",
+        "title": "%espIdf.buildAppFlashAppMonitor.title%",
         "category": "ESP-IDF",
         "when": "!isWeb"
       },

@@ -40,7 +40,7 @@ export async function uartFlashCommandMain(
   workspace: Uri,
   flashType: ESP.FlashType,
   encryptPartitions: boolean,
-  partitionToUse?: ESP.BuildType,
+  partitionToUse?: ESP.PartitionType,
   captureOutput?: boolean
 ): Promise<CustomExecutionTaskResult> {
   const buildPath = readParameter("idf.buildPath", workspace) as string;
@@ -113,7 +113,7 @@ export async function flashCommand(
   workspace: Uri,
   flashType: ESP.FlashType,
   encryptPartitions: boolean,
-  partitionToUse?: ESP.BuildType
+  partitionToUse?: ESP.PartitionType
 ) {
   let continueFlag = true;
   try {

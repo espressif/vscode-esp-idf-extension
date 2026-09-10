@@ -35,7 +35,7 @@ export namespace ESP {
     export const USER_CONFIGURATION_FILENAME = "CMakeUserPresets.json";
   }
 
-  export enum BuildType {
+  export enum PartitionType {
     App = "app",
     Bootloader = "bootloader",
     PartitionTable = "partition-table",
