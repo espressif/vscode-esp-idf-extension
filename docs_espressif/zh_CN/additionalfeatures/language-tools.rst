@@ -160,10 +160,10 @@ ESP-IDF 聊天命令
 ~~~~~~~~
 
 1. 从命令面板运行 **MCP: List Servers**。
-2. 如果尚未运行，请启动乐鑫 MCP 服务器。
+2. 如果尚未运行，请分别启动两个独立条目：“Espressif Documentation”和“ESP Component Registry”。
 3. VS Code 会打开浏览器进行身份验证。请使用 **GitHub** 或 **微信** 账号登录。仅会使用匿名化的账号 ID 来执行速率限制。请参阅 `Espressif Documentation MCP Server <https://developer.espressif.com/blog/2026/04/doc-mcp-server/>`_ 文章和 `乐鑫 MCP 服务器 <https://mcp.espressif.com>`_。
 4. 如果组件注册表服务器也要求身份验证，请以同样方式完成该提示。
-5. 打开聊天（``View`` > ``Chat``）以开始聊天会话。
+5. 打开聊天（``视图`` > ``聊天``）以开始聊天会话。
 
 登录后，聊天可以同时使用文档搜索、组件注册表工具，以及上文所述的 ESP-IDF 命令工具。
 
