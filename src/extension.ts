@@ -163,7 +163,10 @@ import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
 import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
-import { registerEspressifMcpServers } from "./mcp/espressifMcpServers";
+import {
+  registerEspressifMcpServers,
+  unregisterEspressifMcpServers,
+} from "./mcp/espressifMcpServers";
 import { readSerialPort } from "./idfConfiguration";
 import { openFolderCheck, webIdeCheck } from "./common/PreCheck";
 import { buildFlashAndMonitor } from "./buildFlashMonitor";
@@ -304,8 +307,20 @@ export async function activate(context: vscode.ExtensionContext) {
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
 
   if (shouldRegisterEspressifMcpServers()) {
-    registerEspressifMcpServers(context);
+    registerEspressifMcpServers();
   }
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (!e.affectsConfiguration(activationModeConfigKey)) {
+        return;
+      }
+      if (shouldRegisterEspressifMcpServers()) {
+        registerEspressifMcpServers();
+      } else {
+        unregisterEspressifMcpServers();
+      }
+    })
+  );
 
   // Check if running in a VS Code fork and prompt for clangd extension installation
   if (PreCheck.isRunningInVSCodeFork()) {
@@ -4513,4 +4528,5 @@ export function deactivate() {
   }
   KconfigLangClient.stopKconfigLangServer();
   deactivateLanguageTool();
+  unregisterEspressifMcpServers();
 }

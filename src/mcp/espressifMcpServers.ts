@@ -47,11 +47,14 @@ function toHttpServerDefinition(
   );
 }
 
-export function registerEspressifMcpServers(
-  context: vscode.ExtensionContext
-): void {
+let mcpProviderDisposable: vscode.Disposable | undefined;
+
+export function registerEspressifMcpServers(): void {
+  if (mcpProviderDisposable) {
+    return;
+  }
   try {
-    const disposable = vscode.lm.registerMcpServerDefinitionProvider(
+    mcpProviderDisposable = vscode.lm.registerMcpServerDefinitionProvider(
       ESPRESSIF_MCP_PROVIDER_ID,
       {
         provideMcpServerDefinitions: () =>
@@ -59,12 +62,17 @@ export function registerEspressifMcpServers(
         resolveMcpServerDefinition: (server) => server,
       }
     );
-    context.subscriptions.push(disposable);
   } catch (error) {
+    mcpProviderDisposable = undefined;
     Logger.error(
       "Failed to register Espressif MCP servers",
       error as Error,
       "espIdf mcp register"
     );
   }
+}
+
+export function unregisterEspressifMcpServers(): void {
+  mcpProviderDisposable?.dispose();
+  mcpProviderDisposable = undefined;
 }

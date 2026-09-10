@@ -61,7 +61,7 @@ VS Code 中的扩展激活是一个 **两阶段过程**。理解这两个阶段�
    - **覆盖**: 所有文件夹级设置
    - **不显示提示**: 尊重您的显式选择
    - **用例**: 在特定工作区中显式禁用扩展
-   - 当 VS Code 通过 MCP 发现在未打开工作区的情况下加载扩展时，此规则仍然适用；此时也不会注册 MCP 服务器。
+   - 当 VS Code 通过 MCP 发现在未打开工作区的情况下加载扩展时，此规则仍然适用；此时也不会注册 MCP 服务器。当模式为 ``"never"`` 或扩展停用时，这些服务器会被撤回；它们不是用户 ``mcp.json`` 中的条目。
 
 3. **任意文件夹设置 = "always"**
 
@@ -268,7 +268,7 @@ VS Code 中的扩展激活是一个 **两阶段过程**。理解这两个阶段�
 
 这些事件由 `VS Code 扩展 API <https://code.visualstudio.com/api/references/activation-events>`_ 定义，无法通过用户设置更改。阻止阶段 1 加载的唯一方法是在 VS Code 的扩展视图中完全禁用扩展。
 
-扩展还声明了 ``contributes.mcpServerDefinitionProviders``（``espIdf.mcpServers``）。这是贡献点，而不是 ``activationEvents`` 条目。当聊天发现所贡献的 MCP 服务器时，VS Code 仍可以加载扩展。
+扩展还声明了 ``contributes.mcpServerDefinitionProviders``（``espIdf.mcpServers``）。这是贡献点，而不是 ``activationEvents`` 条目。当聊天发现所贡献的 MCP 服务器时，VS Code 仍可以加载扩展。当 ``idf.extensionActivationMode`` 为 ``"never"`` 或扩展停用时，这些服务器会被撤回；它们不会写入用户 ``mcp.json`` 文件。
 
 为什么使用"True 优先"策略？
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

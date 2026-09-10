@@ -113,7 +113,8 @@
     "mcpServerDefinitionProviders": [
       {
         "id": "espIdf.mcpServers",
-        "label": "%mcp.espIdf.provider.label%"
+        "label": "%mcp.espIdf.provider.label%",
+        "when": "config.idf.extensionActivationMode != 'never'"
       }
     ],
     "jsonValidation": [

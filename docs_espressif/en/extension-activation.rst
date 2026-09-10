@@ -61,7 +61,7 @@ Once the extension is loaded by VS Code, it follows a strict priority hierarchy 
    - **Overrides**: All folder-level settings
    - **No prompt shown**: Respects your explicit choice
    - **Use case**: Explicitly disable extension in specific workspaces
-   - This still applies when VS Code loads the extension via MCP discovery with no workspace open; MCP servers are also not registered.
+   - This still applies when VS Code loads the extension via MCP discovery with no workspace open; MCP servers are also not registered. Servers are withdrawn when mode is ``"never"`` or the extension deactivates; they are not a user ``mcp.json`` entry.
 
 3. **ANY Folder Setting = "always"**
 
@@ -268,7 +268,7 @@ The extension's ``package.json`` declares the following activation events:
 
 These events are defined by the `VS Code Extension API <https://code.visualstudio.com/api/references/activation-events>`_ and cannot be changed via user settings. The only way to prevent Phase 1 loading is to disable the extension entirely in VS Code's Extensions view.
 
-The extension also declares ``contributes.mcpServerDefinitionProviders`` (``espIdf.mcpServers``). This is a contribution point, not an ``activationEvents`` entry. VS Code can still load the extension when Chat discovers the contributed MCP servers.
+The extension also declares ``contributes.mcpServerDefinitionProviders`` (``espIdf.mcpServers``). This is a contribution point, not an ``activationEvents`` entry. VS Code can still load the extension when Chat discovers the contributed MCP servers. The servers are withdrawn when ``idf.extensionActivationMode`` is ``"never"`` or the extension deactivates; they are not stored in a user ``mcp.json`` file.
 
 Why "True Wins" Strategy?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
