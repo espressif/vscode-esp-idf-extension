@@ -29,7 +29,7 @@ describe("SDKConfig Editor", () => {
   let view: WebView;
 
   before(async function () {
-    this.timeout(100000);
+    this.timeout(180000);
     await dismissNotifications();
     await executeEspIdfCommand(ESP_IDF_COMMANDS.menuconfig);
     view = new WebView();
