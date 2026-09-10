@@ -469,7 +469,7 @@ export async function waitForOutputChannelText(
   );
 }
 
-export async function waitForWebViewElement(
+export async function switchToWebViewFrameContainingElement(
   view: WebView,
   locator: By,
   timeoutMs: number

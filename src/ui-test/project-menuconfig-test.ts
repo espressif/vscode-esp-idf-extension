@@ -22,7 +22,7 @@ import {
   dismissNotifications,
   ESP_IDF_COMMANDS,
   executeEspIdfCommand,
-  waitForWebViewElement,
+  switchToWebViewFrameContainingElement,
 } from "./ui-test-helpers";
 
 describe("SDKConfig Editor", () => {
@@ -33,7 +33,11 @@ describe("SDKConfig Editor", () => {
     await dismissNotifications();
     await executeEspIdfCommand(ESP_IDF_COMMANDS.menuconfig);
     view = new WebView();
-    await waitForWebViewElement(view, By.id("searchbar-save"), 120000);
+    await switchToWebViewFrameContainingElement(
+      view,
+      By.id("searchbar-save"),
+      120000
+    );
   });
 
   after(async () => {
