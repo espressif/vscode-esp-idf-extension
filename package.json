@@ -2687,6 +2687,7 @@
     "es6-promisify": "^6.0.0",
     "fs-extra": "^8.1.0",
     "interactjs": "^1.9.18",
+    "jsonc-parser": "^3.3.1",
     "marked": "^4.0.12",
     "maska": "^2.1.10",
     "os-browserify": "^0.3.0",
