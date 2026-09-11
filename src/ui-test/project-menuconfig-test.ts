@@ -20,6 +20,7 @@ import { expect } from "chai";
 import { EditorView, WebView, By } from "vscode-extension-tester";
 import {
   dismissNotifications,
+  ensureTestProjectOpen,
   ESP_IDF_COMMANDS,
   executeEspIdfCommand,
   switchToWebViewFrameContainingElement,
@@ -31,6 +32,7 @@ describe("SDKConfig Editor", () => {
   before(async function () {
     this.timeout(180000);
     await dismissNotifications();
+    await ensureTestProjectOpen();
     await executeEspIdfCommand(ESP_IDF_COMMANDS.menuconfig);
     view = await switchToWebViewFrameContainingElement(
       By.id("searchbar-save"),
