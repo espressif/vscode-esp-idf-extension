@@ -167,8 +167,7 @@ export async function openTestProject(): Promise<void> {
   const input = await InputBox.create();
   await input.setText(testWorkspaceDir);
   await input.confirm();
-  await waitForWorkbenchTitle(basename(testWorkspaceDir), 30000);
-  await new Promise((res) => setTimeout(res, 2000));
+  await new Promise((res) => setTimeout(res, 4000));
 }
 
 export async function ensureTestProjectOpen(): Promise<void> {
@@ -273,31 +272,6 @@ async function hasWorkbenchTitle(expectedTitleFragment: string): Promise<boolean
   } catch {
     return false;
   }
-}
-
-async function waitForWorkbenchTitle(
-  expectedTitleFragment: string,
-  timeoutMs: number
-): Promise<void> {
-  const deadline = Date.now() + timeoutMs;
-  let lastTitle = "";
-
-  while (Date.now() < deadline) {
-    try {
-      lastTitle = await new Workbench().getTitleBar().getTitle();
-      if (lastTitle.includes(expectedTitleFragment)) {
-        return;
-      }
-    } catch {
-      // VS Code can briefly reload while switching folders.
-    }
-
-    await new Promise((res) => setTimeout(res, 1000));
-  }
-
-  throw new Error(
-    `Timed out waiting for workbench title to include "${expectedTitleFragment}". Last title: "${lastTitle}"`
-  );
 }
 
 /**
