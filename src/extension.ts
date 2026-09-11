@@ -119,14 +119,14 @@ export async function activate(context: ExtensionContext) {
   initCommandDictionary();
   ESP.Rainmaker.store = RainmakerStore.init(context);
   Telemetry.init((readParameter("idf.telemetry") as boolean) || false);
-  ChangelogViewer.showChangeLogAndUpdateVersion(context);
   registerMCPServers(context);
-  if (PreCheck.isRunningInVSCodeFork()) {
-    checkAndPromptForClangdExtension();
-  }
   if (!(await checkIfActivateExtension())) {
     return;
   }
+  if (PreCheck.isRunningInVSCodeFork()) {
+    checkAndPromptForClangdExtension();
+  }
+  ChangelogViewer.showChangeLogAndUpdateVersion(context);
   KconfigLangClient.startKconfigLangServer(context);
   activateLanguageTool(context);
   registerDebugCommands(context);
