@@ -20,6 +20,7 @@ import * as vscode from "vscode";
 
 import { constants } from "fs";
 import { canAccessFile } from "../../../../utils";
+import { fileNotFound } from "../../../../common/error/knownError";
 import { XtensaTools } from "./abstractXtensaTools";
 
 export class ReadElf extends XtensaTools {
@@ -32,7 +33,7 @@ export class ReadElf extends XtensaTools {
 
   public async run(): Promise<Buffer> {
     if (!canAccessFile(this.elfFilePath, constants.R_OK)) {
-      throw new Error("Elf file not present or not accessible");
+      throw fileNotFound(this.elfFilePath);
     }
     return await this.call(["-s", this.elfFilePath]);
   }

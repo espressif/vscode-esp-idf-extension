@@ -17,7 +17,7 @@
 
 import { exec } from "child_process";
 import { pathExists } from "fs-extra";
-import { resolve } from "path";
+import { basename, resolve } from "path";
 import { promisify } from "util";
 import {
   ActivityBar,
@@ -170,6 +170,13 @@ export async function openTestProject(): Promise<void> {
   await new Promise((res) => setTimeout(res, 4000));
 }
 
+export async function ensureTestProjectOpen(): Promise<void> {
+  if (await hasWorkbenchTitle(basename(testWorkspaceDir))) {
+    return;
+  }
+  await openTestProject();
+}
+
 export async function executeEspIdfCommand(exactCommandLabel: string): Promise<void> {
   const workbench = new Workbench();
   const prompt = await workbench.openCommandPrompt();
@@ -256,6 +263,15 @@ async function findQuickPickByExactLabel(inputBox: InputBox, exactLabel: string)
 async function listQuickPickLabels(inputBox: InputBox): Promise<string[]> {
   const picks = await inputBox.getQuickPicks();
   return Promise.all(picks.map((pick) => pick.getLabel()));
+}
+
+async function hasWorkbenchTitle(expectedTitleFragment: string): Promise<boolean> {
+  try {
+    const title = await new Workbench().getTitleBar().getTitle();
+    return title.includes(expectedTitleFragment);
+  } catch {
+    return false;
+  }
 }
 
 /**

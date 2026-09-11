@@ -16,13 +16,21 @@
  * limitations under the License.
  */
 import { dirname, join } from "path";
-import { l10n, Progress, ProgressLocation, Uri, window } from "vscode";
-import { NotificationMode, readParameter, readSerialPort } from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
+import { Progress, ProgressLocation, Uri, window } from "vscode";
+import { NotificationMode, readParameter, readSerialPort } from "../../configuration/idf";
 import { spawn } from "../../utils";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
+import {
+  getCurrentIdfConfiguration,
+  getVirtualEnvPythonPath,
+} from "../../configuration/env";
 import { ensureDir } from "fs-extra";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import {
+  isKnownError,
+  missingDependency,
+  noSerialPort,
+  partitionInvalidSizeFormat,
+  partitionReadFailed,
+} from "../../common/error/knownError";
 
 export async function readPartition(
   name: string,
@@ -45,37 +53,35 @@ export async function readPartition(
       location: progressLocation,
       title: "ESP-IDF: Reading partition from device to binary",
     },
-    async (progress: Progress<{ message: string; increment: number }>) => {
+    async (_progress: Progress<{ message: string; increment: number }>) => {
+      const modifiedEnv = getCurrentIdfConfiguration();
+      const serialPort = await readSerialPort(workspaceFolder, false);
+      if (!serialPort) {
+        throw noSerialPort(modifiedEnv["IDF_TARGET"]);
+      }
+      const idfPath = modifiedEnv.IDF_PATH;
+      const pythonBinPath = getVirtualEnvPythonPath();
+      if (!pythonBinPath) {
+        throw missingDependency("Python");
+      }
+      const esptoolPath = join(
+        idfPath,
+        "components",
+        "esptool_py",
+        "esptool",
+        "esptool.py"
+      );
+      const resultBinaryPath = join(
+        workspaceFolder.fsPath,
+        "partitionsFromDevice",
+        `${name}.bin`
+      );
+
+      await ensureDir(dirname(resultBinaryPath));
+
+      const parsedSize = parsePartitionSize(size);
+
       try {
-        const modifiedEnv = await configureEnvVariables(this.config.workspaceFolder);
-        const serialPort = await readSerialPort(workspaceFolder, false);
-        if (!serialPort) {
-          return Logger.warnNotify(
-            l10n.t(
-              "No serial port found for current IDF_TARGET: {0}",
-              modifiedEnv["IDF_TARGET"]
-            )
-          );
-        }
-        const idfPath = modifiedEnv.IDF_PATH;
-        const pythonBinPath = await getVirtualEnvPythonPath();
-        const esptoolPath = join(
-          idfPath,
-          "components",
-          "esptool_py",
-          "esptool",
-          "esptool.py"
-        );
-        let resultBinaryPath = join(
-          workspaceFolder.fsPath,
-          "partitionsFromDevice",
-          `${name}.bin`
-        );
-
-        await ensureDir(dirname(resultBinaryPath));
-
-        const parsedSize = parsePartitionSize(size);
-
         await spawn(
           pythonBinPath,
           [
@@ -92,46 +98,46 @@ export async function readPartition(
             env: modifiedEnv,
           }
         );
-        window.showInformationMessage(
-          `Device partition @${offset} saved as ${resultBinaryPath}`
-        );
       } catch (error) {
-        let msg = error.message
-          ? error.message
-          : "Error reading partition from device to binary";
-        Logger.errorNotify(msg, error, "readPartition");
+        if (isKnownError(error)) {
+          throw error;
+        }
+        const msg =
+          error instanceof Error && error.message
+            ? error.message
+            : "Error reading partition from device to binary";
+        throw partitionReadFailed(msg);
       }
+      window.showInformationMessage(
+        `Device partition @${offset} saved as ${resultBinaryPath}`
+      );
     }
   );
 }
 
 export function parsePartitionSize(size: string): string {
-  // Regular expression to match the size pattern (e.g., 24K, 1M)
   const regex = /^(\d+)([KM]?)$/i;
   const match = size.match(regex);
 
   if (!match) {
-    throw new Error("Invalid size format");
+    throw partitionInvalidSizeFormat(size);
   }
   const value = parseInt(match[1], 10);
   const unit = match[2].toUpperCase();
 
-  // Define the multiplier based on the unit
   const multipliers: { [key: string]: number } = {
     K: 1024,
     M: 1024 ** 2,
-    "": 1, // No unit defaults to bytes
+    "": 1,
   };
 
   const bytes = value * (multipliers[unit] || 1);
 
-  // Convert to hexadecimal string prefixed with '0x'
   return "0x" + bytes.toString(16).toUpperCase();
 }
 
 export function formatAsPartitionSize(bytes: number): string {
   if (bytes >= 1024 * 1024) {
-    // For megabytes, divide by (1024*1024) and remove any trailing zeros if not needed.
     const mb = bytes / (1024 * 1024);
     return `${Math.ceil(mb)}M`;
   } else if (bytes >= 1024) {

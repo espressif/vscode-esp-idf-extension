@@ -18,8 +18,8 @@
 
 import * as vscode from "vscode";
 import { ESP } from "../../config";
-import { Logger } from "../../logger/logger";
-import { PreCheck } from "../../utils";
+import { Logger } from "../../common/logger";
+import { PreCheck } from "../../common/PreCheck";
 
 /**
  * Key used to store the OpenOCD USB adapter serial number in the extension workspace state
@@ -70,7 +70,9 @@ export function storeAdapterSerial(
     Logger.error(
       `Failed to store OpenOCD USB adapter serial number`,
       error,
-      "storeAdapterSerial"
+      "storeAdapterSerial",
+      undefined,
+      false
     );
   }
 }
@@ -91,7 +93,9 @@ export function getStoredAdapterSerial(
     Logger.error(
       `Failed to retrieve OpenOCD USB adapter serial number`,
       error,
-      "getStoredAdapterSerial"
+      "getStoredAdapterSerial",
+      undefined,
+      false
     );
   }
   return undefined;
@@ -115,7 +119,9 @@ export function clearAdapterSerial(
     Logger.error(
       `Failed to clear OpenOCD USB adapter serial number`,
       error,
-      "clearAdapterSerial"
+      "clearAdapterSerial",
+      undefined,
+      false
     );
   }
 }

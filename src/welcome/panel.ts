@@ -27,9 +27,8 @@ import {
   WebviewPanel,
   window,
 } from "vscode";
-import { writeParameter } from "../idfConfiguration";
+import { writeParameter } from "../configuration/idf";
 import { IWelcomeArgs } from "./welcomeInit";
-import { parseString } from "xml2js";
 
 /**
  * Convert text string characters to plain text.
@@ -61,13 +60,11 @@ function extractPlainText(originalText: string): string {
 export class WelcomePanel {
   public static currentPanel: WelcomePanel | undefined;
 
-  public static createOrShow(
-    extensionPath: string,
-    welcomeArgs?: IWelcomeArgs
-  ) {
-    const column = window.activeTextEditor
-      ? window.activeTextEditor.viewColumn
-      : ViewColumn.One;
+  public static createOrShow(extensionPath: string, welcomeArgs?: IWelcomeArgs) {
+    const column =
+      window.activeTextEditor && window.activeTextEditor.viewColumn
+        ? window.activeTextEditor.viewColumn
+        : ViewColumn.One;
     if (WelcomePanel.currentPanel) {
       WelcomePanel.currentPanel.panel.reveal(column);
     } else {

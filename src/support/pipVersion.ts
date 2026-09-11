@@ -25,8 +25,13 @@ export async function getPipVersion(
   context: vscode.ExtensionContext
 ) {
   try {
+    const pythonBinPath = reportedResult.configurationSettings.pythonBinPath;
+    if (!pythonBinPath) {
+      reportedResult.pipVersion.result = "Not found";
+      return;
+    }
     const rawPipVersion = await execChildProcess(
-      reportedResult.configurationSettings.pythonBinPath,
+      pythonBinPath,
       ["-m", "pip", "--version"],
       context.extensionPath
     );

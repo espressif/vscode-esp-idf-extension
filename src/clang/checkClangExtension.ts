@@ -26,8 +26,8 @@ import {
   window,
   workspace,
 } from "vscode";
-import { Logger } from "../logger/logger";
-import { readParameter } from "../idfConfiguration";
+import { Logger } from "../common/logger";
+import { getIdfBuildPath } from "../configuration/workspace";
 
 export const CLANGD_EXTENSION_ID = "llvm-vs-code-extensions.vscode-clangd";
 
@@ -62,8 +62,10 @@ export async function restartClangdLanguageServer() {
     } catch (error) {
       Logger.error(
         "Failed to restart clangd language server",
-        error,
-        "checkClangExtension restartClangdLanguageServer"
+        error as Error,
+        "checkClangExtension restartClangdLanguageServer",
+        undefined,
+        false
       );
     }
   }
@@ -112,8 +114,10 @@ export async function checkAndPromptForClangdExtension() {
       } catch (error) {
         Logger.error(
           "Failed to install clangd extension",
-          error,
-          "checkAndPromptForClangdExtension"
+          error as Error,
+          "checkAndPromptForClangdExtension",
+          undefined,
+          false
         );
 
         window.showErrorMessage(
@@ -154,11 +158,7 @@ export async function handleCompileCommandsUpdate(
       d.dispose();
     }
   }
-  const buildDirPath = readParameter("idf.buildPath", workspaceUri) as string;
-
-  if (!buildDirPath) {
-    return;
-  }
+  const buildDirPath = getIdfBuildPath(workspaceUri);
 
   const relativePattern = new RelativePattern(
     buildDirPath,

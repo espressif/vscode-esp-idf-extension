@@ -18,9 +18,9 @@
 
 import { join } from "path";
 import { spawn } from "../../utils";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 import { Uri } from "vscode";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 
 export enum InfoCoreFileFormat {
   Base64 = "b64",
@@ -48,9 +48,9 @@ export class ESPCoreDumpPyTool {
     );
   }
   public async generateCoreELFFile(options: CoreELFGenerationOptions) {
-    let resp: Buffer;
+    let resp: Buffer | undefined;
     try {
-      const env = await configureEnvVariables(options.workspaceUri);
+      const env = getCurrentIdfConfiguration();
       resp = await spawn(
         options.pythonBinPath,
         [
@@ -68,7 +68,12 @@ export class ESPCoreDumpPyTool {
       );
       return true;
     } catch (error) {
-      Logger.error("espcoredump.py failed", error, "ESPCoreDumpPyTool generateCoreELFFile", { output: resp.toString() });
+      Logger.error(
+        "espcoredump.py failed",
+        error as Error,
+        "ESPCoreDumpPyTool generateCoreELFFile",
+        { output: resp?.toString() }
+      );
       return false;
     }
   }

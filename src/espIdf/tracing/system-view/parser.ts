@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 28th May 2020 11:35:16 pm
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,17 +16,21 @@
  * limitations under the License.
  */
 
-import { window, ProgressLocation, workspace } from "vscode";
-import { Logger } from "../../../logger/logger";
+import { AppTraceArchiveItems } from "../tree/appTraceArchiveTreeDataProvider";
+import { window, ProgressLocation, Uri } from "vscode";
+import { handleError } from "../../../common/error/handler";
+import { isKnownError, parseError } from "../../../common/error/knownError";
 import { SystemViewPanel } from "./panel";
 import { SysviewTraceProc } from "../tools/sysviewTraceProc";
-import { NotificationMode, readParameter } from "../../../idfConfiguration";
-import { getProjectElfFilePath } from "../../../workspaceConfig";
+import { NotificationMode, readParameter } from "../../../configuration/idf";
+import { getProjectElfFilePath } from "../../../configuration/workspace";
+import { traceArchiveParseErrorPresentation } from "../tracingOpenOcdPresentation";
 
 export class SystemViewResultParser {
   public static parseWithProgress(
-    trace: { filePath: string },
-    extensionPath: string
+    trace: AppTraceArchiveItems,
+    extensionPath: string,
+    workspaceUri: Uri
   ) {
     const notificationMode = readParameter(
       "idf.notificationMode"
@@ -45,25 +49,37 @@ export class SystemViewResultParser {
       },
       async () => {
         try {
-          const json = await this.parseSVDATToJSON(trace.filePath);
+          const json = await this.parseSVDATToJSON(trace.filePath, workspaceUri);
           SystemViewPanel.show(extensionPath, json);
         } catch (error) {
-          Logger.errorNotify(
-            "Failed to parse JSON from SVDAT file, make sure you've the proper version of sysviewtrace_proc.py installed and it supports JSON format output with (-j) flag",
-            error,
-            "SystemViewResultParser parseWithProgress"
+          if (isKnownError(error)) {
+            await handleError(
+              "espIdf.apptrace.archive.showReport",
+              error,
+              undefined,
+              { outputChannel: "Tracing" }
+            );
+            return;
+          }
+          await handleError(
+            "espIdf.apptrace.archive.showReport",
+            parseError(trace.filePath, traceArchiveParseErrorPresentation),
+            undefined,
+            { outputChannel: "Tracing" }
           );
         }
       }
     );
   }
-  private static async parseSVDATToJSON(filePath: string): Promise<any> {
-    const workspaceRoot = workspace.workspaceFolders?.[0]?.uri;
-    const elfFilePath = workspaceRoot
-      ? await getProjectElfFilePath(workspaceRoot)
-      : undefined;
-    const sysView = new SysviewTraceProc(workspaceRoot, filePath, elfFilePath);
+
+  private static async parseSVDATToJSON(filePath: string, workspaceUri: Uri): Promise<any> {
+    const elfFilePath = await getProjectElfFilePath(workspaceUri);
+    const sysView = new SysviewTraceProc(workspaceUri, filePath, elfFilePath);
     const resp = await sysView.parse();
-    return JSON.parse(resp.toString());
+    try {
+      return JSON.parse(resp.toString());
+    } catch (_error) {
+      throw parseError(filePath, traceArchiveParseErrorPresentation);
+    }
   }
 }

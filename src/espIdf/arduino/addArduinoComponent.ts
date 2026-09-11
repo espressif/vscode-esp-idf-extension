@@ -15,34 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { checkGitExists, getEspIdfFromCMake } from "../../utils";
+import { checkGitExists, getEspIdfFromCMake, isBinInPath } from "../../utils";
 import { spawn, ChildProcess } from "child_process";
-import * as idfConf from "../../idfConfiguration";
-import * as treeKill from "tree-kill";
+import treeKill from "tree-kill";
 import { join } from "path";
 import { ensureDir } from "fs-extra";
-import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
+import { Logger } from "../../common/logger";
+import { OutputChannel } from "../../common/outputChannel";
 import { ESP } from "../../config";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
 
 export class ArduinoComponentInstaller {
-  private cloneProcess: ChildProcess;
-  private espIdfPath: string;
+  private cloneProcess: ChildProcess | undefined;
   private readonly projectDir: string;
-  private gitBinPath: string;
 
   constructor(
-    espIdfPath: string,
     projectDir: string,
-    gitBinPath: string = "git"
   ) {
-    this.espIdfPath = espIdfPath;
     this.projectDir = projectDir;
-    this.gitBinPath = gitBinPath;
   }
 
   public cancel() {
-    if (this.cloneProcess && !this.cloneProcess.killed) {
+    if (
+      this.cloneProcess &&
+      this.cloneProcess.pid &&
+      !this.cloneProcess.killed
+    ) {
       treeKill(this.cloneProcess.pid, "SIGKILL");
       this.cloneProcess = undefined;
       const stoppedMsg = "\n❌ [Arduino ESP32 Cloning] : Stopped!\n";
@@ -51,8 +49,8 @@ export class ArduinoComponentInstaller {
     }
   }
 
-  public async cloneArduinoInComponentsFolder(branchToUse: string) {
-    const gitVersion = await checkGitExists(this.projectDir, this.gitBinPath);
+  public async cloneArduinoInComponentsFolder(branchToUse: string, gitPath: string) {
+    const gitVersion = await checkGitExists(this.projectDir, gitPath);
     if (!gitVersion || gitVersion === "Not found") {
       return;
     }
@@ -60,7 +58,7 @@ export class ArduinoComponentInstaller {
     await ensureDir(componentsDir);
     return new Promise<void>((resolve, reject) => {
       this.cloneProcess = spawn(
-        this.gitBinPath,
+        gitPath,
         [
           "clone",
           "--recursive",
@@ -72,12 +70,12 @@ export class ArduinoComponentInstaller {
         ],
         { cwd: componentsDir }
       );
-      this.cloneProcess.stderr.on("data", (data) => {
+      this.cloneProcess.stderr?.on("data", (data) => {
         OutputChannel.appendLine(data.toString());
         Logger.info(data.toString());
       });
 
-      this.cloneProcess.stdout.on("data", (data) => {
+      this.cloneProcess.stdout?.on("data", (data) => {
         OutputChannel.appendLine(data.toString());
         Logger.info(data.toString());
       });
@@ -85,7 +83,11 @@ export class ArduinoComponentInstaller {
         if (!signal && code !== 0) {
           const errorMsg = `Arduino ESP32 cloning has exit with ${code}`;
           OutputChannel.appendLine(errorMsg);
-          Logger.errorNotify(errorMsg, new Error(errorMsg), "addArduinoComponent cloneArduinoInComponentsFolder");
+          Logger.errorNotify(
+            errorMsg,
+            new Error(errorMsg),
+            "addArduinoComponent cloneArduinoInComponentsFolder"
+          );
           reject(new Error(errorMsg));
         }
         resolve();
@@ -93,11 +95,8 @@ export class ArduinoComponentInstaller {
     });
   }
 
-  private async checkIdfVersion(espIdfPath?: string) {
-    if (typeof espIdfPath === "undefined" || espIdfPath === "") {
-      espIdfPath = this.espIdfPath || process.env.IDF_PATH;
-    }
-    const idfVersion = await getEspIdfFromCMake(espIdfPath);
+  private async checkIdfVersion(idfPath: string): Promise<string> {
+    const idfVersion = await getEspIdfFromCMake(idfPath);
     const majorMinorMatches = idfVersion.match(/([0-9]+\.[0-9]+).*/);
     const espIdfVersion =
       majorMinorMatches && majorMinorMatches.length > 0
@@ -109,9 +108,12 @@ export class ArduinoComponentInstaller {
     return results[espIdfVersion] || "master";
   }
 
-  public async addArduinoAsComponent(espIdfPath?: string) {
-    const branchToUse = await this.checkIdfVersion(espIdfPath);
+  public async addArduinoAsComponent() {
+    const currentEnvVars = getCurrentIdfConfiguration();
+    let idfPath = currentEnvVars["IDF_PATH"];
+    let gitPath = await isBinInPath("git", currentEnvVars);
+    const branchToUse = await this.checkIdfVersion(idfPath);
     await ensureDir(this.projectDir);
-    await this.cloneArduinoInComponentsFolder(branchToUse);
+    await this.cloneArduinoInComponentsFolder(branchToUse, gitPath);
   }
 }

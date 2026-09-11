@@ -8,7 +8,7 @@ import { ReadlineParser } from '@serialport/parser-readline';
 import { SerialPortConfig } from "./types"
 import { EventEmitter } from 'events';
 import { promises } from 'fs';
-import { Logger } from '../../../logger/logger';
+import { Logger } from '../../../common/logger';
 
 export class UnitySerialCapture extends EventEmitter {
   private port: SerialPort | null = null;
@@ -41,7 +41,13 @@ export class UnitySerialCapture extends EventEmitter {
       });
 
       this.port.on('error', (err) => {
-        Logger.error(`Serial port error: ${err.message}`, err, "UnitySerialCapture port error");
+        Logger.error(
+          `Serial port error: ${err.message}`,
+          err,
+          "UnitySerialCapture port error",
+          undefined,
+          false
+        );
         this.emit('error', err);
       });
 
@@ -75,7 +81,13 @@ export class UnitySerialCapture extends EventEmitter {
 
       return true;
     } catch (error) {
-      Logger.error(`Failed to connect to ${this.config.port}:`, error, "UnitySerialCapture connect");
+      Logger.error(
+        `Failed to connect to ${this.config.port}:`,
+        error,
+        "UnitySerialCapture connect",
+        undefined,
+        false
+      );
       return false;
     }
   }
@@ -128,7 +140,13 @@ export class UnitySerialCapture extends EventEmitter {
       Logger.info('Hard reset completed');
       this.emit('hardResetCompleted');
     } catch (error) {
-      Logger.error('Hard reset failed:', error, "UnitySerialCapture hardReset");
+      Logger.error(
+        "Hard reset failed:",
+        error,
+        "UnitySerialCapture hardReset",
+        undefined,
+        false
+      );
       this.emit('hardResetFailed', error);
       throw error;
     }
@@ -191,7 +209,13 @@ export class UnitySerialCapture extends EventEmitter {
         productId: port.productId
       }));
     } catch (error) {
-      Logger.error('Failed to list serial ports:', error, "UnitySerialCapture listPorts");
+      Logger.error(
+        "Failed to list serial ports:",
+        error,
+        "UnitySerialCapture listPorts",
+        undefined,
+        false
+      );
       return [];
     }
   }

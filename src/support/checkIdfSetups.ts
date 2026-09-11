@@ -16,16 +16,16 @@
  * limitations under the License.
  */
 
-import { Uri } from "vscode";
 import { getIdfSetups } from "../eim/getExistingSetups";
 import { isIdfSetupValid } from "../eim/verifySetup";
 import { reportObj } from "./types";
 import { getEnvVariables } from "../eim/loadSettings";
+import { getWorkspaceFolder } from "./getWorkspaceFolder";
+import { ESP } from "../config";
+import { extensions } from "vscode";
 
-export async function checkIDFSetups(
-  reportedResult: reportObj,
-  workspaceFolder: Uri
-) {
+export async function checkIDFSetups(reportedResult: reportObj) {
+  const workspaceFolder = getWorkspaceFolder();
   const idfSetups = await getIdfSetups(workspaceFolder);
 
   for (const idfSetup of idfSetups) {
@@ -33,8 +33,13 @@ export async function checkIDFSetups(
       ...idfSetup,
       reason: "",
     };
-    let envVars: { [key: string]: string } = await getEnvVariables(idfSetup);
+    const extensionInfo = extensions.getExtension(ESP.extensionID);
+    let envVars: { [key: string]: string } = await getEnvVariables(
+      extensionInfo?.extensionPath || "",
+      idfSetup
+    );
     [extendedIdfSetup.isValid, extendedIdfSetup.reason] = await isIdfSetupValid(
+      extensionInfo?.extensionPath || "",
       envVars,
       false
     );

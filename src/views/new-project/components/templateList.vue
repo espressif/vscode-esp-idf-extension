@@ -4,7 +4,7 @@ import {
   IconChevronRight,
   IconChevronDown,
 } from "@iconify-prerendered/vue-codicon";
-import { IExample, IExampleCategory } from "../../../examples/Example";
+import { IExample, IExampleCategory } from "../../../newProject/Example";
 import TemplateList from "./templateList.vue";
 import { useNewProjectStore } from "../store";
 

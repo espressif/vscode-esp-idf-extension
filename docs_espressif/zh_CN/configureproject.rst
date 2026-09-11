@@ -77,7 +77,7 @@ C 和 C++ 代码导航及语法高亮
 通常 C/C++ 语言扩展依赖位于项目构建目录中的 ``compile_commands.json`` 文件。可使用 ``ESP-IDF：运行 idf.py reconfigure 任务`` 生成该文件。
 
 对于 `LLVM clangd 扩展 <https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd>`_，可使用 ``ESP-IDF: Configure project for ESP-Clang`` 配置该扩展的参数。
-该命令会在已配置的 ESP-IDF 环境中查找 ``esp-clang``，并结合 ``idf.buildPath``（Windows 上为 ``idf.buildPathWin``）指定的构建目录，以及当前 ``IDF_TARGET`` 与已配置 ESP-IDF 环境中的 GCC 工具链路径，用于设置 clangd 的路径与参数。
+该命令会在已配置的 ESP-IDF 环境中查找 ``esp-clang``，并结合 ``idf.buildPath`` 指定的构建目录，以及当前 ``IDF_TARGET`` 与已配置 ESP-IDF 环境中的 GCC 工具链路径，用于设置 clangd 的路径与参数。
 
 配置结果示例如下：
 
