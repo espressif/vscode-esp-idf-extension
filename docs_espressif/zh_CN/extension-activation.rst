@@ -18,12 +18,13 @@ VS Code 中的扩展激活是一个 **两阶段过程**。理解这两个阶段�
 - ``onCommand:espIdf.*`` — 当您从命令面板运行任何 ESP-IDF 命令时（例如 *ESP-IDF: Build your Project*、*ESP-IDF: Flash your Project*），VS Code 会加载扩展。
 - ``onView:idfPartitionExplorer``、``onView:espRainmaker`` 等 — 当您打开扩展注册的侧边栏视图时，VS Code 会加载扩展。
 - ``onLanguageModelTool:espIdfCommands`` — 当语言模型集成（例如 Copilot）调用 ESP-IDF 命令工具时，VS Code 会加载扩展。
+- ``contributes.mcpServerDefinitionProviders`` (``espIdf.mcpServers``) — 当聊天发现 MCP 服务器时，VS Code 可以加载扩展。此时会注册乐鑫文档和 ESP 组件注册表服务器，除非 ``idf.extensionActivationMode`` 为 ``never``。
 
 如果 **没有任何** 激活事件触发，VS Code 将永远不会加载扩展，其 ``activate()`` 函数也永远不会运行。这意味着：
 
 .. important::
 
-   ``idf.extensionActivationMode`` 设置 **只有在 VS Code 先加载扩展之后才会生效**。如果上述激活事件均未触发（工作区中无 ``CMakeLists.txt``、未运行 ESP-IDF 命令、未打开侧边栏视图、未调用语言模型工具），则扩展不会激活 — 即使 ``idf.extensionActivationMode`` 设置为 ``"always"`` 也是如此。
+   ``idf.extensionActivationMode`` 设置 **只有在 VS Code 先加载扩展之后才会生效**。如果上述激活事件均未触发（工作区中无 ``CMakeLists.txt``、未运行 ESP-IDF 命令、未打开侧边栏视图、未调用语言模型工具、未发现 MCP 服务器），则扩展不会激活 — 即使 ``idf.extensionActivationMode`` 设置为 ``"always"`` 也是如此。
 
 **阶段 2：扩展决定是否完全初始化**
 
@@ -60,6 +61,7 @@ VS Code 中的扩展激活是一个 **两阶段过程**。理解这两个阶段�
    - **覆盖**: 所有文件夹级设置
    - **不显示提示**: 尊重您的显式选择
    - **用例**: 在特定工作区中显式禁用扩展
+   - 当 VS Code 通过 MCP 发现在未打开工作区的情况下加载扩展时，此规则仍然适用；此时也不会注册 MCP 服务器。当模式为 ``"never"`` 或扩展停用时，这些服务器会被撤回；它们不是用户 ``mcp.json`` 中的条目。
 
 3. **任意文件夹设置 = "always"**
 
@@ -265,6 +267,8 @@ VS Code 中的扩展激活是一个 **两阶段过程**。理解这两个阶段�
 - **onLanguageModelTool:espIdfCommands**: 当语言模型集成（例如 Copilot）调用 ESP-IDF 命令工具时触发，支持 AI 辅助工作流。
 
 这些事件由 `VS Code 扩展 API <https://code.visualstudio.com/api/references/activation-events>`_ 定义，无法通过用户设置更改。阻止阶段 1 加载的唯一方法是在 VS Code 的扩展视图中完全禁用扩展。
+
+扩展还声明了 ``contributes.mcpServerDefinitionProviders``（``espIdf.mcpServers``）。这是贡献点，而不是 ``activationEvents`` 条目。当聊天发现所贡献的 MCP 服务器时，VS Code 仍可以加载扩展。当 ``idf.extensionActivationMode`` 为 ``"never"`` 或扩展停用时，这些服务器会被撤回；它们不会写入用户 ``mcp.json`` 文件。
 
 为什么使用"True 优先"策略？
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

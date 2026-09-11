@@ -18,12 +18,13 @@ Before the extension's own code can run, VS Code itself must decide to load it. 
 - ``onCommand:espIdf.*`` — VS Code loads the extension when you run any ESP-IDF command from the Command Palette (e.g., *ESP-IDF: Build your Project*, *ESP-IDF: Flash your Project*).
 - ``onView:idfPartitionExplorer``, ``onView:espRainmaker``, etc. — VS Code loads the extension when you open one of its registered sidebar views.
 - ``onLanguageModelTool:espIdfCommands`` — VS Code loads the extension when a language-model integration (e.g., Copilot) invokes the ESP-IDF commands tool.
+- ``contributes.mcpServerDefinitionProviders`` (``espIdf.mcpServers``) — VS Code can load the extension when Chat discovers MCP servers. The Espressif Documentation and ESP Component Registry servers are registered at this point unless ``idf.extensionActivationMode`` is ``never``.
 
 If **none** of these triggers fire, VS Code will never load the extension and its ``activate()`` function will never run. This means:
 
 .. important::
 
-   The ``idf.extensionActivationMode`` setting has **no effect** unless VS Code loads the extension first. If none of the activation events listed above fire (no ``CMakeLists.txt`` in the workspace, no ESP-IDF command run, no sidebar view opened, no language-model tool invocation), the extension will not activate — even if ``idf.extensionActivationMode`` is set to ``"always"``.
+   The ``idf.extensionActivationMode`` setting has **no effect** unless VS Code loads the extension first. If none of the activation events listed above fire (no ``CMakeLists.txt`` in the workspace, no ESP-IDF command run, no sidebar view opened, no language-model tool invocation, no MCP server discovery), the extension will not activate — even if ``idf.extensionActivationMode`` is set to ``"always"``.
 
 **Phase 2: Extension Decides Whether to Fully Initialize**
 
@@ -60,6 +61,7 @@ Once the extension is loaded by VS Code, it follows a strict priority hierarchy 
    - **Overrides**: All folder-level settings
    - **No prompt shown**: Respects your explicit choice
    - **Use case**: Explicitly disable extension in specific workspaces
+   - This still applies when VS Code loads the extension via MCP discovery with no workspace open; MCP servers are also not registered. Servers are withdrawn when mode is ``"never"`` or the extension deactivates; they are not a user ``mcp.json`` entry.
 
 3. **ANY Folder Setting = "always"**
 
@@ -265,6 +267,8 @@ The extension's ``package.json`` declares the following activation events:
 - **onLanguageModelTool:espIdfCommands**: Fires when a language-model integration (e.g., Copilot) invokes the ESP-IDF commands tool, enabling AI-assisted workflows.
 
 These events are defined by the `VS Code Extension API <https://code.visualstudio.com/api/references/activation-events>`_ and cannot be changed via user settings. The only way to prevent Phase 1 loading is to disable the extension entirely in VS Code's Extensions view.
+
+The extension also declares ``contributes.mcpServerDefinitionProviders`` (``espIdf.mcpServers``). This is a contribution point, not an ``activationEvents`` entry. VS Code can still load the extension when Chat discovers the contributed MCP servers. The servers are withdrawn when ``idf.extensionActivationMode`` is ``"never"`` or the extension deactivates; they are not stored in a user ``mcp.json`` file.
 
 Why "True Wins" Strategy?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

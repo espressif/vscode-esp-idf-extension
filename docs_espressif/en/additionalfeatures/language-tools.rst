@@ -143,3 +143,30 @@ Here are some examples of how to use the commands with parameters:
 * "#espIdfCommands buildFlashMonitor bootloader JTAG"
 * "build and flash partition table with DFU"
 * "#espIdfCommands buildFlashMonitor partition-table DFU"
+
+Espressif MCP Servers
+---------------------
+
+The extension registers remote `Model Context Protocol (MCP) <https://code.visualstudio.com/api/extension-guides/ai/mcp>`_ servers so Chat (for example GitHub Copilot) can call Espressif tools without a separate ``mcp.json`` entry.
+
+The following HTTP servers are contributed:
+
+* **Espressif Documentation** (``https://mcp.espressif.com/docs``) — semantic search over official Espressif documentation in English and Chinese (``search_espressif_sources``).
+* **ESP Component Registry** (``https://components.espressif.com/mcp``) — search components and fetch component documentation.
+
+These servers do not require a local ESP-IDF project. They are registered when the extension loads, unless ``idf.extensionActivationMode`` is set to ``never``.
+
+First use
+~~~~~~~~~
+
+1. Run **MCP: List Servers** from the Command Palette.
+2. If they are not already running, start the two separate entries: "Espressif Documentation" and "ESP Component Registry".
+3. VS Code opens a browser for authentication. Sign in with a **GitHub** or **WeChat** account. Only an anonymized account ID is used to enforce rate limits. See the `Espressif Documentation MCP Server <https://developer.espressif.com/blog/2026/04/doc-mcp-server/>`_ article and `Espressif MCP Servers <https://mcp.espressif.com>`_.
+4. If the Component Registry server also requests authentication, complete that prompt the same way.
+5. Open Chat (``View`` > ``Chat``) to start a chat session.
+
+After login, Chat can use the documentation search and component registry tools together with the ESP-IDF command tool described above.
+
+.. note::
+
+    MCP tools require VS Code 1.101 or later and that MCP is enabled. Organizations can disable MCP with GitHub Copilot policy; in that case the setting ``chat.mcp.enabled`` stays off and the contributed servers will not start.

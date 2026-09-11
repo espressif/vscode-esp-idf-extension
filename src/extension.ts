@@ -164,6 +164,10 @@ import { configureClangSettings } from "./clang";
 import { OpenOCDErrorMonitor } from "./espIdf/hints/openocdhint";
 import { updateHintsStatusBarItem } from "./statusBar";
 import { activateLanguageTool, deactivateLanguageTool } from "./langTools";
+import {
+  registerEspressifMcpServers,
+  unregisterEspressifMcpServers,
+} from "./mcp/espressifMcpServers";
 import { readSerialPort } from "./idfConfiguration";
 import { openFolderCheck, webIdeCheck } from "./common/PreCheck";
 import { buildFlashAndMonitor } from "./buildFlashMonitor";
@@ -247,6 +251,41 @@ const minIdfVersionCheck = async function (
 
 let projectConfigManager: ProjectConfigurationManager | undefined;
 
+const activationModeConfigKey = "idf.extensionActivationMode";
+
+function normalizeActivationMode(
+  value: unknown
+): "detect" | "always" | "never" {
+  if (value === "always") {
+    return "always";
+  }
+  if (value === "never") {
+    return "never";
+  }
+  return "detect";
+}
+
+function shouldRegisterEspressifMcpServers(): boolean {
+  const workspaceValue = idfConf.readParameter(activationModeConfigKey);
+  if (workspaceValue === "never") {
+    return false;
+  }
+  if (workspaceValue === "always") {
+    return true;
+  }
+  const folders = vscode.workspace.workspaceFolders;
+  if (folders && folders.length > 0) {
+    const allFoldersNever = folders.every(
+      (folder) =>
+        idfConf.readParameter(activationModeConfigKey, folder.uri) === "never"
+    );
+    if (allFoldersNever) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
   Logger.init(context);
@@ -267,42 +306,47 @@ export async function activate(context: vscode.ExtensionContext) {
   utils.setExtensionContext(context);
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
 
+  if (shouldRegisterEspressifMcpServers()) {
+    registerEspressifMcpServers();
+  }
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (!e.affectsConfiguration(activationModeConfigKey)) {
+        return;
+      }
+      if (shouldRegisterEspressifMcpServers()) {
+        registerEspressifMcpServers();
+      } else {
+        unregisterEspressifMcpServers();
+      }
+    })
+  );
+
   // Check if running in a VS Code fork and prompt for clangd extension installation
   if (PreCheck.isRunningInVSCodeFork()) {
     checkAndPromptForClangdExtension();
   }
 
-  // Validate workspace activation eligibility
-  // See docs_espressif/en/extension-activation.rst for details
-  if (PreCheck.isWorkspaceFolderOpen() && vscode.workspace.workspaceFolders) {
-    const activationModeConfigKey = "idf.extensionActivationMode";
-    try {
-      const normalizeActivationMode = (
-        value: unknown
-      ): "detect" | "always" | "never" => {
-        if (value === "always") {
-          return "always";
-        }
-        if (value === "never") {
-          return "never";
-        }
-        return "detect";
-      };
-
-      // 1) Workspace/global setting: always activates; never suppresses (no prompt).
-      const workspaceValue = normalizeActivationMode(
-        idfConf.readParameter(activationModeConfigKey)
+  // Validate activation eligibility (never applies even with no workspace,
+  // e.g. MCP discovery). See docs_espressif/en/extension-activation.rst.
+  try {
+    // 1) Workspace/global setting: always activates; never suppresses (no prompt).
+    const workspaceValue = normalizeActivationMode(
+      idfConf.readParameter(activationModeConfigKey)
+    );
+    if (workspaceValue === "never") {
+      Logger.info(
+        "Extension activation suppressed by workspace/global idf.extensionActivationMode=never setting."
       );
+      return;
+    }
+
+    if (PreCheck.isWorkspaceFolderOpen() && vscode.workspace.workspaceFolders) {
       if (workspaceValue === "always") {
         // Activate immediately; skip folder checks and CMake detection.
         Logger.info(
           "Extension activation forced by workspace/global idf.extensionActivationMode=always setting."
         );
-      } else if (workspaceValue === "never") {
-        Logger.info(
-          "Extension activation suppressed by workspace/global idf.extensionActivationMode=never setting."
-        );
-        return;
       } else {
         // 2) Folder settings: any always activates; only ALL folders never suppresses (no prompt).
         let hasAnyFolderAlways = false;
@@ -387,13 +431,13 @@ export async function activate(context: vscode.ExtensionContext) {
           }
         }
       }
-    } catch (error) {
-      Logger.error(
-        "Error checking idf.extensionActivationMode setting for activation.",
-        error,
-        "extension activate checkExtensionActivationModeSetting"
-      );
     }
+  } catch (error) {
+    Logger.error(
+      "Error checking idf.extensionActivationMode setting for activation.",
+      error,
+      "extension activate checkExtensionActivationModeSetting"
+    );
   }
   OutputChannel.init();
   const registerIDFCommand = (
@@ -4502,4 +4546,5 @@ export function deactivate() {
   }
   KconfigLangClient.stopKconfigLangServer();
   deactivateLanguageTool();
+  unregisterEspressifMcpServers();
 }

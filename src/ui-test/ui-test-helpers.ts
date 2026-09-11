@@ -21,6 +21,7 @@ import { resolve } from "path";
 import { promisify } from "util";
 import {
   ActivityBar,
+  By,
   BottomBarPanel,
   DebugConsoleView,
   DebugView,
@@ -28,6 +29,7 @@ import {
   InputBox,
   OutputView,
   TextEditor,
+  WebView,
   Workbench,
 } from "vscode-extension-tester";
 
@@ -144,6 +146,9 @@ export async function waitForBuildComplete(
 export const ESP_IDF_COMMANDS = {
   fullClean: "ESP-IDF: Full Clean Project",
   build: "ESP-IDF: Build Your Project",
+  createComponent: "ESP-IDF: Create New ESP-IDF Component",
+  doctor: "ESP-IDF: Doctor Command",
+  menuconfig: "ESP-IDF: SDK Configuration Editor (Menuconfig)",
   selectPort: "ESP-IDF: Select Port to Use (COM, tty, usbserial)",
   selectMonitorPort:
     "ESP-IDF: Select Monitor Port to Use (COM, tty, usbserial)",
@@ -461,6 +466,34 @@ export async function waitForOutputChannelText(
   const text = await outputView.getText();
   throw new Error(
     `Timed out waiting for output channel "${channel}" to match ${pattern}.\nLast output:\n${text}`
+  );
+}
+
+export async function switchToWebViewFrameContainingElement(
+  locator: By,
+  timeoutMs: number
+): Promise<WebView> {
+  const deadline = Date.now() + timeoutMs;
+  let lastError: unknown;
+
+  while (Date.now() < deadline) {
+    const view = new WebView();
+    try {
+      await view.switchToFrame(5000);
+      await view.findWebElement(locator);
+      return view;
+    } catch (error) {
+      lastError = error;
+      try {
+        await view.switchBack();
+      } catch {}
+      await new Promise((res) => setTimeout(res, 2000));
+    }
+  }
+
+  const message = lastError instanceof Error ? lastError.message : lastError;
+  throw new Error(
+    `Timed out waiting for webview element ${locator}. Last error: ${message}`
   );
 }
 

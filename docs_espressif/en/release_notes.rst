@@ -3,6 +3,14 @@ Release Notes
 
 All notable changes to the "Espressif IDF" extension are documented in this file.
 
+Unreleased
+----------
+
+Features and enhancements (Unreleased)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Contribute Espressif Documentation and ESP Component Registry MCP servers to VS Code Chat. The Documentation MCP server requires a GitHub or WeChat login.
+
 2.0.2
 -----
 

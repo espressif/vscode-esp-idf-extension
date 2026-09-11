@@ -11,11 +11,17 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.100.3"
+    "vscode": "^1.101.0"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/espressif/vscode-esp-idf-extension.git"
+  },
+  "resolutions": {
+    "**/@textlint/linter-formatter/js-yaml": "3.15.2",
+    "mocha/js-yaml": "4.3.2",
+    "rc-config-loader/js-yaml": "4.3.2",
+    "vscode-extension-tester/js-yaml": "4.3.2"
   },
   "categories": [
     "Programming Languages",
@@ -110,6 +116,13 @@
   "main": "./dist/extension",
   "l10n": "./l10n",
   "contributes": {
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "espIdf.mcpServers",
+        "label": "%mcp.espIdf.provider.label%",
+        "when": "config.idf.extensionActivationMode != 'never'"
+      }
+    ],
     "jsonValidation": [
       {
         "fileMatch": [
@@ -2617,8 +2630,8 @@
     "genLocalizationBundle": "npx @vscode/l10n-dev export --outDir ./l10n ./src",
     "webpack": "webpack --mode production",
     "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json out/ui-test/project-build-test.js out/ui-test/project-menuconfig-test.js out/ui-test/project-test.js",
-    "ci-test": "yarn compile && extest setup-and-run out/ui-test/project-build-test.js out/ui-test/project-menuconfig-test.js out/ui-test/project-test.js -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m ./src/ui-test/.mocharc-ci.js",
-    "ci-test-hardware": "IDF_UI_TEST_SERIAL_PORT=/dev/ttyUSB1 yarn compile && extest setup-and-run out/ui-test/project-hardware-e2e-test.js -u -s test-resources -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m ./src/ui-test/.mocharc-ci-hardware.js"
+    "ci-test": "yarn compile && extest setup-and-run out/ui-test/project-build-test.js out/ui-test/project-menuconfig-test.js out/ui-test/project-test.js -u -s \"${GITHUB_WORKSPACE:-$PWD}/test-resources\" -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m ./src/ui-test/.mocharc-ci.js",
+    "ci-test-hardware": "IDF_UI_TEST_SERIAL_PORT=/dev/ttyUSB1 yarn compile && extest setup-and-run out/ui-test/project-hardware-e2e-test.js -u -s \"${GITHUB_WORKSPACE:-$PWD}/test-resources\" -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m ./src/ui-test/.mocharc-ci-hardware.js"
   },
   "devDependencies": {
     "@babel/types": "^7.23.0",
@@ -2637,7 +2650,7 @@
     "@types/sanitize-html": "^2.6.2",
     "@types/tar-fs": "^2.0.1",
     "@types/tmp": "0.0.33",
-    "@types/vscode": "^1.100.3",
+    "@types/vscode": "^1.101.0",
     "@types/ws": "^7.2.5",
     "@types/xml2js": "^0.4.11",
     "@types/yauzl": "^2.9.1",

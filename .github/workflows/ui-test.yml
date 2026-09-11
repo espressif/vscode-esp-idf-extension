@@ -62,14 +62,14 @@ jobs:
           name: ui-test-results
           path: |
             ./reports/ui-test-results.json
-            ./test-resources/screenshots/
+            ${{ github.workspace }}/test-resources/screenshots/**/*
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: screenshots
-          path: ./test-resources/screenshots
+          path: ${{ github.workspace }}/test-resources/screenshots/**/*
 
   ui_hardware_test:
     runs-on: [self-hosted, BrnoUBU0004]
@@ -124,11 +124,11 @@ jobs:
           name: ui-hardware-test-results
           path: |
             ./reports/ui-test-hardware-results.json
-            ./test-resources/screenshots/
+            ${{ github.workspace }}/test-resources/screenshots/**/*
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: ui-hardware-test-screenshots
-          path: ./test-resources/screenshots
+          path: ${{ github.workspace }}/test-resources/screenshots/**/*
