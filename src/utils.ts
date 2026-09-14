@@ -30,6 +30,7 @@ import {
   writeJSON,
 } from "fs-extra";
 import { marked } from "marked";
+import { ParseError, parse } from "jsonc-parser";
 import { EOL, platform } from "os";
 import * as path from "path";
 import * as vscode from "vscode";
@@ -43,6 +44,7 @@ import * as sanitizedHtml from "sanitize-html";
 import { isFlashEncryptionEnabled } from "./flash/verifyFlashEncryption";
 import { configureClangSettings } from "./clang";
 import { configureEnvVariables } from "./common/prepareEnv";
+import { updateJsonPreservingComments } from "./jsonc/updateJsonPreservingComments";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
 
@@ -362,16 +364,27 @@ export async function updateCCppPropertiesJson(
   if (!doesPathExists) {
     return;
   }
-  const cCppPropertiesJson = await readJSON(cCppPropertiesJsonPath);
+  const cCppPropertiesContent = await readFile(cCppPropertiesJsonPath, "utf8");
+  const parseErrors: ParseError[] = [];
+  const cCppPropertiesJson = parse(cCppPropertiesContent, parseErrors, {
+    allowTrailingComma: true,
+  });
+  if (parseErrors.length > 0) {
+    throw new Error(
+      `Failed to parse c_cpp_properties.json with ${parseErrors.length} errors`
+    );
+  }
   if (
     cCppPropertiesJson &&
     cCppPropertiesJson.configurations &&
     cCppPropertiesJson.configurations.length
   ) {
     cCppPropertiesJson.configurations[0][fieldToUpdate] = newFieldValue;
-    await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
-      spaces: 2,
-    });
+    await updateJsonPreservingComments(
+      cCppPropertiesJsonPath,
+      cCppPropertiesJson,
+      [["configurations", 0, fieldToUpdate]]
+    );
   }
 }
 

@@ -17,12 +17,13 @@ import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
 import { INewProjectArgs } from "./newProjectInit";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
-import { copy, ensureDir, readFile, writeFile, writeJSON } from "fs-extra";
+import { copy, ensureDir, readFile, writeFile } from "fs-extra";
 import * as utils from "../utils";
 import { IExample } from "../examples/Example";
 import { setCurrentSettingsInTemplate } from "./utils";
 import { NotificationMode, readParameter } from "../idfConfiguration";
 import { createClangdFile } from "../clang";
+import { updateJsonPreservingComments } from "../jsonc/updateJsonPreservingComments";
 import { IdfSetup } from "../eim/types";
 
 export class NewProjectPanel {
@@ -295,9 +296,7 @@ export class NewProjectPanel {
             openOcdConfigs
           );
           await createClangdFile(vscode.Uri.file(newProjectPath));
-          await writeJSON(settingsJsonPath, settingsJson, {
-            spaces: 2,
-          });
+          await updateJsonPreservingComments(settingsJsonPath, settingsJson);
 
           if (components && components.length > 0) {
             const componentsPath = path.join(newProjectPath, "components");
