@@ -26,10 +26,10 @@ import { resolve } from "path";
 import { pathExists } from "fs-extra";
 import {
   dismissNotifications,
+  ensureTestProjectOpen,
   ESP_IDF_COMMANDS,
   executeEspIdfCommand,
   helloWorldBinPath,
-  openTestProject,
   waitForBuildComplete,
   waitForPathAbsent,
 } from "./ui-test-helpers";
@@ -40,7 +40,7 @@ describe("Build testing", async () => {
   before(async function () {
     this.timeout(100000);
     await dismissNotifications();
-    await openTestProject();
+    await ensureTestProjectOpen();
   });
 
   it("Log Doctor command configuration", async () => {

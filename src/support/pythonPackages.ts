@@ -23,17 +23,30 @@ export async function getPythonPackages(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
-  const rawPythonPackagesList = await execChildProcess(
-    reportedResult.configurationSettings.pythonBinPath,
-    ["-m", "pip", "list", "--format", "json"],
-    context.extensionPath
-  );
-  reportedResult.pythonPackages.output = rawPythonPackagesList;
-  reportedResult.pythonPackages.result = rawPythonPackagesList;
-  const parsedPkgsListMatches = rawPythonPackagesList.match(/\[.*\]/g);
-  if (parsedPkgsListMatches && parsedPkgsListMatches.length) {
-    reportedResult.configurationSettings.pythonPackages = JSON.parse(
-      parsedPkgsListMatches[parsedPkgsListMatches.length - 1]
+  try {
+    const pythonBinPath = reportedResult.configurationSettings.pythonBinPath;
+    if (!pythonBinPath) {
+      reportedResult.pythonPackages.output = "Python path is not configured";
+      reportedResult.pythonPackages.result = "Not found";
+      return;
+    }
+    const rawPythonPackagesList = await execChildProcess(
+      pythonBinPath,
+      ["-m", "pip", "list", "--format", "json"],
+      context.extensionPath
     );
+    reportedResult.pythonPackages.output = rawPythonPackagesList;
+    reportedResult.pythonPackages.result = rawPythonPackagesList;
+    const parsedPkgsListMatches = rawPythonPackagesList.match(/\[.*\]/g);
+    if (parsedPkgsListMatches && parsedPkgsListMatches.length) {
+      reportedResult.configurationSettings.pythonPackages = JSON.parse(
+        parsedPkgsListMatches[parsedPkgsListMatches.length - 1]
+      );
+    }
+  } catch (error) {
+    reportedResult.pythonPackages.output =
+      error instanceof Error ? error.message : String(error);
+    reportedResult.pythonPackages.result = "Not found";
+    reportedResult.latestError = error;
   }
 }

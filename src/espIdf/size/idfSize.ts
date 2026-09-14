@@ -16,115 +16,169 @@
  * limitations under the License.
  */
 
-import * as path from "path";
-import * as vscode from "vscode";
-import { Logger } from "../../logger/logger";
-import { fileExists, spawn } from "../../utils";
-import { getProjectMapFilePath } from "../../workspaceConfig";
-import * as utils from "../../utils";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
-import { ESP } from "../../config";
+import {
+  compareVersion,
+  getEspIdfFromCMake,
+  spawn,
+} from "../../utils";
+import { getProjectMapFilePath } from "../../configuration/workspace";
+import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../../configuration/env";
+import type { IDFSizeCalculateResult } from "./types";
+import { CancellationToken, l10n, Progress, Uri } from "vscode";
+import { join } from "path";
+import {
+  fileNotFound,
+  invalidIdfVersion,
+  isKnownError,
+  missingDependency,
+  parseError,
+} from "../../common/error/knownError";
+import { ErrorCode } from "../../common/error/types";
+import { sizeErrorPresentation } from "./sizeErrorPresentation";
 
 export class IDFSize {
-  private readonly workspaceFolderUri: vscode.Uri;
-  private isCanceled: boolean;
-  constructor(workspaceRoot: vscode.Uri) {
+  private readonly workspaceFolderUri: Uri;
+  private isCanceled: boolean = false;
+  constructor(workspaceRoot: Uri) {
     this.workspaceFolderUri = workspaceRoot;
   }
   public cancel() {
     this.isCanceled = true;
   }
   public async calculateWithProgress(
-    progress: vscode.Progress<{ message: string; increment: number }>
-  ) {
-    if (this.isCanceled) {
-      throw new Error(
-        vscode.l10n.t("Cannot proceed with size analysis on a canceled context")
-      );
+    progress: Progress<{ message: string; increment: number }>,
+    cancelToken?: CancellationToken
+  ): Promise<IDFSizeCalculateResult | undefined> {
+    if (this.isCanceled || cancelToken?.isCancellationRequested) {
+      return;
     }
-    const isBuilt = await this.isBuiltAlready();
-    if (!isBuilt) {
-      throw new Error(
-        vscode.l10n.t(
-          "Build is required for a size analysis, build your project first"
-        )
-      );
-    }
+
+    const mapFilePath = await this.resolveMapFilePath();
+
+    const espIdfPath = this.idfPath();
+    let version: string;
     try {
-      const mapFilePath = await this.mapFilePath();
-
-      let locMsg = vscode.l10n.t("Gathering Overview");
-      const espIdfPath = this.idfPath();
-      const version = await utils.getEspIdfFromCMake(espIdfPath);
-      const formatArgs =
-        utils.compareVersion(version, "5.3.0") >= 0
-          ? ["--format", "json2"]
-          : utils.compareVersion(version, "5.1.0") >= 0
-          ? ["--format", "json"]
-          : ["--json"];
-      const overview = await this.idfCommandInvoker([
-        "idf_size.py",
-        mapFilePath,
-        ...formatArgs,
-      ]);
-      progress.report({ increment: 30, message: locMsg });
-
-      locMsg = vscode.l10n.t("Gathering Archive List");
-      const archives = await this.idfCommandInvoker([
-        "idf_size.py",
-        mapFilePath,
-        "--archives",
-        ...formatArgs,
-      ]);
-      progress.report({ increment: 30, message: locMsg });
-
-      locMsg = vscode.l10n.t("Calculating File Sizes for all the archives");
-      const files = await this.idfCommandInvoker([
-        "idf_size.py",
-        mapFilePath,
-        "--file",
-        ...formatArgs,
-      ]);
-      progress.report({ increment: 30, message: locMsg });
-
-      return { archives, files, overview };
+      version = await getEspIdfFromCMake(espIdfPath);
     } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      throw invalidIdfVersion(
+        espIdfPath,
+        detail,
+        sizeErrorPresentation.invalidIdfVersion
+      );
+    }
+
+    const formatArgs =
+      compareVersion(version, "5.3.0") >= 0
+        ? ["--format", "json2"]
+        : compareVersion(version, "5.1.0") >= 0
+        ? ["--format", "json"]
+        : ["--json"];
+
+    const bumpProgress = (message: string) =>
+      progress.report({ increment: 30, message });
+
+    const [overview, archives, files] = await Promise.all([
+      this.idfCommandInvoker(
+        ["idf_size.py", mapFilePath, ...formatArgs],
+        mapFilePath,
+        cancelToken
+      ).then((result) => {
+        bumpProgress(l10n.t("Gathering Overview"));
+        return result;
+      }),
+      this.idfCommandInvoker(
+        ["idf_size.py", mapFilePath, "--archives", ...formatArgs],
+        mapFilePath,
+        cancelToken
+      ).then((result) => {
+        bumpProgress(l10n.t("Gathering Archive List"));
+        return result;
+      }),
+      this.idfCommandInvoker(
+        ["idf_size.py", mapFilePath, "--file", ...formatArgs],
+        mapFilePath,
+        cancelToken
+      ).then((result) => {
+        bumpProgress(l10n.t("Calculating File Sizes for all the archives"));
+        return result;
+      }),
+    ]);
+
+    if (
+      this.isCanceled ||
+      cancelToken?.isCancellationRequested ||
+      overview === undefined ||
+      archives === undefined ||
+      files === undefined
+    ) {
+      return;
+    }
+
+    return { archives, files, overview } as IDFSizeCalculateResult;
+  }
+
+  private async resolveMapFilePath(): Promise<string> {
+    try {
+      return await getProjectMapFilePath(this.workspaceFolderUri);
+    } catch (error) {
+      if (isKnownError(error) && error.code === ErrorCode.FILE_NOT_FOUND) {
+        throw fileNotFound(
+          String(error.metadata?.filePath),
+          sizeErrorPresentation.fileNotFound
+        );
+      }
       throw error;
     }
   }
 
-  private async mapFilePath() {
-    return await getProjectMapFilePath(this.workspaceFolderUri);
-  }
-
   private idfPath(): string {
-    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-      [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    const currentEnvVars = getCurrentIdfConfiguration();
     return currentEnvVars["IDF_PATH"];
   }
 
   public async isBuiltAlready() {
-    return fileExists(await this.mapFilePath());
+    try {
+      await getProjectMapFilePath(this.workspaceFolderUri);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
-  private async idfCommandInvoker(args: string[]) {
+  private async idfCommandInvoker(
+    args: string[],
+    mapFilePath: string,
+    cancelToken?: CancellationToken
+  ) {
+    if (this.isCanceled || cancelToken?.isCancellationRequested) {
+      return;
+    }
+
     const idfPath = this.idfPath();
+    const pythonBinPath = getVirtualEnvPythonPath();
+    if (!pythonBinPath) {
+      throw missingDependency("Python", sizeErrorPresentation.missingDependency);
+    }
+
     try {
-      const pythonBinPath = await getVirtualEnvPythonPath();
       const buffOut = await spawn(pythonBinPath, args, {
-        cwd: path.join(idfPath, "tools"),
+        cwd: join(idfPath, "tools"),
         silent: true,
+        cancelToken,
+        errorPresentation: sizeErrorPresentation.childProcessFailed,
       });
       const buffStr = buffOut.toString();
-      const buffObj = JSON.parse(buffStr);
-      return buffObj;
+      try {
+        return JSON.parse(buffStr);
+      } catch {
+        throw parseError(mapFilePath, sizeErrorPresentation.parseError);
+      }
     } catch (error) {
-      const throwableError = new Error(
-        vscode.l10n.t("Error encountered while calling idf_size.py")
-      );
-      Logger.error(error.message, error, "IDFSize idfCommandInvoker");
-      throw throwableError;
+      if (this.isCanceled || cancelToken?.isCancellationRequested) {
+        return;
+      }
+      throw error;
     }
   }
 }

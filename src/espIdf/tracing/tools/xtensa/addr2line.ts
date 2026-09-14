@@ -20,6 +20,7 @@ import * as vscode from "vscode";
 
 import { constants } from "fs";
 import { canAccessFile } from "../../../../utils";
+import { fileNotFound } from "../../../../common/error/knownError";
 import { XtensaTools } from "./abstractXtensaTools";
 
 export class Addr2Line extends XtensaTools {
@@ -34,7 +35,7 @@ export class Addr2Line extends XtensaTools {
 
   public async run() {
     if (!canAccessFile(this.elfFilePath, constants.R_OK)) {
-      throw new Error("Elf file not present or not accessible");
+      throw fileNotFound(this.elfFilePath);
     }
     return await this.call(["-e", this.elfFilePath, this.address]);
   }

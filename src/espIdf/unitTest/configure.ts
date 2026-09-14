@@ -16,23 +16,53 @@
  * limitations under the License.
  */
 
-import { CancellationToken, Uri, extensions, l10n } from "vscode";
+import { CancellationToken, Uri, extensions } from "vscode";
 import { ESP } from "../../config";
 import { join } from "path";
 import { copy, pathExists, readFile, writeFile } from "fs-extra";
-import { readParameter, readSerialPort } from "../../idfConfiguration";
-import { buildCommand } from "../../build/buildCmd";
-import { verifyCanFlash } from "../../flash/flashCmd";
-import { jtagFlashCommand } from "../../flash/jtagCmd";
-import { flashCommand } from "../../flash/uartFlash";
-import { OutputChannel } from "../../logger/outputChannel";
-import { Logger } from "../../logger/logger";
+import { readParameter } from "../../configuration/idf";
+import { buildMain } from "../../build/buildMain";
+import { flashMain } from "../../flash/main";
+import { CustomExecutionTaskResult } from "../../taskManager/types";
+import { OutputChannel } from "../../common/outputChannel";
+import { Logger } from "../../common/logger";
+import {
+  isKnownError,
+  known,
+  missingDependency,
+} from "../../common/error/knownError";
+import { ErrorCode, ErrorPresentation } from "../../common/error/types";
 import { getFileList, getTestComponents } from "./utils";
-import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
+import { unitTestErrorPresentation } from "./unitTestErrorPresentation";
+
+const unitTestPresentations: Partial<Record<ErrorCode, ErrorPresentation>> = {
+  [ErrorCode.UnitTestTaskFailed]: unitTestErrorPresentation.unitTestTaskFailed,
+  [ErrorCode.TaskFailedWithOutput]:
+    unitTestErrorPresentation.taskFailedWithOutput,
+  [ErrorCode.AlreadyBuilding]: unitTestErrorPresentation.alreadyBuilding,
+  [ErrorCode.AlreadyFlashing]: unitTestErrorPresentation.alreadyFlashing,
+  [ErrorCode.IdfTaskInProgress]: unitTestErrorPresentation.idfTaskInProgress,
+  [ErrorCode.BuildTerminated]: unitTestErrorPresentation.buildTerminated,
+  [ErrorCode.FlashTerminated]: unitTestErrorPresentation.flashTerminated,
+  [ErrorCode.NoPortSelected]: unitTestErrorPresentation.noPortSelected,
+  [ErrorCode.NoSerialPort]: unitTestErrorPresentation.noSerialPort,
+  [ErrorCode.MISSING_DEPENDENCY]: unitTestErrorPresentation.missingDependency,
+};
+
+function presentUnitTestError(error: unknown): never {
+  if (!isKnownError(error)) {
+    throw error;
+  }
+  const presentation = unitTestPresentations[error.code];
+  if (!presentation) {
+    throw error;
+  }
+  throw known(error.code, error.metadata, presentation);
+}
 
 export async function configureUnityApp(
   workspaceFolder: Uri,
-  cancelToken?: CancellationToken
+  cancelToken: CancellationToken
 ) {
   try {
     let unitTestAppUri = Uri.joinPath(workspaceFolder, "unity-app");
@@ -49,11 +79,15 @@ export async function configureUnityApp(
     return unitTestAppUri;
   } catch (error) {
     const msg =
-      error && error.message
+      error instanceof Error && error.message
         ? error.message
         : "Error configuring Unity App for project";
     OutputChannel.appendLine(msg, "idf-unit-test");
-    Logger.error(msg, error, "configureUnityApp");
+    Logger.error(
+      msg,
+      error instanceof Error ? error : new Error(String(error)),
+      "configureUnityApp"
+    );
   }
 }
 
@@ -61,11 +95,14 @@ export async function copyTestAppProject(
   workspaceFolder: Uri,
   testComponents: string[]
 ) {
-  let unityAppDir: string = join(
-    extensions.getExtension(ESP.extensionID).extensionPath,
-    "templates",
-    "unity-app"
-  );
+  const extensionPath = extensions.getExtension(ESP.extensionID)?.extensionPath;
+  if (!extensionPath) {
+    throw missingDependency(
+      "Extension",
+      unitTestErrorPresentation.missingDependency
+    );
+  }
+  let unityAppDir: string = join(extensionPath, "templates", "unity-app");
   let destUnityAppDir = Uri.joinPath(workspaceFolder, "unity-app");
   await copy(unityAppDir, destUnityAppDir.fsPath);
   await updateTestComponents(destUnityAppDir, testComponents);
@@ -77,7 +114,7 @@ export async function updateTestComponents(
   testComponents: string[]
 ) {
   const cmakeListFile = Uri.joinPath(unityApp, "CMakeLists.txt");
-  if (pathExists(cmakeListFile.fsPath)) {
+  if (await pathExists(cmakeListFile.fsPath)) {
     let content = await readFile(cmakeListFile.fsPath, "utf-8");
     const projectMatches = content.match(/(project\(.*?\))/g);
     if (projectMatches && projectMatches.length) {
@@ -93,7 +130,7 @@ export async function updateTestComponents(
 export async function buildTestApp(
   unitTestAppDirPath: Uri,
   cancelToken: CancellationToken
-) {
+): Promise<CustomExecutionTaskResult> {
   let flashType = readParameter(
     "idf.flashType",
     unitTestAppDirPath
@@ -101,13 +138,10 @@ export async function buildTestApp(
   if (!flashType) {
     flashType = ESP.FlashType.UART;
   }
-  let canContinue = await buildCommand(
-    unitTestAppDirPath,
-    cancelToken,
-    flashType
-  );
-  if (!canContinue) {
-    return;
+  try {
+    return await buildMain(unitTestAppDirPath, cancelToken, flashType);
+  } catch (error) {
+    presentUnitTestError(error);
   }
 }
 
@@ -119,45 +153,13 @@ export async function flashTestApp(
     "idf.flashType",
     unitTestAppDirPath
   ) as ESP.FlashType;
-  const port = await readSerialPort(unitTestAppDirPath, false);
-  if (!port) {
-    return Logger.warnNotify(
-      l10n.t(
-        "No serial port found for current IDF_TARGET: {0}",
-        await getIdfTargetFromSdkconfig(unitTestAppDirPath)
-      )
-    );
+  if (!flashType) {
+    flashType = ESP.FlashType.UART;
   }
-  const flashBaudRate = readParameter("idf.flashBaudRate", unitTestAppDirPath);
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-  const idfPathDir = currentEnvVars["IDF_PATH"];
-  const canFlash = await verifyCanFlash(
-    flashBaudRate,
-    port,
-    flashType,
-    unitTestAppDirPath
-  );
-  if (!canFlash) {
-    return;
-  }
-  let canContinue = true;
-  if (flashType === ESP.FlashType.JTAG) {
-    canContinue = await jtagFlashCommand(unitTestAppDirPath);
-  } else {
-    canContinue = await flashCommand(
-      cancelToken,
-      flashBaudRate,
-      idfPathDir,
-      port,
-      unitTestAppDirPath,
-      flashType,
-      false
-    );
-  }
-  if (!canContinue) {
-    return;
+  try {
+    await flashMain(unitTestAppDirPath, cancelToken, flashType, false);
+  } catch (error) {
+    presentUnitTestError(error);
   }
 }
 
@@ -165,6 +167,9 @@ export async function buildFlashTestApp(
   unitTestAppDirPath: Uri,
   cancelToken: CancellationToken
 ) {
-  await buildTestApp(unitTestAppDirPath, cancelToken);
+  const buildCmdResults = await buildTestApp(unitTestAppDirPath, cancelToken);
+  if (!buildCmdResults.continueFlag) {
+    return;
+  }
   await flashTestApp(unitTestAppDirPath, cancelToken);
 }

@@ -1,5 +1,6 @@
 import * as assert from "assert";
 import { getGcovExecutable } from "../../coverage/coverageService";
+import { getGcovArgs } from "../../coverage/gcdaPaths";
 
 suite("Test Coverage Unit Tests", () => {
   test("gcov executables based on idfTarget", () => {
@@ -14,5 +15,16 @@ suite("Test Coverage Unit Tests", () => {
     assert.equal(esp32s2, "xtensa-esp32s2-elf-gcov");
     assert.equal(esp32s3, "xtensa-esp32s3-elf-gcov");
     assert.equal(esp32, "xtensa-esp32-elf-gcov");
+  });
+
+  test("gcov invocation uses argv instead of a shell command string", () => {
+    const gcdaPaths = ["/tmp/project dir/app.gcda", "/tmp/other.gcda"];
+    assert.deepStrictEqual(getGcovArgs(gcdaPaths), [
+      "-b",
+      "--stdout",
+      "--json-format",
+      "/tmp/project dir/app.gcda",
+      "/tmp/other.gcda",
+    ]);
   });
 });

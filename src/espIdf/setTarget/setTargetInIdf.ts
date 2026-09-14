@@ -17,81 +17,107 @@
  */
 
 import { join } from "path";
-import { WorkspaceFolder } from "vscode";
-import { readParameter } from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
-import {
-  setCCppPropertiesJsonCompilerPath,
-  spawn,
-} from "../../utils";
-import { ConfserverProcess } from "../menuconfig/confServerProcess";
+import { readParameter } from "../../configuration/idf";
+import { Logger } from "../../common/logger";
+import { OutputChannel } from "../../common/outputChannel";
+import { spawn } from "../../utils";
+import { ConfserverProcess } from "../menuconfig/confserver/confServerProcess";
 import { IdfTarget } from "./getTargets";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
-import * as vscode from "vscode";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import {
+  getCurrentIdfConfiguration,
+  getVirtualEnvPythonPath,
+  updateCurrentIdfEnvVar,
+} from "../../configuration/env";
+import { l10n, Uri } from "vscode";
+import { getIdfBuildPath, setCCppPropertiesJsonCompilerPath } from "../../configuration/workspace";
+import {
+  capturedProcessText,
+  isKnownError,
+  childProcessFailed,
+  missingDependency,
+} from "../../common/error/knownError";
+import { setTargetErrorPresentation } from "./setTargetErrorPresentation";
+
+function isSetTargetBenignOutput(message: string): boolean {
+  return message.includes("are satisfied");
+}
 
 export async function setTargetInIDF(
-  workspaceFolder: WorkspaceFolder,
+  workspaceFolder: Uri,
   selectedTarget: IdfTarget
 ) {
+  if (ConfserverProcess.exists()) {
+    ConfserverProcess.dispose();
+  }
+  const buildDirPath = getIdfBuildPath(workspaceFolder);
+  const modifiedEnv = getCurrentIdfConfiguration();
+  const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
+  delete modifiedEnv.IDF_TARGET;
+  const enableCCache = readParameter(
+    "idf.enableCCache",
+    workspaceFolder
+  ) as boolean;
+  const setTargetArgs: string[] = [idfPy];
+  if (selectedTarget.isPreview) {
+    setTargetArgs.push("--preview");
+  }
+  setTargetArgs.push("-B", buildDirPath);
+  if (enableCCache) {
+    modifiedEnv.IDF_CCACHE_ENABLE = "1";
+  } else {
+    delete modifiedEnv.IDF_CCACHE_ENABLE;
+  }
+  if (modifiedEnv.SDKCONFIG) {
+    setTargetArgs.push(`-DSDKCONFIG='${modifiedEnv.SDKCONFIG}'`);
+  }
+  const sdkconfigDefaults =
+    (readParameter("idf.sdkconfigDefaults") as string[]) || [];
+
+  if (sdkconfigDefaults && sdkconfigDefaults.length) {
+    setTargetArgs.push(
+      `-DSDKCONFIG_DEFAULTS='${sdkconfigDefaults.join(";")}'`
+    );
+  }
+
+  setTargetArgs.push("set-target", selectedTarget.target);
+  const pythonBinPath = getVirtualEnvPythonPath();
+  if (!pythonBinPath) {
+    throw missingDependency(
+      "Python",
+      setTargetErrorPresentation.missingDependency
+    );
+  }
+  OutputChannel.appendLine("Running IDF Set Target action", "Set Target");
   try {
-    if (ConfserverProcess.exists()) {
-      ConfserverProcess.dispose();
-    }
-    const buildDirPath = readParameter(
-      "idf.buildPath",
-      workspaceFolder.uri
-    ) as string;
-    const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
-    const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
-    modifiedEnv.IDF_TARGET = undefined;
-    const enableCCache = readParameter(
-      "idf.enableCCache",
-      workspaceFolder.uri
-    ) as boolean;
-    const setTargetArgs: string[] = [idfPy];
-    if (selectedTarget.isPreview) {
-      setTargetArgs.push("--preview");
-    }
-    setTargetArgs.push("-B", buildDirPath);
-    if (enableCCache) {
-      modifiedEnv.IDF_CCACHE_ENABLE = "1";
-    } else {
-      modifiedEnv.IDF_CCACHE_ENABLE = undefined;
-    }
-    if (modifiedEnv.SDKCONFIG) {
-      setTargetArgs.push(`-DSDKCONFIG='${modifiedEnv.SDKCONFIG}'`);
-    }
-    const sdkconfigDefaults =
-      (readParameter("idf.sdkconfigDefaults") as string[]) || [];
-
-    if (sdkconfigDefaults && sdkconfigDefaults.length) {
-      setTargetArgs.push(
-        `-DSDKCONFIG_DEFAULTS='${sdkconfigDefaults.join(";")}'`
-      );
-    }
-
-    setTargetArgs.push("set-target", selectedTarget.target);
-    const pythonBinPath = await getVirtualEnvPythonPath();
-    OutputChannel.appendLine("Running IDF Set Target action", "Set Target");
     const setTargetResult = await spawn(pythonBinPath, setTargetArgs, {
-      cwd: workspaceFolder.uri.fsPath,
+      cwd: workspaceFolder.fsPath,
       env: modifiedEnv,
       silent: false,
+      errorPresentation: setTargetErrorPresentation.childProcessFailed,
     });
     Logger.info(setTargetResult.toString());
-    const msg = vscode.l10n.t(
+    const msg = l10n.t(
       "Target {0} Set Successfully.",
       selectedTarget.target.toLocaleUpperCase()
     );
     OutputChannel.appendLineAndShow(msg, "Set Target");
     Logger.infoNotify(msg);
-    setCCppPropertiesJsonCompilerPath(workspaceFolder.uri);
+    updateCurrentIdfEnvVar("IDF_TARGET", selectedTarget.target);
+    await setCCppPropertiesJsonCompilerPath(workspaceFolder);
     return setTargetResult.toString();
   } catch (error) {
-    throw new Error(
-      `Failed to set target ${selectedTarget.target}: ${error.message}.`
+    const errMsg = capturedProcessText(error);
+    if (isSetTargetBenignOutput(errMsg)) {
+      Logger.info(errMsg);
+      OutputChannel.appendLine(errMsg, "Set Target");
+      return errMsg;
+    }
+    if (isKnownError(error)) {
+      throw error;
+    }
+    throw childProcessFailed(
+      { detail: errMsg },
+      setTargetErrorPresentation.childProcessFailed
     );
   }
 }

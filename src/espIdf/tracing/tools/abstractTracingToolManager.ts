@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 15th August 2019 9:32:08 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,21 +16,23 @@
  * limitations under the License.
  */
 
+import { constants } from "fs";
 import { join } from "path";
-import * as vscode from "vscode";
-
-import * as idfConf from "../../../idfConfiguration";
+import { Uri } from "vscode";
+import {
+  fileNotFound,
+  idfToolNotFound,
+} from "../../../common/error/knownError";
 import { canAccessFile, spawn } from "../../../utils";
-import { configureEnvVariables } from "../../../common/prepareEnv";
-import { ESP } from "../../../config";
+import { getCurrentIdfConfiguration } from "../../../configuration/env";
 
 export abstract class AbstractTracingToolManager {
-  protected readonly traceFilePath: string;
-  protected readonly elfFilePath: string;
-  protected readonly workspaceRoot: vscode.Uri;
+  protected readonly traceFilePath?: string;
+  protected readonly elfFilePath?: string;
+  protected readonly workspaceRoot: Uri;
 
   constructor(
-    workspaceRoot: vscode.Uri,
+    workspaceRoot: Uri,
     traceFilePath?: string,
     elfFilePath?: string
   ) {
@@ -44,26 +46,28 @@ export abstract class AbstractTracingToolManager {
     args?: string[],
     option?: any
   ) {
-    const modifiedEnv = await configureEnvVariables(this.workspaceRoot);
+    const modifiedEnv = getCurrentIdfConfiguration();
     option.env = option.env || modifiedEnv;
     return await spawn(command, args, option);
   }
 
   protected appTraceToolsPath(): string {
-    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-      [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+    const currentEnvVars = getCurrentIdfConfiguration();
     const idfPathDir = currentEnvVars["IDF_PATH"];
     return join(idfPathDir, "tools", "esp_app_trace");
   }
 
-  protected preCheck(filePaths: string[], mode: number): boolean {
-    let didPassAll = true;
-    filePaths.forEach((filePath) => {
+  protected requireAccessible(filePaths: string[], mode: number): void {
+    for (const filePath of filePaths) {
       if (!canAccessFile(filePath, mode)) {
-        didPassAll = false;
+        throw fileNotFound(filePath);
       }
-    });
-    return didPassAll;
+    }
+  }
+
+  protected requireExecutableTool(toolPath: string, toolName: string): void {
+    if (!canAccessFile(toolPath, constants.X_OK)) {
+      throw idfToolNotFound(toolName);
+    }
   }
 }

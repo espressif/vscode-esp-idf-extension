@@ -25,7 +25,7 @@ import {
   TextDocumentPositionParams,
   TextDocuments,
 } from "vscode-languageserver";
-import { Stack } from "../stack";
+import { Stack } from "./stack";
 
 const connection = createConnection(ProposedFeatures.all);
 

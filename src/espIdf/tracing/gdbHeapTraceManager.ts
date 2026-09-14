@@ -16,27 +16,35 @@
  * limitations under the License.
  */
 import { ChildProcess, spawn } from "child_process";
-import { ensureDir, pathExists, writeFile } from "fs-extra";
+import { ensureDir, writeFile } from "fs-extra";
 import { join } from "path";
 import { env, Uri, window } from "vscode";
-import { readParameter } from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
-import { getToolchainToolName, isBinInPath } from "../../utils";
-import { getProjectElfFilePath } from "../../workspaceConfig";
-import { OpenOCDManager } from "../openOcd/openOcdManager";
+import { handleError } from "../../common/error/handler";
+import {
+  heapTraceNotSupported,
+  traceGdbProcessFailed,
+} from "../../common/error/knownError";
+import { OutputChannel } from "../../common/outputChannel";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
+import { ensureOpenOcdServerRunning } from "../openOcd/openOcdLaunch";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import {
   AppTraceButtonType,
   AppTraceTreeDataProvider,
 } from "./tree/appTraceTreeDataProvider";
-import { configureEnvVariables } from "../../common/prepareEnv";
+import { validateHeapTraceStartPrerequisites } from "./validation";
+import {
+  heapTraceGdbProcessFailedPresentation,
+  heapTraceNotSupportedPresentation,
+  heapTraceOpenOcdPresentation,
+} from "./tracingOpenOcdPresentation";
 
 export class GdbHeapTraceManager {
   private treeDataProvider: AppTraceTreeDataProvider;
   private archiveDataProvider: AppTraceArchiveTreeDataProvider;
-  private childProcess: ChildProcess;
+  private childProcess: ChildProcess | null = null;
   private gdbinitFileName: string = "heaptrace-gdbinit";
+  private gdbFailureNotified: boolean = false;
 
   constructor(
     treeDataProvider: AppTraceTreeDataProvider,
@@ -48,108 +56,63 @@ export class GdbHeapTraceManager {
   }
 
   public async start(workspace: Uri) {
-    try {
-      const isOpenOcdLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
-      if (isOpenOcdLaunched) {
-        this.showStopButton();
-        ensureDir(join(workspace.fsPath, "trace"));
-        const fileName = `file://${join(workspace.fsPath, "trace").replace(
-          /\\/g,
-          "/"
-        )}/htrace_${new Date().getTime()}.svdat`;
-        const buildDirPath = readParameter(
-          "idf.buildPath",
-          workspace
-        ) as string;
-        const buildExists = await pathExists(buildDirPath);
-        if (!buildExists) {
-          throw new Error(`${buildDirPath} doesn't exist. Build first.`);
-        }
-        await this.createGdbinitFile(fileName, buildDirPath);
-        const modifiedEnv = await configureEnvVariables(workspace);
-        const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
-        const gdbTool = getToolchainToolName(idfTarget, "gdb");
-        const isGdbToolInPath = await isBinInPath(
-          gdbTool,
-          modifiedEnv
-        );
-        if (!isGdbToolInPath) {
-          throw new Error(`${gdbTool} is not available in PATH.`);
-        }
-        const elfFilePath = await getProjectElfFilePath(workspace);
-        const elfFileExists = await pathExists(elfFilePath);
-        if (!elfFileExists) {
-          throw new Error(`${elfFilePath} doesn't exist.`);
-        }
-        this.childProcess = spawn(
-          `${gdbTool} -x ${this.gdbinitFileName} "${elfFilePath}"`,
-          [],
-          {
-            cwd: buildDirPath,
-            env: modifiedEnv,
-            shell: env.shell,
-          }
-        );
+    this.gdbFailureNotified = false;
+    await ensureOpenOcdServerRunning(workspace, heapTraceOpenOcdPresentation);
+    this.showStopButton();
+    ensureDir(join(workspace.fsPath, "trace"));
+    const fileName = `file://${join(workspace.fsPath, "trace").replace(
+      /\\/g,
+      "/"
+    )}/htrace_${new Date().getTime()}.svdat`;
+    const { buildDirPath, gdbTool, elfFilePath } =
+      await validateHeapTraceStartPrerequisites(workspace);
+    await this.createGdbinitFile(fileName, buildDirPath);
+    const modifiedEnv = getCurrentIdfConfiguration();
+    this.childProcess = spawn(
+      `${gdbTool} -x ${this.gdbinitFileName} "${elfFilePath}"`,
+      [],
+      {
+        cwd: buildDirPath,
+        env: modifiedEnv,
+        shell: env.shell,
+      }
+    );
 
-        this.childProcess.stdout.on("data", (data) => {
-          Logger.info(data.toString());
-          this.errorHandler(data.toString());
-        });
+    this.childProcess.stdout?.on("data", (data) => {
+      this.errorHandler(data.toString());
+    });
 
-        this.childProcess.stderr.on("data", (data) => {
-          Logger.info(data.toString());
-          this.errorHandler(data.toString());
-        });
+    this.childProcess.stderr?.on("data", (data) => {
+      this.errorHandler(data.toString());
+    });
 
-        this.childProcess.on("error", (err) => {
-          Logger.errorNotify(
-            err.message,
-            err,
-            "GdbHeapTraceManager start error"
-          );
-          this.stop();
-        });
+    this.childProcess.on("error", (err) => {
+      this.notifyGdbFailure({ detail: err.message });
+      this.stop();
+    });
 
-        this.childProcess.on("exit", (code, signal) => {
-          if (code && code !== 0) {
-            const errMsg = `Heap tracing process exited with code ${code} and signal ${signal}`;
-            Logger.errorNotify(
-              errMsg,
-              new Error(errMsg),
-              "GdbHeapTraceManager start exit"
-            );
-          }
+    this.childProcess.on("exit", (code, signal) => {
+      if (code && code !== 0) {
+        this.notifyGdbFailure({
+          exitCode: code,
+          detail: `exit code ${code}, signal ${signal}`,
         });
       }
-    } catch (error) {
-      const msg = error.message
-        ? error.message
-        : "Error starting GDB Heap Tracing";
-      Logger.errorNotify(msg, error, "GdbHeapTraceManager start");
-      OutputChannel.appendLine(msg, "GDB Heap Trace");
-      this.stop();
-    }
+    });
   }
 
   public async stop() {
-    try {
-      if (this.childProcess) {
-        this.childProcess.stdin.write("quit\n");
-        // Give GDB some time to process the quit command
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        if (!this.childProcess.killed) {
-          this.childProcess.kill("SIGKILL");
-        }
-        this.childProcess = null;
+    if (this.childProcess) {
+      this.childProcess.stdin?.write("quit\n");
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!this.childProcess.killed) {
+        this.childProcess.kill("SIGKILL");
       }
-      this.archiveDataProvider.populateArchiveTree();
-      this.showStartButton();
-    } catch (error) {
-      const msg = error.message
-        ? error.message
-        : "Error stopping GDB Heap Tracing";
-      Logger.errorNotify(msg, error, "GdbHeapTraceManager stop");
+      this.childProcess = null;
     }
+    this.gdbFailureNotified = false;
+    this.archiveDataProvider.populateArchiveTree();
+    this.showStartButton();
   }
 
   private showStopButton() {
@@ -159,12 +122,30 @@ export class GdbHeapTraceManager {
     this.treeDataProvider.showStartButton(AppTraceButtonType.HeapTraceButton);
   }
 
+  private notifyGdbFailure(metadata: { exitCode?: number; detail?: string }): void {
+    if (this.gdbFailureNotified) {
+      return;
+    }
+    this.gdbFailureNotified = true;
+    void handleError(
+      "espIdf.heaptrace",
+      traceGdbProcessFailed(metadata, heapTraceGdbProcessFailedPresentation),
+      undefined,
+      { outputChannel: "Tracing" }
+    );
+  }
+
   private errorHandler(dataReceived: string) {
     if (
       dataReceived.indexOf(`Function "heap_trace_start" not defined`) !== -1 ||
       dataReceived.indexOf(`Function "heap_trace_stop" not defined`) !== -1
     ) {
-      Logger.infoNotify("Could not perform heap tracing.");
+      void handleError(
+        "espIdf.heaptrace",
+        heapTraceNotSupported(heapTraceNotSupportedPresentation),
+        undefined,
+        { outputChannel: "Tracing" }
+      );
       this.stop();
     } else if (dataReceived.indexOf("Tracing is STOPPED") !== -1) {
       window.showInformationMessage("Heap tracing done");

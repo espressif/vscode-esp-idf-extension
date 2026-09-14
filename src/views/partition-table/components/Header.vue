@@ -24,7 +24,7 @@ onMounted(() => {
           <span>Partition Table Editor</span>
         </h1>
         <div class="settings-header-actions">
-          <a class="vscode-button" href="command:espIdf.selectFlashMethodAndFlash">
+          <a class="vscode-button" href="command:espIdf.selectFlashMethod">
             <span class="vscode-button-icon">
               <IconStarEmpty />
             </span>

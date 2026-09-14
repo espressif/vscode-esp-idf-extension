@@ -18,6 +18,7 @@
 import {
   Event,
   EventEmitter,
+  ExtensionContext,
   ProviderResult,
   ThemeIcon,
   TreeDataProvider,
@@ -28,10 +29,10 @@ import {
 } from "vscode";
 import { updateStatusBarItemVisibility } from "../statusBar";
 import {
+  advancedCommandDictionary,
   AdvancedCommandKeys,
+  commandDictionary,
   CommandKeys,
-  createAdvancedCommandDictionary,
-  createCommandDictionary,
 } from "./cmdStore";
 
 export class CommandsProvider implements TreeDataProvider<CommandItem> {
@@ -41,7 +42,9 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
   readonly onDidChangeTreeData: Event<CommandItem | undefined | void> = this
     ._onDidChangeTreeData.event;
 
-  constructor() {}
+  constructor(context: ExtensionContext) {
+    context.subscriptions.push(this.registerDataProviderForTree("idfCommands"));
+  }
 
   getTreeItem(element: CommandItem): TreeItem | Thenable<TreeItem> {
     return element;
@@ -58,11 +61,8 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
     this._onDidChangeTreeData.fire(item);
   }
 
-
-
   private getAdvancedCommands() {
     const cmdItemList: CommandItem[] = [];
-    const advancedCommandDictionary = createAdvancedCommandDictionary();
 
     for (let advancedCmdKey of Object.values(AdvancedCommandKeys)) {
       let cmdItem = new CommandItem(
@@ -79,7 +79,6 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
 
   private getInitialCommands() {
     const cmdItemList: CommandItem[] = [];
-    const commandDictionary = createCommandDictionary();
     for (let cmdKey of Object.values(CommandKeys)) {
       let cmdItem = new CommandItem(
         commandDictionary[cmdKey].tooltip,

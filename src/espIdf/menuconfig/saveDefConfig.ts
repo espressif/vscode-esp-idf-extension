@@ -16,25 +16,16 @@
  * limitations under the License.
  */
 
+import { CancellationToken, Uri } from "vscode";
 import {
-  CancellationToken,
-  ProcessExecution,
-  ProcessExecutionOptions,
-  TaskPanelKind,
-  TaskPresentationOptions,
-  TaskRevealKind,
-  TaskScope,
-  Uri,
-  workspace,
-} from "vscode";
-import { TaskManager } from "../../taskManager";
-import { NotificationMode, readParameter } from "../../idfConfiguration";
-import { Logger } from "../../logger/logger";
+  addProcessTask,
+  TaskManager,
+  throwCapturedTaskFailure,
+} from "../../taskManager/taskManager";
+import { Logger } from "../../common/logger";
 import { join } from "path";
-import { pathExists } from "fs-extra";
-import { getVirtualEnvPythonPath } from "../../pythonManager";
-import { configureEnvVariables } from "../../common/prepareEnv";
-import { ESP } from "../../config";
+import { getCurrentIdfConfiguration } from "../../configuration/env";
+import { requireIdfPath, resolvePythonForIdfPy } from "./validation";
 
 export async function saveDefSdkconfig(
   workspaceFolder: Uri,
@@ -46,67 +37,26 @@ export async function saveDefSdkconfig(
       TaskManager.disposeListeners();
     });
   }
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
-    [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-  const idfPath = currentEnvVars["IDF_PATH"];
-  const notificationMode = readParameter(
-    "idf.notificationMode",
-    workspaceFolder
-  ) as string;
-  const showTaskOutput =
-    notificationMode === NotificationMode.All ||
-    notificationMode === NotificationMode.Output
-      ? TaskRevealKind.Always
-      : TaskRevealKind.Silent;
-  const saveDefConfigPresentationOptions = {
-    reveal: showTaskOutput,
-    showReuseMessage: false,
-    clear: false,
-    panel: TaskPanelKind.Shared,
-  } as TaskPresentationOptions;
-  const curWorkspaceFolder = workspace.workspaceFolders.find(
-    (w) => w.uri === workspaceFolder
-  );
-  const saveDefSdkconfig = await getSaveDefConfigExecution(
-    idfPath,
-    workspaceFolder
-  );
-  TaskManager.addTask(
-    {
-      type: "esp-idf",
-      command: "ESP-IDF: Save Default SDKCONFIG",
-      taskId: "idf-defconfig-task",
-    },
-    curWorkspaceFolder || TaskScope.Workspace,
-    "Save Default SDKCONFIG",
-    saveDefSdkconfig,
-    ["espIdf"],
-    saveDefConfigPresentationOptions
-  );
-  await TaskManager.runTasks();
-  if (cancelToken && !cancelToken.isCancellationRequested) {
-    Logger.infoNotify("def-config has been generated");
-  }
-  TaskManager.disposeListeners();
-}
-
-export async function getSaveDefConfigExecution(
-  idfPath: string,
-  wsFolder: Uri
-) {
+  const modifiedEnv = getCurrentIdfConfiguration();
+  const idfPath = requireIdfPath(modifiedEnv);
+  const pythonBinPath = await resolvePythonForIdfPy();
   const saveDefConfArgs = [join(idfPath, "tools", "idf.py"), "save-defconfig"];
-  const modifiedEnv = await configureEnvVariables(wsFolder);
-  const options: ProcessExecutionOptions = {
-    cwd: wsFolder.fsPath,
-    env: modifiedEnv,
-  };
-  const pythonBinPath = await getVirtualEnvPythonPath();
-  const pythonBinExists = await pathExists(pythonBinPath);
-  if (!pythonBinExists) {
-    throw new Error(
-      `Virtual environment Python path doesn't exist. Configure the extension first.`
-    );
+  const saveDefSdkconfigExecution = addProcessTask(
+    "Save Default SDKCONFIG",
+    workspaceFolder,
+    pythonBinPath,
+    saveDefConfArgs,
+    workspaceFolder.fsPath,
+    modifiedEnv
+  );
+  try {
+    await TaskManager.runTasks();
+    await throwCapturedTaskFailure();
+    if (!cancelToken?.isCancellationRequested) {
+      Logger.infoNotify("def-config has been generated");
+    }
+  } finally {
+    TaskManager.disposeListeners();
   }
-  return new ProcessExecution(pythonBinPath, saveDefConfArgs, options);
+  return saveDefSdkconfigExecution;
 }

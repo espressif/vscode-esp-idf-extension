@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 14th May 2020 6:31:38 pm
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-import { readParameter } from "../../idfConfiguration";
+import { readParameter } from "../../configuration/idf";
 import { ESP } from "../../config";
 import { env, Uri } from "vscode";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 
 export enum RainmakerOAuthProvider {
   Google = "Google",
@@ -29,7 +29,7 @@ export enum RainmakerOAuthProvider {
 
 export class RainmakerOAuthManager {
   public static openExternalOAuthURL(provider: RainmakerOAuthProvider) {
-    const oAuthURL = readParameter("esp.rainmaker.oauth.url");
+    const oAuthURL = readParameter("esp.rainmaker.oauth.url") as string;
     let url: URL;
 
     try {

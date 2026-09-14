@@ -37,24 +37,24 @@ import { configureUnityApp } from "./configure";
 import { getFileList } from "./utils";
 import { ESP } from "../../config";
 import { UnityTestRunner } from "./unityRunner/unityTestRunner";
-import { readParameter, readSerialPort } from "../../idfConfiguration";
+import { readParameter, readSerialPort } from "../../configuration/idf";
 import { UnityParserOptions } from "./unityRunner/types";
-import { Logger } from "../../logger/logger";
+import { Logger } from "../../common/logger";
 
 const unitTestControllerId = "IDF_UNIT_TEST_CONTROLLER";
 const unitTestControllerLabel = "ESP-IDF Unit test controller";
 
 export class UnitTest {
-  public unitTestController: TestController;
-  private unitTestAppUri: Uri;
+  public static unitTestController: TestController;
+  private unitTestAppUri: Uri | undefined;
 
   constructor(context: ExtensionContext) {
-    this.unitTestController = tests.createTestController(
+    UnitTest.unitTestController = tests.createTestController(
       unitTestControllerId,
       unitTestControllerLabel
     );
 
-    this.unitTestController.refreshHandler = async (
+    UnitTest.unitTestController.refreshHandler = async (
       cancelToken?: CancellationToken
     ) => {
       this.clearExistingTestCaseItems();
@@ -66,7 +66,7 @@ export class UnitTest {
       request: TestRunRequest,
       cancelToken: CancellationToken
     ) => {
-      const testRun = this.unitTestController.createTestRun(request);
+      const testRun = UnitTest.unitTestController.createTestRun(request);
       const queue: TestItem[] = [];
 
       if (request.include) {
@@ -77,24 +77,24 @@ export class UnitTest {
           queue.push(test);
         });
       } else {
-        this.unitTestController.items.forEach((t) => queue.push(t));
+        UnitTest.unitTestController.items.forEach((t) => queue.push(t));
       }
 
       let workspaceFolderUri: Uri | undefined;
       if (!this.unitTestAppUri) {
         try {
-          // Get stored workspace folder URI and ensure it's a proper vscode.Uri object
-          const storedUri = ESP.GlobalConfiguration.store.get<Uri>(
-            ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
-          );
-          let workspaceFolder = workspace.getWorkspaceFolder(storedUri);
+          let workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
 
-          workspaceFolderUri = workspaceFolder
-            ? workspaceFolder.uri
-            : undefined;
+          if (workspaceFolder) {
+            workspaceFolderUri = workspaceFolder.uri;
+          }
 
           // Fallback to first workspace folder if no stored URI or conversion failed
-          if (!workspaceFolderUri && workspace.workspaceFolders?.length > 0) {
+          if (
+            !workspaceFolderUri &&
+            workspace.workspaceFolders &&
+            workspace.workspaceFolders.length > 0
+          ) {
             workspaceFolderUri = workspace.workspaceFolders[0].uri;
           }
 
@@ -110,14 +110,23 @@ export class UnitTest {
             cancelToken
           );
         } catch (error) {
-          Logger.error("Failed to configure unit test app:", error, "unitTest runHandler configurePytestUnitApp");
+          Logger.error(
+            "Failed to configure unit test app:",
+            error as Error,
+            "unitTest runHandler configureUnityApp"
+          );
           return;
         }
       }
 
-      const runner = new UnityTestRunner();
-
+      if (!workspaceFolderUri) {
+        Logger.warn(
+          "No workspace folder available for unit test execution"
+        );
+        return;
+      }
       const serialPort = await readSerialPort(workspaceFolderUri, false);
+      const runner = new UnityTestRunner();
       const baudRate =
         (readParameter("idf.baudRate", workspaceFolderUri) as number) || 115200;
       const runnerOptions: UnityParserOptions = {
@@ -130,12 +139,18 @@ export class UnitTest {
 
         while (queue.length > 0 && !cancelToken.isCancellationRequested) {
           const test = queue.pop();
+          if (!test) {
+            continue;
+          }
 
           if (request.exclude?.includes(test)) {
             continue;
           }
 
           const idfTestitem = idfTestData.get(test);
+          if (!idfTestitem) {
+            continue;
+          }
 
           if (testRun.token.isCancellationRequested) {
             testRun.skipped(test);
@@ -169,9 +184,12 @@ export class UnitTest {
                 testRun.skipped(test);
               }
             } catch (error) {
+              const errorMsg =
+                error instanceof Error ? error.message : String(error);
+              testRun.appendOutput(`Error: ${errorMsg}\r\n`, undefined, test);
               testRun.failed(
                 test,
-                new TestMessage(error.message),
+                new TestMessage(errorMsg),
                 Date.now() - startTime
               );
               runner.stop();
@@ -181,7 +199,8 @@ export class UnitTest {
           test.children.forEach((t) => queue.push(t));
         }
       } catch (error) {
-        testRun.appendOutput(`Error: ${error.message}\r\n`);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        testRun.appendOutput(`Error: ${errorMsg}\r\n`);
         runner.stop();
         testRun.end();
       } finally {
@@ -190,7 +209,7 @@ export class UnitTest {
       }
     };
 
-    this.unitTestController.createRunProfile(
+    UnitTest.unitTestController.createRunProfile(
       "Run Tests",
       TestRunProfileKind.Run,
       runHandler,
@@ -199,50 +218,54 @@ export class UnitTest {
       false
     );
 
-    this.unitTestController.resolveHandler = async (item: TestItem) => {
-      if (!item) {
+    UnitTest.unitTestController.resolveHandler = async (
+      item: TestItem | undefined
+    ) => {
+      if (!item || !item.uri) {
         const fileList = await getFileList();
         await this.loadTests(fileList);
         return;
       }
       const espIdfTestItem = await this.getTestsForFile(item.uri);
-      for (const child of espIdfTestItem.children) {
-        const childItem = this.unitTestController.createTestItem(
-          child.id,
-          child.label,
-          child.uri
-        );
-        item.children.add(childItem);
-        idfTestData.set(childItem, child);
+      if (espIdfTestItem.children) {
+        for (const child of espIdfTestItem.children) {
+          const childItem = UnitTest.unitTestController.createTestItem(
+            child.id,
+            child.label,
+            child.uri
+          );
+          item.children.add(childItem);
+          idfTestData.set(childItem, child);
+        }
       }
       idfTestData.set(item, espIdfTestItem);
-      this.unitTestController.items.add(item);
+      UnitTest.unitTestController.items.add(item);
     };
-    context.subscriptions.push(this.unitTestController);
+    context.subscriptions.push(UnitTest.unitTestController);
   }
 
   clearExistingTestCaseItems() {
-    this.unitTestController.items.forEach((item) =>
-      this.unitTestController.items.delete(item.id)
+    UnitTest.unitTestController.items.forEach((item) =>
+      UnitTest.unitTestController.items.delete(item.id)
     );
   }
 
   async createFileTestCaseItems(file: Uri) {
-    const existing = this.unitTestController.items.get(file.toString());
+    const existing = UnitTest.unitTestController.items.get(file.toString());
     if (existing) {
-      this.unitTestController.items.delete(existing.id);
+      UnitTest.unitTestController.items.delete(existing.id);
     }
-    const testItem = this.unitTestController.createTestItem(
+    const testItem = UnitTest.unitTestController.createTestItem(
       file.toString(),
-      file.fsPath.split("/").pop(),
+      basename(file.fsPath),
       file
     );
     testItem.canResolveChildren = true;
-    this.unitTestController.items.add(testItem);
+    UnitTest.unitTestController.items.add(testItem);
     const espIdfTestItem: EspIdfTestItem = {
       type: "suite",
       id: file.fsPath,
-      label: file.fsPath.split("/").pop(),
+      label: basename(file.fsPath),
       filePath: file.fsPath,
       children: [],
       uri: file,
@@ -276,7 +299,7 @@ export class UnitTest {
         line +
         match[0].substring(0, match[0].search(/\S/g)).split("\n").length -
         1;
-      currentTestSuiteInfo.children.push({
+      currentTestSuiteInfo.children?.push({
         id: file.toString() + "::" + testName,
         label: testLabel,
         line: line,
@@ -294,12 +317,13 @@ export class UnitTest {
       type: "suite",
       id: "root",
       label: "espidf-unity",
-      children: [],
+      children: new Array<EspIdfTestItem>(),
+      testName: "",
     } as EspIdfTestItem;
 
     for (const file of files) {
       const currentTestSuiteInfo = await this.createFileTestCaseItems(file);
-      localTestSuiteInfo.children.push(currentTestSuiteInfo.espIdfTestItem);
+      localTestSuiteInfo.children?.push(currentTestSuiteInfo.espIdfTestItem);
     }
 
     return localTestSuiteInfo;

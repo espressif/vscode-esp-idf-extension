@@ -1170,7 +1170,7 @@ function renderRGB777(
 </script>
 
 <style lang="scss">
-@import "../commons/espCommons.scss";
+@use "../commons/espCommons.scss" as *;
 
 .image-viewer {
   padding: 20px;

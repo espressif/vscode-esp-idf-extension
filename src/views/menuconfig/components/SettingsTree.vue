@@ -2,7 +2,7 @@
 import { computed, ref, onMounted, watch } from 'vue';
 import { IconChevronRight, IconChevronDown } from "@iconify-prerendered/vue-codicon";
 import { useMenuconfigStore } from "../store";
-import { Menu } from "../../../espIdf/menuconfig/Menu";
+import { Menu, menuType } from "../../../espIdf/menuconfig/Menu";
 
 interface TreeItem {
   id: string;
@@ -75,6 +75,24 @@ onMounted(() => {
     initializeOpenStates(props.data);
   }
 });
+
+watch(
+  () => store.focusedConfigId,
+  (id) => {
+    if (!id) {
+      return;
+    }
+    const path = store.menuPathToId(id);
+    if (!path) {
+      return;
+    }
+    for (const node of path) {
+      if (node.type === menuType.menu) {
+        openStates.value[node.id] = true;
+      }
+    }
+  }
+);
 </script>
 
 <template>

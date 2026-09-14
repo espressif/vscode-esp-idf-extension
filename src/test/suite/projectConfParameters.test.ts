@@ -29,8 +29,8 @@ import {
 } from "fs-extra";
 import { ExtensionContext, Uri } from "vscode";
 import { ESP } from "../../config";
-import { Logger } from "../../logger/logger";
-import { parameterToProjectConfigMap } from "../../idfConfiguration";
+import { Logger } from "../../common/logger";
+import { parameterToProjectConfigMap } from "../../configuration/idf";
 import { ProjectConfigStore } from "../../project-conf/store";
 import { ConfigurePreset } from "../../project-conf/projectConfiguration";
 import {
