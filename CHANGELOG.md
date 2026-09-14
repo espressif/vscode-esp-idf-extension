@@ -8,7 +8,7 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
-## ## [2.3.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.3.0) - 2026-09-18
+## [2.3.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.3.0) - 2026-09-18
 ## Features and enhancements
 
 In [PR 1868](https://github.com/espressif/vscode-esp-idf-extension/pull/1868) we introduce a major refactoring of the extension that does:
