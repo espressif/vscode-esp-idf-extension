@@ -21,6 +21,7 @@ import { join, resolve } from "path";
 import { ExtensionContext, Uri } from "vscode";
 import { getExamplesList } from "../newProject/Example";
 import {
+  applySelectedProjectConfigurationToVscodeFolder,
   copyFromSrcProject,
   createVscodeFolder,
   readProjectCMakeLists,
@@ -30,6 +31,7 @@ import {
 import { isBinInPath } from "../utils";
 import { IdfSetup } from "../eim/types";
 import { ProjectConfigStore } from "../project-conf/store";
+import { ConfigurePreset } from "../project-conf/projectConfiguration";
 import { ESP } from "../config";
 import { createMockMemento } from "./mockUtils";
 import { updateCCppPropertiesJson } from "../configuration/workspace";
@@ -43,7 +45,9 @@ suite("Project tests", () => {
     workspaceState: createMockMemento(),
     globalState: createMockMemento(),
   } as ExtensionContext;
-  ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(
+    mockUpContext
+  );
   const templateFolder = join(mockUpContext.extensionPath, "templates");
   const wsFolder = process.env.GITHUB_WORKSPACE
     ? join(process.env.GITHUB_WORKSPACE, "project-test")
@@ -99,6 +103,80 @@ suite("Project tests", () => {
     assert.equal(
       JSON.stringify(templateCCppPropertiesJsonJson),
       JSON.stringify(targetCCppPropertiesJsonJson)
+    );
+  });
+
+  const templateCompileCommands =
+    "${config:idf.buildPath}/compile_commands.json";
+
+  const selectPreset = (preset: ConfigurePreset) => {
+    ESP.ProjectConfiguration.store.set(
+      ESP.ProjectConfiguration.SELECTED_CONFIG,
+      preset.name
+    );
+    ESP.ProjectConfiguration.store.set(preset.name, preset);
+  };
+
+  const clearPreset = (preset: ConfigurePreset) => {
+    ESP.ProjectConfiguration.store.clear(preset.name);
+    ESP.ProjectConfiguration.store.clear(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+  };
+
+  const readCompileCommands = async (projectFolder: string) => {
+    const cCppPropertiesJson = await readJson(
+      join(projectFolder, ".vscode", "c_cpp_properties.json")
+    );
+    return cCppPropertiesJson.configurations[0].compileCommands;
+  };
+
+  test("compileCommands follows the selected preset when re-applied", async () => {
+    const presetFolder = join(wsFolder, "presetProject");
+    const preset: ConfigurePreset = {
+      name: "test_refresh",
+      binaryDir: "builds/test_refresh",
+    };
+    selectPreset(preset);
+    try {
+      await createVscodeFolder(
+        mockUpContext.extensionPath,
+        Uri.file(presetFolder)
+      );
+      assert.equal(
+        await readCompileCommands(presetFolder),
+        templateCompileCommands,
+        "createVscodeFolder alone must keep the template value"
+      );
+      await applySelectedProjectConfigurationToVscodeFolder(
+        Uri.file(presetFolder)
+      );
+      assert.equal(
+        await readCompileCommands(presetFolder),
+        join(
+          Uri.file(presetFolder).fsPath,
+          "builds",
+          "test_refresh",
+          "compile_commands.json"
+        )
+      );
+    } finally {
+      clearPreset(preset);
+    }
+  });
+
+  test("compileCommands keeps the template value without a preset", async () => {
+    const noPresetFolder = join(wsFolder, "noPresetProject");
+    await createVscodeFolder(
+      mockUpContext.extensionPath,
+      Uri.file(noPresetFolder)
+    );
+    await applySelectedProjectConfigurationToVscodeFolder(
+      Uri.file(noPresetFolder)
+    );
+    assert.equal(
+      await readCompileCommands(noPresetFolder),
+      templateCompileCommands
     );
   });
 

@@ -30,7 +30,11 @@ import { Uri, WebviewPanel } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { join, resolve } from "path";
 import { readdir } from "fs/promises";
-import { setCCppPropertiesJsonCompilerPath } from "../configuration/workspace";
+import {
+  setCCppPropertiesJsonCompileCommands,
+  setCCppPropertiesJsonCompilerPath,
+} from "../configuration/workspace";
+import { ESP } from "../config";
 import { robustMove } from "../utils";
 import { existsSync, readFileSync } from "fs";
 import { marked } from "marked";
@@ -117,6 +121,27 @@ export async function createVscodeFolder(
     }
   }
   await setCCppPropertiesJsonCompilerPath(curWorkspaceFsPath);
+}
+
+/**
+ * Re-apply the selected configure preset to the workspace `.vscode` files,
+ * so regenerated files match what selecting the preset would have written.
+ * Does nothing when no configure preset is selected.
+ * @param {Uri} curWorkspaceFsPath - Workspace folder the preset was selected in.
+ */
+export async function applySelectedProjectConfigurationToVscodeFolder(
+  curWorkspaceFsPath: Uri
+) {
+  if (!ESP.ProjectConfiguration.store) {
+    return;
+  }
+  const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
+    ESP.ProjectConfiguration.SELECTED_CONFIG
+  );
+  if (!selectedConfig) {
+    return;
+  }
+  await setCCppPropertiesJsonCompileCommands(curWorkspaceFsPath);
 }
 
 export async function createGitignoreFile(
