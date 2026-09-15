@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { join } from "path";
+import { isAbsolute, join, relative, sep } from "path";
 import { commands, Uri } from "vscode";
 import { pathExists } from "fs-extra";
 import { ErrorSeverity } from "../../common/customNotifications";
@@ -91,6 +91,15 @@ export async function requireOpenOcdConfigFilesExist(
   const missingPaths: string[] = [];
   for (const configFile of configFiles) {
     const configPath = join(openOcdScripts, configFile);
+    const relativeConfigPath = relative(openOcdScripts, configPath);
+    if (
+      relativeConfigPath === ".." ||
+      relativeConfigPath.startsWith(`..${sep}`) ||
+      isAbsolute(relativeConfigPath)
+    ) {
+      missingPaths.push(configPath);
+      continue;
+    }
     if (!(await pathExists(configPath))) {
       missingPaths.push(configPath);
     }
