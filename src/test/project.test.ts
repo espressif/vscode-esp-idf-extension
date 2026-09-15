@@ -28,13 +28,11 @@ import {
   setCurrentSettingsInTemplate,
   updateProjectNameInCMakeLists,
 } from "../newProject/utils";
-import { isBinInPath } from "../utils";
 import { IdfSetup } from "../eim/types";
 import { ProjectConfigStore } from "../project-conf/store";
 import { ConfigurePreset } from "../project-conf/projectConfiguration";
 import { ESP } from "../config";
 import { createMockMemento } from "./mockUtils";
-import { updateCCppPropertiesJson } from "../configuration/workspace";
 import { validateEspClangExists } from "../clang/index";
 
 suite("Project tests", () => {
@@ -85,25 +83,26 @@ suite("Project tests", () => {
   });
 
   test("cCppPropertiesJson.json content", async () => {
-    const templateCCppPropertiesJsonJson = await readJson(
-      join(templateFolder, ".vscode", "c_cpp_properties.json")
+    const templateCCppPropertiesJson = await readFile(
+      join(templateFolder, ".vscode", "c_cpp_properties.json"),
+      "utf8"
     );
-    const compilerAbsolutePath = await isBinInPath(
-      "xtensa-esp32-elf-gcc",
-      process.env
-    );
-    templateCCppPropertiesJsonJson.configurations[0].compilerPath = compilerAbsolutePath;
-    await updateCCppPropertiesJson(
-      Uri.file(targetFolder),
-      "compilerPath",
-      compilerAbsolutePath
-    );
-    const targetCCppPropertiesJsonJson = await readJson(
-      join(targetFolder, ".vscode", "c_cpp_properties.json")
+    const targetCCppPropertiesJson = await readFile(
+      join(targetFolder, ".vscode", "c_cpp_properties.json"),
+      "utf8"
     );
     assert.equal(
-      JSON.stringify(templateCCppPropertiesJsonJson),
-      JSON.stringify(targetCCppPropertiesJsonJson)
+      templateCCppPropertiesJson,
+      targetCCppPropertiesJson,
+      "c_cpp_properties.json content match"
+    );
+    const cCppPropertiesJson = await readJson(
+      join(targetFolder, ".vscode", "c_cpp_properties.json")
+    );
+    assert.strictEqual(
+      cCppPropertiesJson.configurations[0].compilerPath,
+      "",
+      "compilerPath must stay empty so the C/C++ extension uses compile_commands.json"
     );
   });
 

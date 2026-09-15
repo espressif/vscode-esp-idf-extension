@@ -30,10 +30,7 @@ import { Uri, WebviewPanel } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { join, resolve } from "path";
 import { readdir } from "fs/promises";
-import {
-  setCCppPropertiesJsonCompileCommands,
-  setCCppPropertiesJsonCompilerPath,
-} from "../configuration/workspace";
+import { setCCppPropertiesJsonCompileCommands } from "../configuration/workspace";
 import { ESP } from "../config";
 import { robustMove } from "../utils";
 import { existsSync, readFileSync } from "fs";
@@ -120,7 +117,6 @@ export async function createVscodeFolder(
       await copy(fSrcPath, fPath);
     }
   }
-  await setCCppPropertiesJsonCompilerPath(curWorkspaceFsPath);
 }
 
 /**
