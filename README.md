@@ -505,7 +505,7 @@ We have implemented some utilities commands that can be used in `tasks.json` and
 
 - `espIdf.getExtensionPath`: Get the installed location absolute path.
 - `espIdf.getOpenOcdScriptValue`: Return the value of OPENOCD_SCRIPTS computed from ESP-IDF Tools path, `idf.customExtraVars`, or the system's OPENOCD_SCRIPTS environment variable.
-- `espIdf.getOpenOcdConfig`: Return the openOCD configuration files as string. Example `-f interface/ftdi/esp_ftdi.cfg -f target/esp32.cfg`.
+- `espIdf.getOpenOcdConfigs`: Return the openOCD configuration files as string. Example `-f interface/ftdi/esp_ftdi.cfg -f target/esp32.cfg`.
 - `espIdf.getProjectName`: Return the project name from current workspace folder `build/project_description.json`.
 - `espIdf.getToolchainGcc`: Return the absolute path of the toolchain GCC for the ESP-IDF target given by current IDF_TARGET in sdkconfig or `idf.customExtraVars`["IDF_TARGET"] configuration setting.
 - `espIdf.getToolchainGdb`: Return the absolute path of the toolchain gdb for the ESP-IDF target given by current IDF_TARGET in sdkconfig or `idf.customExtraVars`["IDF_TARGET"] configuration setting.

@@ -84,6 +84,31 @@ suite("OpenOCD errors", () => {
       ]);
     });
 
+    test("requireOpenOcdConfigFilesExist accepts normalized paths within OPENOCD_SCRIPTS", async () => {
+      const scriptsDir = mkdtempSync(join(tmpdir(), "openocd-scripts-"));
+      mkdirSync(join(scriptsDir, "target"), { recursive: true });
+      writeFileSync(join(scriptsDir, "target", "esp32s3.cfg"), "");
+
+      await requireOpenOcdConfigFilesExist(scriptsDir, [
+        "interface/../target/esp32s3.cfg",
+      ]);
+    });
+
+    test("requireOpenOcdConfigFilesExist rejects paths escaping OPENOCD_SCRIPTS", async () => {
+      const parentDir = mkdtempSync(join(tmpdir(), "openocd-parent-"));
+      const scriptsDir = join(parentDir, "scripts");
+      mkdirSync(scriptsDir);
+      writeFileSync(join(parentDir, "outside.cfg"), "");
+
+      await assert.rejects(
+        () => requireOpenOcdConfigFilesExist(scriptsDir, ["../outside.cfg"]),
+        (error: unknown) =>
+          isKnownError(error) &&
+          error.code === ErrorCode.INVALID_CONFIGURATION &&
+          error.metadata?.setting === "idf.openOcdConfigs"
+      );
+    });
+
     test("requireOpenOcdConfigFilesExist throws INVALID_CONFIGURATION when a config is missing", async () => {
       const scriptsDir = mkdtempSync(join(tmpdir(), "openocd-scripts-"));
       mkdirSync(join(scriptsDir, "interface", "ftdi"), { recursive: true });
