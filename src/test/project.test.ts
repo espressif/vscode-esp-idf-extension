@@ -167,7 +167,7 @@ suite("Project tests", () => {
     }
   });
 
-  test("compileCommands keeps the template value without a preset", async () => {
+  test("compileCommands uses the default build path without a preset", async () => {
     const noPresetFolder = join(wsFolder, "noPresetProject");
     await addVscodeFolderToWorkspace(
       mockUpContext.extensionPath,
@@ -175,7 +175,7 @@ suite("Project tests", () => {
     );
     assert.equal(
       await readCompileCommands(noPresetFolder),
-      templateCompileCommands
+      join(Uri.file(noPresetFolder).fsPath, "build", "compile_commands.json")
     );
   });
 
