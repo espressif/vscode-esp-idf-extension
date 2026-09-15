@@ -103,20 +103,23 @@ The file structure is as follows:
     "configurations": [
       {
         "name": "ESP-IDF",
-        "compilerPath": "/path/to/toolchain-gcc",
-        "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+        "compilerPath": "",
+        "compileCommands": "${config:idf.buildPath}/compile_commands.json",
+        "intelliSenseMode": "gcc-x86",
         "includePath": [
-          "/path/to/esp-idf/components/**",
           "${workspaceFolder}/**"
         ],
         "browse": {
           "path": [
-            "/path/to/esp-idf/components",
             "${workspaceFolder}"
-          ]
+          ],
+          "limitSymbolsToIncludedHeaders": true
         }
       }
-    ]
+    ],
+    "version": 4
   }
 
-If ``compile_commands.json`` is not defined, Microsoft C/C++ extension will browse the provided ESP-IDF path to resolve code navigation.
+``compilerPath`` is left empty on purpose. The Microsoft C/C++ extension then takes the compiler and the compile flags for each source file from ``compile_commands.json``, which ESP-IDF writes to the build directory, so IntelliSense matches the actual build and resolves toolchain headers such as ``stddef.h``. Because of this, IntelliSense becomes accurate after the first build or after running ``ESP-IDF: Run idf.py reconfigure Task``. Setting ``compilerPath`` to a toolchain path overrides the compiler from ``compile_commands.json`` and is not recommended; ``ESP-IDF: Set Espressif Device Target`` clears such a value.
+
+``compileCommands`` is replaced with the resolved build directory when you use ``ESP-IDF: Add VS Code Configuration Folder``, select a project configuration preset, or change ``idf.buildPath``, so it keeps pointing at the ``compile_commands.json`` of the active configuration.

@@ -103,20 +103,23 @@ C 和 C++ 代码导航及语法高亮
     "configurations": [
       {
         "name": "ESP-IDF",
-        "compilerPath": "/path/to/toolchain-gcc",
-        "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+        "compilerPath": "",
+        "compileCommands": "${config:idf.buildPath}/compile_commands.json",
+        "intelliSenseMode": "gcc-x86",
         "includePath": [
-          "/path/to/esp-idf/components/**",
           "${workspaceFolder}/**"
         ],
         "browse": {
           "path": [
-            "/path/to/esp-idf/components",
             "${workspaceFolder}"
-          ]
+          ],
+          "limitSymbolsToIncludedHeaders": true
         }
       }
-    ]
+    ],
+    "version": 4
   }
 
-如果未配置 ``compile_commands.json``，微软 C/C++ 扩展会浏览所提供的 ESP-IDF 路径以解析代码导航。
+``compilerPath`` 有意留空。这样微软 C/C++ 扩展会从 ESP-IDF 写入构建目录的 ``compile_commands.json`` 中获取每个源文件使用的编译器和编译参数，使 IntelliSense 与实际构建保持一致，并能正确解析 ``stddef.h`` 等工具链头文件。因此，IntelliSense 会在首次构建或运行 ``ESP-IDF: Run idf.py reconfigure Task`` 之后变得准确。不建议将 ``compilerPath`` 设置为工具链路径，这会覆盖 ``compile_commands.json`` 中的编译器；``ESP-IDF: Set Espressif Device Target`` 会清除此类设置。
+
+当你使用 ``ESP-IDF: Add VS Code Configuration Folder``、选择项目配置预设或修改 ``idf.buildPath`` 时，``compileCommands`` 会被替换为解析后的构建目录，从而始终指向当前配置的 ``compile_commands.json``。
