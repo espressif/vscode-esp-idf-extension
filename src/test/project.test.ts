@@ -35,6 +35,7 @@ import { ConfigurePreset } from "../project-conf/projectConfiguration";
 import { ESP } from "../config";
 import { createMockMemento } from "./mockUtils";
 import { updateCCppPropertiesJson } from "../configuration/workspace";
+import { configureClangSettings, validateEspClangExists } from "../clang/index";
 
 suite("Project tests", () => {
   const absPath = (filename: string) =>
@@ -178,6 +179,52 @@ suite("Project tests", () => {
       await readCompileCommands(noPresetFolder),
       templateCompileCommands
     );
+  });
+
+  test("clangd compile-commands-dir follows the selected preset", async function () {
+    const presetFolder = join(wsFolder, "presetClangProject");
+    const preset: ConfigurePreset = {
+      name: "test_refresh",
+      binaryDir: "builds/test_refresh",
+    };
+    ESP.ProjectConfiguration.store.set(
+      ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+      process.env
+    );
+    selectPreset(preset);
+    try {
+      const espClangPath = await validateEspClangExists();
+      if (!espClangPath) {
+        this.skip();
+      }
+      await createVscodeFolder(
+        mockUpContext.extensionPath,
+        Uri.file(presetFolder)
+      );
+      await configureClangSettings(Uri.file(presetFolder));
+      const settingsJson = await readJson(
+        join(presetFolder, ".vscode", "settings.json")
+      );
+      const expectedBuildPath = join(
+        Uri.file(presetFolder).fsPath,
+        "builds",
+        "test_refresh"
+      );
+      assert.equal(settingsJson["clangd.path"], espClangPath);
+      assert.ok(
+        settingsJson["clangd.arguments"].includes(
+          `--compile-commands-dir=${expectedBuildPath}`
+        ),
+        `clangd.arguments should target the preset build directory: ${JSON.stringify(
+          settingsJson["clangd.arguments"]
+        )}`
+      );
+    } finally {
+      clearPreset(preset);
+      ESP.ProjectConfiguration.store.clear(
+        ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
+      );
+    }
   });
 
   test("Test project creation", async () => {

@@ -30,6 +30,7 @@ import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { registerIDFCommand } from "../common/registerCommand";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { Logger } from "../common/logger";
+import { configureClangSettings } from "../clang/index";
 import { NewProjectPanel } from "./newProjectPanel";
 import { getNewProjectArgs } from "./newProjectInit";
 import { getIdfSetups } from "../eim/getExistingSetups";
@@ -142,6 +143,7 @@ async function runCreateVsCodeFolder(
   try {
     await createVscodeFolder(context.extensionPath, wsFolder.uri);
     await applySelectedProjectConfigurationToVscodeFolder(wsFolder.uri);
+    await configureClangSettings(wsFolder.uri);
     Logger.infoNotify(
       l10n.t("ESP-IDF vscode files have been added to the project.")
     );
