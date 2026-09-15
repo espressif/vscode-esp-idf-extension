@@ -16,7 +16,15 @@
  * limitations under the License.
  */
 import * as assert from "assert";
-import { readdir, readFile, readJson, remove, stat, writeJson } from "fs-extra";
+import {
+  readdir,
+  readFile,
+  readJson,
+  remove,
+  stat,
+  utimes,
+  writeJson,
+} from "fs-extra";
 import { join, resolve } from "path";
 import { ExtensionContext, Uri } from "vscode";
 import { getExamplesList } from "../newProject/Example";
@@ -263,16 +271,17 @@ suite("Project tests", () => {
       "c_cpp_properties.json"
     );
     const contentBefore = await readFile(cCppPropertiesJsonPath, "utf8");
-    const statBefore = await stat(cCppPropertiesJsonPath);
+    const pinnedTime = new Date("2020-01-01T00:00:00Z");
+    await utimes(cCppPropertiesJsonPath, pinnedTime, pinnedTime);
 
     await clearCCppPropertiesJsonCompilerPath(Uri.file(projectFolder));
 
     const contentAfter = await readFile(cCppPropertiesJsonPath, "utf8");
-    const statAfter = await stat(cCppPropertiesJsonPath);
     assert.strictEqual(contentAfter, contentBefore);
+    const statAfter = await stat(cCppPropertiesJsonPath);
     assert.strictEqual(
-      statAfter.mtimeMs,
-      statBefore.mtimeMs,
+      statAfter.mtime.getTime(),
+      pinnedTime.getTime(),
       "file must not be rewritten when there is nothing to clear"
     );
   });
