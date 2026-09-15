@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import * as assert from "assert";
-import { readdir, readFile, readJson, remove } from "fs-extra";
+import { readdir, readFile, readJson, remove, stat, writeJson } from "fs-extra";
 import { join, resolve } from "path";
 import { ExtensionContext, Uri } from "vscode";
 import { getExamplesList } from "../newProject/Example";
@@ -34,6 +34,7 @@ import { ConfigurePreset } from "../project-conf/projectConfiguration";
 import { ESP } from "../config";
 import { createMockMemento } from "./mockUtils";
 import { validateEspClangExists } from "../clang/index";
+import { clearCCppPropertiesJsonCompilerPath } from "../configuration/workspace";
 
 suite("Project tests", () => {
   const absPath = (filename: string) =>
@@ -221,6 +222,71 @@ suite("Project tests", () => {
         ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
       );
     }
+  });
+
+  test("clearCCppPropertiesJsonCompilerPath empties an absolute compilerPath", async () => {
+    const projectFolder = join(wsFolder, "staleCompilerPathProject");
+    await createVscodeFolder(
+      mockUpContext.extensionPath,
+      Uri.file(projectFolder)
+    );
+    const cCppPropertiesJsonPath = join(
+      projectFolder,
+      ".vscode",
+      "c_cpp_properties.json"
+    );
+    const cCppPropertiesJson = await readJson(cCppPropertiesJsonPath);
+    cCppPropertiesJson.configurations[0].compilerPath =
+      "/home/user/.espressif/tools/xtensa-esp-elf/bin/xtensa-esp32-elf-gcc";
+    await writeJson(cCppPropertiesJsonPath, cCppPropertiesJson, { spaces: 2 });
+
+    await clearCCppPropertiesJsonCompilerPath(Uri.file(projectFolder));
+
+    const updatedJson = await readJson(cCppPropertiesJsonPath);
+    assert.strictEqual(updatedJson.configurations[0].compilerPath, "");
+    assert.strictEqual(
+      updatedJson.configurations[0].compileCommands,
+      cCppPropertiesJson.configurations[0].compileCommands,
+      "other fields must be preserved"
+    );
+  });
+
+  test("clearCCppPropertiesJsonCompilerPath leaves an empty compilerPath untouched", async () => {
+    const projectFolder = join(wsFolder, "emptyCompilerPathProject");
+    await createVscodeFolder(
+      mockUpContext.extensionPath,
+      Uri.file(projectFolder)
+    );
+    const cCppPropertiesJsonPath = join(
+      projectFolder,
+      ".vscode",
+      "c_cpp_properties.json"
+    );
+    const contentBefore = await readFile(cCppPropertiesJsonPath, "utf8");
+    const statBefore = await stat(cCppPropertiesJsonPath);
+
+    await clearCCppPropertiesJsonCompilerPath(Uri.file(projectFolder));
+
+    const contentAfter = await readFile(cCppPropertiesJsonPath, "utf8");
+    const statAfter = await stat(cCppPropertiesJsonPath);
+    assert.strictEqual(contentAfter, contentBefore);
+    assert.strictEqual(
+      statAfter.mtimeMs,
+      statBefore.mtimeMs,
+      "file must not be rewritten when there is nothing to clear"
+    );
+  });
+
+  test("clearCCppPropertiesJsonCompilerPath ignores a missing file", async () => {
+    const projectFolder = join(wsFolder, "noVscodeFolderProject");
+    await clearCCppPropertiesJsonCompilerPath(Uri.file(projectFolder));
+    assert.strictEqual(
+      await readdir(wsFolder).then((files) =>
+        files.includes("noVscodeFolderProject")
+      ),
+      false,
+      "nothing should be created"
+    );
   });
 
   test("Test project creation", async () => {
