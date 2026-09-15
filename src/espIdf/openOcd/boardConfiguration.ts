@@ -119,7 +119,7 @@ export async function getBoards(
       name: "Custom board",
       description: "No board selected",
       target: "esp32",
-      configFiles: ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"],
+      configFiles: ["interface/ftdi/esp_ftdi.cfg", "target/esp32.cfg"],
     } as IdfBoard;
     espBoards.push(emptyBoard);
     const filteredEspBoards = espBoards.filter((b) => {

@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
+import { join } from "path";
 import { commands, Uri } from "vscode";
+import { pathExists } from "fs-extra";
 import { ErrorSeverity } from "../../common/customNotifications";
 import { readParameter } from "../../configuration/idf";
 import {
@@ -24,6 +26,11 @@ import {
   missingDependency,
   noWorkspaceOpen,
 } from "../../common/error/knownError";
+
+const selectOpenOcdBoardConfigsAction = {
+  label: "Select Board Configs",
+  execute: () => commands.executeCommand("espIdf.selectOpenOcdConfigFiles"),
+};
 
 export function requireOpenOcdWorkspace(workspace: Uri | undefined): Uri {
   if (!workspace) {
@@ -77,10 +84,36 @@ export function requireOpenOcdScripts(
   }
 }
 
-export function requireOpenOcdLaunchConfig(
+export async function requireOpenOcdConfigFilesExist(
+  openOcdScripts: string,
+  configFiles: string[]
+): Promise<void> {
+  const missingPaths: string[] = [];
+  for (const configFile of configFiles) {
+    const configPath = join(openOcdScripts, configFile);
+    if (!(await pathExists(configPath))) {
+      missingPaths.push(configPath);
+    }
+  }
+
+  if (missingPaths.length === 0) {
+    return;
+  }
+
+  throw invalidConfiguration("idf.openOcdConfigs", {
+    severity: ErrorSeverity.Error,
+    userMessage: `OpenOCD config file(s) not found under OPENOCD_SCRIPTS: ${missingPaths.join(
+      ", "
+    )}`,
+    logMessage: "Invalid extension configuration: {setting}.",
+    actions: [selectOpenOcdBoardConfigsAction],
+  });
+}
+
+export async function requireOpenOcdLaunchConfig(
   workspace: Uri,
   modifiedEnv: Record<string, string>
-): void {
+): Promise<void> {
   requireOpenOcdScripts(modifiedEnv);
 
   const openOcdLaunchArgs = readParameter(
@@ -106,24 +139,23 @@ export function requireOpenOcdLaunchConfig(
       userMessage:
         "Invalid OpenOCD config files. Check idf.openOcdConfigs or select a board configuration.",
       logMessage: "Invalid extension configuration: {setting}.",
-      actions: [
-        {
-          label: "Select Board Configs",
-          execute: () =>
-            commands.executeCommand("espIdf.selectOpenOcdConfigFiles"),
-        },
-      ],
+      actions: [selectOpenOcdBoardConfigsAction],
     });
   }
+
+  await requireOpenOcdConfigFilesExist(
+    modifiedEnv.OPENOCD_SCRIPTS,
+    openOcdConfigFilesList
+  );
 }
 
-export function validateOpenOcdStartPrerequisites(
+export async function validateOpenOcdStartPrerequisites(
   workspace: Uri | undefined,
   openOcdPath: string,
   modifiedEnv: Record<string, string>
-): Uri {
+): Promise<Uri> {
   const ws = requireOpenOcdWorkspace(workspace);
   requireOpenOcdBinary(openOcdPath);
-  requireOpenOcdLaunchConfig(ws, modifiedEnv);
+  await requireOpenOcdLaunchConfig(ws, modifiedEnv);
   return ws;
 }

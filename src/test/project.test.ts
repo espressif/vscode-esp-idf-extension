@@ -355,7 +355,7 @@ suite("Project tests", () => {
     const settingsJsonPath = join(projectPath, ".vscode", "settings.json");
     const settingsJson = await readJson(settingsJsonPath);
     const openOcdConfigs =
-      "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg";
+      "interface/ftdi/esp_ftdi.cfg,target/esp32.cfg";
 
     const idfSetup = {
       idfPath: process.env.IDF_PATH,

@@ -35,9 +35,8 @@ export function registerOpenOCDCommands(context: ExtensionContext) {
     context,
     "espIdf.openOCDCommand",
     async () => {
-      PreCheck.perform(
-        [webIdeCheck, openFolderCheck],
-        OpenOCDManager.init().commandHandler
+      await PreCheck.perform([webIdeCheck, openFolderCheck], () =>
+        OpenOCDManager.init().commandHandler()
       );
     },
     { outputChannel: "OpenOCD" }
@@ -94,7 +93,7 @@ export function registerOpenOCDCommands(context: ExtensionContext) {
     context,
     "espIdf.selectOpenOcdConfigFiles",
     async () => {
-      PreCheck.perform([openFolderCheck], async () => {
+      await PreCheck.perform([openFolderCheck], async () => {
         const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
         await selectOpenOcdConfigFiles(wsFolder);
       });

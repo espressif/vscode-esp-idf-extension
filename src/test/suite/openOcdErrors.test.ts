@@ -16,6 +16,9 @@
  */
 
 import * as assert from "assert";
+import { mkdirSync, mkdtempSync, writeFileSync } from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
 import {
   idfToolNotFound,
   isKnownError,
@@ -31,6 +34,7 @@ import {
 import { ErrorCode } from "../../common/error/types";
 import {
   requireOpenOcdBinary,
+  requireOpenOcdConfigFilesExist,
   requireOpenOcdScripts,
   requireOpenOcdWorkspace,
 } from "../../espIdf/openOcd/validation";
@@ -64,6 +68,37 @@ suite("OpenOCD errors", () => {
           isKnownError(error) &&
           error.code === ErrorCode.MISSING_DEPENDENCY &&
           error.metadata?.dependency === "OPENOCD_SCRIPTS"
+      );
+    });
+
+    test("requireOpenOcdConfigFilesExist succeeds when every config exists under OPENOCD_SCRIPTS", async () => {
+      const scriptsDir = mkdtempSync(join(tmpdir(), "openocd-scripts-"));
+      mkdirSync(join(scriptsDir, "interface", "ftdi"), { recursive: true });
+      mkdirSync(join(scriptsDir, "target"), { recursive: true });
+      writeFileSync(join(scriptsDir, "interface", "ftdi", "esp_ftdi.cfg"), "");
+      writeFileSync(join(scriptsDir, "target", "esp32s3.cfg"), "");
+
+      await requireOpenOcdConfigFilesExist(scriptsDir, [
+        "interface/ftdi/esp_ftdi.cfg",
+        "target/esp32s3.cfg",
+      ]);
+    });
+
+    test("requireOpenOcdConfigFilesExist throws INVALID_CONFIGURATION when a config is missing", async () => {
+      const scriptsDir = mkdtempSync(join(tmpdir(), "openocd-scripts-"));
+      mkdirSync(join(scriptsDir, "interface", "ftdi"), { recursive: true });
+      writeFileSync(join(scriptsDir, "interface", "ftdi", "esp_ftdi.cfg"), "");
+
+      await assert.rejects(
+        () =>
+          requireOpenOcdConfigFilesExist(scriptsDir, [
+            "interface/ftdi/esp_ftdi.cfg",
+            "target/esp32s3.cfg",
+          ]),
+        (error: unknown) =>
+          isKnownError(error) &&
+          error.code === ErrorCode.INVALID_CONFIGURATION &&
+          error.metadata?.setting === "idf.openOcdConfigs"
       );
     });
   });

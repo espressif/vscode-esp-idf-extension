@@ -178,7 +178,7 @@ export class NewProjectPanel {
               newProjectArgs.boards && newProjectArgs.boards.length > 0
                 ? newProjectArgs.boards[0].configFiles.join(",")
                 : [
-                    "interface/ftdi/esp32_devkitj_v1.cfg",
+                    "interface/ftdi/esp_ftdi.cfg",
                     "target/esp32.cfg",
                   ].join(",");
             this.panel.webview.postMessage({
