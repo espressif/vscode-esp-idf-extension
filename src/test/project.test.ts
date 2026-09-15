@@ -21,7 +21,7 @@ import { join, resolve } from "path";
 import { ExtensionContext, Uri } from "vscode";
 import { getExamplesList } from "../newProject/Example";
 import {
-  applySelectedProjectConfigurationToVscodeFolder,
+  addVscodeFolderToWorkspace,
   copyFromSrcProject,
   createVscodeFolder,
   readProjectCMakeLists,
@@ -35,7 +35,7 @@ import { ConfigurePreset } from "../project-conf/projectConfiguration";
 import { ESP } from "../config";
 import { createMockMemento } from "./mockUtils";
 import { updateCCppPropertiesJson } from "../configuration/workspace";
-import { configureClangSettings, validateEspClangExists } from "../clang/index";
+import { validateEspClangExists } from "../clang/index";
 
 suite("Project tests", () => {
   const absPath = (filename: string) =>
@@ -132,7 +132,7 @@ suite("Project tests", () => {
     return cCppPropertiesJson.configurations[0].compileCommands;
   };
 
-  test("compileCommands follows the selected preset when re-applied", async () => {
+  test("compileCommands follows the selected preset when adding the folder", async () => {
     const presetFolder = join(wsFolder, "presetProject");
     const preset: ConfigurePreset = {
       name: "test_refresh",
@@ -149,7 +149,8 @@ suite("Project tests", () => {
         templateCompileCommands,
         "createVscodeFolder alone must keep the template value"
       );
-      await applySelectedProjectConfigurationToVscodeFolder(
+      await addVscodeFolderToWorkspace(
+        mockUpContext.extensionPath,
         Uri.file(presetFolder)
       );
       assert.equal(
@@ -168,11 +169,8 @@ suite("Project tests", () => {
 
   test("compileCommands keeps the template value without a preset", async () => {
     const noPresetFolder = join(wsFolder, "noPresetProject");
-    await createVscodeFolder(
+    await addVscodeFolderToWorkspace(
       mockUpContext.extensionPath,
-      Uri.file(noPresetFolder)
-    );
-    await applySelectedProjectConfigurationToVscodeFolder(
       Uri.file(noPresetFolder)
     );
     assert.equal(
@@ -197,11 +195,10 @@ suite("Project tests", () => {
       if (!espClangPath) {
         this.skip();
       }
-      await createVscodeFolder(
+      await addVscodeFolderToWorkspace(
         mockUpContext.extensionPath,
         Uri.file(presetFolder)
       );
-      await configureClangSettings(Uri.file(presetFolder));
       const settingsJson = await readJson(
         join(presetFolder, ".vscode", "settings.json")
       );

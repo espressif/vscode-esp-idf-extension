@@ -124,12 +124,29 @@ export async function createVscodeFolder(
 }
 
 /**
+ * Add the ESP-IDF `.vscode` files to an existing workspace folder and align
+ * them with the workspace's selected configure preset and clangd setup.
+ * Used by the "Add VS Code Configuration Folder" command; new projects use
+ * createVscodeFolder directly so they never inherit another folder's preset.
+ * @param {string} extensionPath - Extension root that holds the templates.
+ * @param {Uri} workspaceFolder - Workspace folder to add the files to.
+ */
+export async function addVscodeFolderToWorkspace(
+  extensionPath: string,
+  workspaceFolder: Uri
+) {
+  await createVscodeFolder(extensionPath, workspaceFolder);
+  await applySelectedProjectConfigurationToVscodeFolder(workspaceFolder);
+  await configureClangSettings(workspaceFolder);
+}
+
+/**
  * Re-apply the selected configure preset to the workspace `.vscode` files,
  * so regenerated files match what selecting the preset would have written.
  * Does nothing when no configure preset is selected.
  * @param {Uri} curWorkspaceFsPath - Workspace folder the preset was selected in.
  */
-export async function applySelectedProjectConfigurationToVscodeFolder(
+async function applySelectedProjectConfigurationToVscodeFolder(
   curWorkspaceFsPath: Uri
 ) {
   if (!ESP.ProjectConfiguration.store) {
