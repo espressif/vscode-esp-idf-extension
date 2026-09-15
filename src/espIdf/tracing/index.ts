@@ -70,7 +70,7 @@ export function registerAppTraceCommands(context: ExtensionContext) {
     context,
     "espIdf.apptrace",
     () => {
-      PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+      return PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
         const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
         const appTraceLabel =
           typeof appTraceTreeDataProvider.appTraceButton.label === "string"
@@ -92,7 +92,7 @@ export function registerAppTraceCommands(context: ExtensionContext) {
     "espIdf.heaptrace",
     async () => {
       const idfVersionCheck = await minIdfVersionCheck("4.2");
-      PreCheck.perform(
+      await PreCheck.perform(
         [idfVersionCheck, webIdeCheck, openFolderCheck],
         async () => {
           const heapTraceLabel =
@@ -140,7 +140,7 @@ export function registerAppTraceCommands(context: ExtensionContext) {
       if (!trace) {
         throw traceInvalidCommand();
       }
-      PreCheck.perform([openFolderCheck], async () => {
+      return PreCheck.perform([openFolderCheck], async () => {
         const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
         if (trace.type === TraceType.HeapTrace) {
           enum TracingViewType {

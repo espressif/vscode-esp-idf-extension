@@ -31,10 +31,10 @@ type PreCheckFunc = (...args: any[]) => boolean;
 export type PreCheckErrorFactory = () => KnownError;
 export type PreCheckInput = [PreCheckFunc, PreCheckErrorFactory];
 export class PreCheck {
-  public static perform(
+  public static perform<T>(
     preCheckFunctions: PreCheckInput[],
-    proceed: () => any
-  ): any {
+    proceed: () => T
+  ): T {
     for (const [check, toError] of preCheckFunctions) {
       if (!check()) {
         throw toError();

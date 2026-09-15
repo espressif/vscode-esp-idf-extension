@@ -62,7 +62,7 @@ export function registerProjectConfigCommands(context: ExtensionContext) {
     context,
     "espIdf.projectConf",
     () => {
-      PreCheck.perform([openFolderCheck], async () => {
+      return PreCheck.perform([openFolderCheck], async () => {
         if (ProjectConfigurationManager.instance) {
           await ProjectConfigurationManager.instance.selectProjectConfiguration();
         } else {
@@ -88,7 +88,7 @@ export function registerProjectConfigCommands(context: ExtensionContext) {
     context,
     "espIdf.createProjectConfiguration",
     () => {
-      PreCheck.perform([openFolderCheck], async () => {
+      return PreCheck.perform([openFolderCheck], async () => {
         if (ProjectConfigurationManager.instance) {
           await ProjectConfigurationManager.instance.createProjectConfiguration();
         } else {

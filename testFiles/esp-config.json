@@ -31,17 +31,8 @@
           "description": "ESP32 used with ESP-PROG board",
           "target": "esp32",
           "config_files": [
-              "interface/ftdi/esp32_devkitjv1.cfg",
+              "interface/ftdi/esp_ftdi.cfg",
               "target/esp32.cfg"
-          ]
-      },
-      {
-          "name": "ESP32-SOLO-1 module (via ESP-PROG)",
-          "description": "ESP32-SOLO-1 used with ESP-PROG board",
-          "target": "esp32",
-          "config_files": [
-              "interface/ftdi/esp32_devkitjv1.cfg",
-              "target/esp32-solo-1.cfg"
           ]
       },
       {
@@ -55,7 +46,7 @@
           "description": "ESP32-S2 used with ESP-PROG board",
           "target": "esp32s2",
           "config_files": [
-              "interface/ftdi/esp32_devkitjv1.cfg",
+              "interface/ftdi/esp_ftdiesp_ftdi.cfg",
               "target/esp32s2.cfg"
           ]
       },
@@ -64,7 +55,7 @@
           "description": "ESP32-S3 used with ESP-PROG board",
           "target": "esp32s3",
           "config_files": [
-              "interface/ftdi/esp32_devkitjv1.cfg",
+              "interface/ftdi/esp_ftdi.cfg",
               "target/esp32s3.cfg"
           ]
       },

@@ -55,15 +55,6 @@ export const defaultBoards = [
     ],
   } as IdfBoard,
   {
-    name: "ESP32-SOLO-1 module (via ESP-PROG)",
-    description: "ESP32-SOLO-1 debugging via ESP-PROG board",
-    target: "esp32",
-    configFiles: [
-      "interface/ftdi/esp_ftdi.cfg",
-      "target/esp32-solo-1.cfg"
-    ],
-  } as IdfBoard,
-  {
     name: "ESP32-S2-KALUGA-1",
     description: "ESP32-S2-KALUGA-1 kit",
     target: "esp32s2",

@@ -353,7 +353,7 @@ export function registerNewProjectWizardCmd(context: ExtensionContext) {
   });
 
   registerNewProjectCommand(context, "espIdf.createVsCodeFolder", () => {
-    PreCheck.perform([openFolderCheck], async () => {
+    return PreCheck.perform([openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       if (!wsFolder) {
         return;
@@ -363,7 +363,7 @@ export function registerNewProjectWizardCmd(context: ExtensionContext) {
   });
 
   registerNewProjectCommand(context, "espIdf.createDevContainer", () => {
-    PreCheck.perform([openFolderCheck], async () => {
+    return PreCheck.perform([openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       if (!wsFolder) {
         return;
@@ -383,7 +383,7 @@ export function registerNewProjectWizardCmd(context: ExtensionContext) {
   });
 
   registerNewProjectCommand(context, "espIdf.createNewComponent", async () => {
-    PreCheck.perform([openFolderCheck], async () => {
+    await PreCheck.perform([openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       if (!wsFolder) {
         return;
