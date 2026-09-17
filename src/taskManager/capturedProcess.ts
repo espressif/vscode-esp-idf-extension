@@ -17,6 +17,8 @@
  */
 
 import { spawn } from "child_process";
+import { existsSync } from "fs";
+import { isAbsolute } from "path";
 import { loadVscodeNodePty } from "./nodePty";
 
 export interface SpawnCapturedProcessRequest {
@@ -62,6 +64,15 @@ export function spawnCapturedProcess(
   request: SpawnCapturedProcessRequest,
   listeners: SpawnCapturedProcessListeners
 ): ICapturedProcess {
+  if (isAbsolute(request.file) && !existsSync(request.file)) {
+    const error = new Error(
+      `spawn ${request.file} ENOENT`
+    ) as NodeJS.ErrnoException;
+    error.code = "ENOENT";
+    listeners.onError(error);
+    return noOpProcess();
+  }
+
   const env = applyTaskTerminalEnv(request.env);
   const nodePty = loadVscodeNodePty();
   if (nodePty) {

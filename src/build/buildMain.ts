@@ -41,7 +41,7 @@ const buildIdfTaskInProgressPresentation: ErrorPresentation = {
   logMessage: "Attempted to build while {taskName} is in progress.",
 };
 
-const buildTaskFailedWithOutputPresentation: ErrorPresentation = {
+export const buildTaskFailedWithOutputPresentation: ErrorPresentation = {
   userMessage: "Build task failed. Check the terminal output for details.",
   logMessage: "Build task failed with captured output.",
   outputChannel: "Build",
