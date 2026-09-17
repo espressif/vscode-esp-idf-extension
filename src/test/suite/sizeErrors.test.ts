@@ -40,7 +40,7 @@ import {
   runSizeTaskIfEnabled,
   setSizeExecutionTestHooks,
 } from "../../build/sizeExecution";
-import { IDFSize } from "../../espIdf/size/idfSize";
+import { IDFSize, idfSizeCliArgs } from "../../espIdf/size/idfSize";
 import { sizeErrorPresentation } from "../../espIdf/size/sizeErrorPresentation";
 import { ProjectConfigStore } from "../../project-conf";
 import { createMockMemento } from "../mockUtils";
@@ -140,6 +140,40 @@ suite("size errors", () => {
         descriptor?.actions[0].label,
         "Open ESP-IDF Install Manager"
       );
+    });
+  });
+
+  suite("idfSizeCliArgs", () => {
+    test("ESP-IDF 6.0+ uses --files and json2", () => {
+      assert.deepStrictEqual(idfSizeCliArgs("6.0.0"), {
+        formatArgs: ["--format", "json2"],
+        filesFlag: "--files",
+      });
+      assert.deepStrictEqual(idfSizeCliArgs("6.1.0"), {
+        formatArgs: ["--format", "json2"],
+        filesFlag: "--files",
+      });
+    });
+
+    test("ESP-IDF 5.5 uses --file and json2", () => {
+      assert.deepStrictEqual(idfSizeCliArgs("5.5.0"), {
+        formatArgs: ["--format", "json2"],
+        filesFlag: "--file",
+      });
+    });
+
+    test("ESP-IDF 5.2 uses --file and json", () => {
+      assert.deepStrictEqual(idfSizeCliArgs("5.2.0"), {
+        formatArgs: ["--format", "json"],
+        filesFlag: "--file",
+      });
+    });
+
+    test("ESP-IDF 5.0 uses --file and --json", () => {
+      assert.deepStrictEqual(idfSizeCliArgs("5.0.0"), {
+        formatArgs: ["--json"],
+        filesFlag: "--file",
+      });
     });
   });
 

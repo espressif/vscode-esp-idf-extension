@@ -111,7 +111,7 @@ suite("handleError Output Channel", () => {
 
     assert.deepStrictEqual(
       lines.map((line) => line.message),
-      ["Build task failed. Check the terminal output for details."]
+      ["Task failed. Check the terminal output for details."]
     );
   });
 });
