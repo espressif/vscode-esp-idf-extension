@@ -138,8 +138,12 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
       return;
     }
     this.settled = true;
-    const errorLine = `Error: ${error.message}`;
-    this.writeEmitter.fire(`${errorLine}\r\n`);
+    const errorLine = `File: ${
+      this.spawnRequest.file
+    }\nArgs: ${this.spawnRequest.args.join(" ")}\nCwd: ${
+      this.spawnRequest.cwd ?? ""
+    }\nError: ${error.message}`;
+    this.writeEmitter.fire(toTerminalNewlines(`${errorLine}\n`));
     this.stderr += `${errorLine}\n`;
     const rawCode = (error as NodeJS.ErrnoException).code;
     const exitCode =
