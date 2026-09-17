@@ -104,6 +104,9 @@ export async function throwCapturedTaskFailure() {
         stderr: result.output.stderr,
         exitCode: result.output.exitCode,
         success: result.output.success,
+        ...(result.output.spawnErrorCode
+          ? { spawnErrorCode: result.output.spawnErrorCode }
+          : {}),
         ...(result.taskName ? { taskName: result.taskName } : {}),
         ...(invocation
           ? {

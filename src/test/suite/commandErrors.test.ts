@@ -16,13 +16,13 @@
  */
 
 import * as assert from "assert";
-import { resolve } from "path";
+import { join, resolve } from "path";
 import * as vscode from "vscode";
 import { isKnownError } from "../../common/error/knownError";
 import { ErrorCode } from "../../common/error/types";
 import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
-import { installEspSBOM } from "../../espBom/main";
+import { installEspSBOM, resolveEspSbomInvocation } from "../../espBom/main";
 import { addIdfReconfigureTask } from "../../espIdf/reconfigure/task";
 import { getNinjaSummaryPythonPath } from "../../ninja/index";
 import { ProjectConfigStore } from "../../project-conf";
@@ -77,6 +77,40 @@ suite("command errors", () => {
           error.code === ErrorCode.MISSING_DEPENDENCY &&
           error.metadata?.dependency === "Python"
       );
+    });
+  });
+
+  suite("resolveEspSbomInvocation", () => {
+    teardown(() => {
+      ESP.ProjectConfiguration.store.set(
+        ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+        {}
+      );
+    });
+
+    test("throws missingDependency when python path is missing", () => {
+      assert.throws(
+        () => resolveEspSbomInvocation(),
+        (error: unknown) =>
+          isKnownError(error) &&
+          error.code === ErrorCode.MISSING_DEPENDENCY &&
+          error.metadata?.dependency === "Python"
+      );
+    });
+
+    test("uses venv Python with -m esp_idf_sbom", () => {
+      const venvRoot = "/opt/esp/python_env/idf5.0_py3.11_env";
+      ESP.ProjectConfiguration.store.set(
+        ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+        { IDF_PYTHON_ENV_PATH: venvRoot }
+      );
+      const invocation = resolveEspSbomInvocation();
+      const expectedPython =
+        process.platform === "win32"
+          ? join(venvRoot, "Scripts", "python.exe")
+          : join(venvRoot, "bin", "python3");
+      assert.strictEqual(invocation.command, expectedPython);
+      assert.deepStrictEqual(invocation.moduleArgs, ["-m", "esp_idf_sbom"]);
     });
   });
 });
