@@ -15,31 +15,11 @@
  * limitations under the License.
  */
 
-import { ErrorCode, ErrorPresentation } from "../common/error/types";
-import { isKnownError, known } from "../common/error/knownError";
-import { throwCapturedTaskFailure } from "../taskManager/taskManager";
+import { ErrorPresentation } from "../common/error/types";
 
-const eraseTaskFailedWithOutputPresentation: ErrorPresentation = {
+export const eraseTaskFailedWithOutputPresentation: ErrorPresentation = {
   userMessage:
     "Erase flash task failed. Check the terminal output for details.",
   logMessage: "Erase flash task failed with captured output.",
   outputChannel: "Erase flash",
 };
-
-export async function throwEraseCapturedTaskFailure(): Promise<void> {
-  try {
-    await throwCapturedTaskFailure();
-  } catch (error) {
-    if (
-      isKnownError(error) &&
-      error.code === ErrorCode.TaskFailedWithOutput
-    ) {
-      throw known(
-        ErrorCode.TaskFailedWithOutput,
-        error.metadata,
-        eraseTaskFailedWithOutputPresentation
-      );
-    }
-    throw error;
-  }
-}

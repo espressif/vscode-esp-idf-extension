@@ -26,8 +26,12 @@ import {
   confserverProtocolError,
   fileNotFound,
   isKnownError,
+  known,
 } from "../../common/error/knownError";
-import { resolveKnownErrorUserMessage } from "../../common/error/resolve";
+import {
+  resolveKnownErrorDescriptor,
+  resolveKnownErrorUserMessage,
+} from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
 import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
@@ -165,6 +169,25 @@ suite("menuconfig errors", () => {
           )
         ),
         "Menuconfig menus file not found at /build/config/kconfig_menus.json. Build the project first."
+      );
+    });
+
+    test("call-site presentation overrides TaskFailedWithOutput for save-defconfig", () => {
+      const descriptor = resolveKnownErrorDescriptor(
+        known(
+          ErrorCode.TaskFailedWithOutput,
+          { exitCode: 1 },
+          menuconfigErrorPresentation.taskFailedWithOutput
+        )
+      );
+      assert.ok(descriptor);
+      assert.strictEqual(
+        descriptor?.userMessage,
+        "Save default SDK configuration failed. Check the terminal output for details."
+      );
+      assert.strictEqual(
+        descriptor?.outputChannel,
+        "SDK Configuration Editor"
       );
     });
   });

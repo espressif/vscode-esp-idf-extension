@@ -42,7 +42,7 @@ import type {
 import { OutputCapturingExecution } from "./customExecution";
 import { ShellOutputCapturingExecution } from "./shellCaptureExecution";
 import { formatCommandLine, known } from "../common/error/knownError";
-import { ErrorCode } from "../common/error/types";
+import { ErrorCode, ErrorPresentation } from "../common/error/types";
 
 export interface IdfTaskDefinition extends TaskDefinition {
   command?: string;
@@ -85,7 +85,7 @@ export function collectExecutions(
 /**
  * Throws if any recorded {@link IdfTaskResult} reports failure.
  */
-export async function throwCapturedTaskFailure() {
+export async function throwCapturedTaskFailure(presentation?: ErrorPresentation) {
   for (const result of TaskManager.getTaskResults()) {
     if (!result.output.success) {
       const processArgs = result.processArgs ?? [];
@@ -116,7 +116,7 @@ export async function throwCapturedTaskFailure() {
               commandLine: invocation.commandLine,
             }
           : {}),
-      });
+      }, presentation);
     }
   }
 }

@@ -22,7 +22,8 @@ import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
 import { eraseFlashTelnetCommand } from "./tclClientCmd";
 import { CustomExecutionTaskResult } from "../../../taskManager/types";
 import { eraseJtagOpenOcdPresentation } from "../../jtagOpenOcdPresentation";
-import { throwEraseCapturedTaskFailure } from "../../eraseTaskFailure";
+import { eraseTaskFailedWithOutputPresentation } from "../../eraseTaskFailure";
+import { throwCapturedTaskFailure } from "../../../taskManager/taskManager";
 
 export async function jtagEraseFlashCommand(
   cancelToken: CancellationToken,
@@ -43,7 +44,7 @@ export async function jtagEraseFlashCommand(
       "halt; flash erase_sector 0 0 last; reset"
     );
     if (!eraseResult.continueFlag) {
-      await throwEraseCapturedTaskFailure();
+      await throwCapturedTaskFailure(eraseTaskFailedWithOutputPresentation);
       return { continueFlag: false };
     }
     return { continueFlag: true };

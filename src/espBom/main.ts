@@ -24,6 +24,7 @@ import { join } from "path";
 import { pathExists, lstat, constants } from "fs-extra";
 import { Logger } from "../common/logger";
 import { missingDependency } from "../common/error/knownError";
+import { ErrorPresentation } from "../common/error/types";
 import {
   addProcessTask,
   TaskManager,
@@ -37,6 +38,13 @@ import {
   getIdfBuildPath,
   getProjectMapFilePath,
 } from "../configuration/workspace";
+
+/** @internal Exported for tests asserting call-site presentation. */
+export const sbomTaskFailedWithOutputPresentation: ErrorPresentation = {
+  userMessage: "SBOM task failed. Check the terminal output for details.",
+  logMessage: "SBOM task failed with captured output.",
+  outputChannel: "SBOM",
+};
 
 export type EspSbomInvocation = {
   command: string;
@@ -104,7 +112,7 @@ export async function createSBOM(workspaceUri: Uri) {
   try {
     const succeeded = await TaskManager.runTasksWithBoolean();
     if (!succeeded) {
-      await throwCapturedTaskFailure();
+      await throwCapturedTaskFailure(sbomTaskFailedWithOutputPresentation);
     }
   } finally {
     TaskManager.disposeListeners();
