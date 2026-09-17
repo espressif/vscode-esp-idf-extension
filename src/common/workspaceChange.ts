@@ -69,6 +69,17 @@ export async function configureForWorkspace(
   workspaceFolder: WorkspaceFolder
 ) {
   ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(workspaceFolder.uri);
+  if (statusBarItems["projectConf"]) {
+    statusBarItems["projectConf"].dispose();
+    delete statusBarItems["projectConf"];
+    const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+    ESP.ProjectConfiguration.store.clear(selectedConfig);
+    ESP.ProjectConfiguration.store.clear(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+  }
   const idfSetup = await loadIdfSetup(context.extensionPath, workspaceFolder);
   await getIdfTargetFromSdkconfig(
     workspaceFolder.uri,
@@ -100,17 +111,6 @@ export async function configureForWorkspace(
   statusBarItems["workspace"].tooltip =
     l10n.t("ESP-IDF: Current Project") + workspaceFolder.uri.fsPath;
   statusBarItems["workspace"].command = "espIdf.pickAWorkspaceFolder";
-  if (statusBarItems["projectConf"]) {
-    statusBarItems["projectConf"].dispose();
-    delete statusBarItems["projectConf"];
-    const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
-      ESP.ProjectConfiguration.SELECTED_CONFIG
-    );
-    ESP.ProjectConfiguration.store.clear(selectedConfig);
-    ESP.ProjectConfiguration.store.clear(
-      ESP.ProjectConfiguration.SELECTED_CONFIG
-    );
-  }
   if (statusBarItems["currentIdfVersion"]) {
     statusBarItems["currentIdfVersion"].text = idfSetup?.version
       ? `$(${
