@@ -47,6 +47,7 @@ import { OutputChannel } from "./outputChannel";
 import { UnitTest } from "../espIdf/unitTest/adapter";
 import { updateCurrentIdfEnvVar } from "../configuration/env";
 import { ExtensionConfigStore } from "./store";
+import { refreshCurrentIdfConfiguration } from "./prepareEnv";
 
 export function registerOnDidChangeConfiguration(context: ExtensionContext) {
   context.subscriptions.push(
@@ -83,15 +84,7 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
           }
         }
       } else if (prevWorkspaceFolder && e.affectsConfiguration("idf.customExtraVars")) {
-        const customExtraVars = readParameter(
-          "idf.customExtraVars",
-          prevWorkspaceFolder
-        ) as { [key: string]: string };
-        for (const envVar in customExtraVars) {
-          if (envVar.toUpperCase() !== "PATH") {
-            updateCurrentIdfEnvVar(envVar, customExtraVars[envVar]);
-          }
-        }
+        await refreshCurrentIdfConfiguration(prevWorkspaceFolder);
         await getIdfTargetFromSdkconfig(
           prevWorkspaceFolder.uri,
           statusBarItems["target"]

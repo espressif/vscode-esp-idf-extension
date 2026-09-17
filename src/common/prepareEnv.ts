@@ -237,3 +237,42 @@ export async function expandEnvVariablesForIdfSetup(
 
   return modifiedEnv;
 }
+
+export async function storeIdfSetupEnvironment(
+  setupEnvVars: { [key: string]: string },
+  workspaceFolder: WorkspaceFolder
+): Promise<{ [key: string]: string }> {
+  ESP.ProjectConfiguration.store.set(
+    ESP.ProjectConfiguration.CURRENT_IDF_SETUP_ENV,
+    setupEnvVars
+  );
+  const expandedEnvVars = await expandEnvVariablesForIdfSetup(
+    setupEnvVars,
+    workspaceFolder
+  );
+  ESP.ProjectConfiguration.store.set(
+    ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+    expandedEnvVars
+  );
+  return expandedEnvVars;
+}
+
+export async function refreshCurrentIdfConfiguration(
+  workspaceFolder: WorkspaceFolder
+): Promise<boolean> {
+  const setupEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_SETUP_ENV);
+  if (!setupEnvVars) {
+    return false;
+  }
+  const expandedEnvVars = await expandEnvVariablesForIdfSetup(
+    setupEnvVars,
+    workspaceFolder
+  );
+  ESP.ProjectConfiguration.store.set(
+    ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+    expandedEnvVars
+  );
+  return true;
+}
