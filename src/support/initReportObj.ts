@@ -29,6 +29,7 @@ export function initializeReportObject() {
       customOpenOcdPath: "",
       idfExtraVars: {},
       userExtraVars: {},
+      staleUserExtraVars: {},
       customTerminalExecutable: "",
       customTerminalExecutableArgs: [],
       notificationMode: "",

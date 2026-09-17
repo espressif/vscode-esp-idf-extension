@@ -318,6 +318,18 @@ export function analyzeReport(report: reportObj): ReportSummary {
     }
   }
 
+  for (const [name, value] of Object.entries(settings.staleUserExtraVars)) {
+    findings.push({
+      status: "warn",
+      category: "Paths",
+      label: `Custom extra var (${name})`,
+      settingKey: `idf.customExtraVars.${name}`,
+      value,
+      message:
+        "path does not exist; the ESP-IDF setup value is used instead",
+    });
+  }
+
   addSpacesWarning(
     findings,
     "ESP-IDF Path",

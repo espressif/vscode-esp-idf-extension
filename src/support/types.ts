@@ -38,6 +38,7 @@ export interface Configuration {
   partitionToUse: string;
   idfExtraVars: { [key: string]: string };
   userExtraVars: { [key: string]: string };
+  staleUserExtraVars: { [key: string]: string };
   notificationMode: string;
   pythonBinPath: string;
   pythonPackages: pyPkgVersion[];

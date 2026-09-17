@@ -29,6 +29,7 @@ import { getEnvVariables } from "./loadSettings";
 import { OutputChannel } from "../common/outputChannel";
 import { statusBarItems } from "../statusBar";
 import { storeIdfSetupEnvironment } from "../common/prepareEnv";
+import { warnAboutStaleCustomExtraVars } from "../configuration/staleCustomExtraVars";
 
 export function pathVarFromEnvVars(envVars: {
   [key: string]: string;
@@ -179,6 +180,7 @@ export async function saveSettings(
   }
 
   await storeIdfSetupEnvironment(envVars, workspaceFolder);
+  void warnAboutStaleCustomExtraVars(workspaceFolder);
   if (statusBarItems["currentIdfVersion"]) {
     statusBarItems["currentIdfVersion"].text = `$(${
       commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId

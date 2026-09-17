@@ -25,6 +25,7 @@ import { getEspIdfFromCMake, compareVersion } from "../utils";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { pathExists } from "fs-extra";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
+import { findStaleCustomExtraVars } from "../configuration/staleCustomExtraVars";
 
 /**
  * Configures and prepares environment variables necessary for executing ESP-IDF tasks.
@@ -88,8 +89,17 @@ export async function expandEnvVariablesForIdfSetup(
   ) as { [key: string]: string };
   if (customExtraVars) {
     try {
+      const staleNames = new Set(
+        (await findStaleCustomExtraVars(customExtraVars, currentEnvVars)).map(
+          (entry) => entry.name
+        )
+      );
       for (const envVar in customExtraVars) {
-        if (envVar && envVar.toUpperCase() !== "PATH") {
+        if (
+          envVar &&
+          envVar.toUpperCase() !== "PATH" &&
+          !staleNames.has(envVar)
+        ) {
           modifiedEnv[envVar] = customExtraVars[envVar];
         }
       }

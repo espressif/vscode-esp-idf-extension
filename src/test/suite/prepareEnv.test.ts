@@ -109,18 +109,44 @@ suite("common/prepareEnv.ts", () => {
   test("custom extra vars override the setup environment", async () => {
     setIdfConfigurationSource(
       createFakeIdfSource({
-        "idf.customExtraVars": { ADF_PATH: "/custom/adf", EXTRA: "1" },
+        "idf.customExtraVars": { ADF_PATH: openOcdBinDir, EXTRA: "1" },
       })
     );
 
     const env = await expandEnvVariablesForIdfSetup(
-      { IDF_PATH: "/idf", ADF_PATH: "/setup/adf" },
+      { IDF_PATH: "/idf", ADF_PATH: openOcdScriptsDir },
       workspaceFolder
     );
 
     assert.strictEqual(env.IDF_PATH, "/idf");
-    assert.strictEqual(env.ADF_PATH, "/custom/adf");
+    assert.strictEqual(env.ADF_PATH, openOcdBinDir);
     assert.strictEqual(env.EXTRA, "1");
+  });
+
+  test("custom vars pointing at missing paths are skipped when the setup provides them", async () => {
+    const missingDir = join(tempDir, "esp-rom-elfs", "20230320");
+    setIdfConfigurationSource(
+      createFakeIdfSource({
+        "idf.customExtraVars": {
+          ESP_ROM_ELF_DIR: missingDir,
+          ADF_PATH: missingDir,
+          TOOL_DIR: openOcdScriptsDir,
+        },
+      })
+    );
+
+    const env = await expandEnvVariablesForIdfSetup(
+      {
+        IDF_PATH: "/idf",
+        ESP_ROM_ELF_DIR: openOcdScriptsDir,
+        TOOL_DIR: openOcdBinDir,
+      },
+      workspaceFolder
+    );
+
+    assert.strictEqual(env.ESP_ROM_ELF_DIR, openOcdScriptsDir);
+    assert.strictEqual(env.ADF_PATH, missingDir);
+    assert.strictEqual(env.TOOL_DIR, openOcdScriptsDir);
   });
 
   test("OPENOCD_SCRIPTS follows the openocd binary in PATH over a custom value", async () => {

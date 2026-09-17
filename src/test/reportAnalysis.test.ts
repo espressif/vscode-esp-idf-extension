@@ -120,4 +120,22 @@ suite("Report analysis tests", () => {
       )
     );
   });
+
+  test("analyzeReport warns for stale custom extra vars", () => {
+    const report = initializeReportObject();
+    report.configurationSettings.staleUserExtraVars = {
+      OPENOCD_SCRIPTS: "/tools/openocd-esp32/v0.12.0-esp32-20240318/scripts",
+    };
+
+    const summary = analyzeReport(report);
+    const finding = summary.findings.find(
+      (f) => f.settingKey === "idf.customExtraVars.OPENOCD_SCRIPTS"
+    );
+    assert.ok(finding);
+    assert.equal(finding.status, "warn");
+    assert.equal(
+      finding.value,
+      "/tools/openocd-esp32/v0.12.0-esp32-20240318/scripts"
+    );
+  });
 });
