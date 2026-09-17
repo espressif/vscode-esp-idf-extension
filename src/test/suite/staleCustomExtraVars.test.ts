@@ -20,7 +20,11 @@ import * as assert from "assert";
 import { mkdirSync, mkdtempSync, rmSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
-import { findStaleCustomExtraVars } from "../../configuration/staleCustomExtraVars";
+import { ConfigurationTarget } from "vscode";
+import {
+  findStaleCustomExtraVars,
+  planStaleCustomExtraVarsRemoval,
+} from "../../configuration/staleCustomExtraVars";
 
 suite("configuration/staleCustomExtraVars.ts", () => {
   let tempDir: string;
@@ -94,5 +98,55 @@ suite("configuration/staleCustomExtraVars.ts", () => {
     );
 
     assert.deepStrictEqual(stale, []);
+  });
+
+  suite("planStaleCustomExtraVarsRemoval", () => {
+    const stale = [
+      { name: "OPENOCD_SCRIPTS", value: "/stale", setupValue: "/setup" },
+    ];
+
+    test("removes the entry only from the scope that holds the stale value", () => {
+      const updates = planStaleCustomExtraVarsRemoval(
+        {
+          workspaceFolderValue: { OPENOCD_SCRIPTS: "/stale", ADF_PATH: "/adf" },
+          globalValue: { OPENOCD_SCRIPTS: "/other-folder/scripts" },
+        },
+        stale
+      );
+
+      assert.deepStrictEqual(updates, [
+        {
+          target: ConfigurationTarget.WorkspaceFolder,
+          value: { ADF_PATH: "/adf" },
+        },
+      ]);
+    });
+
+    test("removes the entry from every scope that holds the stale value", () => {
+      const updates = planStaleCustomExtraVarsRemoval(
+        {
+          workspaceValue: { OPENOCD_SCRIPTS: "/stale" },
+          globalValue: { OPENOCD_SCRIPTS: "/stale", IDF_TARGET: "esp32" },
+        },
+        stale
+      );
+
+      assert.deepStrictEqual(updates, [
+        { target: ConfigurationTarget.Workspace, value: {} },
+        { target: ConfigurationTarget.Global, value: { IDF_TARGET: "esp32" } },
+      ]);
+    });
+
+    test("leaves scopes without a matching value untouched", () => {
+      const updates = planStaleCustomExtraVarsRemoval(
+        {
+          workspaceFolderValue: { ADF_PATH: "/adf" },
+          globalValue: { OPENOCD_SCRIPTS: "/valid" },
+        },
+        stale
+      );
+
+      assert.deepStrictEqual(updates, []);
+    });
   });
 });

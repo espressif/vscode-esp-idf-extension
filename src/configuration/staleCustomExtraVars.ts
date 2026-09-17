@@ -31,6 +31,7 @@ import {
 } from "../common/customNotifications";
 import { Logger } from "../common/logger";
 import { ESP } from "../config";
+import { getIdfConfigurationSource } from "./idfConfigurationSource";
 
 export interface StaleCustomExtraVar {
   name: string;
@@ -73,39 +74,81 @@ export async function findStaleCustomExtraVars(
 export function getCustomExtraVarsFromSettings(
   workspaceFolder: WorkspaceFolder
 ): { [key: string]: unknown } | undefined {
-  const value = workspace
-    .getConfiguration("idf", workspaceFolder.uri)
-    .get<{ [key: string]: unknown }>("customExtraVars");
+  const value = getIdfConfigurationSource().getScoped(
+    "",
+    workspaceFolder,
+    "idf.customExtraVars"
+  );
   return value && typeof value === "object" && !Array.isArray(value)
-    ? value
+    ? (value as { [key: string]: unknown })
     : undefined;
+}
+
+export interface CustomExtraVarsScopeValues {
+  workspaceFolderValue?: { [key: string]: unknown };
+  workspaceValue?: { [key: string]: unknown };
+  globalValue?: { [key: string]: unknown };
+}
+
+export interface CustomExtraVarsScopeUpdate {
+  target: ConfigurationTarget;
+  value: { [key: string]: unknown };
+}
+
+/**
+ * Removes a stale entry from a scope only when that scope holds the stale
+ * value itself, so a same-named valid value in another scope is kept.
+ */
+export function planStaleCustomExtraVarsRemoval(
+  scopes: CustomExtraVarsScopeValues,
+  stale: StaleCustomExtraVar[]
+): CustomExtraVarsScopeUpdate[] {
+  const candidates: [
+    { [key: string]: unknown } | undefined,
+    ConfigurationTarget
+  ][] = [
+    [scopes.workspaceFolderValue, ConfigurationTarget.WorkspaceFolder],
+    [scopes.workspaceValue, ConfigurationTarget.Workspace],
+    [scopes.globalValue, ConfigurationTarget.Global],
+  ];
+  const updates: CustomExtraVarsScopeUpdate[] = [];
+  for (const [scopeValue, target] of candidates) {
+    if (!scopeValue) {
+      continue;
+    }
+    const nextValue = { ...scopeValue };
+    let changed = false;
+    for (const entry of stale) {
+      if (nextValue[entry.name] === entry.value) {
+        delete nextValue[entry.name];
+        changed = true;
+      }
+    }
+    if (changed) {
+      updates.push({ target, value: nextValue });
+    }
+  }
+  return updates;
 }
 
 export async function removeCustomExtraVarsFromSettings(
   workspaceFolder: WorkspaceFolder,
-  names: string[]
+  stale: StaleCustomExtraVar[]
 ): Promise<void> {
   const config = workspace.getConfiguration("idf", workspaceFolder.uri);
   const inspected = config.inspect<{ [key: string]: unknown }>(
     "customExtraVars"
   );
-  const scopes: [
-    { [key: string]: unknown } | undefined,
-    ConfigurationTarget
-  ][] = [
-    [inspected?.workspaceFolderValue, ConfigurationTarget.WorkspaceFolder],
-    [inspected?.workspaceValue, ConfigurationTarget.Workspace],
-    [inspected?.globalValue, ConfigurationTarget.Global],
-  ];
-  for (const [scopeValue, target] of scopes) {
-    if (!scopeValue || !names.some((name) => name in scopeValue)) {
-      continue;
-    }
-    const nextValue = { ...scopeValue };
-    for (const name of names) {
-      delete nextValue[name];
-    }
-    await config.update("customExtraVars", nextValue, target);
+  const updates = planStaleCustomExtraVarsRemoval(
+    {
+      workspaceFolderValue: inspected?.workspaceFolderValue,
+      workspaceValue: inspected?.workspaceValue,
+      globalValue: inspected?.globalValue,
+    },
+    stale
+  );
+  for (const update of updates) {
+    await config.update("customExtraVars", update.value, update.target);
   }
 }
 
@@ -138,7 +181,7 @@ export async function warnAboutStaleCustomExtraVars(
         {
           label: l10n.t("Remove obsolete entries"),
           execute: async () => {
-            await removeCustomExtraVarsFromSettings(workspaceFolder, names);
+            await removeCustomExtraVarsFromSettings(workspaceFolder, stale);
             Logger.infoNotify(
               l10n.t(
                 "Removed {0} from the idf.customExtraVars setting.",
