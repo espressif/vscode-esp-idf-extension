@@ -198,7 +198,8 @@ suite("taskManager helpers", () => {
         processArgs: ["-m", "esp_idf_sbom", "create", "project_description.json"],
         output: {
           success: false,
-          stderr: "Error: File not found.",
+          stderr:
+            "File: /venv/bin/python\nArgs: -m esp_idf_sbom create project_description.json\nCwd: /tmp/sbom-cwd\nError: File not found.",
           stdout: "",
           exitCode: 1,
           spawnErrorCode: "ENOENT",
@@ -210,7 +211,8 @@ suite("taskManager helpers", () => {
           isKnownError(e) &&
           e.code === ErrorCode.TaskFailedWithOutput &&
           e.metadata?.spawnErrorCode === "ENOENT" &&
-          e.metadata?.stderr === "Error: File not found." &&
+          e.metadata?.stderr ===
+            "File: /venv/bin/python\nArgs: -m esp_idf_sbom create project_description.json\nCwd: /tmp/sbom-cwd\nError: File not found." &&
           e.metadata?.taskName === "SBOM Create"
       );
     });
