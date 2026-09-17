@@ -18,11 +18,19 @@
 import * as assert from "assert";
 import { join, resolve } from "path";
 import * as vscode from "vscode";
-import { isKnownError } from "../../common/error/knownError";
+import { isKnownError, known } from "../../common/error/knownError";
+import {
+  resolveKnownErrorDescriptor,
+  resolveKnownErrorUserMessage,
+} from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
 import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
-import { installEspSBOM, resolveEspSbomInvocation } from "../../espBom/main";
+import {
+  installEspSBOM,
+  resolveEspSbomInvocation,
+  sbomTaskFailedWithOutputPresentation,
+} from "../../espBom/main";
 import { addIdfReconfigureTask } from "../../espIdf/reconfigure/task";
 import { getNinjaSummaryPythonPath } from "../../ninja/index";
 import { ProjectConfigStore } from "../../project-conf";
@@ -77,6 +85,34 @@ suite("command errors", () => {
           error.code === ErrorCode.MISSING_DEPENDENCY &&
           error.metadata?.dependency === "Python"
       );
+    });
+  });
+
+  suite("SBOM TaskFailedWithOutput presentation", () => {
+    test("call-site presentation overrides TaskFailedWithOutput user message", () => {
+      const message = resolveKnownErrorUserMessage(
+        known(
+          ErrorCode.TaskFailedWithOutput,
+          { exitCode: 1 },
+          sbomTaskFailedWithOutputPresentation
+        )
+      );
+      assert.strictEqual(
+        message,
+        "SBOM task failed. Check the terminal output for details."
+      );
+    });
+
+    test("presentation uses SBOM output channel", () => {
+      const descriptor = resolveKnownErrorDescriptor(
+        known(
+          ErrorCode.TaskFailedWithOutput,
+          { exitCode: 1 },
+          sbomTaskFailedWithOutputPresentation
+        )
+      );
+      assert.ok(descriptor);
+      assert.strictEqual(descriptor?.outputChannel, "SBOM");
     });
   });
 

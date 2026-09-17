@@ -9,7 +9,7 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
 import { isKnownError } from "../../common/error/knownError";
-import { ErrorCode } from "../../common/error/types";
+import { ErrorCode, ErrorPresentation } from "../../common/error/types";
 import { OutputCapturingExecution } from "../../taskManager/customExecution";
 import {
   defaultShellExecutable,
@@ -240,6 +240,31 @@ suite("taskManager helpers", () => {
           e.message.includes(`[${stdout.length} chars]`) &&
           !e.message.includes("ninja: build stopped") &&
           !(e.stack ?? "").includes("ninja: build stopped")
+      );
+    });
+
+    test("attaches optional ErrorPresentation to the thrown KnownError", async () => {
+      const presentation: ErrorPresentation = {
+        userMessage: "Build task failed. Check the terminal output for details.",
+        logMessage: "Build task failed with captured output.",
+        outputChannel: "Build",
+      };
+      TaskManager.recordTaskResult({
+        taskId: "idf-build-task",
+        taskName: "ESP-IDF Build",
+        output: {
+          success: false,
+          stderr: "cmake error",
+          stdout: "",
+          exitCode: 1,
+        },
+      });
+      await assert.rejects(
+        throwCapturedTaskFailure(presentation),
+        (e: unknown) =>
+          isKnownError(e) &&
+          e.code === ErrorCode.TaskFailedWithOutput &&
+          e.presentation === presentation
       );
     });
   });

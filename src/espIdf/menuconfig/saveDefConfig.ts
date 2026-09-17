@@ -26,6 +26,7 @@ import { Logger } from "../../common/logger";
 import { join } from "path";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
 import { requireIdfPath, resolvePythonForIdfPy } from "./validation";
+import { menuconfigErrorPresentation } from "./menuconfigErrorPresentation";
 
 export async function saveDefSdkconfig(
   workspaceFolder: Uri,
@@ -51,7 +52,9 @@ export async function saveDefSdkconfig(
   );
   try {
     await TaskManager.runTasks();
-    await throwCapturedTaskFailure();
+    await throwCapturedTaskFailure(
+      menuconfigErrorPresentation.taskFailedWithOutput
+    );
     if (!cancelToken?.isCancellationRequested) {
       Logger.infoNotify("def-config has been generated");
     }
