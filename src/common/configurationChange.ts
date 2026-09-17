@@ -56,7 +56,9 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
         ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
         ""
       );
-      const prevWorkspaceFolder = workspace.getWorkspaceFolder(Uri.parse(prevWorkspaceFolderStr));
+      const prevWorkspaceFolder = workspace.getWorkspaceFolder(
+        Uri.parse(prevWorkspaceFolderStr)
+      );
       // Refresh OpenOCD adapter status bar item when adapter location is manually edited
       if (
         prevWorkspaceFolder &&
@@ -70,7 +72,10 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
       ) {
         updateOpenOcdAdapterStatusBarItem(prevWorkspaceFolder.uri);
       }
-      if (prevWorkspaceFolder && e.affectsConfiguration("idf.enableStatusBar")) {
+      if (
+        prevWorkspaceFolder &&
+        e.affectsConfiguration("idf.enableStatusBar")
+      ) {
         const enableStatusBar = readParameter(
           "idf.enableStatusBar",
           prevWorkspaceFolder
@@ -83,7 +88,10 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
             delete statusBarItems[statusItem];
           }
         }
-      } else if (prevWorkspaceFolder && e.affectsConfiguration("idf.customExtraVars")) {
+      } else if (
+        prevWorkspaceFolder &&
+        e.affectsConfiguration("idf.customExtraVars")
+      ) {
         await refreshCurrentIdfConfiguration(prevWorkspaceFolder);
         await getIdfTargetFromSdkconfig(
           prevWorkspaceFolder.uri,
@@ -98,7 +106,10 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
             readParameter("idf.port", prevWorkspaceFolder);
         }
       } else if (e.affectsConfiguration("idf.monitorPort")) {
-        const monitorPort = readParameter("idf.monitorPort", prevWorkspaceFolder);
+        const monitorPort = readParameter(
+          "idf.monitorPort",
+          prevWorkspaceFolder
+        );
         if (statusBarItems && statusBarItems["monitorPort"]) {
           if (monitorPort === "") {
             statusBarItems["monitorPort"].hide();
@@ -111,13 +122,19 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
           }
         }
       } else if (e.affectsConfiguration("idf.flashType")) {
-        let flashType = readParameter("idf.flashType", prevWorkspaceFolder) as string;
+        let flashType = readParameter(
+          "idf.flashType",
+          prevWorkspaceFolder
+        ) as string;
         if (statusBarItems && statusBarItems["flashType"]) {
           statusBarItems["flashType"].text = `$(${
             commandDictionary[CommandKeys.SelectFlashType].iconId
           }) ${flashType}`;
         }
-      } else if (prevWorkspaceFolder && e.affectsConfiguration("idf.buildPath")) {
+      } else if (
+        prevWorkspaceFolder &&
+        e.affectsConfiguration("idf.buildPath")
+      ) {
         updateIdfComponentsTree(prevWorkspaceFolder.uri);
         await setCCppPropertiesJsonCompileCommands(prevWorkspaceFolder.uri);
         await configureClangSettings(prevWorkspaceFolder.uri);
@@ -147,7 +164,9 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
         } finally {
           cancelTokenSource.dispose();
         }
-      } else if (coverageRendererSettingsAffected(e, prevWorkspaceFolder?.uri)) {
+      } else if (
+        coverageRendererSettingsAffected(e, prevWorkspaceFolder?.uri)
+      ) {
         espIdfCoverageRenderer.refreshOptionsFromWorkspace();
       } else if (e.affectsConfiguration("idf.sdkconfigFilePath")) {
         const sdkconfigFilePath = readParameter(

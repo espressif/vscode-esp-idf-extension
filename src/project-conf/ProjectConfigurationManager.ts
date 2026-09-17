@@ -169,9 +169,12 @@ export class ProjectConfigurationManager {
         await this.clearConfigurationState();
       }
     } catch (error) {
-      const errMsg = error instanceof Error ? `${l10n.t("Failed to parse project configuration files")}: ${
-          error.message
-        }` : String(error);
+      const errMsg =
+        error instanceof Error
+          ? `${l10n.t("Failed to parse project configuration files")}: ${
+              error.message
+            }`
+          : String(error);
       Logger.errorNotify(
         errMsg,
         error as Error,
@@ -574,9 +577,7 @@ export class ProjectConfigurationManager {
         }
       } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
-        Logger.warn(
-          `Failed to parse legacy configuration file: ${errMsg}`
-        );
+        Logger.warn(`Failed to parse legacy configuration file: ${errMsg}`);
       }
     }
 

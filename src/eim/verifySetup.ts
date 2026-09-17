@@ -195,11 +195,7 @@ export async function startPythonReqsProcess(
   espIdfToolsPath: string,
   requirementsPath: string
 ) {
-  const reqFilePath = join(
-    espIdfPath,
-    "tools",
-    "check_python_dependencies.py"
-  );
+  const reqFilePath = join(espIdfPath, "tools", "check_python_dependencies.py");
   const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
     Object.assign({}, process.env)
   );
