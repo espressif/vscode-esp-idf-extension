@@ -190,6 +190,31 @@ suite("taskManager helpers", () => {
       );
     });
 
+    test("throws KnownError with spawnErrorCode and stderr from spawn failure", async () => {
+      TaskManager.recordTaskResult({
+        taskId: "idf-sbom-create-task",
+        taskName: "SBOM Create",
+        processCommand: "/venv/bin/python",
+        processArgs: ["-m", "esp_idf_sbom", "create", "project_description.json"],
+        output: {
+          success: false,
+          stderr: "Error: File not found.",
+          stdout: "",
+          exitCode: 1,
+          spawnErrorCode: "ENOENT",
+        },
+      });
+      await assert.rejects(
+        throwCapturedTaskFailure(),
+        (e: unknown) =>
+          isKnownError(e) &&
+          e.code === ErrorCode.TaskFailedWithOutput &&
+          e.metadata?.spawnErrorCode === "ENOENT" &&
+          e.metadata?.stderr === "Error: File not found." &&
+          e.metadata?.taskName === "SBOM Create"
+      );
+    });
+
     test("keeps large captured output out of the error message", async () => {
       const stdout = "ninja: build stopped\n".repeat(2000);
       TaskManager.recordTaskResult({
