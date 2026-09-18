@@ -25,6 +25,7 @@ import { getEspIdfFromCMake, compareVersion } from "../utils";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { pathExists } from "fs-extra";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
+import { findStaleCustomExtraVars } from "../configuration/staleCustomExtraVars";
 
 /**
  * Configures and prepares environment variables necessary for executing ESP-IDF tasks.
@@ -88,8 +89,18 @@ export async function expandEnvVariablesForIdfSetup(
   ) as { [key: string]: string };
   if (customExtraVars) {
     try {
+      const staleNames = new Set(
+        (await findStaleCustomExtraVars(customExtraVars, currentEnvVars)).map(
+          (entry) => entry.name
+        )
+      );
       for (const envVar in customExtraVars) {
-        if (envVar && envVar.toUpperCase() !== "PATH") {
+        if (
+          envVar &&
+          envVar.toUpperCase() !== "PATH" &&
+          envVar !== "OPENOCD_SCRIPTS" &&
+          !staleNames.has(envVar)
+        ) {
           modifiedEnv[envVar] = customExtraVars[envVar];
         }
       }
@@ -236,4 +247,43 @@ export async function expandEnvVariablesForIdfSetup(
   }
 
   return modifiedEnv;
+}
+
+export async function storeIdfSetupEnvironment(
+  setupEnvVars: { [key: string]: string },
+  workspaceFolder: WorkspaceFolder
+): Promise<{ [key: string]: string }> {
+  ESP.ProjectConfiguration.store.set(
+    ESP.ProjectConfiguration.CURRENT_IDF_SETUP_ENV,
+    setupEnvVars
+  );
+  const expandedEnvVars = await expandEnvVariablesForIdfSetup(
+    setupEnvVars,
+    workspaceFolder
+  );
+  ESP.ProjectConfiguration.store.set(
+    ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+    expandedEnvVars
+  );
+  return expandedEnvVars;
+}
+
+export async function refreshCurrentIdfConfiguration(
+  workspaceFolder: WorkspaceFolder
+): Promise<boolean> {
+  const setupEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_SETUP_ENV);
+  if (!setupEnvVars) {
+    return false;
+  }
+  const expandedEnvVars = await expandEnvVariablesForIdfSetup(
+    setupEnvVars,
+    workspaceFolder
+  );
+  ESP.ProjectConfiguration.store.set(
+    ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+    expandedEnvVars
+  );
+  return true;
 }

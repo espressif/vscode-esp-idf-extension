@@ -18,10 +18,12 @@ import { ESP } from "../config";
 export type IdfEnvMap = Record<string, string>;
 
 export function getCurrentIdfConfiguration(): IdfEnvMap {
-  return ESP.ProjectConfiguration.store.get<IdfEnvMap>(
-    ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
-    {}
-  );
+  return {
+    ...ESP.ProjectConfiguration.store.get<IdfEnvMap>(
+      ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+      {}
+    ),
+  };
 }
 
 export function getCurrentIdfEnvVar(name: string): string | undefined {

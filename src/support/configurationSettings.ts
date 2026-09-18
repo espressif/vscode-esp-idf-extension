@@ -19,6 +19,8 @@ import { join } from "path";
 import { reportObj } from "./types";
 import { workspace, WorkspaceFolder } from "vscode";
 import { getCurrentIdfConfiguration } from "../configuration/env";
+import { findStaleCustomExtraVars } from "../configuration/staleCustomExtraVars";
+import { ESP } from "../config";
 import { isBinInPath } from "../utils";
 
 export function getIdfSetupVarsForReport(envVars: { [key: string]: string }) {
@@ -68,6 +70,17 @@ export async function getConfigurationSettings(
 
   const gitPath = await isBinInPath("git", currentEnvVars);
 
+  const setupEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_SETUP_ENV);
+  const staleUserExtraVars: { [key: string]: string } = {};
+  for (const entry of await findStaleCustomExtraVars(
+    userExtraVars,
+    setupEnvVars
+  )) {
+    staleUserExtraVars[entry.name] = entry.value;
+  }
+
   let pathNameInEnv: string =
     Object.keys(process.env).find((k) => k.toUpperCase() == "PATH") || "PATH";
   const systemPath = process.env[pathNameInEnv] || "";
@@ -87,6 +100,7 @@ export async function getConfigurationSettings(
     espAdfPath: userExtraVars?.ADF_PATH || "",
     idfExtraVars: getIdfSetupVarsForReport(currentEnvVars),
     userExtraVars: userExtraVars || {},
+    staleUserExtraVars,
     pythonBinPath: venvPythonPath,
     gitPath: gitPath || "",
     pythonPackages: [],

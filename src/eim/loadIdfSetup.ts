@@ -57,6 +57,9 @@ export async function loadIdfSetup(
   ESP.ProjectConfiguration.store.clear(
     ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
   );
+  ESP.ProjectConfiguration.store.clear(
+    ESP.ProjectConfiguration.CURRENT_IDF_SETUP_ENV
+  );
   const idfEnvSetup = await loadEnvVarsAsIdfSetup(
     extensionPath,
     workspaceFolder

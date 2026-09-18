@@ -27,6 +27,7 @@ import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { clearAdapterSerial } from "../espIdf/openOcd/adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../statusBar";
 import { readParameter } from "../configuration/idf";
+import { refreshCurrentIdfConfiguration } from "../common/prepareEnv";
 import { existsSync, readFileSync } from "fs";
 
 export function clearSelectedProjectConfiguration(): void {
@@ -138,13 +139,13 @@ export class ProjectConfigurationManager {
         if (saveLastProjectConfiguration !== false) {
           await this.updateConfiguration(currentSelectedConfig);
         } else {
-          this.forgetSelectedConfiguration();
-          this.setNoConfigurationSelectedStatus();
+          await this.forgetSelectedConfiguration();
+          await this.setNoConfigurationSelectedStatus();
         }
       } else if (currentSelectedConfig) {
         // The presets parsed, so the selection really is gone rather than unreadable.
-        this.forgetSelectedConfiguration();
-        this.setNoConfigurationSelectedStatus();
+        await this.forgetSelectedConfiguration();
+        await this.setNoConfigurationSelectedStatus();
       } else if (this.configVersions.length > 0) {
         // No current selection but configurations exist
         const fileInfo = [];
@@ -159,24 +160,27 @@ export class ProjectConfigurationManager {
             this.configVersions.join(", ")
           )
         );
-        this.setNoConfigurationSelectedStatus();
+        await this.setNoConfigurationSelectedStatus();
       } else {
         // No configurations found
         Logger.info(
           `Project configuration files loaded but contain no configurations`
         );
-        this.clearConfigurationState();
+        await this.clearConfigurationState();
       }
     } catch (error) {
-      const errMsg = error instanceof Error ? `${l10n.t("Failed to parse project configuration files")}: ${
-          error.message
-        }` : String(error);
+      const errMsg =
+        error instanceof Error
+          ? `${l10n.t("Failed to parse project configuration files")}: ${
+              error.message
+            }`
+          : String(error);
       Logger.errorNotify(
         errMsg,
         error as Error,
         "ProjectConfigurationManager initialize"
       );
-      this.suspendConfigurationState();
+      await this.suspendConfigurationState();
     }
   }
 
@@ -273,18 +277,18 @@ export class ProjectConfigurationManager {
         await this.updateConfiguration(currentSelectedConfig);
       } else if (currentSelectedConfig) {
         // The presets parsed, so the selection really is gone rather than unreadable.
-        this.forgetSelectedConfiguration();
+        await this.forgetSelectedConfiguration();
         if (currentVersions.length === 0) {
-          this.clearConfigurationState();
+          await this.clearConfigurationState();
         } else {
-          this.setNoConfigurationSelectedStatus();
+          await this.setNoConfigurationSelectedStatus();
         }
       } else {
         // No configuration is selected
         if (currentVersions.length === 0) {
-          this.clearConfigurationState();
+          await this.clearConfigurationState();
         } else {
-          this.setNoConfigurationSelectedStatus();
+          await this.setNoConfigurationSelectedStatus();
         }
       }
     } catch (error) {
@@ -294,7 +298,7 @@ export class ProjectConfigurationManager {
         error as Error,
         "ProjectConfigurationManager handleConfigFileChange"
       );
-      this.suspendConfigurationState();
+      await this.suspendConfigurationState();
     }
   }
 
@@ -302,7 +306,7 @@ export class ProjectConfigurationManager {
     // Wait for initialization to complete before processing file deletion
     await this.initPromise;
 
-    this.clearConfigurationState();
+    await this.clearConfigurationState();
 
     // Optionally notify the user
     Logger.infoNotify(l10n.t("Project configuration file has been deleted."));
@@ -335,8 +339,8 @@ export class ProjectConfigurationManager {
           await this.updateConfiguration(currentSelectedConfig);
         } else {
           // No valid selection, show "No Configuration Selected"
-          this.forgetSelectedConfiguration();
-          this.setNoConfigurationSelectedStatus();
+          await this.forgetSelectedConfiguration();
+          await this.setNoConfigurationSelectedStatus();
 
           // Notify the user about available configurations
           window.showInformationMessage(
@@ -348,7 +352,7 @@ export class ProjectConfigurationManager {
         }
       } else {
         // Empty configuration file
-        this.clearConfigurationState();
+        await this.clearConfigurationState();
       }
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
@@ -357,16 +361,16 @@ export class ProjectConfigurationManager {
         error as Error,
         "ProjectConfigurationManager handleConfigFileCreate"
       );
-      this.suspendConfigurationState();
+      await this.suspendConfigurationState();
     }
   }
 
   /**
    * Sets the status bar to indicate no configuration is selected
    */
-  private setNoConfigurationSelectedStatus(): void {
+  private async setNoConfigurationSelectedStatus(): Promise<void> {
     if (this.configVersions.length === 0) {
-      this.clearConfigurationState();
+      await this.clearConfigurationState();
       return;
     }
 
@@ -438,6 +442,7 @@ export class ProjectConfigurationManager {
       true
     );
     ESP.ProjectConfiguration.store.set(configName, resolvedConfig[configName]);
+    await this.refreshIdfEnvironment();
 
     // Update UI
     if (this.statusBarItems["projectConf"]) {
@@ -572,14 +577,12 @@ export class ProjectConfigurationManager {
         }
       } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
-        Logger.warn(
-          `Failed to parse legacy configuration file: ${errMsg}`
-        );
+        Logger.warn(`Failed to parse legacy configuration file: ${errMsg}`);
       }
     }
 
     // No configuration files found - clear everything
-    this.clearConfigurationState();
+    await this.clearConfigurationState();
   }
 
   /**
@@ -746,10 +749,10 @@ export class ProjectConfigurationManager {
   /**
    * Clears all configuration state
    */
-  private clearConfigurationState(): void {
+  private async clearConfigurationState(): Promise<void> {
     this.configVersions = [];
     this.disposeConfigurationStatusBar();
-    this.forgetSelectedConfiguration();
+    await this.forgetSelectedConfiguration();
   }
 
   /**
@@ -758,7 +761,7 @@ export class ProjectConfigurationManager {
    * A duplicate name or a half-saved edit makes the whole file unreadable, and
    * forgetting the name there would force a new selection on every reopen.
    */
-  private suspendConfigurationState(): void {
+  private async suspendConfigurationState(): Promise<void> {
     this.configVersions = [];
     this.disposeConfigurationStatusBar();
 
@@ -768,10 +771,11 @@ export class ProjectConfigurationManager {
     if (currentSelectedConfig) {
       // Stale overrides would otherwise outlive the status bar entry that reports them.
       ESP.ProjectConfiguration.store.clear(currentSelectedConfig);
+      await this.refreshIdfEnvironment();
     }
   }
 
-  private forgetSelectedConfiguration(): void {
+  private async forgetSelectedConfiguration(): Promise<void> {
     const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(
       ESP.ProjectConfiguration.SELECTED_CONFIG
     );
@@ -780,7 +784,16 @@ export class ProjectConfigurationManager {
       ESP.ProjectConfiguration.store.clear(
         ESP.ProjectConfiguration.SELECTED_CONFIG
       );
+      await this.refreshIdfEnvironment();
     }
+  }
+
+  private async refreshIdfEnvironment(): Promise<void> {
+    const workspaceFolder = workspace.getWorkspaceFolder(this.workspaceUri);
+    if (!workspaceFolder) {
+      return;
+    }
+    await refreshCurrentIdfConfiguration(workspaceFolder);
   }
 
   private disposeConfigurationStatusBar(): void {

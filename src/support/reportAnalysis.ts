@@ -30,7 +30,9 @@ function buildToolMessage(availability: BuildToolAvailability): string {
     return "found in system PATH";
   }
   if (availability.source === "idf-tools") {
-    const version = availability.actual ? ` (actual: ${availability.actual})` : "";
+    const version = availability.actual
+      ? ` (actual: ${availability.actual})`
+      : "";
     return `found in ESP-IDF tools${version}`;
   }
   return "not found in system PATH or ESP-IDF tools";
@@ -113,9 +115,13 @@ function isVersionMissing(result: string): boolean {
   return !result || result === "Not found" || result === "x.x";
 }
 
-export function getConfigurationCheckLines(report: reportObj): ConfigCheckLine[] {
-  const { configurationSettings: settings, configurationAccess: access } =
-    report;
+export function getConfigurationCheckLines(
+  report: reportObj
+): ConfigCheckLine[] {
+  const {
+    configurationSettings: settings,
+    configurationAccess: access,
+  } = report;
   const lines: ConfigCheckLine[] = [];
 
   const addLine = (
@@ -228,14 +234,26 @@ export function getConfigurationCheckLines(report: reportObj): ConfigCheckLine[]
   );
 
   const spacesEntries: Array<[string, boolean, string]> = [
-    ["ESP-IDF Path", report.configurationSpacesValidation.espIdfPath, settings.espIdfPath],
-    ["ESP-IDF Tools Path", report.configurationSpacesValidation.toolsPath, settings.toolsPath],
+    [
+      "ESP-IDF Path",
+      report.configurationSpacesValidation.espIdfPath,
+      settings.espIdfPath,
+    ],
+    [
+      "ESP-IDF Tools Path",
+      report.configurationSpacesValidation.toolsPath,
+      settings.toolsPath,
+    ],
     [
       "Virtual environment Python",
       report.configurationSpacesValidation.pythonBinPath,
       settings.pythonBinPath,
     ],
-    ["ESP-ADF Path", report.configurationSpacesValidation.espAdfPath, settings.espAdfPath],
+    [
+      "ESP-ADF Path",
+      report.configurationSpacesValidation.espAdfPath,
+      settings.espAdfPath,
+    ],
     [
       "System environment PATH",
       report.configurationSpacesValidation.systemEnvPath,
@@ -251,7 +269,12 @@ export function getConfigurationCheckLines(report: reportObj): ConfigCheckLine[]
     report.configurationSpacesValidation.customExtraPaths
   )) {
     if (hasSpaces) {
-      addLine(`Custom extra path (${toolPath})`, toolPath, "warn", "path contains spaces");
+      addLine(
+        `Custom extra path (${toolPath})`,
+        toolPath,
+        "warn",
+        "path contains spaces"
+      );
     }
   }
 
@@ -260,8 +283,10 @@ export function getConfigurationCheckLines(report: reportObj): ConfigCheckLine[]
 
 export function analyzeReport(report: reportObj): ReportSummary {
   const findings: DiagnosticFinding[] = [];
-  const { configurationSettings: settings, configurationAccess: access } =
-    report;
+  const {
+    configurationSettings: settings,
+    configurationAccess: access,
+  } = report;
 
   addPathFinding(
     findings,
@@ -318,6 +343,17 @@ export function analyzeReport(report: reportObj): ReportSummary {
     }
   }
 
+  for (const [name, value] of Object.entries(settings.staleUserExtraVars)) {
+    findings.push({
+      status: "warn",
+      category: "Paths",
+      label: `Custom extra var (${name})`,
+      settingKey: `idf.customExtraVars.${name}`,
+      value,
+      message: "path does not exist; the ESP-IDF setup value is used instead",
+    });
+  }
+
   addSpacesWarning(
     findings,
     "ESP-IDF Path",
@@ -351,10 +387,16 @@ export function analyzeReport(report: reportObj): ReportSummary {
   for (const [toolPath, hasSpaces] of Object.entries(
     report.configurationSpacesValidation.customExtraPaths
   )) {
-    addSpacesWarning(findings, `Custom extra path (${toolPath})`, hasSpaces, toolPath);
+    addSpacesWarning(
+      findings,
+      `Custom extra path (${toolPath})`,
+      hasSpaces,
+      toolPath
+    );
   }
 
-  const espIdfVersion = report.espIdfVersion.result || report.espIdfVersion.output;
+  const espIdfVersion =
+    report.espIdfVersion.result || report.espIdfVersion.output;
   if (isVersionMissing(espIdfVersion)) {
     findings.push({
       status: "fail",
@@ -433,8 +475,7 @@ export function analyzeReport(report: reportObj): ReportSummary {
   }
 
   for (const toolName of ["cmake", "ninja"] as const) {
-    const inEnv =
-      toolName === "cmake" ? access.cmakeInEnv : access.ninjaInEnv;
+    const inEnv = toolName === "cmake" ? access.cmakeInEnv : access.ninjaInEnv;
     const availability = isBuildToolAvailable(
       toolName,
       inEnv,
@@ -522,5 +563,7 @@ export function formatFindingLine(finding: DiagnosticFinding): string {
 
 export function formatConfigCheckLine(line: ConfigCheckLine): string {
   const displayValue = line.value ? line.value : "";
-  return `${line.label.padEnd(42)} ${displayValue.padEnd(30)} ${formatStatusTag(line.status)} ${line.message}`;
+  return `${line.label.padEnd(42)} ${displayValue.padEnd(30)} ${formatStatusTag(
+    line.status
+  )} ${line.message}`;
 }

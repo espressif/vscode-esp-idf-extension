@@ -31,6 +31,7 @@ export namespace ESP {
     export let store: ProjectConfigStore;
     export const SELECTED_CONFIG = "SELECTED_PROJECT_CONFIG";
     export const CURRENT_IDF_CONFIGURATION = "CURRENT_IDF_CONFIGURATION";
+    export const CURRENT_IDF_SETUP_ENV = "CURRENT_IDF_SETUP_ENV";
     export const PROJECT_CONFIGURATION_FILENAME = "CMakePresets.json";
     export const USER_CONFIGURATION_FILENAME = "CMakeUserPresets.json";
   }

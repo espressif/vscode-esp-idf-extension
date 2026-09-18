@@ -8,10 +8,7 @@
 
 import * as assert from "assert";
 import { initializeReportObject } from "../support/initReportObj";
-import {
-  analyzeReport,
-  isBuildToolAvailable,
-} from "../support/reportAnalysis";
+import { analyzeReport, isBuildToolAvailable } from "../support/reportAnalysis";
 
 suite("Report analysis tests", () => {
   test("cmake passes when available in system PATH only", () => {
@@ -24,7 +21,12 @@ suite("Report analysis tests", () => {
 
   test("cmake passes when available in ESP-IDF tools only", () => {
     const availability = isBuildToolAvailable("cmake", false, [
-      { name: "cmake", doesToolExist: true, expected: "3.30", actual: "3.30.2" },
+      {
+        name: "cmake",
+        doesToolExist: true,
+        expected: "3.30",
+        actual: "3.30.2",
+      },
     ]);
     assert.equal(availability.available, true);
     assert.equal(availability.source, "idf-tools");
@@ -41,7 +43,12 @@ suite("Report analysis tests", () => {
 
   test("ninja passes with OR logic via idf tools", () => {
     const availability = isBuildToolAvailable("ninja", false, [
-      { name: "ninja", doesToolExist: true, expected: "1.12", actual: "1.12.1" },
+      {
+        name: "ninja",
+        doesToolExist: true,
+        expected: "1.12",
+        actual: "1.12.1",
+      },
     ]);
     assert.equal(availability.available, true);
     assert.equal(availability.source, "idf-tools");
@@ -68,7 +75,8 @@ suite("Report analysis tests", () => {
     const report = initializeReportObject();
     report.configurationSettings.espIdfPath = "/home/user/my esp-idf";
     report.configurationSettings.toolsPath = "/home/user/.espressif";
-    report.configurationSettings.pythonBinPath = "/home/user/.espressif/python/bin/python";
+    report.configurationSettings.pythonBinPath =
+      "/home/user/.espressif/python/bin/python";
     report.configurationAccess.espIdfPath = true;
     report.configurationAccess.toolsPath = true;
     report.configurationAccess.pythonBinPath = true;
@@ -118,6 +126,24 @@ suite("Report analysis tests", () => {
       summary.findings.some(
         (f) => f.label.includes("ESP-ADF Path") && f.status === "skip"
       )
+    );
+  });
+
+  test("analyzeReport warns for stale custom extra vars", () => {
+    const report = initializeReportObject();
+    report.configurationSettings.staleUserExtraVars = {
+      OPENOCD_SCRIPTS: "/tools/openocd-esp32/v0.12.0-esp32-20240318/scripts",
+    };
+
+    const summary = analyzeReport(report);
+    const finding = summary.findings.find(
+      (f) => f.settingKey === "idf.customExtraVars.OPENOCD_SCRIPTS"
+    );
+    assert.ok(finding);
+    assert.equal(finding.status, "warn");
+    assert.equal(
+      finding.value,
+      "/tools/openocd-esp32/v0.12.0-esp32-20240318/scripts"
     );
   });
 });
