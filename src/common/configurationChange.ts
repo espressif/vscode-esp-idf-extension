@@ -31,6 +31,7 @@ import {
 import { readParameter } from "../configuration/idf";
 import {
   getIdfTargetFromSdkconfig,
+  setCCppPropertiesJsonCompileCommands,
   updateIdfComponentsTree,
 } from "../configuration/workspace";
 import { configureClangSettings } from "../clang";
@@ -125,6 +126,7 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
         }
       } else if (prevWorkspaceFolder && e.affectsConfiguration("idf.buildPath")) {
         updateIdfComponentsTree(prevWorkspaceFolder.uri);
+        await setCCppPropertiesJsonCompileCommands(prevWorkspaceFolder.uri);
         await configureClangSettings(prevWorkspaceFolder.uri);
         handleCompileCommandsUpdate(prevWorkspaceFolder.uri, context);
       } else if (e.affectsConfiguration("idf.unitTestFilePattern")) {

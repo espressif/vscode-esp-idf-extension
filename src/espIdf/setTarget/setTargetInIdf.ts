@@ -29,7 +29,10 @@ import {
   updateCurrentIdfEnvVar,
 } from "../../configuration/env";
 import { l10n, Uri } from "vscode";
-import { getIdfBuildPath, setCCppPropertiesJsonCompilerPath } from "../../configuration/workspace";
+import {
+  clearCCppPropertiesJsonCompilerPath,
+  getIdfBuildPath,
+} from "../../configuration/workspace";
 import {
   capturedProcessText,
   isKnownError,
@@ -103,7 +106,7 @@ export async function setTargetInIDF(
     OutputChannel.appendLineAndShow(msg, "Set Target");
     Logger.infoNotify(msg);
     updateCurrentIdfEnvVar("IDF_TARGET", selectedTarget.target);
-    await setCCppPropertiesJsonCompilerPath(workspaceFolder);
+    await clearCCppPropertiesJsonCompilerPath(workspaceFolder);
     return setTargetResult.toString();
   } catch (error) {
     const errMsg = capturedProcessText(error);

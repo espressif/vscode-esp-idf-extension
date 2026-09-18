@@ -41,7 +41,7 @@ import {
   createDevContainer,
   createNewComponent,
   createNewProject,
-  createVscodeFolder,
+  addVscodeFolderToWorkspace,
   updateProjectNameInCMakeLists,
 } from "./utils";
 import { ESP } from "../config";
@@ -139,7 +139,7 @@ async function runCreateVsCodeFolder(
   >
 ) {
   try {
-    await createVscodeFolder(context.extensionPath, wsFolder.uri);
+    await addVscodeFolderToWorkspace(context.extensionPath, wsFolder.uri);
     Logger.infoNotify(
       l10n.t("ESP-IDF vscode files have been added to the project.")
     );

@@ -30,7 +30,8 @@ import { Uri, WebviewPanel } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { join, resolve } from "path";
 import { readdir } from "fs/promises";
-import { setCCppPropertiesJsonCompilerPath } from "../configuration/workspace";
+import { setCCppPropertiesJsonCompileCommands } from "../configuration/workspace";
+import { ESP } from "../config";
 import { robustMove } from "../utils";
 import { existsSync, readFileSync } from "fs";
 import { marked } from "marked";
@@ -116,7 +117,23 @@ export async function createVscodeFolder(
       await copy(fSrcPath, fPath);
     }
   }
-  await setCCppPropertiesJsonCompilerPath(curWorkspaceFsPath);
+}
+
+/**
+ * Add the ESP-IDF `.vscode` files to an existing workspace folder and point
+ * them at the workspace's resolved build directory and clangd setup.
+ * Used by the "Add VS Code Configuration Folder" command; new projects use
+ * createVscodeFolder directly so they never inherit another folder's preset.
+ * @param {string} extensionPath - Extension root that holds the templates.
+ * @param {Uri} workspaceFolder - Workspace folder to add the files to.
+ */
+export async function addVscodeFolderToWorkspace(
+  extensionPath: string,
+  workspaceFolder: Uri
+) {
+  await createVscodeFolder(extensionPath, workspaceFolder);
+  await setCCppPropertiesJsonCompileCommands(workspaceFolder);
+  await configureClangSettings(workspaceFolder);
 }
 
 export async function createGitignoreFile(

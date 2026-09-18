@@ -35,11 +35,11 @@ import { readParameter } from "./idf";
 import { showInfoNotificationWithAction } from "../common/customNotifications";
 import { isSettingIDFTarget } from "../espIdf/setTarget/main";
 import { pathExists, readFile } from "fs-extra";
-import { canAccessFile, getToolchainToolName, isBinInPath } from "../utils";
+import { canAccessFile } from "../utils";
 import { IdfTreeDataProvider } from "../espIdf/idfComponent/treeDataProvider";
 import { parse, ParseError } from "jsonc-parser";
 import { updateJsonPreservingComments } from "../jsonc/updateJsonPreservingComments";
-import { getCurrentIdfConfiguration, updateCurrentIdfEnvVar } from "./env";
+import { updateCurrentIdfEnvVar } from "./env";
 
 /** Parsed subset of build/project_description.json; fields are optional for partial or evolving schemas. */
 export interface IProjectDescription {
@@ -438,21 +438,40 @@ export async function getIdfTargetFromSdkconfig(
   }
 }
 
-export async function setCCppPropertiesJsonCompilerPath(
+/**
+ * Clear a non-empty compilerPath in the workspace c_cpp_properties.json so the
+ * C/C++ extension takes the compiler from compile_commands.json. Files that are
+ * missing, unparsable, or already have an empty compilerPath are left untouched.
+ * @param {Uri} curWorkspaceFsPath - Workspace folder that holds the .vscode directory.
+ */
+export async function clearCCppPropertiesJsonCompilerPath(
   curWorkspaceFsPath: Uri
 ) {
-  const modifiedEnv = getCurrentIdfConfiguration();
-  const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
-  const gccTool = getToolchainToolName(idfTarget, "gcc");
-  const compilerAbsolutePath = await isBinInPath(gccTool, modifiedEnv);
-  if (!compilerAbsolutePath) {
+  const cCppPropertiesJsonPath = join(
+    curWorkspaceFsPath.fsPath,
+    ".vscode",
+    "c_cpp_properties.json"
+  );
+  const doesPathExists = await pathExists(cCppPropertiesJsonPath);
+  if (!doesPathExists) {
     return;
   }
-  await updateCCppPropertiesJson(
-    curWorkspaceFsPath,
-    "compilerPath",
-    compilerAbsolutePath
-  );
+  const cCppPropertiesContent = await readFile(cCppPropertiesJsonPath, "utf8");
+  const parseErrors: ParseError[] = [];
+  const cCppPropertiesJson = parse(cCppPropertiesContent, parseErrors, {
+    allowTrailingComma: true,
+  });
+  if (parseErrors.length > 0) {
+    Logger.info(
+      `Skipping compilerPath cleanup: failed to parse ${cCppPropertiesJsonPath}`
+    );
+    return;
+  }
+  const compilerPath = cCppPropertiesJson?.configurations?.[0]?.compilerPath;
+  if (typeof compilerPath !== "string" || compilerPath === "") {
+    return;
+  }
+  await updateCCppPropertiesJson(curWorkspaceFsPath, "compilerPath", "");
 }
 
 export async function setCCppPropertiesJsonCompileCommands(

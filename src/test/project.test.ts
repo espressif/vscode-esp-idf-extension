@@ -16,23 +16,33 @@
  * limitations under the License.
  */
 import * as assert from "assert";
-import { readdir, readFile, readJson, remove } from "fs-extra";
+import {
+  readdir,
+  readFile,
+  readJson,
+  remove,
+  stat,
+  utimes,
+  writeJson,
+} from "fs-extra";
 import { join, resolve } from "path";
 import { ExtensionContext, Uri } from "vscode";
 import { getExamplesList } from "../newProject/Example";
 import {
+  addVscodeFolderToWorkspace,
   copyFromSrcProject,
   createVscodeFolder,
   readProjectCMakeLists,
   setCurrentSettingsInTemplate,
   updateProjectNameInCMakeLists,
 } from "../newProject/utils";
-import { isBinInPath } from "../utils";
 import { IdfSetup } from "../eim/types";
 import { ProjectConfigStore } from "../project-conf/store";
+import { ConfigurePreset } from "../project-conf/projectConfiguration";
 import { ESP } from "../config";
 import { createMockMemento } from "./mockUtils";
-import { updateCCppPropertiesJson } from "../configuration/workspace";
+import { validateEspClangExists } from "../clang/index";
+import { clearCCppPropertiesJsonCompilerPath } from "../configuration/workspace";
 
 suite("Project tests", () => {
   const absPath = (filename: string) =>
@@ -43,7 +53,9 @@ suite("Project tests", () => {
     workspaceState: createMockMemento(),
     globalState: createMockMemento(),
   } as ExtensionContext;
-  ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(
+    mockUpContext
+  );
   const templateFolder = join(mockUpContext.extensionPath, "templates");
   const wsFolder = process.env.GITHUB_WORKSPACE
     ? join(process.env.GITHUB_WORKSPACE, "project-test")
@@ -80,25 +92,209 @@ suite("Project tests", () => {
   });
 
   test("cCppPropertiesJson.json content", async () => {
-    const templateCCppPropertiesJsonJson = await readJson(
-      join(templateFolder, ".vscode", "c_cpp_properties.json")
+    const templateCCppPropertiesJson = await readFile(
+      join(templateFolder, ".vscode", "c_cpp_properties.json"),
+      "utf8"
     );
-    const compilerAbsolutePath = await isBinInPath(
-      "xtensa-esp32-elf-gcc",
-      process.env
-    );
-    templateCCppPropertiesJsonJson.configurations[0].compilerPath = compilerAbsolutePath;
-    await updateCCppPropertiesJson(
-      Uri.file(targetFolder),
-      "compilerPath",
-      compilerAbsolutePath
-    );
-    const targetCCppPropertiesJsonJson = await readJson(
-      join(targetFolder, ".vscode", "c_cpp_properties.json")
+    const targetCCppPropertiesJson = await readFile(
+      join(targetFolder, ".vscode", "c_cpp_properties.json"),
+      "utf8"
     );
     assert.equal(
-      JSON.stringify(templateCCppPropertiesJsonJson),
-      JSON.stringify(targetCCppPropertiesJsonJson)
+      templateCCppPropertiesJson,
+      targetCCppPropertiesJson,
+      "c_cpp_properties.json content match"
+    );
+    const cCppPropertiesJson = await readJson(
+      join(targetFolder, ".vscode", "c_cpp_properties.json")
+    );
+    assert.strictEqual(
+      cCppPropertiesJson.configurations[0].compilerPath,
+      "",
+      "compilerPath must stay empty so the C/C++ extension uses compile_commands.json"
+    );
+  });
+
+  const templateCompileCommands =
+    "${config:idf.buildPath}/compile_commands.json";
+
+  const selectPreset = (preset: ConfigurePreset) => {
+    ESP.ProjectConfiguration.store.set(
+      ESP.ProjectConfiguration.SELECTED_CONFIG,
+      preset.name
+    );
+    ESP.ProjectConfiguration.store.set(preset.name, preset);
+  };
+
+  const clearPreset = (preset: ConfigurePreset) => {
+    ESP.ProjectConfiguration.store.clear(preset.name);
+    ESP.ProjectConfiguration.store.clear(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+  };
+
+  const readCompileCommands = async (projectFolder: string) => {
+    const cCppPropertiesJson = await readJson(
+      join(projectFolder, ".vscode", "c_cpp_properties.json")
+    );
+    return cCppPropertiesJson.configurations[0].compileCommands;
+  };
+
+  test("compileCommands follows the selected preset when adding the folder", async () => {
+    const presetFolder = join(wsFolder, "presetProject");
+    const preset: ConfigurePreset = {
+      name: "test_refresh",
+      binaryDir: "builds/test_refresh",
+    };
+    selectPreset(preset);
+    try {
+      await createVscodeFolder(
+        mockUpContext.extensionPath,
+        Uri.file(presetFolder)
+      );
+      assert.equal(
+        await readCompileCommands(presetFolder),
+        templateCompileCommands,
+        "createVscodeFolder alone must keep the template value"
+      );
+      await addVscodeFolderToWorkspace(
+        mockUpContext.extensionPath,
+        Uri.file(presetFolder)
+      );
+      assert.equal(
+        await readCompileCommands(presetFolder),
+        join(
+          Uri.file(presetFolder).fsPath,
+          "builds",
+          "test_refresh",
+          "compile_commands.json"
+        )
+      );
+    } finally {
+      clearPreset(preset);
+    }
+  });
+
+  test("compileCommands uses the default build path without a preset", async () => {
+    const noPresetFolder = join(wsFolder, "noPresetProject");
+    await addVscodeFolderToWorkspace(
+      mockUpContext.extensionPath,
+      Uri.file(noPresetFolder)
+    );
+    assert.equal(
+      await readCompileCommands(noPresetFolder),
+      join(Uri.file(noPresetFolder).fsPath, "build", "compile_commands.json")
+    );
+  });
+
+  test("clangd compile-commands-dir follows the selected preset", async function () {
+    const presetFolder = join(wsFolder, "presetClangProject");
+    const preset: ConfigurePreset = {
+      name: "test_refresh",
+      binaryDir: "builds/test_refresh",
+    };
+    ESP.ProjectConfiguration.store.set(
+      ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+      process.env
+    );
+    selectPreset(preset);
+    try {
+      const espClangPath = await validateEspClangExists();
+      if (!espClangPath) {
+        this.skip();
+      }
+      await addVscodeFolderToWorkspace(
+        mockUpContext.extensionPath,
+        Uri.file(presetFolder)
+      );
+      const settingsJson = await readJson(
+        join(presetFolder, ".vscode", "settings.json")
+      );
+      const expectedBuildPath = join(
+        Uri.file(presetFolder).fsPath,
+        "builds",
+        "test_refresh"
+      );
+      assert.equal(settingsJson["clangd.path"], espClangPath);
+      assert.ok(
+        settingsJson["clangd.arguments"].includes(
+          `--compile-commands-dir=${expectedBuildPath}`
+        ),
+        `clangd.arguments should target the preset build directory: ${JSON.stringify(
+          settingsJson["clangd.arguments"]
+        )}`
+      );
+    } finally {
+      clearPreset(preset);
+      ESP.ProjectConfiguration.store.clear(
+        ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
+      );
+    }
+  });
+
+  test("clearCCppPropertiesJsonCompilerPath empties an absolute compilerPath", async () => {
+    const projectFolder = join(wsFolder, "staleCompilerPathProject");
+    await createVscodeFolder(
+      mockUpContext.extensionPath,
+      Uri.file(projectFolder)
+    );
+    const cCppPropertiesJsonPath = join(
+      projectFolder,
+      ".vscode",
+      "c_cpp_properties.json"
+    );
+    const cCppPropertiesJson = await readJson(cCppPropertiesJsonPath);
+    cCppPropertiesJson.configurations[0].compilerPath =
+      "/home/user/.espressif/tools/xtensa-esp-elf/bin/xtensa-esp32-elf-gcc";
+    await writeJson(cCppPropertiesJsonPath, cCppPropertiesJson, { spaces: 2 });
+
+    await clearCCppPropertiesJsonCompilerPath(Uri.file(projectFolder));
+
+    const updatedJson = await readJson(cCppPropertiesJsonPath);
+    assert.strictEqual(updatedJson.configurations[0].compilerPath, "");
+    assert.strictEqual(
+      updatedJson.configurations[0].compileCommands,
+      cCppPropertiesJson.configurations[0].compileCommands,
+      "other fields must be preserved"
+    );
+  });
+
+  test("clearCCppPropertiesJsonCompilerPath leaves an empty compilerPath untouched", async () => {
+    const projectFolder = join(wsFolder, "emptyCompilerPathProject");
+    await createVscodeFolder(
+      mockUpContext.extensionPath,
+      Uri.file(projectFolder)
+    );
+    const cCppPropertiesJsonPath = join(
+      projectFolder,
+      ".vscode",
+      "c_cpp_properties.json"
+    );
+    const contentBefore = await readFile(cCppPropertiesJsonPath, "utf8");
+    const pinnedTime = new Date("2020-01-01T00:00:00Z");
+    await utimes(cCppPropertiesJsonPath, pinnedTime, pinnedTime);
+
+    await clearCCppPropertiesJsonCompilerPath(Uri.file(projectFolder));
+
+    const contentAfter = await readFile(cCppPropertiesJsonPath, "utf8");
+    assert.strictEqual(contentAfter, contentBefore);
+    const statAfter = await stat(cCppPropertiesJsonPath);
+    assert.strictEqual(
+      statAfter.mtime.getTime(),
+      pinnedTime.getTime(),
+      "file must not be rewritten when there is nothing to clear"
+    );
+  });
+
+  test("clearCCppPropertiesJsonCompilerPath ignores a missing file", async () => {
+    const projectFolder = join(wsFolder, "noVscodeFolderProject");
+    await clearCCppPropertiesJsonCompilerPath(Uri.file(projectFolder));
+    assert.strictEqual(
+      await readdir(wsFolder).then((files) =>
+        files.includes("noVscodeFolderProject")
+      ),
+      false,
+      "nothing should be created"
     );
   });
 
