@@ -57,6 +57,8 @@ suite("common/prepareEnv.ts", () => {
   let workspaceFolder: vscode.WorkspaceFolder;
   let openOcdScriptsDir: string;
   let openOcdBinDir: string;
+  let customOpenOcdBinary: string;
+  let customOpenOcdScriptsDir: string;
 
   const extensionPath = resolve(__dirname, "..", "..", "..");
   const mockUpContext: vscode.ExtensionContext = {
@@ -87,6 +89,23 @@ suite("common/prepareEnv.ts", () => {
     );
     writeFileSync(openOcdBinary, "");
     chmodSync(openOcdBinary, 0o755);
+
+    const customOpenOcdRoot = join(tempDir, "custom", "openocd-esp32");
+    customOpenOcdScriptsDir = join(
+      customOpenOcdRoot,
+      "share",
+      "openocd",
+      "scripts"
+    );
+    mkdirSync(join(customOpenOcdRoot, "bin"), { recursive: true });
+    mkdirSync(customOpenOcdScriptsDir, { recursive: true });
+    customOpenOcdBinary = join(
+      customOpenOcdRoot,
+      "bin",
+      process.platform === "win32" ? "openocd.exe" : "openocd"
+    );
+    writeFileSync(customOpenOcdBinary, "");
+    chmodSync(customOpenOcdBinary, 0o755);
   });
 
   suiteTeardown(() => {
@@ -162,6 +181,26 @@ suite("common/prepareEnv.ts", () => {
     );
 
     assert.strictEqual(env.OPENOCD_SCRIPTS, openOcdScriptsDir);
+  });
+
+  test("OPENOCD_SCRIPTS follows idf.customOpenOCDPath over the openocd binary in PATH", async () => {
+    setIdfConfigurationSource(
+      createFakeIdfSource({
+        "idf.customOpenOCDPath": customOpenOcdBinary,
+        "idf.customExtraVars": {},
+      })
+    );
+
+    const env = await expandEnvVariablesForIdfSetup(
+      {
+        IDF_PATH: "/idf",
+        PATH: openOcdBinDir,
+        OPENOCD_SCRIPTS: openOcdScriptsDir,
+      },
+      workspaceFolder
+    );
+
+    assert.strictEqual(env.OPENOCD_SCRIPTS, customOpenOcdScriptsDir);
   });
 
   test("refreshCurrentIdfConfiguration re-expands the stored setup environment", async () => {

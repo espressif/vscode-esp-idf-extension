@@ -99,6 +99,11 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
         );
         await configureClangSettings(prevWorkspaceFolder.uri);
         ESP.URL.Docs.IDF_INDEX = undefined;
+      } else if (
+        prevWorkspaceFolder &&
+        e.affectsConfiguration("idf.customOpenOCDPath")
+      ) {
+        await refreshCurrentIdfConfiguration(prevWorkspaceFolder);
       } else if (e.affectsConfiguration("idf.port")) {
         if (statusBarItems && statusBarItems["port"]) {
           statusBarItems["port"].text =
