@@ -55,6 +55,7 @@ export const useNewProjectStore = defineStore("newProject", () => {
   const serialPortList: Ref<string[]> = ref([]);
   const templateDetail: Ref<string> = ref("");
   const templatesRootPath: Ref<{ [key: string]: IExampleCategory }> = ref({});
+  const templatesLoading = ref(true);
   const searchString = ref("");
   const resultingProjectPath = ref("");
   const pathSep: Ref<string> = ref("/");
@@ -126,6 +127,7 @@ export const useNewProjectStore = defineStore("newProject", () => {
     selectedTemplate,
     serialPortList,
     templateDetail,
+    templatesLoading,
     templatesRootPath,
     resultingProjectPath,
     createProject,
