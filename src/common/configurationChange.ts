@@ -88,11 +88,6 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
         ) as { [key: string]: string };
         for (const envVar in customExtraVars) {
           if (envVar.toUpperCase() !== "PATH") {
-            context.environmentVariableCollection.replace(
-              envVar,
-              customExtraVars[envVar],
-              { applyAtProcessCreation: true }
-            );
             updateCurrentIdfEnvVar(envVar, customExtraVars[envVar]);
           }
         }
