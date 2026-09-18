@@ -98,6 +98,7 @@ export async function expandEnvVariablesForIdfSetup(
         if (
           envVar &&
           envVar.toUpperCase() !== "PATH" &&
+          envVar !== "OPENOCD_SCRIPTS" &&
           !staleNames.has(envVar)
         ) {
           modifiedEnv[envVar] = customExtraVars[envVar];

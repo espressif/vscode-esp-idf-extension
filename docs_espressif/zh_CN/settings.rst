@@ -123,7 +123,7 @@ Visual Studio Code 允许你在不同级别配置设置：**全局（用户设�
     * - **idf.ninjaArgs**
       - Ninja 构建任务参数。作用域：Resource。
     * - **idf.customExtraVars**
-      - 键值对象，将环境变量加入扩展命令进程（如 ``OPENOCD_SCRIPTS``）。不修改 VS Code 外的系统环境。作用域：Resource。
+      - 键值对象，将环境变量加入扩展命令进程（如 ``IDF_CCACHE_ENABLE``）。此处的 ``OPENOCD_SCRIPTS`` 会被忽略：它始终取自 ESP-IDF 设置或 **idf.customOpenOCDPath** 指定的 OpenOCD 可执行文件。不修改 VS Code 外的系统环境。作用域：Resource。
     * - **idf.useIDFKconfigStyle**
       - 启用 Kconfig 文件样式验证。作用域：Resource。
     * - **idf.saveBeforeBuild**

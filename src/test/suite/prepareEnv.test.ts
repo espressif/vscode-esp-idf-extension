@@ -183,6 +183,25 @@ suite("common/prepareEnv.ts", () => {
     assert.strictEqual(env.OPENOCD_SCRIPTS, openOcdScriptsDir);
   });
 
+  test("OPENOCD_SCRIPTS from custom extra vars is ignored even without an openocd binary", async () => {
+    setIdfConfigurationSource(
+      createFakeIdfSource({
+        "idf.customExtraVars": { OPENOCD_SCRIPTS: openOcdBinDir },
+      })
+    );
+
+    const env = await expandEnvVariablesForIdfSetup(
+      {
+        IDF_PATH: "/idf",
+        PATH: join(tempDir, "no-openocd-here"),
+        OPENOCD_SCRIPTS: openOcdScriptsDir,
+      },
+      workspaceFolder
+    );
+
+    assert.strictEqual(env.OPENOCD_SCRIPTS, openOcdScriptsDir);
+  });
+
   test("OPENOCD_SCRIPTS follows idf.customOpenOCDPath over the openocd binary in PATH", async () => {
     setIdfConfigurationSource(
       createFakeIdfSource({
