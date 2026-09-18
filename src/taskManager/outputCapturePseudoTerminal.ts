@@ -56,7 +56,6 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
   constructor(
     private spawnRequest: Omit<SpawnCapturedProcessRequest, "cols" | "rows">,
     private resolveOutput: (output: CapturedTaskOutput) => void,
-    private rejectOutput: (error: Error) => void,
     private epilogue?: TaskSuccessEpilogue
   ) {}
 
@@ -139,8 +138,13 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
       return;
     }
     this.settled = true;
-    this.writeEmitter.fire(`Error: ${error.message}\r\n`);
-    this.rejectOutput(error);
+    const errorLine = `File: ${
+      this.spawnRequest.file
+    }\nArgs: ${this.spawnRequest.args.join(" ")}\nCwd: ${
+      this.spawnRequest.cwd ?? ""
+    }\nError: ${error.message}`;
+    this.writeEmitter.fire(toTerminalNewlines(`${errorLine}\n`));
+    this.stderr += `${errorLine}\n`;
     const rawCode = (error as NodeJS.ErrnoException).code;
     const exitCode =
       typeof rawCode === "number"
@@ -148,6 +152,16 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
         : Number.isFinite(Number(rawCode))
         ? Number(rawCode)
         : 1;
+    const output: CapturedTaskOutput = {
+      stdout: sanitizeCapturedText(this.stdout),
+      stderr: sanitizeCapturedText(this.stderr),
+      exitCode,
+      success: false,
+    };
+    if (typeof rawCode === "string" && rawCode.length > 0) {
+      output.spawnErrorCode = rawCode;
+    }
+    this.resolveOutput(output);
     this.closeEmitter.fire(exitCode);
   }
 }

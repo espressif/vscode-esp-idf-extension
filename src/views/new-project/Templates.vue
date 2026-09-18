@@ -15,6 +15,7 @@ let {
   selectedTemplate,
   templateDetail,
   templatesRootPath,
+  templatesLoading,
   searchString,
 } = storeToRefs(store);
 
@@ -90,7 +91,8 @@ function handleCreateProject() {
       </div>
       <searchBar />
       <div class="tree-container">
-        <ul class="tree-list">
+        <p v-if="templatesLoading">Loading ESP-IDF examples...</p>
+        <ul v-else class="tree-list">
           <TemplateList v-for="cat of templates" :node="cat" :key="cat.name" />
         </ul>
       </div>

@@ -36,6 +36,28 @@ import {
 import { ErrorCode } from "../../common/error/types";
 import { sizeErrorPresentation } from "./sizeErrorPresentation";
 
+const JSON2_FORMAT_MIN = "5.3.0";
+const JSON_FORMAT_MIN = "5.1.0";
+/** First ESP-IDF release constrained to esp-idf-size 2.x, which rejects `--file`. */
+const FILES_FLAG_MIN = "6.0.0";
+
+export function idfSizeCliArgs(version: string): {
+  formatArgs: string[];
+  filesFlag: string;
+} {
+  const formatArgs =
+    compareVersion(version, JSON2_FORMAT_MIN) >= 0
+      ? ["--format", "json2"]
+      : compareVersion(version, JSON_FORMAT_MIN) >= 0
+      ? ["--format", "json"]
+      : ["--json"];
+
+  const filesFlag =
+    compareVersion(version, FILES_FLAG_MIN) >= 0 ? "--files" : "--file";
+
+  return { formatArgs, filesFlag };
+}
+
 export class IDFSize {
   private readonly workspaceFolderUri: Uri;
   private isCanceled: boolean = false;
@@ -68,12 +90,7 @@ export class IDFSize {
       );
     }
 
-    const formatArgs =
-      compareVersion(version, "5.3.0") >= 0
-        ? ["--format", "json2"]
-        : compareVersion(version, "5.1.0") >= 0
-        ? ["--format", "json"]
-        : ["--json"];
+    const { formatArgs, filesFlag } = idfSizeCliArgs(version);
 
     const bumpProgress = (message: string) =>
       progress.report({ increment: 30, message });
@@ -96,7 +113,7 @@ export class IDFSize {
         return result;
       }),
       this.idfCommandInvoker(
-        ["idf_size.py", mapFilePath, "--file", ...formatArgs],
+        ["idf_size.py", mapFilePath, filesFlag, ...formatArgs],
         mapFilePath,
         cancelToken
       ).then((result) => {

@@ -332,7 +332,7 @@ suite("Project tests", () => {
   });
 
   test("get templates projects", async () => {
-    const templatesCategories = getExamplesList(mockUpContext.extensionPath, [
+    const templatesCategories = await getExamplesList(mockUpContext.extensionPath, [
       "templates",
     ]);
     assert.notEqual(templatesCategories, undefined);
@@ -343,7 +343,7 @@ suite("Project tests", () => {
 
   test("get examples projects", async () => {
     assert.notEqual(process.env.IDF_PATH, undefined);
-    const examplesCategories = getExamplesList(process.env.IDF_PATH);
+    const examplesCategories = await getExamplesList(process.env.IDF_PATH);
     assert.notEqual(examplesCategories, undefined);
     assert.notEqual(examplesCategories.subcategories, undefined);
     assert.notEqual(examplesCategories.subcategories.length, 0);
@@ -355,7 +355,7 @@ suite("Project tests", () => {
     const settingsJsonPath = join(projectPath, ".vscode", "settings.json");
     const settingsJson = await readJson(settingsJsonPath);
     const openOcdConfigs =
-      "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg";
+      "interface/ftdi/esp_ftdi.cfg,target/esp32.cfg";
 
     const idfSetup = {
       idfPath: process.env.IDF_PATH,

@@ -18,7 +18,10 @@
 
 import { CancellationToken, Disposable, WorkspaceFolder } from "vscode";
 import { ESP } from "../config";
-import { TaskManager } from "../taskManager/taskManager";
+import {
+  TaskManager,
+  throwCapturedTaskFailure,
+} from "../taskManager/taskManager";
 import { selectFlashMethod } from "../flash/main";
 import { isFlashEncryptionEnabled } from "../flash/verify/flashEncryption";
 import { CustomExecutionTaskResult } from "../taskManager/types";
@@ -38,7 +41,7 @@ import {
   IdfTaskName,
 } from "../common/error/knownError";
 import { assertMinimumOpenOcdVersionForJtag } from "../espIdf/openOcd/jtagPreflight";
-import { throwEraseCapturedTaskFailure } from "./eraseTaskFailure";
+import { eraseTaskFailedWithOutputPresentation } from "./eraseTaskFailure";
 import { eraseJtagOpenOcdPresentation } from "./jtagOpenOcdPresentation";
 
 /**
@@ -103,7 +106,7 @@ export async function eraseFlashMain(
         workspaceFolder.uri
       );
       if (!eraseFlashCmdResult.continueFlag) {
-        await throwEraseCapturedTaskFailure();
+        await throwCapturedTaskFailure(eraseTaskFailedWithOutputPresentation);
       }
       if (eraseFlashCmdResult.continueFlag) {
         const msg =
@@ -117,7 +120,7 @@ export async function eraseFlashMain(
         cancelToken
       );
       if (!eraseFlashCmdResult.continueFlag) {
-        await throwEraseCapturedTaskFailure();
+        await throwCapturedTaskFailure(eraseTaskFailedWithOutputPresentation);
       }
     }
 

@@ -21,6 +21,8 @@ export interface CapturedTaskOutput {
   stderr: string;
   exitCode: number;
   success: boolean;
+  /** Present when the process never started (e.g. ENOENT / node-pty File not found). */
+  spawnErrorCode?: string;
 }
 
 export interface IdfTaskResult {

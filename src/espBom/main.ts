@@ -24,12 +24,44 @@ import { join } from "path";
 import { pathExists, lstat, constants } from "fs-extra";
 import { Logger } from "../common/logger";
 import { missingDependency } from "../common/error/knownError";
-import { addProcessTask, TaskManager } from "../taskManager/taskManager";
-import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
+import { ErrorPresentation } from "../common/error/types";
+import {
+  addProcessTask,
+  TaskManager,
+  throwCapturedTaskFailure,
+} from "../taskManager/taskManager";
+import {
+  getCurrentIdfConfiguration,
+  getVirtualEnvPythonPath,
+} from "../configuration/env";
 import {
   getIdfBuildPath,
   getProjectMapFilePath,
 } from "../configuration/workspace";
+
+/** @internal Exported for tests asserting call-site presentation. */
+export const sbomTaskFailedWithOutputPresentation: ErrorPresentation = {
+  userMessage: "SBOM task failed. Check the terminal output for details.",
+  logMessage: "SBOM task failed with captured output.",
+  outputChannel: "SBOM",
+};
+
+export type EspSbomInvocation = {
+  command: string;
+  moduleArgs: string[];
+};
+
+/** Resolve venv Python + `-m esp_idf_sbom` so Windows does not rely on PATH/PATHEXT. */
+export function resolveEspSbomInvocation(): EspSbomInvocation {
+  const pythonBinPath = getVirtualEnvPythonPath();
+  if (!pythonBinPath) {
+    throw missingDependency("Python");
+  }
+  return {
+    command: pythonBinPath,
+    moduleArgs: ["-m", "esp_idf_sbom"],
+  };
+}
 
 export async function createSBOM(workspaceUri: Uri) {
   await getProjectMapFilePath(workspaceUri);
@@ -50,13 +82,15 @@ export async function createSBOM(workspaceUri: Uri) {
       );
     }
   }
-  const command = "esp-idf-sbom";
+  const { command, moduleArgs } = resolveEspSbomInvocation();
   const argsCreating = [
+    ...moduleArgs,
     "create",
     projectDescriptionJson,
     "--output-file",
     sbomFilePath,
   ];
+  TaskManager.clearTaskResults();
   addProcessTask(
     "SBOM Create",
     workspaceUri,
@@ -66,7 +100,7 @@ export async function createSBOM(workspaceUri: Uri) {
     modifiedEnv
   );
 
-  const argsChecking = ["check", sbomFilePath];
+  const argsChecking = [...moduleArgs, "check", sbomFilePath];
   addProcessTask(
     "SBOM Check",
     workspaceUri,
@@ -75,7 +109,14 @@ export async function createSBOM(workspaceUri: Uri) {
     workspaceUri.fsPath,
     modifiedEnv
   );
-  await TaskManager.runTasks();
+  try {
+    const succeeded = await TaskManager.runTasksWithBoolean();
+    if (!succeeded) {
+      await throwCapturedTaskFailure(sbomTaskFailedWithOutputPresentation);
+    }
+  } finally {
+    TaskManager.disposeListeners();
+  }
 }
 
 export async function installEspSBOM(workspace: Uri) {

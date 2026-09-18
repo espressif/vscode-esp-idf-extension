@@ -29,7 +29,6 @@ export interface OutputCapturingExecutionOptions {
 export class OutputCapturingExecution extends CustomExecution {
   private outputPromise: Promise<CapturedTaskOutput> | undefined;
   private resolveOutput: ((output: CapturedTaskOutput) => void) | undefined;
-  private rejectOutput: ((error: Error) => void) | undefined;
   private pseudoterminal: OutputCapturingPseudoterminal | undefined;
 
   constructor(
@@ -38,12 +37,9 @@ export class OutputCapturingExecution extends CustomExecution {
     private options: OutputCapturingExecutionOptions
   ) {
     super(async () => {
-      this.outputPromise = new Promise<CapturedTaskOutput>(
-        (resolve, reject) => {
-          this.resolveOutput = resolve;
-          this.rejectOutput = reject;
-        }
-      );
+      this.outputPromise = new Promise<CapturedTaskOutput>((resolve) => {
+        this.resolveOutput = resolve;
+      });
 
       this.pseudoterminal = new OutputCapturingPseudoterminal(
         {
@@ -53,7 +49,6 @@ export class OutputCapturingExecution extends CustomExecution {
           env: this.options.env,
         },
         (output) => this.resolveOutput?.(output),
-        (error) => this.rejectOutput?.(error),
         this.options.epilogue
       );
       return this.pseudoterminal;

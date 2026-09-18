@@ -16,7 +16,7 @@
  */
 
 import { ErrorCode, ErrorPresentation } from "../../common/error/types";
-import { isKnownError, known, noDfuDeviceFound } from "../../common/error/knownError";
+import { isKnownError, noDfuDeviceFound } from "../../common/error/knownError";
 import { throwCapturedTaskFailure } from "../../taskManager/taskManager";
 
 const flashTaskFailedWithOutputPresentation: ErrorPresentation = {
@@ -27,20 +27,14 @@ const flashTaskFailedWithOutputPresentation: ErrorPresentation = {
 
 export async function throwFlashCapturedTaskFailure(): Promise<void> {
   try {
-    await throwCapturedTaskFailure();
+    await throwCapturedTaskFailure(flashTaskFailedWithOutputPresentation);
   } catch (error) {
     if (
       isKnownError(error) &&
-      error.code === ErrorCode.TaskFailedWithOutput
+      error.code === ErrorCode.TaskFailedWithOutput &&
+      error.metadata?.exitCode === 74
     ) {
-      if (error.metadata?.exitCode === 74) {
-        throw noDfuDeviceFound();
-      }
-      throw known(
-        ErrorCode.TaskFailedWithOutput,
-        error.metadata,
-        flashTaskFailedWithOutputPresentation
-      );
+      throw noDfuDeviceFound();
     }
     throw error;
   }

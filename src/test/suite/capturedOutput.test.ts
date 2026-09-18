@@ -74,7 +74,7 @@ function runPseudoterminal(
   script: string,
   epilogue?: TaskSuccessEpilogue
 ): Promise<PseudoterminalRun> {
-  return new Promise<PseudoterminalRun>((resolve, reject) => {
+  return new Promise<PseudoterminalRun>((resolve) => {
     const run: PseudoterminalRun = {
       written: "",
       events: [],
@@ -91,7 +91,6 @@ function runPseudoterminal(
       (output) => {
         run.output = output;
       },
-      reject,
       epilogue
     );
     terminal.onDidWrite((chunk) => {
@@ -152,5 +151,57 @@ suite("OutputCapturingPseudoterminal epilogue", () => {
     );
     assert.strictEqual(run.events[run.events.length - 1], "close");
     assert.strictEqual(run.output?.success, true);
+  });
+});
+
+suite("OutputCapturingPseudoterminal spawn failure", () => {
+  test("resolves captured stderr with the spawn error instead of rejecting", async function () {
+    this.timeout(20000);
+    const missing =
+      process.platform === "win32"
+        ? "C:\\nonexistent\\esp-idf-sbom-missing.exe"
+        : "/nonexistent/esp-idf-sbom-missing";
+    const cwd = "/tmp/sbom-cwd";
+    const run = await new Promise<PseudoterminalRun>((resolve) => {
+      const result: PseudoterminalRun = {
+        written: "",
+        events: [],
+        output: undefined,
+      };
+      const terminal = new OutputCapturingPseudoterminal(
+        {
+          file: missing,
+          args: ["create"],
+          cwd,
+          env: {},
+        },
+        (output) => {
+          result.output = output;
+        }
+      );
+      terminal.onDidWrite((chunk) => {
+        result.written += chunk;
+        result.events.push(`write:${chunk}`);
+      });
+      terminal.onDidClose(() => {
+        result.events.push("close");
+        resolve(result);
+      });
+      terminal.open();
+    });
+
+    assert.strictEqual(run.output?.success, false);
+    assert.ok(run.output?.stderr.includes(`File: ${missing}`));
+    assert.ok(run.output?.stderr.includes("Args: create"));
+    assert.ok(run.output?.stderr.includes(`Cwd: ${cwd}`));
+    assert.ok(run.output?.stderr.includes("Error:"));
+    assert.ok(run.written.includes(`File: ${missing}`));
+    assert.ok(run.written.includes("Args: create"));
+    assert.ok(run.written.includes(`Cwd: ${cwd}`));
+    assert.ok(run.written.includes("Error:"));
+    assert.notStrictEqual(run.output?.stderr, "");
+    if (run.output?.spawnErrorCode) {
+      assert.strictEqual(run.output.spawnErrorCode, "ENOENT");
+    }
   });
 });

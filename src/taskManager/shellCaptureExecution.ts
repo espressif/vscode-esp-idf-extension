@@ -52,8 +52,7 @@ export class ShellOutputCapturingExecution extends CustomExecution {
             cwd: this.options.cwd,
             env: this.options.env,
           },
-          (output) => this.resolveOutput?.(output),
-          (error) => this.rejectOutput?.(error)
+          (output) => this.resolveOutput?.(output)
         );
         return this.pseudoterminal;
       } catch (error) {

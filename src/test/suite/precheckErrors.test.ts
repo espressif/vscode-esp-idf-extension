@@ -10,6 +10,7 @@ import * as assert from "assert";
 import {
   environmentNotSupported,
   idfVersionTooLow,
+  invalidConfiguration,
   isKnownError,
   noWorkspaceOpen,
   toolchainNotFound,
@@ -33,6 +34,19 @@ suite("PreCheck errors", () => {
   test("perform runs proceed when all checks pass", () => {
     const result = PreCheck.perform([[() => true, noWorkspaceOpen]], () => "ok");
     assert.strictEqual(result, "ok");
+  });
+
+  test("perform returns the promise of an async proceed so callers see rejections", async () => {
+    await assert.rejects(
+      () =>
+        PreCheck.perform([[() => true, noWorkspaceOpen]], async () => {
+          throw invalidConfiguration("idf.openOcdConfigs");
+        }),
+      (error: unknown) =>
+        isKnownError(error) &&
+        error.code === ErrorCode.INVALID_CONFIGURATION &&
+        error.metadata?.setting === "idf.openOcdConfigs"
+    );
   });
 
   suite("resolveKnownErrorUserMessage", () => {

@@ -76,6 +76,9 @@ window.addEventListener("message", (event) => {
       if (msg.templates) {
         store.templatesRootPath = msg.templates;
       }
+      if (typeof msg.templatesLoading === "boolean") {
+        store.templatesLoading = msg.templatesLoading;
+      }
       if (msg.openOcdConfigFiles) {
         store.openOcdConfigFiles = msg.openOcdConfigFiles;
       }
@@ -97,6 +100,12 @@ window.addEventListener("message", (event) => {
         store.templateDetail = msg.templateDetail;
         store.hasTemplateDetail = true;
       }
+      break;
+    case "setTemplates":
+      if (msg.templates) {
+        store.templatesRootPath = msg.templates;
+      }
+      store.templatesLoading = msg.templatesLoading === true;
       break;
     case "projectCreated":
       if (msg.resultingProjectPath) {

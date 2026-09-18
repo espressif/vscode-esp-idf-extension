@@ -8,11 +8,29 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
-## Unreleased
+## [2.3.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v2.3.0) - 2026-09-18
+## Features and enhancements
 
-### Features and enhancements
+In [PR 1868](https://github.com/espressif/vscode-esp-idf-extension/pull/1868) we introduce a major refactoring of the extension that does:
 
-- Contribute Espressif Documentation and ESP Component Registry MCP servers to VS Code Chat (Documentation MCP requires GitHub or WeChat login)
+* Reorganize extension code to remove duplication, organize features and reuse functions.
+* Add extensive unit tests and improve error handling. Now known error provide the user with actions they can choose if something goes wrong.
+* Modify the task execution to use vscode node-pty, allowing us to get the task output and add an action `Ask AI to fix` when tasks fails so the user can easily send to the AI chat for troubleshooting.
+* Improve telemetry fields and remove events send to telemetry that are not necessary.
+
+- [Add Hardware end to end tests in CI](https://github.com/espressif/vscode-esp-idf-extension/pull/1894)
+- [LP Core targets in OpenOCD boards fallback](https://github.com/espressif/vscode-esp-idf-extension/pull/1880)
+- [Use GDBinit files in debug session and fix symbols resolution](https://github.com/espressif/vscode-esp-idf-extension/pull/1914)
+- [Build App Flash App monitor command and available to set build flash monitor to use App only](https://github.com/espressif/vscode-esp-idf-extension/pull/1926)
+- [Add MCP Servers Component Registry and Documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/1932)
+- [Persist comments on json files](https://github.com/espressif/vscode-esp-idf-extension/pull/1928) Thanks @GillesZunino !
+- [Extension refactoring and AI Chat task output integration](https://github.com/espressif/vscode-esp-idf-extension/pull/1868)
+
+## Bug Fixes
+
+- [EIM version assets and fix extraction symlinks in Linux](https://github.com/espressif/vscode-esp-idf-extension/pull/1922)
+- [Update Docker install instructions](https://github.com/espressif/vscode-esp-idf-extension/pull/1931)
+- [Fix App Tracing parsing in Windows](https://github.com/espressif/vscode-esp-idf-extension/pull/1921)
 
 ### Bug fixes
 
