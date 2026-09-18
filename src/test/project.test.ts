@@ -435,7 +435,7 @@ suite("Project tests", () => {
   });
 
   test("get templates projects", async () => {
-    const templatesCategories = getExamplesList(mockUpContext.extensionPath, [
+    const templatesCategories = await getExamplesList(mockUpContext.extensionPath, [
       "templates",
     ]);
     assert.notEqual(templatesCategories, undefined);
@@ -446,7 +446,7 @@ suite("Project tests", () => {
 
   test("get examples projects", async () => {
     assert.notEqual(process.env.IDF_PATH, undefined);
-    const examplesCategories = getExamplesList(process.env.IDF_PATH);
+    const examplesCategories = await getExamplesList(process.env.IDF_PATH);
     assert.notEqual(examplesCategories, undefined);
     assert.notEqual(examplesCategories.subcategories, undefined);
     assert.notEqual(examplesCategories.subcategories.length, 0);

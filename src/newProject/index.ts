@@ -33,7 +33,6 @@ import { Logger } from "../common/logger";
 import { NewProjectPanel } from "./newProjectPanel";
 import { getNewProjectArgs } from "./newProjectInit";
 import { getIdfSetups } from "../eim/getExistingSetups";
-import { getCurrentIdfSetup } from "../eim/loadIdfSetup";
 import { pathExists } from "fs-extra";
 import {
   checkIsProjectCmakeLists,
@@ -87,42 +86,20 @@ async function startNewProjectWizard(
   try {
     const wsFolder = resolveWizardWorkspaceFolder(workspaceFolder);
     progress.report({ message: "Loading IDF setups...", increment: 10 });
-    let idfSetups = await getIdfSetups(wsFolder);
-    if (idfSetups.length === 0) {
-      return;
-    }
-    const currentIdfSetup = await getCurrentIdfSetup(wsFolder);
-    if (currentIdfSetup) {
-      const isCurrentSetupInList = idfSetups.findIndex((idfSetup) => {
-        return (
-          idfSetup.idfPath === currentIdfSetup.idfPath &&
-          idfSetup.toolsPath === currentIdfSetup.toolsPath
-        );
-      });
-      if (isCurrentSetupInList === -1) {
-        idfSetups.push(currentIdfSetup);
-      }
-    }
-
-    let existingIdfSetups = await Promise.all(
-      idfSetups.map(async (setup) => {
-        return (await pathExists(setup.idfPath)) ? setup : null;
-      })
-    ).then((results) => results.filter((setup) => setup !== null));
-
-    if (!existingIdfSetups || existingIdfSetups.length === 0) {
+    const idfSetups = await getIdfSetups(wsFolder);
+    if (!idfSetups.length) {
       window.showInformationMessage(l10n.t("No ESP-IDF Setups found"));
       return;
     }
 
     progress.report({
-      message: "Loading ESP-IDF examples...",
+      message: "Select ESP-IDF to use...",
       increment: 10,
     });
     const newProjectArgs = await getNewProjectArgs(
       progress,
       wsFolder,
-      existingIdfSetups
+      idfSetups
     );
     if (newProjectArgs) {
       NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);

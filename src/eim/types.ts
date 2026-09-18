@@ -57,4 +57,5 @@ export interface IdfInstalled {
   path: string;
   python?: string;
   status?: InstallationStatus;
+  version?: string;
 }

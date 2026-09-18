@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import { basename, join, sep } from "path";
+import { readdir } from "fs/promises";
 import { checkIsProjectCmakeLists } from "./utils";
-import { readdirSync, statSync } from "fs";
 
 export interface IExample {
   name: string;
@@ -27,14 +27,14 @@ export interface IExampleCategory {
   subcategories: IExampleCategory[];
 }
 
-export function getExamplesList(
+export async function getExamplesList(
   targetFrameworkFolder: string,
   examplesContainer: string[] = ["examples"],
   name?: string
-): IExampleCategory {
+): Promise<IExampleCategory> {
   const rootName = basename(targetFrameworkFolder);
   const examplesRoot = join(targetFrameworkFolder, ...examplesContainer);
-  const examplesPathList = getSubProjects(examplesRoot);
+  const examplesPathList = await getSubProjects(examplesRoot);
   const rootFolder: IExampleCategory = {
     name: name || rootName.toUpperCase(),
     examples: [],
@@ -95,20 +95,21 @@ export function addSubCategory(
   }
 }
 
-export function getSubProjects(dir: string): string[] {
-  const subDirs = readdirSync(dir).filter((file) => {
-    return statSync(join(dir, file)).isDirectory();
-  });
+export async function getSubProjects(dir: string): Promise<string[]> {
+  let entries;
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const subDirs = entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
   if (checkIsProjectCmakeLists(dir)) {
     return [dir];
-  } else {
-    const subProjectsPathArray: string[] = [];
-    for (const subDir of subDirs) {
-      const subProjectsPaths = getSubProjects(join(dir, subDir));
-      subProjectsPaths.forEach((subProjPath) => {
-        subProjectsPathArray.push(subProjPath);
-      });
-    }
-    return subProjectsPathArray;
   }
+  const nested = await Promise.all(
+    subDirs.map((subDir) => getSubProjects(join(dir, subDir)))
+  );
+  return nested.flat();
 }

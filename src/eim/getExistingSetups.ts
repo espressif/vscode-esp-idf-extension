@@ -17,7 +17,8 @@
  */
 
 import { pathExists, readJson } from "fs-extra";
-import { join } from "path";
+import { join, resolve } from "path";
+import { createHash } from "crypto";
 import { EspIdfJson, IdfSetup, InstallationStatus } from "./types";
 import { readParameter } from "../configuration/idf";
 import { Logger } from "../common/logger";
@@ -25,33 +26,101 @@ import { compareVersion, getEspIdfFromCMake } from "../utils";
 import { loadIdfSetupsFromEspIdfJson } from "./migrationTool";
 import { WorkspaceFolder } from "vscode";
 
-export async function getIdfSetups(workspaceFolder?: WorkspaceFolder) {
-  const customVars = readParameter("idf.customExtraVars", workspaceFolder) as {
-    [key: string]: string;
-  };
-  const eimIDFSetups = await loadIdfSetupsFromEimIdfJson();
-  let resultingIdfSetups = eimIDFSetups;
-  if (customVars["IDF_TOOLS_PATH"]) {
-    const espIdfCustomVarsJsonSetups = await loadIdfSetupsFromEspIdfJson(
-      customVars["IDF_TOOLS_PATH"]
-    );
-    resultingIdfSetups = resultingIdfSetups.concat(espIdfCustomVarsJsonSetups);
-  }
-  if (process.env.IDF_TOOLS_PATH) {
-    const espIdfSysJsonSetups = await loadIdfSetupsFromEspIdfJson(
-      process.env["IDF_TOOLS_PATH"]
-    );
-    resultingIdfSetups = resultingIdfSetups.concat(espIdfSysJsonSetups);
-  }
+function defaultIdfToolsPath() {
   const containerPath =
     (process.platform === "win32"
       ? process.env.USERPROFILE
       : process.env.HOME) || "";
-  const defaultIdfToolsPath = join(containerPath, ".espressif");
-  const espIdfSysJsonSetups = await loadIdfSetupsFromEspIdfJson(
-    defaultIdfToolsPath
-  );
-  resultingIdfSetups = resultingIdfSetups.concat(espIdfSysJsonSetups);
+  return join(containerPath, ".espressif");
+}
+
+function uniqueToolsPaths(paths: (string | undefined)[]) {
+  const unique = new Set<string>();
+  for (const toolsPath of paths) {
+    if (!toolsPath) {
+      continue;
+    }
+    unique.add(resolve(toolsPath));
+  }
+  return [...unique];
+}
+
+function customExtraVarsMap(workspaceFolder?: WorkspaceFolder) {
+  const customVarsSetting = readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as { [key: string]: string };
+  if (
+    customVarsSetting !== null &&
+    typeof customVarsSetting === "object" &&
+    !Array.isArray(customVarsSetting)
+  ) {
+    return customVarsSetting;
+  }
+  return {} as { [key: string]: string };
+}
+
+function idfSetupIdFromPath(idfPath: string) {
+  const md5Value = createHash("md5")
+    .update(idfPath.replace(/\\/g, "/"))
+    .digest("hex");
+  return `esp-idf-${md5Value}`;
+}
+
+async function loadIdfSetupFromEnvVars(customVars: {
+  [key: string]: string;
+}): Promise<IdfSetup | undefined> {
+  const idfPath = customVars["IDF_PATH"] || process.env.IDF_PATH || "";
+  const idfToolsPath =
+    customVars["IDF_TOOLS_PATH"] ||
+    process.env.IDF_TOOLS_PATH ||
+    defaultIdfToolsPath();
+  const [idfPathExists, idfToolsPathExists] = await Promise.all([
+    pathExists(idfPath),
+    pathExists(idfToolsPath),
+  ]);
+  if (!idfPathExists || !idfToolsPathExists) {
+    return;
+  }
+
+  const pythonEnvPath =
+    customVars["IDF_PYTHON_ENV_PATH"] || process.env.IDF_PYTHON_ENV_PATH || "";
+  const pyDir =
+    process.platform === "win32"
+      ? ["Scripts", "python.exe"]
+      : ["bin", "python3"];
+
+  return {
+    id: idfSetupIdFromPath(idfPath),
+    activationScript: "",
+    idfPath,
+    gitPath: "",
+    isValid: false,
+    version: await getEspIdfFromCMake(idfPath),
+    toolsPath: idfToolsPath,
+    python: pythonEnvPath ? join(pythonEnvPath, ...pyDir) : "",
+    sysPythonPath: "",
+  };
+}
+
+export async function getIdfSetups(workspaceFolder?: WorkspaceFolder) {
+  const customVars = customExtraVarsMap(workspaceFolder);
+  const toolsPaths = uniqueToolsPaths([
+    customVars["IDF_TOOLS_PATH"],
+    process.env.IDF_TOOLS_PATH,
+    defaultIdfToolsPath(),
+  ]);
+
+  const [eimIDFSetups, envIdfSetup, ...espIdfJsonSetups] = await Promise.all([
+    loadIdfSetupsFromEimIdfJson(),
+    loadIdfSetupFromEnvVars(customVars),
+    ...toolsPaths.map((toolsPath) => loadIdfSetupsFromEspIdfJson(toolsPath)),
+  ]);
+
+  let resultingIdfSetups = eimIDFSetups.concat(...espIdfJsonSetups);
+  if (envIdfSetup) {
+    resultingIdfSetups.push(envIdfSetup);
+  }
 
   resultingIdfSetups = resultingIdfSetups.filter(
     (setup, index, self) =>
@@ -61,34 +130,48 @@ export async function getIdfSetups(workspaceFolder?: WorkspaceFolder) {
       )
   );
 
-  resultingIdfSetups.sort((a, b) => compareVersion(b.version, a.version));
+  const existingIdfSetups = (
+    await Promise.all(
+      resultingIdfSetups.map(async (setup) =>
+        (await pathExists(setup.idfPath)) ? setup : null
+      )
+    )
+  ).filter((setup): setup is IdfSetup => setup !== null);
 
-  return resultingIdfSetups;
+  existingIdfSetups.sort((a, b) => compareVersion(b.version, a.version));
+
+  return existingIdfSetups;
 }
 
 export async function loadIdfSetupsFromEimIdfJson() {
-  let idfSetups: IdfSetup[] = [];
   const espIdfJson = await getEimIdfJson();
   if (
-    espIdfJson &&
-    espIdfJson.idfInstalled &&
-    Object.keys(espIdfJson.idfInstalled).length
+    !espIdfJson ||
+    !espIdfJson.idfInstalled ||
+    !Object.keys(espIdfJson.idfInstalled).length
   ) {
-    const isVersion3 =
-      espIdfJson.version &&
-      compareVersion(espIdfJson.version, "3.0") >= 0;
+    return [];
+  }
 
-    for (let idfInstalled of espIdfJson.idfInstalled) {
-      if (
-        isVersion3 &&
-        idfInstalled.status &&
-        idfInstalled.status !== InstallationStatus.Finished
-      ) {
-        continue;
-      }
+  const isVersion3 =
+    espIdfJson.version && compareVersion(espIdfJson.version, "3.0") >= 0;
 
-      const idfVersion = await getEspIdfFromCMake(idfInstalled.path);
-      let setupConf: IdfSetup = {
+  const finishedInstalls = espIdfJson.idfInstalled.filter((idfInstalled) => {
+    if (
+      isVersion3 &&
+      idfInstalled.status &&
+      idfInstalled.status !== InstallationStatus.Finished
+    ) {
+      return false;
+    }
+    return true;
+  });
+
+  return Promise.all(
+    finishedInstalls.map(async (idfInstalled) => {
+      const idfVersion =
+        idfInstalled.version || (await getEspIdfFromCMake(idfInstalled.path));
+      return {
         activationScript: idfInstalled.activationScript || "",
         id: idfInstalled.id,
         idfPath: idfInstalled.path,
@@ -99,32 +182,24 @@ export async function loadIdfSetupsFromEimIdfJson() {
         python: idfInstalled.python || "",
         sysPythonPath: "",
       } as IdfSetup;
-      idfSetups.push(setupConf);
-    }
-  }
-  return idfSetups;
+    })
+  );
 }
 
 export async function getEimIdfJson() {
   const espIdeJsonCustomPath = readParameter("idf.eimIdfJsonPath") as string;
-  const espIdePathExists = await pathExists(espIdeJsonCustomPath);
-  let eimIdfJsonPath = "";
-  if (espIdePathExists) {
-    eimIdfJsonPath = espIdeJsonCustomPath;
-  } else {
-    eimIdfJsonPath =
-      process.platform === "win32"
-        ? join("C:", "Espressif", "tools", "eim_idf.json")
-        : join(process.env.HOME || "", ".espressif", "tools", "eim_idf.json");
-  }
+  const eimIdfJsonPath =
+    espIdeJsonCustomPath && (await pathExists(espIdeJsonCustomPath))
+      ? espIdeJsonCustomPath
+      : process.platform === "win32"
+      ? join("C:", "Espressif", "tools", "eim_idf.json")
+      : join(process.env.HOME || "", ".espressif", "tools", "eim_idf.json");
   const espIdfJsonExists = await pathExists(eimIdfJsonPath);
-  let espIdfJson: EspIdfJson;
+  if (!espIdfJsonExists) {
+    return;
+  }
   try {
-    if (!espIdfJsonExists) {
-      throw new Error(`${eimIdfJsonPath} doesn't exists.`);
-    }
-    espIdfJson = await readJson(eimIdfJsonPath);
-    return espIdfJson;
+    return (await readJson(eimIdfJsonPath)) as EspIdfJson;
   } catch (error) {
     const msg =
       error instanceof Error
