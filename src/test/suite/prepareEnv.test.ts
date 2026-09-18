@@ -59,6 +59,7 @@ suite("common/prepareEnv.ts", () => {
   let openOcdBinDir: string;
   let customOpenOcdBinary: string;
   let customOpenOcdScriptsDir: string;
+  let bareOpenOcdBinary: string;
 
   const extensionPath = resolve(__dirname, "..", "..", "..");
   const mockUpContext: vscode.ExtensionContext = {
@@ -106,6 +107,15 @@ suite("common/prepareEnv.ts", () => {
     );
     writeFileSync(customOpenOcdBinary, "");
     chmodSync(customOpenOcdBinary, 0o755);
+
+    const bareOpenOcdBinDir = join(tempDir, "bare", "openocd-esp32", "bin");
+    mkdirSync(bareOpenOcdBinDir, { recursive: true });
+    bareOpenOcdBinary = join(
+      bareOpenOcdBinDir,
+      process.platform === "win32" ? "openocd.exe" : "openocd"
+    );
+    writeFileSync(bareOpenOcdBinary, "");
+    chmodSync(bareOpenOcdBinary, 0o755);
   });
 
   suiteTeardown(() => {
@@ -183,19 +193,16 @@ suite("common/prepareEnv.ts", () => {
     assert.strictEqual(env.OPENOCD_SCRIPTS, openOcdScriptsDir);
   });
 
-  test("OPENOCD_SCRIPTS from custom extra vars is ignored even without an openocd binary", async () => {
+  test("OPENOCD_SCRIPTS from custom extra vars is ignored when no scripts folder can be derived", async () => {
     setIdfConfigurationSource(
       createFakeIdfSource({
+        "idf.customOpenOCDPath": bareOpenOcdBinary,
         "idf.customExtraVars": { OPENOCD_SCRIPTS: openOcdBinDir },
       })
     );
 
     const env = await expandEnvVariablesForIdfSetup(
-      {
-        IDF_PATH: "/idf",
-        PATH: join(tempDir, "no-openocd-here"),
-        OPENOCD_SCRIPTS: openOcdScriptsDir,
-      },
+      { IDF_PATH: "/idf", OPENOCD_SCRIPTS: openOcdScriptsDir },
       workspaceFolder
     );
 
