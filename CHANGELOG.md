@@ -31,6 +31,9 @@ In [PR 1868](https://github.com/espressif/vscode-esp-idf-extension/pull/1868) we
 - [EIM version assets and fix extraction symlinks in Linux](https://github.com/espressif/vscode-esp-idf-extension/pull/1922)
 - [Update Docker install instructions](https://github.com/espressif/vscode-esp-idf-extension/pull/1931)
 - [Fix App Tracing parsing in Windows](https://github.com/espressif/vscode-esp-idf-extension/pull/1921)
+- [Fix push idf.customExtraVars into envVarCollection](https://github.com/espressif/vscode-esp-idf-extension/pull/1949)
+- [VS Code multiple folder configuration](https://github.com/espressif/vscode-esp-idf-extension/pull/1946)
+- [Custom Extra vars refresh remove stale customExtraVars](https://github.com/espressif/vscode-esp-idf-extension/pull/1950)
 
 ### Bug fixes
 
