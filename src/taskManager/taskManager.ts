@@ -54,12 +54,14 @@ export function getTaskProcessExecution(
   args: string[],
   cwd: string,
   env: { [key: string]: string },
-  epilogue?: TaskSuccessEpilogue
+  epilogue?: TaskSuccessEpilogue,
+  initialColumns?: number
 ): OutputCapturingExecution {
   return OutputCapturingExecution.create(cmdString, args, {
     cwd,
     env,
     epilogue,
+    initialColumns,
   });
 }
 
@@ -470,6 +472,7 @@ export function addProcessTask(
   options?: {
     presentation?: TaskPresentationOptions;
     epilogue?: TaskSuccessEpilogue;
+    initialColumns?: number;
   }
 ): OutputCapturingExecution {
   const execution = getTaskProcessExecution(
@@ -477,7 +480,8 @@ export function addProcessTask(
     args,
     cwd,
     env,
-    options?.epilogue
+    options?.epilogue,
+    options?.initialColumns
   );
   TaskManager.addTask(
     name,

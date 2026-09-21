@@ -18,6 +18,7 @@
 import * as assert from "assert";
 import {
   OutputCapturingPseudoterminal,
+  resolveInitialColumns,
   sanitizeCapturedText,
 } from "../../taskManager/outputCapturePseudoTerminal";
 import {
@@ -52,6 +53,31 @@ suite("sanitizeCapturedText", () => {
     );
   });
 
+  test("removes Rich erase-character sequences without leaving X", () => {
+    const raw = "│ Flash Code\u001b[1X│        48714 │\r\n";
+    assert.strictEqual(
+      sanitizeCapturedText(raw),
+      "│ Flash Code │        48714 │\n"
+    );
+  });
+
+  test("renders the requested number of erased terminal cells", () => {
+    assert.strictEqual(sanitizeCapturedText("value\u001b[3X│"), "value   │");
+  });
+
+  test("bounds malformed erase-character counts", () => {
+    assert.strictEqual(sanitizeCapturedText("\u001b[999999X").length, 1000);
+  });
+
+  test("removes Windows PTY title sequences and control characters", () => {
+    const raw =
+      "\u001b]0;C:\\Espressif\\python.exe\u0007Memory Type Usage Summary\u0007\r\n";
+    assert.strictEqual(
+      sanitizeCapturedText(raw),
+      "Memory Type Usage Summary\n"
+    );
+  });
+
   test("leaves plain text untouched", () => {
     assert.strictEqual(
       sanitizeCapturedText("no control codes"),
@@ -61,6 +87,19 @@ suite("sanitizeCapturedText", () => {
 
   test("returns empty string for empty input", () => {
     assert.strictEqual(sanitizeCapturedText(""), "");
+  });
+});
+
+suite("resolveInitialColumns", () => {
+  test("uses the configured width before VS Code supplies dimensions", () => {
+    assert.strictEqual(resolveInitialColumns(undefined, 120), 120);
+  });
+
+  test("prefers the current terminal width", () => {
+    assert.strictEqual(
+      resolveInitialColumns({ columns: 96, rows: 24 }, 120),
+      96
+    );
   });
 });
 

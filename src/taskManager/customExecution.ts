@@ -24,6 +24,7 @@ export interface OutputCapturingExecutionOptions {
   cwd?: string;
   env?: { [key: string]: string | undefined };
   epilogue?: TaskSuccessEpilogue;
+  initialColumns?: number;
 }
 
 export class OutputCapturingExecution extends CustomExecution {
@@ -49,7 +50,8 @@ export class OutputCapturingExecution extends CustomExecution {
           env: this.options.env,
         },
         (output) => this.resolveOutput?.(output),
-        this.options.epilogue
+        this.options.epilogue,
+        this.options.initialColumns
       );
       return this.pseudoterminal;
     });

@@ -82,6 +82,7 @@ export async function runSizeTaskIfEnabled(workspace: Uri): Promise<boolean> {
     modifiedEnv,
     {
       presentation: { panel: TaskPanelKind.Dedicated, clear: true },
+      initialColumns: 120,
     }
   );
   return TaskManager.runTasksWithBoolean();

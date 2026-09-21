@@ -108,7 +108,13 @@ export async function buildMain(
       updateIdfComponentsTree(workspace);
       Logger.infoNotify("Build Successful");
       for (const result of TaskManager.getTaskResults()) {
-        OutputChannel.appendLine(result.output.stdout, "Build");
+        const stdout = result.output.stdout.replace(
+          /^(?:[^\S\n]*\n)+|(?:\n[^\S\n]*)+$/g,
+          ""
+        );
+        if (stdout) {
+          OutputChannel.appendLine(stdout, "Build");
+        }
       }
     }
     return { continueFlag: true };

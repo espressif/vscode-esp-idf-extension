@@ -30,7 +30,10 @@ import {
 } from "./capturedProcess";
 import { Logger } from "../common/logger";
 
-const ANSI_ESCAPE = /[\u001B\u009B][[\]()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
+const ANSI_CSI = /(?:\u001B\[|\u009B)[0-?]*[ -/]*[@-~]/g;
+const ANSI_ERASE_CHARACTERS = /(?:\u001B\[|\u009B)(\d*)X/g;
+const ANSI_OSC = /\u001B\][^\u0007\u001B]*(?:\u0007|\u001B\\)/g;
+const NONPRINTING_CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001A\u001C-\u001F\u007F-\u009F]/g;
 
 /**
  * Turns terminal bytes into plain text for {@link CapturedTaskOutput} consumers
@@ -39,10 +42,25 @@ const ANSI_ESCAPE = /[\u001B\u009B][[\]()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-
  * separate lines so the whole history stays readable.
  */
 export function sanitizeCapturedText(raw: string): string {
+  const MAX_ERASE_CHARACTERS = 1000;
   return raw
-    .replace(ANSI_ESCAPE, "")
+    .replace(ANSI_OSC, "")
+    .replace(ANSI_ERASE_CHARACTERS, (_sequence, count: string) =>
+      " ".repeat(
+        Math.min(count === "" ? 1 : Number(count), MAX_ERASE_CHARACTERS)
+      )
+    )
+    .replace(ANSI_CSI, "")
+    .replace(NONPRINTING_CONTROL, "")
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n");
+}
+
+export function resolveInitialColumns(
+  initialDimensions?: TerminalDimensions,
+  configuredColumns?: number
+): number | undefined {
+  return initialDimensions?.columns ?? configuredColumns;
 }
 
 export class OutputCapturingPseudoterminal implements Pseudoterminal {
@@ -56,7 +74,8 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
   constructor(
     private spawnRequest: Omit<SpawnCapturedProcessRequest, "cols" | "rows">,
     private resolveOutput: (output: CapturedTaskOutput) => void,
-    private epilogue?: TaskSuccessEpilogue
+    private epilogue?: TaskSuccessEpilogue,
+    private initialColumns?: number
   ) {}
 
   onDidWrite: Event<string> = this.writeEmitter.event;
@@ -66,7 +85,7 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
     this.capturedProcess = spawnCapturedProcess(
       {
         ...this.spawnRequest,
-        cols: initialDimensions?.columns,
+        cols: resolveInitialColumns(initialDimensions, this.initialColumns),
         rows: initialDimensions?.rows,
       },
       {
