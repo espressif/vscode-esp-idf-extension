@@ -1,0 +1,65 @@
+name: Run sync-athena
+description: Pull gitlab.espressif.cn:5050/idf/sync-athena and run one sync mode.
+
+inputs:
+  mode:
+    description: issue_to_task, comment_to_task, or pr_to_comment
+    required: true
+  issue_number:
+    description: Backfill issue number(s); used only for workflow_dispatch
+    required: false
+    default: ""
+  athena_token:
+    description: Athena bot token (nodes:read, nodes:write)
+    required: true
+  athena_base_url:
+    description: Athena server URL
+    required: true
+  registry_username:
+    description: GitLab registry username
+    required: true
+  registry_token:
+    description: GitLab token with read_registry on idf/sync-athena
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Log in to GitLab Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: gitlab.espressif.cn:5050
+        username: ${{ inputs.registry_username }}
+        password: ${{ inputs.registry_token }}
+
+    - name: Pull sync-athena image
+      shell: bash
+      run: docker pull "$SYNC_ATHENA_IMAGE"
+
+    - name: Run sync-athena
+      shell: bash
+      env:
+        MODE: ${{ inputs.mode }}
+        REPO: ${{ github.repository }}
+        ISSUE_NUMBER: ${{ inputs.issue_number }}
+        EVENT_PATH: ${{ github.event_path }}
+        GITHUB_EVENT_PATH: ${{ github.event_path }}
+        ATHENA_TICKET_PREFIX: ${{ vars.ATHENA_TICKET_PREFIX || 'VSC' }}
+        ATHENA_EDITORS: ${{ vars.ATHENA_EDITORS }}
+        ATHENA_CO_AUTHORS: ${{ vars.ATHENA_CO_AUTHORS }}
+        ATHENA_EMAIL_DOMAIN: espressif.com
+        ATHENA_PROJECT_UUID: ${{ vars.ATHENA_PROJECT_UUID }}
+        ATHENA_DB_PATH: ${{ vars.ATHENA_DB_PATH }}
+        ATHENA_BASE_URL: ${{ inputs.athena_base_url }}
+        ATHENA_TOKEN: ${{ inputs.athena_token }}
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        docker run --rm \
+          -v "${RUNNER_TEMP}:${RUNNER_TEMP}" \
+          -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
+          -e MODE -e REPO -e EVENT_PATH -e GITHUB_EVENT_PATH -e ISSUE_NUMBER \
+          -e ATHENA_PROJECT_UUID -e ATHENA_DB_PATH -e ATHENA_BASE_URL -e ATHENA_TOKEN \
+          -e ATHENA_TICKET_PREFIX -e ATHENA_EDITORS -e ATHENA_CO_AUTHORS \
+          -e ATHENA_EMAIL_DOMAIN \
+          -e GITHUB_TOKEN -e GITHUB_OUTPUT \
+          "$SYNC_ATHENA_IMAGE"
