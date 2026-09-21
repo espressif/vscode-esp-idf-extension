@@ -22,9 +22,6 @@ on:
 
 permissions: {}
 
-env:
-  SYNC_ATHENA_IMAGE: gitlab.espressif.cn:5050/idf/sync-athena:latest
-
 jobs:
   issue-to-task:
     if: github.event_name == 'issues' || github.event_name == 'workflow_dispatch'
@@ -40,8 +37,13 @@ jobs:
         with:
           mode: issue_to_task
           issue_number: ${{ inputs.issue-numbers }}
-          athena_token: ${{ secrets.ATHENA_TOKEN }}
+          ticket_prefix: ${{ vars.ATHENA_TICKET_PREFIX || 'VSC' }}
+          editors: ${{ vars.ATHENA_EDITORS }}
+          co_authors: ${{ vars.ATHENA_CO_AUTHORS }}
+          athena_project_uuid: ${{ vars.ATHENA_PROJECT_UUID }}
+          athena_db_path: ${{ vars.ATHENA_DB_PATH }}
           athena_base_url: ${{ secrets.ATHENA_BASE_URL }}
+          athena_token: ${{ secrets.ATHENA_TOKEN }}
           registry_username: ${{ vars.SYNC_ATHENA_REGISTRY_USERNAME }}
           registry_token: ${{ secrets.SYNC_ATHENA_REGISTRY_TOKEN }}
 
@@ -59,8 +61,11 @@ jobs:
         uses: ./.github/actions/sync-athena
         with:
           mode: comment_to_task
-          athena_token: ${{ secrets.ATHENA_TOKEN }}
+          ticket_prefix: ${{ vars.ATHENA_TICKET_PREFIX || 'VSC' }}
+          athena_project_uuid: ${{ vars.ATHENA_PROJECT_UUID }}
+          athena_db_path: ${{ vars.ATHENA_DB_PATH }}
           athena_base_url: ${{ secrets.ATHENA_BASE_URL }}
+          athena_token: ${{ secrets.ATHENA_TOKEN }}
           registry_username: ${{ vars.SYNC_ATHENA_REGISTRY_USERNAME }}
           registry_token: ${{ secrets.SYNC_ATHENA_REGISTRY_TOKEN }}
 
@@ -79,7 +84,10 @@ jobs:
         uses: ./.github/actions/sync-athena
         with:
           mode: pr_to_comment
-          athena_token: ${{ secrets.ATHENA_TOKEN }}
+          ticket_prefix: ${{ vars.ATHENA_TICKET_PREFIX || 'VSC' }}
+          athena_project_uuid: ${{ vars.ATHENA_PROJECT_UUID }}
+          athena_db_path: ${{ vars.ATHENA_DB_PATH }}
           athena_base_url: ${{ secrets.ATHENA_BASE_URL }}
+          athena_token: ${{ secrets.ATHENA_TOKEN }}
           registry_username: ${{ vars.SYNC_ATHENA_REGISTRY_USERNAME }}
           registry_token: ${{ secrets.SYNC_ATHENA_REGISTRY_TOKEN }}

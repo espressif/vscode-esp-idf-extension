@@ -9,11 +9,37 @@ inputs:
     description: Backfill issue number(s); used only for workflow_dispatch
     required: false
     default: ""
-  athena_token:
-    description: Athena bot token (nodes:read, nodes:write)
+  image:
+    description: sync-athena image built by the idf/sync-athena GitLab pipeline
+    required: false
+    default: gitlab.espressif.cn:5050/idf/sync-athena:latest
+  ticket_prefix:
+    description: Ticket key prefix; issue #42 becomes <prefix>-42
+    required: false
+    default: VSC
+  editors:
+    description: Comma-separated editor emails
+    required: false
+    default: ""
+  co_authors:
+    description: Comma-separated co-author emails
+    required: false
+    default: ""
+  email_domain:
+    description: Domain used to expand bare usernames in editors/co_authors
+    required: false
+    default: espressif.com
+  athena_project_uuid:
+    description: Athena project UUID
+    required: true
+  athena_db_path:
+    description: Athena database path (project/proj_<uuid>.db)
     required: true
   athena_base_url:
     description: Athena server URL
+    required: true
+  athena_token:
+    description: Athena bot token (nodes:read, nodes:write)
     required: true
   registry_username:
     description: GitLab registry username
@@ -34,22 +60,24 @@ runs:
 
     - name: Pull sync-athena image
       shell: bash
-      run: docker pull "$SYNC_ATHENA_IMAGE"
+      env:
+        IMAGE: ${{ inputs.image }}
+      run: docker pull "$IMAGE"
 
     - name: Run sync-athena
       shell: bash
       env:
+        IMAGE: ${{ inputs.image }}
         MODE: ${{ inputs.mode }}
         REPO: ${{ github.repository }}
         ISSUE_NUMBER: ${{ inputs.issue_number }}
         EVENT_PATH: ${{ github.event_path }}
-        GITHUB_EVENT_PATH: ${{ github.event_path }}
-        ATHENA_TICKET_PREFIX: ${{ vars.ATHENA_TICKET_PREFIX || 'VSC' }}
-        ATHENA_EDITORS: ${{ vars.ATHENA_EDITORS }}
-        ATHENA_CO_AUTHORS: ${{ vars.ATHENA_CO_AUTHORS }}
-        ATHENA_EMAIL_DOMAIN: espressif.com
-        ATHENA_PROJECT_UUID: ${{ vars.ATHENA_PROJECT_UUID }}
-        ATHENA_DB_PATH: ${{ vars.ATHENA_DB_PATH }}
+        ATHENA_TICKET_PREFIX: ${{ inputs.ticket_prefix }}
+        ATHENA_EDITORS: ${{ inputs.editors }}
+        ATHENA_CO_AUTHORS: ${{ inputs.co_authors }}
+        ATHENA_EMAIL_DOMAIN: ${{ inputs.email_domain }}
+        ATHENA_PROJECT_UUID: ${{ inputs.athena_project_uuid }}
+        ATHENA_DB_PATH: ${{ inputs.athena_db_path }}
         ATHENA_BASE_URL: ${{ inputs.athena_base_url }}
         ATHENA_TOKEN: ${{ inputs.athena_token }}
         GITHUB_TOKEN: ${{ github.token }}
@@ -57,9 +85,9 @@ runs:
         docker run --rm \
           -v "${RUNNER_TEMP}:${RUNNER_TEMP}" \
           -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
-          -e MODE -e REPO -e EVENT_PATH -e GITHUB_EVENT_PATH -e ISSUE_NUMBER \
+          -e MODE -e REPO -e EVENT_PATH -e ISSUE_NUMBER \
           -e ATHENA_PROJECT_UUID -e ATHENA_DB_PATH -e ATHENA_BASE_URL -e ATHENA_TOKEN \
           -e ATHENA_TICKET_PREFIX -e ATHENA_EDITORS -e ATHENA_CO_AUTHORS \
           -e ATHENA_EMAIL_DOMAIN \
           -e GITHUB_TOKEN -e GITHUB_OUTPUT \
-          "$SYNC_ATHENA_IMAGE"
+          "$IMAGE"
