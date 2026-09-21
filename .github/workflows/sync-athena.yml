@@ -1,0 +1,93 @@
+name: 🔷 Sync to Athena
+
+run-name: >
+  Sync to Athena -
+  ${{ github.event_name == 'pull_request' && 'New Pull Request' ||
+      github.event_name == 'issue_comment' && 'New Comment' ||
+      github.event_name == 'issues' && 'New Issue' ||
+      github.event_name == 'workflow_dispatch' && 'Manual Sync' }}
+
+on:
+  issues:
+    types: [opened, edited, reopened, closed]
+  issue_comment:
+    types: [created, edited]
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      issue-numbers:
+        description: "Issue numbers to backfill (comma-separated)"
+        required: true
+
+permissions: {}
+
+jobs:
+  issue-to-task:
+    if: github.event_name == 'issues' || github.event_name == 'workflow_dispatch'
+    name: Create or update Athena task from GitHub issue
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Sync issue to Athena
+        uses: ./.github/actions/sync-athena
+        with:
+          mode: issue_to_task
+          issue_number: ${{ inputs.issue-numbers }}
+          ticket_prefix: ${{ vars.ATHENA_TICKET_PREFIX || 'VSC' }}
+          editors: ${{ vars.ATHENA_EDITORS }}
+          co_authors: ${{ vars.ATHENA_CO_AUTHORS }}
+          athena_project_uuid: ${{ vars.ATHENA_PROJECT_UUID }}
+          athena_db_path: ${{ vars.ATHENA_DB_PATH }}
+          athena_base_url: ${{ secrets.ATHENA_BASE_URL }}
+          athena_token: ${{ secrets.ATHENA_TOKEN }}
+          registry_username: ${{ vars.SYNC_ATHENA_REGISTRY_USERNAME }}
+          registry_token: ${{ secrets.SYNC_ATHENA_REGISTRY_TOKEN }}
+
+  comment-to-task:
+    if: github.event_name == 'issue_comment'
+    name: Append issue/PR comment to matching Athena task
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Sync comment to Athena
+        uses: ./.github/actions/sync-athena
+        with:
+          mode: comment_to_task
+          ticket_prefix: ${{ vars.ATHENA_TICKET_PREFIX || 'VSC' }}
+          athena_project_uuid: ${{ vars.ATHENA_PROJECT_UUID }}
+          athena_db_path: ${{ vars.ATHENA_DB_PATH }}
+          athena_base_url: ${{ secrets.ATHENA_BASE_URL }}
+          athena_token: ${{ secrets.ATHENA_TOKEN }}
+          registry_username: ${{ vars.SYNC_ATHENA_REGISTRY_USERNAME }}
+          registry_token: ${{ secrets.SYNC_ATHENA_REGISTRY_TOKEN }}
+
+  pr-to-task:
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    name: Link PR to its Athena task
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Sync PR to Athena
+        uses: ./.github/actions/sync-athena
+        with:
+          mode: pr_to_comment
+          ticket_prefix: ${{ vars.ATHENA_TICKET_PREFIX || 'VSC' }}
+          athena_project_uuid: ${{ vars.ATHENA_PROJECT_UUID }}
+          athena_db_path: ${{ vars.ATHENA_DB_PATH }}
+          athena_base_url: ${{ secrets.ATHENA_BASE_URL }}
+          athena_token: ${{ secrets.ATHENA_TOKEN }}
+          registry_username: ${{ vars.SYNC_ATHENA_REGISTRY_USERNAME }}
+          registry_token: ${{ secrets.SYNC_ATHENA_REGISTRY_TOKEN }}
