@@ -123,7 +123,7 @@ Build
     * - **idf.ninjaArgs**
       - Arguments for Ninja build task. Scope: Resource.
     * - **idf.customExtraVars**
-      - Key-value object of environment variables added to extension command processes (e.g. ``OPENOCD_SCRIPTS``). Does not modify system environment outside VS Code. Scope: Resource.
+      - Key-value object of environment variables added to extension command processes (e.g. ``IDF_CCACHE_ENABLE``). ``OPENOCD_SCRIPTS`` is ignored here: it always follows the OpenOCD binary of the ESP-IDF setup or **idf.customOpenOCDPath**. Does not modify system environment outside VS Code. Scope: Resource.
     * - **idf.useIDFKconfigStyle**
       - Enable style validation for Kconfig files. Scope: Resource.
     * - **idf.saveBeforeBuild**

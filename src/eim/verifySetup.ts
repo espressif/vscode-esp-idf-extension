@@ -26,10 +26,10 @@ import { ConfigurationTarget, WorkspaceFolder } from "vscode";
 import { writeParameter } from "../configuration/idf";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { getEnvVariables } from "./loadSettings";
-import { ESP } from "../config";
 import { OutputChannel } from "../common/outputChannel";
 import { statusBarItems } from "../statusBar";
-import { expandEnvVariablesForIdfSetup } from "../common/prepareEnv";
+import { storeIdfSetupEnvironment } from "../common/prepareEnv";
+import { warnAboutStaleCustomExtraVars } from "../configuration/staleCustomExtraVars";
 
 export function pathVarFromEnvVars(envVars: {
   [key: string]: string;
@@ -179,15 +179,8 @@ export async function saveSettings(
     envVars["PYTHON"] = setupConf.python;
   }
 
-  const expandedEnvVars = await expandEnvVariablesForIdfSetup(
-    envVars,
-    workspaceFolder
-  );
-
-  ESP.ProjectConfiguration.store.set(
-    ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
-    expandedEnvVars,
-  );
+  await storeIdfSetupEnvironment(envVars, workspaceFolder);
+  void warnAboutStaleCustomExtraVars(workspaceFolder);
   if (statusBarItems["currentIdfVersion"]) {
     statusBarItems["currentIdfVersion"].text = `$(${
       commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
@@ -202,11 +195,7 @@ export async function startPythonReqsProcess(
   espIdfToolsPath: string,
   requirementsPath: string
 ) {
-  const reqFilePath = join(
-    espIdfPath,
-    "tools",
-    "check_python_dependencies.py"
-  );
+  const reqFilePath = join(espIdfPath, "tools", "check_python_dependencies.py");
   const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
     Object.assign({}, process.env)
   );
