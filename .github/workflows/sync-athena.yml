@@ -1,0 +1,148 @@
+name: 🔷 Sync to Athena
+
+run-name: >
+  Sync to Athena -
+  ${{ github.event_name == 'pull_request' && 'New Pull Request' ||
+      github.event_name == 'issue_comment' && 'New Comment' ||
+      github.event_name == 'issues' && 'New Issue' ||
+      github.event_name == 'workflow_dispatch' && 'Manual Sync' }}
+
+on:
+  issues:
+    types: [opened, edited, reopened, closed]
+  issue_comment:
+    types: [created, edited]
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      issue-numbers:
+        description: "Issue numbers to backfill (comma-separated)"
+        required: true
+
+env:
+  SYNC_ATHENA_IMAGE: gitlab.espressif.cn:5050/idf/sync-athena:latest
+
+jobs:
+  issue-to-task:
+    if: github.event_name == 'issues' || github.event_name == 'workflow_dispatch'
+    name: Create or update Athena task from GitHub issue
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Log in to GitLab Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: gitlab.espressif.cn:5050
+          username: ${{ vars.SYNC_ATHENA_REGISTRY_USERNAME }}
+          password: ${{ secrets.SYNC_ATHENA_REGISTRY_TOKEN }}
+
+      - name: Pull sync-athena image
+        run: docker pull "$SYNC_ATHENA_IMAGE"
+
+      - name: Sync issue to Athena
+        env:
+          MODE: issue_to_task
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ inputs.issue-numbers }}
+          ATHENA_TICKET_PREFIX: ${{ vars.ATHENA_TICKET_PREFIX || 'VSC' }}
+          ATHENA_EDITORS: ${{ vars.ATHENA_EDITORS }}
+          ATHENA_CO_AUTHORS: ${{ vars.ATHENA_CO_AUTHORS }}
+          ATHENA_EMAIL_DOMAIN: espressif.com
+          ATHENA_PROJECT_UUID: ${{ vars.ATHENA_PROJECT_UUID }}
+          ATHENA_DB_PATH: ${{ vars.ATHENA_DB_PATH }}
+          ATHENA_BASE_URL: ${{ secrets.ATHENA_BASE_URL }}
+          ATHENA_TOKEN: ${{ secrets.ATHENA_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          EVENT_PATH="${GITHUB_EVENT_PATH}"
+          docker run --rm \
+            -v "${RUNNER_TEMP}:${RUNNER_TEMP}" \
+            -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
+            -e MODE -e REPO -e EVENT_PATH -e ISSUE_NUMBER \
+            -e ATHENA_PROJECT_UUID -e ATHENA_DB_PATH -e ATHENA_BASE_URL -e ATHENA_TOKEN \
+            -e ATHENA_TICKET_PREFIX -e ATHENA_EDITORS -e ATHENA_CO_AUTHORS \
+            -e ATHENA_EMAIL_DOMAIN \
+            -e GITHUB_TOKEN -e GITHUB_OUTPUT \
+            "$SYNC_ATHENA_IMAGE"
+
+  comment-to-task:
+    if: github.event_name == 'issue_comment'
+    name: Append issue/PR comment to matching Athena task
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    steps:
+      - name: Log in to GitLab Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: gitlab.espressif.cn:5050
+          username: ${{ vars.SYNC_ATHENA_REGISTRY_USERNAME }}
+          password: ${{ secrets.SYNC_ATHENA_REGISTRY_TOKEN }}
+
+      - name: Pull sync-athena image
+        run: docker pull "$SYNC_ATHENA_IMAGE"
+
+      - name: Sync comment to Athena
+        env:
+          MODE: comment_to_task
+          REPO: ${{ github.repository }}
+          ATHENA_TICKET_PREFIX: ${{ vars.ATHENA_TICKET_PREFIX || 'VSC' }}
+          ATHENA_PROJECT_UUID: ${{ vars.ATHENA_PROJECT_UUID }}
+          ATHENA_DB_PATH: ${{ vars.ATHENA_DB_PATH }}
+          ATHENA_BASE_URL: ${{ secrets.ATHENA_BASE_URL }}
+          ATHENA_TOKEN: ${{ secrets.ATHENA_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          EVENT_PATH="${GITHUB_EVENT_PATH}"
+          docker run --rm \
+            -v "${RUNNER_TEMP}:${RUNNER_TEMP}" \
+            -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
+            -e MODE -e REPO -e EVENT_PATH \
+            -e ATHENA_PROJECT_UUID -e ATHENA_DB_PATH -e ATHENA_BASE_URL -e ATHENA_TOKEN \
+            -e ATHENA_TICKET_PREFIX \
+            -e GITHUB_TOKEN -e GITHUB_OUTPUT \
+            "$SYNC_ATHENA_IMAGE"
+
+  pr-to-task:
+    if: github.event_name == 'pull_request'
+    name: Link PR to its Athena task
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Log in to GitLab Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: gitlab.espressif.cn:5050
+          username: ${{ vars.SYNC_ATHENA_REGISTRY_USERNAME }}
+          password: ${{ secrets.SYNC_ATHENA_REGISTRY_TOKEN }}
+
+      - name: Pull sync-athena image
+        run: docker pull "$SYNC_ATHENA_IMAGE"
+
+      - name: Sync PR to Athena
+        env:
+          MODE: pr_to_comment
+          REPO: ${{ github.repository }}
+          ATHENA_TICKET_PREFIX: ${{ vars.ATHENA_TICKET_PREFIX || 'VSC' }}
+          ATHENA_PROJECT_UUID: ${{ vars.ATHENA_PROJECT_UUID }}
+          ATHENA_DB_PATH: ${{ vars.ATHENA_DB_PATH }}
+          ATHENA_BASE_URL: ${{ secrets.ATHENA_BASE_URL }}
+          ATHENA_TOKEN: ${{ secrets.ATHENA_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          EVENT_PATH="${GITHUB_EVENT_PATH}"
+          docker run --rm \
+            -v "${RUNNER_TEMP}:${RUNNER_TEMP}" \
+            -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
+            -e MODE -e REPO -e EVENT_PATH \
+            -e ATHENA_PROJECT_UUID -e ATHENA_DB_PATH -e ATHENA_BASE_URL -e ATHENA_TOKEN \
+            -e ATHENA_TICKET_PREFIX \
+            -e GITHUB_TOKEN -e GITHUB_OUTPUT \
+            "$SYNC_ATHENA_IMAGE"
