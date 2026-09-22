@@ -31,7 +31,7 @@ import {
   getWorkspaceFsPathFromScope,
   resolveIdfBuildPathValue,
 } from "./buildPath";
-import { readParameter } from "./idf";
+import { readParameter, readSettingsParameter } from "./idf";
 import { showInfoNotificationWithAction } from "../common/customNotifications";
 import { isSettingIDFTarget } from "../espIdf/setTarget/main";
 import { pathExists, readFile } from "fs-extra";
@@ -85,6 +85,12 @@ let idfDataProvider: IdfTreeDataProvider;
 
 export function getIdfBuildPath(scope: ConfigurationScope): string {
   const raw = readParameter("idf.buildPath", scope) as string;
+  return resolveIdfBuildPathValue(raw, getWorkspaceFsPathFromScope(scope));
+}
+
+/** Build path from settings alone, ignoring any selected preset. */
+export function getSettingsBuildPath(scope: ConfigurationScope): string {
+  const raw = readSettingsParameter("idf.buildPath", scope) as string;
   return resolveIdfBuildPathValue(raw, getWorkspaceFsPathFromScope(scope));
 }
 

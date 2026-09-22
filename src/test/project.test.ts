@@ -42,7 +42,12 @@ import { ConfigurePreset } from "../project-conf/projectConfiguration";
 import { ESP } from "../config";
 import { createMockMemento } from "./mockUtils";
 import { validateEspClangExists } from "../clang/index";
-import { clearCCppPropertiesJsonCompilerPath } from "../configuration/workspace";
+import {
+  clearCCppPropertiesJsonCompilerPath,
+  getIdfBuildPath,
+  getSettingsBuildPath,
+} from "../configuration/workspace";
+import { readParameter, readSettingsParameter } from "../configuration/idf";
 
 suite("Project tests", () => {
   const absPath = (filename: string) =>
@@ -230,6 +235,104 @@ suite("Project tests", () => {
         ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
       );
     }
+  });
+
+  const ownerFolder = join(wsFolder, "presetOwnerProject");
+  const ownerPreset: ConfigurePreset = {
+    name: "test_second",
+    binaryDir: join(ownerFolder, "builds", "test_second"),
+    environment: { LEAKED_VAR: "from-preset" },
+  };
+
+  const withOwnerPreset = async (body: () => Promise<void>) => {
+    selectPreset(ownerPreset);
+    ESP.ProjectConfiguration.store.set(
+      ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+      process.env
+    );
+    try {
+      await body();
+    } finally {
+      clearPreset(ownerPreset);
+      ESP.ProjectConfiguration.store.clear(
+        ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
+      );
+    }
+  };
+
+  const createProjectSettings = async (newProjectFolder: string) => {
+    await createVscodeFolder(
+      mockUpContext.extensionPath,
+      Uri.file(newProjectFolder)
+    );
+    const idfSetup = {
+      idfPath: process.env.IDF_PATH,
+      toolsPath: process.env.IDF_TOOLS_PATH,
+      python: `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`,
+    } as IdfSetup;
+    return setCurrentSettingsInTemplate(
+      join(newProjectFolder, ".vscode", "settings.json"),
+      idfSetup,
+      "no port",
+      "esp32",
+      Uri.file(newProjectFolder)
+    );
+  };
+
+  test("settings reads ignore the selected preset", async () => {
+    const targets = [
+      join(wsFolder, "freshProject"),
+      join(ownerFolder, "projects", "nested"),
+    ];
+    await withOwnerPreset(async () => {
+      for (const folder of targets) {
+        const scope = Uri.file(folder);
+        assert.strictEqual(
+          getIdfBuildPath(scope),
+          ownerPreset.binaryDir,
+          "readParameter answers with the window's preset for any scope"
+        );
+        assert.strictEqual(
+          getSettingsBuildPath(scope),
+          join(scope.fsPath, "build"),
+          `settings build path must ignore the preset for ${folder}`
+        );
+        const presetVars = readParameter("idf.customExtraVars", scope) as {
+          [key: string]: string;
+        };
+        assert.strictEqual(presetVars["LEAKED_VAR"], "from-preset");
+        const settingsVars = readSettingsParameter(
+          "idf.customExtraVars",
+          scope
+        ) as { [key: string]: string };
+        assert.strictEqual(settingsVars["LEAKED_VAR"], undefined);
+      }
+    });
+  });
+
+  test("new project clangd arguments ignore the selected preset", async function () {
+    const espClangPath = await validateEspClangExists();
+    if (!espClangPath) {
+      this.skip();
+    }
+    const targets = [
+      join(wsFolder, "freshProject"),
+      join(ownerFolder, "projects", "nested"),
+    ];
+    await withOwnerPreset(async () => {
+      for (const newProjectFolder of targets) {
+        const settingsJson = await createProjectSettings(newProjectFolder);
+        const expectedDir = join(Uri.file(newProjectFolder).fsPath, "build");
+        assert.ok(
+          settingsJson["clangd.arguments"].includes(
+            `--compile-commands-dir=${expectedDir}`
+          ),
+          `clangd must target the new project's build directory: ${JSON.stringify(
+            settingsJson["clangd.arguments"]
+          )}`
+        );
+      }
+    });
   });
 
   test("clearCCppPropertiesJsonCompilerPath empties an absolute compilerPath", async () => {
