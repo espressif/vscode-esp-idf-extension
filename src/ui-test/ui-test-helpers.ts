@@ -19,7 +19,7 @@ import { exec } from "child_process";
 import { pathExists } from "fs-extra";
 import { basename, resolve } from "path";
 import { promisify } from "util";
-import { By, Key } from "selenium-webdriver";
+import { Key } from "selenium-webdriver";
 import {
   ActivityBar,
   By,
