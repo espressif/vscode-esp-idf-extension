@@ -55,7 +55,7 @@ export async function validateEspClangExists() {
 
 export async function setClangSettings(
   settingsJson: any,
-  workspaceFolder: Uri,
+  buildPath: string,
   showError = false
 ) {
   const espClangPath = await validateEspClangExists();
@@ -65,7 +65,6 @@ export async function setClangSettings(
     }
     return;
   }
-  const buildPath = getIdfBuildPath(workspaceFolder);
   settingsJson["clangd.path"] = espClangPath;
   settingsJson["clangd.arguments"] = [
     "--background-index",
@@ -114,7 +113,11 @@ export async function configureClangSettings(
     return;
   }
 
-  await setClangSettings(settingsJson, workspaceFolder, showError);
+  await setClangSettings(
+    settingsJson,
+    getIdfBuildPath(workspaceFolder),
+    showError
+  );
 
   await updateJsonPreservingComments(settingsJsonPath, settingsJson);
 

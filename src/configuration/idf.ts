@@ -74,13 +74,39 @@ export function parameterToProjectConfigMap(
   return getPresetParameterValue(param, currentProjectConf);
 }
 
+export type ParameterValue =
+  | string
+  | string[]
+  | boolean
+  | ConfigurationTarget
+  | { [key: string]: any };
+
 export function readParameter(
   param: string,
   scope?: ConfigurationScope
-): string | string[] | boolean | ConfigurationTarget | { [key: string]: any } {
-  let paramValue = parameterToProjectConfigMap(param, scope);
-  paramValue =
-    paramValue || getIdfConfigurationSource().getScoped("", scope, param);
+): ParameterValue {
+  const presetValue = parameterToProjectConfigMap(param, scope);
+  if (presetValue) {
+    return resolveParameterValue(presetValue, scope);
+  }
+  return readSettingsParameter(param, scope);
+}
+
+/** Reads the setting as configured, ignoring any selected preset. */
+export function readSettingsParameter(
+  param: string,
+  scope?: ConfigurationScope
+): ParameterValue {
+  return resolveParameterValue(
+    getIdfConfigurationSource().getScoped("", scope, param),
+    scope
+  );
+}
+
+function resolveParameterValue(
+  paramValue: any,
+  scope?: ConfigurationScope
+): ParameterValue {
   if (typeof paramValue === "undefined") {
     return "";
   }

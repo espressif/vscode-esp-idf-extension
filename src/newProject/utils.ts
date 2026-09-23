@@ -27,10 +27,13 @@ import {
 import { configureClangSettings, setClangSettings } from "../clang/index";
 import { IdfSetup } from "../eim/types";
 import { Uri, WebviewPanel } from "vscode";
-import { readParameter } from "../configuration/idf";
+import { readSettingsParameter } from "../configuration/idf";
 import { join, resolve } from "path";
 import { readdir } from "fs/promises";
-import { setCCppPropertiesJsonCompileCommands } from "../configuration/workspace";
+import {
+  getSettingsBuildPath,
+  setCCppPropertiesJsonCompileCommands,
+} from "../configuration/workspace";
 import { ESP } from "../config";
 import { robustMove } from "../utils";
 import { existsSync, readFileSync } from "fs";
@@ -63,7 +66,10 @@ export async function setCurrentSettingsInTemplate(
   if (selectedIdfTarget) {
     settingsJson["idf.customExtraVars"]["IDF_TARGET"] = selectedIdfTarget;
   }
-  const customExtraVars = readParameter("idf.customExtraVars", workspace) as {
+  const customExtraVars = readSettingsParameter(
+    "idf.customExtraVars",
+    workspace
+  ) as {
     [key: string]: string;
   };
   if (customExtraVars) {
@@ -84,7 +90,7 @@ export async function setCurrentSettingsInTemplate(
     }
   }
 
-  await setClangSettings(settingsJson, workspace);
+  await setClangSettings(settingsJson, getSettingsBuildPath(workspace));
   return settingsJson;
 }
 
