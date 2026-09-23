@@ -99,19 +99,39 @@ const state = {
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-async function step(
-  stepName: string,
-  action: () => Promise<void>
-): Promise<void> {
-  console.log(`  → [step] ${stepName}`);
-  try {
-    await action();
-    console.log(`  ✓ [step] ${stepName}`);
-  } catch (err) {
-    const orig = err instanceof Error ? err.message : String(err);
-    console.log(`  ✗ [step] ${stepName}\n${orig}`);
-    throw new Error(`Test failed at: ${stepName}\n${orig}`);
-  }
+let skipRemainingSteps = false;
+
+/**
+ * Registers a scenario as its own Mocha suite. Each `step()` becomes a test,
+ * so the CI summary lists steps under the scenario instead of one `it` title.
+ * A failed step skips the rest of that scenario.
+ */
+function scenario(title: string, defineSteps: () => void): void {
+  describe(title, function () {
+    before(function () {
+      skipRemainingSteps = false;
+    });
+    defineSteps();
+  });
+}
+
+function step(stepName: string, action: () => Promise<void>): void {
+  it(stepName, async function () {
+    this.timeout(999999);
+    if (skipRemainingSteps) {
+      this.skip();
+    }
+    console.log(`  → [step] ${stepName}`);
+    try {
+      await action();
+      console.log(`  ✓ [step] ${stepName}`);
+    } catch (err) {
+      skipRemainingSteps = true;
+      const orig = err instanceof Error ? err.message : String(err);
+      console.log(`  ✗ [step] ${stepName}\n${orig}`);
+      throw new Error(`Test failed at: ${stepName}\n${orig}`);
+    }
+  });
 }
 
 async function assertNoOpenOcdFatal(when: string): Promise<void> {
@@ -143,43 +163,44 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
 
   // ── build ──────────────────────────────────────────────────────────────────
 
-  it("builds testWorkspace", async function () {
-    await step("Full clean", async () => {
+  scenario("builds testWorkspace", () => {
+    step("Full clean", async () => {
       await executeEspIdfCommand(ESP_IDF_COMMANDS.fullClean);
       await waitForPathAbsent(helloWorldBinPath, 60000);
     });
 
-    await step("Build project", async () => {
+    step("Build project", async () => {
       await executeEspIdfCommand(ESP_IDF_COMMANDS.build);
       const buildOutput = await waitForBuildComplete(helloWorldBinPath, 300000);
       console.log(buildOutput);
+      state.buildSucceeded = true;
     });
-
-    state.buildSucceeded = true;
-  }).timeout(999999);
+  });
 
   // ── flash ──────────────────────────────────────────────────────────────────
 
-  it("flashes testWorkspace", async function () {
-    if (!state.buildSucceeded) {
-      this.skip();
-    }
+  scenario("flashes testWorkspace", () => {
+    before(function () {
+      if (!state.buildSucceeded) {
+        this.skip();
+      }
+    });
 
-    await step(`Select serial port ${testHardwareSerialPort}`, async () => {
+    step(`Select serial port ${testHardwareSerialPort}`, async () => {
       await executeEspIdfCommandAndSelectOption(
         ESP_IDF_COMMANDS.selectPort,
         testHardwareSerialPort
       );
     });
 
-    await step("Select UART flash method", async () => {
+    step("Select UART flash method", async () => {
       await executeEspIdfCommandAndSelectOption(
         ESP_IDF_COMMANDS.selectFlashMethod,
         "UART"
       );
     });
 
-    await step("Flash project and verify success", async () => {
+    step("Flash project and verify success", async () => {
       await executeEspIdfCommand(ESP_IDF_COMMANDS.flash);
       const flashOutput = await waitForTerminalOutput(
         FLASH_SUCCESS_PATTERN,
@@ -187,26 +208,27 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       );
       console.log(flashOutput);
       expect(FLASH_SUCCESS_PATTERN.test(flashOutput)).to.be.true;
+      state.flashSucceeded = true;
     });
-
-    state.flashSucceeded = true;
-  }).timeout(999999);
+  });
 
   // ── monitor ────────────────────────────────────────────────────────────────
 
-  it("shows expected monitor output", async function () {
-    if (!state.flashSucceeded) {
-      this.skip();
-    }
+  scenario("shows expected monitor output", () => {
+    before(function () {
+      if (!state.flashSucceeded) {
+        this.skip();
+      }
+    });
 
-    await step(`Select monitor port ${testHardwareSerialPort}`, async () => {
+    step(`Select monitor port ${testHardwareSerialPort}`, async () => {
       await executeEspIdfCommandAndSelectOption(
         ESP_IDF_COMMANDS.selectMonitorPort,
         testHardwareSerialPort
       );
     });
 
-    await step("Start monitor and verify expected output", async () => {
+    step("Start monitor and verify expected output", async () => {
       await executeEspIdfCommand(ESP_IDF_COMMANDS.monitor);
       const monitorOutput = await waitForTerminalOutput(
         MONITOR_OUTPUT_PATTERN,
@@ -216,31 +238,33 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       expect(MONITOR_OUTPUT_PATTERN.test(monitorOutput)).to.be.true;
     });
 
-    await step("Kill monitor terminal", async () => {
+    step("Kill monitor terminal", async () => {
       await new Workbench().executeCommand("workbench.action.terminal.kill");
       await new Promise((res) => setTimeout(res, 2000));
+      state.monitorSucceeded = true;
     });
-
-    state.monitorSucceeded = true;
-  }).timeout(999999);
+  });
 
   // ── debug ──────────────────────────────────────────────────────────────────
 
-  it("debugs testWorkspace via JTAG on ESP32 ETHERNET KIT", async function () {
-    if (!state.flashSucceeded || !state.monitorSucceeded) {
-      this.skip();
-    }
+  scenario("debugs testWorkspace via JTAG on ESP32 ETHERNET KIT", () => {
+    let debugToolbar: DebugToolbar;
 
-    await dismissNotifications();
+    before(async function () {
+      if (!state.flashSucceeded || !state.monitorSucceeded) {
+        this.skip();
+      }
+      await dismissNotifications();
+    });
 
-    await step("Select JTAG flash method", async () => {
+    step("Select JTAG flash method", async () => {
       await executeEspIdfCommandAndSelectOption(
         ESP_IDF_COMMANDS.selectFlashMethod,
         "JTAG"
       );
     });
 
-    await step("Set target esp32 and board ESP32-ETHERNET-KIT", async () => {
+    step("Set target esp32 and board ESP32-ETHERNET-KIT", async () => {
       await executeEspIdfCommand(ESP_IDF_COMMANDS.setTarget);
       await new Promise((res) => setTimeout(res, 1000));
       await selectFromCurrentPicker("esp32", 15000);
@@ -248,7 +272,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await selectFromCurrentPicker("ESP32-ETHERNET-KIT", 15000);
     });
 
-    await step("Wait for idf.py set-target to complete", async () => {
+    step("Wait for idf.py set-target to complete", async () => {
       await waitForOutputChannelText(
         "ESP-IDF",
         SET_TARGET_COMPLETE_PATTERN,
@@ -256,23 +280,20 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       );
     });
 
-    await step("Rebuild project for the new target", async () => {
+    step("Rebuild project for the new target", async () => {
       await executeEspIdfCommand(ESP_IDF_COMMANDS.fullClean);
       await waitForPathAbsent(helloWorldBinPath, 60000);
       await executeEspIdfCommand(ESP_IDF_COMMANDS.build);
       await waitForBuildComplete(helloWorldBinPath, 300000);
+      state.jtagReady = true;
     });
 
-    state.jtagReady = true;
-
-    let debugToolbar: DebugToolbar;
-
-    await step("Launch debugger", async () => {
+    step("Launch debugger", async () => {
       debugToolbar = await launchDebugger(60000);
       state.activeDebugToolbar = debugToolbar;
     });
 
-    await step("Wait for default halt at app_main", async () => {
+    step("Wait for default halt at app_main", async () => {
       await debugToolbar!.waitForBreakPoint(60000);
       await assertNoOpenOcdFatal("on attach");
 
@@ -285,7 +306,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
     });
 
-    await step(
+    step(
       `Set gutter breakpoint at ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
       async () => {
         await setBreakpointInFile(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE);
@@ -302,7 +323,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       }
     );
 
-    await step(
+    step(
       `Continue and halt at user breakpoint ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
       async () => {
         await executeDebugAction("continue");
@@ -314,11 +335,11 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       }
     );
 
-    await step("Verify local a == 1 at user breakpoint", async () => {
+    step("Verify local a == 1 at user breakpoint", async () => {
       await waitForLocalVariable("a", 1, 20000);
     });
 
-    await step("Step Over and verify program counter advanced", async () => {
+    step("Step Over and verify program counter advanced", async () => {
       await executeDebugAction("stepOver");
       await waitForPausedAtLine(
         SOURCE_FILE_PATH,
@@ -327,11 +348,11 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       );
     });
 
-    await step("Verify local b == 2 after Step Over", async () => {
+    step("Verify local b == 2 after Step Over", async () => {
       await waitForLocalVariable("b", 2, 20000);
     });
 
-    await step("Verify debug session still active after Step Over", async () => {
+    step("Verify debug session still active after Step Over", async () => {
       const sessionAlive = await debugToolbar!.isDisplayed().catch(() => false);
       expect(
         sessionAlive,
@@ -340,27 +361,26 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await assertNoOpenOcdFatal("after Step Over");
     });
 
-    await step("Clear breakpoints; leave session paused for gdbinit and lifecycle", async () => {
+    step("Clear breakpoints; leave session paused for gdbinit and lifecycle", async () => {
       await removeAllBreakpoints().catch(() => undefined);
+      state.debugSmokeSucceeded = true;
+    });
+  });
+
+  scenario("resolves ROM symbols via gdbinit", () => {
+    before(function () {
+      if (!state.debugSmokeSucceeded) {
+        this.skip();
+      }
     });
 
-    state.debugSmokeSucceeded = true;
-
-  }).timeout(999999);
-
-  it("resolves ROM symbols via gdbinit", async function () {
-    if (!state.debugSmokeSucceeded) {
-      this.skip();
-    }
-
-    await step("Wait until the leftover debug session is paused", async () => {
+    step("Wait until the leftover debug session is paused", async () => {
       await waitUntilDebugPaused(60000);
       await assertNoOpenOcdFatal("before gdbinit symbol check");
     });
-    // after REBASE latest master changes with GDBinit changes included !!!!!!!!!
     // CDT Debug Console does not echo `source gdbinit` / `add-symbol-file`.
     // Re-enable when that output is visible (PR 1914 connect path).
-    // await step("Debug Console sourced gdbinit / ROM ELF", async () => {
+    // step("Debug Console sourced gdbinit / ROM ELF", async () => {
     //   const consoleText = await waitForDebugConsoleText(
     //     GDBINIT_SOURCED_PATTERN,
     //     20000
@@ -369,11 +389,11 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
     //   console.log(`[hardware-debug] ${sourced}`);
     // });
 
-    await step("Open Debug Console", async () => {
+    step("Open Debug Console", async () => {
       await new BottomBarPanel().openDebugConsoleView();
     });
 
-    await step("GDB info address memset, then info symbol of that address", async () => {
+    step("GDB info address memset, then info symbol of that address", async () => {
       const addressText = await evaluateDebugConsoleAndWait(
         ">info address memset",
         MEMSET_ADDRESS_PATTERN,
@@ -400,23 +420,24 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       }
       console.log(`[hardware-debug] ${symbolText.trim().split("\n").slice(0, 4).join(" ")}`);
     });
-  }).timeout(999999);
+  });
 
-  it("debugs session lifecycle via JTAG", async function () {
-    if (!state.jtagReady) {
-      this.skip();
-    }
-
-    await dismissNotifications();
-
+  scenario("debugs session lifecycle via JTAG", () => {
     let debugToolbar: DebugToolbar;
 
-    await step("Reuse debug session via Restart (do not F5)", async () => {
+    before(async function () {
+      if (!state.jtagReady) {
+        this.skip();
+      }
+      await dismissNotifications();
+    });
+
+    step("Reuse debug session via Restart (do not F5)", async () => {
       debugToolbar = await reuseOrLaunchDebugger(60000);
       state.activeDebugToolbar = debugToolbar;
     });
 
-    await step("Wait for default halt at app_main", async () => {
+    step("Wait for default halt at app_main", async () => {
       await waitUntilDebugPaused(60000);
       await assertNoOpenOcdFatal("on attach");
       try {
@@ -446,7 +467,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 30000);
     });
 
-    await step("Continue, then Pause while target is running", async () => {
+    step("Continue, then Pause while target is running", async () => {
       await executeDebugAction("continue");
       await waitForPauseIndicatorGone(SOURCE_FILE_PATH, 30000);
       await new Promise((res) => setTimeout(res, 2000));
@@ -455,7 +476,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await assertNoOpenOcdFatal("after Pause");
     });
 
-    await step("Restart and halt at app_main again", async () => {
+    step("Restart and halt at app_main again", async () => {
       await executeDebugAction("restart");
       await new Promise((res) => setTimeout(res, 5000));
       debugToolbar = await DebugToolbar.create(60000);
@@ -471,7 +492,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 30000);
     });
 
-    await step("Step Into add_one, then Step Out", async () => {
+    step("Step Into add_one, then Step Out", async () => {
       await setBreakpointInFile(SOURCE_FILE_PATH, STEP_INTO_CALL_LINE);
       await new Promise((res) => setTimeout(res, 1500));
       await executeDebugAction("continue");
@@ -514,7 +535,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 30000);
     });
 
-    await step(
+    step(
       `Set gutter breakpoint at ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
       async () => {
         await setBreakpointInFile(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE);
@@ -522,7 +543,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       }
     );
 
-    await step(
+    step(
       `Continue and halt at user breakpoint ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
       async () => {
         await executeDebugAction("continue");
@@ -531,7 +552,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       }
     );
 
-    await step(
+    step(
       `Remove breakpoint and Continue past ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
       async () => {
         await removeAllBreakpoints();
@@ -551,11 +572,11 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       }
     );
 
-    await step("Stop debug session", async () => {
+    step("Stop debug session", async () => {
       await stopDebugSession();
       state.activeDebugToolbar = undefined;
       await removeAllBreakpoints().catch(() => undefined);
       await new BottomBarPanel().toggle(false).catch(() => undefined);
     });
-  }).timeout(999999);
+  });
 });
