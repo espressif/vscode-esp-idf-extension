@@ -34,6 +34,7 @@ import { dirExistPromise } from "../utils";
 
 export class NewProjectPanel {
   public static currentPanel: NewProjectPanel | undefined;
+  private isDisposed = false;
 
   public static createOrShow(
     extensionPath: string,
@@ -206,6 +207,7 @@ export class NewProjectPanel {
 
     this.panel.onDidDispose(
       () => {
+        this.isDisposed = true;
         NewProjectPanel.currentPanel = undefined;
       },
       null,
@@ -381,7 +383,7 @@ export class NewProjectPanel {
         newProjectArgs.espAdfPath
       );
       this.templatesLoading = false;
-      if (NewProjectPanel.currentPanel !== this) {
+      if (this.isDisposed || NewProjectPanel.currentPanel !== this) {
         return;
       }
       this.panel.webview.postMessage({
@@ -396,7 +398,7 @@ export class NewProjectPanel {
           : "Error loading ESP-IDF examples.";
       Logger.error(msg, error as Error, "NewProjectPanel loadTemplates");
       this.templatesLoading = false;
-      if (NewProjectPanel.currentPanel !== this) {
+      if (this.isDisposed || NewProjectPanel.currentPanel !== this) {
         return;
       }
       this.panel.webview.postMessage({

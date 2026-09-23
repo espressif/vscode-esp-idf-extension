@@ -79,7 +79,8 @@ async function loadIdfSetupFromEnvVars(customVars: {
     pathExists(idfPath),
     pathExists(idfToolsPath),
   ]);
-  if (!idfPathExists || !idfToolsPathExists) {
+  const isValid = idfPathExists && idfToolsPathExists;
+  if (!isValid) {
     return;
   }
 
@@ -95,7 +96,7 @@ async function loadIdfSetupFromEnvVars(customVars: {
     activationScript: "",
     idfPath,
     gitPath: "",
-    isValid: false,
+    isValid,
     version: await getEspIdfFromCMake(idfPath),
     toolsPath: idfToolsPath,
     python: pythonEnvPath ? join(pythonEnvPath, ...pyDir) : "",
