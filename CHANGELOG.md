@@ -35,7 +35,7 @@ In [PR 1868](https://github.com/espressif/vscode-esp-idf-extension/pull/1868) we
 - [VS Code multiple folder configuration](https://github.com/espressif/vscode-esp-idf-extension/pull/1946)
 - [Custom Extra vars refresh remove stale customExtraVars](https://github.com/espressif/vscode-esp-idf-extension/pull/1950)
 - [Fix Clang settings using selected preset buildPath on newProject](https://github.com/espressif/vscode-esp-idf-extension/pull/1953)
-- [Fix node pty asci osc ctrl sequences, paralellize idf setup in new project wizard, sbom and IDF size task issues bugfix](https://github.com/espressif/vscode-esp-idf-extension/pull/1944)
+- [Fix node pty asci osc ctrl sequences, parallelize idf setup in new project wizard, sbom and IDF size task issues bugfix](https://github.com/espressif/vscode-esp-idf-extension/pull/1944)
 
 ### Bug fixes
 
