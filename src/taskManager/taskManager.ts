@@ -42,7 +42,7 @@ import type {
 import { OutputCapturingExecution } from "./customExecution";
 import { ShellOutputCapturingExecution } from "./shellCaptureExecution";
 import { formatCommandLine, known } from "../common/error/knownError";
-import { ErrorCode } from "../common/error/types";
+import { ErrorCode, ErrorPresentation } from "../common/error/types";
 
 export interface IdfTaskDefinition extends TaskDefinition {
   command?: string;
@@ -54,12 +54,14 @@ export function getTaskProcessExecution(
   args: string[],
   cwd: string,
   env: { [key: string]: string },
-  epilogue?: TaskSuccessEpilogue
+  epilogue?: TaskSuccessEpilogue,
+  initialColumns?: number
 ): OutputCapturingExecution {
   return OutputCapturingExecution.create(cmdString, args, {
     cwd,
     env,
     epilogue,
+    initialColumns,
   });
 }
 
@@ -85,7 +87,7 @@ export function collectExecutions(
 /**
  * Throws if any recorded {@link IdfTaskResult} reports failure.
  */
-export async function throwCapturedTaskFailure() {
+export async function throwCapturedTaskFailure(presentation?: ErrorPresentation) {
   for (const result of TaskManager.getTaskResults()) {
     if (!result.output.success) {
       const processArgs = result.processArgs ?? [];
@@ -104,6 +106,9 @@ export async function throwCapturedTaskFailure() {
         stderr: result.output.stderr,
         exitCode: result.output.exitCode,
         success: result.output.success,
+        ...(result.output.spawnErrorCode
+          ? { spawnErrorCode: result.output.spawnErrorCode }
+          : {}),
         ...(result.taskName ? { taskName: result.taskName } : {}),
         ...(invocation
           ? {
@@ -113,7 +118,7 @@ export async function throwCapturedTaskFailure() {
               commandLine: invocation.commandLine,
             }
           : {}),
-      });
+      }, presentation);
     }
   }
 }
@@ -467,6 +472,7 @@ export function addProcessTask(
   options?: {
     presentation?: TaskPresentationOptions;
     epilogue?: TaskSuccessEpilogue;
+    initialColumns?: number;
   }
 ): OutputCapturingExecution {
   const execution = getTaskProcessExecution(
@@ -474,7 +480,8 @@ export function addProcessTask(
     args,
     cwd,
     env,
-    options?.epilogue
+    options?.epilogue,
+    options?.initialColumns
   );
   TaskManager.addTask(
     name,

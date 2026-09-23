@@ -24,7 +24,7 @@ import { getIdfBuildPath } from "../../configuration/workspace";
 import { createEspIdfTerminal } from "../../terminal";
 
 export async function createClassicMenuconfig(extensionPath: string) {
-  PreCheck.perform([openFolderCheck], async () => {
+  await PreCheck.perform([openFolderCheck], async () => {
     const workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
     // Get build directory and sdkconfig file from settings
     const buildDirPath = getIdfBuildPath(workspaceFolder);

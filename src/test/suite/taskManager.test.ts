@@ -9,7 +9,7 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
 import { isKnownError } from "../../common/error/knownError";
-import { ErrorCode } from "../../common/error/types";
+import { ErrorCode, ErrorPresentation } from "../../common/error/types";
 import { OutputCapturingExecution } from "../../taskManager/customExecution";
 import {
   defaultShellExecutable,
@@ -190,6 +190,33 @@ suite("taskManager helpers", () => {
       );
     });
 
+    test("throws KnownError with spawnErrorCode and stderr from spawn failure", async () => {
+      TaskManager.recordTaskResult({
+        taskId: "idf-sbom-create-task",
+        taskName: "SBOM Create",
+        processCommand: "/venv/bin/python",
+        processArgs: ["-m", "esp_idf_sbom", "create", "project_description.json"],
+        output: {
+          success: false,
+          stderr:
+            "File: /venv/bin/python\nArgs: -m esp_idf_sbom create project_description.json\nCwd: /tmp/sbom-cwd\nError: File not found.",
+          stdout: "",
+          exitCode: 1,
+          spawnErrorCode: "ENOENT",
+        },
+      });
+      await assert.rejects(
+        throwCapturedTaskFailure(),
+        (e: unknown) =>
+          isKnownError(e) &&
+          e.code === ErrorCode.TaskFailedWithOutput &&
+          e.metadata?.spawnErrorCode === "ENOENT" &&
+          e.metadata?.stderr ===
+            "File: /venv/bin/python\nArgs: -m esp_idf_sbom create project_description.json\nCwd: /tmp/sbom-cwd\nError: File not found." &&
+          e.metadata?.taskName === "SBOM Create"
+      );
+    });
+
     test("keeps large captured output out of the error message", async () => {
       const stdout = "ninja: build stopped\n".repeat(2000);
       TaskManager.recordTaskResult({
@@ -213,6 +240,31 @@ suite("taskManager helpers", () => {
           e.message.includes(`[${stdout.length} chars]`) &&
           !e.message.includes("ninja: build stopped") &&
           !(e.stack ?? "").includes("ninja: build stopped")
+      );
+    });
+
+    test("attaches optional ErrorPresentation to the thrown KnownError", async () => {
+      const presentation: ErrorPresentation = {
+        userMessage: "Build task failed. Check the terminal output for details.",
+        logMessage: "Build task failed with captured output.",
+        outputChannel: "Build",
+      };
+      TaskManager.recordTaskResult({
+        taskId: "idf-build-task",
+        taskName: "ESP-IDF Build",
+        output: {
+          success: false,
+          stderr: "cmake error",
+          stdout: "",
+          exitCode: 1,
+        },
+      });
+      await assert.rejects(
+        throwCapturedTaskFailure(presentation),
+        (e: unknown) =>
+          isKnownError(e) &&
+          e.code === ErrorCode.TaskFailedWithOutput &&
+          e.presentation === presentation
       );
     });
   });

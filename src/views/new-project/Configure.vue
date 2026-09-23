@@ -221,7 +221,7 @@ function handleCreateProject() {
         <div class="settings-description">
           Add files separated by comma like
           <span
-            >interface/ftdi/esp32_devkitj_v1.cfg,board/esp32-wrover.cfg</span
+            >interface/ftdi/esp_ftdi.cfg,target/esp32.cfg</span
           >
         </div>
         <div class="settings-control">

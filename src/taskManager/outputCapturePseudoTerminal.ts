@@ -30,7 +30,10 @@ import {
 } from "./capturedProcess";
 import { Logger } from "../common/logger";
 
-const ANSI_ESCAPE = /[\u001B\u009B][[\]()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
+const ANSI_CSI = /(?:\u001B\[|\u009B)[0-?]*[ -/]*[@-~]/g;
+const ANSI_ERASE_CHARACTERS = /(?:\u001B\[|\u009B)(\d*)X/g;
+const ANSI_OSC = /\u001B\][^\u0007\u001B]*(?:\u0007|\u001B\\)/g;
+const NONPRINTING_CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001A\u001C-\u001F\u007F-\u009F]/g;
 
 /**
  * Turns terminal bytes into plain text for {@link CapturedTaskOutput} consumers
@@ -39,10 +42,25 @@ const ANSI_ESCAPE = /[\u001B\u009B][[\]()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-
  * separate lines so the whole history stays readable.
  */
 export function sanitizeCapturedText(raw: string): string {
+  const MAX_ERASE_CHARACTERS = 1000;
   return raw
-    .replace(ANSI_ESCAPE, "")
+    .replace(ANSI_OSC, "")
+    .replace(ANSI_ERASE_CHARACTERS, (_sequence, count: string) =>
+      " ".repeat(
+        Math.min(count === "" ? 1 : Number(count), MAX_ERASE_CHARACTERS)
+      )
+    )
+    .replace(ANSI_CSI, "")
+    .replace(NONPRINTING_CONTROL, "")
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n");
+}
+
+export function resolveInitialColumns(
+  initialDimensions?: TerminalDimensions,
+  configuredColumns?: number
+): number | undefined {
+  return initialDimensions?.columns ?? configuredColumns;
 }
 
 export class OutputCapturingPseudoterminal implements Pseudoterminal {
@@ -56,8 +74,8 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
   constructor(
     private spawnRequest: Omit<SpawnCapturedProcessRequest, "cols" | "rows">,
     private resolveOutput: (output: CapturedTaskOutput) => void,
-    private rejectOutput: (error: Error) => void,
-    private epilogue?: TaskSuccessEpilogue
+    private epilogue?: TaskSuccessEpilogue,
+    private initialColumns?: number
   ) {}
 
   onDidWrite: Event<string> = this.writeEmitter.event;
@@ -67,7 +85,7 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
     this.capturedProcess = spawnCapturedProcess(
       {
         ...this.spawnRequest,
-        cols: initialDimensions?.columns,
+        cols: resolveInitialColumns(initialDimensions, this.initialColumns),
         rows: initialDimensions?.rows,
       },
       {
@@ -139,8 +157,13 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
       return;
     }
     this.settled = true;
-    this.writeEmitter.fire(`Error: ${error.message}\r\n`);
-    this.rejectOutput(error);
+    const errorLine = `File: ${
+      this.spawnRequest.file
+    }\nArgs: ${this.spawnRequest.args.join(" ")}\nCwd: ${
+      this.spawnRequest.cwd ?? ""
+    }\nError: ${error.message}`;
+    this.writeEmitter.fire(toTerminalNewlines(`${errorLine}\n`));
+    this.stderr += `${errorLine}\n`;
     const rawCode = (error as NodeJS.ErrnoException).code;
     const exitCode =
       typeof rawCode === "number"
@@ -148,6 +171,16 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
         : Number.isFinite(Number(rawCode))
         ? Number(rawCode)
         : 1;
+    const output: CapturedTaskOutput = {
+      stdout: sanitizeCapturedText(this.stdout),
+      stderr: sanitizeCapturedText(this.stderr),
+      exitCode,
+      success: false,
+    };
+    if (typeof rawCode === "string" && rawCode.length > 0) {
+      output.spawnErrorCode = rawCode;
+    }
+    this.resolveOutput(output);
     this.closeEmitter.fire(exitCode);
   }
 }

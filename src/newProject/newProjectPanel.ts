@@ -15,10 +15,10 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../common/logger";
 import { OutputChannel } from "../common/outputChannel";
-import { INewProjectArgs } from "./newProjectInit";
+import { INewProjectArgs, loadNewProjectTemplates } from "./newProjectInit";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
 import { copy, ensureDir, readFile } from "fs-extra";
-import { IExample } from "./Example";
+import { IExample, IExampleCategory } from "./Example";
 import {
   copyFromSrcProject,
   markdownToWebviewHtml,
@@ -34,6 +34,7 @@ import { dirExistPromise } from "../utils";
 
 export class NewProjectPanel {
   public static currentPanel: NewProjectPanel | undefined;
+  private isDisposed = false;
 
   public static createOrShow(
     extensionPath: string,
@@ -65,6 +66,8 @@ export class NewProjectPanel {
   private static readonly viewType = "newProjectWizard";
   private readonly panel: vscode.WebviewPanel;
   private extensionPath: string;
+  private templates: { [key: string]: IExampleCategory } = {};
+  private templatesLoading = true;
   private _disposables: vscode.Disposable[] = [];
 
   private constructor(
@@ -107,6 +110,8 @@ export class NewProjectPanel {
       )
     );
     this.panel.webview.html = this.createHtml(scriptPath);
+    this.templates = newProjectArgs.templates || {};
+    void this.loadTemplatesInBackground(newProjectArgs);
 
     const containerPath =
       process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
@@ -178,7 +183,7 @@ export class NewProjectPanel {
               newProjectArgs.boards && newProjectArgs.boards.length > 0
                 ? newProjectArgs.boards[0].configFiles.join(",")
                 : [
-                    "interface/ftdi/esp32_devkitj_v1.cfg",
+                    "interface/ftdi/esp_ftdi.cfg",
                     "target/esp32.cfg",
                   ].join(",");
             this.panel.webview.postMessage({
@@ -189,7 +194,8 @@ export class NewProjectPanel {
               idfTargets: newProjectArgs.idfTargets,
               serialPortList: newProjectArgs.serialPortList,
               openOcdConfigFiles: defConfigFiles,
-              templates: newProjectArgs.templates,
+              templates: this.templates,
+              templatesLoading: this.templatesLoading,
               pathSep: path.sep,
             });
           }
@@ -201,6 +207,7 @@ export class NewProjectPanel {
 
     this.panel.onDidDispose(
       () => {
+        this.isDisposed = true;
         NewProjectPanel.currentPanel = undefined;
       },
       null,
@@ -366,6 +373,39 @@ export class NewProjectPanel {
     });
     if (selectedFolder && selectedFolder.length > 0) {
       return selectedFolder[0].fsPath;
+    }
+  }
+
+  private async loadTemplatesInBackground(newProjectArgs: INewProjectArgs) {
+    try {
+      this.templates = await loadNewProjectTemplates(
+        newProjectArgs.espIdfSetup,
+        newProjectArgs.espAdfPath
+      );
+      this.templatesLoading = false;
+      if (this.isDisposed || NewProjectPanel.currentPanel !== this) {
+        return;
+      }
+      this.panel.webview.postMessage({
+        command: "setTemplates",
+        templates: this.templates,
+        templatesLoading: false,
+      });
+    } catch (error) {
+      const msg =
+        error instanceof Error && error.message
+          ? error.message
+          : "Error loading ESP-IDF examples.";
+      Logger.error(msg, error as Error, "NewProjectPanel loadTemplates");
+      this.templatesLoading = false;
+      if (this.isDisposed || NewProjectPanel.currentPanel !== this) {
+        return;
+      }
+      this.panel.webview.postMessage({
+        command: "setTemplates",
+        templates: this.templates,
+        templatesLoading: false,
+      });
     }
   }
 

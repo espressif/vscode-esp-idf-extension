@@ -195,7 +195,7 @@ export class OpenOCDManager extends EventEmitter {
     const workspace = requireOpenOcdWorkspace(this.workspace);
     this.workspace = workspace;
     const openOcdPath = await OpenOCDManager.getOpenOcdPath(workspace, modifiedEnv);
-    validateOpenOcdStartPrerequisites(workspace, openOcdPath, modifiedEnv);
+    await validateOpenOcdStartPrerequisites(workspace, openOcdPath, modifiedEnv);
 
     const versionString = await this.version(true);
     const useLocationCommand = supportsAdapterUsbLocationCommand(versionString);

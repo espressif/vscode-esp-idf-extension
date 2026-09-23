@@ -41,6 +41,12 @@ const buildIdfTaskInProgressPresentation: ErrorPresentation = {
   logMessage: "Attempted to build while {taskName} is in progress.",
 };
 
+export const buildTaskFailedWithOutputPresentation: ErrorPresentation = {
+  userMessage: "Build task failed. Check the terminal output for details.",
+  logMessage: "Build task failed with captured output.",
+  outputChannel: "Build",
+};
+
 /**
  * Runs the ESP-IDF build pipeline: optional pre/post custom tasks, CMake/ninja
  * build via {@link BuildTask}, optional size report, and when {@link ESP.FlashType}
@@ -96,13 +102,19 @@ export async function buildMain(
       sizeResult = await runSizeTaskIfEnabled(workspace);
     }
     if (!buildResult || !sizeResult) {
-      await throwCapturedTaskFailure();
+      await throwCapturedTaskFailure(buildTaskFailedWithOutputPresentation);
     }
     if (!cancelToken.isCancellationRequested) {
       updateIdfComponentsTree(workspace);
       Logger.infoNotify("Build Successful");
       for (const result of TaskManager.getTaskResults()) {
-        OutputChannel.appendLine(result.output.stdout, "Build");
+        const stdout = result.output.stdout.replace(
+          /^(?:[^\S\n]*\n)+|(?:\n[^\S\n]*)+$/g,
+          ""
+        );
+        if (stdout) {
+          OutputChannel.appendLine(stdout, "Build");
+        }
       }
     }
     return { continueFlag: true };

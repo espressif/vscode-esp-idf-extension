@@ -16,7 +16,7 @@
  */
 
 import * as assert from "assert";
-import { mkdtempSync, writeFileSync } from "fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "fs";
 import { join, resolve } from "path";
 import { tmpdir } from "os";
 import * as vscode from "vscode";
@@ -40,7 +40,7 @@ import {
   runSizeTaskIfEnabled,
   setSizeExecutionTestHooks,
 } from "../../build/sizeExecution";
-import { IDFSize } from "../../espIdf/size/idfSize";
+import { IDFSize, idfSizeCliArgs } from "../../espIdf/size/idfSize";
 import { sizeErrorPresentation } from "../../espIdf/size/sizeErrorPresentation";
 import { ProjectConfigStore } from "../../project-conf";
 import { createMockMemento } from "../mockUtils";
@@ -143,6 +143,40 @@ suite("size errors", () => {
     });
   });
 
+  suite("idfSizeCliArgs", () => {
+    test("ESP-IDF 6.0+ uses --files and json2", () => {
+      assert.deepStrictEqual(idfSizeCliArgs("6.0.0"), {
+        formatArgs: ["--format", "json2"],
+        filesFlag: "--files",
+      });
+      assert.deepStrictEqual(idfSizeCliArgs("6.1.0"), {
+        formatArgs: ["--format", "json2"],
+        filesFlag: "--files",
+      });
+    });
+
+    test("ESP-IDF 5.5 uses --file and json2", () => {
+      assert.deepStrictEqual(idfSizeCliArgs("5.5.0"), {
+        formatArgs: ["--format", "json2"],
+        filesFlag: "--file",
+      });
+    });
+
+    test("ESP-IDF 5.2 uses --file and json", () => {
+      assert.deepStrictEqual(idfSizeCliArgs("5.2.0"), {
+        formatArgs: ["--format", "json"],
+        filesFlag: "--file",
+      });
+    });
+
+    test("ESP-IDF 5.0 uses --file and --json", () => {
+      assert.deepStrictEqual(idfSizeCliArgs("5.0.0"), {
+        formatArgs: ["--json"],
+        filesFlag: "--file",
+      });
+    });
+  });
+
   suite("IDFSize", () => {
     test("throws fileNotFound when map file is absent", async () => {
       const buildDir = mkdtempSync(join(tmpdir(), "size-missing-map-"));
@@ -167,6 +201,39 @@ suite("size errors", () => {
           error.code === ErrorCode.FILE_NOT_FOUND &&
           String(error.metadata?.filePath).endsWith("app.map")
       );
+    });
+
+    test("passes the map file path as the value of the files flag", async () => {
+      const idfRoot = mkdtempSync(join(tmpdir(), "size-idf-root-"));
+      mkdirSync(join(idfRoot, "tools", "cmake"), { recursive: true });
+      writeFileSync(
+        join(idfRoot, "tools", "cmake", "version.cmake"),
+        "set(IDF_VERSION_MAJOR 6)\nset(IDF_VERSION_MINOR 0)\nset(IDF_VERSION_PATCH 0)\n"
+      );
+      ESP.ProjectConfiguration.store.set(
+        ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+        { IDF_PATH: idfRoot }
+      );
+
+      const idfSize = new IDFSize(testWorkspaceUri);
+      const calls: string[][] = [];
+      (idfSize as any).resolveMapFilePath = async () => "/tmp/app.map";
+      (idfSize as any).idfCommandInvoker = async (args: string[]) => {
+        calls.push(args);
+        return {};
+      };
+
+      await idfSize.calculateWithProgress({
+        report: () => undefined,
+      });
+
+      assert.deepStrictEqual(calls[2], [
+        "idf_size.py",
+        "--files",
+        "/tmp/app.map",
+        "--format",
+        "json2",
+      ]);
     });
   });
 

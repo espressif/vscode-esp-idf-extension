@@ -182,8 +182,8 @@ registerNewErrorInRegistry({
   code: ErrorCode.TaskFailedWithOutput,
   severity: ErrorSeverity.Error,
   userMessage:
-    "Build task failed. Check the terminal output for details.",
-  logMessage: "Build task failed with captured output.",
+    "Task failed. Check the terminal output for details.",
+  logMessage: "Task failed with captured output.",
   actions: [
     {
       label: "View Terminal Output",
