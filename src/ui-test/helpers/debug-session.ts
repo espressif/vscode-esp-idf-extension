@@ -66,24 +66,6 @@ export function logDebugSession(message: string): void {
   console.log(`[hardware-debug] ${message}`);
 }
 
-async function tryExecuteExactPaletteCommand(exactLabel: string): Promise<boolean> {
-  try {
-    logDebugSession(`Command palette exact: "${exactLabel}"`);
-    await executeEspIdfCommand(exactLabel);
-    return true;
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    logDebugSession(`Palette "${exactLabel}" failed: ${message}`);
-    try {
-      const input = await InputBox.create(2000);
-      await input.cancel();
-    } catch {
-      // Picker already closed.
-    }
-    return false;
-  }
-}
-
 async function clickDebugToolbarAction(
   action: "disconnect" | "stop"
 ): Promise<boolean> {
@@ -298,10 +280,6 @@ async function logStatusBar(when: string): Promise<string[]> {
   return texts;
 }
 
-function hasGdbAdapterStatus(texts: string[]): boolean {
-  return texts.some((text) => /GDB Adapter/i.test(text));
-}
-
 function hasOpenOcdRunningStatus(texts: string[]): boolean {
   return texts.some(
     (text) => /OpenOCD/i.test(text) && /Running/i.test(text)
@@ -315,20 +293,6 @@ async function isDebugToolbarVisible(): Promise<boolean> {
   } catch {
     return false;
   }
-}
-
-async function waitForDebugToolbarGone(timeoutMs: number): Promise<boolean> {
-  logDebugSession(`Waiting up to ${timeoutMs}ms for debug toolbar to disappear`);
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    const visible = await isDebugToolbarVisible();
-    logDebugSession(`Debug toolbar visible: ${visible}`);
-    if (!visible) {
-      return true;
-    }
-    await delay(2000);
-  }
-  return false;
 }
 
 async function waitUntilStatusBarClears(
@@ -468,10 +432,14 @@ async function dismissAlreadyRunningViaModal(): Promise<boolean> {
       return false;
     }
     for (const title of ["Cancel", "No"]) {
-      logDebugSession(`Modal: pushing "${title}"`);
-      await dialog.pushButton(title);
-      await delay(1000);
-      return true;
+      try {
+        logDebugSession(`Modal: pushing "${title}"`);
+        await dialog.pushButton(title);
+        await delay(1000);
+        return true;
+      } catch {
+        // Button title may differ.
+      }
     }
     return false;
   } catch {

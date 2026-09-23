@@ -69,19 +69,6 @@ export async function removeAllBreakpoints(): Promise<void> {
   await delay(2000);
 }
 
-export async function removeBreakpointInFile(
-  filePath: string,
-  lineNumber: number
-): Promise<void> {
-  const editor = await openFileInEditor(filePath);
-  const existing = await editor.getBreakpoint(lineNumber);
-  if (!existing) {
-    return;
-  }
-  await editor.toggleBreakpoint(lineNumber);
-  await delay(1500);
-}
-
 /**
  * `getPausedBreakpoint()` reads the yellow-arrow gutter on a GDB halt.
  * It throws when 0 or >1 pause indicators are present — callers retry.
@@ -120,27 +107,6 @@ async function pollPausedLine(
   }
 
   return undefined;
-}
-
-/** Returns `undefined` if the pause indicator does not move within `timeoutMs`. */
-export async function waitForPausedLineChange(
-  filePath: string,
-  previousLine: number,
-  timeoutMs: number
-): Promise<number | undefined> {
-  return pollPausedLine(filePath, timeoutMs, (line) => line !== previousLine);
-}
-
-export async function waitForPausedLine(
-  filePath: string,
-  timeoutMs: number
-): Promise<number> {
-  const line = await pollPausedLine(filePath, timeoutMs, () => true);
-  if (typeof line !== "number") {
-    const fileName = filePath.split("/").pop() ?? filePath;
-    throw new Error(`Timed out waiting for a pause indicator in ${fileName}.`);
-  }
-  return line;
 }
 
 export async function waitForPausedLineInRange(
@@ -235,18 +201,6 @@ export async function readCallStackSectionText(): Promise<string | undefined> {
   } catch {
     return undefined;
   }
-}
-
-export async function readCallStackTopFrameLine(): Promise<number | undefined> {
-  const rawText = await readCallStackSectionText();
-  if (!rawText) {
-    return undefined;
-  }
-  const m = rawText.match(/\.c[:\s]+(\d+)/);
-  if (!m) {
-    return undefined;
-  }
-  return parseInt(m[1], 10);
 }
 
 export async function waitForCallStackMatching(
