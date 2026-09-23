@@ -16,7 +16,7 @@
  */
 
 import * as assert from "assert";
-import { mkdtempSync, writeFileSync } from "fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "fs";
 import { join, resolve } from "path";
 import { tmpdir } from "os";
 import * as vscode from "vscode";
@@ -201,6 +201,39 @@ suite("size errors", () => {
           error.code === ErrorCode.FILE_NOT_FOUND &&
           String(error.metadata?.filePath).endsWith("app.map")
       );
+    });
+
+    test("passes the map file path as the value of the files flag", async () => {
+      const idfRoot = mkdtempSync(join(tmpdir(), "size-idf-root-"));
+      mkdirSync(join(idfRoot, "tools", "cmake"), { recursive: true });
+      writeFileSync(
+        join(idfRoot, "tools", "cmake", "version.cmake"),
+        "set(IDF_VERSION_MAJOR 6)\nset(IDF_VERSION_MINOR 0)\nset(IDF_VERSION_PATCH 0)\n"
+      );
+      ESP.ProjectConfiguration.store.set(
+        ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+        { IDF_PATH: idfRoot }
+      );
+
+      const idfSize = new IDFSize(testWorkspaceUri);
+      const calls: string[][] = [];
+      (idfSize as any).resolveMapFilePath = async () => "/tmp/app.map";
+      (idfSize as any).idfCommandInvoker = async (args: string[]) => {
+        calls.push(args);
+        return {};
+      };
+
+      await idfSize.calculateWithProgress({
+        report: () => undefined,
+      });
+
+      assert.deepStrictEqual(calls[2], [
+        "idf_size.py",
+        "--files",
+        "/tmp/app.map",
+        "--format",
+        "json2",
+      ]);
     });
   });
 

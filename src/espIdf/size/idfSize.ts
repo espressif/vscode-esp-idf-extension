@@ -113,7 +113,7 @@ export class IDFSize {
         return result;
       }),
       this.idfCommandInvoker(
-        ["idf_size.py", mapFilePath, filesFlag, ...formatArgs],
+        ["idf_size.py", filesFlag, mapFilePath, ...formatArgs],
         mapFilePath,
         cancelToken
       ).then((result) => {
