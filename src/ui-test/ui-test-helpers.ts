@@ -855,24 +855,6 @@ export async function evaluateDebugConsole(expression: string): Promise<void> {
   await delay(1500);
 }
 
-export async function waitForDebugConsoleText(
-  pattern: RegExp,
-  timeoutMs: number
-): Promise<string> {
-  const deadline = Date.now() + timeoutMs;
-  let last = "";
-  while (Date.now() < deadline) {
-    last = await readDebugConsoleText();
-    if (pattern.test(last)) {
-      return last;
-    }
-    await delay(1000);
-  }
-  throw new Error(
-    `Timed out waiting for Debug Console to match ${pattern}.\nLast console:\n${last}`
-  );
-}
-
 /**
  * Visible Debug Console text is often a sliding window, not a full append-only
  * log. Reconstruct text that appeared after `before`.

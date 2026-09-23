@@ -44,7 +44,6 @@ import {
   waitForBuildComplete,
   waitForCallStackMatching,
   evaluateDebugConsoleAndWait,
-  waitForDebugConsoleText,
   waitForLocalVariable,
   waitForOutputChannelText,
   waitForPathAbsent,
@@ -81,8 +80,6 @@ const ADD_ONE_BODY_END_EXCLUSIVE = 19;
 const SOURCE_FILE_NAME = "hello_world_main.c";
 const SOURCE_FILE_PATH = resolve(testWorkspaceDir, "main", SOURCE_FILE_NAME);
 const APP_MAIN_STACK_PATTERN = /app_main/;
-const GDBINIT_SOURCED_PATTERN =
-  /source\s+\S*gdbinit|add-symbol-file\s+\S+/i;
 const MEMSET_ADDRESS_PATTERN =
   /Symbol\s+"memset"\s+is[^\n]*\b(0x[0-9A-Fa-f]{4,})/i;
 
@@ -378,16 +375,6 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await waitUntilDebugPaused(60000);
       await assertNoOpenOcdFatal("before gdbinit symbol check");
     });
-    // CDT Debug Console does not echo `source gdbinit` / `add-symbol-file`.
-    // Re-enable when that output is visible (PR 1914 connect path).
-    // step("Debug Console sourced gdbinit / ROM ELF", async () => {
-    //   const consoleText = await waitForDebugConsoleText(
-    //     GDBINIT_SOURCED_PATTERN,
-    //     20000
-    //   );
-    //   const sourced = consoleText.match(GDBINIT_SOURCED_PATTERN)?.[0];
-    //   console.log(`[hardware-debug] ${sourced}`);
-    // });
 
     step("Open Debug Console", async () => {
       await new BottomBarPanel().openDebugConsoleView();
