@@ -83,7 +83,7 @@ All commands start with ``ESP-IDF:``.
    * - Open ESP-IDF Terminal
      - Open a terminal with IDF_PATH and Python virtual environment activated.
    * - OpenOCD Adapter (Serial & Location)
-     - Clear the OpenOCD adapter serial number and USB location stored for the current project, and stop the OpenOCD server if it is running. These values are stored when you choose a connected board in **Set Espressif Device Target** or **Select OpenOCD Board Configuration**, so that OpenOCD attaches to that specific board when several are connected. Run this command after swapping boards if OpenOCD fails with ``No device matches the serial string``. The current values are shown in the ``[Adapter] S:<serial> L:<location>`` status bar item, which can be enabled from the ESP-IDF Explorer commands list.
+     - Choose between pinning OpenOCD to a board that is connected right now (the same list as **Select OpenOCD Board Configuration**) or clearing the adapter serial number and USB location stored for the current project, which also stops the OpenOCD server if it is running. These values are stored when you choose a connected board in **Set Espressif Device Target** or **Select OpenOCD Board Configuration**, so that OpenOCD attaches to that specific board when several are connected. Run this command after swapping boards if OpenOCD fails with ``No device matches the serial string``. The current values are shown in the ``[Adapter] S:<serial> L:<location>`` status bar item, which can be enabled from the ESP-IDF Explorer commands list.
    * - Open ESP-IDF Install Manager
      - Open the ESP-IDF Install Manager to install and manage ESP-IDF versions and tools.
    * - Partition Table Editor
