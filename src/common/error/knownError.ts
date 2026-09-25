@@ -548,6 +548,22 @@ export function openOcdAdapterNotConnected(
   return known(ErrorCode.OpenOcdAdapterNotConnected, { serial }, presentation);
 }
 
+export function openOcdAdapterSerialNotFound(
+  serial: string,
+  metadata?: {
+    stdout?: string;
+    stderr?: string;
+    exitCode?: number;
+  },
+  presentation?: ErrorPresentation
+): KnownError {
+  return known(
+    ErrorCode.OpenOcdAdapterSerialNotFound,
+    { serial, ...metadata },
+    presentation
+  );
+}
+
 export function gdbinitPrefixMapMissing(filePath: string): KnownError {
   return known(ErrorCode.GdbinitPrefixMapMissing, { filePath });
 }
