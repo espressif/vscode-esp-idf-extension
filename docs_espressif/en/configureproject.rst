@@ -9,6 +9,8 @@ Select an Espressif target (esp32, esp32s2, etc.) by going to ``View`` > ``Comma
 
 If you are using a connected ESP-IDF development board, the OpenOCD configuration will be automatically selected based on your connected board. Otherwise, you can manually select the OpenOCD configuration by going to ``View`` > ``Command Palette`` and entering ``ESP-IDF: Select OpenOCD Board Configuration``.
 
+When you pick a connected board, the extension also stores that board's USB-JTAG serial number and USB location and passes them to OpenOCD, so OpenOCD attaches to that board even when several boards are connected. Picking a board from the default list stores nothing. You can change or clear the stored values with ``ESP-IDF: OpenOCD Adapter (Serial & Location)``. If OpenOCD fails to start after you swap boards, see :ref:`OpenOCD cannot find the pinned board <openocd-adapter-serial-not-found>`.
+
 .. note::
 
     Please refer to `Configuration of OpenOCD for Specific Target <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_ to select the appropriate OpenOCD configuration file based on your hardware.
