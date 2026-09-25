@@ -38,7 +38,7 @@ export interface DetectConnectedBoardsResult {
 
 export async function detectConnectedBoards(
   workspaceFolder: WorkspaceFolder,
-  options?: { idfTarget?: string }
+  options?: { idfTarget?: string; silent?: boolean }
 ): Promise<DetectConnectedBoardsResult> {
   if (debug.activeDebugSession !== undefined) {
     Logger.info(
@@ -65,7 +65,9 @@ export async function detectConnectedBoards(
       return { boards: [], openOCDVersion };
     }
 
-    const devkitsOutput = await devkitsCmd.runDevkitsScript(openOCDVersion);
+    const devkitsOutput = await devkitsCmd.runDevkitsScript(openOCDVersion, {
+      silent: options?.silent,
+    });
     if (!devkitsOutput) {
       return { boards: [], openOCDVersion };
     }
