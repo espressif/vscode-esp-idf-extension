@@ -26,6 +26,7 @@ import { OutputChannel } from "../../common/outputChannel";
 import { handleError } from "../../common/error/handler";
 import {
   openOcdAdapterNotConnected,
+  openOcdAdapterSerialNotFound,
   openOcdProcessExited,
   openOcdStartFailed,
 } from "../../common/error/knownError";
@@ -43,6 +44,7 @@ import {
   getStoredAdapterSerial,
   supportsAdapterUsbLocationCommand,
   supportsSerialFromDetectConfig,
+  outputIndicatesAdapterSerialNotFound,
 } from "./adapterSerial";
 import { resolveAdapterBindingForLaunch } from "./adapterBinding";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
@@ -341,7 +343,11 @@ export class OpenOCDManager extends EventEmitter {
           this.startFailureNotified = true;
           void handleError(
             "espIdf.openOCDCommand",
-            openOcdStartFailed(matchArr.join(" "), this.capturedProcessOutput()),
+            this.adapterSerialNotFoundError(storedSerial) ||
+              openOcdStartFailed(
+                matchArr.join(" "),
+                this.capturedProcessOutput()
+              ),
             undefined,
             { outputChannel: "OpenOCD" }
           );
@@ -405,7 +411,8 @@ export class OpenOCDManager extends EventEmitter {
           this.startFailureNotified = true;
           void handleError(
             "espIdf.openOCDCommand",
-            openOcdProcessExited(code, this.capturedProcessOutput()),
+            this.adapterSerialNotFoundError(storedSerial, code) ||
+              openOcdProcessExited(code, this.capturedProcessOutput()),
             undefined,
             { outputChannel: "OpenOCD" }
           );
@@ -487,6 +494,24 @@ export class OpenOCDManager extends EventEmitter {
 
   private sendToOutputChannel(data: Buffer) {
     this.chan = Buffer.concat([this.chan, data]);
+  }
+
+  private adapterSerialNotFoundError(
+    serial: string | undefined,
+    exitCode?: number
+  ) {
+    if (!serial) {
+      return undefined;
+    }
+    const output = this.capturedProcessOutput();
+    if (
+      !outputIndicatesAdapterSerialNotFound(
+        `${output.stdout}\n${output.stderr}`
+      )
+    ) {
+      return undefined;
+    }
+    return openOcdAdapterSerialNotFound(serial, { ...output, exitCode });
   }
 
   private capturedProcessOutput() {
