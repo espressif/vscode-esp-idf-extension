@@ -86,8 +86,8 @@
      - 启动 UI，创建 `ESP-IDF 非易失性存储库 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-reference/storage/nvs_flash.html>`_ 的 CSV 文件。
    * - 打开 ESP-IDF 终端
      - 打开一个终端，并激活 IDF_PATH 和 Python 虚拟环境。
-   * - OpenOCD 适配器状态栏
-     - 切换状态栏显示 OpenOCD 适配器序列号（S）和 USB 适配器位置（L），用于在连接多个设备时确认将使用的适配器。
+   * - OpenOCD 适配器（序列号与位置）
+     - 选择将 OpenOCD 绑定到当前已连接的开发板（列表与 **选择 OpenOCD 开发板配置** 相同），或清除当前项目存储的适配器序列号和 USB 位置（若 OpenOCD 服务器正在运行，也会将其停止）。在 **设置乐鑫设备目标** 或 **选择 OpenOCD 开发板配置** 中选择已连接的开发板时会存储这些值，以便在连接多个开发板时 OpenOCD 连接到指定的开发板。更换开发板后，如果 OpenOCD 报错 ``No device matches the serial string``，请运行此命令。当前值显示在状态栏的 ``[Adapter] S:<序列号> L:<位置>`` 项中，可在 ESP-IDF 资源管理器的命令列表中启用。
    * - 分区表编辑器
      - 启动 UI，如 `ESP-IDF 分区表 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/partition-tables.html>`_ 中所述，管理自定义分区表。
    * - 选择工作区文件夹

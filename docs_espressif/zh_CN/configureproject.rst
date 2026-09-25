@@ -9,6 +9,8 @@
 
 如果使用的是已连接的 ESP-IDF 开发板，扩展会根据已连接的开发板自动选择 OpenOCD 配置。否则，可前往 ``查看`` > ``命令面板`` 并输入 ``ESP-IDF：选择 OpenOCD 开发板配置``，手动选择 OpenOCD 配置。
 
+选择已连接的开发板时，扩展还会存储该开发板的 USB-JTAG 序列号和 USB 位置，并在启动 OpenOCD 时传递给它，这样即使连接了多个开发板，OpenOCD 也会连接到该开发板。从默认列表中选择开发板不会存储这些值。可通过 ``ESP-IDF：OpenOCD 适配器（序列号与位置）`` 命令更改或清除存储的值。如果更换开发板后 OpenOCD 启动失败，请参阅 :ref:`OpenOCD 找不到已绑定的开发板 <openocd-adapter-serial-not-found>`。
+
 .. note::
 
     请查看 `根据目标芯片配置 OpenOCD <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_，为你的硬件选择合适的 OpenOCD 配置文件。

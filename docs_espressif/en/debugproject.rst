@@ -40,6 +40,7 @@ Before debugging the project, you need to specify the serial port of the device:
 
     * Please review `Configuration of OpenOCD for Specific Target <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_ to understand which board or configuration to use for your specific hardware.
     * Make sure to configure your drivers as mentioned in ESP-IDF `Configure JTAG Interface <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html>`_ documentation.
+    * If you selected a connected board, the extension pins OpenOCD to that board's USB-JTAG serial number. After swapping boards, run ``ESP-IDF: OpenOCD Adapter (Serial & Location)`` to pin the new board or clear the binding. See :ref:`openocd-adapter-serial-not-found`.
 
 - (Linux users) Copy the `OpenOCD udev rules files <https://github.com/espressif/openocd-esp32/blob/master/contrib/60-openocd.rules>`_ into the ``/etc/udev/rules.d`` directory before running OpenOCD and starting a debug session.
 
