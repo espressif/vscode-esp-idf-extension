@@ -16,14 +16,15 @@
  * limitations under the License.
  */
 
-import { ConfigurationTarget, ExtensionContext } from "vscode";
+import { ConfigurationTarget, ExtensionContext, l10n, window } from "vscode";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { OpenOCDManager } from "./openOcdManager";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../../common/PreCheck";
 import { CommandKeys } from "../../cmdTreeView/cmdStore";
 import { ESP } from "../../config";
-import { clearAdapterSerial } from "./adapterSerial";
+import { clearAdapterSerial, getStoredAdapterSerial } from "./adapterSerial";
 import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
+import { Logger } from "../../common/logger";
 import { readParameter, writeParameter } from "../../configuration/idf";
 import {
   getOpenOcdScripts,
@@ -48,13 +49,51 @@ export function registerOpenOCDCommands(context: ExtensionContext) {
     () => {
       return PreCheck.perform([openFolderCheck], async () => {
         const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+        const storedSerial = getStoredAdapterSerial(wsFolder.uri);
+        const extraVars = (readParameter("idf.customExtraVars", wsFolder) ||
+          {}) as { [key: string]: any };
+        const storedLocation = extraVars["OPENOCD_USB_ADAPTER_LOCATION"] as
+          | string
+          | undefined;
 
-        // Clear adapter serial (extension workspace state) and adapter location (settings.json)
+        const selected = await window.showQuickPick(
+          [
+            {
+              label: l10n.t("Select connected board"),
+              description: l10n.t(
+                "Pin OpenOCD to a board that is connected right now"
+              ),
+              action: "select" as const,
+            },
+            {
+              label: l10n.t("Clear adapter binding"),
+              description: l10n.t(
+                "Remove the stored serial and USB location and stop the OpenOCD server"
+              ),
+              action: "clear" as const,
+            },
+          ],
+          {
+            placeHolder: l10n.t(
+              "OpenOCD adapter: serial {0}, USB location {1}",
+              storedSerial || "-",
+              storedLocation || "-"
+            ),
+            ignoreFocusOut: true,
+          }
+        );
+        if (!selected) {
+          return;
+        }
+
+        if (selected.action === "select") {
+          await selectOpenOcdConfigFiles(wsFolder);
+          updateOpenOcdAdapterStatusBarItem(wsFolder.uri);
+          return;
+        }
+
         clearAdapterSerial(wsFolder.uri);
-        const extraVars = readParameter("idf.customExtraVars", wsFolder) as {
-          [key: string]: any;
-        };
-        if (extraVars["OPENOCD_USB_ADAPTER_LOCATION"]) {
+        if (storedLocation) {
           const nextExtraVars = { ...extraVars };
           delete nextExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
           await writeParameter(
@@ -65,12 +104,27 @@ export function registerOpenOCDCommands(context: ExtensionContext) {
           );
         }
 
-        // Stop OpenOCD if it is currently running to avoid keeping the old binding alive.
+        let stoppedOpenOcd = false;
         if (OpenOCDManager.init().isRunning()) {
           OpenOCDManager.init().stop();
+          stoppedOpenOcd = true;
         }
 
         updateOpenOcdAdapterStatusBarItem(wsFolder.uri);
+
+        if (!storedSerial && !storedLocation) {
+          Logger.infoNotify(
+            l10n.t("No OpenOCD adapter serial or USB location was stored.")
+          );
+          return;
+        }
+        Logger.infoNotify(
+          stoppedOpenOcd
+            ? l10n.t(
+                "OpenOCD adapter serial and USB location cleared. OpenOCD server stopped."
+              )
+            : l10n.t("OpenOCD adapter serial and USB location cleared.")
+        );
       });
     },
     { outputChannel: "OpenOCD" }
