@@ -25,6 +25,7 @@ import { Logger } from "../../common/logger";
 import { OutputChannel } from "../../common/outputChannel";
 import { handleError } from "../../common/error/handler";
 import {
+  openOcdAdapterNotConnected,
   openOcdProcessExited,
   openOcdStartFailed,
 } from "../../common/error/knownError";
@@ -43,6 +44,7 @@ import {
   supportsAdapterUsbLocationCommand,
   supportsSerialFromDetectConfig,
 } from "./adapterSerial";
+import { resolveAdapterBindingForLaunch } from "./adapterBinding";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
 import { validateOpenOcdStartPrerequisites, requireOpenOcdWorkspace } from "./validation";
 import { ensureOpenOcdServerRunning } from "./openOcdLaunch";
@@ -200,7 +202,27 @@ export class OpenOCDManager extends EventEmitter {
     const versionString = await this.version(true);
     const useLocationCommand = supportsAdapterUsbLocationCommand(versionString);
     const useDetectConfigSerial = supportsSerialFromDetectConfig(versionString);
-    const adapterLocation = modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
+    let storedSerial = getStoredAdapterSerial(this.workspace);
+    let adapterLocation = modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
+    if (useDetectConfigSerial && storedSerial) {
+      const binding = await resolveAdapterBindingForLaunch(this.workspace, {
+        serial: storedSerial,
+        location: adapterLocation,
+      });
+      if (binding.stale) {
+        void handleError(
+          "espIdf.openOCDCommand",
+          openOcdAdapterNotConnected(storedSerial),
+          undefined,
+          { outputChannel: "OpenOCD" }
+        );
+        storedSerial = binding.serial;
+        adapterLocation = binding.location;
+        if (!adapterLocation) {
+          delete modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
+        }
+      }
+    }
     if (useLocationCommand && adapterLocation) {
       delete modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
     }
@@ -211,7 +233,6 @@ export class OpenOCDManager extends EventEmitter {
       this.workspace
     ) as string[];
 
-    const storedSerial = getStoredAdapterSerial(this.workspace);
     const needsSerialDiscovery = !storedSerial && !useDetectConfigSerial;
 
     if (openOcdLaunchArgs && openOcdLaunchArgs.length > 0) {
