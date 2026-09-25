@@ -82,8 +82,8 @@ All commands start with ``ESP-IDF:``.
      - Launch UI to create a CSV file for `ESP-IDF Non-Volatile Storage Library <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_flash.html>`_.
    * - Open ESP-IDF Terminal
      - Open a terminal with IDF_PATH and Python virtual environment activated.
-   * - OpenOCD Adaptor (serial & location)
-     - Toggle the status bar item that shows the OpenOCD adapter serial number (S) and USB adapter location (L), useful to verify which adapter will be used when multiple devices are connected.
+   * - OpenOCD Adapter (Serial & Location)
+     - Clear the OpenOCD adapter serial number and USB location stored for the current project, and stop the OpenOCD server if it is running. These values are stored when you choose a connected board in **Set Espressif Device Target** or **Select OpenOCD Board Configuration**, so that OpenOCD attaches to that specific board when several are connected. Run this command after swapping boards if OpenOCD fails with ``No device matches the serial string``. The current values are shown in the ``[Adapter] S:<serial> L:<location>`` status bar item, which can be enabled from the ESP-IDF Explorer commands list.
    * - Open ESP-IDF Install Manager
      - Open the ESP-IDF Install Manager to install and manage ESP-IDF versions and tools.
    * - Partition Table Editor
