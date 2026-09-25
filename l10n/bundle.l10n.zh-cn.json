@@ -26,7 +26,7 @@
   "Show notifications but do not focus tasks output.": "显示通知，但不显示任务输出。",
   "Do not show notifications but focus tasks output.": "不显示通知，但显示任务输出。",
   "Show notifications and focus tasks output.": "同时显示通知和任务输出。",
-  "OpenOCD Adaptor (serial & location)": "OpenOCD 适配器（序列号与位置）",
+  "OpenOCD adapter binding: serial number (S) and USB location (L). Click to clear both and stop the OpenOCD server.": "OpenOCD 适配器绑定：序列号（S）和 USB 位置（L）。点击可清除两者并停止 OpenOCD 服务器。",
   "Set Target": "设置目标",
   "Default Boards": "默认开发板",
   "Other Boards": "其他开发板",

@@ -264,7 +264,9 @@ export function initCommandDictionary(): void {
       TreeItemCheckboxState.Unchecked
     ),
     iconId: "link",
-    tooltip: l10n.t("OpenOCD Adaptor (serial & location)"),
+    tooltip: l10n.t(
+      "OpenOCD adapter binding: serial number (S) and USB location (L). Click to clear both and stop the OpenOCD server."
+    ),
   },
   [CommandKeys.Debug]: {
     checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(

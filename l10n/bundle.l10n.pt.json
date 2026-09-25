@@ -26,7 +26,7 @@
   "Show notifications but do not focus tasks output.": "Mostre notificações, mas não concentre a saída das tarefas.",
   "Do not show notifications but focus tasks output.": "Não mostre notificações, mas concentre a saída das tarefas.",
   "Show notifications and focus tasks output.": "Mostre notificações e concentre a saída das tarefas.",
-  "OpenOCD Adaptor (serial & location)": "Adaptador OpenOCD (serial e localização)",
+  "OpenOCD adapter binding: serial number (S) and USB location (L). Click to clear both and stop the OpenOCD server.": "Vinculação do adaptador OpenOCD: número de série (S) e localização USB (L). Clique para limpar ambos e parar o servidor OpenOCD.",
   "Set Target": "Definir alvo",
   "Default Boards": "Placas padrão",
   "Other Boards": "Outras placas",
