@@ -89,6 +89,7 @@ export enum ErrorCode {
   OpenOcdNoBoardsForTarget = "OpenOcdNoBoardsForTarget",
   OpenOcdBoardSelectionFailed = "OpenOcdBoardSelectionFailed",
   OpenOcdHintsLoadFailed = "OpenOcdHintsLoadFailed",
+  OpenOcdAdapterNotConnected = "OpenOcdAdapterNotConnected",
 
   // Debug
   GdbinitPrefixMapMissing = 'GdbinitPrefixMapMissing',

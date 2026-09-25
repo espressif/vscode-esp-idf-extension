@@ -605,6 +605,22 @@ registerNewErrorInRegistry({
 });
 
 registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdAdapterNotConnected,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "The board pinned for OpenOCD (serial {serial}) is not connected. OpenOCD will start without the stored adapter serial and use the board that is attached now.",
+  logMessage:
+    "Stored OpenOCD adapter serial {serial} does not match any connected board.",
+  actions: [
+    {
+      label: "OpenOCD Adapter (Serial & Location)",
+      execute: () => commands.executeCommand("espIdf.openOcdAdapterStatusBar"),
+    },
+  ],
+  outputChannel: openOcdOutputChannel,
+});
+
+registerNewErrorInRegistry({
   code: ErrorCode.GdbinitPrefixMapMissing,
   severity: ErrorSeverity.Warning,
   userMessage:
