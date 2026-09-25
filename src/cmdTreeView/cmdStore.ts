@@ -265,7 +265,7 @@ export function initCommandDictionary(): void {
     ),
     iconId: "link",
     tooltip: l10n.t(
-      "OpenOCD adapter binding: serial number (S) and USB location (L). Click to clear both and stop the OpenOCD server."
+      "OpenOCD adapter binding: serial number (S) and USB location (L). Click to select a connected board or clear the binding."
     ),
   },
   [CommandKeys.Debug]: {
