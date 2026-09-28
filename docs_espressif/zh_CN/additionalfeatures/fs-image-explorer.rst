@@ -33,7 +33,7 @@ LittleFS 和 SPIFFS 仅列出名称和大小，此版本不会提取文件内容
 
 * **应用程序或引导加载程序镜像**：``build/<project>.bin`` 是应用程序，而不是数据分区。对于名为 ``spiffs`` 的项目，``build/spiffs.bin`` 是应用程序镜像，无法浏览。
 * **分区表二进制文件**：``build/partition_table/partition-table.bin`` 描述的是 flash 布局，而不是文件系统内容。请使用 **设备分区资源管理器** 查看布局。
-* **ELF 文件** 或 **已擦除的分区**（所有字节均为 ``0xFF``，表示尚未写入文件系统）。
+* **ELF 文件** 或 **已擦除的分区** （所有字节均为 ``0xFF``，表示尚未写入文件系统）。
 
 只有当项目主动请求时，构建过程才会生成文件系统镜像，例如在 ``CMakeLists.txt`` 中调用 ``spiffs_create_partition_image``、``littlefs_create_partition_image`` 或 ``fatfs_create_spiflash_image``。这类镜像会以分区名写入构建目录，通常为 ``build/storage.bin``。
 
