@@ -28,20 +28,30 @@ import {
 import {
   ESP_IDF_COMMANDS,
   dismissNotifications,
+  executeDebugAction,
   executeEspIdfCommand,
   executeEspIdfCommandAndSelectOption,
   helloWorldBinPath,
-  killDebugProcesses,
+  launchDebugger,
   openTestProject,
+  removeAllBreakpoints,
+  reuseOrLaunchDebugger,
   selectFromCurrentPicker,
   setBreakpointInFile,
+  stopDebugSession,
   testHardwareSerialPort,
   testWorkspaceDir,
   waitForBuildComplete,
+  waitForCallStackMatching,
+  evaluateDebugConsoleAndWait,
+  waitForLocalVariable,
   waitForOutputChannelText,
   waitForPathAbsent,
-  waitForPausedLineChange,
+  waitForPauseIndicatorGone,
+  waitForPausedAtLine,
+  waitForPausedLineInRange,
   waitForTerminalOutput,
+  waitUntilDebugPaused,
 } from "./ui-test-helpers";
 
 // ─── patterns ────────────────────────────────────────────────────────────────
@@ -57,13 +67,21 @@ const SET_TARGET_COMPLETE_PATTERN =
 const DEBUG_FATAL_ERROR_PATTERN =
   /Target failure|Error: .*failed to halt|OpenOCD failed|LIBUSB_ERROR|failed to connect/i;
 
-// Breakpoint at a volatile assignment so the compiler cannot optimise it away.
-// Line 8: volatile int a = 1;  → GDB halts here
-// Line 9: volatile int b = a+1 → expected after step-over
-const BREAKPOINT_LINE = 8;
-const STEP_OVER_TARGET_LINE = BREAKPOINT_LINE + 1;
+// Default launch injects `thb app_main`, which lands on the prologue or first
+// statement (lines 6–8). The user breakpoint is the next volatile assignment
+// so Continue cannot be confused with that halt. Step-over target is ESP_LOGI
+// (a statement, not a step-into of the log macro). add_one() is after printf
+// so these line numbers stay put.
+const USER_BREAKPOINT_LINE = 9;
+const STEP_OVER_TARGET_LINE = 10;
+const STEP_INTO_CALL_LINE = 12;
+const ADD_ONE_BODY_START = 16;
+const ADD_ONE_BODY_END_EXCLUSIVE = 19;
 const SOURCE_FILE_NAME = "hello_world_main.c";
 const SOURCE_FILE_PATH = resolve(testWorkspaceDir, "main", SOURCE_FILE_NAME);
+const APP_MAIN_STACK_PATTERN = /app_main/;
+const MEMSET_ADDRESS_PATTERN =
+  /Symbol\s+"memset"\s+is[^\n]*\b(0x[0-9A-Fa-f]{4,})/i;
 
 // ─── shared state ────────────────────────────────────────────────────────────
 
@@ -71,40 +89,55 @@ const state = {
   buildSucceeded: false,
   flashSucceeded: false,
   monitorSucceeded: false,
+  jtagReady: false,
+  debugSmokeSucceeded: false,
   activeDebugToolbar: undefined as DebugToolbar | undefined,
 };
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-async function step(
-  stepName: string,
-  action: () => Promise<void>
-): Promise<void> {
-  console.log(`  → [step] ${stepName}`);
-  try {
-    await action();
-    console.log(`  ✓ [step] ${stepName}`);
-  } catch (err) {
-    const orig = err instanceof Error ? err.message : String(err);
-    console.log(`  ✗ [step] ${stepName}\n${orig}`);
-    throw new Error(`Test failed at: ${stepName}\n${orig}`);
-  }
+let skipRemainingSteps = false;
+
+/**
+ * Registers a scenario as its own Mocha suite. Each `step()` becomes a test,
+ * so the CI summary lists steps under the scenario instead of one `it` title.
+ * A failed step skips the rest of that scenario.
+ */
+function scenario(title: string, defineSteps: () => void): void {
+  describe(title, function () {
+    before(function () {
+      skipRemainingSteps = false;
+    });
+    defineSteps();
+  });
 }
 
-/** Stops any active debug session and force-kills OpenOCD / GDB processes. */
-async function stopDebugSession(toolbar?: DebugToolbar): Promise<void> {
-  if (toolbar) {
-    const alive = await toolbar.isDisplayed().catch(() => false);
-    if (alive) {
-      await toolbar.stop().catch(() => undefined);
-      await new Promise((res) => setTimeout(res, 3000));
+function step(stepName: string, action: () => Promise<void>): void {
+  it(stepName, async function () {
+    this.timeout(999999);
+    if (skipRemainingSteps) {
+      this.skip();
     }
+    console.log(`  → [step] ${stepName}`);
+    try {
+      await action();
+      console.log(`  ✓ [step] ${stepName}`);
+    } catch (err) {
+      skipRemainingSteps = true;
+      const orig = err instanceof Error ? err.message : String(err);
+      console.log(`  ✗ [step] ${stepName}\n${orig}`);
+      throw new Error(`Test failed at: ${stepName}\n${orig}`);
+    }
+  });
+}
+
+async function assertNoOpenOcdFatal(when: string): Promise<void> {
+  const openocdLog = await waitForOutputChannelText("ESP-IDF", /.*/, 5000).catch(
+    () => ""
+  );
+  if (DEBUG_FATAL_ERROR_PATTERN.test(openocdLog)) {
+    throw new Error(`Fatal OpenOCD error ${when}.\nESP-IDF output:\n${openocdLog}`);
   }
-  await new Workbench()
-    .executeCommand("workbench.action.debug.stop")
-    .catch(() => undefined);
-  await new Promise((res) => setTimeout(res, 2000));
-  await killDebugProcesses();
 }
 
 // ─── test suite ──────────────────────────────────────────────────────────────
@@ -119,7 +152,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
   after(async function () {
     this.timeout(30000);
     console.log("[after] Cleanup: stopping debug session and killing processes");
-    await stopDebugSession(state.activeDebugToolbar);
+    await stopDebugSession();
     state.activeDebugToolbar = undefined;
     await new BottomBarPanel().toggle(false).catch(() => undefined);
     console.log("[after] Cleanup complete");
@@ -127,43 +160,44 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
 
   // ── build ──────────────────────────────────────────────────────────────────
 
-  it("builds testWorkspace", async function () {
-    await step("Full clean", async () => {
+  scenario("builds testWorkspace", () => {
+    step("Full clean", async () => {
       await executeEspIdfCommand(ESP_IDF_COMMANDS.fullClean);
       await waitForPathAbsent(helloWorldBinPath, 60000);
     });
 
-    await step("Build project", async () => {
+    step("Build project", async () => {
       await executeEspIdfCommand(ESP_IDF_COMMANDS.build);
       const buildOutput = await waitForBuildComplete(helloWorldBinPath, 300000);
       console.log(buildOutput);
+      state.buildSucceeded = true;
     });
-
-    state.buildSucceeded = true;
-  }).timeout(999999);
+  });
 
   // ── flash ──────────────────────────────────────────────────────────────────
 
-  it("flashes testWorkspace", async function () {
-    if (!state.buildSucceeded) {
-      this.skip();
-    }
+  scenario("flashes testWorkspace", () => {
+    before(function () {
+      if (!state.buildSucceeded) {
+        this.skip();
+      }
+    });
 
-    await step(`Select serial port ${testHardwareSerialPort}`, async () => {
+    step(`Select serial port ${testHardwareSerialPort}`, async () => {
       await executeEspIdfCommandAndSelectOption(
         ESP_IDF_COMMANDS.selectPort,
         testHardwareSerialPort
       );
     });
 
-    await step("Select UART flash method", async () => {
+    step("Select UART flash method", async () => {
       await executeEspIdfCommandAndSelectOption(
         ESP_IDF_COMMANDS.selectFlashMethod,
         "UART"
       );
     });
 
-    await step("Flash project and verify success", async () => {
+    step("Flash project and verify success", async () => {
       await executeEspIdfCommand(ESP_IDF_COMMANDS.flash);
       const flashOutput = await waitForTerminalOutput(
         FLASH_SUCCESS_PATTERN,
@@ -171,26 +205,27 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       );
       console.log(flashOutput);
       expect(FLASH_SUCCESS_PATTERN.test(flashOutput)).to.be.true;
+      state.flashSucceeded = true;
     });
-
-    state.flashSucceeded = true;
-  }).timeout(999999);
+  });
 
   // ── monitor ────────────────────────────────────────────────────────────────
 
-  it("shows expected monitor output", async function () {
-    if (!state.flashSucceeded) {
-      this.skip();
-    }
+  scenario("shows expected monitor output", () => {
+    before(function () {
+      if (!state.flashSucceeded) {
+        this.skip();
+      }
+    });
 
-    await step(`Select monitor port ${testHardwareSerialPort}`, async () => {
+    step(`Select monitor port ${testHardwareSerialPort}`, async () => {
       await executeEspIdfCommandAndSelectOption(
         ESP_IDF_COMMANDS.selectMonitorPort,
         testHardwareSerialPort
       );
     });
 
-    await step("Start monitor and verify expected output", async () => {
+    step("Start monitor and verify expected output", async () => {
       await executeEspIdfCommand(ESP_IDF_COMMANDS.monitor);
       const monitorOutput = await waitForTerminalOutput(
         MONITOR_OUTPUT_PATTERN,
@@ -200,31 +235,33 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       expect(MONITOR_OUTPUT_PATTERN.test(monitorOutput)).to.be.true;
     });
 
-    await step("Kill monitor terminal", async () => {
+    step("Kill monitor terminal", async () => {
       await new Workbench().executeCommand("workbench.action.terminal.kill");
       await new Promise((res) => setTimeout(res, 2000));
+      state.monitorSucceeded = true;
     });
-
-    state.monitorSucceeded = true;
-  }).timeout(999999);
+  });
 
   // ── debug ──────────────────────────────────────────────────────────────────
 
-  it("debugs testWorkspace via JTAG on ESP32 ETHERNET KIT", async function () {
-    if (!state.flashSucceeded || !state.monitorSucceeded) {
-      this.skip();
-    }
+  scenario("debugs testWorkspace via JTAG on ESP32 ETHERNET KIT", () => {
+    let debugToolbar: DebugToolbar;
 
-    await dismissNotifications();
+    before(async function () {
+      if (!state.flashSucceeded || !state.monitorSucceeded) {
+        this.skip();
+      }
+      await dismissNotifications();
+    });
 
-    await step("Select JTAG flash method", async () => {
+    step("Select JTAG flash method", async () => {
       await executeEspIdfCommandAndSelectOption(
         ESP_IDF_COMMANDS.selectFlashMethod,
         "JTAG"
       );
     });
 
-    await step("Set target esp32 and board ESP32-ETHERNET-KIT", async () => {
+    step("Set target esp32 and board ESP32-ETHERNET-KIT", async () => {
       await executeEspIdfCommand(ESP_IDF_COMMANDS.setTarget);
       await new Promise((res) => setTimeout(res, 1000));
       await selectFromCurrentPicker("esp32", 15000);
@@ -232,7 +269,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await selectFromCurrentPicker("ESP32-ETHERNET-KIT", 15000);
     });
 
-    await step("Wait for idf.py set-target to complete", async () => {
+    step("Wait for idf.py set-target to complete", async () => {
       await waitForOutputChannelText(
         "ESP-IDF",
         SET_TARGET_COMPLETE_PATTERN,
@@ -240,92 +277,293 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       );
     });
 
-    await step("Rebuild project for the new target", async () => {
+    step("Rebuild project for the new target", async () => {
       await executeEspIdfCommand(ESP_IDF_COMMANDS.fullClean);
       await waitForPathAbsent(helloWorldBinPath, 60000);
       await executeEspIdfCommand(ESP_IDF_COMMANDS.build);
       await waitForBuildComplete(helloWorldBinPath, 300000);
+      state.jtagReady = true;
     });
 
-    // Set an explicit breakpoint so GDB halts at a known line rather than the
-    // default entry point, making step-over deterministic.
-    await step(
-      `Set breakpoint at ${SOURCE_FILE_NAME}:${BREAKPOINT_LINE}`,
-      async () => {
-        await setBreakpointInFile(SOURCE_FILE_PATH, BREAKPOINT_LINE);
-      }
-    );
-
-    let debugToolbar: DebugToolbar;
-
-    await step("Launch debugger", async () => {
-      await new Workbench().executeCommand("workbench.action.debug.start");
-      debugToolbar = await DebugToolbar.create(60000);
+    step("Launch debugger", async () => {
+      debugToolbar = await launchDebugger(60000);
       state.activeDebugToolbar = debugToolbar;
     });
 
-    // Declared here so the summary block at the end can reference both values.
-    let haltedLine: number | undefined;
-    let lineAfterStep: number | undefined;
+    step("Wait for default halt at app_main", async () => {
+      await debugToolbar!.waitForBreakPoint(60000);
+      await assertNoOpenOcdFatal("on attach");
 
-    await step(
-      `Wait for GDB to halt at ${SOURCE_FILE_NAME}:${BREAKPOINT_LINE}`,
+      await waitForPausedLineInRange(
+        SOURCE_FILE_PATH,
+        6,
+        USER_BREAKPOINT_LINE,
+        30000
+      );
+      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
+    });
+
+    step(
+      `Set gutter breakpoint at ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
       async () => {
-        await debugToolbar!.waitForBreakPoint(60000);
-
-        // OpenOCD errors appear in the ESP-IDF channel, not in the terminal.
-        const openocdLog = await waitForOutputChannelText("ESP-IDF", /.*/, 5000).catch(() => "");
-        if (DEBUG_FATAL_ERROR_PATTERN.test(openocdLog)) {
-          throw new Error(`Fatal OpenOCD error.\nESP-IDF output:\n${openocdLog}`);
-        }
-
-        const editor = (await new EditorView().openEditor(SOURCE_FILE_NAME)) as TextEditor;
-        const paused = await editor.getPausedBreakpoint();
-        if (!paused) {
+        await setBreakpointInFile(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE);
+        const editor = (await new EditorView().openEditor(
+          SOURCE_FILE_NAME
+        )) as TextEditor;
+        const gutterBp = await editor.getBreakpoint(USER_BREAKPOINT_LINE);
+        if (!gutterBp) {
           throw new Error(
-            `No pause indicator in ${SOURCE_FILE_NAME}. ` +
-              "OpenOCD may not have connected or GDB did not set the breakpoint."
+            `Gutter breakpoint was not set at ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`
           );
         }
-        haltedLine = await paused.getLineNumber();
-        expect(haltedLine, `GDB halted at ${haltedLine}, expected ${BREAKPOINT_LINE}`).to.equal(
-          BREAKPOINT_LINE
-        );
+        await new Promise((res) => setTimeout(res, 1500));
       }
     );
 
-    await step("Step Over and verify program counter advanced", async () => {
-      await debugToolbar!.stepOver();
+    step(
+      `Continue and halt at user breakpoint ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
+      async () => {
+        await executeDebugAction("continue");
+        await debugToolbar!.waitForBreakPoint(60000);
+        await assertNoOpenOcdFatal("after Continue");
 
-      lineAfterStep = await waitForPausedLineChange(SOURCE_FILE_NAME, BREAKPOINT_LINE, 30000);
+        await waitForPausedAtLine(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE, 30000);
+        await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
+      }
+    );
 
-      if (typeof lineAfterStep !== "number") {
+    step("Verify local a == 1 at user breakpoint", async () => {
+      await waitForLocalVariable("a", 1, 20000);
+    });
+
+    step("Step Over and verify program counter advanced", async () => {
+      await executeDebugAction("stepOver");
+      await waitForPausedAtLine(
+        SOURCE_FILE_PATH,
+        STEP_OVER_TARGET_LINE,
+        30000
+      );
+    });
+
+    step("Verify local b == 2 after Step Over", async () => {
+      await waitForLocalVariable("b", 2, 20000);
+    });
+
+    step("Verify debug session still active after Step Over", async () => {
+      const sessionAlive = await debugToolbar!.isDisplayed().catch(() => false);
+      expect(
+        sessionAlive,
+        "Debug toolbar disappeared — session may have crashed"
+      ).to.be.true;
+      await assertNoOpenOcdFatal("after Step Over");
+    });
+
+    step("Clear breakpoints; leave session paused for gdbinit and lifecycle", async () => {
+      await removeAllBreakpoints().catch(() => undefined);
+      state.debugSmokeSucceeded = true;
+    });
+  });
+
+  scenario("resolves ROM symbols via gdbinit", () => {
+    before(function () {
+      if (!state.debugSmokeSucceeded) {
+        this.skip();
+      }
+    });
+
+    step("Wait until the leftover debug session is paused", async () => {
+      await waitUntilDebugPaused(60000);
+      await assertNoOpenOcdFatal("before gdbinit symbol check");
+    });
+
+    step("Open Debug Console", async () => {
+      await new BottomBarPanel().openDebugConsoleView();
+    });
+
+    step("GDB info address memset, then info symbol of that address", async () => {
+      const addressText = await evaluateDebugConsoleAndWait(
+        ">info address memset",
+        MEMSET_ADDRESS_PATTERN,
+        20000
+      );
+      if (/No symbol\s+"memset"/i.test(addressText)) {
+        throw new Error(`GDB did not resolve memset:\n${addressText}`);
+      }
+      const memsetAddr = addressText.match(MEMSET_ADDRESS_PATTERN)?.[1];
+      if (!memsetAddr) {
+        throw new Error(`Could not parse memset address:\n${addressText}`);
+      }
+      console.log(`[hardware-debug] memset at ${memsetAddr}`);
+
+      const symbolText = await evaluateDebugConsoleAndWait(
+        `>info symbol ${memsetAddr}`,
+        /in section|No symbol matches/i,
+        20000
+      );
+      if (/No symbol matches/i.test(symbolText)) {
         throw new Error(
-          `GDB pause indicator did not move from line ${BREAKPOINT_LINE} within 30 s after Step Over.`
+          `GDB did not reverse-lookup ${memsetAddr} (ROM symbols missing?):\n${symbolText}`
         );
       }
-
-      expect(
-        lineAfterStep,
-        `Expected step ${BREAKPOINT_LINE} → ${STEP_OVER_TARGET_LINE}, got ${lineAfterStep}`
-      ).to.equal(STEP_OVER_TARGET_LINE);
+      console.log(`[hardware-debug] ${symbolText.trim().split("\n").slice(0, 4).join(" ")}`);
     });
+  });
 
-    await step("Verify debug session still active after Step Over", async () => {
-      const sessionAlive = await debugToolbar!.isDisplayed().catch(() => false);
-      expect(sessionAlive, "Debug toolbar disappeared — session may have crashed").to.be.true;
+  scenario("debugs session lifecycle via JTAG", () => {
+    let debugToolbar: DebugToolbar;
 
-      const openocdLog = await waitForOutputChannelText("ESP-IDF", /.*/, 5000).catch(() => "");
-      if (DEBUG_FATAL_ERROR_PATTERN.test(openocdLog)) {
-        throw new Error(`Fatal OpenOCD error after Step Over.\nESP-IDF output:\n${openocdLog}`);
+    before(async function () {
+      if (!state.jtagReady) {
+        this.skip();
       }
+      await dismissNotifications();
     });
 
-    await step("Stop debug session", async () => {
-      await stopDebugSession(debugToolbar!);
+    step("Reuse debug session via Restart (do not F5)", async () => {
+      debugToolbar = await reuseOrLaunchDebugger(60000);
+      state.activeDebugToolbar = debugToolbar;
+    });
+
+    step("Wait for default halt at app_main", async () => {
+      await waitUntilDebugPaused(60000);
+      await assertNoOpenOcdFatal("on attach");
+      try {
+        await waitForPausedLineInRange(
+          SOURCE_FILE_PATH,
+          6,
+          USER_BREAKPOINT_LINE,
+          30000
+        );
+      } catch {
+        console.log(
+          "[hardware-debug] Halt was not in app_main; Restart and wait again"
+        );
+        await executeDebugAction("restart");
+        await new Promise((res) => setTimeout(res, 5000));
+        debugToolbar = await DebugToolbar.create(60000);
+        state.activeDebugToolbar = debugToolbar;
+        await waitUntilDebugPaused(60000);
+        await assertNoOpenOcdFatal("on restart after leftover halt");
+        await waitForPausedLineInRange(
+          SOURCE_FILE_PATH,
+          6,
+          USER_BREAKPOINT_LINE,
+          60000
+        );
+      }
+      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 30000);
+    });
+
+    step("Continue, then Pause while target is running", async () => {
+      await executeDebugAction("continue");
+      await waitForPauseIndicatorGone(SOURCE_FILE_PATH, 30000);
+      await new Promise((res) => setTimeout(res, 2000));
+      await executeDebugAction("pause");
+      await waitUntilDebugPaused(60000);
+      await assertNoOpenOcdFatal("after Pause");
+    });
+
+    step("Restart and halt at app_main again", async () => {
+      await executeDebugAction("restart");
+      await new Promise((res) => setTimeout(res, 5000));
+      debugToolbar = await DebugToolbar.create(60000);
+      state.activeDebugToolbar = debugToolbar;
+      await waitUntilDebugPaused(60000);
+      await assertNoOpenOcdFatal("after Restart");
+      await waitForPausedLineInRange(
+        SOURCE_FILE_PATH,
+        6,
+        USER_BREAKPOINT_LINE,
+        60000
+      );
+      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 30000);
+    });
+
+    step("Step Into add_one, then Step Out", async () => {
+      await setBreakpointInFile(SOURCE_FILE_PATH, STEP_INTO_CALL_LINE);
+      await new Promise((res) => setTimeout(res, 1500));
+      await executeDebugAction("continue");
+      await waitUntilDebugPaused(60000);
+      await waitForPausedAtLine(SOURCE_FILE_PATH, STEP_INTO_CALL_LINE, 30000);
+
+      await executeDebugAction("stepInto");
+      await waitUntilDebugPaused(30000);
+      await waitForPausedLineInRange(
+        SOURCE_FILE_PATH,
+        ADD_ONE_BODY_START,
+        ADD_ONE_BODY_END_EXCLUSIVE,
+        30000
+      );
+      await waitForCallStackMatching(/add_one/, 15000);
+
+      await executeDebugAction("stepOut");
+      await waitUntilDebugPaused(30000);
+      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
+      await waitForPausedLineInRange(
+        SOURCE_FILE_PATH,
+        STEP_INTO_CALL_LINE,
+        15,
+        30000
+      );
+
+      await removeAllBreakpoints();
+      await executeDebugAction("restart");
+      await new Promise((res) => setTimeout(res, 5000));
+      debugToolbar = await DebugToolbar.create(60000);
+      state.activeDebugToolbar = debugToolbar;
+      await waitUntilDebugPaused(60000);
+      await assertNoOpenOcdFatal("after Step Out restart");
+      await waitForPausedLineInRange(
+        SOURCE_FILE_PATH,
+        6,
+        USER_BREAKPOINT_LINE,
+        60000
+      );
+      await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 30000);
+    });
+
+    step(
+      `Set gutter breakpoint at ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
+      async () => {
+        await setBreakpointInFile(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE);
+        await new Promise((res) => setTimeout(res, 2000));
+      }
+    );
+
+    step(
+      `Continue and halt at user breakpoint ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
+      async () => {
+        await executeDebugAction("continue");
+        await waitUntilDebugPaused(60000);
+        await waitForPausedAtLine(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE, 30000);
+      }
+    );
+
+    step(
+      `Remove breakpoint and Continue past ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`,
+      async () => {
+        await removeAllBreakpoints();
+        const editor = (await new EditorView().openEditor(
+          SOURCE_FILE_NAME
+        )) as TextEditor;
+        const leftover = await editor.getBreakpoint(USER_BREAKPOINT_LINE);
+        if (leftover) {
+          throw new Error(
+            `Gutter breakpoint still present at ${SOURCE_FILE_NAME}:${USER_BREAKPOINT_LINE}`
+          );
+        }
+
+        await executeDebugAction("continue");
+        await waitForPauseIndicatorGone(SOURCE_FILE_PATH, 30000);
+        await assertNoOpenOcdFatal("after removing breakpoint");
+      }
+    );
+
+    step("Stop debug session", async () => {
+      await stopDebugSession();
       state.activeDebugToolbar = undefined;
-      await new BottomBarPanel().toggle(false);
+      await removeAllBreakpoints().catch(() => undefined);
+      await new BottomBarPanel().toggle(false).catch(() => undefined);
     });
-
-  }).timeout(999999);
+  });
 });
