@@ -263,7 +263,6 @@
   "ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs": "Placa ESP-IDF não selecionada. Lembre-se de definir os arquivos de configuração do OpenOCD com idf.openOcdConfigs",
   "ESP-IDF: Setting device target...": "ESP-IDF: Definindo alvo do dispositivo...",
   "Preview target": "Alvo de visualização",
-  "Default Boards": "Placas padrão",
   "Status: CONNECTED": "Status: CONECTADO",
   "Location: {0}": "Localização: {0}",
   "Loaded {0} project configuration(s) from {1}: {2}. No configuration selected.": "{0} configuração(ões) de projeto carregada(s) de {1}: {2}. Nenhuma configuração selecionada.",
@@ -281,5 +280,19 @@
   "Update launch.json": "Atualizar launch.json",
   "runOpenOCD is now true for '{0}'. Start the debug session again.": "runOpenOCD agora é true para '{0}'. Inicie a sessão de depuração novamente.",
   "The debug session failed and 'runOpenOCD' is false in your launch.json, so the extension did not start OpenOCD and none is listening. Set 'runOpenOCD' to true to let the extension start it, or start OpenOCD yourself before debugging.": "A sessão de depuração falhou e 'runOpenOCD' é false no seu launch.json, então a extensão não iniciou o OpenOCD e nenhum está escutando. Defina 'runOpenOCD' como true para que a extensão o inicie, ou inicie o OpenOCD você mesmo antes de depurar.",
-  "Failed to update runOpenOCD in launch.json": "Falha ao atualizar runOpenOCD em launch.json"
+  "Failed to update runOpenOCD in launch.json": "Falha ao atualizar runOpenOCD em launch.json",
+  "Open a partition binary to inspect its filesystem.": "Abra um binário de partição para inspecionar seu sistema de arquivos.",
+  "This is an ESP-IDF application or bootloader image, not a filesystem partition. Open the binary generated for a data partition (for example storage.bin), or read the partition from the device with Device Partition Explorer.": "Esta é uma imagem de aplicativo ou de bootloader do ESP-IDF, não uma partição de sistema de arquivos. Abra o binário gerado para uma partição de dados (por exemplo storage.bin) ou leia a partição do dispositivo com o Explorador de partições do dispositivo.",
+  "This is a partition table binary, not a filesystem partition.": "Este é um binário de tabela de partições, não uma partição de sistema de arquivos.",
+  "This is an ELF file, not a filesystem partition.": "Este é um arquivo ELF, não uma partição de sistema de arquivos.",
+  "This partition is erased, so no filesystem has been written to it yet.": "Esta partição está apagada, portanto nenhum sistema de arquivos foi gravado nela ainda.",
+  "Not a recognized SPIFFS, FAT, LittleFS, or NVS image. To inspect a filesystem created on the device, read the partition with Device Partition Explorer.": "Não é uma imagem reconhecida de SPIFFS, FAT, LittleFS ou NVS. Para inspecionar um sistema de arquivos criado no dispositivo, leia a partição com o Explorador de partições do dispositivo.",
+  "Right-click a file in the Filesystem Image Explorer to save it into the workspace.": "Clique com o botão direito em um arquivo no Explorador de imagem do sistema de arquivos para salvá-lo no espaço de trabalho.",
+  "Open a workspace folder before saving a file from the filesystem image.": "Abra uma pasta de trabalho antes de salvar um arquivo da imagem do sistema de arquivos.",
+  "'{0}' is a folder in the workspace, so the file was not saved.": "'{0}' é uma pasta no espaço de trabalho, então o arquivo não foi salvo.",
+  "'{0}' already exists in the workspace. Replace it?": "'{0}' já existe no espaço de trabalho. Substituí-lo?",
+  "Replace": "Substituir",
+  "Could not read '{0}' from the filesystem image.": "Não foi possível ler '{0}' da imagem do sistema de arquivos.",
+  "Saved {0} to the workspace.": "{0} foi salvo no espaço de trabalho.",
+  "Open": "Abrir"
 }

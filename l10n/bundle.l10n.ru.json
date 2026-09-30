@@ -263,7 +263,6 @@
   "ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs": "Плата ESP-IDF не выбрана. Не забудьте установить файлы конфигурации OpenOCD с помощью параметра idf.openOcdConfigs",
   "ESP-IDF: Setting device target...": "ESP-IDF: Установка целевого устройства...",
   "Preview target": "Цель (предпросмотр)",
-  "Default Boards": "Платы по умолчанию",
   "Status: CONNECTED": "Статус: ПОДКЛЮЧЕНО",
   "Location: {0}": "Местоположение: {0}",
   "Loaded {0} project configuration(s) from {1}: {2}. No configuration selected.": "Загружено {0} конфигураций проекта из {1}: {2}. Конфигурация не выбрана.",
@@ -281,5 +280,19 @@
   "Update launch.json": "Обновить launch.json",
   "runOpenOCD is now true for '{0}'. Start the debug session again.": "runOpenOCD теперь true для '{0}'. Запустите сеанс отладки снова.",
   "The debug session failed and 'runOpenOCD' is false in your launch.json, so the extension did not start OpenOCD and none is listening. Set 'runOpenOCD' to true to let the extension start it, or start OpenOCD yourself before debugging.": "Сеанс отладки завершился с ошибкой, а 'runOpenOCD' имеет значение false в launch.json, поэтому расширение не запустило OpenOCD и никто не прослушивает. Установите 'runOpenOCD' в true, чтобы расширение запустило его, или запустите OpenOCD самостоятельно перед отладкой.",
-  "Failed to update runOpenOCD in launch.json": "Не удалось обновить runOpenOCD в launch.json"
+  "Failed to update runOpenOCD in launch.json": "Не удалось обновить runOpenOCD в launch.json",
+  "Open a partition binary to inspect its filesystem.": "Откройте двоичный файл раздела, чтобы просмотреть его файловую систему.",
+  "This is an ESP-IDF application or bootloader image, not a filesystem partition. Open the binary generated for a data partition (for example storage.bin), or read the partition from the device with Device Partition Explorer.": "Это образ приложения или загрузчика ESP-IDF, а не раздел с файловой системой. Откройте двоичный файл, созданный для раздела данных (например storage.bin), или считайте раздел с устройства с помощью проводника разделов устройства.",
+  "This is a partition table binary, not a filesystem partition.": "Это двоичный файл таблицы разделов, а не раздел с файловой системой.",
+  "This is an ELF file, not a filesystem partition.": "Это файл ELF, а не раздел с файловой системой.",
+  "This partition is erased, so no filesystem has been written to it yet.": "Этот раздел стёрт, поэтому файловая система в него ещё не записана.",
+  "Not a recognized SPIFFS, FAT, LittleFS, or NVS image. To inspect a filesystem created on the device, read the partition with Device Partition Explorer.": "Не распознан как образ SPIFFS, FAT, LittleFS или NVS. Чтобы просмотреть файловую систему, созданную на устройстве, считайте раздел с помощью проводника разделов устройства.",
+  "Right-click a file in the Filesystem Image Explorer to save it into the workspace.": "Щёлкните правой кнопкой файл в проводнике образа файловой системы, чтобы сохранить его в рабочую область.",
+  "Open a workspace folder before saving a file from the filesystem image.": "Откройте папку рабочей области, прежде чем сохранять файл из образа файловой системы.",
+  "'{0}' is a folder in the workspace, so the file was not saved.": "'{0}' — это папка в рабочей области, поэтому файл не был сохранён.",
+  "'{0}' already exists in the workspace. Replace it?": "'{0}' уже существует в рабочей области. Заменить?",
+  "Replace": "Заменить",
+  "Could not read '{0}' from the filesystem image.": "Не удалось прочитать '{0}' из образа файловой системы.",
+  "Saved {0} to the workspace.": "{0} сохранён в рабочую область.",
+  "Open": "Открыть"
 }

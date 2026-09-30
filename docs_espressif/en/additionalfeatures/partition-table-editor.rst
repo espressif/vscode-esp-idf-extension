@@ -26,3 +26,5 @@ Partition Table Editor
 -   Once you are satisfied, click ``Save`` to save the changes. This will override the content of the CSV file.
 
 -   Now you can click ``Select Flash Method``, ``Build``, and ``Flash`` buttons at the top right to build and flash the partition table to the chip.
+
+-   To read a partition from the connected device or flash a binary to one partition, use the :doc:`Device Partition Explorer <device-partition-explorer>`.
