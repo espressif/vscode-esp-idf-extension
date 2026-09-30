@@ -286,5 +286,13 @@
   "This is a partition table binary, not a filesystem partition.": "Este é um binário de tabela de partições, não uma partição de sistema de arquivos.",
   "This is an ELF file, not a filesystem partition.": "Este é um arquivo ELF, não uma partição de sistema de arquivos.",
   "This partition is erased, so no filesystem has been written to it yet.": "Esta partição está apagada, portanto nenhum sistema de arquivos foi gravado nela ainda.",
-  "Not a recognized SPIFFS, FAT, LittleFS, or NVS image. To inspect a filesystem created on the device, read the partition with Device Partition Explorer.": "Não é uma imagem reconhecida de SPIFFS, FAT, LittleFS ou NVS. Para inspecionar um sistema de arquivos criado no dispositivo, leia a partição com o Explorador de partições do dispositivo."
+  "Not a recognized SPIFFS, FAT, LittleFS, or NVS image. To inspect a filesystem created on the device, read the partition with Device Partition Explorer.": "Não é uma imagem reconhecida de SPIFFS, FAT, LittleFS ou NVS. Para inspecionar um sistema de arquivos criado no dispositivo, leia a partição com o Explorador de partições do dispositivo.",
+  "Right-click a file in the Filesystem Image Explorer to save it into the workspace.": "Clique com o botão direito em um arquivo no Explorador de imagem do sistema de arquivos para salvá-lo no espaço de trabalho.",
+  "Open a workspace folder before saving a file from the filesystem image.": "Abra uma pasta de trabalho antes de salvar um arquivo da imagem do sistema de arquivos.",
+  "'{0}' is a folder in the workspace, so the file was not saved.": "'{0}' é uma pasta no espaço de trabalho, então o arquivo não foi salvo.",
+  "'{0}' already exists in the workspace. Replace it?": "'{0}' já existe no espaço de trabalho. Substituí-lo?",
+  "Replace": "Substituir",
+  "Could not read '{0}' from the filesystem image.": "Não foi possível ler '{0}' da imagem do sistema de arquivos.",
+  "Saved {0} to the workspace.": "{0} foi salvo no espaço de trabalho.",
+  "Open": "Abrir"
 }

@@ -61,6 +61,7 @@
 	"espIdf.flashBinaryToPartition.title": "Прошить бинарник в раздел...",
 	"espIdf.fsImage.explore.title": "Просмотреть образ файловой системы",
 	"espIdf.fsImage.refresh.title": "Обновить образ файловой системы",
+	"espIdf.fsImage.saveFile.title": "Сохранить файл в рабочую область",
 	"espIdf.flashDFU.title": "Прошить (DFU) проект",
 	"espIdf.flashDevice.title": "Прошить проект",
 	"espIdf.flashUart.title": "Прошить (UART) проект",

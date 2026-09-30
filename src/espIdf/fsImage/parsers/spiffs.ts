@@ -20,6 +20,7 @@ import {
   addChildPath,
   emptyDir,
   FsNode,
+  normalizeFsPath,
   readFlashCString,
   sortFsNode,
 } from "../types";
@@ -53,10 +54,14 @@ export interface SpiffsGeometry {
 }
 
 export interface SpiffsObject {
+  objId: number;
   name: string;
   size?: number;
   isDir: boolean;
 }
+
+/** spiffsgen writes file bytes immediately after the 5-byte page header. */
+const DATA_HEADER_LEN = OBJ_ID_SIZE + OBJ_ID_SIZE + 1;
 
 /**
  * Each block stores a magic value derived from the page size (and, when
@@ -120,7 +125,10 @@ export function collectSpiffsObjects(
     if (pagesPerBlock && pageIndex % pagesPerBlock < lookupPages) {
       continue;
     }
-    const page = data.subarray(pageIndex * pageSize, (pageIndex + 1) * pageSize);
+    const page = data.subarray(
+      pageIndex * pageSize,
+      (pageIndex + 1) * pageSize
+    );
     const parsed = parseIndexHeader(page);
     if (parsed) {
       objects.push(parsed);
@@ -165,10 +173,80 @@ export function parseIndexHeader(page: Buffer): SpiffsObject | undefined {
     return undefined;
   }
   return {
+    objId: objId & ~OBJ_ID_IX_FLAG,
     name,
     size: rawSize === SIZE_UNDEFINED ? undefined : rawSize,
     isDir: type === TYPE_DIR,
   };
+}
+
+export function readSpiffsFile(
+  data: Buffer,
+  virtualPath: string
+): Buffer | undefined {
+  const target = normalizeFsPath(virtualPath);
+  const geometry = findSpiffsGeometry(data);
+  let match: SpiffsObject | undefined;
+  for (const object of collectSpiffsObjects(data, geometry)) {
+    if (!object.isDir && normalizeFsPath(object.name) === target) {
+      match = object;
+    }
+  }
+  if (!match || match.size === undefined || match.size > data.length) {
+    return undefined;
+  }
+  if (match.size === 0) {
+    return Buffer.alloc(0);
+  }
+
+  const pageSize = geometry?.pageSize ?? DEFAULT_PAGE_SIZE;
+  const contentLen = pageSize - DATA_HEADER_LEN;
+  const lookupPages = geometry ? countLookupPages(geometry) : 0;
+  const pagesPerBlock = geometry ? geometry.blockSize / pageSize : 0;
+  const pageCount = Math.floor(data.length / pageSize);
+  const spans = new Map<number, Buffer>();
+
+  for (let pageIndex = 0; pageIndex < pageCount; pageIndex++) {
+    if (pagesPerBlock && pageIndex % pagesPerBlock < lookupPages) {
+      continue;
+    }
+    const page = data.subarray(
+      pageIndex * pageSize,
+      (pageIndex + 1) * pageSize
+    );
+    if (page.length < DATA_HEADER_LEN) {
+      continue;
+    }
+    const objId = page.readUInt16LE(0);
+    const span = page.readUInt16LE(2);
+    const flags = page[4];
+    if (objId !== match.objId || objId & OBJ_ID_IX_FLAG) {
+      continue;
+    }
+    const isUsed = (flags & FLAG_USED) === 0;
+    const isIndexPage = (flags & FLAG_INDEX) === 0;
+    const isDeleted = (flags & FLAG_DELETED) === 0;
+    if (!isUsed || isIndexPage || isDeleted) {
+      continue;
+    }
+    spans.set(
+      span,
+      page.subarray(DATA_HEADER_LEN, DATA_HEADER_LEN + contentLen)
+    );
+  }
+
+  const out = Buffer.alloc(match.size);
+  let written = 0;
+  for (let span = 0; written < match.size; span++) {
+    const chunk = spans.get(span);
+    if (!chunk) {
+      return undefined;
+    }
+    const n = Math.min(chunk.length, match.size - written);
+    chunk.copy(out, written, 0, n);
+    written += n;
+  }
+  return out;
 }
 
 export function listSpiffs(data: Buffer): FsNode {

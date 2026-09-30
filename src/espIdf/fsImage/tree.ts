@@ -34,10 +34,7 @@ import { listFsImage } from "./parsers";
 import { FsKind, FsNode, fsKindLabel } from "./types";
 
 export class FsImageItem extends TreeItem {
-  constructor(
-    public readonly node: FsNode,
-    public readonly kind?: FsKind
-  ) {
+  constructor(public readonly node: FsNode, public readonly kind?: FsKind) {
     super(
       node.name,
       node.isDir || (node.children && node.children.length > 0)
@@ -53,12 +50,12 @@ export class FsImageItem extends TreeItem {
   }
 }
 
-export class FsImageTreeDataProvider
-  implements TreeDataProvider<FsImageItem> {
+export class FsImageTreeDataProvider implements TreeDataProvider<FsImageItem> {
   public readonly onDidChangeTreeData: Event<FsImageItem | undefined | null>;
   private readonly emitter = new EventEmitter<FsImageItem | undefined | null>();
   private root?: FsImageItem;
   private imagePath?: string;
+  private kind?: FsKind;
   private subtypeHint?: string;
   private treeView?: TreeView<FsImageItem>;
 
@@ -74,6 +71,10 @@ export class FsImageTreeDataProvider
     return this.imagePath;
   }
 
+  public get currentKind(): FsKind | undefined {
+    return this.kind;
+  }
+
   public getTreeItem(element: FsImageItem): TreeItem {
     return element;
   }
@@ -85,10 +86,7 @@ export class FsImageTreeDataProvider
     return (element.node.children || []).map((child) => new FsImageItem(child));
   }
 
-  public async load(
-    imagePath: string,
-    subtypeHint?: string
-  ): Promise<void> {
+  public async load(imagePath: string, subtypeHint?: string): Promise<void> {
     this.imagePath = imagePath;
     this.subtypeHint = subtypeHint;
     await this.refresh();
@@ -97,6 +95,7 @@ export class FsImageTreeDataProvider
   public async refresh(): Promise<void> {
     if (!this.imagePath) {
       this.root = undefined;
+      this.kind = undefined;
       this.updateViewTitle();
       this.emitter.fire(undefined);
       return;
@@ -117,11 +116,12 @@ export class FsImageTreeDataProvider
         error: listed.root.error,
       };
       this.root = new FsImageItem(rootNode, listed.kind);
+      this.kind = listed.kind;
       this.updateViewTitle(listed.kind, rootNode.error || rootNode.warning);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : String(error);
       Logger.error(message, error, "fsImage load");
+      this.kind = undefined;
       this.root = new FsImageItem({
         name: basename(this.imagePath),
         path: this.imagePath,

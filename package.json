@@ -527,6 +527,11 @@
           "command": "espIdf.hexView.deleteElement",
           "when": "view == espIdf.hexView && viewItem == debugHexItem",
           "group": "inline"
+        },
+        {
+          "command": "espIdf.fsImage.saveFile",
+          "when": "view == idfFsImageExplorer && viewItem == fsImageFile",
+          "group": "inline"
         }
       ],
       "editor/context": [
@@ -1575,6 +1580,12 @@
         "category": "ESP-IDF",
         "title": "%espIdf.fsImage.refresh.title%",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "espIdf.fsImage.saveFile",
+        "category": "ESP-IDF",
+        "title": "%espIdf.fsImage.saveFile.title%",
+        "icon": "$(cloud-download)"
       },
       {
         "command": "espIdf.apptrace.archive.refresh",

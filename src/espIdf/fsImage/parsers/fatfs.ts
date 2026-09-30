@@ -16,10 +16,16 @@
  * limitations under the License.
  */
 
-import { mkdtemp, pathExists, readdir, remove, stat } from "fs-extra";
+import { mkdtemp, pathExists, readFile, readdir, remove, stat } from "fs-extra";
 import { tmpdir } from "os";
 import { join } from "path";
-import { addChildPath, emptyDir, FsNode, sortFsNode } from "../types";
+import {
+  addChildPath,
+  emptyDir,
+  FsNode,
+  normalizeFsPath,
+  sortFsNode,
+} from "../types";
 
 export type FsImageSpawn = (
   command: string,
@@ -50,7 +56,8 @@ export async function listFatfs(
     return root;
   }
   if (!deps.pythonPath) {
-    root.error = "Python is not configured for the current ESP-IDF environment.";
+    root.error =
+      "Python is not configured for the current ESP-IDF environment.";
     return root;
   }
 
@@ -82,6 +89,68 @@ export async function listFatfs(
   }
 }
 
+export async function readFatfsFile(
+  imagePath: string,
+  virtualPath: string,
+  deps: FatfsListDeps
+): Promise<Buffer | undefined> {
+  if (!(await pathExists(deps.fatfsparsePath)) || !deps.pythonPath) {
+    return undefined;
+  }
+  const tempDir = await mkdtemp(join(tmpdir(), "esp-idf-fatfs-"));
+  try {
+    await deps.spawnFn(
+      deps.pythonPath,
+      [deps.fatfsparsePath, "--wl-layer", "detect", imagePath],
+      {
+        cwd: tempDir,
+        env: deps.env,
+        silent: true,
+        sendToTelemetry: false,
+      }
+    );
+    const files = await indexExtractedFiles(tempDir);
+    const absPath = files.get(normalizeFsPath(virtualPath));
+    if (!absPath) {
+      return undefined;
+    }
+    return await readFile(absPath);
+  } finally {
+    await remove(tempDir).catch(() => undefined);
+  }
+}
+
+async function indexExtractedFiles(
+  tempDir: string
+): Promise<Map<string, string>> {
+  const root = emptyDir("/", "/");
+  const located = new Map<string, string>();
+  await walkDir(tempDir, "", root, located);
+  const prefix = volumeLabelPrefix(root);
+  if (!prefix) {
+    return located;
+  }
+  const lifted = new Map<string, string>();
+  for (const [filePath, absPath] of located) {
+    if (filePath === prefix || filePath.startsWith(`${prefix}/`)) {
+      lifted.set(filePath.slice(prefix.length) || "/", absPath);
+    }
+  }
+  return lifted;
+}
+
+function volumeLabelPrefix(root: FsNode): string | undefined {
+  const children = root.children;
+  if (children?.length !== 1) {
+    return undefined;
+  }
+  const [wrapper] = children;
+  if (!wrapper.isDir || !wrapper.children) {
+    return undefined;
+  }
+  return `/${wrapper.name}`;
+}
+
 /**
  * fatfsparse.py reconstructs the image inside a folder named after the volume
  * label, so the partition root would otherwise be nested one level deep.
@@ -110,7 +179,8 @@ function rebasePath(node: FsNode, parentPath: string): FsNode {
 async function walkDir(
   absDir: string,
   relDir: string,
-  root: FsNode
+  root: FsNode,
+  files?: Map<string, string>
 ): Promise<void> {
   const entries = await readdir(absDir);
   for (const entry of entries) {
@@ -119,9 +189,10 @@ async function walkDir(
     const info = await stat(absPath);
     if (info.isDirectory()) {
       addChildPath(root, relPath, { isDir: true });
-      await walkDir(absPath, relPath, root);
+      await walkDir(absPath, relPath, root, files);
     } else {
       addChildPath(root, relPath, { size: info.size });
+      files?.set(normalizeFsPath(relPath), absPath);
     }
   }
 }

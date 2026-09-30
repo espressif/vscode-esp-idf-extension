@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { emptyDir, FsNode, sortFsNode } from "../types";
+import { emptyDir, FsNode, normalizeFsPath, sortFsNode } from "../types";
 
 const TYPE_NAME_REG = 0x001;
 const TYPE_NAME_DIR = 0x002;
@@ -129,6 +129,8 @@ interface LfsEntry {
   size?: number;
   pair?: [number, number];
   isSuperblock?: boolean;
+  inlineData?: Buffer;
+  ctzHead?: number;
 }
 
 function buildDirectory(
@@ -146,7 +148,8 @@ function buildDirectory(
     if (!entry.name || entry.isSuperblock) {
       continue;
     }
-    const path = parent.path === "/" ? `/${entry.name}` : `${parent.path}/${entry.name}`;
+    const path =
+      parent.path === "/" ? `/${entry.name}` : `${parent.path}/${entry.name}`;
     if (entry.isDir) {
       const dirNode: FsNode = {
         name: entry.name,
@@ -156,7 +159,14 @@ function buildDirectory(
       };
       parent.children!.push(dirNode);
       if (entry.pair) {
-        buildDirectory(data, blockSize, entry.pair, dirNode, depth + 1, visited);
+        buildDirectory(
+          data,
+          blockSize,
+          entry.pair,
+          dirNode,
+          depth + 1,
+          visited
+        );
       }
     } else {
       parent.children!.push({
@@ -250,9 +260,13 @@ function applyTags(tags: LfsTag[]): LfsEntry[] {
           entries.splice(tag.id, 1);
         }
         break;
-      case TYPE_SUPERBLOCK:
-        entryAt(tag.id).isSuperblock = true;
+      case TYPE_SUPERBLOCK: {
+        const entry = entryAt(tag.id);
+        entry.isSuperblock = true;
+        entry.inlineData = undefined;
+        entry.ctzHead = undefined;
         break;
+      }
       case TYPE_NAME_REG:
       case TYPE_NAME_DIR: {
         const name = decodeName(tag.data);
@@ -268,12 +282,17 @@ function applyTags(tags: LfsTag[]): LfsEntry[] {
         const entry = entryAt(tag.id);
         if (!entry.isSuperblock) {
           entry.size = tag.size;
+          entry.inlineData = Buffer.from(tag.data);
+          entry.ctzHead = undefined;
         }
         break;
       }
       case TYPE_CTZSTRUCT: {
         if (tag.size >= 8) {
-          entryAt(tag.id).size = tag.data.readUInt32LE(4);
+          const entry = entryAt(tag.id);
+          entry.size = tag.data.readUInt32LE(4);
+          entry.ctzHead = tag.data.readUInt32LE(0);
+          entry.inlineData = undefined;
         }
         break;
       }
@@ -338,11 +357,7 @@ export function readLittlefsSuperblock(
   return undefined;
 }
 
-function scanAllBlocks(
-  data: Buffer,
-  blockSize: number,
-  root: FsNode
-): boolean {
+function scanAllBlocks(data: Buffer, blockSize: number, root: FsNode): boolean {
   const found = new Map<string, { isDir: boolean; size?: number }>();
   const blockCount = Math.floor(data.length / blockSize);
   for (let i = 0; i < blockCount; i++) {
@@ -380,6 +395,246 @@ function inferBlockSize(data: Buffer): number | undefined {
 
 function isPlausibleBlockSize(size: number, imageLength: number): boolean {
   return size >= 128 && size <= 65536 && imageLength % size === 0;
+}
+
+export function readLittlefsFile(
+  data: Buffer,
+  virtualPath: string
+): Buffer | undefined {
+  const superblock = readLittlefsSuperblock(data);
+  const blockSize = superblock?.blockSize ?? inferBlockSize(data);
+  if (!blockSize) {
+    return undefined;
+  }
+  const target = normalizeFsPath(virtualPath);
+  const sawEntry = { found: false };
+  const entry = findInDirectory(
+    data,
+    blockSize,
+    [0, 1],
+    "/",
+    target,
+    0,
+    new Set<string>(),
+    sawEntry
+  );
+  if (entry) {
+    return materializeLittlefsFile(data, blockSize, entry);
+  }
+  if (sawEntry.found) {
+    return undefined;
+  }
+  return materializeLittlefsFile(
+    data,
+    blockSize,
+    findInScan(data, blockSize, target)
+  );
+}
+
+function findInDirectory(
+  data: Buffer,
+  blockSize: number,
+  pair: [number, number],
+  parentPath: string,
+  target: string,
+  depth: number,
+  visited: Set<string>,
+  sawEntry: { found: boolean }
+): LfsEntry | undefined {
+  if (depth > MAX_DIR_DEPTH) {
+    return undefined;
+  }
+  for (const entry of readDirectoryEntries(data, blockSize, pair, visited)) {
+    if (!entry.name || entry.isSuperblock) {
+      continue;
+    }
+    sawEntry.found = true;
+    const path =
+      parentPath === "/" ? `/${entry.name}` : `${parentPath}/${entry.name}`;
+    if (!entry.isDir && path === target) {
+      return entry;
+    }
+    if (
+      entry.isDir &&
+      entry.pair &&
+      (target === path || target.startsWith(`${path}/`))
+    ) {
+      const nested = findInDirectory(
+        data,
+        blockSize,
+        entry.pair,
+        path,
+        target,
+        depth + 1,
+        visited,
+        sawEntry
+      );
+      if (nested) {
+        return nested;
+      }
+    }
+  }
+  return undefined;
+}
+
+function findInScan(
+  data: Buffer,
+  blockSize: number,
+  target: string
+): LfsEntry | undefined {
+  let match: LfsEntry | undefined;
+  const blockCount = Math.floor(data.length / blockSize);
+  for (let i = 0; i < blockCount; i++) {
+    const parsed = parseBlockAt(data, blockSize, i);
+    if (!parsed) {
+      continue;
+    }
+    for (const entry of applyTags(parsed.tags)) {
+      if (!entry.name || entry.isSuperblock || entry.isDir) {
+        continue;
+      }
+      if (normalizeFsPath(`/${entry.name}`) === target) {
+        match = entry;
+      }
+    }
+  }
+  return match;
+}
+
+function materializeLittlefsFile(
+  data: Buffer,
+  blockSize: number,
+  entry: LfsEntry | undefined
+): Buffer | undefined {
+  if (!entry || entry.isDir) {
+    return undefined;
+  }
+  if (entry.inlineData) {
+    const size = entry.size ?? entry.inlineData.length;
+    return Buffer.from(entry.inlineData.subarray(0, size));
+  }
+  if (entry.ctzHead !== undefined && entry.size !== undefined) {
+    return readCtz(data, blockSize, entry.ctzHead, entry.size);
+  }
+  if (entry.size === 0) {
+    return Buffer.alloc(0);
+  }
+  return undefined;
+}
+
+/**
+ * LittleFS stores large files as a reverse skip-list. The block index for a
+ * file offset, and the pointer walk back to that block, follow lfs_ctz_find.
+ */
+function readCtz(
+  data: Buffer,
+  blockSize: number,
+  head: number,
+  size: number
+): Buffer | undefined {
+  if (size === 0) {
+    return Buffer.alloc(0);
+  }
+  if (head === 0xffffffff) {
+    return undefined;
+  }
+  const out = Buffer.alloc(size);
+  let pos = 0;
+  while (pos < size) {
+    const located = ctzFind(data, blockSize, head, size, pos);
+    if (!located) {
+      return undefined;
+    }
+    const available = blockSize - located.offset;
+    if (available <= 0) {
+      return undefined;
+    }
+    const n = Math.min(size - pos, available);
+    const start = located.block * blockSize + located.offset;
+    if (located.block < 0 || start + n > data.length) {
+      return undefined;
+    }
+    data.copy(out, pos, start, start + n);
+    pos += n;
+  }
+  return out;
+}
+
+function ctzFind(
+  data: Buffer,
+  blockSize: number,
+  head: number,
+  size: number,
+  position: number
+): { block: number; offset: number } | undefined {
+  const end = ctzIndex(blockSize, size - 1);
+  const target = ctzIndex(blockSize, position);
+  if (!end || !target) {
+    return undefined;
+  }
+  let current = end.index;
+  let block = head;
+  while (current > target.index) {
+    const skip = Math.min(
+      npw2(current - target.index + 1) - 1,
+      countTrailingZeros(current)
+    );
+    const pointerAt = block * blockSize + 4 * skip;
+    if (skip < 0 || pointerAt < 0 || pointerAt + 4 > data.length) {
+      return undefined;
+    }
+    block = data.readUInt32LE(pointerAt);
+    current -= 1 << skip;
+  }
+  return { block, offset: target.offset };
+}
+
+function ctzIndex(
+  blockSize: number,
+  offset: number
+): { index: number; offset: number } | undefined {
+  const stride = blockSize - 8;
+  if (stride <= 0 || offset < 0) {
+    return undefined;
+  }
+  let index = Math.floor(offset / stride);
+  if (index === 0) {
+    return { index: 0, offset };
+  }
+  index = Math.floor((offset - 4 * (popcount(index - 1) + 2)) / stride);
+  const inBlock = offset - stride * index - 4 * popcount(index);
+  if (index < 0 || inBlock < 0 || inBlock >= blockSize) {
+    return undefined;
+  }
+  return { index, offset: inBlock };
+}
+
+function popcount(value: number): number {
+  let count = 0;
+  let bits = value >>> 0;
+  while (bits) {
+    count += bits & 1;
+    bits >>>= 1;
+  }
+  return count;
+}
+
+function countTrailingZeros(value: number): number {
+  const bits = value >>> 0;
+  if (bits === 0) {
+    return 32;
+  }
+  let count = 0;
+  let rest = bits;
+  while ((rest & 1) === 0) {
+    rest >>>= 1;
+    count++;
+  }
+  return count;
+}
+
+function npw2(value: number): number {
+  return 32 - Math.clz32((value - 1) >>> 0);
 }
 
 function decodeName(data: Buffer): string | undefined {

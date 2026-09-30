@@ -19,13 +19,18 @@
 import * as assert from "assert";
 import { ensureDir, writeFile } from "fs-extra";
 import { join } from "path";
-import { listFatfs } from "../../espIdf/fsImage/parsers/fatfs";
-import { listLittlefs } from "../../espIdf/fsImage/parsers/littlefs";
-import { listNvs } from "../../espIdf/fsImage/parsers/nvs";
+import { listFatfs, readFatfsFile } from "../../espIdf/fsImage/parsers/fatfs";
+import {
+  listLittlefs,
+  readLittlefsFile,
+} from "../../espIdf/fsImage/parsers/littlefs";
+import { listNvs, readNvsFile } from "../../espIdf/fsImage/parsers/nvs";
 import {
   findSpiffsGeometry,
   listSpiffs,
+  readSpiffsFile,
 } from "../../espIdf/fsImage/parsers/spiffs";
+import { workspaceDestination } from "../../espIdf/fsImage/savePath";
 import {
   buildLfsMetadataBlock,
   buildLfsSuperblockConfig,
@@ -55,6 +60,14 @@ suite("Filesystem image parsers", () => {
     assert.strictEqual(byKey.get("counter")?.nvsValuePreview, "42");
     assert.strictEqual(byKey.get("name")?.nvsType, "string");
     assert.strictEqual(byKey.get("name")?.nvsValuePreview, "esp32");
+    assert.deepStrictEqual(
+      readNvsFile(buildNvsImage(), "/storage/name"),
+      Buffer.from("esp32")
+    );
+    assert.deepStrictEqual(
+      readNvsFile(buildNvsImage(), "/storage/counter"),
+      Buffer.from("42")
+    );
   });
 
   test("does not treat NVS string payload entries as keys", () => {
@@ -71,6 +84,7 @@ suite("Filesystem image parsers", () => {
   test("lists SPIFFS file names and sizes", () => {
     const root = listSpiffs(buildSpiffsImage());
     assert.strictEqual(root.children?.[0].name, "hello.txt");
+    assert.strictEqual(root.children?.[0].path, "/hello.txt");
     assert.strictEqual(root.children?.[0].size, 11);
   });
 
@@ -81,6 +95,31 @@ suite("Filesystem image parsers", () => {
     assert.strictEqual(root.children?.[0].name, "www");
     assert.strictEqual(root.children?.[0].isDir, true);
     assert.strictEqual(root.children?.[0].children?.[0].name, "index.html");
+    assert.strictEqual(
+      root.children?.[0].children?.[0].path,
+      "/www/index.html"
+    );
+  });
+
+  test("reads SPIFFS file bytes, including a second data page", () => {
+    const pageSize = 256;
+    const firstLen = pageSize - 5;
+    const contents = Buffer.concat([
+      Buffer.alloc(firstLen, 0x11),
+      Buffer.from("xyz"),
+    ]);
+    const image = buildSpiffsImage([
+      { name: "/www/index.html", size: contents.length, contents },
+    ]);
+    const secondPage = 3 * pageSize;
+    image.writeUInt16LE(1, secondPage);
+    image.writeUInt16LE(1, secondPage + 2);
+    image[secondPage + 4] = 0xfc;
+    contents.copy(image, secondPage + 5, firstLen);
+
+    const bytes = readSpiffsFile(image, "/www/index.html");
+    assert.ok(bytes);
+    assert.deepStrictEqual(bytes, contents);
   });
 
   test("lists LittleFS file with size from the newest metadata block", () => {
@@ -89,6 +128,13 @@ suite("Filesystem image parsers", () => {
     assert.strictEqual(root.children?.[0].name, "example.txt");
     assert.strictEqual(root.children?.[0].isDir, false);
     assert.strictEqual(root.children?.[0].size, 8);
+    assert.deepStrictEqual(
+      readLittlefsFile(
+        buildLittlefsImage("example.txt", "hi there"),
+        "/example.txt"
+      ),
+      Buffer.from("hi there")
+    );
   });
 
   test("skips the LittleFS superblock entry", () => {
@@ -127,6 +173,67 @@ suite("Filesystem image parsers", () => {
     assert.strictEqual(root.children?.[0].isDir, true);
     assert.strictEqual(root.children?.[0].children?.[0].name, "index.html");
     assert.strictEqual(root.children?.[0].children?.[0].size, 1234);
+  });
+
+  test("reads a LittleFS file nested in a directory", () => {
+    const blockSize = 4096;
+    const blockCount = 8;
+    const config = buildLfsSuperblockConfig(blockSize, blockCount);
+    const childPair = Buffer.alloc(8);
+    childPair.writeUInt32LE(2, 0);
+    childPair.writeUInt32LE(3, 4);
+    const rootBlock = buildLfsMetadataBlock(3, blockSize, [
+      { type: 0x0ff, id: 0, size: 8, data: Buffer.from("littlefs") },
+      { type: 0x201, id: 0, size: config.length, data: config },
+      { type: 0x002, id: 1, size: 3, data: Buffer.from("www") },
+      { type: 0x200, id: 1, size: 8, data: childPair },
+    ]);
+    const childBlock = buildLfsMetadataBlock(1, blockSize, [
+      { type: 0x001, id: 0, size: 10, data: Buffer.from("index.html") },
+      { type: 0x201, id: 0, size: 2, data: Buffer.from("hi") },
+    ]);
+    const image = Buffer.alloc(blockSize * blockCount, 0xff);
+    rootBlock.copy(image, 0);
+    childBlock.copy(image, blockSize * 2);
+
+    assert.deepStrictEqual(
+      readLittlefsFile(image, "/www/index.html"),
+      Buffer.from("hi")
+    );
+  });
+
+  test("reads a LittleFS file stored across CTZ blocks", () => {
+    const blockSize = 4096;
+    const blockCount = 8;
+    const config = buildLfsSuperblockConfig(blockSize, blockCount);
+    const fileSize = 4100;
+    const ctz = Buffer.alloc(8);
+    ctz.writeUInt32LE(5, 0);
+    ctz.writeUInt32LE(fileSize, 4);
+    const older = buildLfsMetadataBlock(1, blockSize, [
+      { type: 0x0ff, id: 0, size: 8, data: Buffer.from("littlefs") },
+      { type: 0x201, id: 0, size: config.length, data: config },
+    ]);
+    const newer = buildLfsMetadataBlock(2, blockSize, [
+      { type: 0x0ff, id: 0, size: 8, data: Buffer.from("littlefs") },
+      { type: 0x201, id: 0, size: config.length, data: config },
+      { type: 0x001, id: 1, size: 8, data: Buffer.from("wide.bin") },
+      { type: 0x202, id: 1, size: 8, data: ctz },
+    ]);
+    const image = Buffer.alloc(blockSize * blockCount, 0xff);
+    older.copy(image, 0);
+    newer.copy(image, blockSize);
+    image.fill(0x41, blockSize * 4, blockSize * 5);
+    image.writeUInt32LE(4, blockSize * 5);
+    image.fill(0x42, blockSize * 5 + 4, blockSize * 5 + 8);
+
+    const bytes = readLittlefsFile(image, "/wide.bin");
+    assert.ok(bytes);
+    assert.strictEqual(bytes.length, fileSize);
+    assert.strictEqual(bytes[0], 0x41);
+    assert.strictEqual(bytes[4095], 0x41);
+    assert.strictEqual(bytes[4096], 0x42);
+    assert.strictEqual(bytes[4099], 0x42);
   });
 
   test("reports an error when no LittleFS entries exist", () => {
@@ -169,7 +276,10 @@ suite("Filesystem image parsers", () => {
     });
     assert.strictEqual(root.children?.[0].name, "WWW");
     assert.strictEqual(root.children?.[0].path, "/WWW");
-    assert.strictEqual(root.children?.[0].children?.[0].path, "/WWW/index.html");
+    assert.strictEqual(
+      root.children?.[0].children?.[0].path,
+      "/WWW/index.html"
+    );
   });
 
   test("FAT parser walks extracted tree from spawn", async () => {
@@ -189,5 +299,38 @@ suite("Filesystem image parsers", () => {
     const volume = root.children![0];
     assert.strictEqual(volume.children?.[0].name, "readme.txt");
     assert.strictEqual(volume.children?.[0].size, 2);
+  });
+
+  test("reads a file back from an extracted FAT image", async () => {
+    const bytes = await readFatfsFile("/tmp/fat.bin", "/WWW/index.html", {
+      pythonPath: "/usr/bin/python3",
+      fatfsparsePath: __filename,
+      spawnFn: async (_cmd, _args, options) => {
+        const dir = join(options?.cwd as string, "ESPRESSIF", "WWW");
+        await ensureDir(dir);
+        await writeFile(join(dir, "index.html"), "hi");
+        return Buffer.alloc(0);
+      },
+    });
+    assert.strictEqual(bytes?.toString(), "hi");
+  });
+
+  test("places an image path inside the workspace", () => {
+    assert.strictEqual(
+      workspaceDestination("/proj", "/tmp/storage.bin", "/example.txt"),
+      join("/proj", "filesFromImage", "storage", "example.txt")
+    );
+    assert.strictEqual(
+      workspaceDestination("/proj", "/tmp/storage.bin", "/www/index.html"),
+      join("/proj", "filesFromImage", "storage", "www", "index.html")
+    );
+    assert.strictEqual(
+      workspaceDestination("/proj", "/tmp/storage.bin", "/../etc/passwd"),
+      undefined
+    );
+    assert.strictEqual(
+      workspaceDestination("/proj", "/tmp/storage.bin", "/"),
+      undefined
+    );
   });
 });

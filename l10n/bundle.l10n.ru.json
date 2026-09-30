@@ -286,5 +286,13 @@
   "This is a partition table binary, not a filesystem partition.": "Это двоичный файл таблицы разделов, а не раздел с файловой системой.",
   "This is an ELF file, not a filesystem partition.": "Это файл ELF, а не раздел с файловой системой.",
   "This partition is erased, so no filesystem has been written to it yet.": "Этот раздел стёрт, поэтому файловая система в него ещё не записана.",
-  "Not a recognized SPIFFS, FAT, LittleFS, or NVS image. To inspect a filesystem created on the device, read the partition with Device Partition Explorer.": "Не распознан как образ SPIFFS, FAT, LittleFS или NVS. Чтобы просмотреть файловую систему, созданную на устройстве, считайте раздел с помощью проводника разделов устройства."
+  "Not a recognized SPIFFS, FAT, LittleFS, or NVS image. To inspect a filesystem created on the device, read the partition with Device Partition Explorer.": "Не распознан как образ SPIFFS, FAT, LittleFS или NVS. Чтобы просмотреть файловую систему, созданную на устройстве, считайте раздел с помощью проводника разделов устройства.",
+  "Right-click a file in the Filesystem Image Explorer to save it into the workspace.": "Щёлкните правой кнопкой файл в проводнике образа файловой системы, чтобы сохранить его в рабочую область.",
+  "Open a workspace folder before saving a file from the filesystem image.": "Откройте папку рабочей области, прежде чем сохранять файл из образа файловой системы.",
+  "'{0}' is a folder in the workspace, so the file was not saved.": "'{0}' — это папка в рабочей области, поэтому файл не был сохранён.",
+  "'{0}' already exists in the workspace. Replace it?": "'{0}' уже существует в рабочей области. Заменить?",
+  "Replace": "Заменить",
+  "Could not read '{0}' from the filesystem image.": "Не удалось прочитать '{0}' из образа файловой системы.",
+  "Saved {0} to the workspace.": "{0} сохранён в рабочую область.",
+  "Open": "Открыть"
 }

@@ -24,7 +24,29 @@ Detection inspects on-disk structures rather than searching for strings, so appl
 * **LittleFS**: read from the superblock and the metadata pairs, following the newest revision of each pair and descending into subdirectories.
 * **SPIFFS**: geometry is recovered from the per-block magic value, then object index headers provide names and sizes.
 
-LittleFS and SPIFFS listings report names and sizes only; file contents are not extracted in this version. A formatted image with no files shows an empty tree, while unknown or unreadable images show an error on the root item instead of a fake directory tree.
+The tree shows names and sizes. File contents are copied only when you save a file, as described in **Save a file**. A formatted image with no files shows an empty tree, while unknown or unreadable images show an error on the root item instead of a fake directory tree.
+
+Save a file
+-----------
+
+The tree is a view of the binary. Saving copies one file out of the image and does not modify the binary. Directories have no save action.
+
+Run ``ESP-IDF: Save File to Workspace`` in either of these ways:
+
+* Right-click a file in **Filesystem Image Explorer** and choose the command.
+* Click the download icon on that row.
+
+The command needs an open workspace folder. When several folders are open, it uses the selected ESP-IDF project folder.
+
+The file is written to:
+
+``<workspace>/filesFromImage/<image name without extension>/<path inside the image>``
+
+For example, ``example.txt`` in ``storage.bin`` is saved as ``filesFromImage/storage/example.txt``. A nested path such as ``/www/index.html`` stays nested: ``filesFromImage/storage/www/index.html``. Parent folders are created as needed. If that path already exists, the extension asks before replacing it. The notification includes **Open**.
+
+* **SPIFFS** and **LittleFS**: file bytes are read from the image. LittleFS uses inline file data or CTZ blocks.
+* **FAT**: the same ``fatfsparse.py`` path used for listing extracts the file, so a configured ESP-IDF environment is required.
+* **NVS**: a key is saved as a file. Strings and numbers are written as text; blobs are written as raw bytes.
 
 If the image is not recognized
 ------------------------------

@@ -60,6 +60,7 @@
   "espIdf.flashBinaryToPartition.title": "Flash Binary to Partition...",
   "espIdf.fsImage.explore.title": "Explore Filesystem Image",
   "espIdf.fsImage.refresh.title": "Refresh Filesystem Image",
+  "espIdf.fsImage.saveFile.title": "Save File to Workspace",
   "espIdf.flashBootloaderUart.title": "Flash Bootloader Only (UART)",
   "espIdf.flashDFU.title": "Flash (DFU) Your Project",
   "espIdf.flashDevice.title": "Flash Your Project",
