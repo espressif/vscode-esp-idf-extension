@@ -16,7 +16,13 @@
  * limitations under the License.
  */
 
-import { emptyDir, FsNode, readFlashCString, sortFsNode } from "../types";
+import {
+  emptyDir,
+  FsNode,
+  normalizeFsPath,
+  readFlashCString,
+  sortFsNode,
+} from "../types";
 
 const PAGE_SIZE = 4096;
 const HEADER_SIZE = 32;
@@ -65,6 +71,7 @@ export interface NvsItem {
   namespaceIndex: number;
   type: number;
   span: number;
+  chunkIndex: number;
   key: string;
   data: Buffer;
   /** Payload of multi-entry items (strings and blob chunks). */
@@ -219,6 +226,7 @@ function parseItem(page: Buffer, offset: number): NvsItem | undefined {
     namespaceIndex,
     type,
     span,
+    chunkIndex: page[offset + 3],
     key,
     data: page.subarray(offset + 24, offset + ENTRY_SIZE),
   };
@@ -281,6 +289,122 @@ function formatString(item: NvsItem): string {
   return oneLine.length > VALUE_PREVIEW_MAX
     ? `${oneLine.slice(0, VALUE_PREVIEW_MAX)}…`
     : oneLine;
+}
+
+export function readNvsFile(
+  data: Buffer,
+  virtualPath: string
+): Buffer | undefined {
+  const target = normalizeFsPath(virtualPath);
+  const { items } = readNvsItems(data);
+  const namespaces = new Map<number, string>();
+  for (const item of items) {
+    if (item.namespaceIndex === NAMESPACE_INDEX && item.type === TYPE_U8) {
+      namespaces.set(item.data.readUInt8(0), item.key);
+    }
+  }
+
+  const seen = new Set<string>();
+  for (const item of items) {
+    if (
+      item.namespaceIndex === NAMESPACE_INDEX ||
+      item.type === TYPE_BLOB_DATA
+    ) {
+      continue;
+    }
+    const nsName =
+      namespaces.get(item.namespaceIndex) || `ns_${item.namespaceIndex}`;
+    const path = normalizeFsPath(`/${nsName}/${item.key}`);
+    if (seen.has(path)) {
+      continue;
+    }
+    seen.add(path);
+    if (path !== target) {
+      continue;
+    }
+    return nvsItemBytes(item, items);
+  }
+  return undefined;
+}
+
+function nvsItemBytes(item: NvsItem, items: NvsItem[]): Buffer | undefined {
+  switch (item.type) {
+    case TYPE_SZ:
+      return nvsStringBytes(item);
+    case TYPE_BLOB:
+      return sizedPayload(item);
+    case TYPE_BLOB_IDX:
+      return nvsBlobIndexBytes(item, items);
+    default: {
+      const text = formatValue(item);
+      return text ? Buffer.from(text, "utf8") : undefined;
+    }
+  }
+}
+
+function nvsStringBytes(item: NvsItem): Buffer | undefined {
+  const raw = sizedPayload(item);
+  if (!raw) {
+    return undefined;
+  }
+  if (raw.length > 0 && raw[raw.length - 1] === 0) {
+    return raw.subarray(0, raw.length - 1);
+  }
+  return raw;
+}
+
+function sizedPayload(item: NvsItem): Buffer | undefined {
+  if (!item.payload) {
+    return undefined;
+  }
+  const declaredSize = item.data.readUInt16LE(0);
+  if (declaredSize === 0) {
+    return Buffer.alloc(0);
+  }
+  return Buffer.from(
+    item.payload.subarray(0, Math.min(declaredSize, item.payload.length))
+  );
+}
+
+function nvsBlobIndexBytes(
+  item: NvsItem,
+  items: NvsItem[]
+): Buffer | undefined {
+  if (item.data.length < 6) {
+    return undefined;
+  }
+  const total = item.data.readUInt32LE(0);
+  const chunkCount = item.data[4];
+  const chunkStart = item.data[5];
+  if (chunkCount === 0) {
+    return total === 0 ? Buffer.alloc(0) : undefined;
+  }
+  const chunks = items
+    .filter(
+      (other) =>
+        other.type === TYPE_BLOB_DATA &&
+        other.namespaceIndex === item.namespaceIndex &&
+        other.key === item.key &&
+        other.chunkIndex >= chunkStart &&
+        other.chunkIndex < chunkStart + chunkCount
+    )
+    .sort((a, b) => a.chunkIndex - b.chunkIndex);
+  if (chunks.length !== chunkCount) {
+    return undefined;
+  }
+  const parts: Buffer[] = [];
+  for (const chunk of chunks) {
+    const bytes = sizedPayload(chunk);
+    if (!bytes) {
+      return undefined;
+    }
+    parts.push(bytes);
+  }
+  const joined = Buffer.concat(parts);
+  if (joined.length < total) {
+    return undefined;
+  }
+  return joined.subarray(0, total);
 }
 
 export const NVS_CONSTANTS = {

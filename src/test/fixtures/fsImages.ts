@@ -197,8 +197,7 @@ export function writeNvsStringEntry(
 export function markNvsEntriesWritten(page: Buffer, count: number): void {
   for (let index = 0; index < count; index++) {
     const bitOffset = index * 2;
-    const byteOffset =
-      NVS_CONSTANTS.HEADER_SIZE + (bitOffset >> 3);
+    const byteOffset = NVS_CONSTANTS.HEADER_SIZE + (bitOffset >> 3);
     const shift = bitOffset % 8;
     page[byteOffset] &= ~(0x03 << shift) & 0xff;
     page[byteOffset] |= NVS_CONSTANTS.ENTRY_STATE_WRITTEN << shift;
@@ -276,7 +275,7 @@ const SPIFFS_FLAGS_INDEX_HEADER = 0xf8;
 
 /** Mirrors spiffsgen.py output: lookup page with per-block magic, then object pages. */
 export function buildSpiffsImage(
-  files: Array<{ name: string; size: number }> = [
+  files: Array<{ name: string; size: number; contents?: string | Buffer }> = [
     { name: "/hello.txt", size: 11 },
   ]
 ): Buffer {
@@ -297,10 +296,7 @@ export function buildSpiffsImage(
     const objId = fileIndex + 1;
     const headerPage = 1 + fileIndex * 2;
     const dataPage = headerPage + 1;
-    image.writeUInt16LE(
-      objId | SPIFFS_OBJ_ID_IX_FLAG,
-      fileIndex * 2 * 2
-    );
+    image.writeUInt16LE(objId | SPIFFS_OBJ_ID_IX_FLAG, fileIndex * 2 * 2);
     image.writeUInt16LE(objId, fileIndex * 2 * 2 + 2);
 
     const offset = headerPage * SPIFFS_PAGE_SIZE;
@@ -316,6 +312,17 @@ export function buildSpiffsImage(
     image.writeUInt16LE(objId, dataOffset);
     image.writeUInt16LE(0, dataOffset + 2);
     image[dataOffset + 4] = 0xfc;
+    if (file.contents !== undefined) {
+      const bytes = Buffer.isBuffer(file.contents)
+        ? file.contents
+        : Buffer.from(file.contents);
+      bytes.copy(
+        image,
+        dataOffset + 5,
+        0,
+        Math.min(bytes.length, SPIFFS_PAGE_SIZE - 5)
+      );
+    }
   });
 
   return image;

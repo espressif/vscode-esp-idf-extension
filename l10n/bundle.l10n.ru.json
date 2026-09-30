@@ -247,5 +247,13 @@
   "Remove obsolete entries": "Удалить устаревшие записи",
   "Removed {0} from the idf.customExtraVars setting.": "{0} удалено из параметра idf.customExtraVars.",
   "Show setting": "Показать параметр",
-  "Some ESP-IDF settings in this workspace point to tools that are no longer installed: {0}. The paths from the current ESP-IDF setup are being used instead.": "Некоторые параметры ESP-IDF в этом рабочем пространстве указывают на инструменты, которые больше не установлены: {0}. Вместо них используются пути из текущей установки ESP-IDF."
+  "Some ESP-IDF settings in this workspace point to tools that are no longer installed: {0}. The paths from the current ESP-IDF setup are being used instead.": "Некоторые параметры ESP-IDF в этом рабочем пространстве указывают на инструменты, которые больше не установлены: {0}. Вместо них используются пути из текущей установки ESP-IDF.",
+  "Right-click a file in the Filesystem Image Explorer to save it into the workspace.": "Щёлкните правой кнопкой файл в проводнике образа файловой системы, чтобы сохранить его в рабочую область.",
+  "Open a workspace folder before saving a file from the filesystem image.": "Откройте папку рабочей области, прежде чем сохранять файл из образа файловой системы.",
+  "'{0}' is a folder in the workspace, so the file was not saved.": "'{0}' — это папка в рабочей области, поэтому файл не был сохранён.",
+  "'{0}' already exists in the workspace. Replace it?": "'{0}' уже существует в рабочей области. Заменить?",
+  "Replace": "Заменить",
+  "Could not read '{0}' from the filesystem image.": "Не удалось прочитать '{0}' из образа файловой системы.",
+  "Saved {0} to the workspace.": "{0} сохранён в рабочую область.",
+  "Open": "Открыть"
 }

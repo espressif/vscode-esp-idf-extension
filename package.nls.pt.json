@@ -57,6 +57,7 @@
   "espIdf.flashBinaryToPartition.title": "Flash binário para partição...",
   "espIdf.fsImage.explore.title": "Explorar imagem do sistema de arquivos",
   "espIdf.fsImage.refresh.title": "Atualizar imagem do sistema de arquivos",
+  "espIdf.fsImage.saveFile.title": "Salvar arquivo no espaço de trabalho",
   "espIdf.flashBootloaderUart.title": "Flash Bootloader apenas (UART)",
   "espIdf.flashDFU.title": "Flash (DFU) seu projeto",
   "espIdf.flashDevice.title": "Atualize seu projeto",

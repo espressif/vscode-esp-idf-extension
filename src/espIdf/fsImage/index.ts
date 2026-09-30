@@ -20,7 +20,8 @@ import { commands, ExtensionContext, Uri, window } from "vscode";
 import { pathExists } from "fs-extra";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { fileNotFound } from "../../common/error/knownError";
-import { FsImageTreeDataProvider } from "./tree";
+import { FsImageItem, FsImageTreeDataProvider } from "./tree";
+import { saveFsImageFile } from "./saveFile";
 
 let provider: FsImageTreeDataProvider | undefined;
 
@@ -63,6 +64,18 @@ export function registerFsImageCommands(context: ExtensionContext): void {
         return;
       }
       await provider.refresh();
+    },
+    { outputChannel: "Filesystem Image" }
+  );
+
+  registerIDFCommand(
+    context,
+    "espIdf.fsImage.saveFile",
+    async (item?: FsImageItem) => {
+      await saveFsImageFile(item, {
+        imagePath: provider?.currentImagePath,
+        kind: provider?.currentKind,
+      });
     },
     { outputChannel: "Filesystem Image" }
   );

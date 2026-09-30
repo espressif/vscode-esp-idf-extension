@@ -48,6 +48,14 @@ export function emptyDir(name: string, path: string): FsNode {
   return { name, path, isDir: true, children: [] };
 }
 
+/** Image paths and tree paths both collapse to a single leading slash. */
+export function normalizeFsPath(value: string): string {
+  const parts = value
+    .split(/[/\\]/)
+    .filter((part) => part.length > 0 && part !== ".");
+  return `/${parts.join("/")}`;
+}
+
 export function addChildPath(
   root: FsNode,
   relPath: string,
@@ -62,7 +70,10 @@ export function addChildPath(
   for (let i = 0; i < parts.length; i++) {
     const part = parts[i];
     const isLast = i === parts.length - 1;
-    currentPath = currentPath ? `${currentPath}/${part}` : `/${part}`;
+    currentPath =
+      currentPath && currentPath !== "/"
+        ? `${currentPath}/${part}`
+        : `/${part}`;
     if (!current.children) {
       current.children = [];
     }

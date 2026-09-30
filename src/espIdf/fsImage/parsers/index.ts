@@ -32,10 +32,10 @@ import {
   NonFsFormat,
   sortFsNode,
 } from "../types";
-import { listFatfs } from "./fatfs";
-import { listLittlefs } from "./littlefs";
-import { listNvs } from "./nvs";
-import { listSpiffs } from "./spiffs";
+import { listFatfs, readFatfsFile } from "./fatfs";
+import { listLittlefs, readLittlefsFile } from "./littlefs";
+import { listNvs, readNvsFile } from "./nvs";
+import { listSpiffs, readSpiffsFile } from "./spiffs";
 
 export interface ListFsImageOptions {
   data: Buffer;
@@ -59,6 +59,26 @@ export async function listFsImage(
   }
   sortFsNode(root);
   return { kind, root, hintMismatch: detected.hintMismatch };
+}
+
+export async function extractFsFile(options: {
+  data: Buffer;
+  imagePath: string;
+  kind: FsKind;
+  virtualPath: string;
+}): Promise<Buffer | undefined> {
+  switch (options.kind) {
+    case "nvs":
+      return readNvsFile(options.data, options.virtualPath);
+    case "spiffs":
+      return readSpiffsFile(options.data, options.virtualPath);
+    case "littlefs":
+      return readLittlefsFile(options.data, options.virtualPath);
+    case "fatfs":
+      return readFatfsFile(options.imagePath, options.virtualPath, fatfsDeps());
+    default:
+      return undefined;
+  }
 }
 
 async function listByKind(
@@ -107,6 +127,10 @@ function unknownImageMessage(nonFsFormat?: NonFsFormat): string {
 }
 
 async function listFatWithIdf(imagePath: string): Promise<FsNode> {
+  return listFatfs(imagePath, fatfsDeps());
+}
+
+function fatfsDeps() {
   const env = getCurrentIdfConfiguration();
   const pythonPath = getVirtualEnvPythonPath() || "";
   const fatfsparsePath = join(
@@ -115,10 +139,10 @@ async function listFatWithIdf(imagePath: string): Promise<FsNode> {
     "fatfs",
     "fatfsparse.py"
   );
-  return listFatfs(imagePath, {
+  return {
     pythonPath,
     fatfsparsePath,
     spawnFn: spawn,
     env,
-  });
+  };
 }

@@ -247,5 +247,13 @@
   "Remove obsolete entries": "Remover entradas obsoletas",
   "Removed {0} from the idf.customExtraVars setting.": "{0} foi removido da configuração idf.customExtraVars.",
   "Show setting": "Mostrar configuração",
-  "Some ESP-IDF settings in this workspace point to tools that are no longer installed: {0}. The paths from the current ESP-IDF setup are being used instead.": "Algumas configurações do ESP-IDF neste espaço de trabalho apontam para ferramentas que não estão mais instaladas: {0}. Os caminhos da configuração atual do ESP-IDF estão sendo usados no lugar."
+  "Some ESP-IDF settings in this workspace point to tools that are no longer installed: {0}. The paths from the current ESP-IDF setup are being used instead.": "Algumas configurações do ESP-IDF neste espaço de trabalho apontam para ferramentas que não estão mais instaladas: {0}. Os caminhos da configuração atual do ESP-IDF estão sendo usados no lugar.",
+  "Right-click a file in the Filesystem Image Explorer to save it into the workspace.": "Clique com o botão direito em um arquivo no Explorador de imagem do sistema de arquivos para salvá-lo no espaço de trabalho.",
+  "Open a workspace folder before saving a file from the filesystem image.": "Abra uma pasta de trabalho antes de salvar um arquivo da imagem do sistema de arquivos.",
+  "'{0}' is a folder in the workspace, so the file was not saved.": "'{0}' é uma pasta no espaço de trabalho, então o arquivo não foi salvo.",
+  "'{0}' already exists in the workspace. Replace it?": "'{0}' já existe no espaço de trabalho. Substituí-lo?",
+  "Replace": "Substituir",
+  "Could not read '{0}' from the filesystem image.": "Não foi possível ler '{0}' da imagem do sistema de arquivos.",
+  "Saved {0} to the workspace.": "{0} foi salvo no espaço de trabalho.",
+  "Open": "Abrir"
 }

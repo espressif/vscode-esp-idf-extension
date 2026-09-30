@@ -247,5 +247,13 @@
   "Remove obsolete entries": "移除过时条目",
   "Removed {0} from the idf.customExtraVars setting.": "已从 idf.customExtraVars 设置中移除 {0}。",
   "Show setting": "显示设置",
-  "Some ESP-IDF settings in this workspace point to tools that are no longer installed: {0}. The paths from the current ESP-IDF setup are being used instead.": "此工作区中的部分 ESP-IDF 设置指向已不再安装的工具：{0}。正在改用当前 ESP-IDF 安装中的路径。"
+  "Some ESP-IDF settings in this workspace point to tools that are no longer installed: {0}. The paths from the current ESP-IDF setup are being used instead.": "此工作区中的部分 ESP-IDF 设置指向已不再安装的工具：{0}。正在改用当前 ESP-IDF 安装中的路径。",
+  "Right-click a file in the Filesystem Image Explorer to save it into the workspace.": "在文件系统镜像资源管理器中右键单击文件，即可将其保存到工作区。",
+  "Open a workspace folder before saving a file from the filesystem image.": "请先打开工作区文件夹，再从文件系统镜像保存文件。",
+  "'{0}' is a folder in the workspace, so the file was not saved.": "“{0}”在工作区中是文件夹，因此未保存该文件。",
+  "'{0}' already exists in the workspace. Replace it?": "工作区中已存在“{0}”。要替换它吗？",
+  "Replace": "替换",
+  "Could not read '{0}' from the filesystem image.": "无法从文件系统镜像读取“{0}”。",
+  "Saved {0} to the workspace.": "已将 {0} 保存到工作区。",
+  "Open": "打开"
 }
