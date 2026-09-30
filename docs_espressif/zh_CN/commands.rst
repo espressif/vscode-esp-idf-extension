@@ -60,6 +60,8 @@
      - 通过 esptool.py，将当前 ESP-IDF 项目的二进制文件写入 flash 芯片。
    * - 通过 JTAG 接口烧录项目
      - 通过 OpenOCD JTAG，将当前 ESP-IDF 项目的二进制文件写入 flash 芯片。
+   * - 将二进制文件烧录到分区…
+     - 使用 ``esptool.py write_flash`` 将 ``.bin`` 文件写入分区偏移量。详情请参阅 :doc:`设备分区资源管理器 <additionalfeatures/device-partition-explorer>`。
    * - 完全清理项目
      - 删除当前 ESP-IDF 项目的构建目录。
    * - 获取 eFuse 摘要
@@ -92,6 +94,8 @@
      - 启动 UI，如 `ESP-IDF 分区表 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/partition-tables.html>`_ 中所述，管理自定义分区表。
    * - 选择工作区文件夹
      - 在使用包含多个工作区文件夹的 VS Code 工作区时，此命令会让此扩展的命令应用于指定文件夹。详情请参阅 :ref:`处理多个项目 <multiple projects>`。
+   * - 刷新分区表
+     - 将项目已构建的分区表加载到 :doc:`设备分区资源管理器 <additionalfeatures/device-partition-explorer>`。
    * - 移除编辑器覆盖率
      - 移除因 **添加编辑器覆盖率** 命令而产生的彩色高亮代码行。
    * - 运行 idf.py reconfigure 任务

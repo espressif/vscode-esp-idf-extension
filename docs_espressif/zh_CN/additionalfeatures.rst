@@ -24,6 +24,7 @@
     语言工具<additionalfeatures/language-tools>
     NVS 分区表编辑器<additionalfeatures/nvs-partition-editor>
     文件系统镜像资源管理器<additionalfeatures/fs-image-explorer>
+    设备分区资源管理器<additionalfeatures/device-partition-explorer>
     分区表编辑器<additionalfeatures/partition-table-editor>
     项目配置编辑器<additionalfeatures/project-configuration>
     QEMU 模拟器<additionalfeatures/qemu>
