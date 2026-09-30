@@ -56,6 +56,8 @@ All commands start with ``ESP-IDF:``.
      - Write binary data to the ESP's flash chip from your current ESP-IDF project using esptool.py
    * - Flash (with JTag)
      - Write binary data to the ESP's flash chip from your current ESP-IDF project using OpenOCD JTAG
+   * - Flash Binary to Partition...
+     - Write a ``.bin`` file to a partition offset with ``esptool.py write_flash``. More information can be found in :doc:`Device Partition Explorer <additionalfeatures/device-partition-explorer>`.
    * - Full Clean Project
      - Delete the current ESP-IDF project build directory.
    * - Get eFuse Summary
@@ -90,6 +92,8 @@ All commands start with ``ESP-IDF:``.
      - Launch UI to manage custom partition table as described in `ESP-IDF Partition Tables <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html>`_.
    * - Pick a Workspace Folder
      - When using a Visual Studio Code workspace with multiple workspace folders, this command allows you to choose which workspace folder to apply this extension’s commands to. More information can be found in :ref:`working with multiple projects <multiple projects>`.
+   * - Refresh Partition Table
+     - Load the project's built partition table into the :doc:`Device Partition Explorer <additionalfeatures/device-partition-explorer>`.
    * - Remove Editor Coverage
      - Remove editor colored lines from **Add Editor Coverage** command.
    * - Run idf.py reconfigure Task
