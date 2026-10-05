@@ -2664,7 +2664,7 @@
     "@vscode/l10n": "^0.0.18",
     "ansi-to-html": "^0.6.11",
     "assert": "^2.1.0",
-    "axios": "^1.18.0",
+    "axios": "^1.20.0",
     "bignumber.js": "^9.0.1",
     "fs-extra": "^8.1.0",
     "interactjs": "^1.9.18",
