@@ -1062,14 +1062,22 @@ export class GDBDebugSession extends LoggingDebugSession {
     threadId?: number,
     maxDepth = 100
   ): Promise<number> {
-    if (this.isHaltedOnAttach || this.isPostMortem) {
-      return Math.min(maxDepth, 8);
-    }
-    const depthResult = await mi.sendStackInfoDepth(this.gdb, {
+    const useLimitedDepthFallback = this.isHaltedOnAttach || this.isPostMortem;
+    const depthRequest = mi.sendStackInfoDepth(this.gdb, {
       maxDepth,
-      threadId,
+      ...(this.isHaltedOnAttach ? {} : { threadId }),
     });
-    return parseInt(depthResult.depth, 10);
+    try {
+      const depthResult = useLimitedDepthFallback
+        ? await raceTimeout(depthRequest, 1500, "stack-info-depth timed out")
+        : await depthRequest;
+      return parseInt(depthResult.depth, 10);
+    } catch (err) {
+      if (useLimitedDepthFallback) {
+        return Math.min(maxDepth, 8);
+      }
+      throw err;
+    }
   }
 
   protected async stackTraceRequest(
