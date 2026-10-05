@@ -34,7 +34,7 @@ import {
   debugDapErrorPresentation,
   debugErrorPresentation,
 } from "../debugErrorPresentation";
-import { Logger } from "../../common/logger";
+import { Logger as ExtensionLogger } from "../../common/logger";
 import {
   CORE_DUMP_SESSION_ID,
   PANIC_GDBSTUB_SESSION_ID,
@@ -175,7 +175,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         this.sendEvent(new OutputEvent(`❌ ${message}`, "stderr"));
-        Logger.errorNotify(
+        ExtensionLogger.errorNotify(
           message,
           err instanceof Error ? err : new Error(message),
           "GDBTargetDebugSession gdbstub interrupt"
@@ -597,7 +597,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       if (args.sessionID === RUNTIME_GDBSTUB_SESSION_ID) {
-        Logger.errorNotify(
+        ExtensionLogger.errorNotify(
           message,
           err instanceof Error ? err : new Error(message),
           "GDBTargetDebugSession startGDBAndAttachToTarget"

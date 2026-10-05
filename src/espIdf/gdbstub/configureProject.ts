@@ -10,7 +10,7 @@ import {
   WorkspaceEdit,
 } from "vscode";
 import { ConfserverProcess } from "../menuconfig/confserver/confServerProcess";
-import { getSDKConfigFilePath } from "../../workspaceConfig";
+import { getSDKConfigFilePath } from "../../configuration/workspace";
 import {
   addPrivateRequirement,
   enableSdkconfigOption,
