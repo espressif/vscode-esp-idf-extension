@@ -37,6 +37,12 @@ function writeBuffer(serialPort: SerialPort, data: Buffer): Promise<boolean> {
   });
 }
 
+function drainSerialPort(serialPort: SerialPort): Promise<boolean> {
+  return new Promise((resolve) => {
+    serialPort.drain((error) => resolve(error ? false : true));
+  });
+}
+
 function closeSerialPort(serialPort: SerialPort): Promise<void> {
   return new Promise((resolve) => {
     serialPort.removeAllListeners();
@@ -74,6 +80,9 @@ async function interruptRequest(port: string, baudRate: number): Promise<void> {
   }
   try {
     if (!(await writeBuffer(serialPort, interruptByte))) {
+      throw new Error(`Sending interrupt request to ${port} failed`);
+    }
+    if (!(await drainSerialPort(serialPort))) {
       throw new Error(`Sending interrupt request to ${port} failed`);
     }
   } finally {
