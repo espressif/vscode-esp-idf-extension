@@ -126,6 +126,12 @@ export function clearAdapterSerial(
   }
 }
 
+const ADAPTER_SERIAL_NOT_FOUND_REGEX = /No device matches the serial string/i;
+
+export function outputIndicatesAdapterSerialNotFound(output: string): boolean {
+  return ADAPTER_SERIAL_NOT_FOUND_REGEX.test(output);
+}
+
 const ADAPTER_USB_LOCATION_MIN_VERSION = "v0.12.0-esp32-20260424";
 
 /**

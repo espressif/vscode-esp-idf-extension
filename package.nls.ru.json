@@ -82,6 +82,7 @@
 	"espIdf.ninja.summary.title": "Показать сводку сборки Ninja",
 	"espIdf.openDocUrl.title": "Открыть документацию ESP-IDF...",
 	"espIdf.openOCDCommand.title": "Менеджер OpenOCD",
+	"espIdf.openOcdAdapterStatusBar.title": "Адаптер OpenOCD (серийный номер и расположение)",
 	"espIdf.partition.table.refresh.title": "Обновить таблицу разделов",
 	"espIdf.pickAWorkspaceFolder.title": "Выбор папки рабочей области",
 	"espIdf.projectConf.title": "Выбор конфигурации проекта",

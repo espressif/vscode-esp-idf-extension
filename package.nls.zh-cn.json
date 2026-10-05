@@ -82,6 +82,7 @@
 	"espIdf.ninja.summary.title": "显示 Ninja 构建摘要",
 	"espIdf.openDocUrl.title": "打开 ESP-IDF 文档…",
 	"espIdf.openOCDCommand.title": "OpenOCD 管理器",
+	"espIdf.openOcdAdapterStatusBar.title": "OpenOCD 适配器（序列号与位置）",
 	"espIdf.partition.table.refresh.title": "刷新分区表",
 	"espIdf.pickAWorkspaceFolder.title": "选择工作区文件夹",
 	"espIdf.projectConf.title": "选择项目配置",

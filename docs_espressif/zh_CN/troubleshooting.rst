@@ -29,6 +29,27 @@ Visual Studio Code 支持不同级别的设置，如：**全局（用户设置�
 
     在 Windows 系统中克隆 ESP-IDF 时，如果收到类似 "unable to create symlink" 的错误，可以尝试启用 **Developer Mode**。
 
+.. _openocd-adapter-serial-not-found:
+
+OpenOCD 找不到已绑定的开发板
+------------------------------
+
+在 ``ESP-IDF：设置乐鑫设备目标`` 或 ``ESP-IDF：选择 OpenOCD 开发板配置`` 中选择已连接的开发板时，扩展会存储该开发板的 USB-JTAG 序列号和 USB 位置，并在每次启动 OpenOCD 时传递给它，以便在连接多个开发板时 OpenOCD 连接到正确的开发板。如果该开发板已断开连接（例如更换为另一块开发板），OpenOCD 会报错：
+
+.. code-block:: text
+
+    Info : No device matches the serial string
+    Error: esp_usb_jtag: could not find or open device!
+
+在 OpenOCD ``v0.12.0-esp32-20260304`` 及更新版本上，扩展会在每次启动前检查已连接的开发板。如果未找到存储的序列号但检测到其他开发板，扩展会在不使用存储序列号的情况下启动 OpenOCD 并显示警告。在更早的 OpenOCD 版本上，或未检测到任何开发板时，会显示上述错误，并提供打开下述命令的按钮。
+
+解决方法：运行 ``ESP-IDF：OpenOCD 适配器（序列号与位置）`` 并选择：
+
+- **选择已连接的开发板**：将 OpenOCD 绑定到当前已连接的开发板。
+- **清除适配器绑定**：移除存储的序列号和 USB 位置，OpenOCD 将使用当前连接的任意开发板。
+
+选择普通芯片目标（如 ``esp32s3``）而非已连接的开发板时不会存储序列号。当前值显示在状态栏的 ``[Adapter] S:<序列号> L:<位置>`` 项中，可在 ESP-IDF 资源管理器的命令列表中启用。
+
 EIM 启动模式（GUI 与 CLI）
 -----------------------------
 

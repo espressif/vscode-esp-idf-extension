@@ -40,6 +40,7 @@
 
     * 请查看 `根据目标芯片配置 OpenOCD <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_，为目标硬件选择开发板或配置。
     * 请确保按照 `配置 JTAG 接口 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html>`_ 中的说明来配置驱动程序。
+    * 如果选择的是已连接的开发板，扩展会将 OpenOCD 绑定到该开发板的 USB-JTAG 序列号。更换开发板后，请运行 ``ESP-IDF：OpenOCD 适配器（序列号与位置）`` 绑定新的开发板或清除绑定，详见 :ref:`openocd-adapter-serial-not-found`。
 
 - （适用于 Linux 用户）在运行 OpenOCD 并启动调试会话前，请确保将 `OpenOCD udev 规则文件 <https://github.com/espressif/openocd-esp32/blob/master/contrib/60-openocd.rules>`_ 复制到 ``/etc/udev/rules.d`` 目录中。
 

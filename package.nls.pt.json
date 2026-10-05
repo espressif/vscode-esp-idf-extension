@@ -82,6 +82,7 @@
 	"espIdf.ninja.summary.title": "Mostrar resumo da versão Ninja",
 	"espIdf.openDocUrl.title": "Abra a documentação do ESP-IDF...",
 	"espIdf.openOCDCommand.title": "Gerenciador OpenOCD",
+	"espIdf.openOcdAdapterStatusBar.title": "Adaptador OpenOCD (serial e localização)",
 	"espIdf.partition.table.refresh.title": "Atualizar tabela de partição",
 	"espIdf.pickAWorkspaceFolder.title": "Escolha uma pasta do espaço de trabalho",
 	"espIdf.projectConf.title": "Selecione a configuração do projeto",
