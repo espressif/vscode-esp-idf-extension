@@ -214,6 +214,12 @@ suite("GDB Stub project configuration", () => {
       input: "CONFIG_OTHER=y",
       expected: "CONFIG_OTHER=y\nCONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y",
     },
+    {
+      name: "strips only the actual trailing terminator with mixed endings",
+      input: "CONFIG_OTHER=y\r\nCONFIG_ALSO=y\n",
+      expected:
+        "CONFIG_OTHER=y\r\nCONFIG_ALSO=y\r\nCONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y\r\n",
+    },
   ];
 
   for (const sdkconfigCase of sdkconfigCases) {

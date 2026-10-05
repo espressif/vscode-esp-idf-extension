@@ -310,7 +310,7 @@ export function enableSdkconfigOption(
     sdkconfigText === ""
       ? []
       : hadTrailingLineEnding
-      ? sdkconfigText.slice(0, -lineEnding.length).split(/\r?\n/)
+      ? sdkconfigText.replace(/\r?\n$/, "").split(/\r?\n/)
       : sdkconfigText.split(/\r?\n/);
 
   let replaced = false;
