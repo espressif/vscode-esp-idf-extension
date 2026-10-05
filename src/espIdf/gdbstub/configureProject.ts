@@ -86,6 +86,9 @@ async function pickCmakeFile(
 }
 
 async function setRuntimeGdbStubInEditor(): Promise<void> {
+  if (!ConfserverProcess.exists()) {
+    throw new Error(l10n.t("SDK Configuration Editor is not running"));
+  }
   ConfserverProcess.sendUpdatedValue(
     `{"version": 2, "set": { "${runtimeGdbStubKconfigId}": true }}\n`
   );
