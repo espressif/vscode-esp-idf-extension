@@ -49,12 +49,12 @@ export function registerOnDidWorkspaceFolderChanges(context: ExtensionContext) {
             ws.uri.toString() === prevWorkspaceFolder
           ) {
             ConfserverProcess.dispose();
-            await useFirstWorkspaceFolder(context);
+            await useSelectedWorkspaceFolder(context);
             break;
           }
         }
         if (prevWorkspaceFolder === "" && e.added.length > 0) {
-          await useFirstWorkspaceFolder(context);
+          await useSelectedWorkspaceFolder(context);
         }
       }
     })
@@ -142,11 +142,9 @@ export async function configureForWorkspace(
   new ProjectConfigurationManager(workspaceFolder.uri, context, statusBarItems);
 }
 
-export async function useFirstWorkspaceFolder(context: ExtensionContext) {
+export async function useSelectedWorkspaceFolder(context: ExtensionContext) {
   const wsFolder =
-    workspace.workspaceFolders && workspace.workspaceFolders.length
-      ? workspace.workspaceFolders[0]
-      : undefined;
+    ESP.GlobalConfiguration.store.findSelectedWorkspaceFolder();
   if (wsFolder) {
     if (Object.keys(statusBarItems).length === 0) {
       await createCmdsStatusBarItems(context, wsFolder.uri);

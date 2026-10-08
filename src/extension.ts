@@ -87,7 +87,7 @@ import { registerNVSCommand } from "./espIdf/nvs";
 import { registerHintsCommands } from "./espIdf/hints";
 import {
   registerOnDidWorkspaceFolderChanges,
-  useFirstWorkspaceFolder,
+  useSelectedWorkspaceFolder,
 } from "./common/workspaceChange";
 import { registerOnDidChangeConfiguration } from "./common/configurationChange";
 import { registerTaskCommands } from "./common/taskCommands";
@@ -132,7 +132,7 @@ export async function activate(context: ExtensionContext) {
   registerDebugCommands(context);
   new CommandsProvider(context);
   if (PreCheck.isWorkspaceFolderOpen()) {
-    await useFirstWorkspaceFolder(context);
+    await useSelectedWorkspaceFolder(context);
     const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
     new ProjectConfigurationManager(wsFolder.uri, context, statusBarItems);
   }
