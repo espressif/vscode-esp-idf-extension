@@ -34,20 +34,10 @@ function stubWorkspaceFolders(folders: WorkspaceFolder[] | undefined) {
     configurable: true,
     get: () => folders,
   });
-  workspace.getWorkspaceFolder = (uri: Uri) => {
-    const target = uri.toString();
-    return (folders ?? [])
-      .filter((folder) => {
-        const base = folder.uri.toString();
-        return target === base || target.startsWith(`${base}/`);
-      })
-      .sort((a, b) => b.uri.toString().length - a.uri.toString().length)[0];
-  };
 }
 
 suite("common/store.ts selected workspace folder", () => {
   const originalWorkspaceFolders = workspace.workspaceFolders;
-  const originalGetWorkspaceFolder = workspace.getWorkspaceFolder;
   let workspaceState: Memento;
   let globalState: Memento;
   let store: ExtensionConfigStore;
@@ -74,7 +64,6 @@ suite("common/store.ts selected workspace folder", () => {
       configurable: true,
       get: () => originalWorkspaceFolders,
     });
-    workspace.getWorkspaceFolder = originalGetWorkspaceFolder;
   });
 
   test("init clears the legacy globalState key", () => {
@@ -164,11 +153,28 @@ suite("common/store.ts selected workspace folder", () => {
     const folders = makeFolders("root", "firmware");
     stubWorkspaceFolders(folders);
     workspaceState.update(SELECTED_WORKSPACE_FOLDER, "not a uri");
-    workspace.getWorkspaceFolder = () => {
-      throw new Error("invalid uri");
-    };
 
     assert.strictEqual(store.findSelectedWorkspaceFolder(), folders[0]);
+    assert.strictEqual(store.getSelectedWorkspaceFolderUri(), "");
+  });
+
+  test("removed nested folder does not resolve to its parent", () => {
+    const client: WorkspaceFolder = {
+      name: "client",
+      index: 0,
+      uri: Uri.file(resolve("/tmp/esp-ws/client")),
+    };
+    const root: WorkspaceFolder = {
+      name: "root",
+      index: 1,
+      uri: Uri.file(resolve("/tmp/esp-ws")),
+    };
+    stubWorkspaceFolders([client, root]);
+    store.setSelectedWorkspaceFolder(
+      Uri.file(resolve("/tmp/esp-ws/firmware"))
+    );
+
+    assert.strictEqual(store.findSelectedWorkspaceFolder(), client);
     assert.strictEqual(store.getSelectedWorkspaceFolderUri(), "");
   });
 
