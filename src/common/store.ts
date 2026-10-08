@@ -36,12 +36,24 @@ export class ExtensionConfigStore {
 
   public static init(context: ExtensionContext): ExtensionConfigStore {
     if (!this.self) {
-      this.self = new ExtensionConfigStore(context);
-      this.self.migrateLegacySelectFlashTypeCheckboxKey();
-      this.self.clear(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER);
+      this.self = ExtensionConfigStore.create(context);
     }
     return this.self;
   }
+
+  /** @internal Test helper to replace the singleton with a fresh store. */
+  public static resetForTests(context: ExtensionContext): ExtensionConfigStore {
+    this.self = ExtensionConfigStore.create(context);
+    return this.self;
+  }
+
+  private static create(context: ExtensionContext): ExtensionConfigStore {
+    const store = new ExtensionConfigStore(context);
+    store.migrateLegacySelectFlashTypeCheckboxKey();
+    store.clear(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER);
+    return store;
+  }
+
   private constructor(context: ExtensionContext) {
     this.ctx = context;
   }
