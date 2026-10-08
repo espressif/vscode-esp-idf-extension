@@ -19,7 +19,7 @@ Configuration settings are overridden in the following order:
 
 This extension uses the ``idf.saveScope`` configuration setting to specify where to save settings for features such as the Setup Wizard. You can modify this using the ``ESP-IDF: Select where to Save Configuration Settings`` command.
 
-Select the current project by clicking the ``ESP-IDF: Current Project`` icon in the Visual Studio Code status bar or by pressing F1 and typing ``ESP-IDF: Pick a Workspace Folder``. This determines the folder for ESP-IDF settings such as the current device USB port, ESP-IDF path, etc.
+Select the current project by clicking the ``ESP-IDF: Current Project`` icon in the Visual Studio Code status bar or by pressing F1 and typing ``ESP-IDF: Pick a Workspace Folder``. This determines the folder for ESP-IDF settings such as the current device USB port, ESP-IDF path, etc. The selection is remembered for each workspace and restored when the window is reloaded or the workspace is reopened. If the selected folder is no longer part of the workspace, the first workspace folder is used.
 
 Project folders (known in VS Code as workspace folders) and workspace-level settings are defined in a ``<name>.code-workspace`` file, such as:
 
