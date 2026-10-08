@@ -27,7 +27,7 @@ import { Logger } from "./logger";
 
 export class ExtensionConfigStore {
   private static self: ExtensionConfigStore;
-  public static readonly SELECTED_WORKSPACE_FOLDER =
+  private static readonly SELECTED_WORKSPACE_FOLDER =
     "SELECTED_WORKSPACE_FOLDER";
   /** Current key; must stay aligned with `CommandKeys.SelectFlashType` in cmdStore. */
   private static readonly SELECT_FLASH_TYPE_CHECKBOX_KEY =
@@ -38,6 +38,7 @@ export class ExtensionConfigStore {
     if (!this.self) {
       this.self = new ExtensionConfigStore(context);
       this.self.migrateLegacySelectFlashTypeCheckboxKey();
+      this.self.clear(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER);
     }
     return this.self;
   }
@@ -77,40 +78,56 @@ export class ExtensionConfigStore {
   public clear(key: string) {
     return this.set(key, undefined);
   }
-  public getSelectedWorkspaceFolder(): WorkspaceFolder {
-    if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
-      const error = new Error("No workspace selected.");
-      Logger.errorNotify(
-          error.message,
-          error,
-          "getSelectedWorkspaceFolder",
-          undefined,
-          false
-        );
-      throw error;
-    }
-    const fallback = workspace.workspaceFolders[0];
-    const storedUri = this.get<string>(
+  public getSelectedWorkspaceFolderUri(): string {
+    return this.ctx.workspaceState.get<string>(
       ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
       ""
     );
+  }
+  public findSelectedWorkspaceFolder(): WorkspaceFolder | undefined {
+    if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
+      return undefined;
+    }
+    const fallback = workspace.workspaceFolders[0];
+    const storedUri = this.getSelectedWorkspaceFolderUri();
     if (!storedUri) return fallback;
     try {
       const storedFolder = workspace.getWorkspaceFolder(Uri.parse(storedUri));
       if (!storedFolder) {
-        this.clear(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER);
+        this.clearSelectedWorkspaceFolder();
         return fallback;
       }
       return storedFolder;
     } catch {
-      this.clear(ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER);
+      this.clearSelectedWorkspaceFolder();
       return fallback;
     }
   }
+  public getSelectedWorkspaceFolder(): WorkspaceFolder {
+    const selected = this.findSelectedWorkspaceFolder();
+    if (!selected) {
+      const error = new Error("No workspace selected.");
+      Logger.errorNotify(
+        error.message,
+        error,
+        "getSelectedWorkspaceFolder",
+        undefined,
+        false
+      );
+      throw error;
+    }
+    return selected;
+  }
   public setSelectedWorkspaceFolder(selectedFolderUri: Uri) {
-    this.set(
+    this.ctx.workspaceState.update(
       ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
       selectedFolderUri.toString()
+    );
+  }
+  public clearSelectedWorkspaceFolder() {
+    this.ctx.workspaceState.update(
+      ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
+      undefined
     );
   }
 }
