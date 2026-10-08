@@ -11,6 +11,7 @@
     "theme": "dark"
   },
   "engines": {
+    "node": ">=22",
     "vscode": "^1.101.0"
   },
   "repository": {
@@ -2608,6 +2609,7 @@
     "open-vsx-prerelease": "ovsx -p ${OPENVSX_MARKETPLACE_TOKEN} publish --yarn --pre-release esp-idf-extension.vsix",
     "clean": "node clean.js",
     "genLocalizationBundle": "npx @vscode/l10n-dev export --outDir ./l10n ./src",
+    "validateLocalization": "node validateLocalization.js",
     "webpack": "webpack --mode production",
     "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json out/ui-test/project-build-test.js out/ui-test/project-menuconfig-test.js out/ui-test/project-test.js",
     "ci-test": "yarn compile && extest setup-and-run out/ui-test/project-build-test.js out/ui-test/project-menuconfig-test.js out/ui-test/project-test.js -u -s \"${GITHUB_WORKSPACE:-$PWD}/test-resources\" -c min -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG -m ./src/ui-test/.mocharc-ci.js",
