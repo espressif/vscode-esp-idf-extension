@@ -103,17 +103,14 @@ export class ExtensionConfigStore {
     const fallback = workspace.workspaceFolders[0];
     const storedUri = this.getSelectedWorkspaceFolderUri();
     if (!storedUri) return fallback;
-    try {
-      const storedFolder = workspace.getWorkspaceFolder(Uri.parse(storedUri));
-      if (!storedFolder) {
-        this.clearSelectedWorkspaceFolder();
-        return fallback;
-      }
-      return storedFolder;
-    } catch {
+    const storedFolder = workspace.workspaceFolders.find(
+      (folder) => folder.uri.toString() === storedUri
+    );
+    if (!storedFolder) {
       this.clearSelectedWorkspaceFolder();
       return fallback;
     }
+    return storedFolder;
   }
   public getSelectedWorkspaceFolder(): WorkspaceFolder {
     const selected = this.findSelectedWorkspaceFolder();
