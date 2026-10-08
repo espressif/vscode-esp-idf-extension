@@ -36,10 +36,7 @@ import { registerReconfigureCmd } from "./espIdf/reconfigure/task";
 import { statusBarItems } from "./statusBar";
 import { initCommandDictionary } from "./cmdTreeView/cmdStore";
 import { registerRemoveEspIdfSettingsCommand } from "./uninstall";
-import {
-  clearSelectedProjectConfiguration,
-  ProjectConfigurationManager,
-} from "./project-conf/ProjectConfigurationManager";
+import { clearSelectedProjectConfiguration } from "./project-conf/ProjectConfigurationManager";
 import { configureClangSettings } from "./clang";
 import {
   registerEspressifMcpServers,
@@ -133,8 +130,6 @@ export async function activate(context: ExtensionContext) {
   new CommandsProvider(context);
   if (PreCheck.isWorkspaceFolderOpen()) {
     await useSelectedWorkspaceFolder(context);
-    const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-    new ProjectConfigurationManager(wsFolder.uri, context, statusBarItems);
   }
   addCmakeFileSystemWatcher(context);
   await registerHintsCommands(context);
