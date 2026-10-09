@@ -70,6 +70,7 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
   private stdout = "";
   private stderr = "";
   private settled = false;
+  private cancelled = false;
 
   constructor(
     private spawnRequest: Omit<SpawnCapturedProcessRequest, "cols" | "rows">,
@@ -104,6 +105,9 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
   }
 
   close(): void {
+    if (!this.settled) {
+      this.cancelled = true;
+    }
     this.capturedProcess?.kill();
   }
 
@@ -120,16 +124,19 @@ export class OutputCapturingPseudoterminal implements Pseudoterminal {
       return;
     }
     this.settled = true;
-    if (exitCode === 0) {
+    const completedExitCode =
+      this.cancelled && exitCode === 0 ? 1 : exitCode;
+    const success = !this.cancelled && completedExitCode === 0;
+    if (success) {
       await this.writeEpilogue();
     }
     this.resolveOutput({
       stdout: sanitizeCapturedText(this.stdout),
       stderr: sanitizeCapturedText(this.stderr),
-      exitCode,
-      success: exitCode === 0,
+      exitCode: completedExitCode,
+      success,
     });
-    this.closeEmitter.fire(exitCode);
+    this.closeEmitter.fire(completedExitCode);
   }
 
   private async writeEpilogue(): Promise<void> {

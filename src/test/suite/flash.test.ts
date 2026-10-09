@@ -750,10 +750,25 @@ suite("Flash", () => {
 
         await saveFlashedBinCopies(dir, binPaths);
         assert.strictEqual(statSync(flashedApp).mtimeMs, unchangedMtime);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    });
 
+    test("replaces a flashed copy when the binary changes", async () => {
+      const dir = mkdtempSync(join(tmpdir(), "esp-idf-fast-reflash-"));
+      try {
+        writeFileSync(join(dir, "blink.bin"), "app-v1");
+        const binPaths = ["blink.bin"];
+
+        await saveFlashedBinCopies(dir, binPaths);
         writeFileSync(join(dir, "blink.bin"), "app-v2");
         await saveFlashedBinCopies(dir, binPaths);
-        assert.strictEqual(readFileSync(flashedApp, "utf8"), "app-v2");
+
+        assert.strictEqual(
+          readFileSync(join(dir, "blink_flashed.bin"), "utf8"),
+          "app-v2"
+        );
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }
