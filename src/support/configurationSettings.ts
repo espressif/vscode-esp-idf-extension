@@ -15,10 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { join } from "path";
 import { reportObj } from "./types";
 import { workspace, WorkspaceFolder } from "vscode";
-import { getCurrentIdfConfiguration } from "../configuration/env";
+import {
+  getCurrentIdfConfiguration,
+  getVenvPythonBinPath,
+} from "../configuration/env";
 import { findStaleCustomExtraVars } from "../configuration/staleCustomExtraVars";
 import { ESP } from "../config";
 import { isBinInPath } from "../utils";
@@ -55,17 +57,13 @@ export async function getConfigurationSettings(
     process.env.IDF_TOOLS_PATH ||
     "";
 
-  const pyDir =
-    process.platform === "win32"
-      ? ["Scripts", "python.exe"]
-      : ["bin", "python3"];
   const idfPythonEnvPath =
     userExtraVars?.IDF_PYTHON_ENV_PATH ||
     currentEnvVars["IDF_PYTHON_ENV_PATH"] ||
     process.env.IDF_PYTHON_ENV_PATH ||
     "";
   const venvPythonPath = idfPythonEnvPath
-    ? join(idfPythonEnvPath, ...pyDir)
+    ? getVenvPythonBinPath(idfPythonEnvPath)
     : "";
 
   const gitPath = await isBinInPath("git", currentEnvVars);

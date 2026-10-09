@@ -21,6 +21,7 @@ import { join, resolve } from "path";
 import { createHash } from "crypto";
 import { EspIdfJson, IdfSetup, InstallationStatus } from "./types";
 import { readParameter } from "../configuration/idf";
+import { getVenvPythonBinPath } from "../configuration/env";
 import { Logger } from "../common/logger";
 import { compareVersion, getEspIdfFromCMake } from "../utils";
 import { loadIdfSetupsFromEspIdfJson } from "./migrationTool";
@@ -86,11 +87,6 @@ async function loadIdfSetupFromEnvVars(customVars: {
 
   const pythonEnvPath =
     customVars["IDF_PYTHON_ENV_PATH"] || process.env.IDF_PYTHON_ENV_PATH || "";
-  const pyDir =
-    process.platform === "win32"
-      ? ["Scripts", "python.exe"]
-      : ["bin", "python3"];
-
   return {
     id: idfSetupIdFromPath(idfPath),
     activationScript: "",
@@ -99,7 +95,7 @@ async function loadIdfSetupFromEnvVars(customVars: {
     isValid,
     version: await getEspIdfFromCMake(idfPath),
     toolsPath: idfToolsPath,
-    python: pythonEnvPath ? join(pythonEnvPath, ...pyDir) : "",
+    python: pythonEnvPath ? getVenvPythonBinPath(pythonEnvPath) : "",
     sysPythonPath: "",
   };
 }
