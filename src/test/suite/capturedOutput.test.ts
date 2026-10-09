@@ -16,6 +16,7 @@
  */
 
 import * as assert from "assert";
+import { childCloseExitCode } from "../../taskManager/capturedProcess";
 import {
   OutputCapturingPseudoterminal,
   resolveInitialColumns,
@@ -144,6 +145,26 @@ function runPseudoterminal(
   });
 }
 
+suite("childCloseExitCode", () => {
+  test("keeps a voluntary zero exit as success", () => {
+    assert.strictEqual(childCloseExitCode(0, null), 0);
+  });
+
+  test("keeps a voluntary non-zero exit", () => {
+    assert.strictEqual(childCloseExitCode(3, null), 3);
+  });
+
+  test("does not treat a signalled close as success", () => {
+    assert.strictEqual(childCloseExitCode(null, "SIGTERM"), 1);
+    assert.strictEqual(childCloseExitCode(0, "SIGTERM"), 1);
+  });
+
+  test("does not treat a killed close with no status as success", () => {
+    assert.strictEqual(childCloseExitCode(null, null, true), 1);
+    assert.strictEqual(childCloseExitCode(0, null, true), 1);
+  });
+});
+
 suite("OutputCapturingPseudoterminal epilogue", () => {
   test("writes the epilogue to the terminal after a successful exit", async function () {
     this.timeout(20000);
@@ -169,6 +190,48 @@ suite("OutputCapturingPseudoterminal epilogue", () => {
     assert.ok(run.output?.stdout.includes("build done"));
     assert.ok(!run.output?.stdout.includes("To flash, run:"));
     assert.ok(!run.output?.stderr.includes("To flash, run:"));
+  });
+
+  test("skips the epilogue when the process is cancelled", async function () {
+    this.timeout(20000);
+    let epilogueRan = false;
+    const run = await new Promise<PseudoterminalRun>((resolve) => {
+      const result: PseudoterminalRun = {
+        written: "",
+        events: [],
+        output: undefined,
+      };
+      const terminal = new OutputCapturingPseudoterminal(
+        {
+          file: process.execPath,
+          args: ["-e", "setInterval(() => {}, 1000)"],
+          env: { ELECTRON_RUN_AS_NODE: "1" },
+        },
+        (output) => {
+          result.output = output;
+        },
+        () => {
+          epilogueRan = true;
+          return "saved flashed copy";
+        }
+      );
+      terminal.onDidWrite((chunk) => {
+        result.written += chunk;
+        result.events.push(`write:${chunk}`);
+      });
+      terminal.onDidClose(() => {
+        result.events.push("close");
+        resolve(result);
+      });
+      terminal.open();
+      terminal.close();
+    });
+
+    assert.strictEqual(epilogueRan, false);
+    assert.ok(!run.written.includes("saved flashed copy"));
+    assert.ok(run.output);
+    assert.strictEqual(run.output.success, false);
+    assert.notStrictEqual(run.output.exitCode, 0);
   });
 
   test("skips the epilogue when the process fails", async function () {

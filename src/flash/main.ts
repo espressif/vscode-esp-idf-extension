@@ -47,6 +47,8 @@ import { throwFlashCapturedTaskFailure } from "./shared/flashTaskFailure";
 import { assertMinimumOpenOcdVersionForJtag } from "../espIdf/openOcd/jtagPreflight";
 import { EraseFlashSession } from "../eraseFlash/eraseFlashSession";
 import { flashJtagOpenOcdPresentation } from "./jtagOpenOcdPresentation";
+import { Logger } from "../common/logger";
+import { flashDoneMessage } from "./shared/flashTaskEpilogue";
 export { selectFlashMethod } from "./selectFlashMethod";
 
 /**
@@ -146,7 +148,6 @@ export async function flashMain(
         TaskManager.cancelTasks();
       });
       flashCmdResult = await uartFlashCommandMain(
-        cancelToken,
         flashBaudRate,
         port,
         workspaceFolderUri,
@@ -166,6 +167,9 @@ export async function flashMain(
     }
     if (!flashCmdResult.continueFlag) {
       return { continueFlag: false };
+    }
+    if (!cancelToken.isCancellationRequested) {
+      Logger.infoNotify(flashDoneMessage);
     }
     return flashCmdResult;
   } catch (error) {

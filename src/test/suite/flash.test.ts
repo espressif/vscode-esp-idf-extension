@@ -7,7 +7,14 @@
  */
 
 import * as assert from "assert";
-import { mkdtempSync, writeFileSync, rmSync } from "fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "fs";
 import { join, resolve } from "path";
 import { tmpdir } from "os";
 import * as vscode from "vscode";
@@ -34,6 +41,12 @@ import {
 } from "../../flash/transports/uart/flashArgsBuilder";
 import { createFlashModel } from "../../flash/transports/uart/flashModelBuilder";
 import { FlashModel } from "../../flash/transports/uart/types/flashModel";
+import {
+  fastReflashArgs,
+  fastReflashBinPaths,
+  flashedReferencePath,
+  saveFlashedBinCopies,
+} from "../../flash/shared/esptool/fastReflash";
 
 const testWorkspaceFolder = {
   uri: vscode.Uri.file("/test/workspace"),
@@ -155,6 +168,45 @@ suite("Flash", () => {
         const wf = args.indexOf("write_flash");
         assert.ok(wf !== -1);
         assert.deepStrictEqual(args.slice(wf + 1), ["--verify", "0"]);
+      });
+
+      test("uses hyphen CLI names when hyphenCli is true", () => {
+        const model = makeFlashModel({
+          writeFlashArgs: [
+            "--flash_mode",
+            "dio",
+            "--flash-freq",
+            "40m",
+            "partition_table.bin",
+          ],
+        });
+        const args = buildBaseWriteFlashArgs(model, "python", true);
+        const wf = args.indexOf("write-flash");
+        assert.ok(wf !== -1);
+        assert.strictEqual(args.includes("write_flash"), false);
+        assert.deepStrictEqual(args.slice(wf + 1), [
+          "--flash-mode",
+          "dio",
+          "--flash-freq",
+          "40m",
+          "partition_table.bin",
+        ]);
+      });
+
+      test("uses python -m esptool when useModule is true", () => {
+        const model = makeFlashModel();
+        const args = buildBaseWriteFlashArgs(
+          model,
+          "/idf/components/esptool_py/esptool/esptool.py",
+          true,
+          true
+        );
+        assert.deepStrictEqual(args.slice(0, 2), ["-m", "esptool"]);
+        assert.strictEqual(
+          args.some((arg) => arg.endsWith("esptool.py")),
+          false
+        );
+        assert.ok(args.includes("write-flash"));
       });
     });
 
@@ -280,6 +332,42 @@ suite("Flash", () => {
           "0x10000",
           "app.bin",
         ]);
+      });
+
+      test("rewrites underscore flash options when hyphenCli is true", () => {
+        const model = makeFlashModel({
+          flashSections: [
+            {
+              address: "0x8000",
+              binFilePath: "partition_table/partition-table.bin",
+              encrypted: false,
+            },
+          ],
+        });
+        const args = getFlasherArgs(model, tool, false, false, true);
+        const wf = args.indexOf("write-flash");
+        assert.ok(wf !== -1);
+        assert.strictEqual(args.includes("write_flash"), false);
+        assert.strictEqual(args.includes("--flash_mode"), false);
+        assert.ok(args.includes("--flash-mode"));
+        assert.ok(args.includes("partition_table/partition-table.bin"));
+      });
+
+      test("drops the esptool.py wrapper when useModule is true", () => {
+        const model = makeFlashModel();
+        const args = getFlasherArgs(
+          model,
+          "/idf/components/esptool_py/esptool/esptool.py",
+          false,
+          false,
+          true,
+          true
+        );
+        assert.deepStrictEqual(args.slice(0, 2), ["-m", "esptool"]);
+        assert.strictEqual(
+          args.some((arg) => arg.endsWith("esptool.py")),
+          false
+        );
       });
     });
   });
@@ -437,8 +525,7 @@ suite("Flash", () => {
       assert.strictEqual(FlashSession.isActive, true);
       assert.throws(
         () => FlashSession.acquire(),
-        (e: unknown) =>
-          isKnownError(e) && e.code === ErrorCode.AlreadyFlashing
+        (e: unknown) => isKnownError(e) && e.code === ErrorCode.AlreadyFlashing
       );
     });
 
@@ -555,6 +642,136 @@ suite("Flash", () => {
             isKnownError(e) && e.code === ErrorCode.FlashTypeNotSelected
         );
       });
+    });
+  });
+
+  suite("fast reflash", () => {
+    const sections = [
+      {
+        address: "0x1000",
+        binFilePath: "bootloader/bootloader.bin",
+        encrypted: false,
+      },
+      {
+        address: "0x8000",
+        binFilePath: "partition_table/partition-table.bin",
+        encrypted: false,
+      },
+      {
+        address: "0x10000",
+        binFilePath: "blink.bin",
+        encrypted: false,
+      },
+    ];
+
+    function writeFlashArgs(encryptPartitions = false): string[] {
+      return getFlasherArgs(
+        makeFlashModel({ flashSections: sections }),
+        "python",
+        encryptPartitions,
+        false
+      );
+    }
+
+    test("maps a binary to its flashed sibling", () => {
+      assert.strictEqual(
+        flashedReferencePath("bootloader/bootloader.bin"),
+        "bootloader/bootloader_flashed.bin"
+      );
+      assert.strictEqual(flashedReferencePath("assets.hex"), undefined);
+    });
+
+    test("uses --skip-flashed when no reference exists", () => {
+      const binPaths = fastReflashBinPaths(writeFlashArgs(), true);
+      assert.deepStrictEqual(
+        fastReflashArgs(binPaths, () => false),
+        ["--skip-flashed"]
+      );
+    });
+
+    test("pairs each file with its reference or skip", () => {
+      const binPaths = fastReflashBinPaths(writeFlashArgs(), true);
+      const existing = new Set(["bootloader/bootloader_flashed.bin"]);
+      assert.deepStrictEqual(
+        fastReflashArgs(binPaths, (refPath) => existing.has(refPath)),
+        ["--diff-with", "bootloader/bootloader_flashed.bin", "skip", "skip"]
+      );
+    });
+
+    test("uses every reference when all flashed copies exist", () => {
+      const binPaths = fastReflashBinPaths(writeFlashArgs(), true);
+      assert.deepStrictEqual(
+        fastReflashArgs(binPaths, () => true),
+        [
+          "--diff-with",
+          "bootloader/bootloader_flashed.bin",
+          "partition_table/partition-table_flashed.bin",
+          "blink_flashed.bin",
+        ]
+      );
+    });
+
+    test("omits fast reflash arguments for encrypted writes", () => {
+      const model = makeFlashModel({
+        flashSections: sections.map((section) => ({
+          ...section,
+          encrypted: true,
+        })),
+      });
+      const args = getFlasherArgs(model, "python", true, false);
+      assert.ok(args.includes("--encrypt"));
+      assert.deepStrictEqual(fastReflashBinPaths(args, true), []);
+    });
+
+    test("omits fast reflash arguments when esptool is too old", () => {
+      assert.deepStrictEqual(fastReflashBinPaths(writeFlashArgs(), false), []);
+    });
+
+    test("saves flashed copies and leaves identical copies in place", async () => {
+      const dir = mkdtempSync(join(tmpdir(), "esp-idf-fast-reflash-"));
+      try {
+        mkdirSync(join(dir, "bootloader"));
+        writeFileSync(join(dir, "bootloader", "bootloader.bin"), "boot");
+        writeFileSync(join(dir, "blink.bin"), "app-v1");
+        const binPaths = ["bootloader/bootloader.bin", "blink.bin"];
+
+        await saveFlashedBinCopies(dir, binPaths);
+
+        const flashedApp = join(dir, "blink_flashed.bin");
+        assert.strictEqual(readFileSync(flashedApp, "utf8"), "app-v1");
+        assert.strictEqual(
+          readFileSync(
+            join(dir, "bootloader", "bootloader_flashed.bin"),
+            "utf8"
+          ),
+          "boot"
+        );
+        const unchangedMtime = statSync(flashedApp).mtimeMs;
+
+        await saveFlashedBinCopies(dir, binPaths);
+        assert.strictEqual(statSync(flashedApp).mtimeMs, unchangedMtime);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    test("replaces a flashed copy when the binary changes", async () => {
+      const dir = mkdtempSync(join(tmpdir(), "esp-idf-fast-reflash-"));
+      try {
+        writeFileSync(join(dir, "blink.bin"), "app-v1");
+        const binPaths = ["blink.bin"];
+
+        await saveFlashedBinCopies(dir, binPaths);
+        writeFileSync(join(dir, "blink.bin"), "app-v2");
+        await saveFlashedBinCopies(dir, binPaths);
+
+        assert.strictEqual(
+          readFileSync(join(dir, "blink_flashed.bin"), "utf8"),
+          "app-v2"
+        );
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
     });
   });
 });

@@ -22,6 +22,7 @@ import { resolveEsptoolInvocation } from "../../shared/esptool/resolveEsptoolInv
 import { dfuFlashingArgs } from "./getDFUArgs";
 import { assertFlashSectionsReadable } from "../../shared/verifyFlashBins";
 import { noDfuDeviceSelected } from "../../../common/error/knownError";
+import { flashTaskEpilogue } from "../../shared/flashTaskEpilogue";
 
 export async function createDfuFlashProcessTask(
   workspace: Uri,
@@ -48,6 +49,7 @@ export async function createDfuFlashProcessTask(
     dfuResult.cmdToUse,
     dfuResult.args,
     buildDirPath,
-    modifiedEnv
+    modifiedEnv,
+    { epilogue: flashTaskEpilogue }
   );
 }

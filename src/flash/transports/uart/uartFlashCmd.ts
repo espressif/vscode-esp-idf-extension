@@ -16,8 +16,7 @@
  * limitations under the License.
  */
 import { join } from "path";
-import { CancellationToken, Uri } from "vscode";
-import { Logger } from "../../../common/logger";
+import { Uri } from "vscode";
 import { TaskManager } from "../../..//taskManager/taskManager";
 import { createUartFlashProcessTask } from "./uartFlashExecution";
 import { createDfuFlashProcessTask } from "../dfu/dfuFlashExecution";
@@ -27,11 +26,9 @@ import {
   CustomTaskType,
 } from "../../../taskManager/customTaskProvider";
 import { ESP } from "../../../config";
-import { OutputChannel } from "../../../common/outputChannel";
 import { CustomExecutionTaskResult } from "../../../taskManager/types";
 
 export async function uartFlashCommandMain(
-  cancelToken: CancellationToken,
   flashBaudRate: string,
   port: string,
   workspace: Uri,
@@ -68,11 +65,5 @@ export async function uartFlashCommandMain(
   }
   await customTask.addCustomTask(CustomTaskType.PostFlash);
   const flashResult = await TaskManager.runTasksWithBoolean();
-
-  if (!cancelToken.isCancellationRequested && flashResult) {
-    const msg = "Flash Done ⚡️";
-    OutputChannel.appendLineAndShow(msg, "Flash");
-    Logger.infoNotify(msg);
-  }
   return { continueFlag: flashResult };
 }

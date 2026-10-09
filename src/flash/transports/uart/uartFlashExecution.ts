@@ -19,9 +19,17 @@ import { Uri } from "vscode";
 import { FlashModel } from "./types/flashModel";
 import { addProcessTask } from "../../../taskManager/taskManager";
 import { ESP } from "../../../config";
+import { resolveEsptoolLaunchStyle } from "../../shared/esptool/esptoolCli";
 import { resolveEsptoolInvocation } from "../../shared/esptool/resolveEsptoolInvocation";
 import { getFlasherArgs, getSingleBinFlasherArgs } from "./flashArgsBuilder";
 import { assertFlashSectionsReadable } from "../../shared/verifyFlashBins";
+import { flashTaskEpilogue } from "../../shared/flashTaskEpilogue";
+import {
+  existingFlashedReferences,
+  fastReflashArgs,
+  fastReflashBinPaths,
+  saveFlashedBinCopies,
+} from "../../shared/esptool/fastReflash";
 
 export async function createUartFlashProcessTask(
   workspace: Uri,
@@ -36,15 +44,41 @@ export async function createUartFlashProcessTask(
     pythonPath: pythonBinPath,
     esptoolScriptPath,
   } = await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
+  const launchStyle = await resolveEsptoolLaunchStyle(pythonBinPath);
   const flasherArgs = partitionToUse
-    ? getSingleBinFlasherArgs(model, esptoolScriptPath, partitionToUse)
-    : getFlasherArgs(model, esptoolScriptPath, encryptPartitions);
+    ? getSingleBinFlasherArgs(
+        model,
+        esptoolScriptPath,
+        partitionToUse,
+        false,
+        launchStyle.hyphenCli,
+        launchStyle.useModule
+      )
+    : getFlasherArgs(
+        model,
+        esptoolScriptPath,
+        encryptPartitions,
+        false,
+        launchStyle.hyphenCli,
+        launchStyle.useModule
+      );
+  const binPaths = fastReflashBinPaths(flasherArgs, launchStyle.fastReflash);
+  const existingRefs = await existingFlashedReferences(buildDirPath, binPaths);
+  flasherArgs.push(
+    ...fastReflashArgs(binPaths, (refPath) => existingRefs.has(refPath))
+  );
   return addProcessTask(
     "Flash",
     workspace,
     pythonBinPath,
     flasherArgs,
     buildDirPath,
-    modifiedEnv
+    modifiedEnv,
+    {
+      epilogue: async () => {
+        await saveFlashedBinCopies(buildDirPath, binPaths);
+        return flashTaskEpilogue();
+      },
+    }
   );
 }
