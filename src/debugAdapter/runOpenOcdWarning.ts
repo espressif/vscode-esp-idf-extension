@@ -37,6 +37,7 @@ import { Logger } from "../common/logger";
 const SESSIONS_WITHOUT_OPENOCD = [
   "core-dump.debug.session.ws",
   "gdbstub.debug.session.ws",
+  "gdbstub.debug.session.runtime",
   "qemu.debug.session",
 ];
 
