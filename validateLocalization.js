@@ -13,7 +13,73 @@ const PLACEHOLDER_RE = /\{(?:\d+|[A-Za-z_][A-Za-z0-9_]*)\}/g;
 const IGNORED_LOCALE = "qps-ploc";
 
 function readJson(path) {
-  return JSON.parse(readFileSync(path, "utf8"));
+  const text = readFileSync(path, "utf8");
+  return {
+    record: JSON.parse(text),
+    duplicates: duplicateKeys(text),
+  };
+}
+
+function duplicateKeys(text) {
+  const duplicates = new Set();
+  const keySets = [new Set()];
+  let index = 0;
+
+  while (index < text.length) {
+    const char = text[index];
+    if (char === "{") {
+      keySets.push(new Set());
+      index += 1;
+      continue;
+    }
+    if (char === "}") {
+      keySets.pop();
+      index += 1;
+      continue;
+    }
+    if (char !== '"') {
+      index += 1;
+      continue;
+    }
+
+    const key = readJsonString(text, index);
+    index = key.nextIndex;
+    while (index < text.length && /\s/.test(text[index])) {
+      index += 1;
+    }
+    if (text[index] !== ":") {
+      continue;
+    }
+
+    const keys = keySets[keySets.length - 1];
+    if (keys.has(key.value)) {
+      duplicates.add(key.value);
+    } else {
+      keys.add(key.value);
+    }
+    index += 1;
+  }
+
+  return sorted(duplicates);
+}
+
+function readJsonString(text, startIndex) {
+  let index = startIndex + 1;
+  let raw = "";
+  while (index < text.length) {
+    const char = text[index];
+    if (char === "\\") {
+      raw += char + (text[index + 1] ?? "");
+      index += 2;
+      continue;
+    }
+    if (char === '"') {
+      return { value: JSON.parse(`"${raw}"`), nextIndex: index + 1 };
+    }
+    raw += char;
+    index += 1;
+  }
+  throw new Error("Unterminated string while scanning JSON keys");
 }
 
 function sorted(values) {
@@ -155,6 +221,7 @@ function reportIssues(fileLabel, issues) {
   }
   console.error(`\n${fileLabel}`);
   console.error(`\n${"-".repeat(fileLabel.length)}\n`);
+  printSection("duplicates", issues.duplicates ?? []);
   printSection("missing", issues.missing ?? []);
   printSection("extra", issues.extra ?? []);
   printSection("unused", issues.unused ?? []);
@@ -165,7 +232,8 @@ function reportIssues(fileLabel, issues) {
 
 async function validatePackageNls() {
   const packageJsonText = readFileSync(PACKAGE_JSON, "utf8");
-  const english = readJson(PACKAGE_NLS);
+  const englishFile = readJson(PACKAGE_NLS);
+  const english = englishFile.record;
   const tokens = collectPackageTokens(packageJsonText);
   const englishKeys = keysOf(english);
   const { missing: missingTokens, extra: unusedKeys } = diffKeys(
@@ -174,16 +242,19 @@ async function validatePackageNls() {
   );
 
   let failed = reportIssues("package.nls.json", {
+    duplicates: englishFile.duplicates,
     missing: missingTokens,
     unused: unusedKeys,
     empty: emptyKeys(english),
   });
 
   for (const { locale, path } of await discoverNlsLocales()) {
-    const localeRecord = readJson(path);
+    const localeFile = readJson(path);
+    const localeRecord = localeFile.record;
     const { missing, extra } = diffKeys(englishKeys, keysOf(localeRecord));
     failed =
       reportIssues(`package.nls.${locale}.json`, {
+        duplicates: localeFile.duplicates,
         missing,
         extra,
         empty: emptyKeys(localeRecord),
@@ -201,10 +272,12 @@ async function validateRuntimeBundles() {
   let failed = false;
 
   for (const { locale, path } of await discoverBundleLocales()) {
-    const localeRecord = readJson(path);
+    const localeFile = readJson(path);
+    const localeRecord = localeFile.record;
     const { missing, extra } = diffKeys(englishKeys, keysOf(localeRecord));
     failed =
       reportIssues(`l10n/bundle.l10n.${locale}.json`, {
+        duplicates: localeFile.duplicates,
         missing,
         extra,
         empty: emptyKeys(localeRecord),
