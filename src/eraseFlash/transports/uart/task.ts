@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 import { Uri } from "vscode";
+import { resolveEsptoolLaunchStyle } from "../../../flash/shared/esptool/esptoolCli";
 import { resolveEsptoolInvocation } from "../../../flash/shared/esptool/resolveEsptoolInvocation";
 import { addProcessTask } from "../../../taskManager/taskManager";
 import { buildUartEraseFlashArgs } from "./eraseFlashUartArgs";
@@ -30,7 +31,13 @@ export async function createEraseFlashProcessTask(
     pythonPath: pythonBinPath,
     esptoolScriptPath,
   } = await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]);
-  const args = buildUartEraseFlashArgs(esptoolScriptPath, port);
+  const launchStyle = await resolveEsptoolLaunchStyle(pythonBinPath);
+  const args = buildUartEraseFlashArgs(
+    esptoolScriptPath,
+    port,
+    launchStyle.hyphenCli,
+    launchStyle.useModule
+  );
   return addProcessTask(
     "Erase Flash",
     workspace,

@@ -23,6 +23,11 @@ import {
   readParameter,
   readSerialPort,
 } from "../../configuration/idf";
+import {
+  esptoolProgramArgs,
+  formatEsptoolToken,
+  resolveEsptoolLaunchStyle,
+} from "../../flash/shared/esptool/esptoolCli";
 import { spawn } from "../../utils";
 import {
   getCurrentIdfConfiguration,
@@ -75,9 +80,21 @@ export async function flashBinaryToPartition(
       );
 
       try {
+        const launchStyle = await resolveEsptoolLaunchStyle(pythonBinPath);
+        const writeFlash = formatEsptoolToken(
+          "write_flash",
+          launchStyle.hyphenCli
+        );
         await spawn(
           pythonBinPath,
-          [esptoolPath, "-p", serialPort, "write_flash", offset, binPath],
+          [
+            ...esptoolProgramArgs(esptoolPath, launchStyle.useModule),
+            "-p",
+            serialPort,
+            writeFlash,
+            offset,
+            binPath,
+          ],
           {
             cwd: workspaceFolder.fsPath,
             env: modifiedEnv,

@@ -156,6 +156,45 @@ suite("Flash", () => {
         assert.ok(wf !== -1);
         assert.deepStrictEqual(args.slice(wf + 1), ["--verify", "0"]);
       });
+
+      test("uses hyphen CLI names when hyphenCli is true", () => {
+        const model = makeFlashModel({
+          writeFlashArgs: [
+            "--flash_mode",
+            "dio",
+            "--flash-freq",
+            "40m",
+            "partition_table.bin",
+          ],
+        });
+        const args = buildBaseWriteFlashArgs(model, "python", true);
+        const wf = args.indexOf("write-flash");
+        assert.ok(wf !== -1);
+        assert.strictEqual(args.includes("write_flash"), false);
+        assert.deepStrictEqual(args.slice(wf + 1), [
+          "--flash-mode",
+          "dio",
+          "--flash-freq",
+          "40m",
+          "partition_table.bin",
+        ]);
+      });
+
+      test("uses python -m esptool when useModule is true", () => {
+        const model = makeFlashModel();
+        const args = buildBaseWriteFlashArgs(
+          model,
+          "/idf/components/esptool_py/esptool/esptool.py",
+          true,
+          true
+        );
+        assert.deepStrictEqual(args.slice(0, 2), ["-m", "esptool"]);
+        assert.strictEqual(
+          args.some((arg) => arg.endsWith("esptool.py")),
+          false
+        );
+        assert.ok(args.includes("write-flash"));
+      });
     });
 
     suite("getSingleBinFlasherArgs", () => {
@@ -280,6 +319,42 @@ suite("Flash", () => {
           "0x10000",
           "app.bin",
         ]);
+      });
+
+      test("rewrites underscore flash options when hyphenCli is true", () => {
+        const model = makeFlashModel({
+          flashSections: [
+            {
+              address: "0x8000",
+              binFilePath: "partition_table/partition-table.bin",
+              encrypted: false,
+            },
+          ],
+        });
+        const args = getFlasherArgs(model, tool, false, false, true);
+        const wf = args.indexOf("write-flash");
+        assert.ok(wf !== -1);
+        assert.strictEqual(args.includes("write_flash"), false);
+        assert.strictEqual(args.includes("--flash_mode"), false);
+        assert.ok(args.includes("--flash-mode"));
+        assert.ok(args.includes("partition_table/partition-table.bin"));
+      });
+
+      test("drops the esptool.py wrapper when useModule is true", () => {
+        const model = makeFlashModel();
+        const args = getFlasherArgs(
+          model,
+          "/idf/components/esptool_py/esptool/esptool.py",
+          false,
+          false,
+          true,
+          true
+        );
+        assert.deepStrictEqual(args.slice(0, 2), ["-m", "esptool"]);
+        assert.strictEqual(
+          args.some((arg) => arg.endsWith("esptool.py")),
+          false
+        );
       });
     });
   });

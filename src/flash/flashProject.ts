@@ -11,7 +11,6 @@ import { openFolderCheck } from "../common/PreCheck";
 import { withProgressWrapper } from "../common/withProgressWrapper";
 import { IDFWebCommandKeys } from "../cmdTreeView/cmdStore";
 import { ESP } from "../config";
-import { OutputChannel } from "../common/outputChannel";
 import { resolvePartitionToUseForTask } from "./resolveFlashContext";
 import { flashMain } from "./main";
 import { isFlashEncryptionEnabled } from "./verify/flashEncryption";
@@ -33,18 +32,13 @@ export async function flash(
         wsFolder,
         partitionToUse
       );
-      const flashResult = await flashMain(
+      await flashMain(
         wsFolder.uri,
         cancelToken,
         flashType,
         resolvedEncryptPartitions,
         resolvedPartition
       );
-      if (flashResult.continueFlag) {
-        OutputChannel.appendLine(
-          "Flash has finished. You can monitor your device with 'ESP-IDF: Monitor Device'"
-        );
-      }
     },
     {
       afterPreCheckProceed: async () => {

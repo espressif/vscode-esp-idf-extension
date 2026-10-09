@@ -19,9 +19,11 @@ import { Uri } from "vscode";
 import { FlashModel } from "./types/flashModel";
 import { addProcessTask } from "../../../taskManager/taskManager";
 import { ESP } from "../../../config";
+import { resolveEsptoolLaunchStyle } from "../../shared/esptool/esptoolCli";
 import { resolveEsptoolInvocation } from "../../shared/esptool/resolveEsptoolInvocation";
 import { getFlasherArgs, getSingleBinFlasherArgs } from "./flashArgsBuilder";
 import { assertFlashSectionsReadable } from "../../shared/verifyFlashBins";
+import { flashTaskEpilogue } from "../../shared/flashTaskEpilogue";
 
 export async function createUartFlashProcessTask(
   workspace: Uri,
@@ -36,15 +38,31 @@ export async function createUartFlashProcessTask(
     pythonPath: pythonBinPath,
     esptoolScriptPath,
   } = await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
+  const launchStyle = await resolveEsptoolLaunchStyle(pythonBinPath);
   const flasherArgs = partitionToUse
-    ? getSingleBinFlasherArgs(model, esptoolScriptPath, partitionToUse)
-    : getFlasherArgs(model, esptoolScriptPath, encryptPartitions);
+    ? getSingleBinFlasherArgs(
+        model,
+        esptoolScriptPath,
+        partitionToUse,
+        false,
+        launchStyle.hyphenCli,
+        launchStyle.useModule
+      )
+    : getFlasherArgs(
+        model,
+        esptoolScriptPath,
+        encryptPartitions,
+        false,
+        launchStyle.hyphenCli,
+        launchStyle.useModule
+      );
   return addProcessTask(
     "Flash",
     workspace,
     pythonBinPath,
     flasherArgs,
     buildDirPath,
-    modifiedEnv
+    modifiedEnv,
+    { epilogue: flashTaskEpilogue }
   );
 }
