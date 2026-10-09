@@ -18,7 +18,7 @@
 刷新之前
 --------
 
-使用 ``ESP-IDF：选择要使用的端口`` 选择设备串口。请按照 :ref:`安装 ESP-IDF 和工具 <installation>` 文档完成扩展配置。
+使用 ``ESP-IDF：选择要使用的端口 (COM、tty、usbserial)`` 选择设备串口。请按照 :ref:`安装 ESP-IDF 和工具 <installation>` 文档完成扩展配置。
 
 请先构建项目。刷新会使用以下构建产物：
 
