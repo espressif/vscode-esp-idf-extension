@@ -538,6 +538,9 @@ function readCtz(
   if (head === 0xffffffff) {
     return undefined;
   }
+  if (size > data.length) {
+    return undefined;
+  }
   const out = Buffer.alloc(size);
   let pos = 0;
   while (pos < size) {
