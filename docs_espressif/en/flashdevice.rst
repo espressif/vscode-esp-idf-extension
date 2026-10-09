@@ -18,6 +18,10 @@ Flash onto the Device
 
         There is an ``idf.flashBaudRate`` configuration setting to modify the flashing baud rate.
 
+    .. note::
+
+        UART flashing uses esptool fast reflashing by default when esptool is 5.2 or newer, the same behavior as ``idf.py flash``. When a previous ``*_flashed.bin`` copy exists in the build directory, only changed flash sectors are written. Otherwise, files already present on the device are skipped. Encrypted flashing still writes the full image.
+
 3.  The flashing task will begin on the selected serial port, launching a new terminal displaying the flashing task output. While flashing is in progress, a notification bar will display ``ESP-IDF: Flashing project``. Once the process is complete, the message will change to ``Flash Done ⚡️``.
 
     .. image:: ../../media/tutorials/basic_use/flash.png

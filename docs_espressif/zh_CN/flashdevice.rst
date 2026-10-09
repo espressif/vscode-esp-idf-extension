@@ -18,6 +18,10 @@
 
         可以通过配置 ``idf.flashBaudRate`` 选项来修改烧录的波特率值。
 
+    .. note::
+
+        当 esptool 为 5.2 或更高版本时，UART 烧录默认使用 esptool 快速重新烧录，与 ``idf.py flash`` 的行为相同。若构建目录中已有先前的 ``*_flashed.bin`` 副本，则只写入发生变化的 flash 扇区。否则会跳过设备上已存在的文件。加密烧录仍会写入完整镜像。
+
 3.  烧录任务将在所选的串口上开始，并启动新的终端窗口来显示烧录任务的输出信息。烧录时，通知栏将显示 ``ESP-IDF: Flashing project``；烧录完成后，消息将变为 ``Flash Done ⚡️``。
 
     .. image:: ../../media/tutorials/basic_use/flash.png

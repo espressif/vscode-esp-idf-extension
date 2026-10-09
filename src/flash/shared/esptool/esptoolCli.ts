@@ -25,6 +25,9 @@ import { compareVersion } from "../../../utils";
  */
 export const ESPTOOL_HYPHEN_CLI_MIN = "5.0.0";
 
+/** esptool 5.2 added `--diff-with` and `--skip-flashed`. */
+export const ESPTOOL_FAST_REFLASH_MIN = "5.2.0";
+
 const ESPTOOL_SUBCOMMANDS = new Set([
   "chip_id",
   "erase_flash",
@@ -36,10 +39,15 @@ const ESPTOOL_SUBCOMMANDS = new Set([
 export type EsptoolLaunchStyle = {
   hyphenCli: boolean;
   useModule: boolean;
+  fastReflash: boolean;
 };
 
 export function esptoolUsesHyphenCli(version: string): boolean {
   return compareVersion(version, ESPTOOL_HYPHEN_CLI_MIN) >= 0;
+}
+
+export function esptoolSupportsFastReflash(version: string): boolean {
+  return compareVersion(version, ESPTOOL_FAST_REFLASH_MIN) >= 0;
 }
 
 export function esptoolProgramArgs(
@@ -72,7 +80,11 @@ export async function resolveEsptoolLaunchStyle(
   try {
     const version = await getPythonPackageVersion("esptool", pythonBinPath);
     const v5 = esptoolUsesHyphenCli(version);
-    return { hyphenCli: v5, useModule: v5 };
+    return {
+      hyphenCli: v5,
+      useModule: v5,
+      fastReflash: esptoolSupportsFastReflash(version),
+    };
   } catch (error) {
     const logged =
       error instanceof Error
@@ -87,6 +99,6 @@ export async function resolveEsptoolLaunchStyle(
     } catch {
       // Logger.init may not have run yet, for example in unit tests.
     }
-    return { hyphenCli: false, useModule: false };
+    return { hyphenCli: false, useModule: false, fastReflash: false };
   }
 }

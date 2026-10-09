@@ -24,6 +24,12 @@ import { resolveEsptoolInvocation } from "../../shared/esptool/resolveEsptoolInv
 import { getFlasherArgs, getSingleBinFlasherArgs } from "./flashArgsBuilder";
 import { assertFlashSectionsReadable } from "../../shared/verifyFlashBins";
 import { flashTaskEpilogue } from "../../shared/flashTaskEpilogue";
+import {
+  existingFlashedReferences,
+  fastReflashArgs,
+  fastReflashBinPaths,
+  saveFlashedBinCopies,
+} from "../../shared/esptool/fastReflash";
 
 export async function createUartFlashProcessTask(
   workspace: Uri,
@@ -56,6 +62,11 @@ export async function createUartFlashProcessTask(
         launchStyle.hyphenCli,
         launchStyle.useModule
       );
+  const binPaths = fastReflashBinPaths(flasherArgs, launchStyle.fastReflash);
+  const existingRefs = await existingFlashedReferences(buildDirPath, binPaths);
+  flasherArgs.push(
+    ...fastReflashArgs(binPaths, (refPath) => existingRefs.has(refPath))
+  );
   return addProcessTask(
     "Flash",
     workspace,
@@ -63,6 +74,11 @@ export async function createUartFlashProcessTask(
     flasherArgs,
     buildDirPath,
     modifiedEnv,
-    { epilogue: flashTaskEpilogue }
+    {
+      epilogue: async () => {
+        await saveFlashedBinCopies(buildDirPath, binPaths);
+        return flashTaskEpilogue();
+      },
+    }
   );
 }
