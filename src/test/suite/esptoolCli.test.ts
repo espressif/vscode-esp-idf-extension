@@ -9,6 +9,7 @@
 import * as assert from "assert";
 import {
   esptoolProgramArgs,
+  esptoolSupportsFastReflash,
   esptoolUsesHyphenCli,
   formatEsptoolArgs,
   formatEsptoolToken,
@@ -24,6 +25,12 @@ suite("esptool CLI names", () => {
     assert.strictEqual(esptoolUsesHyphenCli("5.0.0"), true);
     assert.strictEqual(esptoolUsesHyphenCli("5.0.2"), true);
     assert.strictEqual(esptoolUsesHyphenCli("5.1.0"), true);
+  });
+
+  test("enables fast reflashing from esptool 5.2.0", () => {
+    assert.strictEqual(esptoolSupportsFastReflash("5.1.0"), false);
+    assert.strictEqual(esptoolSupportsFastReflash("5.2.0"), true);
+    assert.strictEqual(esptoolSupportsFastReflash("5.3.1"), true);
   });
 
   test("formats subcommands and long options without rewriting paths", () => {
