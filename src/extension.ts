@@ -36,10 +36,7 @@ import { registerReconfigureCmd } from "./espIdf/reconfigure/task";
 import { statusBarItems } from "./statusBar";
 import { initCommandDictionary } from "./cmdTreeView/cmdStore";
 import { registerRemoveEspIdfSettingsCommand } from "./uninstall";
-import {
-  clearSelectedProjectConfiguration,
-  ProjectConfigurationManager,
-} from "./project-conf/ProjectConfigurationManager";
+import { clearSelectedProjectConfiguration } from "./project-conf/ProjectConfigurationManager";
 import { configureClangSettings } from "./clang";
 import {
   registerEspressifMcpServers,
@@ -87,7 +84,7 @@ import { registerNVSCommand } from "./espIdf/nvs";
 import { registerHintsCommands } from "./espIdf/hints";
 import {
   registerOnDidWorkspaceFolderChanges,
-  useFirstWorkspaceFolder,
+  useSelectedWorkspaceFolder,
 } from "./common/workspaceChange";
 import { registerOnDidChangeConfiguration } from "./common/configurationChange";
 import { registerTaskCommands } from "./common/taskCommands";
@@ -132,9 +129,7 @@ export async function activate(context: ExtensionContext) {
   registerDebugCommands(context);
   new CommandsProvider(context);
   if (PreCheck.isWorkspaceFolderOpen()) {
-    await useFirstWorkspaceFolder(context);
-    const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-    new ProjectConfigurationManager(wsFolder.uri, context, statusBarItems);
+    await useSelectedWorkspaceFolder(context);
   }
   addCmakeFileSystemWatcher(context);
   await registerHintsCommands(context);
