@@ -27,6 +27,11 @@ import {
   type IdfEnvMap,
 } from "../configuration/env";
 import { pathExists } from "fs-extra";
+import {
+  esptoolProgramArgs,
+  formatEsptoolToken,
+  resolveEsptoolLaunchStyle,
+} from "../flash/shared/esptool/esptoolCli";
 import { createFlashModel } from "../flash/transports/uart/flashModelBuilder";
 import { spawn } from "../utils";
 import {
@@ -126,13 +131,18 @@ export async function verifyAppBinary(workspaceFolder: Uri): Promise<void> {
   );
 
   try {
+    const launchStyle = await resolveEsptoolLaunchStyle(pythonBinPath);
+    const verifyFlash = formatEsptoolToken(
+      "verify_flash",
+      launchStyle.hyphenCli
+    );
     const cmdResult = await spawn(
       pythonBinPath,
       [
-        esptoolPath,
+        ...esptoolProgramArgs(esptoolPath, launchStyle.useModule),
         "-p",
         serialPort,
-        "verify_flash",
+        verifyFlash,
         model.app.address,
         `build/${model.app.binFilePath}`,
       ],
