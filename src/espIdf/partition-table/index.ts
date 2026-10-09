@@ -172,7 +172,16 @@ export function registerPartitionTableCommands(context: ExtensionContext) {
             "partitionsFromDevice",
             `${partitionNode.name}.bin`
           );
-          if (!(await pathExists(localBin))) {
+          const reuse = (await pathExists(localBin))
+            ? await window.showQuickPick(
+                [l10n.t("Read again from device"), l10n.t("Use cached binary")],
+                { placeHolder: l10n.t("A previously read binary exists") }
+              )
+            : undefined;
+          if (!reuse) {
+            return;
+          }
+          if (reuse !== l10n.t("Use cached binary")) {
             await readPartition(
               partitionNode.name,
               partitionNode.offset,
