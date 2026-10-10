@@ -17,9 +17,11 @@ import {
   applyRuntimeGdbStubDebugConfig,
   isSdkconfigOptionEnabled,
   mergeRuntimeGdbStubLaunchConfigurations,
+  parseHardwareDebugLimit,
   parseMonitorBaudRate,
   shouldUseRuntimeGdbStub,
   toGdbSerialPort,
+  toNodeSerialPortPath,
 } from "../espIdf/gdbstub/debugConfig";
 
 const requirement = "esp_gdbstub";
@@ -588,19 +590,28 @@ suite("GDB Stub UART debug configuration", () => {
     assert.strictEqual(toGdbSerialPort("COM3", "linux"), "COM3");
   });
 
+  test("strips the Windows device prefix before opening the serial port", () => {
+    assert.strictEqual(toNodeSerialPortPath("\\\\.\\COM4"), "COM4");
+    assert.strictEqual(toNodeSerialPortPath("\\\\.\\COM10"), "COM10");
+    assert.strictEqual(toNodeSerialPortPath("COM4"), "COM4");
+    assert.strictEqual(toNodeSerialPortPath("/dev/ttyUSB0"), "/dev/ttyUSB0");
+  });
+
   test("applies UART attach commands without OpenOCD", () => {
     const config: RuntimeGdbStubLaunchConfig = {};
     applyRuntimeGdbStubDebugConfig(config, {
       port: "COM3",
       baudRate: 115200,
+      hardwareBreakpointLimit: 2,
+      hardwareWatchpointLimit: 2,
       platform: "win32",
     });
     assert.strictEqual(config.sessionID, RUNTIME_GDBSTUB_SESSION_ID);
     assert.strictEqual(config.runOpenOCD, false);
     assert.strictEqual(config.hardwareBreakpoint, true);
     assert.deepStrictEqual(config.initCommands, [
-      "set remote hardware-breakpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
-      "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
+      "set remote hardware-breakpoint-limit 2",
+      "set remote hardware-watchpoint-limit 2",
       "set backtrace limit 16",
     ]);
     assert.deepStrictEqual(config.gdbStubUart, {
@@ -612,6 +623,24 @@ suite("GDB Stub UART debug configuration", () => {
       "set serial baud 115200",
       "target remote \\\\.\\COM3",
     ]);
+  });
+
+  test("omits hardware limit commands when sdkconfig has no values", () => {
+    const config: RuntimeGdbStubLaunchConfig = {};
+    applyRuntimeGdbStubDebugConfig(config, {
+      port: "/dev/ttyUSB0",
+      baudRate: 115200,
+      platform: "linux",
+    });
+    assert.deepStrictEqual(config.initCommands, ["set backtrace limit 16"]);
+  });
+
+  test("parses hardware debug limits from sdkconfig values", () => {
+    assert.strictEqual(parseHardwareDebugLimit("2"), 2);
+    assert.strictEqual(parseHardwareDebugLimit("4\r"), 4);
+    assert.strictEqual(parseHardwareDebugLimit(""), undefined);
+    assert.strictEqual(parseHardwareDebugLimit(undefined), undefined);
+    assert.strictEqual(parseHardwareDebugLimit("0"), undefined);
   });
 
   test("parses monitor baud rate with a 115200 fallback", () => {

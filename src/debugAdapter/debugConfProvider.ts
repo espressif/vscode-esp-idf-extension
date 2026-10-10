@@ -55,6 +55,7 @@ import {
   applyRuntimeGdbStubDebugConfig,
   isNonJtagDebugSession,
   isSdkconfigOptionEnabled,
+  parseHardwareDebugLimit,
   parseMonitorBaudRate,
   shouldUseRuntimeGdbStub,
 } from "../espIdf/gdbstub/debugConfig";
@@ -552,8 +553,34 @@ async function applyRuntimeGdbStubIfNeeded(
   applyRuntimeGdbStubDebugConfig(config, {
     port,
     baudRate: parseMonitorBaudRate(await getMonitorBaudRate(folder.uri)),
+    hardwareBreakpointLimit: await readHardwareDebugLimit(
+      "CONFIG_SOC_CPU_BREAKPOINTS_NUM",
+      folder
+    ),
+    hardwareWatchpointLimit: await readHardwareDebugLimit(
+      "CONFIG_SOC_CPU_WATCHPOINTS_NUM",
+      folder
+    ),
   });
   Logger.info(`Using UART GDB Stub on ${port}`);
+}
+
+async function readHardwareDebugLimit(
+  sdkconfigKey: string,
+  folder: WorkspaceFolder
+): Promise<number | undefined> {
+  try {
+    return parseHardwareDebugLimit(
+      await getConfigValueFromSDKConfig(sdkconfigKey, folder.uri)
+    );
+  } catch (error) {
+    Logger.error(
+      `Failed to read ${sdkconfigKey} from sdkconfig`,
+      error as Error,
+      "CDTDebugConfigurationProvider readHardwareDebugLimit"
+    );
+    return undefined;
+  }
 }
 
 async function prepareSerialPortForRuntimeGdbStub(

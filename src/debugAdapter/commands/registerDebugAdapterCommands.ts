@@ -15,6 +15,7 @@
  */
 
 import {
+  commands,
   debug,
   DebugConfiguration,
   ExtensionContext,
@@ -185,6 +186,26 @@ async function startFirstGdbTargetConfiguration(
   );
 }
 
+async function notifyRuntimeGdbStubReady(
+  alreadyConfigured: boolean
+): Promise<void> {
+  const message = alreadyConfigured
+    ? l10n.t(
+        'Runtime GDB Stub is already configured. Build and flash the project, then select "ESP-IDF Runtime GDB Stub" and press F5.'
+      )
+    : l10n.t(
+        'Runtime GDB Stub is configured. Build and flash the project, then select "ESP-IDF Runtime GDB Stub" and press F5.'
+      );
+  const buildAndFlash = l10n.t("Build and Flash");
+  Logger.info(message);
+  const choice = await window.showInformationMessage(message, buildAndFlash);
+  if (choice !== buildAndFlash) {
+    return;
+  }
+  await commands.executeCommand("espIdf.buildDevice");
+  await commands.executeCommand("espIdf.flashDevice");
+}
+
 export function registerEspIdfDebugCommand(
   context: ExtensionContext,
   cdtDebugProvider: CDTDebugConfigurationProvider
@@ -234,19 +255,7 @@ export function registerEspIdfDebugCommand(
       const launchChanged = await ensureRuntimeGdbStubLaunchJson(
         workspaceFolder.uri
       );
-      if (result === "unchanged" && !launchChanged) {
-        Logger.infoNotify(
-          l10n.t(
-            'Runtime GDB Stub is already configured. Build and flash, select "ESP-IDF Runtime GDB Stub" in Run and Debug, then press F5.'
-          )
-        );
-        return;
-      }
-      Logger.infoNotify(
-        l10n.t(
-          'Runtime GDB Stub is configured. Build and flash, select "ESP-IDF Runtime GDB Stub" in Run and Debug, then press F5.'
-        )
-      );
+      await notifyRuntimeGdbStubReady(result === "unchanged" && !launchChanged);
     });
   });
 }

@@ -132,22 +132,49 @@ export function toGdbSerialPort(
   return `\\\\.\\${port}`;
 }
 
+const windowsDevicePrefix = "\\\\.\\";
+
+// node-serialport prepends \\.\ on Windows and keeps only the first 10
+// characters of the supplied path, so the GDB form must be stripped first.
+export function toNodeSerialPortPath(port: string): string {
+  if (!port.startsWith(windowsDevicePrefix)) {
+    return port;
+  }
+  return port.slice(windowsDevicePrefix.length);
+}
+
+export function parseHardwareDebugLimit(
+  value: string | undefined
+): number | undefined {
+  const parsed = Number.parseInt(String(value ?? "").trim(), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
 export function applyRuntimeGdbStubDebugConfig(
   config: RuntimeGdbStubLaunchConfig,
   options: {
     port: string;
     baudRate: number;
+    hardwareBreakpointLimit?: number;
+    hardwareWatchpointLimit?: number;
     platform?: NodeJS.Platform;
   }
 ): void {
   const gdbPort = toGdbSerialPort(options.port, options.platform);
   config.sessionID = RUNTIME_GDBSTUB_SESSION_ID;
   config.runOpenOCD = false;
-  config.initCommands = [
-    "set remote hardware-breakpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
-    "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
-    "set backtrace limit 16",
-  ];
+  config.initCommands = [];
+  if (options.hardwareBreakpointLimit !== undefined) {
+    config.initCommands.push(
+      `set remote hardware-breakpoint-limit ${options.hardwareBreakpointLimit}`
+    );
+  }
+  if (options.hardwareWatchpointLimit !== undefined) {
+    config.initCommands.push(
+      `set remote hardware-watchpoint-limit ${options.hardwareWatchpointLimit}`
+    );
+  }
+  config.initCommands.push("set backtrace limit 16");
   config.hardwareBreakpoint = true;
   config.gdbStubUart = {
     port: gdbPort,
