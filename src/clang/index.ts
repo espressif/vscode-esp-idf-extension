@@ -140,7 +140,6 @@ export async function createClangdFile(
   }
   const clangdContent = [
     "CompileFlags:",
-    "  CompilationDatabase: build",
     "  Remove: [-m*, -f*]",
     "  BuiltinHeaders: QueryDriver",
     "",
