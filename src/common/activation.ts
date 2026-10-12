@@ -211,7 +211,9 @@ export function registerWalkthroughCommands(context: ExtensionContext) {
       "espressif.esp-idf-extension#espIdf.walkthrough.basic-usage"
     );
   });
+}
 
+export function showWalkthroughOnFirstActivation() {
   const hasWalkthroughBeenShown = readParameter("idf.hasWalkthroughBeenShown");
 
   if (!hasWalkthroughBeenShown) {

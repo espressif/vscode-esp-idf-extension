@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { env, ExtensionContext, Uri, window } from "vscode";
+import { env, ExtensionContext, TreeView, Uri, window } from "vscode";
 import { openFolderCheck } from "../../common/PreCheck";
 import { withProgressWrapper } from "../../common/withProgressWrapper";
 import { registerIDFCommand } from "../../common/registerCommand";
@@ -31,11 +31,20 @@ import {
 } from "./docResultsTreeView";
 import { ESP } from "../../config";
 
-export function registerSearchDocsCommand(context: ExtensionContext) {
-  const espIdfDocsResultTreeDataProvider = new DocSearchResultTreeDataProvider();
+let docsProvider: DocSearchResultTreeDataProvider | undefined;
+let docsResultsView: TreeView<DocSearchResult> | undefined;
+let workspaceFreeDocsRegistered = false;
+let searchDocsRegistered = false;
+
+export function registerWorkspaceFreeDocsCommands(context: ExtensionContext) {
+  if (workspaceFreeDocsRegistered) {
+    return;
+  }
+  workspaceFreeDocsRegistered = true;
+  docsProvider = new DocSearchResultTreeDataProvider();
 
   registerIDFCommand(context, "espIdf.clearDocsSearchResult", () => {
-    espIdfDocsResultTreeDataProvider.clearResults();
+    docsProvider?.clearResults();
   });
 
   registerIDFCommand(context, "espIdf.openDocUrl", (url: string) => {
@@ -45,14 +54,19 @@ export function registerSearchDocsCommand(context: ExtensionContext) {
     return env.openExternal(Uri.parse(url));
   });
 
-  const idfSearchResults = window.createTreeView<DocSearchResult>(
-    "idfSearchResults",
-    {
-      treeDataProvider: espIdfDocsResultTreeDataProvider,
-    }
-  );
+  docsResultsView = window.createTreeView<DocSearchResult>("idfSearchResults", {
+    treeDataProvider: docsProvider,
+  });
 
-  context.subscriptions.push(idfSearchResults);
+  context.subscriptions.push(docsResultsView);
+}
+
+export function registerSearchInEspIdfDocsCommand(context: ExtensionContext) {
+  if (searchDocsRegistered) {
+    return;
+  }
+  searchDocsRegistered = true;
+  registerWorkspaceFreeDocsCommands(context);
 
   registerIDFCommand(context, "espIdf.searchInEspIdfDocs", async () => {
     await withProgressWrapper(
@@ -64,9 +78,7 @@ export function registerSearchDocsCommand(context: ExtensionContext) {
           throw noActiveEditor();
         }
         const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-        let selection = currentEditor.document.getText(
-          currentEditor.selection
-        );
+        let selection = currentEditor.document.getText(currentEditor.selection);
         if (!selection) {
           const range = currentEditor.document.getWordRangeAtPosition(
             currentEditor.selection.active
@@ -78,11 +90,15 @@ export function registerSearchDocsCommand(context: ExtensionContext) {
           selection,
           wsFolder.uri
         );
-        espIdfDocsResultTreeDataProvider.getResults(
-          searchResults,
-          idfSearchResults
-        );
+        if (docsProvider && docsResultsView) {
+          docsProvider.getResults(searchResults, docsResultsView);
+        }
       }
     );
   });
+}
+
+export function registerSearchDocsCommand(context: ExtensionContext) {
+  registerWorkspaceFreeDocsCommands(context);
+  registerSearchInEspIdfDocsCommand(context);
 }

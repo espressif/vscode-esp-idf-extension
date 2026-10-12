@@ -19,13 +19,49 @@
 import { pathExists, readJson } from "fs-extra";
 import { join, resolve } from "path";
 import { createHash } from "crypto";
-import { EspIdfJson, IdfSetup, InstallationStatus } from "./types";
+import {
+  EspIdfJson,
+  IdfInstalled,
+  IdfSetup,
+  InstallationStatus,
+} from "./types";
 import { readParameter } from "../configuration/idf";
 import { getVenvPythonBinPath } from "../configuration/env";
 import { Logger } from "../common/logger";
 import { compareVersion, getEspIdfFromCMake } from "../utils";
 import { loadIdfSetupsFromEspIdfJson } from "./migrationTool";
 import { WorkspaceFolder } from "vscode";
+
+export function defaultEimIdfJsonPath() {
+  return process.platform === "win32"
+    ? join("C:", "Espressif", "tools", "eim_idf.json")
+    : join(process.env.HOME || "", ".espressif", "tools", "eim_idf.json");
+}
+
+export function isFinishedIdfInstall(
+  espIdfJson: EspIdfJson,
+  idfInstalled: IdfInstalled
+): boolean {
+  const isVersion3 =
+    !!espIdfJson.version && compareVersion(espIdfJson.version, "3.0") >= 0;
+  if (
+    isVersion3 &&
+    idfInstalled.status &&
+    idfInstalled.status !== InstallationStatus.Finished
+  ) {
+    return false;
+  }
+  return true;
+}
+
+export function finishedIdfInstalls(espIdfJson: EspIdfJson): IdfInstalled[] {
+  if (!Array.isArray(espIdfJson.idfInstalled)) {
+    return [];
+  }
+  return espIdfJson.idfInstalled.filter((idfInstalled) =>
+    isFinishedIdfInstall(espIdfJson, idfInstalled)
+  );
+}
 
 function defaultIdfToolsPath() {
   const containerPath =
@@ -142,27 +178,13 @@ export async function getIdfSetups(workspaceFolder?: WorkspaceFolder) {
 
 export async function loadIdfSetupsFromEimIdfJson() {
   const espIdfJson = await getEimIdfJson();
-  if (
-    !espIdfJson ||
-    !espIdfJson.idfInstalled ||
-    !Object.keys(espIdfJson.idfInstalled).length
-  ) {
+  if (!espIdfJson) {
     return [];
   }
-
-  const isVersion3 =
-    espIdfJson.version && compareVersion(espIdfJson.version, "3.0") >= 0;
-
-  const finishedInstalls = espIdfJson.idfInstalled.filter((idfInstalled) => {
-    if (
-      isVersion3 &&
-      idfInstalled.status &&
-      idfInstalled.status !== InstallationStatus.Finished
-    ) {
-      return false;
-    }
-    return true;
-  });
+  const finishedInstalls = finishedIdfInstalls(espIdfJson);
+  if (!finishedInstalls.length) {
+    return [];
+  }
 
   return Promise.all(
     finishedInstalls.map(async (idfInstalled) => {
@@ -188,9 +210,7 @@ export async function getEimIdfJson() {
   const eimIdfJsonPath =
     espIdeJsonCustomPath && (await pathExists(espIdeJsonCustomPath))
       ? espIdeJsonCustomPath
-      : process.platform === "win32"
-      ? join("C:", "Espressif", "tools", "eim_idf.json")
-      : join(process.env.HOME || "", ".espressif", "tools", "eim_idf.json");
+      : defaultEimIdfJsonPath();
   const espIdfJsonExists = await pathExists(eimIdfJsonPath);
   if (!espIdfJsonExists) {
     return;
