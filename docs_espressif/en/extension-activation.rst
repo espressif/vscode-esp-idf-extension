@@ -24,11 +24,11 @@ If **none** of these triggers fire, VS Code will never load the extension and it
 
 .. important::
 
-   The ``idf.extensionActivationMode`` setting has **no effect** unless VS Code loads the extension first. If none of the activation events listed above fire (no ``CMakeLists.txt`` in the workspace, no ESP-IDF command run, no sidebar view opened, no language-model tool invocation, no MCP server discovery), the extension will not activate — even if ``idf.extensionActivationMode`` is set to ``"always"``.
+   The ``idf.extensionActivationMode`` setting has **no effect** unless VS Code loads the extension first. If none of the activation events listed above fire (no ``CMakeLists.txt`` in the workspace, no ESP-IDF command run, no sidebar view opened, no language-model tool invocation, no MCP server discovery), the extension will not activate — even if ``idf.extensionActivationMode`` is set to ``"always"``. After the extension loads, that setting is also skipped when no workspace folder is open, and when ``idf.currentSetup`` already points at a finished ESP-IDF install.
 
 **Phase 2: Extension Decides Whether to Fully Initialize**
 
-Once VS Code loads the extension (Phase 1), the extension's ``activate()`` function runs. At this point, the extension reads the ``idf.extensionActivationMode`` setting and applies the priority hierarchy described in the next section to decide whether to proceed with full initialization or exit early.
+Once VS Code loads the extension (Phase 1), the extension's ``activate()`` function runs. It validates the ESP-IDF Installation Manager catalog and the selected setup before registering project commands. ``idf.extensionActivationMode`` is used only when a workspace folder is open and ``idf.currentSetup`` is empty.
 
 .. list-table:: Two-Phase Summary
    :header-rows: 1
@@ -40,24 +40,81 @@ Once VS Code loads the extension (Phase 1), the extension's ``activate()`` funct
      - VS Code platform (``activationEvents`` in ``package.json``)
      - VS Code decides whether to load and start the extension's code
    * - **Phase 2** — Initialization
-     - Extension code (``idf.extensionActivationMode`` setting)
-     - Extension decides whether to fully initialize or exit early
+     - Extension code (``eim_idf.json``, ``idf.currentSetup``, and ``idf.extensionActivationMode`` when that setup is empty)
+     - Extension enters non-configured mode, configured mode with no workspace folder, or full configured mode
+
+Setup Validation (Phase 2)
+--------------------------
+
+After the extension loads, it checks the ESP-IDF Installation Manager catalog before project commands are registered. Commands that do not need a workspace folder, including the Installation Manager, the welcome page, and the new-project wizard, are registered either way.
+
+1. **``eim_idf.json`` must exist**
+
+   The extension uses ``idf.eimIdfJsonPath`` when that file exists. If the setting is empty, or it points at a missing file while the platform default exists, the setting is cleared and the default file is used (``C:\\Espressif\\tools\\eim_idf.json`` on Windows, ``~/.espressif/tools/eim_idf.json`` elsewhere). If neither file exists, the status bar shows ``eim_idf.json not found``. Clicking it runs **ESP-IDF: Select eim_idf.json**.
+
+2. **At least one finished ESP-IDF setup**
+
+   ``eim_idf.json`` must contain an install whose status is ``finished``. Catalogs older than 3.0, and entries with no status, are treated as finished. If none qualify, the status bar shows ``No valid ESP-IDF setup found``. Clicking it opens the ESP-IDF Installation Manager. After the install finishes, run **ESP-IDF: Retry ESP-IDF Activation**.
+
+3. **Workspace folder, then ``idf.currentSetup``**
+
+   If no workspace folder is open, validation stops. The extension stays in configured mode without a workspace folder and does not read or write ``idf.currentSetup``. Opening a folder runs validation again.
+
+   If a folder is open, the folder is the extension's stored workspace selection, or the first workspace folder when nothing is stored.
+
+   - A ``idf.currentSetup`` path that matches a finished install continues into full configured mode.
+   - A path that is missing from ``eim_idf.json``, or is not finished, shows ``Invalid ESP-IDF Setup``. Clicking the status bar runs **ESP-IDF: Select Current ESP-IDF Version**.
+   - An empty ``idf.currentSetup`` runs the ``idf.extensionActivationMode`` check below. When that check allows activation, the first finished install is saved as ``idf.currentSetup`` and full configured mode starts. When the check declines, project commands are not registered and the non-configured status bar is not shown.
+
+**ESP-IDF: Retry ESP-IDF Activation** runs these checks again. While the extension is still outside full configured mode, they also run again when ``idf.eimIdfJsonPath``, ``idf.currentSetup``, or ``idf.extensionActivationMode`` changes, and when a workspace folder is added. After the extension is fully configured, changes to the ``eim_idf.json`` file itself are handled by the watcher described in `Watching eim_idf.json`_.
+
+ESP-IDF Commands View
+---------------------
+
+The ESP-IDF Commands view is created when the extension loads and refreshes when the activation mode changes.
+
+Before full configured mode, the view is a flat list. It has no Advanced category and no status-bar checkboxes. The list is:
+
+- **ESP-IDF: Open ESP-IDF Installation Manager**
+- **ESP-IDF: New Project**
+- **ESP-IDF: Create New Empty Project**
+- **ESP-IDF: Doctor Command**
+- **ESP-IDF: Welcome**
+- **ESP-IDF: Open Get Started Walkthrough**
+- **ESP-IDF: Retry ESP-IDF Activation**
+
+In non-configured mode, and when activation was skipped, the list also includes **ESP-IDF: Select Current ESP-IDF Version** when a workspace folder is open.
+
+Full configured mode shows the project command list and the Advanced category with checkboxes.
+
+When a catalog change leaves configured mode, the view switches to the shorter list. Project commands that were already registered stay available from the Command Palette. A later successful retry restores the full list.
+
+Watching eim_idf.json
+---------------------
+
+After the first validation, the extension watches the resolved catalog file. That file is ``idf.eimIdfJsonPath`` when the file exists. Otherwise it is ``C:\\Espressif\\tools\\eim_idf.json`` on Windows, or ``~/.espressif/tools/eim_idf.json`` elsewhere. The file is outside the workspace. Create, change, and delete events for one edit are handled once. Events are ignored while activation is already running.
+
+- **Non-configured and skipped**: run **ESP-IDF: Retry ESP-IDF Activation**.
+- **Configured**: stay configured when ``idf.currentSetup`` still matches a finished install. If the file is missing, unreadable, or that setup is gone or not finished, show the existing status bar (``Invalid ESP-IDF Setup``, or ``eim_idf.json not found`` / ``No valid ESP-IDF setup found`` when that is the real failure) and switch the commands view to the shorter list. Already registered project commands stay registered.
+- **No workspace folder**: stay in that mode when at least one finished install remains. Otherwise show the non-configured status bar for a missing catalog (``eim_idf.json not found``) or no finished setup (``No valid ESP-IDF setup found``).
+
+Changing ``idf.eimIdfJsonPath`` retargets the watcher. A custom path that points at a missing file is cleared, and the default file is watched when it exists. If the watcher is already on that default path, it stays there. If neither file exists, watching stops. After the watched path changes, the same reactions run immediately.
 
 Activation Mode Priority Hierarchy (Phase 2)
 ----------------------------------------------
 
-Once the extension is loaded by VS Code, it follows a strict priority hierarchy when deciding whether to fully initialize:
+``idf.extensionActivationMode`` runs only when a workspace folder is open and ``idf.currentSetup`` is empty. A result that allows activation saves the first finished ESP-IDF install and registers project commands. A result that declines does not. The check follows this priority:
 
 1. **Workspace/Global Setting = "always"**
 
-   - **Action**: Initialize immediately
-   - **Skips**: All other checks (CMake detection, folder checks)
+   - **Action**: Save the first finished ESP-IDF install and fully initialize
+   - **Skips**: CMake detection and the "Activate Anyway" prompt
    - **Use case**: Force-enable the extension for custom project layouts
    - **Setting location**: User Settings or Workspace Settings
 
 2. **Workspace/Global Setting = "never"**
 
-   - **Action**: Do NOT initialize, exit immediately
+   - **Action**: Do not save ``idf.currentSetup`` and do not register project commands
    - **Overrides**: All folder-level settings
    - **No prompt shown**: Respects your explicit choice
    - **Use case**: Explicitly disable extension in specific workspaces
@@ -65,14 +122,14 @@ Once the extension is loaded by VS Code, it follows a strict priority hierarchy 
 
 3. **ANY Folder Setting = "always"**
 
-   - **Action**: Initialize immediately ("true wins" strategy)
+   - **Action**: Save the first finished ESP-IDF install and fully initialize ("true wins" strategy)
    - **Order independent**: Checks all folders, not just the first
    - **Use case**: Multi-root workspace with at least one ESP-IDF project
    - **Setting location**: Folder Settings in ``.vscode/settings.json``
 
 4. **ALL Folder Settings = "never"**
 
-   - **Action**: Do NOT initialize, exit immediately
+   - **Action**: Do not save ``idf.currentSetup`` and do not register project commands
    - **No prompt shown**: Respects explicit configuration
    - **Use case**: Multi-root workspace explicitly excluding ESP-IDF
 
@@ -87,7 +144,7 @@ Once the extension is loaded by VS Code, it follows a strict priority hierarchy 
 Configuration Setting
 ---------------------
 
-The setting that controls extension initialization (Phase 2) is:
+The setting used when a workspace folder is open and ``idf.currentSetup`` is empty:
 
 .. code-block:: json
 
@@ -98,8 +155,8 @@ The setting that controls extension initialization (Phase 2) is:
 **Possible values:**
 
 - ``"detect"`` (default) — Auto-detect by inspecting ``CMakeLists.txt`` content.
-- ``"always"`` — Skip detection and initialize immediately.
-- ``"never"`` — Never initialize, even if an ESP-IDF project is detected.
+- ``"always"`` — Skip CMake detection, save the first finished ESP-IDF install, and register project commands.
+- ``"never"`` — Do not save an empty ``idf.currentSetup`` and do not register project commands, even if an ESP-IDF project is detected.
 
 **Setting Scope:**
 
@@ -223,9 +280,9 @@ Extension Not Activating
 
    **Solution**: Run any ESP-IDF command from the Command Palette to trigger loading, or create a ``CMakeLists.txt`` file. If you want automatic activation in the future, set ``"idf.extensionActivationMode": "always"`` so that once loaded, it always initializes.
 
-2. **Explicit "never" setting** (Phase 2): The extension is loaded but ``idf.extensionActivationMode`` is set to ``"never"`` in User, Workspace, or Folder settings.
+2. **Explicit "never" setting** (Phase 2): A workspace folder is open, ``idf.currentSetup`` is empty, and ``idf.extensionActivationMode`` is ``"never"``. Project commands are not registered. If ``idf.currentSetup`` already points at a finished install, this setting is not consulted.
 
-   **Solution**: Set it to ``"always"`` or ``"detect"``.
+   **Solution**: Set it to ``"always"`` or ``"detect"``, or run **ESP-IDF: Retry ESP-IDF Activation** after changing the setting. You can also select an ESP-IDF version so ``idf.currentSetup`` is no longer empty.
 
 3. **Non-standard CMakeLists.txt** (Phase 2): Your project has a ``CMakeLists.txt`` but it doesn't include the standard ESP-IDF ``project.cmake`` line.
 
@@ -293,7 +350,7 @@ Performance Optimizations
 
 The Phase 2 logic is designed for optimal performance:
 
-1. **Early Exit on Global Never**: If workspace/global setting is ``"never"``, the extension exits immediately without checking folders or reading files.
+1. **Early Exit on Global Never**: If workspace/global setting is ``"never"``, the project check returns immediately without checking folders or reading files. This check runs only when a workspace folder is open and ``idf.currentSetup`` is empty.
 2. **Early Exit on Any Always**: When any folder has ``"always"``, the extension stops checking remaining folders.
 3. **Skip CMake Detection**: If any explicit ``"always"`` is found, CMake file detection is entirely skipped.
 4. **Lazy File Reading**: CMakeLists.txt files are only read when the detection fallback is reached (no explicit ``"always"`` or all-``"never"`` overrides).
