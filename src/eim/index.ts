@@ -50,7 +50,16 @@ function registerEimCommand(
   registerIDFCommand(context, name, callback, { outputChannel: "EIM" });
 }
 
-export function installManagerCommand(context: ExtensionContext) {
+let selectCurrentIdfVersionRegistered = false;
+let installManagerRegistered = false;
+
+export function registerSelectCurrentIdfVersionCommand(
+  context: ExtensionContext
+) {
+  if (selectCurrentIdfVersionRegistered) {
+    return;
+  }
+  selectCurrentIdfVersionRegistered = true;
   registerEimCommand(context, "espIdf.selectCurrentIdfVersion", () => {
     if (!PreCheck.isWorkspaceFolderOpen()) {
       throw noWorkspaceOpen({
@@ -63,6 +72,13 @@ export function installManagerCommand(context: ExtensionContext) {
     const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
     return selectIdfSetup(context.extensionPath, wsFolder);
   });
+}
+
+export function registerInstallManagerCommand(context: ExtensionContext) {
+  if (installManagerRegistered) {
+    return;
+  }
+  installManagerRegistered = true;
   registerEimCommand(context, "espIdf.installManager", async () => {
     await withProgressWrapper(
       [],
@@ -143,4 +159,9 @@ export function installManagerCommand(context: ExtensionContext) {
       }
     );
   });
+}
+
+export function installManagerCommand(context: ExtensionContext) {
+  registerSelectCurrentIdfVersionCommand(context);
+  registerInstallManagerCommand(context);
 }

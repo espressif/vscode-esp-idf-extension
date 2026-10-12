@@ -44,7 +44,14 @@ async function showDoctorReportOnError(
   );
 }
 
-export function registerDoctorCommand(context: ExtensionContext) {
+let doctorReportRegistered = false;
+let troubleshootPanelRegistered = false;
+
+export function registerDoctorReportCommand(context: ExtensionContext) {
+  if (doctorReportRegistered) {
+    return;
+  }
+  doctorReportRegistered = true;
   registerIDFCommand(context, "espIdf.doctorCommand", async () => {
     await withProgressWrapper(
       [],
@@ -52,11 +59,7 @@ export function registerDoctorCommand(context: ExtensionContext) {
       async (progress, cancelToken) => {
         const reportedResult = initializeReportObject();
         try {
-          await generateConfigurationReport(
-            context,
-            reportedResult,
-            progress
-          );
+          await generateConfigurationReport(context, reportedResult, progress);
           await window.showTextDocument(
             Uri.joinPath(context.extensionUri, "report.txt")
           );
@@ -69,9 +72,20 @@ export function registerDoctorCommand(context: ExtensionContext) {
       }
     );
   });
+}
 
+export function registerTroubleshootPanelCommand(context: ExtensionContext) {
+  if (troubleshootPanelRegistered) {
+    return;
+  }
+  troubleshootPanelRegistered = true;
   registerIDFCommand(context, "espIdf.troubleshootPanel", async () => {
     const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
     TroubleshootingPanel.createOrShow(context, wsFolder.uri);
   });
+}
+
+export function registerDoctorCommand(context: ExtensionContext) {
+  registerDoctorReportCommand(context);
+  registerTroubleshootPanelCommand(context);
 }

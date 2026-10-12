@@ -27,15 +27,25 @@ import {
   TreeItemCollapsibleState,
   window,
 } from "vscode";
+import { PreCheck } from "../common/PreCheck";
 import { updateStatusBarItemVisibility } from "../statusBar";
 import {
   advancedCommandDictionary,
   AdvancedCommandKeys,
   commandDictionary,
   CommandKeys,
+  workspaceFreeCommands,
 } from "./cmdStore";
 
+export type IdfCommandTreeMode =
+  | "pending"
+  | "nonConfigured"
+  | "configuredNoWorkspaceFolder"
+  | "skipped"
+  | "configured";
+
 export class CommandsProvider implements TreeDataProvider<CommandItem> {
+  private mode: IdfCommandTreeMode = "pending";
   private _onDidChangeTreeData: EventEmitter<
     CommandItem | undefined | void
   > = new EventEmitter<CommandItem | undefined | void>();
@@ -46,11 +56,22 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
     context.subscriptions.push(this.registerDataProviderForTree("idfCommands"));
   }
 
+  setMode(mode: IdfCommandTreeMode) {
+    this.mode = mode;
+    this.refresh();
+  }
+
   getTreeItem(element: CommandItem): TreeItem | Thenable<TreeItem> {
     return element;
   }
 
   getChildren(element?: CommandItem): ProviderResult<CommandItem[]> {
+    if (this.mode !== "configured") {
+      if (element) {
+        return [];
+      }
+      return this.getWorkspaceFreeCommands();
+    }
     if (element && element.commandType === CommandType.Category) {
       return this.getAdvancedCommands();
     }
@@ -59,6 +80,35 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
 
   refresh(item?: CommandItem): void {
     this._onDidChangeTreeData.fire(item);
+  }
+
+  private getWorkspaceFreeCommands() {
+    const cmdItemList = workspaceFreeCommands.map(
+      (entry) =>
+        new CommandItem(
+          entry.description.tooltip,
+          CommandType.Command,
+          entry.command,
+          entry.description.iconId
+        )
+    );
+    if (
+      (this.mode === "nonConfigured" || this.mode === "skipped") &&
+      PreCheck.isWorkspaceFolderOpen() &&
+      commandDictionary
+    ) {
+      const selectVersion =
+        commandDictionary[CommandKeys.SelectCurrentIdfVersion];
+      cmdItemList.push(
+        new CommandItem(
+          selectVersion.tooltip,
+          CommandType.Command,
+          CommandKeys.SelectCurrentIdfVersion,
+          selectVersion.iconId
+        )
+      );
+    }
+    return cmdItemList;
   }
 
   private getAdvancedCommands() {
@@ -143,4 +193,17 @@ export class CommandItem extends TreeItem {
       this.checkboxState = checkboxState;
     }
   }
+}
+
+let commandsProvider: CommandsProvider | undefined;
+
+export function registerCommandsTree(context: ExtensionContext) {
+  if (commandsProvider) {
+    return;
+  }
+  commandsProvider = new CommandsProvider(context);
+}
+
+export function setCommandsTreeMode(mode: IdfCommandTreeMode) {
+  commandsProvider?.setMode(mode);
 }
