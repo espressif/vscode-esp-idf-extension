@@ -124,11 +124,11 @@ jobs:
           name: ui-hardware-test-results
           path: |
             ./reports/ui-test-hardware-results.json
-            ${{ github.workspace }}/test-resources/screenshots/**/*
+            /tmp/idf-hw/screenshots/**/*
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: ui-hardware-test-screenshots
-          path: ${{ github.workspace }}/test-resources/screenshots/**/*
+          path: /tmp/idf-hw/screenshots/**/*
