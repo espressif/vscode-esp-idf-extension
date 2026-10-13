@@ -70,6 +70,18 @@ export function registerFsImageCommands(context: ExtensionContext): void {
 
   registerIDFCommand(
     context,
+    "espIdf.fsImage.clear",
+    async () => {
+      if (!provider?.currentImagePath) {
+        return;
+      }
+      await provider.clear();
+    },
+    { outputChannel: "Filesystem Image" }
+  );
+
+  registerIDFCommand(
+    context,
     "espIdf.fsImage.saveFile",
     async (item?: FsImageItem) => {
       await saveFsImageFile(item, {

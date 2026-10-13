@@ -124,23 +124,25 @@ export function registerPartitionTableCommands(context: ExtensionContext) {
         throw invalidCommandInvocation("A partition tree item is required.");
       }
       return PreCheck.perform([openFolderCheck], async () => {
-        const partitionAction = await window.showQuickPick(
-          [
-            {
-              label: l10n.t("Read partition from device"),
-              target: "readPartition",
-            },
-            {
-              label: l10n.t(`Flash binary to this partition`),
-              target: "flashBinaryToPartition",
-            },
-            {
-              label: l10n.t("Explore filesystem"),
-              target: "exploreFilesystem",
-            },
-          ],
-          { placeHolder: l10n.t("Select an action to use") }
-        );
+        const actions: { label: string; target: string }[] = [
+          {
+            label: l10n.t("Read partition from device"),
+            target: "readPartition",
+          },
+          {
+            label: l10n.t("Flash binary to this partition"),
+            target: "flashBinaryToPartition",
+          },
+        ];
+        if (isDataPartition(partitionNode.type)) {
+          actions.push({
+            label: l10n.t("Explore filesystem"),
+            target: "exploreFilesystem",
+          });
+        }
+        const partitionAction = await window.showQuickPick(actions, {
+          placeHolder: l10n.t("Select an action to use"),
+        });
         if (!partitionAction) {
           return;
         }
@@ -172,16 +174,27 @@ export function registerPartitionTableCommands(context: ExtensionContext) {
             "partitionsFromDevice",
             `${partitionNode.name}.bin`
           );
-          const reuse = (await pathExists(localBin))
-            ? await window.showQuickPick(
-                [l10n.t("Read again from device"), l10n.t("Use cached binary")],
-                { placeHolder: l10n.t("A previously read binary exists") }
-              )
-            : undefined;
-          if (!reuse) {
-            return;
+          let readFromDevice = true;
+          if (await pathExists(localBin)) {
+            const reuse = await window.showQuickPick(
+              [
+                {
+                  label: l10n.t("Read again from device"),
+                  target: "reread",
+                },
+                {
+                  label: l10n.t("Use cached binary"),
+                  target: "cache",
+                },
+              ],
+              { placeHolder: l10n.t("A previously read binary exists") }
+            );
+            if (!reuse) {
+              return;
+            }
+            readFromDevice = reuse.target === "reread";
           }
-          if (reuse !== l10n.t("Use cached binary")) {
+          if (readFromDevice) {
             await readPartition(
               partitionNode.name,
               partitionNode.offset,
@@ -285,4 +298,9 @@ export function registerPartitionTableCommands(context: ExtensionContext) {
       PartitionTableEditorPanel.show(context.extensionPath, filePath);
     }
   );
+}
+
+function isDataPartition(type: string): boolean {
+  const normalized = type.trim().toLowerCase();
+  return normalized === "data" || normalized === "0x01";
 }

@@ -236,6 +236,25 @@ suite("Filesystem image parsers", () => {
     assert.strictEqual(bytes[4099], 0x42);
   });
 
+  test("rejects a LittleFS CTZ size larger than the image", () => {
+    const blockSize = 4096;
+    const blockCount = 8;
+    const config = buildLfsSuperblockConfig(blockSize, blockCount);
+    const image = Buffer.alloc(blockSize * blockCount, 0xff);
+    const ctz = Buffer.alloc(8);
+    ctz.writeUInt32LE(5, 0);
+    ctz.writeUInt32LE(image.length + 1, 4);
+    const metadata = buildLfsMetadataBlock(1, blockSize, [
+      { type: 0x0ff, id: 0, size: 8, data: Buffer.from("littlefs") },
+      { type: 0x201, id: 0, size: config.length, data: config },
+      { type: 0x001, id: 1, size: 8, data: Buffer.from("wide.bin") },
+      { type: 0x202, id: 1, size: 8, data: ctz },
+    ]);
+    metadata.copy(image, 0);
+
+    assert.strictEqual(readLittlefsFile(image, "/wide.bin"), undefined);
+  });
+
   test("reports an error when no LittleFS entries exist", () => {
     const root = listLittlefs(Buffer.alloc(4096 * 2, 0xff));
     assert.ok(root.error);

@@ -51,11 +51,15 @@ export async function listFsImage(
   const kind = options.kind ?? detected.kind;
   const root = await listByKind(kind, options, detected.nonFsFormat);
   if (detected.hintMismatch) {
-    root.warning = `Partition subtype is ${fsKindLabel(
-      detected.hintKind || "unknown"
-    )} but the binary looks like ${fsKindLabel(kind)}.`;
+    root.warning = l10n.t(
+      "Partition subtype is {subtype} but the binary looks like {kind}.",
+      {
+        subtype: fsKindLabel(detected.hintKind || "unknown"),
+        kind: fsKindLabel(kind),
+      }
+    );
   } else if (!root.error && !root.children?.length) {
-    root.warning = "Filesystem is empty.";
+    root.warning = l10n.t("Filesystem is empty.");
   }
   sortFsNode(root);
   return { kind, root, hintMismatch: detected.hintMismatch };

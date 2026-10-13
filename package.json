@@ -451,6 +451,11 @@
           "when": "view == idfFsImageExplorer"
         },
         {
+          "command": "espIdf.fsImage.clear",
+          "group": "navigation",
+          "when": "view == idfFsImageExplorer"
+        },
+        {
           "command": "esp.webview.open.partition-table",
           "group": "navigation@2",
           "when": "view == idfPartitionExplorer"
@@ -1581,6 +1586,12 @@
         "category": "ESP-IDF",
         "title": "%espIdf.fsImage.refresh.title%",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "espIdf.fsImage.clear",
+        "category": "ESP-IDF",
+        "title": "%espIdf.fsImage.clear.title%",
+        "icon": "$(clear-all)"
       },
       {
         "command": "espIdf.fsImage.saveFile",

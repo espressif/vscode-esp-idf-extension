@@ -92,6 +92,14 @@ export class FsImageTreeDataProvider implements TreeDataProvider<FsImageItem> {
     await this.refresh();
   }
 
+  public async clear(): Promise<void> {
+    this.imagePath = undefined;
+    this.subtypeHint = undefined;
+    this.kind = undefined;
+    this.root = undefined;
+    await this.refresh();
+  }
+
   public async refresh(): Promise<void> {
     if (!this.imagePath) {
       this.root = undefined;

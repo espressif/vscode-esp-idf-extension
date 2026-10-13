@@ -46,7 +46,7 @@
 
 * **从设备读取分区** 对该偏移量和大小运行 ``esptool.py read_flash``，并在项目目录中保存 ``partitionsFromDevice/<name>.bin``。
 * **将二进制文件烧录到该分区** 会要求选择一个 ``.bin`` 文件，并在该分区的偏移量处运行 ``esptool.py write_flash``。
-* **浏览文件系统** 会打开 :doc:`文件系统镜像资源管理器 <fs-image-explorer>`。如果磁盘上还没有 ``partitionsFromDevice/<name>.bin``，扩展会先从设备读取该分区。
+* **浏览文件系统** 仅对 ``data`` 分区提供。它会打开 :doc:`文件系统镜像资源管理器 <fs-image-explorer>`。如果磁盘上还没有 ``partitionsFromDevice/<name>.bin``，扩展会从设备读取该分区。如果该文件已存在，请选择 **再次从设备读取** 或 **使用缓存的二进制文件**。**刷新文件系统镜像** 会重新解析已打开的文件，不会读取芯片。
 
 从文件资源管理器烧录二进制文件
 ------------------------------

@@ -46,7 +46,7 @@ Click a row and choose an action. The selected serial port is used for read and 
 
 * **Read partition from device** runs ``esptool.py read_flash`` for that offset and size and saves ``partitionsFromDevice/<name>.bin`` in the project folder.
 * **Flash binary to this partition** asks for a ``.bin`` file and runs ``esptool.py write_flash`` at that partition's offset.
-* **Explore filesystem** opens the :doc:`Filesystem Image Explorer <fs-image-explorer>`. If ``partitionsFromDevice/<name>.bin`` is not on disk yet, the extension reads the partition from the device first.
+* **Explore filesystem** is offered only for ``data`` partitions. It opens the :doc:`Filesystem Image Explorer <fs-image-explorer>`. If ``partitionsFromDevice/<name>.bin`` is not on disk yet, the extension reads the partition from the device. If that file already exists, choose **Read again from device** or **Use cached binary**. **Refresh Filesystem Image** re-parses the opened file and does not read the chip.
 
 Flash a binary from the file explorer
 --------------------------------------

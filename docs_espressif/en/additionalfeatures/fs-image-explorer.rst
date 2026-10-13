@@ -10,9 +10,9 @@ How to open it
 
 * Right-click a ``.bin`` file in the Explorer and choose ``ESP-IDF: Explore Filesystem Image``.
 * Run ``ESP-IDF: Explore Filesystem Image`` from the Command Palette and pick a binary.
-* In **Device Partition Explorer**, select a partition and choose **Explore filesystem**. If the partition has not been read from the device yet, the extension reads it to ``partitionsFromDevice/<name>.bin`` first.
+* In **Device Partition Explorer**, select a ``data`` partition and choose **Explore filesystem**. If ``partitionsFromDevice/<name>.bin`` is not on disk yet, the extension reads the partition from the device. If that file already exists, choose **Read again from device** or **Use cached binary**. **Refresh Filesystem Image** re-parses the opened file and does not read the chip.
 
-The **Filesystem Image Explorer** view (ESP-IDF Explorer sidebar) lists directories and files with sizes. NVS is a key-value store, not a directory filesystem: namespaces appear as folders and keys as leaves, with type and a short value preview.
+The **Filesystem Image Explorer** view (ESP-IDF Explorer sidebar) lists directories and files with sizes. NVS is a key-value store, not a directory filesystem: namespaces appear as folders and keys as leaves, with type and a short value preview. The title bar **Clear Filesystem Image** button removes the tree from the view and does not delete the binary.
 
 Detection and listing
 ---------------------
@@ -59,6 +59,6 @@ When a binary is not a filesystem, the explorer identifies what it is instead of
 
 A filesystem image is only produced at build time when the project asks for one, for example with ``spiffs_create_partition_image``, ``littlefs_create_partition_image``, or ``fatfs_create_spiflash_image`` in a ``CMakeLists.txt``. Such images are written to the build folder under the partition name, typically ``build/storage.bin``.
 
-If your application creates or formats the filesystem on the device at runtime (for instance mounting SPIFFS with ``format_if_mount_failed``), no image exists on the host. In that case open **Device Partition Explorer**, select the data partition, and choose **Explore filesystem** to read it from the device first.
+If your application creates or formats the filesystem on the device at runtime (for instance mounting SPIFFS with ``format_if_mount_failed``), no image exists on the host. In that case open **Device Partition Explorer**, select the data partition, and choose **Explore filesystem**. The extension reads the partition from the device when ``partitionsFromDevice/<name>.bin`` is missing, and asks **Read again from device** or **Use cached binary** when that file already exists.
 
 Make sure the extension is configured as shown in :ref:`Install ESP-IDF and Tools <installation>` documentation. FAT listing in particular requires a configured ESP-IDF environment.
