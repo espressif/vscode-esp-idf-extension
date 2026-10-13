@@ -128,7 +128,7 @@ async function configuredSetupFailure(): Promise<
     return "noFinishedSetup";
   }
   if (!PreCheck.isWorkspaceFolderOpen()) {
-    return "invalidCurrentSetup";
+    return undefined;
   }
   const workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
   const currentSetup = readParameter(

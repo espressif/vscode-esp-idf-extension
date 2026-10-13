@@ -79,7 +79,6 @@ export async function activateConfigured(context: ExtensionContext) {
   if (configuredActivated) {
     return;
   }
-  configuredActivated = true;
   disposeNonConfiguredStatusBar();
 
   if (PreCheck.isRunningInVSCodeFork()) {
@@ -131,4 +130,5 @@ export async function activateConfigured(context: ExtensionContext) {
   registerComponentManagerCmd(context);
   showWalkthroughOnFirstActivation();
   checkAndNotifyMissingCompileCommands();
+  configuredActivated = true;
 }
