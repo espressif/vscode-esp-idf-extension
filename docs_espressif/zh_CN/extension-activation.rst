@@ -21,7 +21,7 @@ VS Code 中的扩展激活是一个 **两阶段过程**。理解这两个阶段�
 
 .. important::
 
-   ``onStartupFinished`` 会在启动完成后加载已启用的扩展，与工作区内容无关。``idf.extensionActivationMode`` 设置控制加载后的项目初始化，不会阻止启动时加载。若未打开工作区文件夹，或 ``idf.currentSetup`` 已指向一个已完成的 ESP-IDF 安装，则不会使用该设置。
+   ``onStartupFinished`` 会在启动完成后加载已启用的扩展，与工作区内容无关。``idf.extensionActivationMode`` 设置控制加载后的项目初始化，不会阻止启动时加载。对于项目初始化，若未打开工作区文件夹，或 ``idf.currentSetup`` 已指向一个已完成的 ESP-IDF 安装，则会跳过激活模式检查。MCP 提供程序注册会单独进行检查：即使未打开工作区文件夹，``idf.extensionActivationMode = never`` 仍可能阻止 MCP 提供程序注册。
 
 **阶段 2：扩展决定是否完全初始化**
 
