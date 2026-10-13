@@ -23,6 +23,7 @@ import {
   ThemeColor,
   window,
 } from "vscode";
+import { hideConfiguredStatusBarItems } from "../statusBar";
 import { ActivationFailure } from "./validate";
 
 let statusBarItem: StatusBarItem | undefined;
@@ -57,6 +58,7 @@ function failurePresentation(
 }
 
 export function enterNonConfigured(failure: ActivationFailure) {
+  hideConfiguredStatusBarItems();
   const presentation = failurePresentation(failure);
   if (!statusBarItem) {
     statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 110);

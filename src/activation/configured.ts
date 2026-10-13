@@ -63,7 +63,11 @@ import { registerNinjaSummaryCommand } from "../ninja";
 import { ProjectConfigurationManager } from "../project-conf/ProjectConfigurationManager";
 import { registerProjectConfigCommands } from "../project-conf";
 import { registerQEMUCommands } from "../qemu";
-import { createCmdsStatusBarItems, statusBarItems } from "../statusBar";
+import {
+  createCmdsStatusBarItems,
+  showConfiguredStatusBarItems,
+  statusBarItems,
+} from "../statusBar";
 import { registerOnDidChangeConfiguration } from "../common/configurationChange";
 import { registerTroubleshootPanelCommand } from "../support";
 import { registerCustomTaskCommand } from "../taskManager";
@@ -75,6 +79,7 @@ import { disposeNonConfiguredStatusBar } from "./nonConfigured";
 let configuredActivated = false;
 
 export async function activateConfigured(context: ExtensionContext) {
+  showConfiguredStatusBarItems();
   if (configuredActivated) {
     return;
   }
