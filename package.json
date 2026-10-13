@@ -19,10 +19,11 @@
     "url": "https://github.com/espressif/vscode-esp-idf-extension.git"
   },
   "resolutions": {
-    "**/@textlint/linter-formatter/js-yaml": "3.15.2",
+    "**/@textlint/linter-formatter/js-yaml": "4.3.2",
     "mocha/js-yaml": "4.3.2",
     "rc-config-loader/js-yaml": "4.3.2",
-    "vscode-extension-tester/js-yaml": "4.3.2"
+    "vscode-extension-tester/js-yaml": "5.4.3",
+    "ovsx/@vscode/vsce": "https://registry.yarnpkg.com/@vscode/vsce/-/vsce-4.0.0.tgz"
   },
   "categories": [
     "Programming Languages",
@@ -2660,7 +2661,7 @@
     "@vscode/extension-telemetry": "0.4.8",
     "@vscode/l10n-dev": "^0.0.35",
     "@vscode/test-electron": "^2.1.2",
-    "@vscode/vsce": "^3.6.0",
+    "@vscode/vsce": "^4.0.0",
     "@vue/compiler-sfc": "^3.3.4",
     "bulma": "^1.0.4",
     "chai": "^4.3.4",
