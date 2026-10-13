@@ -190,7 +190,12 @@ type CallStackRow = {
   getDescription: () => Promise<string | undefined>;
   getText: () => Promise<string>;
   expand: () => Promise<void>;
+  collapse: () => Promise<void>;
 };
+
+const idleOrIpcThread =
+  /\bName:\s*(?:IDLE\d+|ipc\d+)\b|^(?:IDLE\d+|ipc\d+)\b/i;
+const mainTaskThread = /\bName:\s*main\b/i;
 
 async function callStackRowText(item: CallStackRow): Promise<string> {
   const label = await item.getLabel().catch(() => "");
@@ -200,38 +205,45 @@ async function callStackRowText(item: CallStackRow): Promise<string> {
 }
 
 /**
- * A collapsed call stack lists FreeRTOS tasks ("main") and the stop reason.
- * Function frames ("app_main") are children of the halted thread.
+ * app_main and add_one live on the FreeRTOS main task. Every halted CPU
+ * also shows IDLE/ipc as PAUSED, and expanding those fills the visible
+ * call-stack rows so the main task drops out of the pane.
  */
-async function expandPausedCallStackThread(section: {
+async function revealMainTaskStack(section: {
   getVisibleItems: () => Promise<CallStackRow[]>;
 }): Promise<void> {
+  const occupiedRows = await section.getVisibleItems();
+  for (const item of occupiedRows) {
+    const row = await callStackRowText(item);
+    if (!idleOrIpcThread.test(row)) {
+      continue;
+    }
+    try {
+      await item.collapse();
+    } catch {
+      // The twistie may not be clickable yet.
+    }
+  }
+
   const items = await section.getVisibleItems();
-  let pausedItem: CallStackRow | undefined;
   for (const item of items) {
     const row = await callStackRowText(item);
-    if (/PAUSED ON BREAKPOINT/i.test(row)) {
-      pausedItem = item;
-      break;
+    if (!mainTaskThread.test(row)) {
+      continue;
     }
-    if (!pausedItem && /PAUSED/i.test(row)) {
-      pausedItem = item;
+    try {
+      await item.expand();
+    } catch {
+      // The row may already be expanded, or the twistie may not be clickable yet.
     }
-  }
-  if (!pausedItem) {
     return;
-  }
-  try {
-    await pausedItem.expand();
-  } catch {
-    // The row may already be expanded, or the twistie may not be clickable yet.
   }
 }
 
 /**
  * VS Code renders frames as visible text ("app_main  hello_world_main.c 11")
- * after the halted thread is expanded. Unlike the Debug Console, the call
- * stack updates after every GDB halt.
+ * after the FreeRTOS main task is expanded. Unlike the Debug Console, the
+ * call stack updates after every GDB halt.
  */
 export async function readCallStackSectionText(): Promise<string | undefined> {
   try {
@@ -241,7 +253,7 @@ export async function readCallStackSectionText(): Promise<string | undefined> {
     }
     const debugView = (await debugControl.openView()) as DebugView;
     const callStackSection = await debugView.getCallStackSection();
-    await expandPausedCallStackThread(callStackSection);
+    await revealMainTaskStack(callStackSection);
     return callStackSection.getText();
   } catch {
     return undefined;
