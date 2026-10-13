@@ -17,7 +17,7 @@
  */
 
 import { pathExists } from "fs-extra";
-import { ConfigurationTarget } from "vscode";
+import { ConfigurationTarget, workspace } from "vscode";
 import { checkIfActivateExtension } from "../common/activation";
 import { Logger } from "../common/logger";
 import { PreCheck } from "../common/PreCheck";
@@ -84,7 +84,12 @@ export async function runValidations(): Promise<ActivationDecision> {
     return { kind: "configuredNoWorkspaceFolder" };
   }
 
-  const workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+  const workspaceFolder =
+    ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder() ||
+    workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    return { kind: "configuredNoWorkspaceFolder" };
+  }
   const currentSetup = readParameter(
     "idf.currentSetup",
     workspaceFolder
@@ -98,12 +103,16 @@ export async function runValidations(): Promise<ActivationDecision> {
       );
       return { kind: "skipped" };
     }
-    await writeParameter(
+    const written = await writeParameter(
       "idf.currentSetup",
       finishedInstalls[0].path,
       ConfigurationTarget.WorkspaceFolder,
       workspaceFolder
     );
+    if (!written) {
+      Logger.info("Could not save idf.currentSetup.", "runValidations");
+      return { kind: "nonConfigured", failure: "invalidCurrentSetup" };
+    }
     Logger.info(
       `Selected ESP-IDF setup ${finishedInstalls[0].path} for ${workspaceFolder.uri.fsPath}.`,
       "runValidations"
