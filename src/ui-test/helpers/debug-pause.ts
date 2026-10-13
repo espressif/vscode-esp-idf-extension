@@ -185,9 +185,53 @@ export async function waitForPauseIndicatorGone(
   );
 }
 
+type CallStackRow = {
+  getLabel: () => Promise<string>;
+  getDescription: () => Promise<string | undefined>;
+  getText: () => Promise<string>;
+  expand: () => Promise<void>;
+};
+
+async function callStackRowText(item: CallStackRow): Promise<string> {
+  const label = await item.getLabel().catch(() => "");
+  const description = (await item.getDescription().catch(() => "")) ?? "";
+  const text = await item.getText().catch(() => "");
+  return [label, description, text].filter(Boolean).join("\n");
+}
+
 /**
- * VS Code renders frames as visible text ("app_main  hello_world_main.c 11").
- * Unlike the Debug Console, the call stack updates after every GDB halt.
+ * A collapsed call stack lists FreeRTOS tasks ("main") and the stop reason.
+ * Function frames ("app_main") are children of the halted thread.
+ */
+async function expandPausedCallStackThread(section: {
+  getVisibleItems: () => Promise<CallStackRow[]>;
+}): Promise<void> {
+  const items = await section.getVisibleItems();
+  let pausedItem: CallStackRow | undefined;
+  for (const item of items) {
+    const row = await callStackRowText(item);
+    if (/PAUSED ON BREAKPOINT/i.test(row)) {
+      pausedItem = item;
+      break;
+    }
+    if (!pausedItem && /PAUSED/i.test(row)) {
+      pausedItem = item;
+    }
+  }
+  if (!pausedItem) {
+    return;
+  }
+  try {
+    await pausedItem.expand();
+  } catch {
+    // The row may already be expanded, or the twistie may not be clickable yet.
+  }
+}
+
+/**
+ * VS Code renders frames as visible text ("app_main  hello_world_main.c 11")
+ * after the halted thread is expanded. Unlike the Debug Console, the call
+ * stack updates after every GDB halt.
  */
 export async function readCallStackSectionText(): Promise<string | undefined> {
   try {
@@ -197,6 +241,7 @@ export async function readCallStackSectionText(): Promise<string | undefined> {
     }
     const debugView = (await debugControl.openView()) as DebugView;
     const callStackSection = await debugView.getCallStackSection();
+    await expandPausedCallStackThread(callStackSection);
     return callStackSection.getText();
   } catch {
     return undefined;
