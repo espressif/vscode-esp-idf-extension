@@ -15,16 +15,13 @@ VS Code 中的扩展激活是一个 **两阶段过程**。理解这两个阶段�
 在扩展自身的代码运行之前，VS Code 本身必须决定是否加载它。此决定基于扩展 ``package.json`` 中声明的 **激活事件**。ESP-IDF 扩展注册了以下激活触发器：
 
 - ``workspaceContains:**/CMakeLists.txt`` — 当工作区中任何位置存在 ``CMakeLists.txt`` 文件时，VS Code 会自动加载扩展。
-- ``onCommand:espIdf.*`` — 当您从命令面板运行任何 ESP-IDF 命令时（例如 *ESP-IDF: Build your Project*、*ESP-IDF: Flash your Project*），VS Code 会加载扩展。
-- ``onView:idfPartitionExplorer``、``onView:espRainmaker`` 等 — 当您打开扩展注册的侧边栏视图时，VS Code 会加载扩展。
+- ``onStartupFinished`` — VS Code 启动完成后会加载扩展，包括不含 ``CMakeLists.txt`` 的工作区以及未打开工作区文件夹的窗口。
 - ``onLanguageModelTool:espIdfCommands`` — 当语言模型集成（例如 Copilot）调用 ESP-IDF 命令工具时，VS Code 会加载扩展。
 - ``contributes.mcpServerDefinitionProviders`` (``espIdf.mcpServers``) — 当聊天发现 MCP 服务器时，VS Code 可以加载扩展。此时会注册乐鑫文档和 ESP 组件注册表服务器，除非 ``idf.extensionActivationMode`` 为 ``never``。
 
-如果 **没有任何** 激活事件触发，VS Code 将永远不会加载扩展，其 ``activate()`` 函数也永远不会运行。这意味着：
-
 .. important::
 
-   ``idf.extensionActivationMode`` 设置 **只有在 VS Code 先加载扩展之后才会生效**。如果上述激活事件均未触发（工作区中无 ``CMakeLists.txt``、未运行 ESP-IDF 命令、未打开侧边栏视图、未调用语言模型工具、未发现 MCP 服务器），则扩展不会激活 — 即使 ``idf.extensionActivationMode`` 设置为 ``"always"`` 也是如此。扩展加载后，若未打开工作区文件夹，或 ``idf.currentSetup`` 已指向一个已完成的 ESP-IDF 安装，则同样不会使用该设置。
+   ``onStartupFinished`` 会在启动完成后加载已启用的扩展，与工作区内容无关。``idf.extensionActivationMode`` 设置控制加载后的项目初始化，不会阻止启动时加载。若未打开工作区文件夹，或 ``idf.currentSetup`` 已指向一个已完成的 ESP-IDF 安装，则不会使用该设置。
 
 **阶段 2：扩展决定是否完全初始化**
 
@@ -69,7 +66,7 @@ VS Code 中的扩展激活是一个 **两阶段过程**。理解这两个阶段�
 **ESP-IDF: 重试 ESP-IDF 激活** 会再次运行这些检查。在扩展尚未进入完整已配置模式时，若 ``idf.eimIdfJsonPath``、``idf.currentSetup`` 或 ``idf.extensionActivationMode`` 发生变化，或添加了工作区文件夹，也会再次运行。扩展进入完整已配置模式后，``eim_idf.json`` 文件本身的变化由 `监视 eim_idf.json`_ 中描述的监视器处理。
 
 ESP-IDF 命令视图
-------------
+----------------
 
 ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新。
 
@@ -90,7 +87,7 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 当目录变化导致离开已配置模式时，视图切换为较短的列表。已经注册的项目命令仍可从命令面板使用。之后一次成功的重试会恢复完整列表。
 
 监视 eim_idf.json
----------------
+-----------------
 
 首次验证之后，扩展会监视解析得到的目录文件。当 ``idf.eimIdfJsonPath`` 指向的文件存在时，监视该文件。否则，在 Windows 上监视 ``C:\\Espressif\\tools\\eim_idf.json``，在其他平台上监视 ``~/.espressif/tools/eim_idf.json``。该文件位于工作区之外。同一次编辑产生的创建、更改和删除事件只处理一次。激活正在运行时，这些事件会被忽略。
 
@@ -189,7 +186,7 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 
 .. note::
 
-   这仅在至少一个阶段 1 激活事件触发时才有效 — 例如工作区中存在 ``CMakeLists.txt`` 文件、您从命令面板运行了 ESP-IDF 命令或打开了 ESP-IDF 侧边栏视图。
+   即使没有 ``CMakeLists.txt`` 文件，``onStartupFinished`` 也会加载扩展。完整初始化仍需要有效的目录和已打开的工作区文件夹，详见“安装验证（阶段 2）”。
 
 在特定工作区中禁用扩展
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -263,8 +260,8 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 
 如果您的工作区 **不** 包含任何 ``CMakeLists.txt`` 文件（例如，一个纯文档工作区，您希望在其中使用 ESP-IDF 工具）：
 
-1. 仅设置 ``"idf.extensionActivationMode": "always"`` 是 **不够的** — VS Code 不会加载扩展，因为没有激活事件触发。
-2. 要激活扩展，请从命令面板手动运行任何 ESP-IDF 命令（``Ctrl+Shift+P`` → 输入 ``ESP-IDF``）。这通过 ``onCommand`` 激活事件触发阶段 1 加载，``"always"`` 设置确保阶段 2 初始化继续进行。
+1. VS Code 启动完成后会通过 ``onStartupFinished`` 加载扩展。
+2. 设置 ``"idf.extensionActivationMode": "always"``，可在 ``idf.currentSetup`` 为空时允许项目初始化。仍需要包含已完成 ESP-IDF 安装的有效目录。
 
 常见激活问题
 ------------
@@ -276,9 +273,9 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 
 **可能原因**:
 
-1. **没有激活触发器** （阶段 1）：没有任何已声明的激活事件触发 — 工作区不包含 ``CMakeLists.txt`` 文件、未运行过 ESP-IDF 命令、未打开侧边栏视图等。
+1. **扩展被禁用或启动尚未完成** （阶段 1）：即使没有 ``CMakeLists.txt`` 文件，已启用的扩展也会通过 ``onStartupFinished`` 加载。
 
-   **解决方案**: 从命令面板运行任何 ESP-IDF 命令以触发加载，或创建一个 ``CMakeLists.txt`` 文件。如果您希望将来自动激活，请设置 ``"idf.extensionActivationMode": "always"``，这样一旦加载，它将始终初始化。
+   **解决方案**: 在 VS Code 扩展视图中启用扩展，并等待启动完成。若仍无法加载，请检查扩展宿主日志。
 
 2. **显式 "never" 设置** （阶段 2）：工作区文件夹已打开，``idf.currentSetup`` 为空，且 ``idf.extensionActivationMode`` 为 ``"never"``。此时不会注册项目命令。若 ``idf.currentSetup`` 已指向一个已完成的安装，则不会查阅该设置。
 
@@ -297,7 +294,7 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 
 **症状**: ESP-IDF 扩展在非 ESP-IDF 项目中激活。
 
-**原因**: 工作区包含 ``CMakeLists.txt`` 文件（可能用于非 ESP-IDF 的 C/C++ 项目），这触发了阶段 1 加载。然后扩展要么检测到 ESP-IDF 包含，要么提示用户。
+**原因**: ``onStartupFinished`` 会在每个启用了扩展的窗口中加载扩展。``CMakeLists.txt`` 文件可以提前触发加载。项目初始化随后取决于配置验证，以及 ``idf.currentSetup`` 为空时的激活模式检查。
 
 **解决方案**: 在工作区设置中添加 ``"idf.extensionActivationMode": "never"`` 以显式禁用阶段 2 初始化。
 
@@ -318,9 +315,8 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 
 扩展的 ``package.json`` 声明了以下激活事件：
 
-- **workspaceContains:\*\*/CMakeLists.txt**: 当工作区中任何文件夹在任意深度包含 ``CMakeLists.txt`` 文件时触发。这是最常见的自动触发器。
-- **onCommand:espIdf.\***: 每个 ESP-IDF 命令都注册为激活触发器。从命令面板运行任何命令将加载扩展。
-- **onView:\***: 打开 ESP-IDF 侧边栏面板（应用追踪器、分区浏览器、Rainmaker、组件）会触发加载。
+- **workspaceContains:\*\*/CMakeLists.txt**: 当工作区中任何文件夹在任意深度包含 ``CMakeLists.txt`` 文件时触发。
+- **onStartupFinished**: 启动完成后加载已启用的扩展，与工作区内容以及是否打开工作区文件夹无关。
 - **onLanguageModelTool:espIdfCommands**: 当语言模型集成（例如 Copilot）调用 ESP-IDF 命令工具时触发，支持 AI 辅助工作流。
 
 这些事件由 `VS Code 扩展 API <https://code.visualstudio.com/api/references/activation-events>`_ 定义，无法通过用户设置更改。阻止阶段 1 加载的唯一方法是在 VS Code 的扩展视图中完全禁用扩展。

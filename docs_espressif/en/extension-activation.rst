@@ -15,16 +15,13 @@ Extension activation in VS Code is a **two-phase process**. Understanding both p
 Before the extension's own code can run, VS Code itself must decide to load it. This decision is based on **activation events** declared in the extension's ``package.json``. The ESP-IDF extension registers the following activation triggers:
 
 - ``workspaceContains:**/CMakeLists.txt`` — VS Code loads the extension automatically when any ``CMakeLists.txt`` file exists anywhere in the workspace.
-- ``onCommand:espIdf.*`` — VS Code loads the extension when you run any ESP-IDF command from the Command Palette (e.g., *ESP-IDF: Build your Project*, *ESP-IDF: Flash your Project*).
-- ``onView:idfPartitionExplorer``, ``onView:espRainmaker``, etc. — VS Code loads the extension when you open one of its registered sidebar views.
+- ``onStartupFinished`` — VS Code loads the extension after startup finishes, including in workspaces without ``CMakeLists.txt`` and in windows with no workspace folder.
 - ``onLanguageModelTool:espIdfCommands`` — VS Code loads the extension when a language-model integration (e.g., Copilot) invokes the ESP-IDF commands tool.
 - ``contributes.mcpServerDefinitionProviders`` (``espIdf.mcpServers``) — VS Code can load the extension when Chat discovers MCP servers. The Espressif Documentation and ESP Component Registry servers are registered at this point unless ``idf.extensionActivationMode`` is ``never``.
 
-If **none** of these triggers fire, VS Code will never load the extension and its ``activate()`` function will never run. This means:
-
 .. important::
 
-   The ``idf.extensionActivationMode`` setting has **no effect** unless VS Code loads the extension first. If none of the activation events listed above fire (no ``CMakeLists.txt`` in the workspace, no ESP-IDF command run, no sidebar view opened, no language-model tool invocation, no MCP server discovery), the extension will not activate — even if ``idf.extensionActivationMode`` is set to ``"always"``. After the extension loads, that setting is also skipped when no workspace folder is open, and when ``idf.currentSetup`` already points at a finished ESP-IDF install.
+   ``onStartupFinished`` loads the enabled extension after startup regardless of the workspace contents. The ``idf.extensionActivationMode`` setting controls project initialization after loading; it does not prevent startup loading. That setting is skipped when no workspace folder is open, and when ``idf.currentSetup`` already points at a finished ESP-IDF install.
 
 **Phase 2: Extension Decides Whether to Fully Initialize**
 
@@ -189,7 +186,7 @@ This will initialize the extension regardless of your CMakeLists.txt content.
 
 .. note::
 
-   This only works if at least one Phase 1 activation event fires — for example, a ``CMakeLists.txt`` file exists in the workspace, you run an ESP-IDF command from the Command Palette, or you open an ESP-IDF sidebar view.
+   ``onStartupFinished`` loads the extension even without a ``CMakeLists.txt`` file. Full initialization still requires a valid catalog and a workspace folder, as described in Setup Validation (Phase 2).
 
 Disable Extension in Specific Workspace
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -263,8 +260,8 @@ Workspace Without CMakeLists.txt
 
 If your workspace does **not** contain any ``CMakeLists.txt`` file (e.g., a documentation-only workspace where you want ESP-IDF tooling available):
 
-1. Setting ``"idf.extensionActivationMode": "always"`` alone is **not enough** — VS Code will not load the extension because no activation trigger fires.
-2. To activate the extension, manually run any ESP-IDF command from the Command Palette (``Ctrl+Shift+P`` → type ``ESP-IDF``). This triggers Phase 1 loading via the ``onCommand`` activation event, and the ``"always"`` setting ensures Phase 2 initialization proceeds.
+1. VS Code loads the extension after startup through ``onStartupFinished``.
+2. Set ``"idf.extensionActivationMode": "always"`` to allow project initialization when ``idf.currentSetup`` is empty. A valid catalog with a finished ESP-IDF install is still required.
 
 Common Activation Issues
 ------------------------
@@ -276,9 +273,9 @@ Extension Not Activating
 
 **Possible causes**:
 
-1. **No activation trigger** (Phase 1): No declared activation event has fired — the workspace contains no ``CMakeLists.txt`` file, no ESP-IDF command has been run, no sidebar view has been opened, etc.
+1. **Extension disabled or startup still in progress** (Phase 1): The enabled extension loads through ``onStartupFinished`` even without a ``CMakeLists.txt`` file.
 
-   **Solution**: Run any ESP-IDF command from the Command Palette to trigger loading, or create a ``CMakeLists.txt`` file. If you want automatic activation in the future, set ``"idf.extensionActivationMode": "always"`` so that once loaded, it always initializes.
+   **Solution**: Enable the extension in VS Code's Extensions view and let startup finish. If it still fails to load, check the extension host logs.
 
 2. **Explicit "never" setting** (Phase 2): A workspace folder is open, ``idf.currentSetup`` is empty, and ``idf.extensionActivationMode`` is ``"never"``. Project commands are not registered. If ``idf.currentSetup`` already points at a finished install, this setting is not consulted.
 
@@ -297,7 +294,7 @@ Extension Activating in Wrong Workspace
 
 **Symptoms**: ESP-IDF extension activated in a non-ESP-IDF project.
 
-**Why this happens**: The workspace contains a ``CMakeLists.txt`` file (perhaps for a non-ESP-IDF C/C++ project), which triggers Phase 1 loading. The extension then either detects an ESP-IDF include or prompts the user.
+**Why this happens**: ``onStartupFinished`` loads the extension in every window where it is enabled. A ``CMakeLists.txt`` file can trigger loading earlier. Project initialization then depends on setup validation and, when ``idf.currentSetup`` is empty, the activation mode check.
 
 **Solution**: Add ``"idf.extensionActivationMode": "never"`` to workspace settings to explicitly disable Phase 2 initialization.
 
@@ -318,9 +315,8 @@ Phase 1: Activation Events
 
 The extension's ``package.json`` declares the following activation events:
 
-- **workspaceContains:\*\*/CMakeLists.txt**: Fires when any folder in the workspace contains a ``CMakeLists.txt`` file at any depth. This is the most common automatic trigger.
-- **onCommand:espIdf.\***: Each ESP-IDF command is registered as an activation trigger. Running any command from the Command Palette will load the extension.
-- **onView:\***: Opening ESP-IDF sidebar panels (App Tracer, Partition Explorer, Rainmaker, Components) triggers loading.
+- **workspaceContains:\*\*/CMakeLists.txt**: Fires when any folder in the workspace contains a ``CMakeLists.txt`` file at any depth.
+- **onStartupFinished**: Loads the enabled extension after startup, regardless of workspace contents or whether a workspace folder is open.
 - **onLanguageModelTool:espIdfCommands**: Fires when a language-model integration (e.g., Copilot) invokes the ESP-IDF commands tool, enabling AI-assisted workflows.
 
 These events are defined by the `VS Code Extension API <https://code.visualstudio.com/api/references/activation-events>`_ and cannot be changed via user settings. The only way to prevent Phase 1 loading is to disable the extension entirely in VS Code's Extensions view.

@@ -42,10 +42,14 @@ type ActivationMode = IdfCommandTreeMode;
 
 let activationMode: ActivationMode = "pending";
 let applying = false;
+let activationPending = false;
 let listenersRegistered = false;
 let extensionContext: ExtensionContext | undefined;
 
 function revalidateIfLighterMode() {
+  if (applying) {
+    return applyActivation();
+  }
   // "skipped" stays included so a later idf.extensionActivationMode change can configure an empty setup.
   if (
     activationMode !== "nonConfigured" &&
@@ -80,7 +84,11 @@ function registerActivationListeners(context: ExtensionContext) {
 }
 
 async function applyActivation() {
-  if (activationMode === "configured" || applying || !extensionContext) {
+  if (activationMode === "configured" || !extensionContext) {
+    return;
+  }
+  if (applying) {
+    activationPending = true;
     return;
   }
   const context = extensionContext;
@@ -112,6 +120,10 @@ async function applyActivation() {
     setCommandsTreeMode(activationMode);
   } finally {
     applying = false;
+    if (activationPending) {
+      activationPending = false;
+      await applyActivation();
+    }
   }
 }
 
