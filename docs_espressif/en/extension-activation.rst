@@ -21,7 +21,7 @@ Before the extension's own code can run, VS Code itself must decide to load it. 
 
 .. important::
 
-   ``onStartupFinished`` loads the enabled extension after startup regardless of the workspace contents. The ``idf.extensionActivationMode`` setting controls project initialization after loading; it does not prevent startup loading. That setting is skipped when no workspace folder is open, and when ``idf.currentSetup`` already points at a finished ESP-IDF install.
+   ``onStartupFinished`` loads the enabled extension after startup regardless of the workspace contents. The ``idf.extensionActivationMode`` setting controls project initialization after loading; it does not prevent startup loading. For project initialization, the activation-mode check is skipped when no workspace folder is open, and when ``idf.currentSetup`` already points at a finished ESP-IDF install. MCP provider registration is checked separately: ``idf.extensionActivationMode = never`` can still prevent MCP provider registration, even when no workspace folder is open.
 
 **Phase 2: Extension Decides Whether to Fully Initialize**
 
