@@ -219,10 +219,12 @@ export class OpenOCDManager extends EventEmitter {
           { outputChannel: "OpenOCD" }
         );
         storedSerial = binding.serial;
-        adapterLocation = binding.location;
-        if (!adapterLocation) {
-          delete modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
-        }
+      }
+      adapterLocation = binding.location;
+      if (adapterLocation) {
+        modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"] = adapterLocation;
+      } else {
+        delete modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
       }
     }
     if (useLocationCommand && adapterLocation) {

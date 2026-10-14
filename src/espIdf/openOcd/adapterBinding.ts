@@ -73,11 +73,20 @@ export async function resolveAdapterBindingForLaunch(
   }
 
   const storedSerial = stored.serial.toUpperCase();
-  const serialConnected = boards.some(
+  const pinnedBoard = boards.find(
     (b) => b.serial_number && b.serial_number.toUpperCase() === storedSerial
   );
-  if (serialConnected) {
-    return unchanged;
+  if (pinnedBoard) {
+    const detectedLocation = normalizeLocation(pinnedBoard.location);
+    if (
+      detectedLocation &&
+      detectedLocation !== normalizeLocation(stored.location)
+    ) {
+      Logger.info(
+        `OpenOCD adapter ${stored.serial} is now at USB location ${detectedLocation}. Using it instead of ${stored.location}.`
+      );
+    }
+    return { ...unchanged, location: detectedLocation ?? stored.location };
   }
 
   const storedLocation = normalizeLocation(stored.location);

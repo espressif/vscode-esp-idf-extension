@@ -226,6 +226,32 @@ suite("OpenOCD adapter binding", () => {
       });
     });
 
+    test("adopts the detected location when the pinned board moved port", async () => {
+      stubDetection([board({ serial_number: "aa:bb", location: "usb://1-7" })]);
+      const binding = await resolveAdapterBindingForLaunch(workspaceUri, {
+        serial: "AA:BB",
+        location: "1-2",
+      });
+      assert.deepStrictEqual(binding, {
+        serial: "AA:BB",
+        location: "1-7",
+        stale: false,
+      });
+    });
+
+    test("keeps the stored location when the pinned board reports none", async () => {
+      stubDetection([board({ serial_number: "aa:bb", location: undefined })]);
+      const binding = await resolveAdapterBindingForLaunch(workspaceUri, {
+        serial: "AA:BB",
+        location: "1-2",
+      });
+      assert.deepStrictEqual(binding, {
+        serial: "AA:BB",
+        location: "1-2",
+        stale: false,
+      });
+    });
+
     test("drops the serial and keeps a location another board occupies", async () => {
       stubDetection([board({ serial_number: "11:22", location: "usb://1-2" })]);
       const binding = await resolveAdapterBindingForLaunch(workspaceUri, {
