@@ -1,7 +1,7 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: 12.02.2025
- * Copyright 2025 Espressif Systems (Shanghai) CO LTD
+ * File Created: Friday, 25th September 2026 12:00:00 pm
+ * Copyright 2026 Espressif Systems (Shanghai) CO LTD
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
