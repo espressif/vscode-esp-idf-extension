@@ -28,6 +28,7 @@ export { ProjectConfigStore } from "./store";
 export { getProjectConfigurationElements } from "./presetsReader";
 
 export {
+  removeCurrentProfileCustomExtraVars,
   saveProjectConfFile,
   updateCurrentProfileCustomExtraVars,
   updateCurrentProfileIdfTarget,
