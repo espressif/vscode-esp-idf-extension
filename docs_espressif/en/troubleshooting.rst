@@ -53,7 +53,7 @@ When you choose a connected board in ``ESP-IDF: Set Espressif Device Target`` or
     Info : No device matches the serial string
     Error: esp_usb_jtag: could not find or open device!
 
-On OpenOCD ``v0.12.0-esp32-20260304`` or newer, the extension checks the connected boards before each start. If the stored serial number is not found but other boards are, it starts OpenOCD without the stored serial number and shows a warning. On older OpenOCD builds, or when no board is detected, the error above is shown with a button that opens the command below.
+On OpenOCD ``v0.12.0-esp32-20260304`` or newer, the extension checks the connected boards before each start. If the stored serial number is found on another USB port, OpenOCD is started with the new port. If the stored serial number is not found but other boards are, it starts OpenOCD without the stored serial number and shows a warning. On older OpenOCD builds, or when no board is detected, the error above is shown with a button that opens the command below.
 
 To fix it, run ``ESP-IDF: OpenOCD Adapter (Serial & Location)`` and choose one of:
 
