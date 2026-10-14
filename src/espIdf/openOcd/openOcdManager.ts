@@ -204,9 +204,14 @@ export class OpenOCDManager extends EventEmitter {
     const versionString = await this.version(true);
     const useLocationCommand = supportsAdapterUsbLocationCommand(versionString);
     const useDetectConfigSerial = supportsSerialFromDetectConfig(versionString);
+    const openOcdLaunchArgs = readParameter(
+      "idf.openOcdLaunchArgs",
+      this.workspace
+    ) as string[];
+    const hasLaunchArgs = openOcdLaunchArgs && openOcdLaunchArgs.length > 0;
     let storedSerial = getStoredAdapterSerial(this.workspace);
     let adapterLocation = modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
-    if (useDetectConfigSerial && storedSerial) {
+    if (useDetectConfigSerial && storedSerial && !hasLaunchArgs) {
       const binding = await resolveAdapterBindingForLaunch(this.workspace, {
         serial: storedSerial,
         location: adapterLocation,
@@ -232,14 +237,9 @@ export class OpenOCDManager extends EventEmitter {
     }
 
     const openOcdArgs: string[] = [];
-    const openOcdLaunchArgs = readParameter(
-      "idf.openOcdLaunchArgs",
-      this.workspace
-    ) as string[];
-
     const needsSerialDiscovery = !storedSerial && !useDetectConfigSerial;
 
-    if (openOcdLaunchArgs && openOcdLaunchArgs.length > 0) {
+    if (hasLaunchArgs) {
       openOcdArgs.push(...openOcdLaunchArgs);
 
       // If no adapter serial is stored yet, ensure OpenOCD runs at least at -d2
