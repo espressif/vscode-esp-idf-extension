@@ -25,7 +25,12 @@ import {
   WorkspaceFolder,
 } from "vscode";
 import { Logger } from "../../common/logger";
-import { readParameter, writeParameter } from "../../configuration/idf";
+import {
+  readParameter,
+  readSettingsParameter,
+  writeParameter,
+} from "../../configuration/idf";
+import { removeCurrentProfileCustomExtraVars } from "../../project-conf";
 import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
 import { clearAdapterSerial, getStoredAdapterSerial } from "./adapterSerial";
 import { selectOpenOcdConfigFiles } from "./boardConfiguration";
@@ -102,8 +107,12 @@ export async function runOpenOcdAdapterCommand(
   }
 
   clearAdapterSerial(wsFolder.uri);
-  if (storedLocation) {
-    const nextExtraVars = { ...extraVars };
+  const settingsExtraVars = (readSettingsParameter(
+    "idf.customExtraVars",
+    wsFolder
+  ) || {}) as { [key: string]: any };
+  if (settingsExtraVars["OPENOCD_USB_ADAPTER_LOCATION"]) {
+    const nextExtraVars = { ...settingsExtraVars };
     delete nextExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
     await writeParameter(
       "idf.customExtraVars",
@@ -112,6 +121,10 @@ export async function runOpenOcdAdapterCommand(
       wsFolder
     );
   }
+  await removeCurrentProfileCustomExtraVars(
+    ["OPENOCD_USB_ADAPTER_LOCATION"],
+    wsFolder.uri
+  );
 
   const openOcdServer = testHooks?.openOcdServer || OpenOCDManager.init();
   let stoppedOpenOcd = false;

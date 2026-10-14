@@ -16,7 +16,9 @@
  */
 
 import * as assert from "assert";
-import { resolve } from "path";
+import { mkdtemp, readFile, readJson, remove, writeJson } from "fs-extra";
+import { tmpdir } from "os";
+import { join, resolve } from "path";
 import * as vscode from "vscode";
 import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
@@ -383,6 +385,87 @@ suite("OpenOCD adapter binding", () => {
       assert.strictEqual(
         getStoredAdapterSerial(fakeWorkspaceFolder.uri),
         undefined
+      );
+    });
+
+    async function withPresetFolder(
+      environment: { [key: string]: string },
+      run: (
+        workspaceFolder: vscode.WorkspaceFolder,
+        presetsPath: string
+      ) => Promise<void>
+    ) {
+      const presetFolder = await mkdtemp(join(tmpdir(), "esp-idf-adapter-"));
+      const presetsPath = join(
+        presetFolder,
+        ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+      );
+      const preset = { name: "pinned", environment };
+      await writeJson(presetsPath, {
+        version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
+        configurePresets: [preset],
+      });
+      ESP.ProjectConfiguration.store.set(
+        ESP.ProjectConfiguration.SELECTED_CONFIG,
+        preset.name
+      );
+      ESP.ProjectConfiguration.store.set(preset.name, preset);
+      try {
+        await run(
+          { ...fakeWorkspaceFolder, uri: vscode.Uri.file(presetFolder) },
+          presetsPath
+        );
+      } finally {
+        ESP.ProjectConfiguration.store.clear(
+          ESP.ProjectConfiguration.SELECTED_CONFIG
+        );
+        ESP.ProjectConfiguration.store.clear(preset.name);
+        await remove(presetFolder);
+      }
+    }
+
+    test("clear removes the location from the selected preset", async () => {
+      await withPresetFolder(
+        { OPENOCD_USB_ADAPTER_LOCATION: "1-2", MY_VAR: "my-value" },
+        async (workspaceFolder, presetsPath) => {
+          storeAdapterSerial(workspaceFolder.uri, "AA:BB");
+          const source = createFakeIdfSource({});
+          setIdfConfigurationSource(source);
+          const { seen } = stubQuickPick((items) =>
+            items.find((i) => i.action === "clear")
+          );
+
+          await runOpenOcdAdapterCommand(workspaceFolder);
+
+          assert.ok(seen.placeHolder?.includes("1-2"));
+          const written = await readJson(presetsPath);
+          assert.deepStrictEqual(written.configurePresets[0].environment, {
+            MY_VAR: "my-value",
+          });
+          assert.deepStrictEqual(
+            ESP.ProjectConfiguration.store.get<{ environment: unknown }>(
+              "pinned"
+            )?.environment,
+            { MY_VAR: "my-value" }
+          );
+          assert.deepStrictEqual(source.writes, []);
+        }
+      );
+    });
+
+    test("clear leaves the presets file alone when it holds no location", async () => {
+      await withPresetFolder(
+        { MY_VAR: "my-value" },
+        async (workspaceFolder, presetsPath) => {
+          storeAdapterSerial(workspaceFolder.uri, "AA:BB");
+          setIdfConfigurationSource(createFakeIdfSource({}));
+          stubQuickPick((items) => items.find((i) => i.action === "clear"));
+          const before = await readFile(presetsPath, "utf8");
+
+          await runOpenOcdAdapterCommand(workspaceFolder);
+
+          assert.strictEqual(await readFile(presetsPath, "utf8"), before);
+        }
       );
     });
 
