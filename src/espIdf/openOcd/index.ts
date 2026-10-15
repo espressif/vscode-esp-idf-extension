@@ -16,15 +16,14 @@
  * limitations under the License.
  */
 
-import { ConfigurationTarget, ExtensionContext } from "vscode";
+import { ExtensionContext } from "vscode";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { OpenOCDManager } from "./openOcdManager";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../../common/PreCheck";
 import { CommandKeys } from "../../cmdTreeView/cmdStore";
 import { ESP } from "../../config";
-import { clearAdapterSerial } from "./adapterSerial";
-import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
-import { readParameter, writeParameter } from "../../configuration/idf";
+import { readParameter } from "../../configuration/idf";
+import { runOpenOcdAdapterCommand } from "./adapterCommand";
 import {
   getOpenOcdScripts,
   selectOpenOcdConfigFiles,
@@ -48,29 +47,7 @@ export function registerOpenOCDCommands(context: ExtensionContext) {
     () => {
       return PreCheck.perform([openFolderCheck], async () => {
         const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-
-        // Clear adapter serial (extension workspace state) and adapter location (settings.json)
-        clearAdapterSerial(wsFolder.uri);
-        const extraVars = readParameter("idf.customExtraVars", wsFolder) as {
-          [key: string]: any;
-        };
-        if (extraVars["OPENOCD_USB_ADAPTER_LOCATION"]) {
-          const nextExtraVars = { ...extraVars };
-          delete nextExtraVars["OPENOCD_USB_ADAPTER_LOCATION"];
-          await writeParameter(
-            "idf.customExtraVars",
-            nextExtraVars,
-            ConfigurationTarget.WorkspaceFolder,
-            wsFolder
-          );
-        }
-
-        // Stop OpenOCD if it is currently running to avoid keeping the old binding alive.
-        if (OpenOCDManager.init().isRunning()) {
-          OpenOCDManager.init().stop();
-        }
-
-        updateOpenOcdAdapterStatusBarItem(wsFolder.uri);
+        await runOpenOcdAdapterCommand(wsFolder);
       });
     },
     { outputChannel: "OpenOCD" }
