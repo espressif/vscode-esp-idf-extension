@@ -49,6 +49,7 @@ interface AdapterCommandTestHooks {
   ) => Thenable<AdapterCommandQuickPickItem | undefined>;
   selectConnectedBoard?: (workspaceFolder: WorkspaceFolder) => Promise<void>;
   openOcdServer?: OpenOcdServerControl;
+  exitTimeoutMs?: number;
 }
 
 interface OpenOcdServerControl {
@@ -59,20 +60,25 @@ interface OpenOcdServerControl {
 
 const OPENOCD_EXIT_TIMEOUT_MS = 2000;
 
-async function stopOpenOcdServer(server: OpenOcdServerControl): Promise<void> {
-  const exited = new Promise<void>((resolve) => {
+async function stopOpenOcdServer(
+  server: OpenOcdServerControl
+): Promise<boolean> {
+  const exited = new Promise<boolean>((resolve) => {
     if (!server.once) {
-      resolve();
+      resolve(true);
       return;
     }
-    const timer = setTimeout(resolve, OPENOCD_EXIT_TIMEOUT_MS);
+    const timer = setTimeout(
+      () => resolve(false),
+      testHooks?.exitTimeoutMs ?? OPENOCD_EXIT_TIMEOUT_MS
+    );
     server.once("close", () => {
       clearTimeout(timer);
-      resolve();
+      resolve(true);
     });
   });
   server.stop();
-  await exited;
+  return exited;
 }
 
 let testHooks: AdapterCommandTestHooks | undefined;
@@ -127,7 +133,15 @@ export async function runOpenOcdAdapterCommand(
   const openOcdServer = testHooks?.openOcdServer || OpenOCDManager.init();
   if (selected.action === "select") {
     if (openOcdServer.isRunning()) {
-      await stopOpenOcdServer(openOcdServer);
+      const stopped = await stopOpenOcdServer(openOcdServer);
+      if (!stopped) {
+        Logger.warnNotify(
+          l10n.t(
+            "The OpenOCD server did not stop in time, so connected boards cannot be scanned. Stop it and run the command again."
+          )
+        );
+        return;
+      }
       Logger.infoNotify(
         l10n.t("OpenOCD server stopped to scan for connected boards.")
       );

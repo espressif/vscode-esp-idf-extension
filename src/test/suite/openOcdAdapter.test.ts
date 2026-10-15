@@ -415,6 +415,30 @@ suite("OpenOCD adapter binding", () => {
       assert.deepStrictEqual(calls, ["stop", "close", "select"]);
     });
 
+    test("select does not scan when the OpenOCD process never closes", async () => {
+      setIdfConfigurationSource(createFakeIdfSource({}));
+      const calls: string[] = [];
+      setAdapterCommandTestHooks({
+        showQuickPick: async (items) =>
+          items.find((i) => i.action === "select"),
+        selectConnectedBoard: async () => {
+          calls.push("select");
+        },
+        openOcdServer: {
+          isRunning: () => true,
+          once: () => undefined,
+          stop: () => {
+            calls.push("stop");
+          },
+        },
+        exitTimeoutMs: 20,
+      });
+
+      await runOpenOcdAdapterCommand(fakeWorkspaceFolder);
+
+      assert.deepStrictEqual(calls, ["stop"]);
+    });
+
     test("clear removes the serial and the location", async () => {
       storeAdapterSerial(fakeWorkspaceFolder.uri, "AA:BB");
       const source = createFakeIdfSource({
