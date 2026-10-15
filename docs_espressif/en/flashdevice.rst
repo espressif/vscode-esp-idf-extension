@@ -20,7 +20,7 @@ Flash onto the Device
 
     .. note::
 
-        UART flashing uses esptool fast reflashing by default when esptool is 5.2 or newer, the same behavior as ``idf.py flash``. When a previous ``*_flashed.bin`` copy exists in the build directory, only changed flash sectors are written. Otherwise, files already present on the device are skipped. Encrypted flashing still writes the full image.
+        UART flashing uses esptool fast reflashing by default when esptool is 5.2 or newer, the same behavior as ``idf.py flash``. When a previous ``*_flashed.bin`` copy exists in the build directory, only changed flash sectors are written. Otherwise, files already present on the device are skipped. Set ``idf.flashFullImage`` to write every image on each UART flash. **ESP-IDF: Flash Full Image (UART)** does the same for a single flash without changing that setting. Encrypted flashing still writes the full image.
 
 3.  The flashing task will begin on the selected serial port, launching a new terminal displaying the flashing task output. While flashing is in progress, a notification bar will display ``ESP-IDF: Flashing project``. Once the process is complete, the message will change to ``Flash Done ⚡️``.
 

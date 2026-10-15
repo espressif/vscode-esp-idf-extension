@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 import { Uri } from "vscode";
+import { readParameter } from "../../../configuration/idf";
 import { FlashModel } from "./types/flashModel";
 import { addProcessTask } from "../../../taskManager/taskManager";
 import { ESP } from "../../../config";
@@ -37,7 +38,8 @@ export async function createUartFlashProcessTask(
   modifiedEnv: { [key: string]: string },
   buildDirPath: string,
   encryptPartitions: boolean,
-  partitionToUse?: ESP.PartitionType
+  partitionToUse?: ESP.PartitionType,
+  forceFullImageArg = false
 ) {
   assertFlashSectionsReadable(buildDirPath, model);
   const {
@@ -63,10 +65,18 @@ export async function createUartFlashProcessTask(
         launchStyle.useModule
       );
   const binPaths = fastReflashBinPaths(flasherArgs, launchStyle.fastReflash);
-  const existingRefs = await existingFlashedReferences(buildDirPath, binPaths);
-  flasherArgs.push(
-    ...fastReflashArgs(binPaths, (refPath) => existingRefs.has(refPath))
-  );
+  const forceFullImage =
+    forceFullImageArg ||
+    readParameter("idf.flashFullImage", workspace) === true;
+  if (!forceFullImage) {
+    const existingRefs = await existingFlashedReferences(
+      buildDirPath,
+      binPaths
+    );
+    flasherArgs.push(
+      ...fastReflashArgs(binPaths, (refPath) => existingRefs.has(refPath))
+    );
+  }
   return addProcessTask(
     "Flash",
     workspace,

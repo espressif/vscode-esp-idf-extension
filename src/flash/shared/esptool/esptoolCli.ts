@@ -42,6 +42,12 @@ export type EsptoolLaunchStyle = {
   fastReflash: boolean;
 };
 
+export const defaultEsptoolLaunchStyle: EsptoolLaunchStyle = {
+  hyphenCli: false,
+  useModule: false,
+  fastReflash: false,
+};
+
 export function esptoolUsesHyphenCli(version: string): boolean {
   return compareVersion(version, ESPTOOL_HYPHEN_CLI_MIN) >= 0;
 }
@@ -99,6 +105,6 @@ export async function resolveEsptoolLaunchStyle(
     } catch {
       // Logger.init may not have run yet, for example in unit tests.
     }
-    return { hyphenCli: false, useModule: false, fastReflash: false };
+    return defaultEsptoolLaunchStyle;
   }
 }

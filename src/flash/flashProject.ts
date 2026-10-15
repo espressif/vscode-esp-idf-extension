@@ -17,7 +17,8 @@ import { isFlashEncryptionEnabled } from "./verify/flashEncryption";
 export async function flash(
   encryptPartitions?: boolean,
   flashType?: ESP.FlashType,
-  partitionToUse?: ESP.PartitionType
+  partitionToUse?: ESP.PartitionType,
+  forceFullImage = false
 ) {
   await withProgressWrapper(
     [openFolderCheck],
@@ -37,7 +38,8 @@ export async function flash(
         cancelToken,
         flashType,
         resolvedEncryptPartitions,
-        resolvedPartition
+        resolvedPartition,
+        forceFullImage
       );
     },
     {

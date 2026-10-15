@@ -711,6 +711,14 @@ suite("Flash", () => {
       );
     });
 
+    test("omits fast reflash arguments when a full image is requested", () => {
+      const binPaths = fastReflashBinPaths(writeFlashArgs(), true);
+      assert.deepStrictEqual(
+        fastReflashArgs(binPaths, () => true, true),
+        []
+      );
+    });
+
     test("omits fast reflash arguments for encrypted writes", () => {
       const model = makeFlashModel({
         flashSections: sections.map((section) => ({

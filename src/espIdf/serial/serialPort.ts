@@ -33,6 +33,7 @@ import {
 } from "../../common/error/knownError";
 import { ErrorCode } from "../../common/error/types";
 import {
+  defaultEsptoolLaunchStyle,
   esptoolProgramArgs,
   formatEsptoolToken,
   resolveEsptoolLaunchStyle,
@@ -535,7 +536,7 @@ export class SerialPort {
     const launchStyle =
       pythonPath && esptoolScriptPath
         ? await resolveEsptoolLaunchStyle(pythonPath)
-        : { hyphenCli: false, useModule: false };
+        : defaultEsptoolLaunchStyle;
     const chipIdArg = formatEsptoolToken("chip_id", launchStyle.hyphenCli);
     const programArgs = esptoolScriptPath
       ? esptoolProgramArgs(esptoolScriptPath, launchStyle.useModule)

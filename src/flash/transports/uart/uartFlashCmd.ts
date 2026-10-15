@@ -36,7 +36,8 @@ export async function uartFlashCommandMain(
   buildDirPath: string,
   flashType: ESP.FlashType,
   encryptPartitions: boolean,
-  partitionToUse?: ESP.PartitionType
+  partitionToUse?: ESP.PartitionType,
+  forceFullImage = false
 ): Promise<CustomExecutionTaskResult> {
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
   const model = await createFlashModel(
@@ -60,7 +61,8 @@ export async function uartFlashCommandMain(
       modifiedEnv,
       buildDirPath,
       encryptPartitions,
-      partitionToUse
+      partitionToUse,
+      forceFullImage
     );
   }
   await customTask.addCustomTask(CustomTaskType.PostFlash);

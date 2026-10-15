@@ -66,7 +66,8 @@ export async function flashMain(
   cancelToken: CancellationToken,
   flashTypeIn: ESP.FlashType | undefined,
   encryptPartitions: boolean,
-  partitionToUse?: ESP.PartitionType
+  partitionToUse?: ESP.PartitionType,
+  forceFullImage = false
 ): Promise<CustomExecutionTaskResult> {
   const wsFolder =
     workspace.getWorkspaceFolder(workspaceFolderUri) ??
@@ -155,7 +156,8 @@ export async function flashMain(
         buildDirPath,
         flashType,
         encryptPartitions,
-        partitionToUse
+        partitionToUse,
+        forceFullImage
       );
     }
 

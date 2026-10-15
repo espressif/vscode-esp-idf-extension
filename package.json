@@ -69,6 +69,7 @@
     "onCommand:espIdf.setTarget",
     "onCommand:espIdf.buildDevice",
     "onCommand:espIdf.flashDevice",
+    "onCommand:espIdf.flashFullImage",
     "onCommand:espIdf.flashDFU",
     "onCommand:espIdf.monitorDevice",
     "onCommand:espIdf.pickAWorkspaceFolder",
@@ -862,6 +863,12 @@
             "description": "%param.partitionToUse%",
             "scope": "resource"
           },
+          "idf.flashFullImage": {
+            "type": "boolean",
+            "default": false,
+            "description": "%param.flashFullImage%",
+            "scope": "resource"
+          },
           "idf.jtagFlashCommandExtraArgs": {
             "type": "array",
             "description": "%param.jtagFlashCommandExtraArgs.title%",
@@ -1503,6 +1510,12 @@
       {
         "command": "espIdf.flashUart",
         "title": "%espIdf.flashUart.title%",
+        "category": "ESP-IDF",
+        "when": "!isWeb"
+      },
+      {
+        "command": "espIdf.flashFullImage",
+        "title": "%espIdf.flashFullImage.title%",
         "category": "ESP-IDF",
         "when": "!isWeb"
       },
