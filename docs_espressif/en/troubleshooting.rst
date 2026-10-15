@@ -57,7 +57,7 @@ On OpenOCD ``v0.12.0-esp32-20260304`` or newer, the extension checks the connect
 
 To fix it, run ``ESP-IDF: OpenOCD Adapter (Serial & Location)`` and choose one of:
 
-- **Select connected board** to pin OpenOCD to a board that is connected now.
+- **Select connected board** to pin OpenOCD to a board that is connected now. A running OpenOCD server is stopped first, because the board scan cannot open a USB-JTAG device that OpenOCD holds.
 - **Clear adapter binding** to remove the stored serial number and USB location. OpenOCD then uses whichever board is connected.
 
 Selecting a plain chip target such as ``esp32s3`` instead of a connected board does not store a serial number. The current values are shown in the ``[Adapter] S:<serial> L:<location>`` status bar item, which you can enable from the ESP-IDF Explorer commands list.
