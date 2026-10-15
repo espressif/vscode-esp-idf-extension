@@ -48,7 +48,31 @@ interface AdapterCommandTestHooks {
     options: QuickPickOptions
   ) => Thenable<AdapterCommandQuickPickItem | undefined>;
   selectConnectedBoard?: (workspaceFolder: WorkspaceFolder) => Promise<void>;
-  openOcdServer?: { isRunning(): boolean; stop(): void };
+  openOcdServer?: OpenOcdServerControl;
+}
+
+interface OpenOcdServerControl {
+  isRunning(): boolean;
+  stop(): void;
+  once?(event: "close", listener: () => void): unknown;
+}
+
+const OPENOCD_EXIT_TIMEOUT_MS = 2000;
+
+async function stopOpenOcdServer(server: OpenOcdServerControl): Promise<void> {
+  const exited = new Promise<void>((resolve) => {
+    if (!server.once) {
+      resolve();
+      return;
+    }
+    const timer = setTimeout(resolve, OPENOCD_EXIT_TIMEOUT_MS);
+    server.once("close", () => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
+  server.stop();
+  await exited;
 }
 
 let testHooks: AdapterCommandTestHooks | undefined;
@@ -73,7 +97,9 @@ export async function runOpenOcdAdapterCommand(
   const items: AdapterCommandQuickPickItem[] = [
     {
       label: l10n.t("Select connected board"),
-      description: l10n.t("Pin OpenOCD to a board that is connected right now"),
+      description: l10n.t(
+        "Pin OpenOCD to a board that is connected right now (stops a running OpenOCD server)"
+      ),
       action: "select",
     },
     {
@@ -98,7 +124,14 @@ export async function runOpenOcdAdapterCommand(
     return;
   }
 
+  const openOcdServer = testHooks?.openOcdServer || OpenOCDManager.init();
   if (selected.action === "select") {
+    if (openOcdServer.isRunning()) {
+      await stopOpenOcdServer(openOcdServer);
+      Logger.infoNotify(
+        l10n.t("OpenOCD server stopped to scan for connected boards.")
+      );
+    }
     const selectConnectedBoard =
       testHooks?.selectConnectedBoard || selectOpenOcdConfigFiles;
     await selectConnectedBoard(wsFolder);
@@ -126,7 +159,6 @@ export async function runOpenOcdAdapterCommand(
     wsFolder.uri
   );
 
-  const openOcdServer = testHooks?.openOcdServer || OpenOCDManager.init();
   let stoppedOpenOcd = false;
   if (openOcdServer.isRunning()) {
     openOcdServer.stop();

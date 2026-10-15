@@ -290,8 +290,7 @@ suite("OpenOCD adapter binding", () => {
         items: AdapterCommandQuickPickItem[];
         placeHolder?: string;
       } = { items: [] };
-      let selectCalls = 0;
-      let stopCalls = 0;
+      const calls: ("select" | "stop")[] = [];
       setAdapterCommandTestHooks({
         showQuickPick: async (items, options) => {
           seen.items = items;
@@ -299,19 +298,20 @@ suite("OpenOCD adapter binding", () => {
           return pick(items);
         },
         selectConnectedBoard: async () => {
-          selectCalls += 1;
+          calls.push("select");
         },
         openOcdServer: {
           isRunning: () => serverRunning,
           stop: () => {
-            stopCalls += 1;
+            calls.push("stop");
           },
         },
       });
       return {
         seen,
-        selectCalls: () => selectCalls,
-        stopCalls: () => stopCalls,
+        calls,
+        selectCalls: () => calls.filter((c) => c === "select").length,
+        stopCalls: () => calls.filter((c) => c === "stop").length,
       };
     }
 
@@ -358,18 +358,61 @@ suite("OpenOCD adapter binding", () => {
         "idf.customExtraVars": { OPENOCD_USB_ADAPTER_LOCATION: "1-2" },
       });
       setIdfConfigurationSource(source);
-      const { selectCalls } = stubQuickPick((items) =>
+      const { selectCalls, stopCalls } = stubQuickPick((items) =>
         items.find((i) => i.action === "select")
       );
 
       await runOpenOcdAdapterCommand(fakeWorkspaceFolder);
 
       assert.strictEqual(selectCalls(), 1);
+      assert.strictEqual(stopCalls(), 0);
       assert.strictEqual(
         getStoredAdapterSerial(fakeWorkspaceFolder.uri),
         "AA:BB"
       );
       assert.deepStrictEqual(source.writes, []);
+    });
+
+    test("select stops a running OpenOCD server before scanning for boards", async () => {
+      setIdfConfigurationSource(createFakeIdfSource({}));
+      const { calls } = stubQuickPick(
+        (items) => items.find((i) => i.action === "select"),
+        true
+      );
+
+      await runOpenOcdAdapterCommand(fakeWorkspaceFolder);
+
+      assert.deepStrictEqual(calls, ["stop", "select"]);
+    });
+
+    test("select waits for the OpenOCD process to close before scanning", async () => {
+      setIdfConfigurationSource(createFakeIdfSource({}));
+      const calls: string[] = [];
+      let onClose: (() => void) | undefined;
+      setAdapterCommandTestHooks({
+        showQuickPick: async (items) =>
+          items.find((i) => i.action === "select"),
+        selectConnectedBoard: async () => {
+          calls.push("select");
+        },
+        openOcdServer: {
+          isRunning: () => true,
+          once: (_event, listener) => {
+            onClose = listener;
+          },
+          stop: () => {
+            calls.push("stop");
+            setTimeout(() => {
+              calls.push("close");
+              onClose?.();
+            }, 20);
+          },
+        },
+      });
+
+      await runOpenOcdAdapterCommand(fakeWorkspaceFolder);
+
+      assert.deepStrictEqual(calls, ["stop", "close", "select"]);
     });
 
     test("clear removes the serial and the location", async () => {
