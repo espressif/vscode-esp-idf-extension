@@ -26,6 +26,7 @@
   "No OpenOCD adapter serial or USB location was stored.": "未存储 OpenOCD 适配器的序列号或 USB 位置。",
   "OpenOCD adapter serial and USB location cleared. OpenOCD server stopped.": "已清除 OpenOCD 适配器的序列号和 USB 位置。OpenOCD 服务器已停止。",
   "OpenOCD server stopped to scan for connected boards.": "已停止 OpenOCD 服务器以扫描已连接的开发板。",
+  "The OpenOCD server did not stop in time, so connected boards cannot be scanned. Stop it and run the command again.": "OpenOCD 服务器未能及时停止，无法扫描已连接的开发板。请将其停止后重新运行此命令。",
   "OpenOCD adapter serial and USB location cleared.": "已清除 OpenOCD 适配器的序列号和 USB 位置。",
   "Set Target": "设置目标",
   "Default Boards": "默认开发板",
