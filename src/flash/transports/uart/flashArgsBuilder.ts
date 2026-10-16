@@ -17,14 +17,20 @@
  */
 
 import { ESP } from "../../../config";
+import {
+  esptoolProgramArgs,
+  formatEsptoolArgs,
+} from "../../shared/esptool/esptoolCli";
 import { FlashModel } from "./types/flashModel";
 
 export function buildBaseWriteFlashArgs(
   model: FlashModel,
-  toolPath: string
+  toolPath: string,
+  hyphenCli: boolean = false,
+  useModule: boolean = false
 ): string[] {
   const flasherArgs = [
-    toolPath,
+    ...esptoolProgramArgs(toolPath, useModule),
     "-p",
     model.port,
     "-b",
@@ -41,7 +47,7 @@ export function buildBaseWriteFlashArgs(
     flasherArgs.push("--no-stub");
   }
   flasherArgs.push("write_flash", ...model.writeFlashArgs);
-  return flasherArgs;
+  return formatEsptoolArgs(flasherArgs, hyphenCli);
 }
 
 export function formatBinPath(
@@ -55,9 +61,16 @@ export function getSingleBinFlasherArgs(
   model: FlashModel,
   toolPath: string,
   sectionToUse: ESP.PartitionType,
-  replacePathSep: boolean = false
+  replacePathSep: boolean = false,
+  hyphenCli: boolean = false,
+  useModule: boolean = false
 ) {
-  const flasherArgs = buildBaseWriteFlashArgs(model, toolPath);
+  const flasherArgs = buildBaseWriteFlashArgs(
+    model,
+    toolPath,
+    hyphenCli,
+    useModule
+  );
   const section = model[sectionToUse];
   if (section.encrypted) {
     flasherArgs.push("--encrypt-files");
@@ -73,9 +86,16 @@ export function getFlasherArgs(
   model: FlashModel,
   toolPath: string,
   encryptPartitions: boolean,
-  replacePathSep: boolean = false
+  replacePathSep: boolean = false,
+  hyphenCli: boolean = false,
+  useModule: boolean = false
 ) {
-  const flasherArgs = buildBaseWriteFlashArgs(model, toolPath);
+  const flasherArgs = buildBaseWriteFlashArgs(
+    model,
+    toolPath,
+    hyphenCli,
+    useModule
+  );
   const encryptedFlashSections = model.flashSections.filter(
     (flashSection) => flashSection.encrypted
   );
