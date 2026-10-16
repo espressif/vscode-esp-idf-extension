@@ -16,8 +16,11 @@
  * limitations under the License.
  */
 
-import { Uri, workspace, WorkspaceFolder } from "vscode";
+import { ConfigurationTarget, Uri, workspace, WorkspaceFolder } from "vscode";
 import { Logger } from "../../common/logger";
+import { readSettingsParameter, writeParameter } from "../../configuration/idf";
+import { updateCurrentProfileCustomExtraVars } from "../../project-conf";
+import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
 import {
   detectConnectedBoards,
   DetectConnectedBoardsResult,
@@ -48,6 +51,27 @@ export function setAdapterBindingTestHooks(
 
 function normalizeLocation(location?: string): string | undefined {
   return location ? location.replace(/^usb:\/\//, "") : undefined;
+}
+
+export async function storeAdapterLocation(
+  workspaceFolder: WorkspaceFolder,
+  location: string
+): Promise<void> {
+  const settingsExtraVars = (readSettingsParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) || {}) as { [key: string]: string };
+  await writeParameter(
+    "idf.customExtraVars",
+    { ...settingsExtraVars, OPENOCD_USB_ADAPTER_LOCATION: location },
+    ConfigurationTarget.WorkspaceFolder,
+    workspaceFolder
+  );
+  await updateCurrentProfileCustomExtraVars(
+    { OPENOCD_USB_ADAPTER_LOCATION: location },
+    workspaceFolder.uri
+  );
+  updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
 }
 
 export async function resolveAdapterBindingForLaunch(
@@ -83,8 +107,9 @@ export async function resolveAdapterBindingForLaunch(
       detectedLocation !== normalizeLocation(stored.location)
     ) {
       Logger.info(
-        `OpenOCD adapter ${stored.serial} is now at USB location ${detectedLocation}. Using it instead of ${stored.location}.`
+        `OpenOCD adapter ${stored.serial} is now at USB location ${detectedLocation}. Replacing the stored location ${stored.location}.`
       );
+      await storeAdapterLocation(workspaceFolder, detectedLocation);
     }
     return { ...unchanged, location: detectedLocation ?? stored.location };
   }

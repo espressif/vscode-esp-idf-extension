@@ -29,6 +29,7 @@ import {
 import {
   resolveAdapterBindingForLaunch,
   setAdapterBindingTestHooks,
+  storeAdapterLocation,
 } from "../../espIdf/openOcd/adapterBinding";
 import {
   AdapterCommandQuickPickItem,
@@ -89,6 +90,42 @@ function createFakeIdfSource(getValues: Record<string, unknown> = {}) {
     refreshConfiguration: () => undefined,
   };
   return source;
+}
+
+async function withPresetFolder(
+  environment: { [key: string]: string },
+  run: (
+    workspaceFolder: vscode.WorkspaceFolder,
+    presetsPath: string
+  ) => Promise<void>
+) {
+  const presetFolder = await mkdtemp(join(tmpdir(), "esp-idf-adapter-"));
+  const presetsPath = join(
+    presetFolder,
+    ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+  );
+  const preset = { name: "pinned", environment };
+  await writeJson(presetsPath, {
+    version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
+    configurePresets: [preset],
+  });
+  ESP.ProjectConfiguration.store.set(
+    ESP.ProjectConfiguration.SELECTED_CONFIG,
+    preset.name
+  );
+  ESP.ProjectConfiguration.store.set(preset.name, preset);
+  try {
+    await run(
+      { ...fakeWorkspaceFolder, uri: vscode.Uri.file(presetFolder) },
+      presetsPath
+    );
+  } finally {
+    ESP.ProjectConfiguration.store.clear(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+    ESP.ProjectConfiguration.store.clear(preset.name);
+    await remove(presetFolder);
+  }
 }
 
 suite("OpenOCD adapter binding", () => {
@@ -215,6 +252,10 @@ suite("OpenOCD adapter binding", () => {
         board({ serial_number: "11:22", location: "usb://1-1" }),
         board({ serial_number: "aa:bb", location: "usb://1-2" }),
       ]);
+      const source = createFakeIdfSource({
+        "idf.customExtraVars": { OPENOCD_USB_ADAPTER_LOCATION: "1-2" },
+      });
+      setIdfConfigurationSource(source);
       const binding = await resolveAdapterBindingForLaunch(workspaceUri, {
         serial: "AA:BB",
         location: "1-2",
@@ -224,10 +265,18 @@ suite("OpenOCD adapter binding", () => {
         location: "1-2",
         stale: false,
       });
+      assert.deepStrictEqual(source.writes, []);
     });
 
-    test("adopts the detected location when the pinned board moved port", async () => {
+    test("adopts and stores the detected location when the pinned board moved port", async () => {
       stubDetection([board({ serial_number: "aa:bb", location: "usb://1-7" })]);
+      const source = createFakeIdfSource({
+        "idf.customExtraVars": {
+          OPENOCD_SCRIPTS: "/opt/openocd/scripts",
+          OPENOCD_USB_ADAPTER_LOCATION: "1-2",
+        },
+      });
+      setIdfConfigurationSource(source);
       const binding = await resolveAdapterBindingForLaunch(workspaceUri, {
         serial: "AA:BB",
         location: "1-2",
@@ -237,6 +286,45 @@ suite("OpenOCD adapter binding", () => {
         location: "1-7",
         stale: false,
       });
+      assert.deepStrictEqual(source.writes, [
+        {
+          key: "idf.customExtraVars",
+          value: {
+            OPENOCD_SCRIPTS: "/opt/openocd/scripts",
+            OPENOCD_USB_ADAPTER_LOCATION: "1-7",
+          },
+        },
+      ]);
+    });
+
+    test("storeAdapterLocation writes the location to the selected preset", async () => {
+      await withPresetFolder(
+        { OPENOCD_USB_ADAPTER_LOCATION: "1-2", MY_VAR: "my-value" },
+        async (workspaceFolder, presetsPath) => {
+          const source = createFakeIdfSource({});
+          setIdfConfigurationSource(source);
+
+          await storeAdapterLocation(workspaceFolder, "1-7");
+
+          const written = await readJson(presetsPath);
+          assert.deepStrictEqual(written.configurePresets[0].environment, {
+            OPENOCD_USB_ADAPTER_LOCATION: "1-7",
+            MY_VAR: "my-value",
+          });
+          assert.deepStrictEqual(
+            ESP.ProjectConfiguration.store.get<{ environment: unknown }>(
+              "pinned"
+            )?.environment,
+            { OPENOCD_USB_ADAPTER_LOCATION: "1-7", MY_VAR: "my-value" }
+          );
+          assert.deepStrictEqual(source.writes, [
+            {
+              key: "idf.customExtraVars",
+              value: { OPENOCD_USB_ADAPTER_LOCATION: "1-7" },
+            },
+          ]);
+        }
+      );
     });
 
     test("keeps the stored location when the pinned board reports none", async () => {
@@ -480,42 +568,6 @@ suite("OpenOCD adapter binding", () => {
         undefined
       );
     });
-
-    async function withPresetFolder(
-      environment: { [key: string]: string },
-      run: (
-        workspaceFolder: vscode.WorkspaceFolder,
-        presetsPath: string
-      ) => Promise<void>
-    ) {
-      const presetFolder = await mkdtemp(join(tmpdir(), "esp-idf-adapter-"));
-      const presetsPath = join(
-        presetFolder,
-        ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
-      );
-      const preset = { name: "pinned", environment };
-      await writeJson(presetsPath, {
-        version: ESP.CMakePresets.CMAKE_PRESET_VERSION,
-        configurePresets: [preset],
-      });
-      ESP.ProjectConfiguration.store.set(
-        ESP.ProjectConfiguration.SELECTED_CONFIG,
-        preset.name
-      );
-      ESP.ProjectConfiguration.store.set(preset.name, preset);
-      try {
-        await run(
-          { ...fakeWorkspaceFolder, uri: vscode.Uri.file(presetFolder) },
-          presetsPath
-        );
-      } finally {
-        ESP.ProjectConfiguration.store.clear(
-          ESP.ProjectConfiguration.SELECTED_CONFIG
-        );
-        ESP.ProjectConfiguration.store.clear(preset.name);
-        await remove(presetFolder);
-      }
-    }
 
     test("clear removes the location from the selected preset", async () => {
       await withPresetFolder(
