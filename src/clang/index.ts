@@ -138,7 +138,12 @@ export async function createClangdFile(
   if (!espClangPath) {
     return;
   }
-  const clangdContent = `CompileFlags:${EOL}    Remove: [-f*, -m*]${EOL}`;
+  const clangdContent = [
+    "CompileFlags:",
+    "  Remove: [-m*, -f*]",
+    "  BuiltinHeaders: QueryDriver",
+    "",
+  ].join(EOL);
 
   try {
     await writeFile(clangdFilePath, clangdContent, { encoding: "utf8" });
