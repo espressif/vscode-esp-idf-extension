@@ -20,6 +20,7 @@ import {
   CancellationToken,
   DebugConfiguration,
   DebugConfigurationProvider,
+  workspace,
   WorkspaceFolder,
 } from "vscode";
 import { readParameter } from "../configuration/idf";
@@ -52,6 +53,29 @@ const INITIAL_GDBTARGET_CONFIG: DebugConfiguration = {
   request: "attach",
   name: "ESP-IDF",
 };
+
+function isInitialGdbTargetConfig(config: DebugConfiguration): boolean {
+  return (
+    config.type === INITIAL_GDBTARGET_CONFIG.type &&
+    config.request === INITIAL_GDBTARGET_CONFIG.request &&
+    config.name === INITIAL_GDBTARGET_CONFIG.name
+  );
+}
+
+function workspaceHasInitialGdbTargetConfig(
+  folder: WorkspaceFolder | undefined
+): boolean {
+  const configurations = workspace
+    .getConfiguration("launch", folder)
+    .get<DebugConfiguration[]>("configurations");
+  return (
+    configurations?.some(
+      (configuration) =>
+        configuration?.type === INITIAL_GDBTARGET_CONFIG.type &&
+        configuration?.name === INITIAL_GDBTARGET_CONFIG.name
+    ) ?? false
+  );
+}
 
 async function ensureInitialLaunchJson(folder: WorkspaceFolder) {
   const launchJsonPath = join(folder.uri.fsPath, ".vscode", "launch.json");
@@ -289,7 +313,12 @@ async function handleDebugConfigurationError(
 
 export class CDTDebugConfigurationProvider
   implements DebugConfigurationProvider {
-  public provideDebugConfigurations(): DebugConfiguration[] {
+  public provideDebugConfigurations(
+    folder?: WorkspaceFolder
+  ): DebugConfiguration[] {
+    if (workspaceHasInitialGdbTargetConfig(folder)) {
+      return [];
+    }
     return [{ ...INITIAL_GDBTARGET_CONFIG }];
   }
 
@@ -361,11 +390,13 @@ export class CDTDebugConfigurationProvider
   ): Promise<DebugConfiguration | undefined> {
     try {
       if (!config.type && !config.request) {
-        folder = await requireWorkspaceFolderForDebug(folder);
-        await ensureInitialLaunchJson(folder);
         config.type = INITIAL_GDBTARGET_CONFIG.type;
         config.request = INITIAL_GDBTARGET_CONFIG.request;
         config.name = INITIAL_GDBTARGET_CONFIG.name;
+      }
+      if (isInitialGdbTargetConfig(config)) {
+        folder = await requireWorkspaceFolderForDebug(folder);
+        await ensureInitialLaunchJson(folder);
       }
       folder = await requireWorkspaceFolderForDebug(folder);
       config.program = await resolveDebugProgram(config, folder);
