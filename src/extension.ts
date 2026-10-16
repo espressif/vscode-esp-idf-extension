@@ -95,6 +95,7 @@ import { registerComponentManagerCmd } from "./component-manager";
 import { ExtensionContext } from "vscode";
 import { registerConfigurationCommands } from "./configuration";
 import { registerPartitionTableCommands } from "./espIdf/partition-table";
+import { registerFsImageCommands } from "./espIdf/fsImage";
 import { registerEfuseCommands } from "./efuse";
 
 export async function activate(context: ExtensionContext) {
@@ -148,6 +149,7 @@ export async function activate(context: ExtensionContext) {
   registerCustomTaskCommand(context);
   registerProjectConfigCommands(context);
   registerPartitionTableCommands(context);
+  registerFsImageCommands(context);
   registerOnDidChangeConfiguration(context);
   registerCoverageCommands(context);
   registerTaskCommands(context);
