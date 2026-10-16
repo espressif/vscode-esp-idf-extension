@@ -35,7 +35,7 @@ import {
   getSelectedProjectConfiguration,
 } from "./projectConfiguration";
 import { checkIDFSetups } from "./checkIdfSetups";
-import { getWorkspaceFolder } from "./getWorkspaceFolder";
+import { ESP } from "../config";
 
 export async function generateConfigurationReport(
   context: vscode.ExtensionContext,
@@ -51,7 +51,8 @@ export async function generateConfigurationReport(
     message: "Checking workspace folder information...",
     increment: 3,
   });
-  const workspaceFolder = getWorkspaceFolder();
+  const workspaceFolder =
+    ESP.GlobalConfiguration.store.findSelectedWorkspaceFolder();
   if (workspaceFolder) {
     reportedResult.workspaceFolder = workspaceFolder.uri.fsPath;
   }
@@ -124,7 +125,7 @@ export async function generateConfigurationReport(
     message: "Checking ESP-IDF setups...",
     increment: 97,
   });
-  await checkIDFSetups(reportedResult);
+  await checkIDFSetups(reportedResult, workspaceFolder);
   progress.report({
     message: "Generating report...",
     increment: 100,

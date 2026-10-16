@@ -36,28 +36,25 @@ import {
 } from "../espIdf/openOcd/openOcdManager";
 import { OpenOCDErrorMonitor } from "../espIdf/hints/openocdhint";
 import { loadIdfSetup } from "../eim/loadIdfSetup";
-import { ExtensionConfigStore } from "./store";
 
 export function registerOnDidWorkspaceFolderChanges(context: ExtensionContext) {
   context.subscriptions.push(
     workspace.onDidChangeWorkspaceFolders(async (e) => {
       if (PreCheck.isWorkspaceFolderOpen()) {
-        const prevWorkspaceFolder = ESP.GlobalConfiguration.store.get<string>(
-          ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
-          ""
-        );
+        const prevWorkspaceFolder =
+          ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
         for (const ws of e.removed) {
           if (
             prevWorkspaceFolder &&
             ws.uri.toString() === prevWorkspaceFolder
           ) {
             ConfserverProcess.dispose();
-            await useFirstWorkspaceFolder(context);
+            await useSelectedWorkspaceFolder(context);
             break;
           }
         }
         if (prevWorkspaceFolder === "" && e.added.length > 0) {
-          await useFirstWorkspaceFolder(context);
+          await useSelectedWorkspaceFolder(context);
         }
       }
     })
@@ -68,10 +65,8 @@ export async function configureForWorkspace(
   context: ExtensionContext,
   workspaceFolder: WorkspaceFolder
 ) {
-  const prevWorkspaceFolderStr = ESP.GlobalConfiguration.store.get<string>(
-    ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
-    ""
-  );
+  const prevWorkspaceFolderStr =
+    ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
   ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(workspaceFolder.uri);
   if (
     prevWorkspaceFolderStr &&
@@ -147,11 +142,9 @@ export async function configureForWorkspace(
   new ProjectConfigurationManager(workspaceFolder.uri, context, statusBarItems);
 }
 
-export async function useFirstWorkspaceFolder(context: ExtensionContext) {
+export async function useSelectedWorkspaceFolder(context: ExtensionContext) {
   const wsFolder =
-    workspace.workspaceFolders && workspace.workspaceFolders.length
-      ? workspace.workspaceFolders[0]
-      : undefined;
+    ESP.GlobalConfiguration.store.findSelectedWorkspaceFolder();
   if (wsFolder) {
     if (Object.keys(statusBarItems).length === 0) {
       await createCmdsStatusBarItems(context, wsFolder.uri);
