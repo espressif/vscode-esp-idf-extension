@@ -29,6 +29,7 @@ import { activateConfigured } from "./configured";
 import {
   disposeNonConfiguredStatusBar,
   enterNonConfigured,
+  enterUndetected,
 } from "./nonConfigured";
 import { selectEimIdfJsonFile } from "./selectEimIdfJson";
 import {
@@ -36,7 +37,11 @@ import {
   startEimIdfJsonWatcher,
 } from "./eimIdfJsonWatcher";
 import { registerSharedCommands } from "./sharedCommands";
-import { ActivationFailure, runValidations } from "./validate";
+import {
+  ActivationFailure,
+  requestProjectActivation,
+  runValidations,
+} from "./validate";
 
 type ActivationMode = IdfCommandTreeMode;
 
@@ -50,11 +55,12 @@ function revalidateIfLighterMode() {
   if (applying) {
     return applyActivation();
   }
-  // "skipped" stays included so a later idf.extensionActivationMode change can configure an empty setup.
+  // "skipped" and "undetected" stay included so a later idf.extensionActivationMode change can configure an empty setup.
   if (
     activationMode !== "nonConfigured" &&
     activationMode !== "configuredNoWorkspaceFolder" &&
-    activationMode !== "skipped"
+    activationMode !== "skipped" &&
+    activationMode !== "undetected"
   ) {
     return;
   }
@@ -111,6 +117,10 @@ async function applyActivation() {
         disposeNonConfiguredStatusBar();
         activationMode = "skipped";
         break;
+      case "undetected":
+        enterUndetected();
+        activationMode = "undetected";
+        break;
       case "configured":
         disposeNonConfiguredStatusBar();
         await activateConfigured(context);
@@ -131,6 +141,10 @@ export async function runActivation(context: ExtensionContext) {
   extensionContext = context;
   registerSharedCommands(context, {
     retryActivation: () => applyActivation(),
+    activateAnyway: () => {
+      requestProjectActivation();
+      return applyActivation();
+    },
     selectEimIdfJson: async () => {
       const selected = await selectEimIdfJsonFile();
       if (selected) {

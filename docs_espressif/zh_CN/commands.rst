@@ -10,36 +10,64 @@
 
    * - 命令
      - 描述
+   * - 激活 ESP-IDF
+     - 当未检测到标准 ESP-IDF 项目且 **idf.currentSetup** 为空时，保存第一个已完成的 ESP-IDF 安装并初始化项目命令。此操作不会更改 **idf.extensionActivationMode**。
    * - 添加 Arduino ESP32 为 ESP-IDF 组件
      - 将 `Arduino-ESP32 <https://github.com/espressif/arduino-esp32>`_ 添加为当前目录中的 ESP-IDF 组件 (**${CURRENT_DIRECTORY}/components/arduino**)。
    * - 添加 Docker 容器配置
      - 将 **.devcontainer** 文件添加到当前打开的项目目录中。借助 `Dev Containers <https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers>`_ 扩展在 Docker 容器中使用 ESP-IDF 项目。
    * - 添加编辑器覆盖率
      - 解析项目的 `GCOV 代码覆盖率 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/app_trace.html#gcov>`_ 文件，并在源代码文件中用彩色高亮代码覆盖行。
+   * - 添加新节点
+     - 向已绑定的 ESP RainMaker 账户添加设备节点。详情请参阅 :doc:`ESP RainMaker <additionalfeatures/rainmaker>`。
    * - 添加 VS Code 配置文件夹
      - 将 **.vscode** 文件添加到当前打开的项目目录中。这些文件包括 launch.json（用于调试）、settings.json 和 c_cpp_properties.json（用于语法高亮）。
+   * - 应用程序跟踪
+     - 启动应用程序跟踪，并将日志保存到跟踪存档。详情请参阅 :doc:`应用程序跟踪 <additionalfeatures/app-tracing>`。
+   * - 仅构建应用程序
+     - 仅构建当前项目的应用程序分区。
+   * - 构建应用、烧录应用并启动监视
+     - 构建应用程序，仅将应用程序二进制文件写入设备，并启动监视终端。
+   * - 仅构建引导加载程序
+     - 仅构建当前项目的引导加载程序。
+   * - 构建分区表
+     - 仅构建当前项目的分区表。
    * - 构建、烧录项目并监视设备
      - 此命令可用于构建项目、将二进制程序写入设备，并启动监视终端，效果类似于 ``idf.py build flash monitor``。
    * - 构建项目
      - 使用 ``CMake`` 和 ``Ninja-build`` 来构建项目，具体说明请参见 `ESP-IDF 构建系统直接使用 CMake <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/build-system.html#cmake>`_。若想修改构建任务的行为，可以在配置 Cmake 时使用 **idf.cmakeCompilerArgs** 命令，或在配置 Ninja 时使用 **idf.ninjaArgs** 命令。例如，可以使用 **[-j N]** 来设置并行作业数，其中 N 是并行作业的数量。
+   * - 清除所有错误提示
+     - 清除错误提示视图中的全部条目。
+   * - 清除构建错误提示
+     - 清除错误提示视图中的构建错误。
    * - 清除 eFuse 摘要
      - 从 ESP-IDF 资源管理器的 EFUSEEXPLORER 中清除 eFuse 摘要集。
    * - 清除 ESP-IDF 搜索结果
      - 从 ESP-IDF 资源管理器 ``文档搜索结果`` 选项卡中清除所有搜索结果。
-   * - 清除已保存的 ESP-IDF 设置
-     - 清除扩展中保留的现有 ESP-IDF 设置。
-   * - 配置 ESP-IDF 扩展
-     - 打开一个带有安装向导的窗口，可以安装 ESP-IDF、IDF 工具和 Python 虚拟环境。
+   * - 清除 OpenOCD 错误提示
+     - 清除错误提示视图中的 OpenOCD 错误。
+   * - CMakeLists.txt 编辑器
+     - 打开项目或组件 ``CMakeLists.txt`` 的编辑器。详情请参阅 :doc:`CMakeLists.txt 编辑器 <additionalfeatures/cmakelists-editor>`。
    * - 配置 SDKConfig 文件以启用代码覆盖率
      - 在项目的 SDKConfig 文件中设置必要的值，启用代码覆盖率分析。
    * - 配置项目以使用 ESP-Clang
      - 配置当前 ESP-IDF 项目使用 esp-clang 作为工具链，并在 settings.json 中配置 LLVM Clang 扩展。
+   * - 连接 ESP-Rainmaker 云服务器
+     - 从 ESP-IDF 资源管理器登录 ESP RainMaker 云。详情请参阅 :doc:`ESP RainMaker <additionalfeatures/rainmaker>`。
+   * - 复制值到剪贴板
+     - 将十六进制视图中选中的值复制到剪贴板。
    * - 创建新 ESP-IDF 组件
      - 在当前目录下，基于 ESP-IDF 组件模板创建新组件。
    * - 创建新的空项目
      - 询问新项目名称，选择创建项目的目录，并显示通知以打开新创建的项目。
    * - 创建项目配置
      - 在项目根目录中创建 ``CMakePresets.json``，其中包含 **default** 和 **production** 两个起始配置预设，可重命名并扩展。已定义的预设不会被修改。
+   * - 自定义应用程序跟踪参数
+     - 设置下一次应用程序跟踪使用的参数。
+   * - 从列表中删除十六进制值
+     - 从十六进制视图列表中移除选中的值。
+   * - 检测串口
+     - 检测已连接设备的串口，并将其保存为 **idf.port**。
    * - 清理当前 SDK 配置编辑器服务器进程
      - 若先前执行过 ``SDK 配置编辑器`` 命令，则后台将保留缓存进程，以便下次更快打开编辑器。此命令将清理此类缓存进程。
    * - 诊断命令
@@ -52,6 +80,14 @@
      - 执行 ``esptool.py erase_flash`` 命令，擦除 flash，将芯片重置为 0xFF 字节。
    * - 执行自定义任务
      - 用户可以自定义 **idf.customTask** 中的命令行命令或脚本，并通过此命令执行。
+   * - 仅Flash AppUART
+     - 通过 UART（esptool.py）仅将应用程序二进制文件写入设备。
+   * - 将二进制文件烧录到分区…
+     - 将选中的 ``.bin`` 文件烧录到已连接设备的分区。
+   * - 仅Flash Boot Loader UART
+     - 通过 UART（esptool.py）仅将引导加载程序二进制文件写入设备。
+   * - 闪存分区表 UART
+     - 通过 UART（esptool.py）仅将分区表写入设备。
    * - 烧录项目
      - 将当前项目生成的二进制文件烧录至目标设备。此命令将根据 **idf.flashType** 使用 UART、DFU 或 JTAG。
    * - 通过 DFU 接口烧录项目
@@ -70,6 +106,8 @@
      - 从当前连接到串口的芯片中获取 eFuse 列表及其对应的数值。
    * - 生成 HTML 格式的代码覆盖率报告
      - 解析项目的 `GCOV 代码覆盖率 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/app_trace.html#gcov>`_ 文件，生成 HTML 格式的覆盖率报告。
+   * - 堆跟踪
+     - 启动堆跟踪。详情请参阅 :doc:`堆跟踪 <additionalfeatures/heap-tracing>`。
    * - 导入 ESP-IDF 项目
      - 导入现有的 ESP-IDF 项目，在新位置添加 .vscode 和 .devcontainer 文件，同时可以重命名项目。
    * - 安装 ESP-ADF
@@ -88,18 +126,36 @@
      - 启动 UI，通过 ESP-IDF 项目创建向导，使用 ESP-IDF 和 ESP-ADF 中的示例模板。
    * - NVS 分区编辑器
      - 启动 UI，创建 `ESP-IDF 非易失性存储库 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-reference/storage/nvs_flash.html>`_ 的 CSV 文件。
+   * - 打开经典菜单配置终端
+     - 打开运行经典 ``idf.py menuconfig`` 界面的终端。
+   * - 打开 ESP-IDF 文档…
+     - 在浏览器中打开选中的 ESP-IDF 文档搜索结果。
    * - 打开 ESP-IDF 终端
      - 打开一个终端，并激活 IDF_PATH 和 Python 虚拟环境。
+   * - 打开入门演练
+     - 打开 ESP-IDF 入门演练。详情请参阅 :ref:`扩展激活 <extension-activation>`。
    * - OpenOCD 适配器状态栏
      - 切换状态栏显示 OpenOCD 适配器序列号（S）和 USB 适配器位置（L），用于在连接多个设备时确认将使用的适配器。
+   * - OpenOCD 管理器
+     - 启动或停止用于 JTAG 烧录和调试的 OpenOCD 服务器。
+   * - 打开 ESP-IDF 安装管理器
+     - 打开 ESP-IDF 安装管理器，用于安装和管理 ESP-IDF 版本及工具。
    * - 分区表编辑器
      - 启动 UI，如 `ESP-IDF 分区表 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/partition-tables.html>`_ 中所述，管理自定义分区表。
    * - 选择工作区文件夹
      - 在使用包含多个工作区文件夹的 VS Code 工作区时，此命令会让此扩展的命令应用于指定文件夹。详情请参阅 :ref:`处理多个项目 <multiple projects>`。
    * - 刷新分区表
      - 将项目已构建的分区表加载到 :doc:`设备分区资源管理器 <additionalfeatures/device-partition-explorer>`。
+   * - 刷新跟踪存档列表
+     - 重新加载 ESP-IDF 资源管理器中的应用程序跟踪存档列表。
    * - 移除编辑器覆盖率
      - 移除因 **添加编辑器覆盖率** 命令而产生的彩色高亮代码行。
+   * - 清除已保存的 ESP-IDF 设置
+     - 清除扩展中保留的现有 ESP-IDF 设置。
+   * - 移除此节点
+     - 从已绑定的 ESP RainMaker 账户中移除选中的节点。详情请参阅 :doc:`ESP RainMaker <additionalfeatures/rainmaker>`。
+   * - 重试 ESP-IDF 激活
+     - 再次运行安装验证和激活检查。详情请参阅 :ref:`扩展激活 <extension-activation>`。
    * - 运行 idf.py reconfigure 任务
      - 此命令将执行 **idf.py reconfigure** （CMake 配置任务），能够帮助生成 compile_commands.json 文件以支持 C/C++ 语言特性。
    * - 运行 ESP-IDF-SBOM 漏洞检查
@@ -112,8 +168,14 @@
      - 从源代码文件中选择文本，并在 ESP-IDF 文档中进行搜索，搜索结果将显示在 VS Code ESP-IDF 资源管理器选项卡中。
    * - 搜索错误提示
      - 输入文本，在 ESP-IDF 提示库中搜索匹配的错误。
+   * - 选择当前使用的 ESP-IDF 版本
+     - 选择 ``eim_idf.json`` 中已完成的 ESP-IDF 安装，供当前工作区使用。详情请参阅 :ref:`扩展激活 <extension-activation>`。
+   * - 选择 eim_idf.json
+     - 选择 ESP-IDF 安装管理器的 ``eim_idf.json`` 目录文件。详情请参阅 :ref:`扩展激活 <extension-activation>`。
    * - 选择烧录方式
      - 选择用于 **烧录项目** 命令的烧录方法，可选择 DFU、JTAG 或 UART 接口。
+   * - 选择要使用的监视器端口（com，tty，usbserial）
+     - 选择保存在 **idf.monitorPort** 中的串口。该设置为空时，监视器使用 **idf.port**。
    * - 选择要使用的端口
      - 选择用于 ESP-IDF 任务（如烧录或监视设备）的串口。
    * - 选择 OpenOCD 开发板配置
@@ -126,16 +188,32 @@
      - 此扩展会在输出窗口 <strong>ESP-IDF</strong> 中显示通知和输出。此命令可设置是否只显示通知、只显示输出、两者都显示或都不显示。
    * - 设置乐鑫设备目标
      - 该命令为当前项目设置目标 (IDF_TARGET)，效果等同于 **idf.py set-target**。例如，若想使用 ESP32 或 ESP32-C3，则需执行此命令。
+   * - 乐鑫组件注册表
+     - 打开 ESP 组件注册表浏览器，以安装组件或从示例创建项目。详情请参阅 :ref:`ESP-IDF 组件注册表 <ESP-IDF Component Registry>`。
    * - 显示 Ninja 构建摘要
      - 运行 Chromium ninja-build-summary.py。
+   * - 显示跟踪报告
+     - 打开已保存的应用程序跟踪报告。
    * - 二进制文件大小分析
      - 启动 UI 以显示 ESP-IDF 项目的二进制文件大小信息。
+   * - 同步 ESP-Rainmaker 云服务器
+     - 从 ESP RainMaker 云刷新节点和参数。详情请参阅 :doc:`ESP RainMaker <additionalfeatures/rainmaker>`。
+   * - 取消与 Rainmaker 帐户的绑定
+     - 退出已绑定的 ESP RainMaker 账户。详情请参阅 :doc:`ESP RainMaker <additionalfeatures/rainmaker>`。
    * - 单元测试：构建单元测试应用程序
      - 构建当前项目的单元测试应用程序。详情请参阅 :ref:`单元测试 <unit testing>`。
    * - 单元测试：烧录单元测试应用程序
      - 将当前项目的单元测试应用程序烧录到连接的设备上。详情请参阅 :ref:`单元测试 <unit testing>`。
    * - 单元测试：构建并烧录单元测试应用程序
      - 复制当前项目中的单元测试应用程序，构建当前项目并将单元测试应用程序烧录到连接的设备上。详情请参阅 :ref:`单元测试 <unit testing>`。
+   * - 为设备更新参数
+     - 编辑已绑定 ESP RainMaker 账户中某台设备的参数。详情请参阅 :doc:`ESP RainMaker <additionalfeatures/rainmaker>`。
+   * - 以十六进制查看
+     - 在调试时于十六进制视图中显示选中的调试变量。
+   * - 以图像查看变量
+     - 在调试时于图像查看器中显示选中的调试变量。
+   * - 欢迎使用 ESP-IDF 扩展
+     - 打开 ESP-IDF 欢迎页面。
    * - 从 LVGL C 文件加载图像
      - 从包含 lv_image_dsc_t 结构的 LVGL C 文件中加载并显示图像。此命令允许您在不需要调试会话的情况下查看 LVGL 图像。
    * - 打开图像查看器
