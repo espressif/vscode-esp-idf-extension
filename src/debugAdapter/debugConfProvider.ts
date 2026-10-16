@@ -20,6 +20,7 @@ import {
   CancellationToken,
   DebugConfiguration,
   DebugConfigurationProvider,
+  workspace,
   WorkspaceFolder,
 } from "vscode";
 import { readParameter } from "../configuration/idf";
@@ -28,7 +29,7 @@ import {
   getConfigValueFromSDKConfig,
 } from "../configuration/workspace";
 import { dirname, join } from "path";
-import { pathExists, readFile } from "fs-extra";
+import { outputFile, pathExists, readFile } from "fs-extra";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../common/logger";
 import { execChildProcess } from "../utils";
@@ -46,6 +47,49 @@ import {
   resolveDebugProgram,
   verifyAppBeforeDebug,
 } from "./validation";
+
+const INITIAL_GDBTARGET_CONFIG: DebugConfiguration = {
+  type: "gdbtarget",
+  request: "attach",
+  name: "ESP-IDF",
+};
+
+function isInitialGdbTargetConfig(config: DebugConfiguration): boolean {
+  return (
+    config.type === INITIAL_GDBTARGET_CONFIG.type &&
+    config.request === INITIAL_GDBTARGET_CONFIG.request &&
+    config.name === INITIAL_GDBTARGET_CONFIG.name
+  );
+}
+
+function workspaceHasInitialGdbTargetConfig(
+  folder: WorkspaceFolder | undefined
+): boolean {
+  const configurations = workspace
+    .getConfiguration("launch", folder)
+    .get<DebugConfiguration[]>("configurations");
+  return (
+    configurations?.some(
+      (configuration) =>
+        !!configuration && isInitialGdbTargetConfig(configuration)
+    ) ?? false
+  );
+}
+
+async function ensureInitialLaunchJson(folder: WorkspaceFolder) {
+  const launchJsonPath = join(folder.uri.fsPath, ".vscode", "launch.json");
+  if (await pathExists(launchJsonPath)) {
+    return;
+  }
+  const launchJson = {
+    version: "0.2.0",
+    configurations: [{ ...INITIAL_GDBTARGET_CONFIG }],
+  };
+  await outputFile(
+    launchJsonPath,
+    `${JSON.stringify(launchJson, null, 2)}\n`
+  );
+}
 
 /** ESP-IDF generated gdbinit files, in `idf.py gdb` order. */
 const GDBINIT_FILE_NAMES = [
@@ -268,6 +312,15 @@ async function handleDebugConfigurationError(
 
 export class CDTDebugConfigurationProvider
   implements DebugConfigurationProvider {
+  public provideDebugConfigurations(
+    folder?: WorkspaceFolder
+  ): DebugConfiguration[] {
+    if (workspaceHasInitialGdbTargetConfig(folder)) {
+      return [];
+    }
+    return [{ ...INITIAL_GDBTARGET_CONFIG }];
+  }
+
   public async resolveDebugConfigurationWithSubstitutedVariables(
     folder: WorkspaceFolder | undefined,
     debugConfiguration: DebugConfiguration,
@@ -335,6 +388,15 @@ export class CDTDebugConfigurationProvider
     token?: CancellationToken
   ): Promise<DebugConfiguration | undefined> {
     try {
+      if (!config.type && !config.request) {
+        config.type = INITIAL_GDBTARGET_CONFIG.type;
+        config.request = INITIAL_GDBTARGET_CONFIG.request;
+        config.name = INITIAL_GDBTARGET_CONFIG.name;
+      }
+      if (isInitialGdbTargetConfig(config)) {
+        folder = await requireWorkspaceFolderForDebug(folder);
+        await ensureInitialLaunchJson(folder);
+      }
       folder = await requireWorkspaceFolderForDebug(folder);
       config.program = await resolveDebugProgram(config, folder);
       if (!config.gdb) {
