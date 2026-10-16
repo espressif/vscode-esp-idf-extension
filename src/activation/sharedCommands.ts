@@ -33,6 +33,7 @@ import { registerCommandsTree } from "../cmdTreeView/cmdTreeDataProvider";
 
 export interface SharedActivationActions {
   retryActivation: () => Promise<void>;
+  activateAnyway: () => Promise<void>;
   selectEimIdfJson: () => Promise<void>;
 }
 
@@ -65,5 +66,8 @@ export function registerSharedCommands(
   );
   registerIDFCommand(context, "espIdf.retryActivation", () =>
     actions.retryActivation()
+  );
+  registerIDFCommand(context, "espIdf.activateAnyway", () =>
+    actions.activateAnyway()
   );
 }

@@ -61,7 +61,7 @@ After the extension loads, it checks the ESP-IDF Installation Manager catalog be
 
    - A ``idf.currentSetup`` path that matches a finished install continues into full configured mode.
    - A path that is missing from ``eim_idf.json``, or is not finished, shows ``Invalid ESP-IDF Setup``. Clicking the status bar runs **ESP-IDF: Select Current ESP-IDF Version**.
-   - An empty ``idf.currentSetup`` runs the ``idf.extensionActivationMode`` check below. When that check allows activation, the first finished install is saved as ``idf.currentSetup`` and full configured mode starts. When the check declines, project commands are not registered and the non-configured status bar is not shown.
+   - An empty ``idf.currentSetup`` runs the ``idf.extensionActivationMode`` check below. When that check allows activation, the first finished install is saved as ``idf.currentSetup`` and full configured mode starts. When the check declines because the mode is ``never``, project commands are not registered and no activation status bar is shown. When no standard project is detected, the status bar shows ``No ESP-IDF project detected``. Clicking it, or running **ESP-IDF: Activate ESP-IDF**, saves the first finished install and starts full configured mode without changing ``idf.extensionActivationMode``.
 
 **ESP-IDF: Retry ESP-IDF Activation** runs these checks again. While the extension is still outside full configured mode, they also run again when ``idf.eimIdfJsonPath``, ``idf.currentSetup``, or ``idf.extensionActivationMode`` changes, and when a workspace folder is added. After the extension is fully configured, changes to the ``eim_idf.json`` file itself are handled by the watcher described in `Watching eim_idf.json`_.
 
@@ -80,18 +80,20 @@ Before full configured mode, the view is a flat list. It has no Advanced categor
 - **ESP-IDF: Open Get Started Walkthrough**
 - **ESP-IDF: Retry ESP-IDF Activation**
 
-In non-configured mode, and when activation was skipped, the list also includes **ESP-IDF: Select Current ESP-IDF Version** when a workspace folder is open.
+In non-configured mode, when activation was skipped, and when no project was detected, the list also includes **ESP-IDF: Select Current ESP-IDF Version** when a workspace folder is open.
+
+When no project was detected, the list also includes **ESP-IDF: Activate ESP-IDF**. **ESP-IDF: Retry ESP-IDF Activation** runs detection again and does not opt in.
 
 Full configured mode shows the project command list and the Advanced category with checkboxes.
 
-When a catalog change leaves configured mode, the view switches to the shorter list. Project commands that were already registered stay available from the Command Palette. A later successful retry restores the full list.
+When a catalog change leaves configured mode, the view switches to the shorter list. Project commands that were already registered stay registered, but the Command Palette and their keybindings hide until the extension is configured again. A later successful retry restores the full list.
 
 Watching eim_idf.json
 ---------------------
 
 After the first validation, the extension watches the resolved catalog file. That file is ``idf.eimIdfJsonPath`` when the file exists. Otherwise it is ``C:\\Espressif\\tools\\eim_idf.json`` on Windows, or ``~/.espressif/tools/eim_idf.json`` elsewhere. The file is outside the workspace. Create, change, and delete events for one edit are handled once. Events are ignored while activation is already running.
 
-- **Non-configured and skipped**: run **ESP-IDF: Retry ESP-IDF Activation**.
+- **Non-configured, skipped, and no project detected**: run **ESP-IDF: Retry ESP-IDF Activation**.
 - **Configured**: stay configured when ``idf.currentSetup`` still matches a finished install. If the file is missing, unreadable, or that setup is gone or not finished, hide the configured status bar items and show the non-configured status bar (``Invalid ESP-IDF Setup``, or ``eim_idf.json not found`` / ``No valid ESP-IDF setup found`` when that is the real failure). Switch the commands view to the shorter list. Already registered project commands stay registered. A later successful activation shows the configured status bar items again.
 - **No workspace folder**: stay in that mode when at least one finished install remains. Otherwise show the non-configured status bar for a missing catalog (``eim_idf.json not found``) or no finished setup (``No valid ESP-IDF setup found``).
 
@@ -105,7 +107,7 @@ Activation Mode Priority Hierarchy (Phase 2)
 1. **Workspace/Global Setting = "always"**
 
    - **Action**: Save the first finished ESP-IDF install and fully initialize
-   - **Skips**: CMake detection and the "Activate Anyway" prompt
+   - **Skips**: CMake detection and the status bar activation offer
    - **Use case**: Force-enable the extension for custom project layouts
    - **Setting location**: User Settings or Workspace Settings
 
@@ -113,7 +115,7 @@ Activation Mode Priority Hierarchy (Phase 2)
 
    - **Action**: Do not save ``idf.currentSetup`` and do not register project commands
    - **Overrides**: All folder-level settings
-   - **No prompt shown**: Respects your explicit choice
+   - **No status bar offer**: Respects your explicit choice
    - **Use case**: Explicitly disable extension in specific workspaces
    - This still applies when VS Code loads the extension via MCP discovery with no workspace open; MCP servers are also not registered. Servers are withdrawn when mode is ``"never"`` or the extension deactivates; they are not a user ``mcp.json`` entry.
 
@@ -127,7 +129,7 @@ Activation Mode Priority Hierarchy (Phase 2)
 4. **ALL Folder Settings = "never"**
 
    - **Action**: Do not save ``idf.currentSetup`` and do not register project commands
-   - **No prompt shown**: Respects explicit configuration
+   - **No status bar offer**: Respects explicit configuration
    - **Use case**: Multi-root workspace explicitly excluding ESP-IDF
 
 5. **Otherwise** (Default Behavior — CMake Detection)
@@ -135,7 +137,7 @@ Activation Mode Priority Hierarchy (Phase 2)
    - **Condition**: No workspace/global override (i.e., ``"detect"``), no folder set to ``"always"``, and not all folders set to ``"never"`` — this includes mixed per-folder states such as some ``"detect"`` and some ``"never"``
    - **Action**: Fallback to automatic CMakeLists.txt content detection
    - **Detection**: Searches for ``include($ENV{IDF_PATH}/tools/cmake/project.cmake)``
-   - **If not found**: Prompts with "Activate Anyway" dialog
+   - **If not found**: The status bar shows ``No ESP-IDF project detected``. Clicking it runs **ESP-IDF: Activate ESP-IDF**, which saves the first finished install without changing ``idf.extensionActivationMode``
    - **Use case**: Standard ESP-IDF projects (backward compatible)
 
 Configuration Setting
@@ -151,7 +153,7 @@ The setting used when a workspace folder is open and ``idf.currentSetup`` is emp
 
 **Possible values:**
 
-- ``"detect"`` (default) — Auto-detect by inspecting ``CMakeLists.txt`` content.
+- ``"detect"`` (default) — Auto-detect by inspecting ``CMakeLists.txt`` content. When no standard project is found, the status bar offers activation.
 - ``"always"`` — Skip CMake detection, save the first finished ESP-IDF install, and register project commands.
 - ``"never"`` — Do not save an empty ``idf.currentSetup`` and do not register project commands, even if an ESP-IDF project is detected.
 
@@ -201,7 +203,7 @@ If you want to prevent the extension from initializing in a non-ESP-IDF workspac
      "idf.extensionActivationMode": "never"
    }
 
-The extension will not initialize, and no prompt will be shown.
+The extension will not initialize, and the activation status bar is not shown.
 
 Multi-Root Workspace with Mixed Projects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -285,9 +287,9 @@ Extension Not Activating
 
    **Solution**: Add ``"idf.extensionActivationMode": "always"`` to workspace settings.
 
-4. **Prompt dismissed** (Phase 2): You dismissed the "Activate Anyway" dialog.
+4. **No standard project detected** (Phase 2): ``idf.currentSetup`` is empty, activation mode is ``detect``, and no root ``CMakeLists.txt`` includes the ESP-IDF ``project.cmake`` line. The status bar shows ``No ESP-IDF project detected``.
 
-   **Solution**: Reload the window (``Ctrl+Shift+P`` → "Developer: Reload Window") and choose "Activate Anyway" when prompted.
+   **Solution**: Click the status bar item, or run **ESP-IDF: Activate ESP-IDF**. That saves the first finished install as ``idf.currentSetup``. You can also set ``"idf.extensionActivationMode": "always"``.
 
 Extension Activating in Wrong Workspace
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -338,7 +340,7 @@ Backward Compatibility
 The activation system maintains full backward compatibility:
 
 - Projects without the setting use the original CMakeLists.txt detection
-- The "Activate Anyway" prompt still appears for non-standard projects
+- Non-standard projects keep a status bar action, **ESP-IDF: Activate ESP-IDF**, until you activate or set the mode to ``never``
 - Standard ESP-IDF projects work without any configuration changes
 
 Performance Optimizations
