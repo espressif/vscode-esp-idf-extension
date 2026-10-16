@@ -71,8 +71,7 @@ function workspaceHasInitialGdbTargetConfig(
   return (
     configurations?.some(
       (configuration) =>
-        configuration?.type === INITIAL_GDBTARGET_CONFIG.type &&
-        configuration?.name === INITIAL_GDBTARGET_CONFIG.name
+        !!configuration && isInitialGdbTargetConfig(configuration)
     ) ?? false
   );
 }
