@@ -39,7 +39,15 @@ export type ActivationDecision =
   | { kind: "nonConfigured"; failure: ActivationFailure }
   | { kind: "configuredNoWorkspaceFolder" }
   | { kind: "skipped" }
+  | { kind: "undetected" }
   | { kind: "configured" };
+
+/** Consumed once when idf.currentSetup is empty. Does not change idf.extensionActivationMode. */
+let forceProjectActivation = false;
+
+export function requestProjectActivation() {
+  forceProjectActivation = true;
+}
 
 async function resolveEimIdfJson(): Promise<EspIdfJson | undefined> {
   const customPath = readParameter("idf.eimIdfJsonPath") as string;
@@ -95,13 +103,30 @@ export async function runValidations(): Promise<ActivationDecision> {
     workspaceFolder
   ) as string;
   if (!currentSetup) {
-    const activateForProject = await checkIfActivateExtension();
-    if (!activateForProject) {
+    const optedIn = forceProjectActivation;
+    forceProjectActivation = false;
+    const projectActivation = optedIn
+      ? "activate"
+      : await checkIfActivateExtension();
+    if (projectActivation === "suppress") {
       Logger.info(
         "idf.currentSetup is empty and the project activation check declined.",
         "runValidations"
       );
       return { kind: "skipped" };
+    }
+    if (projectActivation === "undetected") {
+      Logger.info(
+        "No standard ESP-IDF project was found. Waiting for explicit activation.",
+        "runValidations"
+      );
+      return { kind: "undetected" };
+    }
+    if (optedIn) {
+      Logger.info(
+        "User chose to activate the ESP-IDF extension without a detected ESP-IDF project.",
+        "runValidations"
+      );
     }
     const written = await writeParameter(
       "idf.currentSetup",

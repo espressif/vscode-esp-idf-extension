@@ -16,9 +16,11 @@
  * limitations under the License.
  */
 import {
+  commands,
   Event,
   EventEmitter,
   ExtensionContext,
+  l10n,
   ProviderResult,
   ThemeIcon,
   TreeDataProvider,
@@ -42,6 +44,7 @@ export type IdfCommandTreeMode =
   | "nonConfigured"
   | "configuredNoWorkspaceFolder"
   | "skipped"
+  | "undetected"
   | "configured";
 
 export class CommandsProvider implements TreeDataProvider<CommandItem> {
@@ -92,8 +95,20 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
           entry.description.iconId
         )
     );
+    if (this.mode === "undetected") {
+      cmdItemList.push(
+        new CommandItem(
+          l10n.t("Activate ESP-IDF"),
+          CommandType.Command,
+          "espIdf.activateAnyway",
+          "play"
+        )
+      );
+    }
     if (
-      (this.mode === "nonConfigured" || this.mode === "skipped") &&
+      (this.mode === "nonConfigured" ||
+        this.mode === "skipped" ||
+        this.mode === "undetected") &&
       PreCheck.isWorkspaceFolderOpen() &&
       commandDictionary
     ) {
@@ -206,4 +221,9 @@ export function registerCommandsTree(context: ExtensionContext) {
 
 export function setCommandsTreeMode(mode: IdfCommandTreeMode) {
   commandsProvider?.setMode(mode);
+  void commands.executeCommand(
+    "setContext",
+    "espIdf.configured",
+    mode === "configured"
+  );
 }
