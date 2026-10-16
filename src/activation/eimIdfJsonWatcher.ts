@@ -162,7 +162,11 @@ async function onCatalogChanged() {
     return;
   }
   const mode = watcherHost.getMode();
-  if (mode === "nonConfigured" || mode === "skipped") {
+  if (
+    mode === "nonConfigured" ||
+    mode === "skipped" ||
+    mode === "undetected"
+  ) {
     await commands.executeCommand("espIdf.retryActivation");
     return;
   }

@@ -17,6 +17,7 @@
  */
 
 import {
+  commands,
   ConfigurationTarget,
   env,
   ExtensionContext,
@@ -60,6 +61,7 @@ export function registerSelectCurrentIdfVersionCommand(
     return;
   }
   selectCurrentIdfVersionRegistered = true;
+  void commands.executeCommand("setContext", "espIdf.canSelectIdfVersion", true);
   registerEimCommand(context, "espIdf.selectCurrentIdfVersion", () => {
     if (!PreCheck.isWorkspaceFolderOpen()) {
       throw noWorkspaceOpen({

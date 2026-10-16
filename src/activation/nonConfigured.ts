@@ -73,6 +73,24 @@ export function enterNonConfigured(failure: ActivationFailure) {
   statusBarItem.show();
 }
 
+export function enterUndetected() {
+  hideConfiguredStatusBarItems();
+  const text = l10n.t("No ESP-IDF project detected");
+  if (!statusBarItem) {
+    statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 110);
+    statusBarItem.backgroundColor = new ThemeColor(
+      "statusBarItem.warningBackground"
+    );
+  }
+  statusBarItem.name = text;
+  statusBarItem.text = `$(warning) ${text}`;
+  statusBarItem.tooltip = l10n.t(
+    "Activate the ESP-IDF extension for this workspace"
+  );
+  statusBarItem.command = "espIdf.activateAnyway";
+  statusBarItem.show();
+}
+
 export function disposeNonConfiguredStatusBar() {
   statusBarItem?.dispose();
   statusBarItem = undefined;

@@ -19,7 +19,6 @@
 import {
   ExtensionContext,
   workspace,
-  window,
   l10n,
   commands,
   ConfigurationTarget,
@@ -36,6 +35,8 @@ import { registerIDFCommand } from "./registerCommand";
 
 export const activationModeConfigKey = "idf.extensionActivationMode";
 
+export type ProjectActivation = "activate" | "suppress" | "undetected";
+
 export function normalizeActivationMode(
   value: unknown
 ): "detect" | "always" | "never" {
@@ -48,13 +49,13 @@ export function normalizeActivationMode(
   return "detect";
 }
 
-export async function checkIfActivateExtension(): Promise<boolean> {
+export async function checkIfActivateExtension(): Promise<ProjectActivation> {
   // Validate workspace activation eligibility
   // See docs_espressif/en/extension-activation.rst for details
   if (PreCheck.isWorkspaceFolderOpen() && workspace.workspaceFolders) {
     const activationModeConfigKey = "idf.extensionActivationMode";
     try {
-      // 1) Workspace/global setting: always activates; never suppresses (no prompt).
+      // 1) Workspace/global setting: always activates; never suppresses.
       const workspaceValue = normalizeActivationMode(
         readParameter(activationModeConfigKey)
       );
@@ -63,14 +64,14 @@ export async function checkIfActivateExtension(): Promise<boolean> {
         Logger.info(
           "Extension activation forced by workspace/global idf.extensionActivationMode=always setting."
         );
-        return true;
+        return "activate";
       } else if (workspaceValue === "never") {
         Logger.info(
           "Extension activation suppressed by workspace/global idf.extensionActivationMode=never setting."
         );
-        return false;
+        return "suppress";
       } else {
-        // 2) Folder settings: any always activates; only ALL folders never suppresses (no prompt).
+        // 2) Folder settings: any always activates; only ALL folders never suppresses.
         let hasAnyFolderAlways = false;
         let allFoldersNever = workspace.workspaceFolders.length > 0;
         for (const folder of workspace.workspaceFolders) {
@@ -95,7 +96,7 @@ export async function checkIfActivateExtension(): Promise<boolean> {
             Logger.info(
               "Extension activation suppressed because all workspace folders set idf.extensionActivationMode=never."
             );
-            return false;
+            return "suppress";
           }
 
           // 3) Fallback: CMakeLists.txt detection across folders.
@@ -132,24 +133,10 @@ export async function checkIfActivateExtension(): Promise<boolean> {
           }
 
           if (!hasCMakeIdfProject) {
-            // 4) Prompt only when no standard project was detected.
-            const activateAnyway = await window.showInformationMessage(
-              l10n.t(
-                "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?"
-              ),
-              { modal: false },
-              { title: l10n.t("Activate Anyway") }
-            );
-            if (
-              !activateAnyway ||
-              activateAnyway.title !== l10n.t("Activate Anyway")
-            ) {
-              Logger.info("User chose not to activate the ESP-IDF extension.");
-              return false;
-            }
             Logger.info(
-              "User chose to activate the ESP-IDF extension despite no standard ESP-IDF project was found."
+              "No standard ESP-IDF project was found in this workspace."
             );
+            return "undetected";
           }
         }
       }
@@ -161,7 +148,7 @@ export async function checkIfActivateExtension(): Promise<boolean> {
       );
     }
   }
-  return true;
+  return "activate";
 }
 
 export function checkAndNotifyMissingCompileCommands() {
