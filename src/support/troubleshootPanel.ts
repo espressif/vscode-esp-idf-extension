@@ -158,8 +158,7 @@ export class TroubleshootingPanel {
         const reportedResult = initializeReportObject();
         try {
           await generateConfigurationReport(context, reportedResult, progress);
-          const reportOutput = await writeTextReport(reportedResult, context);
-          troubleshootOutput += reportOutput;
+          troubleshootOutput += reportedResult.fullReport;
           await env.clipboard.writeText(troubleshootOutput);
           Telemetry.sendEvent(
             "UserTroubleshootReport",
@@ -182,7 +181,7 @@ export class TroubleshootingPanel {
             )
           );
           const reportOutput = await writeTextReport(reportedResult, context);
-          troubleshootOutput += reportOutput;
+          troubleshootOutput += reportOutput.full;
           await env.clipboard.writeText(troubleshootOutput);
           Telemetry.sendEvent(
             "UserTroubleshootReport",

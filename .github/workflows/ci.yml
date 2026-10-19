@@ -11,6 +11,8 @@ on:
 jobs:
   extension_ci:
     runs-on: ubuntu-latest
+    env:
+      TMPDIR: ${{ runner.temp }}
 
     steps:
       - uses: actions/checkout@v6
@@ -21,6 +23,8 @@ jobs:
         uses: espressif/install-esp-idf-action@v1
         with:
           version: "v5.4.2"
+          path: ${{ runner.temp }}/esp/idf
+          tools-path: ${{ runner.temp }}/esp
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

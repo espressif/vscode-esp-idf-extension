@@ -109,11 +109,26 @@ export interface DiagnosticFinding {
   message: string;
 }
 
+export interface SetupReportStatus {
+  idfPath: string;
+  version: string;
+  isValid: boolean;
+  isActive: boolean;
+  reason: string;
+}
+
 export interface ReportSummary {
   overall: "PASS" | "FAIL" | "WARN";
   findings: DiagnosticFinding[];
   errorCount: number;
   warningCount: number;
+  setups: SetupReportStatus[];
+}
+
+export interface LogErrorGroup {
+  label: string;
+  count: number;
+  lastTimestamp: string;
 }
 
 export interface ConfigCheckLine {
@@ -145,6 +160,7 @@ export interface reportObj {
   pythonPackages: execResult;
   idfCheckRequirements: execResult;
   formatedOutput: string;
+  fullReport: string;
   selectedProjectConfiguration: string;
   systemInfo: SystemInfo;
   workspaceFolder: string;
