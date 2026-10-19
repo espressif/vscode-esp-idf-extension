@@ -37,7 +37,6 @@ import {
   isVariableCommandContextReady,
 } from "./variableCommandContext";
 import {
-  fileNotFound,
   invalidConfiguration,
   noWorkspaceOpen,
 } from "../../common/error/knownError";
@@ -200,7 +199,22 @@ export function registerEspIdfDebugCommand(
         "launch.json"
       );
       if (!(await pathExists(launchJsonPath))) {
-        throw fileNotFound(launchJsonPath, debugErrorPresentation.fileNotFound);
+        const resolvedConf = await cdtDebugProvider.resolveDebugConfiguration(
+          workspaceFolder,
+          {
+            type: "gdbtarget",
+            request: "attach",
+            name: "ESP-IDF",
+          }
+        );
+        if (!resolvedConf) {
+          throw invalidConfiguration(
+            "launch.configurations",
+            debugErrorPresentation.invalidConfiguration
+          );
+        }
+        await debug.startDebugging(workspaceFolder, resolvedConf);
+        return;
       }
       await startFirstGdbTargetConfiguration(workspaceFolder, cdtDebugProvider);
     });
