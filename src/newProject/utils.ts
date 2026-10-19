@@ -24,8 +24,13 @@ import {
   readJSON,
   writeFile,
 } from "fs-extra";
-import { configureClangSettings, setClangSettings } from "../clang/index";
+import {
+  configureClangSettings,
+  createClangdFile,
+  setClangSettings,
+} from "../clang/index";
 import { IdfSetup } from "../eim/types";
+import { updateJsonPreservingComments } from "../jsonc/updateJsonPreservingComments";
 import { Uri, WebviewPanel } from "vscode";
 import { readSettingsParameter } from "../configuration/idf";
 import { join, resolve } from "path";
@@ -42,23 +47,24 @@ import sanitizedHtml from "sanitize-html";
 
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
-  idfSetup: IdfSetup,
+  idfSetup: IdfSetup | undefined,
   port: string,
   selectedIdfTarget: string,
   workspace: Uri,
-  openOcdConfigs?: string
+  openOcdConfigs?: string | string[]
 ) {
   const settingsJson = await readJSON(settingsJsonPath);
-  if (openOcdConfigs) {
-    settingsJson["idf.openOcdConfigs"] =
-      openOcdConfigs.indexOf(",") !== -1
-        ? openOcdConfigs.split(",")
-        : [openOcdConfigs];
+  if (openOcdConfigs && openOcdConfigs.length) {
+    settingsJson["idf.openOcdConfigs"] = Array.isArray(openOcdConfigs)
+      ? openOcdConfigs
+      : openOcdConfigs.indexOf(",") !== -1
+      ? openOcdConfigs.split(",")
+      : [openOcdConfigs];
   }
   if (port.indexOf("no port") === -1) {
     settingsJson["idf.port"] = port;
   }
-  if (idfSetup.idfPath) {
+  if (idfSetup?.idfPath) {
     settingsJson["idf.currentSetup"] = idfSetup.idfPath;
   }
   settingsJson["idf.customExtraVars"] =
@@ -72,7 +78,7 @@ export async function setCurrentSettingsInTemplate(
   ) as {
     [key: string]: string;
   };
-  if (customExtraVars) {
+  if (customExtraVars && idfSetup) {
     if (customExtraVars["IDF_PATH"] === idfSetup.idfPath) {
       settingsJson["idf.customExtraVars"]["IDF_PATH"] = idfSetup.idfPath;
     }
@@ -92,6 +98,35 @@ export async function setCurrentSettingsInTemplate(
 
   await setClangSettings(settingsJson, getSettingsBuildPath(workspace));
   return settingsJson;
+}
+
+/**
+ * Add the ESP-IDF workspace files and settings a new project gets:
+ * `.vscode`, `.devcontainer`, `.gitignore`, `.clangd`, and settings for the
+ * selected setup, port, target, and OpenOCD configs.
+ */
+export async function configureIdfProject(
+  extensionPath: string,
+  projectDir: Uri,
+  idfSetup: IdfSetup | undefined,
+  port: string,
+  selectedIdfTarget: string,
+  openOcdConfigs?: string | string[]
+) {
+  await createVscodeFolder(extensionPath, projectDir);
+  await createDevContainer(extensionPath, projectDir.fsPath);
+  await createGitignoreFile(extensionPath, projectDir);
+  const settingsJsonPath = join(projectDir.fsPath, ".vscode", "settings.json");
+  const settingsJson = await setCurrentSettingsInTemplate(
+    settingsJsonPath,
+    idfSetup,
+    port,
+    selectedIdfTarget,
+    projectDir,
+    openOcdConfigs
+  );
+  await createClangdFile(projectDir);
+  await updateJsonPreservingComments(settingsJsonPath, settingsJson);
 }
 
 export async function copyFromSrcProject(
