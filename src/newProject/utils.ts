@@ -21,7 +21,6 @@ import {
   mkdirp,
   pathExists,
   readFile,
-  readJSON,
   writeFile,
 } from "fs-extra";
 import {
@@ -30,6 +29,7 @@ import {
   setClangSettings,
 } from "../clang/index";
 import { IdfSetup } from "../eim/types";
+import { ParseError, parse } from "jsonc-parser";
 import { updateJsonPreservingComments } from "../jsonc/updateJsonPreservingComments";
 import { Uri, WebviewPanel } from "vscode";
 import { readSettingsParameter } from "../configuration/idf";
@@ -53,7 +53,21 @@ export async function setCurrentSettingsInTemplate(
   workspace: Uri,
   openOcdConfigs?: string | string[]
 ) {
-  const settingsJson = await readJSON(settingsJsonPath);
+  const settingsContent = await readFile(settingsJsonPath, "utf8");
+  const parseErrors: ParseError[] = [];
+  const settingsJson = parse(settingsContent, parseErrors, {
+    allowTrailingComma: true,
+  });
+  if (
+    parseErrors.length > 0 ||
+    !settingsJson ||
+    typeof settingsJson !== "object" ||
+    Array.isArray(settingsJson)
+  ) {
+    throw new Error(
+      `Failed to parse ${settingsJsonPath} with ${parseErrors.length} errors`
+    );
+  }
   if (openOcdConfigs && openOcdConfigs.length) {
     settingsJson["idf.openOcdConfigs"] = Array.isArray(openOcdConfigs)
       ? openOcdConfigs

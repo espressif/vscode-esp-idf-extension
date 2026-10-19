@@ -42,10 +42,12 @@ export class ComponentManagerUIPanel {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
       : undefined;
-    if (ComponentManagerUIPanel.instance) {
-      ComponentManagerUIPanel.instance.panel.reveal(column);
+    const existingPanel = ComponentManagerUIPanel.instance;
+    if (existingPanel?.workspaceRoot.fsPath === workspaceRoot.fsPath) {
+      existingPanel.panel.reveal(column);
       return;
     }
+    existingPanel?.dispose();
     const url = readParameter(
       "esp.component-manager.url",
       workspaceRoot
