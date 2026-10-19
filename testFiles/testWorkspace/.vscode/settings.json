@@ -7,5 +7,5 @@
   "window.dialogStyle": "custom",
   "idf.notificationMode": "Output",
   "idf.showOnboardingOnInit": false,
-  "idf.currentSetup": "C:\\esp\\master\\esp-idf"
+  "idf.currentSetup": "/Users/denys/.espressif/v6.1/esp-idf"
 }
