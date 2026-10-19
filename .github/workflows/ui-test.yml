@@ -11,6 +11,8 @@ on:
 jobs:
   ui_test:
     runs-on: ubuntu-latest
+    env:
+      TMPDIR: ${{ runner.temp }}
 
     steps:
       - uses: actions/checkout@v6
@@ -20,7 +22,9 @@ jobs:
       - name: Install ESP-IDF
         uses: espressif/install-esp-idf-action@v1
         with:
-          version: "v5.4"
+          version: "v5.4.2"
+          path: ${{ runner.temp }}/esp/idf
+          tools-path: ${{ runner.temp }}/esp
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
