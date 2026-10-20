@@ -17,7 +17,6 @@ bandit_output.txt
 flake8_output.txt
 results/
 report.txt
-report-full.txt
 report.json
 test-resources/**
 /docs_espressif/__pycache__/

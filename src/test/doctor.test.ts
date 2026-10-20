@@ -228,33 +228,32 @@ suite("Doctor Command tests", () => {
   });
 
   test("Match written report", async () => {
-    const reports = await writeTextReport(reportObj, mockUpContext);
-    assert.ok(reports.summary.includes("ISSUES"));
-    assert.ok(reports.summary.includes("ACTIVE SETUP"));
-    assert.ok(reports.summary.includes("OTHER ESP-IDF SETUPS"));
-    assert.ok(reports.summary.includes("Overall:"));
+    const report = await writeTextReport(reportObj, mockUpContext);
+    const { summary, details } = splitDoctorReport(report);
+    assert.ok(summary.includes("ISSUES"));
+    assert.ok(summary.includes("ACTIVE SETUP"));
+    assert.ok(summary.includes("OTHER ESP-IDF SETUPS"));
+    assert.ok(summary.includes("Overall:"));
+    assert.ok(!summary.includes("Python packages in Virtual environment"));
+    assert.ok(!summary.includes('"stack":'));
+    assert.ok(details.includes("Configuration checks"));
+    assert.ok(details.includes("Python packages in Virtual environment"));
+    assert.ok(details.includes("Logfile"));
+    assert.ok(details.includes("Additional extension settings"));
     assert.ok(
-      !reports.summary.includes("Python packages in Virtual environment")
-    );
-    assert.ok(!reports.summary.includes('"stack":'));
-    assert.ok(reports.full.startsWith(reports.summary));
-    assert.ok(reports.full.includes("Configuration checks"));
-    assert.ok(reports.full.includes("Python packages in Virtual environment"));
-    assert.ok(reports.full.includes("Logfile"));
-    assert.ok(reports.full.includes("Additional extension settings"));
-    assert.ok(
-      !reports.summary.includes(
+      !summary.includes(
         "-------------------------------------------------------- Configurations access -------------------------------------------------------------"
       )
     );
+    assert.ok(!report.includes("report-full.txt"));
     assert.ok(reportObj.reportSummary);
     const overall = reportObj.reportSummary.overall;
     assert.ok(["PASS", "FAIL", "WARN"].includes(overall));
-    if (overall === "PASS") {
-      assert.ok(!reports.summary.includes("ACTIONS"));
+    if (overall === "FAIL") {
+      assert.ok(summary.includes("ACTIONS"));
+      assert.ok(summary.includes("Open ESP-IDF Installation Manager"));
     } else {
-      assert.ok(reports.summary.includes("ACTIONS"));
-      assert.ok(reports.summary.includes("Open ESP-IDF Installation Manager"));
+      assert.ok(!summary.includes("ACTIONS"));
     }
   });
 
@@ -277,31 +276,45 @@ suite("Doctor Command tests", () => {
     ];
 
     const passing = await writeTextReport(report, mockUpContext);
+    const passingParts = splitDoctorReport(passing);
     assert.equal(report.reportSummary?.overall, "PASS");
-    assert.ok(passing.summary.includes("ISSUES"));
-    assert.ok(passing.summary.includes("ACTIVE SETUP"));
-    assert.ok(passing.summary.includes("OTHER ESP-IDF SETUPS"));
-    assert.ok(!passing.summary.includes("ACTIONS"));
-    assert.ok(!passing.summary.includes("widget-pkg version:"));
-    assert.ok(passing.full.startsWith(passing.summary));
-    assert.ok(passing.full.includes("Configuration checks"));
-    assert.ok(passing.full.includes("widget-pkg version: 1.2.3"));
-    assert.ok(passing.full.includes("Logfile"));
+    assert.ok(passingParts.summary.includes("ISSUES"));
+    assert.ok(passingParts.summary.includes("ACTIVE SETUP"));
+    assert.ok(passingParts.summary.includes("OTHER ESP-IDF SETUPS"));
+    assert.ok(!passing.includes("ACTIONS"));
+    assert.ok(!passingParts.summary.includes("widget-pkg version:"));
+    assert.ok(passingParts.details.includes("Configuration checks"));
+    assert.ok(passingParts.details.includes("widget-pkg version: 1.2.3"));
+    assert.ok(passingParts.details.includes("Logfile"));
 
     report.configurationSettings.systemEnvPath =
       "/usr/bin:/Applications/VMware Fusion.app/Contents/Public:/usr/sbin";
     report.configurationSpacesValidation.systemEnvPath = true;
     const warning = await writeTextReport(report, mockUpContext);
+    const warningParts = splitDoctorReport(warning);
     assert.equal(report.reportSummary?.overall, "WARN");
-    assert.ok(warning.summary.includes("ACTIONS"));
-    assert.ok(warning.summary.includes("Open ESP-IDF Installation Manager"));
-    const issues = warning.summary.split("ACTIONS")[0];
-    assert.ok(issues.includes("VMware Fusion.app"));
-    assert.ok(!issues.includes("/usr/bin"));
+    assert.ok(!warning.includes("ACTIONS"));
     assert.ok(
-      warning.full.includes(
+      !warningParts.summary.includes("Open ESP-IDF Installation Manager")
+    );
+    assert.ok(warningParts.summary.includes("VMware Fusion.app"));
+    assert.ok(!warningParts.summary.includes("/usr/bin"));
+    assert.ok(
+      warningParts.details.includes(
         "/usr/bin:/Applications/VMware Fusion.app/Contents/Public:/usr/sbin"
       )
     );
   });
 });
+
+function splitDoctorReport(
+  report: string
+): { summary: string; details: string } {
+  const marker = "\nDETAILS\n";
+  const index = report.indexOf(marker);
+  assert.ok(index > 0);
+  return {
+    summary: report.slice(0, index),
+    details: report.slice(index),
+  };
+}

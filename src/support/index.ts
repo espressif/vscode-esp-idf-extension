@@ -22,11 +22,7 @@ import { withProgressWrapper } from "../common/withProgressWrapper";
 import { initializeReportObject } from "./initReportObj";
 import { generateConfigurationReport } from "./main";
 import { Logger } from "../common/logger";
-import {
-  DOCTOR_FULL_FILE,
-  DOCTOR_SUMMARY_FILE,
-  writeTextReport,
-} from "./writeReport";
+import { DOCTOR_SUMMARY_FILE, writeTextReport } from "./writeReport";
 import { TroubleshootingPanel } from "./troubleshootPanel";
 import { ESP } from "../config";
 import { isKnownError } from "../common/error/knownError";
@@ -36,28 +32,20 @@ async function presentDoctorSummary(
   reportedResult: reportObj,
   context: ExtensionContext
 ): Promise<void> {
-  const openFullReport = l10n.t("Open full report");
-  const copyFullReport = l10n.t("Copy full report");
   const openInstallationManager = l10n.t("Open ESP-IDF Installation Manager");
   await env.clipboard.writeText(reportedResult.formatedOutput);
   await window.showTextDocument(
     Uri.joinPath(context.extensionUri, DOCTOR_SUMMARY_FILE)
   );
-  const actions = [openFullReport, copyFullReport];
-  if (reportedResult.reportSummary?.overall !== "PASS") {
+  const actions: string[] = [];
+  if (reportedResult.reportSummary?.overall === "FAIL") {
     actions.push(openInstallationManager);
   }
   const choice = await window.showInformationMessage(
-    l10n.t("ESP-IDF Doctor summary has been copied to clipboard."),
+    l10n.t("ESP-IDF Doctor report has been copied to clipboard."),
     ...actions
   );
-  if (choice === openFullReport) {
-    await window.showTextDocument(
-      Uri.joinPath(context.extensionUri, DOCTOR_FULL_FILE)
-    );
-  } else if (choice === copyFullReport) {
-    await env.clipboard.writeText(reportedResult.fullReport);
-  } else if (choice === openInstallationManager) {
+  if (choice === openInstallationManager) {
     await commands.executeCommand("espIdf.installManager");
   }
 }
@@ -71,27 +59,35 @@ async function showDoctorReportOnError(
   const errMsg = error instanceof Error ? error.message : String(error);
   Logger.error(errMsg, error as Error, "extension DoctorCommand");
   await writeTextReport(reportedResult, context);
-  await presentDoctorSummary(reportedResult, context);
 }
 
 export function registerDoctorCommand(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.doctorCommand", async () => {
+    const reportedResult = initializeReportObject();
+    let reportReady = false;
+    let errorToRethrow: unknown;
     await withProgressWrapper(
       [],
       l10n.t("ESP-IDF Doctor"),
-      async (progress, cancelToken) => {
-        const reportedResult = initializeReportObject();
+      async (progress) => {
         try {
           await generateConfigurationReport(context, reportedResult, progress);
-          await presentDoctorSummary(reportedResult, context);
+          reportReady = true;
         } catch (error) {
           await showDoctorReportOnError(error, reportedResult, context);
+          reportReady = true;
           if (!isKnownError(error)) {
-            throw error;
+            errorToRethrow = error;
           }
         }
       }
     );
+    if (reportReady) {
+      await presentDoctorSummary(reportedResult, context);
+    }
+    if (errorToRethrow) {
+      throw errorToRethrow;
+    }
   });
 
   registerIDFCommand(context, "espIdf.troubleshootPanel", async () => {

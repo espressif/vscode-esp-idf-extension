@@ -68,7 +68,6 @@ export function initializeReportObject() {
       result: "",
     },
     formatedOutput: "",
-    fullReport: "",
     idfCheckRequirements: {
       output: "",
       result: "",

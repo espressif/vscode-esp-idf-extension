@@ -160,7 +160,6 @@ export interface reportObj {
   pythonPackages: execResult;
   idfCheckRequirements: execResult;
   formatedOutput: string;
-  fullReport: string;
   selectedProjectConfiguration: string;
   systemInfo: SystemInfo;
   workspaceFolder: string;

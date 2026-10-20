@@ -208,6 +208,22 @@ suite("Report analysis tests", () => {
     assert.equal(summary.setups[0].isActive, true);
   });
 
+  test("analyzeReport treats trimmed equivalent paths as the active setup", () => {
+    const report = healthyReport();
+    report.configurationSettings.espIdfPath = "  /idf/v6.1  ";
+    report.espIdfSetups = [
+      idfSetup({
+        idfPath: "/idf/v6.1/",
+        isValid: true,
+        version: "6.1.0",
+      }),
+    ];
+
+    const summary = analyzeReport(report);
+    assert.equal(summary.setups[0].isActive, true);
+    assert.equal(summary.overall, "PASS");
+  });
+
   test("analyzeReport warns with only the PATH segment that contains a space", () => {
     const report = healthyReport();
     report.configurationSettings.systemEnvPath =

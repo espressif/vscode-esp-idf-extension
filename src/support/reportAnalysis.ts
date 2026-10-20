@@ -1,4 +1,4 @@
-import { delimiter } from "path";
+import { delimiter, resolve } from "path";
 import {
   BuildToolAvailability,
   CheckStatus,
@@ -127,7 +127,12 @@ function addSpacesWarning(
 }
 
 function normalizeSetupPath(idfPath: string | undefined): string {
-  return (idfPath || "").replace(/[\\/]+$/, "");
+  const trimmed = (idfPath || "").trim();
+  if (!trimmed) {
+    return "";
+  }
+  const resolved = resolve(trimmed);
+  return process.platform === "win32" ? resolved.toLowerCase() : resolved;
 }
 
 function isActiveIdfSetup(setupPath: string, activeIdfPath: string): boolean {

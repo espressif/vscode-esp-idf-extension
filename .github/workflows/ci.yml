@@ -11,13 +11,14 @@ on:
 jobs:
   extension_ci:
     runs-on: ubuntu-latest
-    env:
-      TMPDIR: ${{ runner.temp }}
 
     steps:
       - uses: actions/checkout@v6
         with:
           submodules: "recursive"
+
+      - name: Set TMPDIR
+        run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
 
       - name: Install ESP-IDF
         uses: espressif/install-esp-idf-action@v1

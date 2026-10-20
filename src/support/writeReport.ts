@@ -42,14 +42,8 @@ const LOG_TAIL_LINES = 200;
 const BUILD_TOOL_NAMES = new Set(["cmake", "ninja"]);
 
 export const DOCTOR_SUMMARY_FILE = "report.txt";
-export const DOCTOR_FULL_FILE = "report-full.txt";
 export const DOCTOR_REPAIR_INSTRUCTION =
   "Run ESP-IDF: Open ESP-IDF Installation Manager to repair the active setup.";
-
-export interface DoctorReportTexts {
-  summary: string;
-  full: string;
-}
 
 interface LogTail {
   found: boolean;
@@ -60,7 +54,7 @@ interface LogTail {
 export async function writeTextReport(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
-): Promise<DoctorReportTexts> {
+): Promise<string> {
   // Error.message is not enumerable, so JSON redaction would drop it.
   const latestErrorMessage = reportedResult.latestError?.message
     ? replaceUserPathInStr(reportedResult.latestError.message)
@@ -72,17 +66,15 @@ export async function writeTextReport(
   }
   reportedResult.reportSummary = analyzeReport(reportedResult);
   const logTail = await readLogTail(context);
-  const summary = formatSummaryReport(reportedResult, logTail.text);
-  const full =
-    summary + formatDetailSections(reportedResult) + formatLogSection(logTail);
-  reportedResult.formatedOutput = summary;
-  reportedResult.fullReport = full;
-  await writeFile(join(context.extensionPath, DOCTOR_SUMMARY_FILE), summary);
-  await writeFile(join(context.extensionPath, DOCTOR_FULL_FILE), full);
+  const reportText =
+    formatSummaryReport(reportedResult, logTail.text) +
+    formatDetailsReport(reportedResult, logTail);
+  reportedResult.formatedOutput = reportText;
+  await writeFile(join(context.extensionPath, DOCTOR_SUMMARY_FILE), reportText);
   await writeJson(join(context.extensionPath, "report.json"), reportedResult, {
     spaces: 2,
   });
-  return { summary, full };
+  return reportText;
 }
 
 export function formatSummaryReport(report: reportObj, logText = ""): string {
@@ -115,14 +107,13 @@ export function formatSummaryReport(report: reportObj, logText = ""): string {
     issues.length ? issues.map(formatIssue) : ["None."]
   );
 
-  if (summary.overall !== "PASS") {
+  if (summary.overall === "FAIL") {
     output += section("ACTIONS", [DOCTOR_REPAIR_INSTRUCTION]);
   }
 
   output += section("ACTIVE SETUP", formatActiveSetupLines(report, summary));
   output += section("OTHER ESP-IDF SETUPS", formatSetupLines(summary.setups));
   output += section("RECENT LOG ERRORS", formatRecentLogErrors(logText));
-  output += `Full report: ${DOCTOR_FULL_FILE}${EOL}`;
   return output;
 }
 
@@ -248,7 +239,96 @@ function formatRecentLogErrors(logText: string): string[] {
   });
 }
 
-function formatDetailSections(reportedResult: reportObj): string {
+function formatDetailsReport(report: reportObj, logTail: LogTail): string {
+  let output = `DETAILS${EOL}${EOL}`;
+  output += section("Issues", formatDetailIssueLines(report));
+  output += `Active setup${EOL}`;
+  output += formatActiveSetupDetails(report);
+  output += section("Other setups", formatOtherSetupLines(report));
+  output += section("Project files", formatProjectFileLines(report));
+  output += `Recent log errors${EOL}`;
+  output += formatLogSection(logTail);
+  return output;
+}
+
+function formatDetailIssueLines(report: reportObj): string[] {
+  const issues = (report.reportSummary?.findings || []).filter(
+    (finding) => finding.status === "fail" || finding.status === "warn"
+  );
+  if (!issues.length) {
+    return ["None."];
+  }
+  return issues.map((finding) => {
+    if (
+      finding.label === "System PATH" &&
+      finding.message.includes("path contains spaces")
+    ) {
+      return `${formatIssue(finding)}${EOL}       Full PATH: ${
+        report.configurationSettings.systemEnvPath
+      }`;
+    }
+    return formatFindingLine(finding);
+  });
+}
+
+function formatOtherSetupLines(report: reportObj): string[] {
+  if (!report.espIdfSetups.length) {
+    return ["None."];
+  }
+  const lines: string[] = [];
+  for (const idfSetup of report.espIdfSetups) {
+    lines.push(`ESP-IDF setup IDF PATH: ${idfSetup.idfPath}`);
+    lines.push(`------- git path: ${idfSetup.gitPath}`);
+    lines.push(`------- IDF_TOOLS_PATH: ${idfSetup.toolsPath}`);
+    lines.push(`------- version: ${idfSetup.version}`);
+    lines.push(`------- python path: ${idfSetup.python}`);
+    if (idfSetup.sysPythonPath) {
+      lines.push(`------- system python path: ${idfSetup.sysPythonPath}`);
+    }
+    if (idfSetup.activationScript) {
+      lines.push(
+        `------- activation script path: ${idfSetup.activationScript}`
+      );
+    }
+    lines.push(`------- is valid? ${idfSetup.isValid}`);
+    if (idfSetup.reason) {
+      lines.push(`------- reason: ${idfSetup.reason}`);
+    }
+  }
+  return lines;
+}
+
+function formatProjectFileLines(report: reportObj): string[] {
+  const lines: string[] = [];
+  if (report.launchJson.trim()) {
+    lines.push("launch.json:");
+    lines.push(report.launchJson);
+  }
+  if (hasProjectJson(report.cCppPropertiesJson)) {
+    lines.push("c_cpp_properties.json:");
+    lines.push(
+      typeof report.cCppPropertiesJson === "string"
+        ? report.cCppPropertiesJson
+        : JSON.stringify(report.cCppPropertiesJson, undefined, 2)
+    );
+  }
+  return lines.length ? lines : ["None."];
+}
+
+function hasProjectJson(value: unknown): boolean {
+  if (!value) {
+    return false;
+  }
+  if (Array.isArray(value)) {
+    return value.length > 0;
+  }
+  if (typeof value === "string") {
+    return value.trim().length > 0;
+  }
+  return true;
+}
+
+function formatActiveSetupDetails(reportedResult: reportObj): string {
   let output = `-------------------------------------------------------- Configuration checks -------------------------------------------------------------${EOL}`;
   for (const line of getConfigurationCheckLines(reportedResult)) {
     output += `${formatConfigCheckLine(line)}${EOL}`;
@@ -418,35 +498,6 @@ function formatDetailSections(reportedResult: reportObj): string {
   output += `${formatStatusTag(
     requirementsStatus
   )} Check ESP-IDF Python packages ${requirementsResult}${EOL}`;
-  if (reportedResult.espIdfSetups) {
-    output += `---------------------------------------------------- ESP-IDF Setups ------------------------------------------------------------------------${EOL}`;
-    for (const idfSetup of reportedResult.espIdfSetups) {
-      output += `ESP-IDF setup IDF PATH: ${idfSetup.idfPath}${EOL}`;
-      output += `------- git path: ${idfSetup.gitPath}${EOL}`;
-      output += `------- IDF_TOOLS_PATH: ${idfSetup.toolsPath}${EOL}`;
-      output += `------- version: ${idfSetup.version}${EOL}`;
-      output += `------- python path: ${idfSetup.python}${EOL}`;
-      if (idfSetup.sysPythonPath) {
-        output += `------- system python path: ${idfSetup.sysPythonPath}${EOL}`;
-      }
-      if (idfSetup.activationScript) {
-        output += `------- activation script path: ${idfSetup.activationScript}${EOL}`;
-      }
-      output += `------- is valid? ${idfSetup.isValid}${EOL}`;
-      if (idfSetup.reason) {
-        output += `------- reason: ${idfSetup.reason}${EOL}`;
-      }
-      output += `--------------------------------------------------------${EOL}`;
-    }
-  }
-  if (reportedResult.launchJson) {
-    output += `---------------------------------------------------- Visual Studio Code launch.json --------------------------------------------------------${EOL}`;
-    output += `${reportedResult.launchJson} ${EOL}`;
-  }
-  if (reportedResult.cCppPropertiesJson) {
-    output += `---------------------------------------------------- Visual Studio Code c_cpp_properties.json ----------------------------------------------${EOL}`;
-    output += `${reportedResult.cCppPropertiesJson} ${EOL}`;
-  }
   if (reportedResult.latestError?.message) {
     output += `----------------------------------------------------------- Latest error -----------------------------------------------------------------${EOL}`;
     output += `${reportedResult.latestError.message}${EOL}`;
