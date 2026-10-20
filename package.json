@@ -2733,7 +2733,7 @@
     "path-browserify": "^1.0.1",
     "pinia": "^2.1.6",
     "plotly.js-dist-min": "^2.26.1",
-    "sanitize-html": "^2.17.7",
+    "sanitize-html": "^2.18.0",
     "serialport": "^13.0.0",
     "stream-browserify": "^3.0.0",
     "tree-kill": "^1.2.2",
