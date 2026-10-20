@@ -120,7 +120,7 @@ function collapseOrExpandCalls() {
             <option value="allocations">Allocations</option>
             <option value="free">Free</option>
             <option value="irq-all">IRQ All</option>
-            <option value="irq-allocationa">IRQ Allocations</option>
+            <option value="irq-allocations">IRQ Allocations</option>
             <option value="irq-free">IRQ Free</option>
           </select>
         </div>
