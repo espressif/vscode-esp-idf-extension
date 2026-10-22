@@ -1,11 +1,14 @@
+import { delimiter, resolve } from "path";
 import {
   BuildToolAvailability,
   CheckStatus,
   ConfigCheckLine,
   DiagnosticFinding,
   idfToolResult,
+  LogErrorGroup,
   ReportSummary,
   reportObj,
+  SetupReportStatus,
 } from "./types";
 
 const BUILD_TOOLS = new Set(["cmake", "ninja"]);
@@ -94,21 +97,74 @@ function addPathFinding(
   return "ok";
 }
 
+export function pathSegmentsWithSpaces(value: string): string[] {
+  if (!value) {
+    return [];
+  }
+  return value
+    .split(delimiter)
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0 && /\s/.test(segment));
+}
+
 function addSpacesWarning(
   findings: DiagnosticFinding[],
   label: string,
   hasSpaces: boolean,
   value: string
 ): void {
-  if (hasSpaces && !isUnsetPath(value)) {
-    findings.push({
-      status: "warn",
-      category: "Paths",
-      label,
-      value,
-      message: "path contains spaces; may cause build issues",
-    });
+  if (!hasSpaces || isUnsetPath(value)) {
+    return;
   }
+  const segments = pathSegmentsWithSpaces(value);
+  findings.push({
+    status: "warn",
+    category: "Paths",
+    label,
+    value: segments.length ? segments.join("\n") : value,
+    message: "path contains spaces; may cause build issues",
+  });
+}
+
+function normalizeSetupPath(idfPath: string | undefined): string {
+  const trimmed = (idfPath || "").trim();
+  if (!trimmed) {
+    return "";
+  }
+  const resolved = resolve(trimmed);
+  return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+}
+
+function isActiveIdfSetup(setupPath: string, activeIdfPath: string): boolean {
+  return (
+    normalizeSetupPath(setupPath) !== "" &&
+    normalizeSetupPath(setupPath) === normalizeSetupPath(activeIdfPath)
+  );
+}
+
+const MISSING_TOOLS_PREFIX = "Missing required tools: ";
+
+function missingToolsAlreadyReported(
+  reason: string,
+  findings: DiagnosticFinding[]
+): boolean {
+  if (!reason.startsWith(MISSING_TOOLS_PREFIX)) {
+    return false;
+  }
+  const toolNames = reason
+    .slice(MISSING_TOOLS_PREFIX.length)
+    .split(",")
+    .map((name) => name.trim())
+    .filter((name) => name.length > 0);
+  if (!toolNames.length) {
+    return false;
+  }
+  const reportedTools = new Set(
+    findings
+      .filter((finding) => finding.status === "fail")
+      .map((finding) => finding.label)
+  );
+  return toolNames.every((name) => reportedTools.has(name));
 }
 
 function isVersionMissing(result: string): boolean {
@@ -198,15 +254,32 @@ export function getConfigurationCheckLines(
     access.customOpenOcdPath
   );
 
-  for (const [toolPath, toolAccessible] of Object.entries(
-    access.espIdfToolsPaths
-  )) {
-    addLine(
-      `Custom extra path (${toolPath})`,
-      toolPath,
-      toolAccessible ? "ok" : "fail",
-      toolAccessible ? "accessible" : "not accessible"
-    );
+  const extraPaths = Object.entries(access.espIdfToolsPaths);
+  if (extraPaths.length) {
+    lines.push({
+      label: "Paths added in ESP-IDF Setup:",
+      value: "",
+      status: "ok",
+      message: "",
+      presentation: "heading",
+    });
+    const spacePaths = report.configurationSpacesValidation.customExtraPaths;
+    for (const [toolPath, toolAccessible] of extraPaths) {
+      const hasSpaces = Boolean(spacePaths[toolPath]);
+      let status: CheckStatus = toolAccessible ? "ok" : "fail";
+      let message = toolAccessible ? "accessible" : "not accessible";
+      if (toolAccessible && hasSpaces) {
+        status = "warn";
+        message = "path contains spaces";
+      }
+      lines.push({
+        label: "",
+        value: toolPath,
+        status,
+        message,
+        presentation: "indented-path",
+      });
+    }
   }
 
   const cmake = isBuildToolAvailable(
@@ -263,18 +336,6 @@ export function getConfigurationCheckLines(
   for (const [label, hasSpaces, value] of spacesEntries) {
     if (hasSpaces && !isUnsetPath(value)) {
       addLine(label, value, "warn", "path contains spaces");
-    }
-  }
-  for (const [toolPath, hasSpaces] of Object.entries(
-    report.configurationSpacesValidation.customExtraPaths
-  )) {
-    if (hasSpaces) {
-      addLine(
-        `Custom extra path (${toolPath})`,
-        toolPath,
-        "warn",
-        "path contains spaces"
-      );
     }
   }
 
@@ -380,7 +441,7 @@ export function analyzeReport(report: reportObj): ReportSummary {
   );
   addSpacesWarning(
     findings,
-    "System environment PATH",
+    "System PATH",
     report.configurationSpacesValidation.systemEnvPath,
     settings.systemEnvPath
   );
@@ -509,8 +570,14 @@ export function analyzeReport(report: reportObj): ReportSummary {
     }
   }
 
+  const setups: SetupReportStatus[] = [];
   for (const idfSetup of report.espIdfSetups) {
-    if (!idfSetup.isValid) {
+    const isActive = isActiveIdfSetup(idfSetup.idfPath, settings.espIdfPath);
+    if (
+      isActive &&
+      !idfSetup.isValid &&
+      !missingToolsAlreadyReported(idfSetup.reason, findings)
+    ) {
       findings.push({
         status: "fail",
         category: "Setups",
@@ -519,6 +586,13 @@ export function analyzeReport(report: reportObj): ReportSummary {
         message: idfSetup.reason || "setup is invalid",
       });
     }
+    setups.push({
+      idfPath: idfSetup.idfPath,
+      version: idfSetup.version,
+      isValid: idfSetup.isValid,
+      isActive,
+      reason: idfSetup.reason,
+    });
   }
 
   if (report.latestError?.message) {
@@ -539,7 +613,99 @@ export function analyzeReport(report: reportObj): ReportSummary {
     overall = "WARN";
   }
 
-  return { overall, findings, errorCount, warningCount };
+  return { overall, findings, errorCount, warningCount, setups };
+}
+
+function stripSerialPorts(value: string): string {
+  return value.replace(/(?:\/dev\/tty\S+|COM\d+)/gi, "");
+}
+
+function unescapeLogFragment(value: string): string {
+  return value
+    .replace(/\\n/g, " ")
+    .replace(/\\t/g, " ")
+    .replace(/\\"/g, '"')
+    .replace(/\\\\/g, "\\");
+}
+
+function extractJsonStringField(text: string, field: string): string {
+  const match = text.match(
+    new RegExp(`"${field}"\\s*:\\s*"((?:\\\\.|[^"\\\\])*)"`)
+  );
+  return match ? unescapeLogFragment(match[1]) : "";
+}
+
+function shortLogDetail(message: string): string {
+  const withoutStack = message.split(/\n\s*at\s/)[0];
+  const stderr = extractJsonStringField(withoutStack, "stderr").trim();
+  const source = stderr || withoutStack;
+  const cleaned = stripSerialPorts(source)
+    .replace(/^\[.*?\]\s*/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (cleaned.length > 160) {
+    return `${cleaned.slice(0, 157)}...`;
+  }
+  return cleaned;
+}
+
+export function formatLogErrorDate(timestamp: string): string {
+  if (!timestamp) {
+    return "";
+  }
+  const date = timestamp.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : timestamp;
+}
+
+export function summarizeLogTail(logText: string): LogErrorGroup[] {
+  const groups = new Map<string, LogErrorGroup>();
+  for (const line of logText.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      continue;
+    }
+    let entry: {
+      args?: string;
+      command?: string;
+      knownErrorCode?: string;
+      level?: string;
+      message?: string;
+      processCommand?: string;
+      timestamp?: string;
+    };
+    try {
+      entry = JSON.parse(trimmed);
+    } catch {
+      continue;
+    }
+    if (entry.level && entry.level !== "error") {
+      continue;
+    }
+    const command = String(entry.command || entry.processCommand || "");
+    const code = String(entry.knownErrorCode || "");
+    const message = String(entry.message || "");
+    const args = stripSerialPorts(String(entry.args || ""))
+      .replace(/\s+/g, " ")
+      .trim();
+    const detail = shortLogDetail(message);
+    const key = `${code}|${command}|${detail}`;
+    const commandHint = [command, args].filter(Boolean).join(" ");
+    const label =
+      detail && commandHint && !detail.includes(command)
+        ? `${commandHint}: ${detail}`
+        : detail || commandHint || code || "error";
+    const timestamp = String(entry.timestamp || "");
+    const existing = groups.get(key);
+    if (existing) {
+      existing.count += 1;
+      if (timestamp) {
+        existing.lastTimestamp = timestamp;
+      }
+    } else {
+      groups.set(key, { label, count: 1, lastTimestamp: timestamp });
+    }
+  }
+  return [...groups.values()];
 }
 
 export function formatStatusTag(status: CheckStatus): string {
@@ -562,6 +728,12 @@ export function formatFindingLine(finding: DiagnosticFinding): string {
 }
 
 export function formatConfigCheckLine(line: ConfigCheckLine): string {
+  if (line.presentation === "heading") {
+    return line.label;
+  }
+  if (line.presentation === "indented-path") {
+    return `   ${line.value} ${formatStatusTag(line.status)} ${line.message}`;
+  }
   const displayValue = line.value ? line.value : "";
   return `${line.label.padEnd(42)} ${displayValue.padEnd(30)} ${formatStatusTag(
     line.status
