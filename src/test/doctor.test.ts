@@ -231,8 +231,8 @@ suite("Doctor Command tests", () => {
     const report = await writeTextReport(reportObj, mockUpContext);
     const { summary, details } = splitDoctorReport(report);
     assert.ok(summary.includes("ISSUES"));
-    assert.ok(summary.includes("ACTIVE SETUP"));
-    assert.ok(summary.includes("OTHER ESP-IDF SETUPS"));
+    assert.ok(summary.includes("Active ESP-IDF Setup"));
+    assert.ok(summary.includes("All ESP-IDF setups"));
     assert.ok(summary.includes("Overall:"));
     assert.ok(!summary.includes("Python packages in Virtual environment"));
     assert.ok(!summary.includes('"stack":'));
@@ -279,11 +279,12 @@ suite("Doctor Command tests", () => {
     const passingParts = splitDoctorReport(passing);
     assert.equal(report.reportSummary?.overall, "PASS");
     assert.ok(passingParts.summary.includes("ISSUES"));
-    assert.ok(passingParts.summary.includes("ACTIVE SETUP"));
-    assert.ok(passingParts.summary.includes("OTHER ESP-IDF SETUPS"));
+    assert.ok(passingParts.summary.includes("Active ESP-IDF Setup"));
+    assert.ok(passingParts.summary.includes("All ESP-IDF setups"));
     assert.ok(!passing.includes("ACTIONS"));
     assert.ok(!passingParts.summary.includes("widget-pkg version:"));
     assert.ok(passingParts.details.includes("Configuration checks"));
+    assert.ok(!passingParts.details.includes("\nIssues\n"));
     assert.ok(passingParts.details.includes("widget-pkg version: 1.2.3"));
     assert.ok(passingParts.details.includes("Logfile"));
 
@@ -299,6 +300,13 @@ suite("Doctor Command tests", () => {
     );
     assert.ok(warningParts.summary.includes("VMware Fusion.app"));
     assert.ok(!warningParts.summary.includes("/usr/bin"));
+    assert.ok(
+      warningParts.summary.includes("[WARN] System PATH contains a space")
+    );
+    assert.ok(
+      !warningParts.details.includes("[WARN] System PATH contains a space")
+    );
+    assert.ok(!warningParts.details.includes("\nIssues\n"));
     assert.ok(
       warningParts.details.includes(
         "/usr/bin:/Applications/VMware Fusion.app/Contents/Public:/usr/sbin"

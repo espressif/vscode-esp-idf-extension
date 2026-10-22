@@ -111,8 +111,8 @@ export function formatSummaryReport(report: reportObj, logText = ""): string {
     output += section("ACTIONS", [DOCTOR_REPAIR_INSTRUCTION]);
   }
 
-  output += section("ACTIVE SETUP", formatActiveSetupLines(report, summary));
-  output += section("OTHER ESP-IDF SETUPS", formatSetupLines(summary.setups));
+  output += section("Active ESP-IDF Setup", formatActiveSetupLines(report, summary));
+  output += section("All ESP-IDF setups", formatSetupLines(summary.setups));
   output += section("RECENT LOG ERRORS", formatRecentLogErrors(logText));
   return output;
 }
@@ -241,34 +241,13 @@ function formatRecentLogErrors(logText: string): string[] {
 
 function formatDetailsReport(report: reportObj, logTail: LogTail): string {
   let output = `DETAILS${EOL}${EOL}`;
-  output += section("Issues", formatDetailIssueLines(report));
-  output += `Active setup${EOL}`;
+  output += `Active ESP-IDF Setup${EOL}`;
   output += formatActiveSetupDetails(report);
-  output += section("Other setups", formatOtherSetupLines(report));
+  output += section("All ESP-IDF setups", formatOtherSetupLines(report));
   output += section("Project files", formatProjectFileLines(report));
   output += `Recent log errors${EOL}`;
   output += formatLogSection(logTail);
   return output;
-}
-
-function formatDetailIssueLines(report: reportObj): string[] {
-  const issues = (report.reportSummary?.findings || []).filter(
-    (finding) => finding.status === "fail" || finding.status === "warn"
-  );
-  if (!issues.length) {
-    return ["None."];
-  }
-  return issues.map((finding) => {
-    if (
-      finding.label === "System PATH" &&
-      finding.message.includes("path contains spaces")
-    ) {
-      return `${formatIssue(finding)}${EOL}       Full PATH: ${
-        report.configurationSettings.systemEnvPath
-      }`;
-    }
-    return formatFindingLine(finding);
-  });
 }
 
 function formatOtherSetupLines(report: reportObj): string[] {

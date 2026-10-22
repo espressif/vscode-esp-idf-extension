@@ -136,6 +136,7 @@ export interface ConfigCheckLine {
   value: string;
   status: CheckStatus;
   message: string;
+  presentation?: "heading" | "indented-path";
 }
 
 export interface BuildToolAvailability {

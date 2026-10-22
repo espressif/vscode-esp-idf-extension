@@ -142,6 +142,31 @@ function isActiveIdfSetup(setupPath: string, activeIdfPath: string): boolean {
   );
 }
 
+const MISSING_TOOLS_PREFIX = "Missing required tools: ";
+
+function missingToolsAlreadyReported(
+  reason: string,
+  findings: DiagnosticFinding[]
+): boolean {
+  if (!reason.startsWith(MISSING_TOOLS_PREFIX)) {
+    return false;
+  }
+  const toolNames = reason
+    .slice(MISSING_TOOLS_PREFIX.length)
+    .split(",")
+    .map((name) => name.trim())
+    .filter((name) => name.length > 0);
+  if (!toolNames.length) {
+    return false;
+  }
+  const reportedTools = new Set(
+    findings
+      .filter((finding) => finding.status === "fail")
+      .map((finding) => finding.label)
+  );
+  return toolNames.every((name) => reportedTools.has(name));
+}
+
 function isVersionMissing(result: string): boolean {
   return !result || result === "Not found" || result === "x.x";
 }
@@ -229,15 +254,32 @@ export function getConfigurationCheckLines(
     access.customOpenOcdPath
   );
 
-  for (const [toolPath, toolAccessible] of Object.entries(
-    access.espIdfToolsPaths
-  )) {
-    addLine(
-      `Custom extra path (${toolPath})`,
-      toolPath,
-      toolAccessible ? "ok" : "fail",
-      toolAccessible ? "accessible" : "not accessible"
-    );
+  const extraPaths = Object.entries(access.espIdfToolsPaths);
+  if (extraPaths.length) {
+    lines.push({
+      label: "Paths added in ESP-IDF Setup:",
+      value: "",
+      status: "ok",
+      message: "",
+      presentation: "heading",
+    });
+    const spacePaths = report.configurationSpacesValidation.customExtraPaths;
+    for (const [toolPath, toolAccessible] of extraPaths) {
+      const hasSpaces = Boolean(spacePaths[toolPath]);
+      let status: CheckStatus = toolAccessible ? "ok" : "fail";
+      let message = toolAccessible ? "accessible" : "not accessible";
+      if (toolAccessible && hasSpaces) {
+        status = "warn";
+        message = "path contains spaces";
+      }
+      lines.push({
+        label: "",
+        value: toolPath,
+        status,
+        message,
+        presentation: "indented-path",
+      });
+    }
   }
 
   const cmake = isBuildToolAvailable(
@@ -294,18 +336,6 @@ export function getConfigurationCheckLines(
   for (const [label, hasSpaces, value] of spacesEntries) {
     if (hasSpaces && !isUnsetPath(value)) {
       addLine(label, value, "warn", "path contains spaces");
-    }
-  }
-  for (const [toolPath, hasSpaces] of Object.entries(
-    report.configurationSpacesValidation.customExtraPaths
-  )) {
-    if (hasSpaces) {
-      addLine(
-        `Custom extra path (${toolPath})`,
-        toolPath,
-        "warn",
-        "path contains spaces"
-      );
     }
   }
 
@@ -543,7 +573,11 @@ export function analyzeReport(report: reportObj): ReportSummary {
   const setups: SetupReportStatus[] = [];
   for (const idfSetup of report.espIdfSetups) {
     const isActive = isActiveIdfSetup(idfSetup.idfPath, settings.espIdfPath);
-    if (isActive && !idfSetup.isValid) {
+    if (
+      isActive &&
+      !idfSetup.isValid &&
+      !missingToolsAlreadyReported(idfSetup.reason, findings)
+    ) {
       findings.push({
         status: "fail",
         category: "Setups",
@@ -694,6 +728,12 @@ export function formatFindingLine(finding: DiagnosticFinding): string {
 }
 
 export function formatConfigCheckLine(line: ConfigCheckLine): string {
+  if (line.presentation === "heading") {
+    return line.label;
+  }
+  if (line.presentation === "indented-path") {
+    return `   ${line.value} ${formatStatusTag(line.status)} ${line.message}`;
+  }
   const displayValue = line.value ? line.value : "";
   return `${line.label.padEnd(42)} ${displayValue.padEnd(30)} ${formatStatusTag(
     line.status

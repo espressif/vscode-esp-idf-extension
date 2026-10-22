@@ -10,6 +10,8 @@ import * as assert from "assert";
 import { initializeReportObject } from "../support/initReportObj";
 import {
   analyzeReport,
+  formatConfigCheckLine,
+  getConfigurationCheckLines,
   isBuildToolAvailable,
   summarizeLogTail,
 } from "../support/reportAnalysis";
@@ -208,6 +210,113 @@ suite("Report analysis tests", () => {
     assert.equal(summary.setups[0].isActive, true);
   });
 
+  test("analyzeReport omits setup failure when missing tools are already reported", () => {
+    const report = healthyReport();
+    report.espIdfToolsVersions = [
+      {
+        name: "riscv32-esp-elf",
+        doesToolExist: false,
+        expected: "esp-15.2.0_20251204",
+        actual: "No match",
+      },
+      {
+        name: "dfu-util",
+        doesToolExist: false,
+        expected: "0.11",
+        actual: "No match",
+      },
+    ];
+    report.espIdfSetups = [
+      idfSetup({
+        idfPath: "/idf/v6.1/",
+        isValid: false,
+        version: "6.1.0",
+        reason: "Missing required tools: riscv32-esp-elf, dfu-util",
+      }),
+    ];
+
+    const summary = analyzeReport(report);
+    assert.equal(summary.overall, "FAIL");
+    assert.equal(summary.errorCount, 2);
+    assert.ok(
+      summary.findings.some(
+        (finding) =>
+          finding.status === "fail" && finding.label === "riscv32-esp-elf"
+      )
+    );
+    assert.ok(
+      summary.findings.some(
+        (finding) => finding.status === "fail" && finding.label === "dfu-util"
+      )
+    );
+    assert.ok(
+      !summary.findings.some((finding) => finding.category === "Setups")
+    );
+    assert.equal(summary.setups[0].isActive, true);
+    assert.equal(summary.setups[0].isValid, false);
+    assert.ok(summary.setups[0].reason.includes("dfu-util"));
+  });
+
+  test("analyzeReport keeps a setup failure that is not a missing-tools rollup", () => {
+    const report = healthyReport();
+    report.espIdfToolsVersions = [
+      {
+        name: "riscv32-esp-elf",
+        doesToolExist: false,
+        expected: "esp-15.2.0_20251204",
+        actual: "No match",
+      },
+    ];
+    report.espIdfSetups = [
+      idfSetup({
+        idfPath: "/idf/v6.1/",
+        isValid: false,
+        version: "6.1.0",
+        reason: "IDF_PATH does not exist: /idf/v6.1",
+      }),
+    ];
+
+    const summary = analyzeReport(report);
+    assert.ok(
+      summary.findings.some(
+        (finding) =>
+          finding.status === "fail" &&
+          finding.category === "Setups" &&
+          finding.message.includes("IDF_PATH")
+      )
+    );
+  });
+
+  test("analyzeReport keeps a setup failure when a listed tool has no finding", () => {
+    const report = healthyReport();
+    report.espIdfToolsVersions = [
+      {
+        name: "riscv32-esp-elf",
+        doesToolExist: false,
+        expected: "esp-15.2.0_20251204",
+        actual: "No match",
+      },
+    ];
+    report.espIdfSetups = [
+      idfSetup({
+        idfPath: "/idf/v6.1/",
+        isValid: false,
+        version: "6.1.0",
+        reason: "Missing required tools: riscv32-esp-elf, dfu-util",
+      }),
+    ];
+
+    const summary = analyzeReport(report);
+    assert.ok(
+      summary.findings.some(
+        (finding) =>
+          finding.status === "fail" &&
+          finding.category === "Setups" &&
+          finding.message.includes("dfu-util")
+      )
+    );
+  });
+
   test("analyzeReport treats trimmed equivalent paths as the active setup", () => {
     const report = healthyReport();
     report.configurationSettings.espIdfPath = "  /idf/v6.1  ";
@@ -241,6 +350,29 @@ suite("Report analysis tests", () => {
       "/Applications/VMware Fusion.app/Contents/Public"
     );
     assert.equal(summary.overall, "WARN");
+  });
+
+  test("configuration checks group extra paths under one heading", () => {
+    const report = initializeReportObject();
+    report.configurationAccess.espIdfToolsPaths = {
+      "/tools/espcoredump": true,
+      "/missing/tool": false,
+      "/Program Files/tool": true,
+    };
+    report.configurationSpacesValidation.customExtraPaths = {
+      "/Program Files/tool": true,
+    };
+
+    const formatted = getConfigurationCheckLines(report)
+      .filter((line) => line.presentation)
+      .map(formatConfigCheckLine);
+
+    assert.deepEqual(formatted, [
+      "Paths added in ESP-IDF Setup:",
+      "   /tools/espcoredump [OK] accessible",
+      "   /missing/tool [FAIL] not accessible",
+      "   /Program Files/tool [WARN] path contains spaces",
+    ]);
   });
 
   test("summarizeLogTail groups repeated errors and drops serial ports", () => {
