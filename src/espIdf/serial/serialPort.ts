@@ -130,6 +130,16 @@ function isChipIdRequestEnabled(
   return setting !== false;
 }
 
+export function toMacOSCalloutPort(
+  portName: string | undefined,
+  platform: NodeJS.Platform = process.platform
+): string {
+  if (!portName || platform !== "darwin" || !portName.startsWith("/dev/tty.")) {
+    return portName ?? "";
+  }
+  return `/dev/cu.${portName.slice("/dev/tty.".length)}`;
+}
+
 function getChipIdFromEsptoolOutput(output: string): string | undefined {
   const connectedMatch = output.match(/Connected to\s+([^\s]+)\s+on/);
   if (connectedMatch?.[1]) {
@@ -291,7 +301,7 @@ export class SerialPort {
                 .replace(/-/g, "");
 
               if (chipType === expectedTarget.toLowerCase()) {
-                foundWorkingPort = this.convertMacOSPortName(currentPort);
+                foundWorkingPort = toMacOSCalloutPort(currentPort);
                 break;
               }
             }
@@ -459,14 +469,26 @@ export class SerialPort {
       );
     }
 
-    let choices = listOfSerialPorts.map((item) => {
-      return new SerialPortDetails(
-        item.path,
-        item.manufacturer,
-        item.vendorId,
-        item.productId
-      );
-    });
+    const selectedPaths = new Set<string>();
+    let choices = listOfSerialPorts.reduce<SerialPortDetails[]>(
+      (ports, item) => {
+        const portName = toMacOSCalloutPort(item.path);
+        if (selectedPaths.has(portName)) {
+          return ports;
+        }
+        selectedPaths.add(portName);
+        ports.push(
+          new SerialPortDetails(
+            portName,
+            item.manufacturer,
+            item.vendorId,
+            item.productId
+          )
+        );
+        return ports;
+      },
+      []
+    );
     const enableSerialPortChipIdRequest = isChipIdRequestEnabled(
       workspaceFolder,
       skipEsptoolCall

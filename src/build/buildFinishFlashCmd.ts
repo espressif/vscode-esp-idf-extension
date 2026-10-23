@@ -17,11 +17,12 @@
  */
 
 import { Uri } from "vscode";
-import { readParameter, readSerialPort } from "../configuration/idf";
+import { readParameter } from "../configuration/idf";
 import { getIdfBuildPath } from "../configuration/workspace";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { createFlashModel } from "../flash/transports/uart/flashModelBuilder";
+import { toMacOSCalloutPort } from "../espIdf/serial/serialPort";
 
 export async function buildFinishFlashCmd(workspace: Uri) {
   const buildPath = getIdfBuildPath(workspace);
@@ -30,7 +31,9 @@ export async function buildFinishFlashCmd(workspace: Uri) {
   if (!flasherArgsExists) {
     return "";
   }
-  const port = readParameter("idf.port", workspace) as string;
+  const port = toMacOSCalloutPort(
+    readParameter("idf.port", workspace) as string
+  );
   const flashBaudRate = readParameter("idf.flashBaudRate", workspace) as string;
 
   const flasherArgsModel = await createFlashModel(

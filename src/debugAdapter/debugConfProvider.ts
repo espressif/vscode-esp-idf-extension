@@ -475,10 +475,6 @@ async function applyRuntimeGdbStubIfNeeded(
   applyRuntimeGdbStubDebugConfig(config, {
     port,
     baudRate: parseMonitorBaudRate(await getMonitorBaudRate(folder.uri)),
-    hardwareBreakpointLimit: await readHardwareDebugLimit(
-      "CONFIG_SOC_CPU_BREAKPOINTS_NUM",
-      folder
-    ),
     hardwareWatchpointLimit: await readHardwareDebugLimit(
       "CONFIG_SOC_CPU_WATCHPOINTS_NUM",
       folder
