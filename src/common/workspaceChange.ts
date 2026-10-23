@@ -19,7 +19,11 @@
 import { ExtensionContext, l10n, workspace, WorkspaceFolder } from "vscode";
 import { PreCheck } from "./PreCheck";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
-import { createCmdsStatusBarItems, statusBarItems } from "../statusBar";
+import {
+  createCmdsStatusBarItems,
+  statusBarItems,
+  updateOpenOcdAdapterStatusBarItem,
+} from "../statusBar";
 import { readParameter } from "../configuration/idf";
 import {
   getIdfTargetFromSdkconfig,
@@ -96,6 +100,12 @@ export async function configureForWorkspace(
       `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
       readParameter("idf.port", workspaceFolder.uri);
   }
+  if (statusBarItems && statusBarItems["flashType"]) {
+    statusBarItems["flashType"].text = `$(${
+      commandDictionary[CommandKeys.SelectFlashType].iconId
+    }) ${readParameter("idf.flashType", workspaceFolder.uri)}`;
+  }
+  updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
   const monitorPort = readParameter(
     "idf.monitorPort",
     workspaceFolder.uri
