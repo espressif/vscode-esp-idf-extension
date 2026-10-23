@@ -8,7 +8,11 @@
  * SPDX-License-Identifier: EPL-2.0
  *********************************************************************/
 
-import { GDBDebugSession, RequestArguments } from "./GDBDebugSession";
+import {
+  GDBDebugSession,
+  RequestArguments,
+  raceTimeout,
+} from "./GDBDebugSession";
 import {
   InitializedEvent,
   Logger,
@@ -160,17 +164,10 @@ export class GDBTargetDebugSession extends GDBDebugSession {
 
     if (args.gdbStubUart) {
       try {
-        this.sendEvent(
-          new OutputEvent(`Resetting target on ${args.gdbStubUart.port}\n`)
-        );
-        this.sendEvent(
-          new OutputEvent(
-            `Sending GDB Stub interrupt on ${args.gdbStubUart.port}\n`
-          )
-        );
         await enterRuntimeGdbStub(
           args.gdbStubUart.port,
-          args.gdbStubUart.baudRate
+          args.gdbStubUart.baudRate,
+          (message) => this.sendEvent(new OutputEvent(`${message}\n`))
         );
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -570,7 +567,16 @@ export class GDBTargetDebugSession extends GDBDebugSession {
           )
         );
       } else {
-        await this.gdb.sendCommands(target.connectCommands);
+        this.targetType = target.type !== undefined ? target.type : "remote";
+        if (args.sessionID === RUNTIME_GDBSTUB_SESSION_ID) {
+          await raceTimeout(
+            this.gdb.sendCommands(target.connectCommands),
+            15000,
+            "Connecting to GDB Stub timed out after 15s"
+          );
+        } else {
+          await this.gdb.sendCommands(target.connectCommands);
+        }
         this.sendEvent(
           new OutputEvent("connected to target using provided connectCommands")
         );
@@ -595,6 +601,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
       this.sendResponse(response);
       this.isInitialized = true;
     } catch (err) {
+      this.gdb.kill();
       const message = err instanceof Error ? err.message : String(err);
       if (args.sessionID === RUNTIME_GDBSTUB_SESSION_ID) {
         ExtensionLogger.errorNotify(
@@ -651,11 +658,19 @@ export class GDBTargetDebugSession extends GDBDebugSession {
             // interrupt to be successful is needed to avoid future
             // "Cannot execute this command while the target is running"
             // errors
-            await this.gdb
-              .sendCommand("interrupt")
-              .then(() => this.gdb.sendCommand("disconnect"));
+            await raceTimeout(
+              this.gdb
+                .sendCommand("interrupt")
+                .then(() => this.gdb.sendCommand("disconnect")),
+              1500,
+              "Disconnect timed out"
+            );
           } else {
-            await this.gdb.sendCommand("disconnect");
+            await raceTimeout(
+              this.gdb.sendCommand("disconnect"),
+              1500,
+              "Disconnect timed out"
+            );
           }
         } catch (err) {
           this.sendEvent(
@@ -670,7 +685,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
       }
 
       try {
-        await this.gdb.sendGDBExit();
+        await raceTimeout(this.gdb.sendGDBExit(), 1500, "GDB exit timed out");
       } catch (err) {
         this.sendEvent(
           new OutputEvent(
@@ -680,6 +695,8 @@ export class GDBTargetDebugSession extends GDBDebugSession {
             "stderr"
           )
         );
+      } finally {
+        this.gdb.kill();
       }
 
       if (this.killGdbServer) {
@@ -699,6 +716,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
       }
       this.sendResponse(response);
     } catch (err) {
+      this.gdb.kill();
       // Still complete disconnect so VS Code can tear down the session
       // even if OpenOCD/GDB are already gone.
       this.sendEvent(

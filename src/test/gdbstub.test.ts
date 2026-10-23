@@ -583,10 +583,17 @@ suite("GDB Stub UART debug configuration", () => {
     );
   });
 
-  test("maps Windows COM ports for GDB and leaves other paths unchanged", () => {
+  test("maps platform-specific serial ports for GDB", () => {
     assert.strictEqual(toGdbSerialPort("COM3", "win32"), "\\\\.\\COM3");
     assert.strictEqual(toGdbSerialPort("COM10", "win32"), "\\\\.\\COM10");
-    assert.strictEqual(toGdbSerialPort("/dev/ttyUSB0", "linux"), "/dev/ttyUSB0");
+    assert.strictEqual(
+      toGdbSerialPort("/dev/tty.usbserial-3140", "darwin"),
+      "/dev/cu.usbserial-3140"
+    );
+    assert.strictEqual(
+      toGdbSerialPort("/dev/ttyUSB0", "linux"),
+      "/dev/ttyUSB0"
+    );
     assert.strictEqual(toGdbSerialPort("COM3", "linux"), "COM3");
   });
 
@@ -602,15 +609,13 @@ suite("GDB Stub UART debug configuration", () => {
     applyRuntimeGdbStubDebugConfig(config, {
       port: "COM3",
       baudRate: 115200,
-      hardwareBreakpointLimit: 2,
       hardwareWatchpointLimit: 2,
       platform: "win32",
     });
     assert.strictEqual(config.sessionID, RUNTIME_GDBSTUB_SESSION_ID);
     assert.strictEqual(config.runOpenOCD, false);
-    assert.strictEqual(config.hardwareBreakpoint, true);
+    assert.strictEqual(config.hardwareBreakpoint, false);
     assert.deepStrictEqual(config.initCommands, [
-      "set remote hardware-breakpoint-limit 2",
       "set remote hardware-watchpoint-limit 2",
       "set backtrace limit 16",
     ]);
@@ -633,6 +638,24 @@ suite("GDB Stub UART debug configuration", () => {
       platform: "linux",
     });
     assert.deepStrictEqual(config.initCommands, ["set backtrace limit 16"]);
+  });
+
+  test("uses the macOS callout device for the interrupt and GDB", () => {
+    const config: RuntimeGdbStubLaunchConfig = {};
+    applyRuntimeGdbStubDebugConfig(config, {
+      port: "/dev/tty.usbserial-3140",
+      baudRate: 115200,
+      platform: "darwin",
+    });
+    assert.deepStrictEqual(config.gdbStubUart, {
+      port: "/dev/cu.usbserial-3140",
+      baudRate: 115200,
+    });
+    assert.ok(
+      config.target?.connectCommands?.includes(
+        "target remote /dev/cu.usbserial-3140"
+      )
+    );
   });
 
   test("parses hardware debug limits from sdkconfig values", () => {

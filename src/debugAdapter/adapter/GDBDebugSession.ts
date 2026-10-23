@@ -164,7 +164,7 @@ export function base64ToHex(base64: string): string {
   return buffer.toString("hex");
 }
 
-function raceTimeout<T>(
+export function raceTimeout<T>(
   promise: Promise<T>,
   ms: number,
   message: string

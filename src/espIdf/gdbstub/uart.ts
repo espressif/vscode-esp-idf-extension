@@ -1,99 +1,137 @@
 import { SerialPort } from "serialport";
+import { toNodeSerialPortPath } from "./debugConfig";
 
 const interruptByte = Buffer.from([0x03]);
+const resetHoldMs = 100;
+const bootDelayMs = 800;
+const stubSwitchDelayMs = 200;
+const serialOperationTimeoutMs = 3000;
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function openSerialPort(
-  path: string,
-  baudRate: number
-): Promise<SerialPort | undefined> {
-  return new Promise((resolve) => {
-    const serialPort = new SerialPort({
-      path,
-      baudRate,
-      autoOpen: true,
-    });
-    serialPort.on("open", () => resolve(serialPort));
-    serialPort.on("error", () => {
-      closeSerialPort(serialPort).finally(() => resolve(undefined));
-    });
-  });
-}
-
-function setEnable(serialPort: SerialPort, enable: boolean): Promise<boolean> {
-  return new Promise((resolve) => {
-    serialPort.set({ dtr: false, rts: !enable }, (error) =>
-      resolve(error ? false : true)
+function withTimeout<T>(
+  operation: Promise<T>,
+  ms: number,
+  message: string
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    operation.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error instanceof Error ? error : new Error(message));
+      }
     );
   });
 }
 
-function writeBuffer(serialPort: SerialPort, data: Buffer): Promise<boolean> {
-  return new Promise((resolve) => {
-    serialPort.write(data, (error) => resolve(error ? false : true));
+function openSerialPort(path: string, baudRate: number): Promise<SerialPort> {
+  const serialPort = new SerialPort({
+    path,
+    baudRate,
+    autoOpen: false,
+    hupcl: false,
+    rtscts: false,
+  });
+  let settled = false;
+  serialPort.on("error", () => {
+    // serialport emits "error" for an open failure in addition to the
+    // callback. Without a listener that becomes an unhandled extension error.
+  });
+  const opened = new Promise<SerialPort>((resolve, reject) => {
+    serialPort.open((error) => {
+      if (settled) {
+        void closeSerialPort(serialPort);
+        return;
+      }
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve(serialPort);
+    });
+  });
+  return withTimeout(
+    opened,
+    serialOperationTimeoutMs,
+    `Unable to open ${path}`
+  ).catch(async (error) => {
+    settled = true;
+    await closeSerialPort(serialPort);
+    throw error;
   });
 }
 
-function drainSerialPort(serialPort: SerialPort): Promise<boolean> {
-  return new Promise((resolve) => {
-    serialPort.drain((error) => resolve(error ? false : true));
-  });
+function setControlLines(serialPort: SerialPort, rts: boolean): Promise<void> {
+  return withTimeout(
+    new Promise<void>((resolve, reject) => {
+      serialPort.set({ dtr: false, rts }, (error) =>
+        error ? reject(error) : resolve()
+      );
+    }),
+    serialOperationTimeoutMs,
+    "Unable to reset the target"
+  );
+}
+
+function writeBuffer(serialPort: SerialPort, data: Buffer): Promise<void> {
+  return withTimeout(
+    new Promise<void>((resolve, reject) => {
+      serialPort.write(data, (error) => (error ? reject(error) : resolve()));
+    }),
+    serialOperationTimeoutMs,
+    "Unable to send the GDB Stub interrupt"
+  );
 }
 
 function closeSerialPort(serialPort: SerialPort): Promise<void> {
-  return new Promise((resolve) => {
-    serialPort.removeAllListeners();
-    if (!serialPort.isOpen) {
-      resolve();
-      return;
-    }
-    serialPort.close(() => resolve());
-  });
+  return withTimeout(
+    new Promise<void>((resolve) => {
+      if (!serialPort.isOpen) {
+        resolve();
+        return;
+      }
+      // Ensure lines remain in non-reset state before closing
+      serialPort.set({ dtr: false, rts: false }, () => {
+        serialPort.close(() => resolve());
+      });
+    }),
+    1000,
+    "Unable to close the serial port"
+  ).catch(() => undefined);
 }
 
-async function targetReset(port: string): Promise<void> {
-  const serialPort = await openSerialPort(port, 115200);
-  if (!serialPort) {
-    throw new Error(`Unable to reset target on ${port}`);
-  }
-  try {
-    if (!(await setEnable(serialPort, false))) {
-      throw new Error(`Unable to reset target on ${port}`);
-    }
-    await delay(20);
-    if (!(await setEnable(serialPort, true))) {
-      throw new Error(`Unable to reset target on ${port}`);
-    }
-  } finally {
-    await closeSerialPort(serialPort);
-  }
-  await delay(500);
-}
-
-async function interruptRequest(port: string, baudRate: number): Promise<void> {
-  const serialPort = await openSerialPort(port, baudRate);
-  if (!serialPort) {
-    throw new Error(`Sending interrupt request to ${port} failed`);
-  }
-  try {
-    if (!(await writeBuffer(serialPort, interruptByte))) {
-      throw new Error(`Sending interrupt request to ${port} failed`);
-    }
-    if (!(await drainSerialPort(serialPort))) {
-      throw new Error(`Sending interrupt request to ${port} failed`);
-    }
-  } finally {
-    await closeSerialPort(serialPort);
-  }
+async function resetTarget(serialPort: SerialPort): Promise<void> {
+  await setControlLines(serialPort, true);
+  await delay(resetHoldMs);
+  await setControlLines(serialPort, false);
 }
 
 export async function enterRuntimeGdbStub(
   port: string,
-  baudRate: number
+  baudRate: number,
+  onProgress?: (message: string) => void
 ): Promise<void> {
-  await targetReset(port);
-  await interruptRequest(port, baudRate);
+  const serialPath = toNodeSerialPortPath(port);
+  const serialPort = await openSerialPort(serialPath, baudRate);
+  try {
+    onProgress?.(`Resetting target on ${serialPath}`);
+    await resetTarget(serialPort);
+    onProgress?.(`Waiting for the target to boot on ${serialPath}`);
+    await delay(bootDelayMs);
+    onProgress?.(`Sending GDB Stub interrupt on ${serialPath}`);
+    await writeBuffer(serialPort, interruptByte);
+    // Allow the 0x03 byte to be transmitted by the host USB-to-UART bridge
+    await delay(stubSwitchDelayMs);
+  } finally {
+    await closeSerialPort(serialPort);
+    // Brief delay to allow the operating system driver to fully release the port
+    await delay(100);
+  }
 }

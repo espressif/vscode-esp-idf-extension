@@ -126,10 +126,13 @@ export function toGdbSerialPort(
   port: string,
   platform: NodeJS.Platform = process.platform
 ): string {
-  if (platform !== "win32" || !/^COM\d+$/i.test(port)) {
-    return port;
+  if (platform === "darwin" && port.startsWith("/dev/tty.")) {
+    return port.replace("/dev/tty.", "/dev/cu.");
   }
-  return `\\\\.\\${port}`;
+  if (platform === "win32" && /^COM\d+$/i.test(port)) {
+    return `\\\\.\\${port}`;
+  }
+  return port;
 }
 
 const windowsDevicePrefix = "\\\\.\\";
@@ -155,7 +158,6 @@ export function applyRuntimeGdbStubDebugConfig(
   options: {
     port: string;
     baudRate: number;
-    hardwareBreakpointLimit?: number;
     hardwareWatchpointLimit?: number;
     platform?: NodeJS.Platform;
   }
@@ -164,18 +166,15 @@ export function applyRuntimeGdbStubDebugConfig(
   config.sessionID = RUNTIME_GDBSTUB_SESSION_ID;
   config.runOpenOCD = false;
   config.initCommands = [];
-  if (options.hardwareBreakpointLimit !== undefined) {
-    config.initCommands.push(
-      `set remote hardware-breakpoint-limit ${options.hardwareBreakpointLimit}`
-    );
-  }
   if (options.hardwareWatchpointLimit !== undefined) {
     config.initCommands.push(
       `set remote hardware-watchpoint-limit ${options.hardwareWatchpointLimit}`
     );
   }
   config.initCommands.push("set backtrace limit 16");
-  config.hardwareBreakpoint = true;
+  // The stub handles Z0 and programs the CPU breakpoint registers itself.
+  // hardwareBreakpoint makes GDB send Z1, which the stub does not implement.
+  config.hardwareBreakpoint = false;
   config.gdbStubUart = {
     port: gdbPort,
     baudRate: options.baudRate,
