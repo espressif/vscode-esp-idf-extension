@@ -4,7 +4,7 @@
     {
       "type": "gdbtarget",
       "request": "attach",
-      "name": "Eclipse CDT GDB Adapter"
+      "name": "ESP-IDF"
     }
   ]
 }
