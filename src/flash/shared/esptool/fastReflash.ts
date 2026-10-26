@@ -71,10 +71,9 @@ export function fastReflashBinPaths(
 
 export function fastReflashArgs(
   binPaths: string[],
-  referenceExists: (refPath: string) => boolean,
-  forceFullImage = false
+  referenceExists: (refPath: string) => boolean
 ): string[] {
-  if (forceFullImage || binPaths.length === 0) {
+  if (binPaths.length === 0) {
     return [];
   }
   const refs = binPaths.map((binPath) => flashedReferencePath(binPath));
