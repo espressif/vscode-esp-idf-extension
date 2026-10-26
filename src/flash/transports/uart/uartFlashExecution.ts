@@ -24,7 +24,6 @@ import { resolveEsptoolLaunchStyle } from "../../shared/esptool/esptoolCli";
 import { resolveEsptoolInvocation } from "../../shared/esptool/resolveEsptoolInvocation";
 import { getFlasherArgs, getSingleBinFlasherArgs } from "./flashArgsBuilder";
 import { assertFlashSectionsReadable } from "../../shared/verifyFlashBins";
-import { flashTaskEpilogue } from "../../shared/flashTaskEpilogue";
 import {
   existingFlashedReferences,
   fastReflashArgs,
@@ -87,7 +86,7 @@ export async function createUartFlashProcessTask(
     {
       epilogue: async () => {
         await saveFlashedBinCopies(buildDirPath, binPaths);
-        return flashTaskEpilogue();
+        return undefined;
       },
     }
   );

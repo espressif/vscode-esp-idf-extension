@@ -8,6 +8,7 @@
 
 import * as assert from "assert";
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -769,6 +770,21 @@ suite("Flash", () => {
           readFileSync(join(dir, "blink_flashed.bin"), "utf8"),
           "app-v2"
         );
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    test("drops the flashed reference when saving the copy fails", async () => {
+      const dir = mkdtempSync(join(tmpdir(), "esp-idf-fast-reflash-"));
+      try {
+        const reference = join(dir, "blink_flashed.bin");
+        writeFileSync(reference, "stale");
+        mkdirSync(join(dir, "blink.bin"));
+
+        await saveFlashedBinCopies(dir, ["blink.bin"]);
+
+        assert.strictEqual(existsSync(reference), false);
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }

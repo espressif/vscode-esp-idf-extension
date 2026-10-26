@@ -100,7 +100,7 @@ function spawnWithNodePty(
       listeners.onData(data, "stdout");
     });
     ptyProcess.onExit((event) => {
-      listeners.onExit(event.exitCode ?? 0);
+      listeners.onExit(ptyExitCode(event));
     });
 
     return {
@@ -157,6 +157,17 @@ function spawnWithChildProcess(
       child.kill();
     },
   };
+}
+
+/** A nonzero signal is a failed exit, including when node-pty also reports code 0. */
+export function ptyExitCode(event: {
+  exitCode: number;
+  signal?: number;
+}): number {
+  if (event.signal) {
+    return 1;
+  }
+  return event.exitCode;
 }
 
 /**

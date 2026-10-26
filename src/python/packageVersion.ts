@@ -22,6 +22,7 @@ import { getVirtualEnvPythonPath } from "../configuration/env";
 import { execChildProcess } from "../support/execChildProcess";
 
 const PACKAGE_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+const NUMERIC_RELEASE_PATTERN = /^\d+(?:\.\d+)*$/;
 
 /**
  * One-line probes. sanitizeSpawnInvocation rejects arguments that contain
@@ -52,6 +53,11 @@ export function normalizePythonPackageVersion(raw: string): string {
   const publicVersion = line.split("+", 1)[0].trim();
   if (!publicVersion) {
     throw new Error("Python package version output was empty.");
+  }
+  if (!NUMERIC_RELEASE_PATTERN.test(publicVersion)) {
+    throw new Error(
+      `Python package version is not a numeric release: ${publicVersion}`
+    );
   }
   return publicVersion;
 }

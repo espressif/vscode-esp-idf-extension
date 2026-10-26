@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { copy, pathExists, readFile } from "fs-extra";
+import { copy, pathExists, readFile, remove } from "fs-extra";
 import { isAbsolute, join } from "path";
 import { Logger } from "../../../common/logger";
 
@@ -132,6 +132,11 @@ export async function saveFlashedBinCopies(
         error instanceof Error
           ? error
           : new Error("Could not save the flashed binary copy.");
+      try {
+        await remove(dest);
+      } catch {
+        // Cleanup is best-effort. The copy error is still logged below.
+      }
       try {
         Logger.error(
           `Could not save ${ref}. The next flash will run without this comparison file.`,

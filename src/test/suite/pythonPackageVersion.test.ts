@@ -42,6 +42,15 @@ suite("python package version", () => {
     test("rejects empty output", () => {
       assert.throws(() => normalizePythonPackageVersion(" \n"));
     });
+
+    test("accepts a numeric release", () => {
+      assert.strictEqual(normalizePythonPackageVersion("5.2.0\n"), "5.2.0");
+    });
+
+    test("rejects a prerelease", () => {
+      assert.throws(() => normalizePythonPackageVersion("5.2.0rc1\n"));
+      assert.throws(() => normalizePythonPackageVersion("5.2.0.dev0\n"));
+    });
   });
 
   suite("version snippets", () => {

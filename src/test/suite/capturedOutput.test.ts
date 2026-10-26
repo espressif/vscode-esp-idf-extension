@@ -16,7 +16,10 @@
  */
 
 import * as assert from "assert";
-import { childCloseExitCode } from "../../taskManager/capturedProcess";
+import {
+  childCloseExitCode,
+  ptyExitCode,
+} from "../../taskManager/capturedProcess";
 import {
   OutputCapturingPseudoterminal,
   resolveInitialColumns,
@@ -144,6 +147,20 @@ function runPseudoterminal(
     terminal.open();
   });
 }
+
+suite("ptyExitCode", () => {
+  test("keeps a voluntary zero exit as success", () => {
+    assert.strictEqual(ptyExitCode({ exitCode: 0 }), 0);
+  });
+
+  test("keeps a voluntary non-zero exit", () => {
+    assert.strictEqual(ptyExitCode({ exitCode: 3 }), 3);
+  });
+
+  test("does not treat a signalled exit as success", () => {
+    assert.strictEqual(ptyExitCode({ exitCode: 0, signal: 15 }), 1);
+  });
+});
 
 suite("childCloseExitCode", () => {
   test("keeps a voluntary zero exit as success", () => {

@@ -26,6 +26,8 @@ import {
   CustomTaskType,
 } from "../../../taskManager/customTaskProvider";
 import { ESP } from "../../../config";
+import { OutputChannel } from "../../../common/outputChannel";
+import { flashTaskEpilogue } from "../../shared/flashTaskEpilogue";
 import { CustomExecutionTaskResult } from "../../../taskManager/types";
 
 export async function uartFlashCommandMain(
@@ -67,5 +69,8 @@ export async function uartFlashCommandMain(
   }
   await customTask.addCustomTask(CustomTaskType.PostFlash);
   const flashResult = await TaskManager.runTasksWithBoolean();
+  if (flashResult) {
+    OutputChannel.appendLineAndShow(flashTaskEpilogue(), "Flash");
+  }
   return { continueFlag: flashResult };
 }
