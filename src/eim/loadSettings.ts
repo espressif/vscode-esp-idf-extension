@@ -23,21 +23,41 @@ import { pathExists } from "fs-extra";
 import { getEnvVariablesFromIdfSetup } from "./migrationTool";
 import { Logger } from "../common/logger";
 import { getVenvPythonBinPath } from "../configuration/env";
+import { missingActivationScriptDetail } from "./setupFailureDetail";
 
 export async function getEnvVariables(
   extensionPath: string,
   idfSetup: IdfSetup
 ) {
   if (idfSetup.activationScript) {
-    return await getEnvVariablesFromActivationScript(idfSetup.activationScript);
+    return await getEnvVariablesFromActivationScript(
+      idfSetup.idfPath,
+      idfSetup.activationScript
+    );
   } else {
     return await getEnvVariablesFromIdfSetup(extensionPath, idfSetup);
   }
 }
 
 export async function getEnvVariablesFromActivationScript(
+  idfPath: string,
   activationScriptPath: string
 ) {
+  const scriptExists = await pathExists(activationScriptPath);
+  if (!scriptExists) {
+    const missingScript = new Error(
+      missingActivationScriptDetail(idfPath, activationScriptPath)
+    );
+    Logger.error(
+      missingScript.message,
+      missingScript,
+      "loadSettings getEnvVariablesFromActivationScript",
+      undefined,
+      false
+    );
+    throw missingScript;
+  }
+
   let envDict: { [key: string]: string } = {};
   try {
     const args =
@@ -93,13 +113,14 @@ export async function getEnvVariablesFromActivationScript(
       typeof error.message === "string"
         ? error.message
         : "Error getting Env variables from EIM activation script";
+    const reported = error instanceof Error ? error : new Error(errMsg);
     Logger.error(
       errMsg,
-      error as Error,
+      reported,
       "loadSettings getEnvVariablesFromActivationScript",
       undefined,
       false
     );
-    return envDict;
+    throw reported;
   }
 }

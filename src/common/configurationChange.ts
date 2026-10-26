@@ -28,6 +28,7 @@ import {
   statusBarItems,
   updateOpenOcdAdapterStatusBarItem,
 } from "../statusBar";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 import { readParameter } from "../configuration/idf";
 import {
   getIdfTargetFromSdkconfig,
@@ -81,7 +82,11 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
           prevWorkspaceFolder
         ) as boolean;
         if (enableStatusBar) {
-          await createCmdsStatusBarItems(context, prevWorkspaceFolder.uri);
+          await createCmdsStatusBarItems(
+            context,
+            prevWorkspaceFolder.uri,
+            getCurrentIdfConfiguration()["IDF_PATH"] || ""
+          );
         } else if (!enableStatusBar) {
           for (let statusItem in statusBarItems) {
             statusBarItems[statusItem].dispose();

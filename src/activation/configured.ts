@@ -78,12 +78,23 @@ import { disposeNonConfiguredStatusBar } from "./nonConfigured";
 
 let configuredActivated = false;
 
-export async function activateConfigured(context: ExtensionContext) {
+export async function activateConfigured(
+  context: ExtensionContext,
+  idfPath: string
+) {
+  const workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+  if (Object.keys(statusBarItems).length === 0) {
+    await createCmdsStatusBarItems(context, workspaceFolder.uri, idfPath);
+  }
+  const ready = await configureForWorkspace(context, workspaceFolder);
+  if (!ready) {
+    return;
+  }
   showConfiguredStatusBarItems();
+  disposeNonConfiguredStatusBar();
   if (configuredActivated) {
     return;
   }
-  disposeNonConfiguredStatusBar();
 
   if (PreCheck.isRunningInVSCodeFork()) {
     checkAndPromptForClangdExtension();
@@ -91,18 +102,7 @@ export async function activateConfigured(context: ExtensionContext) {
   KconfigLangClient.startKconfigLangServer(context);
   activateLanguageTool(context);
   registerDebugCommands(context);
-  if (PreCheck.isWorkspaceFolderOpen()) {
-    const workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-    if (Object.keys(statusBarItems).length === 0) {
-      await createCmdsStatusBarItems(context, workspaceFolder.uri);
-    }
-    await configureForWorkspace(context, workspaceFolder);
-    new ProjectConfigurationManager(
-      workspaceFolder.uri,
-      context,
-      statusBarItems
-    );
-  }
+  new ProjectConfigurationManager(workspaceFolder.uri, context, statusBarItems);
   addCmakeFileSystemWatcher(context);
   await registerHintsCommands(context);
   registerOnDidWorkspaceFolderChanges(context);

@@ -19,11 +19,9 @@
 import { ExtensionContext, workspace } from "vscode";
 import { Logger } from "../common/logger";
 import { PreCheck } from "../common/PreCheck";
+import { getCurrentIdfConfiguration } from "../configuration/env";
+import { missingIdfEnvDetail } from "../eim/setupFailureDetail";
 import { registerSelectCurrentIdfVersionCommand } from "../eim";
-import {
-  IdfCommandTreeMode,
-  setCommandsTreeMode,
-} from "../cmdTreeView/cmdTreeDataProvider";
 import { enterConfiguredNoWorkspaceFolder } from "./configuredNoWorkspace";
 import { activateConfigured } from "./configured";
 import {
@@ -38,14 +36,12 @@ import {
 } from "./eimIdfJsonWatcher";
 import { registerSharedCommands } from "./sharedCommands";
 import {
-  ActivationFailure,
-  requestProjectActivation,
-  runValidations,
-} from "./validate";
+  getActivationMode,
+  leaveActivation,
+  setActivationMode,
+} from "./session";
+import { requestProjectActivation, runValidations } from "./validate";
 
-type ActivationMode = IdfCommandTreeMode;
-
-let activationMode: ActivationMode = "pending";
 let applying = false;
 let activationPending = false;
 let listenersRegistered = false;
@@ -56,6 +52,7 @@ function revalidateIfLighterMode() {
     return applyActivation();
   }
   // "skipped" and "undetected" stay included so a later idf.extensionActivationMode change can configure an empty setup.
+  const activationMode = getActivationMode();
   if (
     activationMode !== "nonConfigured" &&
     activationMode !== "configuredNoWorkspaceFolder" &&
@@ -90,7 +87,7 @@ function registerActivationListeners(context: ExtensionContext) {
 }
 
 async function applyActivation() {
-  if (activationMode === "configured" || !extensionContext) {
+  if (getActivationMode() === "configured" || !extensionContext) {
     return;
   }
   if (applying) {
@@ -100,34 +97,41 @@ async function applyActivation() {
   const context = extensionContext;
   applying = true;
   try {
-    const decision = await runValidations();
+    const decision = await runValidations(context.extensionPath);
     if (PreCheck.isWorkspaceFolderOpen()) {
       registerSelectCurrentIdfVersionCommand(context);
     }
     switch (decision.kind) {
       case "nonConfigured":
-        enterNonConfigured(decision.failure);
-        activationMode = "nonConfigured";
+        enterNonConfigured(decision.failure, decision.detail);
+        setActivationMode("nonConfigured");
         break;
       case "configuredNoWorkspaceFolder":
         enterConfiguredNoWorkspaceFolder();
-        activationMode = "configuredNoWorkspaceFolder";
+        setActivationMode("configuredNoWorkspaceFolder");
         break;
       case "skipped":
         disposeNonConfiguredStatusBar();
-        activationMode = "skipped";
+        setActivationMode("skipped");
         break;
       case "undetected":
         enterUndetected();
-        activationMode = "undetected";
+        setActivationMode("undetected");
         break;
-      case "configured":
-        disposeNonConfiguredStatusBar();
-        await activateConfigured(context);
-        activationMode = "configured";
+      case "configured": {
+        const idfPath = getCurrentIdfConfiguration()["IDF_PATH"];
+        if (!idfPath) {
+          leaveActivation("invalidCurrentSetup", missingIdfEnvDetail());
+          break;
+        }
+        await activateConfigured(context, idfPath);
+        if (getActivationMode() === "nonConfigured") {
+          break;
+        }
+        setActivationMode("configured");
         break;
+      }
     }
-    setCommandsTreeMode(activationMode);
   } finally {
     applying = false;
     if (activationPending) {
@@ -159,12 +163,10 @@ export async function runActivation(context: ExtensionContext) {
     Logger.error("ESP-IDF activation failed.", error as Error, "runActivation");
   }
   await startEimIdfJsonWatcher({
-    getMode: () => activationMode,
+    getMode: () => getActivationMode(),
     isApplying: () => applying,
-    leaveForFailure: (failure: ActivationFailure) => {
-      enterNonConfigured(failure);
-      activationMode = "nonConfigured";
-      setCommandsTreeMode(activationMode);
+    leaveForFailure: (failure, detail) => {
+      leaveActivation(failure, detail);
     },
   });
 }
