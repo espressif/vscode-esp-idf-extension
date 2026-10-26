@@ -1,0 +1,370 @@
+/*
+ * Project: ESP-IDF VSCode Extension
+ * File Created: Monday, 26th October 2026
+ * Copyright 2026 Espressif Systems (Shanghai) CO LTD
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { expect } from "chai";
+import { BottomBarPanel } from "vscode-extension-tester";
+import {
+  ESP_IDF_COMMANDS,
+  clickStatusBarItem,
+  dismissNotifications,
+  ensureTestProjectOpen,
+  executeEspIdfCommand,
+  readActiveEspIdfVersion,
+  readCurrentTerminalText,
+} from "./ui-test-helpers";
+
+/** Tooltip of the terminal icon on the ESP-IDF status bar. */
+const IDF_TERMINAL_STATUS_BAR_LABEL = "Open ESP-IDF Terminal";
+
+const ACTIVATION_COMPLETE = /Environment setup complete for the current shell session\.[\s\S]*You are now using IDF version\s+\d+\.\d+(?:\.\d+)?\./;
+
+const ACTIVATION_VERSION = /You are now using IDF version\s+(\d+\.\d+(?:\.\d+)?)\./;
+
+const IDF_PY_VERSION_LINE = /ESP-IDF\s+v?(\d+\.\d+(?:\.\d+)?)/;
+
+const PROBLEM_LINE = /\b(?:error|warning|fatal|traceback)\b|command not found|virtual environment not found|no such file or directory|should be sourced, not executed/i;
+
+const ACTIVATION_TIMEOUT_MS = 90000;
+const IDF_PY_TIMEOUT_MS = 60000;
+const TERMINAL_STABLE_MS = 2000;
+
+type IdfVersionParts = {
+  major: number;
+  minor: number;
+  patch?: number;
+};
+
+let skipRemainingSteps = false;
+let terminalSnapshot = "";
+
+function scenario(title: string, defineSteps: () => void): void {
+  describe(title, function () {
+    before(function () {
+      skipRemainingSteps = false;
+    });
+    defineSteps();
+  });
+}
+
+function step(stepName: string, action: () => Promise<void>): void {
+  it(stepName, async function () {
+    this.timeout(999999);
+    if (skipRemainingSteps) {
+      this.skip();
+    }
+    console.log(`  → [step] ${stepName}`);
+    try {
+      await action();
+      console.log(`  ✓ [step] ${stepName}`);
+    } catch (err) {
+      skipRemainingSteps = true;
+      const orig = err instanceof Error ? err.message : String(err);
+      console.log(`  ✗ [step] ${stepName}\n${orig}`);
+      throw new Error(`Test failed at: ${stepName}\n${orig}`);
+    }
+  });
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function stripTerminalText(value: string): string {
+  return value.replace(/\u001b\[[0-9;]*m/g, "").replace(/\r/g, "");
+}
+
+/**
+ * Status bar and the activation script use version.cmake (`6.1.0`).
+ * `idf.py --version` prints `git describe`, which is `v6.1` when the release
+ * tag has no patch. A missing patch agrees only with patch 0.
+ */
+function parseIdfVersion(value: string): IdfVersionParts | undefined {
+  const match = value.match(/(\d+)\.(\d+)(?:\.(\d+))?/);
+  if (!match) {
+    return undefined;
+  }
+  return {
+    major: Number(match[1]),
+    minor: Number(match[2]),
+    patch: match[3] === undefined ? undefined : Number(match[3]),
+  };
+}
+
+function sameIdfVersion(active: string, reported: string): boolean {
+  const left = parseIdfVersion(active);
+  const right = parseIdfVersion(reported);
+  if (!left || !right) {
+    return false;
+  }
+  if (left.major !== right.major || left.minor !== right.minor) {
+    return false;
+  }
+  if (left.patch === undefined || right.patch === undefined) {
+    const present = left.patch ?? right.patch;
+    return present === undefined || present === 0;
+  }
+  return left.patch === right.patch;
+}
+
+function assertSameIdfVersion(
+  active: string,
+  reported: string,
+  where: string
+): void {
+  expect(
+    sameIdfVersion(active, reported),
+    `${where}: active ESP-IDF ${active}, terminal reported ${reported}`
+  ).to.equal(true);
+}
+
+function assertNoProblems(text: string, where: string): void {
+  const problems = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && PROBLEM_LINE.test(line));
+  if (problems.length > 0) {
+    throw new Error(
+      `${where} reported problems:\n${problems.join(
+        "\n"
+      )}\n\nFull output:\n${text}`
+    );
+  }
+}
+
+function textAfterSnapshot(full: string, snapshot: string): string {
+  if (!snapshot) {
+    return full;
+  }
+  const anchor = snapshot.slice(-200);
+  const index = full.lastIndexOf(anchor);
+  return index >= 0 ? full.slice(index + anchor.length) : full;
+}
+
+async function readTerminalText(): Promise<string> {
+  return stripTerminalText(await readCurrentTerminalText());
+}
+
+async function rememberTerminalSnapshot(): Promise<void> {
+  try {
+    terminalSnapshot = await readTerminalText();
+  } catch {
+    terminalSnapshot = "";
+  }
+}
+
+async function waitForActiveEspIdfVersion(): Promise<string> {
+  const deadline = Date.now() + 30000;
+  let lastError = "Active ESP-IDF version was not found on the status bar.";
+  while (Date.now() < deadline) {
+    try {
+      return await readActiveEspIdfVersion();
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+      await delay(1000);
+    }
+  }
+  throw new Error(lastError);
+}
+
+async function waitForStableNewTerminalText(
+  pattern: RegExp,
+  timeoutMs: number,
+  what: string
+): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  let lastFull = "";
+  let stableSince = 0;
+  let latestFresh = "";
+
+  while (Date.now() < deadline) {
+    let full = "";
+    try {
+      full = await readTerminalText();
+    } catch {
+      await delay(1000);
+      continue;
+    }
+    const fresh = textAfterSnapshot(full, terminalSnapshot);
+    const comparable = full.replace(/\s+$/g, "");
+    latestFresh = fresh;
+    if (pattern.test(fresh) && comparable === lastFull) {
+      if (stableSince === 0) {
+        stableSince = Date.now();
+      }
+      if (Date.now() - stableSince >= TERMINAL_STABLE_MS) {
+        return fresh;
+      }
+    } else {
+      stableSince = 0;
+    }
+    lastFull = comparable;
+    await delay(1000);
+  }
+
+  throw new Error(
+    `Timed out waiting for ${what}.\nNew terminal text:\n${latestFresh}`
+  );
+}
+
+async function closeActiveTerminal(): Promise<void> {
+  let text = "";
+  let terminalView;
+  try {
+    terminalView = await new BottomBarPanel().openTerminalView();
+    text = await terminalView.getText();
+  } catch {
+    return;
+  }
+  if (!text.trim()) {
+    return;
+  }
+  await terminalView.killTerminal();
+  await delay(1500);
+}
+
+async function assertActivationMatchesActiveVersion(
+  where: string
+): Promise<void> {
+  const activeVersion = await waitForActiveEspIdfVersion();
+  console.log(`${where} status bar ESP-IDF version: ${activeVersion}`);
+  const output = await waitForStableNewTerminalText(
+    ACTIVATION_COMPLETE,
+    ACTIVATION_TIMEOUT_MS,
+    `${where} ESP-IDF activation`
+  );
+  console.log(output);
+  assertNoProblems(output, `${where} activation`);
+  const reported = output.match(ACTIVATION_VERSION)?.[1];
+  if (!reported) {
+    throw new Error(
+      `${where} activation did not report an IDF version.\n${output}`
+    );
+  }
+  assertSameIdfVersion(activeVersion, reported, `${where} activation`);
+}
+
+async function assertIdfPyVersionMatchesActiveVersion(
+  where: string
+): Promise<void> {
+  const activeVersion = await waitForActiveEspIdfVersion();
+  terminalSnapshot = await readTerminalText();
+  const terminalView = await new BottomBarPanel().openTerminalView();
+  try {
+    await terminalView.executeCommand("idf.py --version", 5000);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.includes("Timeout")) {
+      throw error;
+    }
+    console.log(
+      `${where} idf.py --version was sent; continuing to read the terminal`
+    );
+  }
+  const output = await waitForStableNewTerminalText(
+    IDF_PY_VERSION_LINE,
+    IDF_PY_TIMEOUT_MS,
+    `${where} idf.py --version`
+  );
+  console.log(output);
+  assertNoProblems(output, `${where} idf.py --version`);
+  const reported = output.match(IDF_PY_VERSION_LINE)?.[1];
+  if (!reported) {
+    throw new Error(
+      `${where} idf.py --version did not report a version.\n${output}`
+    );
+  }
+  assertSameIdfVersion(activeVersion, reported, `${where} idf.py --version`);
+}
+
+describe("ESP-IDF terminal", () => {
+  before(async function () {
+    this.timeout(120000);
+    await dismissNotifications();
+    await ensureTestProjectOpen();
+  });
+
+  after(async function () {
+    this.timeout(30000);
+    await closeActiveTerminal();
+    await new BottomBarPanel().toggle(false).catch(() => undefined);
+  });
+
+  scenario(
+    "opens from the command palette and activates the selected ESP-IDF",
+    () => {
+      step("Open ESP-IDF terminal from the command palette", async () => {
+        await rememberTerminalSnapshot();
+        await executeEspIdfCommand(ESP_IDF_COMMANDS.openIdfTerminal);
+      });
+
+      step(
+        "Command palette activation matches the active ESP-IDF version",
+        async () => {
+          await assertActivationMatchesActiveVersion("Command palette");
+        }
+      );
+
+      step(
+        "Command palette idf.py --version matches the active ESP-IDF version",
+        async () => {
+          await assertIdfPyVersionMatchesActiveVersion("Command palette");
+        }
+      );
+
+      step("Close the ESP-IDF terminal", async () => {
+        await closeActiveTerminal();
+      });
+    }
+  );
+
+  scenario(
+    "opens from the status bar and activates the selected ESP-IDF",
+    () => {
+      step(
+        "Close a terminal left open by the command palette flow",
+        async () => {
+          await closeActiveTerminal();
+        }
+      );
+
+      step("Open ESP-IDF terminal from the status bar", async () => {
+        await dismissNotifications();
+        await rememberTerminalSnapshot();
+        await clickStatusBarItem(IDF_TERMINAL_STATUS_BAR_LABEL);
+      });
+
+      step(
+        "Status bar activation matches the active ESP-IDF version",
+        async () => {
+          await assertActivationMatchesActiveVersion("Status bar");
+        }
+      );
+
+      step(
+        "Status bar idf.py --version matches the active ESP-IDF version",
+        async () => {
+          await assertIdfPyVersionMatchesActiveVersion("Status bar");
+        }
+      );
+
+      step("Close the status bar ESP-IDF terminal", async () => {
+        await closeActiveTerminal();
+      });
+    }
+  );
+});
