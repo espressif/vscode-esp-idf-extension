@@ -17,7 +17,8 @@
  */
 
 import { expect } from "chai";
-import { BottomBarPanel, Workbench } from "vscode-extension-tester";
+import { Key } from "selenium-webdriver";
+import { BottomBarPanel, By, Workbench } from "vscode-extension-tester";
 import {
   ESP_IDF_COMMANDS,
   clickStatusBarItem,
@@ -43,6 +44,7 @@ const ACTIVATION_TIMEOUT_MS = 90000;
 const IDF_PY_TIMEOUT_MS = 60000;
 const TERMINAL_STABLE_MS = 2000;
 const TERMINAL_READ_GAP_MS = 3000;
+const IDF_PY_BEFORE_READ_MS = 3000;
 
 type IdfVersionParts = {
   major: number;
@@ -189,13 +191,19 @@ async function waitForActiveEspIdfVersion(): Promise<string> {
 async function waitForStableNewTerminalText(
   pattern: RegExp,
   timeoutMs: number,
-  what: string
+  what: string,
+  readImmediately = false
 ): Promise<string> {
   const deadline = Date.now() + timeoutMs;
   let latestFresh = "";
+  let skipDelay = readImmediately;
 
   while (Date.now() < deadline) {
-    await delay(TERMINAL_READ_GAP_MS);
+    if (skipDelay) {
+      skipDelay = false;
+    } else {
+      await delay(TERMINAL_READ_GAP_MS);
+    }
     let full = "";
     try {
       full = await readTerminalText();
@@ -231,9 +239,9 @@ type SyncClipboard = {
 };
 
 /**
- * The xterm helper textarea in this VS Code build is not interactable, so
- * `TerminalView.executeCommand()` never delivers the keystrokes. Paste goes
- * through the terminal command and reaches the shell.
+ * A pasted newline only breaks the line in VS Code's terminal. It does not
+ * submit it. Paste the text, then press Enter on the visible terminal screen.
+ * The hidden xterm textarea is not interactable in this VS Code build.
  */
 async function pasteIntoActiveTerminal(command: string): Promise<void> {
   const clipboard = (await import("clipboardy")).default as SyncClipboard;
@@ -243,7 +251,7 @@ async function pasteIntoActiveTerminal(command: string): Promise<void> {
   } catch {
     original = "";
   }
-  clipboard.writeSync(`${command}\n`);
+  clipboard.writeSync(command);
   try {
     await new Workbench().executeCommand(
       "Terminal: Paste into Active Terminal"
@@ -253,6 +261,13 @@ async function pasteIntoActiveTerminal(command: string): Promise<void> {
       clipboard.writeSync(original);
     }
   }
+}
+
+async function pressEnterInTerminal(): Promise<void> {
+  const terminalView = await new BottomBarPanel().openTerminalView();
+  const screen = await terminalView.findElement(By.className("xterm-screen"));
+  await screen.click();
+  await terminalView.getDriver().actions().sendKeys(Key.ENTER).perform();
 }
 
 async function closeActiveTerminal(): Promise<void> {
@@ -299,10 +314,13 @@ async function assertIdfPyVersionMatchesActiveVersion(
   await new BottomBarPanel().openTerminalView();
   terminalSnapshot = await readTerminalText();
   await pasteIntoActiveTerminal("idf.py --version");
+  await pressEnterInTerminal();
+  await delay(IDF_PY_BEFORE_READ_MS);
   const output = await waitForStableNewTerminalText(
     IDF_PY_VERSION_LINE,
     IDF_PY_TIMEOUT_MS,
-    `${where} idf.py --version`
+    `${where} idf.py --version`,
+    true
   );
   console.log(output);
   assertNoProblems(output, `${where} idf.py --version`);
