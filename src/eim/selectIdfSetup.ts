@@ -55,10 +55,13 @@ export async function selectIdfSetup(
   if (!selectedIdfSetupOption) {
     return;
   }
-  await saveSettings(
+  const saved = await saveSettings(
     extensionPath,
     selectedIdfSetupOption.target,
     workspaceFolder
   );
+  if (saved.ok === false) {
+    return;
+  }
   return selectedIdfSetupOption.target;
 }

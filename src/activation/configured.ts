@@ -80,11 +80,15 @@ import { disposeNonConfiguredStatusBar } from "./nonConfigured";
 let configuredActivated = false;
 
 export async function activateConfigured(context: ExtensionContext) {
+  const ready = await useSelectedWorkspaceFolder(context);
+  if (!ready) {
+    return;
+  }
   showConfiguredStatusBarItems();
+  disposeNonConfiguredStatusBar();
   if (configuredActivated) {
     return;
   }
-  disposeNonConfiguredStatusBar();
 
   if (PreCheck.isRunningInVSCodeFork()) {
     checkAndPromptForClangdExtension();
@@ -92,9 +96,6 @@ export async function activateConfigured(context: ExtensionContext) {
   KconfigLangClient.startKconfigLangServer(context);
   activateLanguageTool(context);
   registerDebugCommands(context);
-  if (PreCheck.isWorkspaceFolderOpen()) {
-    await useSelectedWorkspaceFolder(context);
-  }
   addCmakeFileSystemWatcher(context);
   await registerHintsCommands(context);
   registerOnDidWorkspaceFolderChanges(context);
