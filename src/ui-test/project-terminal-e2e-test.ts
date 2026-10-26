@@ -16,27 +16,17 @@
  * limitations under the License.
  */
 
-import { execFile } from "child_process";
 import { expect } from "chai";
-import { promises as fs } from "fs";
-import { basename, join } from "path";
-import { Key, WebDriver } from "selenium-webdriver";
-import {
-  BottomBarPanel,
-  By,
-  EditorView,
-  Workbench,
-} from "vscode-extension-tester";
+import { WebDriver } from "selenium-webdriver";
+import { BottomBarPanel, Workbench } from "vscode-extension-tester";
 import {
   ESP_IDF_COMMANDS,
   clickStatusBarItem,
   dismissNotifications,
   ensureTestProjectOpen,
   executeEspIdfCommand,
-  openFileInEditor,
   readActiveEspIdfVersion,
   readCurrentTerminalText,
-  testWorkspaceDir,
 } from "./ui-test-helpers";
 
 /** Tooltip of the terminal icon on the ESP-IDF status bar. */
@@ -51,13 +41,11 @@ const IDF_PY_VERSION_LINE = /ESP-IDF\s+v?(\d+\.\d+(?:\.\d+)?)/;
 const PROBLEM_LINE = /\b(?:error|warning|fatal|traceback)\b|command not found|virtual environment not found|no such file or directory|should be sourced, not executed/i;
 
 const ACTIVATION_TIMEOUT_MS = 90000;
+const IDF_PY_TIMEOUT_MS = 60000;
 const TERMINAL_STABLE_MS = 2000;
 const TERMINAL_READ_GAP_MS = 3000;
-const SUBMIT_PROBE_WAIT_MS = 5000;
+const IDF_PY_BEFORE_READ_MS = 3000;
 const FOCUS_TERMINAL_COMMAND = "Terminal: Focus Terminal";
-const RUN_SELECTED_TEXT_COMMAND =
-  "Terminal: Run Selected Text In Active Terminal";
-const SEND_SEQUENCE_CHORD = "ctrl+alt+shift+enter";
 
 type IdfVersionParts = {
   major: number;
@@ -286,64 +274,6 @@ function chromeDriver(): ChromeDriver {
   return new Workbench().getDriver() as ChromeDriver;
 }
 
-function shellLine(marker: string): string {
-  return `echo ${marker}; idf.py --version`;
-}
-
-function submitProbeFile(): string {
-  return join(testWorkspaceDir, "idf-submit-probe.txt");
-}
-
-function extestKeybindingsFile(): string {
-  const root = process.env.GITHUB_WORKSPACE || process.cwd();
-  return join(root, "test-resources", "settings", "User", "keybindings.json");
-}
-
-function tail(text: string): string {
-  const trimmed = text.trim();
-  if (trimmed.length <= 1200) {
-    return trimmed;
-  }
-  return trimmed.slice(-1200);
-}
-
-function xdotool(args: string[]): Promise<void> {
-  return new Promise((resolve, reject) => {
-    execFile("xdotool", args, { timeout: 8000 }, (error, _stdout, stderr) => {
-      if (error) {
-        reject(
-          new Error(`${error.message}${stderr ? `\n${stderr}` : ""}`.trim())
-        );
-        return;
-      }
-      resolve();
-    });
-  });
-}
-
-async function dispatchKey(
-  key: string,
-  code: string,
-  keyCode: number,
-  modifiers = 0
-): Promise<void> {
-  const event = {
-    key,
-    code,
-    windowsVirtualKeyCode: keyCode,
-    nativeVirtualKeyCode: keyCode,
-    modifiers,
-  };
-  await chromeDriver().sendDevToolsCommand("Input.dispatchKeyEvent", {
-    type: "keyDown",
-    ...event,
-  });
-  await chromeDriver().sendDevToolsCommand("Input.dispatchKeyEvent", {
-    type: "keyUp",
-    ...event,
-  });
-}
-
 async function waitUntilCommandPaletteClosed(): Promise<void> {
   const deadline = Date.now() + 5000;
   while (Date.now() < deadline) {
@@ -367,337 +297,21 @@ async function focusTerminalByCommand(): Promise<void> {
   await waitUntilCommandPaletteClosed();
 }
 
-async function cancelInputLine(): Promise<void> {
-  try {
-    await focusTerminalByCommand();
-  } catch {
-    // A missed command leaves the palette open and would swallow the next keys.
-    await chromeDriver()
-      .actions()
-      .sendKeys(Key.ESCAPE)
-      .perform()
-      .catch(() => undefined);
-  }
-  try {
-    await xdotool(["key", "--clearmodifiers", "ctrl+c"]);
-    await xdotool(["key", "--clearmodifiers", "ctrl+u"]);
-  } catch {
-    // xdotool may be missing. The browser key is the other clear attempt.
-  }
-  try {
-    await dispatchKey("u", "KeyU", 85, 2);
-  } catch {
-    // Each submit probe reports its own input error.
-  }
-}
-
-async function activeElementClass(): Promise<string> {
-  return chromeDriver().executeScript<string>(`
-    const el = document.activeElement;
-    if (!el) {
-      return "none";
-    }
-    return String(el.className || el.tagName);
-  `);
-}
-
-async function revealTerminalInput(): Promise<void> {
-  const ready = await chromeDriver().executeScript<string>(`
-    const selectors = [
-      ".terminal-wrapper.active .native-edit-context",
-      ".xterm.focus .native-edit-context",
-      ".xterm .native-edit-context",
-      ".terminal-wrapper.active textarea",
-      ".xterm textarea",
-      "textarea.xterm-helper-textarea"
-    ];
-    let input = null;
-    for (const selector of selectors) {
-      input = document.querySelector(selector);
-      if (input) {
-        break;
-      }
-    }
-    if (!input) {
-      return "missing";
-    }
-    input.id = "idf-ui-terminal-input";
-    input.setAttribute("data-idf-ui-style", input.getAttribute("style") || "");
-    input.style.position = "fixed";
-    input.style.left = "24px";
-    input.style.top = "120px";
-    input.style.width = "220px";
-    input.style.height = "32px";
-    input.style.opacity = "1";
-    input.style.zIndex = "2147483647";
-    input.style.pointerEvents = "auto";
-    input.removeAttribute("readonly");
-    input.removeAttribute("aria-hidden");
-    input.focus();
-    return "ready";
-  `);
-  if (ready !== "ready") {
-    throw new Error("Terminal input element was not found");
-  }
-}
-
-async function restoreTerminalInputStyle(): Promise<void> {
-  await chromeDriver()
-    .executeScript(
-      `
-      const input = document.getElementById("idf-ui-terminal-input");
-      if (!input) {
-        return;
-      }
-      input.setAttribute("style", input.getAttribute("data-idf-ui-style") || "");
-      input.removeAttribute("data-idf-ui-style");
-      input.removeAttribute("id");
-    `
-    )
-    .catch(() => undefined);
-}
-
-async function submitByFocusAndBrowserEnter(marker: string): Promise<string> {
-  await pasteIntoActiveTerminal(shellLine(marker));
-  await delay(300);
-  await focusTerminalByCommand();
-  const active = await activeElementClass();
-  await dispatchKey("Enter", "Enter", 13);
-  return `activeElement=${active}`;
-}
-
-async function submitByVisibleSendKeys(marker: string): Promise<string> {
-  await pasteIntoActiveTerminal(shellLine(marker));
-  await delay(300);
-  try {
-    await revealTerminalInput();
-    const input = await chromeDriver().findElement(
-      By.id("idf-ui-terminal-input")
-    );
-    await input.click();
-    await input.sendKeys(Key.ENTER);
-  } finally {
-    await restoreTerminalInputStyle();
-  }
-  return "";
-}
-
-async function submitByXdotool(marker: string): Promise<string> {
-  await pasteIntoActiveTerminal(shellLine(marker));
-  await delay(300);
-  await focusTerminalByCommand();
-  const title = basename(testWorkspaceDir);
-  let activateNote = "windowactivate=ok";
-  try {
-    await xdotool(["search", "--name", title, "windowactivate", "--sync"]);
-  } catch (error) {
-    activateNote = `windowactivate=${
-      error instanceof Error ? error.message : String(error)
-    }`;
-  }
-  await xdotool(["key", "--clearmodifiers", "Return"]);
-  return `DISPLAY=${process.env.DISPLAY ?? "unset"} ${activateNote}`;
-}
-
-async function submitBySendSequence(marker: string): Promise<string> {
-  const file = extestKeybindingsFile();
-  let previous = "";
-  try {
-    previous = await fs.readFile(file, "utf8");
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-      throw error;
-    }
-  }
-  await fs.writeFile(
-    file,
-    JSON.stringify(
-      [
-        {
-          key: SEND_SEQUENCE_CHORD,
-          command: "workbench.action.terminal.sendSequence",
-          args: { text: `${shellLine(marker)}\r` },
-        },
-      ],
-      null,
-      2
-    )
-  );
-  try {
-    await delay(2000);
-    await waitUntilCommandPaletteClosed();
-    await chromeDriver()
-      .actions()
-      .keyDown(Key.CONTROL)
-      .keyDown(Key.ALT)
-      .keyDown(Key.SHIFT)
-      .sendKeys(Key.ENTER)
-      .keyUp(Key.SHIFT)
-      .keyUp(Key.ALT)
-      .keyUp(Key.CONTROL)
-      .perform();
-  } finally {
-    if (previous.length > 0) {
-      await fs.writeFile(file, previous);
-    } else {
-      await fs.rm(file, { force: true });
-    }
-  }
-  return file;
-}
-
-async function submitByRunSelectedText(marker: string): Promise<string> {
-  const file = submitProbeFile();
-  await fs.writeFile(file, `${shellLine(marker)}\n`);
-  try {
-    const editor = await openFileInEditor(file);
-    const editorText = await editor.getText();
-    if (!editorText.includes(marker)) {
-      throw new Error(
-        `Probe editor did not show ${marker}.\n${editorText.slice(0, 500)}`
-      );
-    }
-    await executeEspIdfCommand(RUN_SELECTED_TEXT_COMMAND);
-    await waitUntilCommandPaletteClosed();
-  } finally {
-    await new EditorView().closeEditor(basename(file)).catch(() => undefined);
-    await fs.rm(file, { force: true });
-  }
-  return file;
-}
-
-type ProbeResult = {
-  name: string;
-  passed: boolean;
-  detail: string;
-};
-
-async function runSubmitProbe(
-  name: string,
-  marker: string,
-  activeVersion: string,
-  attempt: () => Promise<string>
-): Promise<ProbeResult> {
-  await cancelInputLine();
-  await delay(400);
-  let snapshot = "";
-  try {
-    snapshot = await readTerminalText();
-  } catch {
-    snapshot = "";
-  }
-  terminalSnapshot = snapshot;
-  try {
-    const note = await attempt();
-    await delay(SUBMIT_PROBE_WAIT_MS);
-    const fresh = textAfterSnapshot(await readTerminalText(), snapshot);
-    const executed = fresh.split("\n").some((line) => line.trim() === marker);
-    const reported = fresh.match(IDF_PY_VERSION_LINE)?.[1];
-    const versionOk = reported
-      ? sameIdfVersion(activeVersion, reported)
-      : false;
-    const problems = fresh
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0 && PROBLEM_LINE.test(line));
-    const passed = executed && versionOk && problems.length === 0;
-    const detail = [
-      note,
-      `executed=${executed}`,
-      `version=${reported ?? "none"}`,
-      `match=${versionOk}`,
-      problems.length > 0 ? `problems=${problems.join(" | ")}` : "",
-      tail(fresh),
-    ]
-      .filter((bit) => bit.length > 0)
-      .join("\n");
-    return { name, passed, detail };
-  } catch (error) {
-    return {
-      name,
-      passed: false,
-      detail: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
-/**
- * One open ESP-IDF terminal tries every submit path.
- * A path passes when its echo marker is printed as its own line and
- * idf.py --version matches the status bar.
- */
-async function probeIdfPySubmitMethods(where: string): Promise<void> {
-  const activeVersion = await waitForActiveEspIdfVersion();
-  console.log(
-    `${where} submit probe, status bar ${activeVersion}, DISPLAY=${
-      process.env.DISPLAY ?? "unset"
-    }`
-  );
-  const methods: Array<{
-    name: string;
-    marker: string;
-    run: (marker: string) => Promise<string>;
-  }> = [
-    {
-      name: "1 focus terminal + browser Enter",
-      marker: "IDF_TRY_FOCUS_ENTER",
-      run: submitByFocusAndBrowserEnter,
-    },
-    {
-      name: "2 visible field + selenium Enter",
-      marker: "IDF_TRY_VISIBLE_SENDKEYS",
-      run: submitByVisibleSendKeys,
-    },
-    {
-      name: "3 xdotool Return",
-      marker: "IDF_TRY_XDOTOOL",
-      run: submitByXdotool,
-    },
-    {
-      name: "4 sendSequence keybinding",
-      marker: "IDF_TRY_SEND_SEQUENCE",
-      run: submitBySendSequence,
-    },
-    {
-      name: "5 run selected text",
-      marker: "IDF_TRY_RUN_SELECTED",
-      run: submitByRunSelectedText,
-    },
-  ];
-  const results: ProbeResult[] = [];
-  try {
-    for (const method of methods) {
-      const result = await runSubmitProbe(
-        method.name,
-        method.marker,
-        activeVersion,
-        () => method.run(method.marker)
-      );
-      results.push(result);
-      console.log(
-        `SUBMIT_PROBE ${result.passed ? "PASS" : "FAIL"} ${result.name}\n${
-          result.detail
-        }`
-      );
-    }
-  } finally {
-    await restoreTerminalInputStyle();
-    await fs.rm(submitProbeFile(), { force: true }).catch(() => undefined);
-    await fs
-      .rm(extestKeybindingsFile(), { force: true })
-      .catch(() => undefined);
-  }
-  const summary = results
-    .map((result) => `${result.passed ? "PASS" : "FAIL"}  ${result.name}`)
-    .join("\n");
-  console.log(`SUBMIT_PROBE summary\n${summary}`);
-  if (!results.some((result) => result.passed)) {
-    throw new Error(
-      `No submit method ran idf.py --version.\n${summary}\n\n${results
-        .map((result) => `${result.name}\n${result.detail}`)
-        .join("\n---\n")}`
-    );
-  }
+async function pressEnterInTerminal(): Promise<void> {
+  const event = {
+    key: "Enter",
+    code: "Enter",
+    windowsVirtualKeyCode: 13,
+    nativeVirtualKeyCode: 13,
+  };
+  await chromeDriver().sendDevToolsCommand("Input.dispatchKeyEvent", {
+    type: "keyDown",
+    ...event,
+  });
+  await chromeDriver().sendDevToolsCommand("Input.dispatchKeyEvent", {
+    type: "keyUp",
+    ...event,
+  });
 }
 
 async function closeActiveTerminal(): Promise<void> {
@@ -737,6 +351,33 @@ async function assertActivationMatchesActiveVersion(
   assertSameIdfVersion(activeVersion, reported, `${where} activation`);
 }
 
+async function assertIdfPyVersionMatchesActiveVersion(
+  where: string
+): Promise<void> {
+  const activeVersion = await waitForActiveEspIdfVersion();
+  await new BottomBarPanel().openTerminalView();
+  terminalSnapshot = await readTerminalText();
+  await pasteIntoActiveTerminal("idf.py --version");
+  await focusTerminalByCommand();
+  await pressEnterInTerminal();
+  await delay(IDF_PY_BEFORE_READ_MS);
+  const output = await waitForStableNewTerminalText(
+    IDF_PY_VERSION_LINE,
+    IDF_PY_TIMEOUT_MS,
+    `${where} idf.py --version`,
+    true
+  );
+  console.log(output);
+  assertNoProblems(output, `${where} idf.py --version`);
+  const reported = output.match(IDF_PY_VERSION_LINE)?.[1];
+  if (!reported) {
+    throw new Error(
+      `${where} idf.py --version did not report a version.\n${output}`
+    );
+  }
+  assertSameIdfVersion(activeVersion, reported, `${where} idf.py --version`);
+}
+
 describe("ESP-IDF terminal", () => {
   before(async function () {
     this.timeout(120000);
@@ -765,9 +406,12 @@ describe("ESP-IDF terminal", () => {
         }
       );
 
-      step("Try five ways to run idf.py --version", async () => {
-        await probeIdfPySubmitMethods("Command palette");
-      });
+      step(
+        "Command palette idf.py --version matches the active ESP-IDF version",
+        async () => {
+          await assertIdfPyVersionMatchesActiveVersion("Command palette");
+        }
+      );
 
       step("Close the ESP-IDF terminal", async () => {
         await closeActiveTerminal();
@@ -795,6 +439,13 @@ describe("ESP-IDF terminal", () => {
         "Status bar activation matches the active ESP-IDF version",
         async () => {
           await assertActivationMatchesActiveVersion("Status bar");
+        }
+      );
+
+      step(
+        "Status bar idf.py --version matches the active ESP-IDF version",
+        async () => {
+          await assertIdfPyVersionMatchesActiveVersion("Status bar");
         }
       );
 
