@@ -17,7 +17,6 @@
  */
 
 import { expect } from "chai";
-import { Key } from "selenium-webdriver";
 import { BottomBarPanel, By, Workbench } from "vscode-extension-tester";
 import {
   ESP_IDF_COMMANDS,
@@ -238,10 +237,17 @@ type SyncClipboard = {
   writeSync: (value: string) => void;
 };
 
+type ChromeDriver = {
+  executeScript<T>(script: string): Promise<T>;
+  sendDevToolsCommand(
+    command: string,
+    params?: Record<string, unknown>
+  ): Promise<unknown>;
+};
+
 /**
- * A pasted newline only breaks the line in VS Code's terminal. It does not
- * submit it. Paste the text, then press Enter on the visible terminal screen.
- * The hidden xterm textarea is not interactable in this VS Code build.
+ * Paste does not submit the line. Enter is sent as a browser key event
+ * because the terminal input element rejects Selenium sendKeys.
  */
 async function pasteIntoActiveTerminal(command: string): Promise<void> {
   const clipboard = (await import("clipboardy")).default as SyncClipboard;
@@ -263,11 +269,80 @@ async function pasteIntoActiveTerminal(command: string): Promise<void> {
   }
 }
 
+async function waitUntilCommandPaletteClosed(): Promise<void> {
+  const driver = (new Workbench().getDriver() as unknown) as ChromeDriver;
+  const deadline = Date.now() + 5000;
+  while (Date.now() < deadline) {
+    const open = await driver.executeScript<boolean>(`
+      const widget = document.querySelector(".quick-input-widget");
+      if (!widget) {
+        return false;
+      }
+      const style = window.getComputedStyle(widget);
+      return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
+    `);
+    if (!open) {
+      return;
+    }
+    await delay(100);
+  }
+}
+
+async function focusTerminalInput(): Promise<string> {
+  const driver = (new Workbench().getDriver() as unknown) as ChromeDriver;
+  return driver.executeScript<string>(`
+    const selectors = [
+      ".terminal-wrapper.active .native-edit-context",
+      ".xterm.focus .native-edit-context",
+      ".xterm .native-edit-context",
+      ".terminal-wrapper.active textarea",
+      ".xterm textarea",
+      "textarea.xterm-helper-textarea"
+    ];
+    let input = null;
+    let matched = "";
+    for (const selector of selectors) {
+      input = document.querySelector(selector);
+      if (input) {
+        matched = selector;
+        break;
+      }
+    }
+    if (!input) {
+      return "missing";
+    }
+    input.focus();
+    if (document.activeElement !== input) {
+      return matched + " focus-failed:" + (document.activeElement && document.activeElement.className);
+    }
+    return matched + " focused";
+  `);
+}
+
 async function pressEnterInTerminal(): Promise<void> {
+  await waitUntilCommandPaletteClosed();
   const terminalView = await new BottomBarPanel().openTerminalView();
-  const screen = await terminalView.findElement(By.className("xterm-screen"));
-  await screen.click();
-  await terminalView.getDriver().actions().sendKeys(Key.ENTER).perform();
+  await (await terminalView.findElement(By.css(".xterm-screen"))).click();
+  const target = await focusTerminalInput();
+  console.log(`terminal Enter target: ${target}`);
+  if (target === "missing" || target.includes("focus-failed")) {
+    throw new Error(`Terminal input is not focused (${target})`);
+  }
+  const driver = (terminalView.getDriver() as unknown) as ChromeDriver;
+  const enter = {
+    key: "Enter",
+    code: "Enter",
+    windowsVirtualKeyCode: 13,
+    nativeVirtualKeyCode: 13,
+  };
+  await driver.sendDevToolsCommand("Input.dispatchKeyEvent", {
+    type: "keyDown",
+    ...enter,
+  });
+  await driver.sendDevToolsCommand("Input.dispatchKeyEvent", {
+    type: "keyUp",
+    ...enter,
+  });
 }
 
 async function closeActiveTerminal(): Promise<void> {
