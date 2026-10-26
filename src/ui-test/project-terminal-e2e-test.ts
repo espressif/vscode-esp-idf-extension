@@ -17,7 +17,7 @@
  */
 
 import { expect } from "chai";
-import { BottomBarPanel } from "vscode-extension-tester";
+import { BottomBarPanel, Workbench } from "vscode-extension-tester";
 import {
   ESP_IDF_COMMANDS,
   clickStatusBarItem,
@@ -42,6 +42,7 @@ const PROBLEM_LINE = /\b(?:error|warning|fatal|traceback)\b|command not found|vi
 const ACTIVATION_TIMEOUT_MS = 90000;
 const IDF_PY_TIMEOUT_MS = 60000;
 const TERMINAL_STABLE_MS = 2000;
+const TERMINAL_READ_GAP_MS = 3000;
 
 type IdfVersionParts = {
   major: number;
@@ -181,44 +182,77 @@ async function waitForActiveEspIdfVersion(): Promise<string> {
   throw new Error(lastError);
 }
 
+/**
+ * `TerminalView.getText()` opens the command palette (`Terminal: Select All`)
+ * on every call. Read twice, with a gap, instead of polling every second.
+ */
 async function waitForStableNewTerminalText(
   pattern: RegExp,
   timeoutMs: number,
   what: string
 ): Promise<string> {
   const deadline = Date.now() + timeoutMs;
-  let lastFull = "";
-  let stableSince = 0;
   let latestFresh = "";
 
   while (Date.now() < deadline) {
+    await delay(TERMINAL_READ_GAP_MS);
     let full = "";
     try {
       full = await readTerminalText();
     } catch {
-      await delay(1000);
       continue;
     }
     const fresh = textAfterSnapshot(full, terminalSnapshot);
-    const comparable = full.replace(/\s+$/g, "");
     latestFresh = fresh;
-    if (pattern.test(fresh) && comparable === lastFull) {
-      if (stableSince === 0) {
-        stableSince = Date.now();
-      }
-      if (Date.now() - stableSince >= TERMINAL_STABLE_MS) {
-        return fresh;
-      }
-    } else {
-      stableSince = 0;
+    if (!pattern.test(fresh)) {
+      continue;
     }
-    lastFull = comparable;
-    await delay(1000);
+    await delay(TERMINAL_STABLE_MS);
+    try {
+      full = await readTerminalText();
+    } catch {
+      continue;
+    }
+    const settled = textAfterSnapshot(full, terminalSnapshot);
+    latestFresh = settled;
+    if (pattern.test(settled) && settled === fresh) {
+      return settled;
+    }
   }
 
   throw new Error(
     `Timed out waiting for ${what}.\nNew terminal text:\n${latestFresh}`
   );
+}
+
+type SyncClipboard = {
+  readSync: () => string;
+  writeSync: (value: string) => void;
+};
+
+/**
+ * The xterm helper textarea in this VS Code build is not interactable, so
+ * `TerminalView.executeCommand()` never delivers the keystrokes. Paste goes
+ * through the terminal command and reaches the shell.
+ */
+async function pasteIntoActiveTerminal(command: string): Promise<void> {
+  const clipboard = (await import("clipboardy")).default as SyncClipboard;
+  let original = "";
+  try {
+    original = clipboard.readSync();
+  } catch {
+    original = "";
+  }
+  clipboard.writeSync(`${command}\n`);
+  try {
+    await new Workbench().executeCommand(
+      "Terminal: Paste into Active Terminal"
+    );
+  } finally {
+    if (original.length > 0) {
+      clipboard.writeSync(original);
+    }
+  }
 }
 
 async function closeActiveTerminal(): Promise<void> {
@@ -262,19 +296,9 @@ async function assertIdfPyVersionMatchesActiveVersion(
   where: string
 ): Promise<void> {
   const activeVersion = await waitForActiveEspIdfVersion();
+  await new BottomBarPanel().openTerminalView();
   terminalSnapshot = await readTerminalText();
-  const terminalView = await new BottomBarPanel().openTerminalView();
-  try {
-    await terminalView.executeCommand("idf.py --version", 5000);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (!message.includes("Timeout")) {
-      throw error;
-    }
-    console.log(
-      `${where} idf.py --version was sent; continuing to read the terminal`
-    );
-  }
+  await pasteIntoActiveTerminal("idf.py --version");
   const output = await waitForStableNewTerminalText(
     IDF_PY_VERSION_LINE,
     IDF_PY_TIMEOUT_MS,
