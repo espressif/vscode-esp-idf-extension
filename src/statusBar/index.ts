@@ -31,7 +31,6 @@ import {
 } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { ESP } from "../config";
-import { getCurrentIdfConfiguration } from "../configuration/env";
 import { CommandItem } from "../cmdTreeView/cmdTreeDataProvider";
 import { CommandKeys, commandDictionary } from "../cmdTreeView/cmdStore";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
@@ -152,7 +151,8 @@ export function updateStatusBarItemVisibility(cmdItem: CommandItem) {
 
 export async function createCmdsStatusBarItems(
   context: ExtensionContext,
-  workspaceFolder: Uri
+  workspaceFolder: Uri,
+  idfPath: string
 ) {
   const enableStatusBar = readParameter("idf.enableStatusBar") as boolean;
   if (!enableStatusBar) {
@@ -197,8 +197,6 @@ export async function createCmdsStatusBarItems(
       hasConfigurePresets = false;
     }
   }
-  const currentEnvVars = getCurrentIdfConfiguration();
-
   statusBarItems["workspace"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.pickWorkspace].iconId})`,
     commandDictionary[CommandKeys.pickWorkspace].tooltip,
@@ -217,7 +215,7 @@ export async function createCmdsStatusBarItems(
   );
   updateOpenOcdAdapterStatusBarItem(workspaceFolder);
 
-  const idfVersion = await getEspIdfFromCMake(currentEnvVars["IDF_PATH"]);
+  const idfVersion = await getEspIdfFromCMake(idfPath);
   statusBarItems["currentIdfVersion"] = createStatusBarItem(
     `$(${
       commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId

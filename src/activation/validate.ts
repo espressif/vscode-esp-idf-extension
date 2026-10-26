@@ -17,17 +17,26 @@
  */
 
 import { pathExists } from "fs-extra";
-import { ConfigurationTarget, workspace } from "vscode";
+import { ConfigurationTarget, workspace, WorkspaceFolder } from "vscode";
 import { checkIfActivateExtension } from "../common/activation";
 import { Logger } from "../common/logger";
+import { getStoredIdfSetupEnv } from "../common/prepareEnv";
 import { PreCheck } from "../common/PreCheck";
 import { ESP } from "../config";
 import { readParameter, writeParameter } from "../configuration/idf";
 import {
-  defaultEimIdfJsonPath,
+  currentSetupRejectDetail,
   finishedIdfInstalls,
   getEimIdfJson,
+  resolveEimIdfJsonPath,
+  unfinishedInstallDetails,
 } from "../eim/getExistingSetups";
+import { loadIdfSetup } from "../eim/loadIdfSetup";
+import {
+  couldNotSaveCurrentSetupDetail,
+  missingIdfEnvDetail,
+} from "../eim/setupFailureDetail";
+import { hasRequiredIdfEnv } from "../eim/verifySetup";
 import { EspIdfJson } from "../eim/types";
 
 export type ActivationFailure =
@@ -36,7 +45,7 @@ export type ActivationFailure =
   | "invalidCurrentSetup";
 
 export type ActivationDecision =
-  | { kind: "nonConfigured"; failure: ActivationFailure }
+  | { kind: "nonConfigured"; failure: ActivationFailure; detail?: string }
   | { kind: "configuredNoWorkspaceFolder" }
   | { kind: "skipped" }
   | { kind: "undetected" }
@@ -51,37 +60,73 @@ export function requestProjectActivation() {
 
 async function resolveEimIdfJson(): Promise<EspIdfJson | undefined> {
   const customPath = readParameter("idf.eimIdfJsonPath") as string;
-  const customFileExists = !!customPath && (await pathExists(customPath));
-  if (!customFileExists) {
-    const defaultFileExists = await pathExists(defaultEimIdfJsonPath());
-    if (!defaultFileExists) {
-      return;
-    }
-    if (customPath) {
-      await writeParameter(
-        "idf.eimIdfJsonPath",
-        "",
-        ConfigurationTarget.Global
-      );
-    }
+  const resolved = await resolveEimIdfJsonPath();
+  if (!resolved) {
+    return;
+  }
+  if (customPath && !(await pathExists(customPath))) {
+    await writeParameter("idf.eimIdfJsonPath", "", ConfigurationTarget.Global);
   }
   return getEimIdfJson();
 }
 
-export async function runValidations(): Promise<ActivationDecision> {
+async function configureLoadedSetup(
+  extensionPath: string,
+  workspaceFolder: WorkspaceFolder,
+  idfPath: string
+): Promise<ActivationDecision> {
+  ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(workspaceFolder.uri);
+  let loadDetail: string | undefined;
+  try {
+    const loaded = await loadIdfSetup(extensionPath, workspaceFolder);
+    if (loaded.ok === false) {
+      loadDetail = loaded.detail;
+    }
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to load ESP-IDF setup.";
+    Logger.error(
+      message,
+      error instanceof Error ? error : new Error(message),
+      "runValidations",
+      undefined,
+      false
+    );
+    return {
+      kind: "nonConfigured",
+      failure: "invalidCurrentSetup",
+      detail: message,
+    };
+  }
+  if (!hasRequiredIdfEnv(getStoredIdfSetupEnv())) {
+    const detail = loadDetail || missingIdfEnvDetail();
+    Logger.info(detail, "runValidations");
+    return { kind: "nonConfigured", failure: "invalidCurrentSetup", detail };
+  }
+  Logger.info(`Using finished ESP-IDF setup ${idfPath}.`, "runValidations");
+  return { kind: "configured" };
+}
+
+export async function runValidations(
+  extensionPath: string
+): Promise<ActivationDecision> {
   const espIdfJson = await resolveEimIdfJson();
   if (!espIdfJson) {
     Logger.info("eim_idf.json was not found.", "runValidations");
     return { kind: "nonConfigured", failure: "eimJsonMissing" };
   }
 
-  const finishedInstalls = finishedIdfInstalls(espIdfJson);
+  const finishedInstalls = await finishedIdfInstalls(espIdfJson);
   if (!finishedInstalls.length) {
     Logger.info(
       "eim_idf.json has no finished ESP-IDF setup.",
       "runValidations"
     );
-    return { kind: "nonConfigured", failure: "noFinishedSetup" };
+    return {
+      kind: "nonConfigured",
+      failure: "noFinishedSetup",
+      detail: await unfinishedInstallDetails(espIdfJson),
+    };
   }
 
   if (!PreCheck.isWorkspaceFolderOpen()) {
@@ -136,13 +181,21 @@ export async function runValidations(): Promise<ActivationDecision> {
     );
     if (!written) {
       Logger.info("Could not save idf.currentSetup.", "runValidations");
-      return { kind: "nonConfigured", failure: "invalidCurrentSetup" };
+      return {
+        kind: "nonConfigured",
+        failure: "invalidCurrentSetup",
+        detail: couldNotSaveCurrentSetupDetail(),
+      };
     }
     Logger.info(
       `Selected ESP-IDF setup ${finishedInstalls[0].path} for ${workspaceFolder.uri.fsPath}.`,
       "runValidations"
     );
-    return { kind: "configured" };
+    return configureLoadedSetup(
+      extensionPath,
+      workspaceFolder,
+      finishedInstalls[0].path
+    );
   }
 
   const matchingInstall = finishedInstalls.find(
@@ -153,12 +206,16 @@ export async function runValidations(): Promise<ActivationDecision> {
       `idf.currentSetup ${currentSetup} is not a finished ESP-IDF setup.`,
       "runValidations"
     );
-    return { kind: "nonConfigured", failure: "invalidCurrentSetup" };
+    return {
+      kind: "nonConfigured",
+      failure: "invalidCurrentSetup",
+      detail: await currentSetupRejectDetail(espIdfJson, currentSetup),
+    };
   }
 
-  Logger.info(
-    `Using finished ESP-IDF setup ${matchingInstall.path}.`,
-    "runValidations"
+  return configureLoadedSetup(
+    extensionPath,
+    workspaceFolder,
+    matchingInstall.path
   );
-  return { kind: "configured" };
 }

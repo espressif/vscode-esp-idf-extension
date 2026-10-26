@@ -24,12 +24,14 @@ import {
   window,
 } from "vscode";
 import { hideConfiguredStatusBarItems } from "../statusBar";
+import { statusBarFailureTooltip } from "../eim/setupFailureDetail";
 import { ActivationFailure } from "./validate";
 
 let statusBarItem: StatusBarItem | undefined;
 
 function failurePresentation(
-  failure: ActivationFailure
+  failure: ActivationFailure,
+  detail?: string
 ): {
   text: string;
   tooltip: string;
@@ -39,27 +41,36 @@ function failurePresentation(
     case "eimJsonMissing":
       return {
         text: l10n.t("eim_idf.json not found"),
-        tooltip: l10n.t("Select eim_idf.json"),
+        tooltip: statusBarFailureTooltip(l10n.t("Select eim_idf.json"), detail),
         command: "espIdf.selectEimIdfJson",
       };
     case "noFinishedSetup":
       return {
         text: l10n.t("No valid ESP-IDF setup found"),
-        tooltip: l10n.t("Open ESP-IDF Installation Manager"),
+        tooltip: statusBarFailureTooltip(
+          l10n.t("Open ESP-IDF Installation Manager"),
+          detail
+        ),
         command: "espIdf.installManager",
       };
     case "invalidCurrentSetup":
       return {
         text: l10n.t("Invalid ESP-IDF Setup"),
-        tooltip: l10n.t("Select current ESP-IDF version"),
+        tooltip: statusBarFailureTooltip(
+          l10n.t("Select current ESP-IDF version"),
+          detail
+        ),
         command: "espIdf.selectCurrentIdfVersion",
       };
   }
 }
 
-export function enterNonConfigured(failure: ActivationFailure) {
+export function enterNonConfigured(
+  failure: ActivationFailure,
+  detail?: string
+) {
   hideConfiguredStatusBarItems();
-  const presentation = failurePresentation(failure);
+  const presentation = failurePresentation(failure, detail);
   if (!statusBarItem) {
     statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 110);
     statusBarItem.backgroundColor = new ThemeColor(
