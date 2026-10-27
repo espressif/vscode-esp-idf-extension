@@ -514,7 +514,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await evaluateDebugConsole(`>delete ${conditionalBreakpointNumber}`);
       const infoText = await evaluateDebugConsoleAndWait(
         ">info breakpoints",
-        /No breakpoints(?:,| or )watchpoints|Num\s+Type/i,
+        /No breakpoints\b|Num\s+Type/i,
         20000
       );
       if (
