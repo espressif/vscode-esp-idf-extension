@@ -92,11 +92,6 @@ function stripTerminalText(value: string): string {
   return value.replace(/\u001b\[[0-9;]*m/g, "").replace(/\r/g, "");
 }
 
-/**
- * Status bar and the activation script use version.cmake (`6.1.0`).
- * `idf.py --version` prints `git describe`, which is `v6.1` when the release
- * tag has no patch. A missing patch agrees only with patch 0.
- */
 function parseIdfVersion(value: string): IdfVersionParts | undefined {
   const match = value.match(/(\d+)\.(\d+)(?:\.(\d+))?/);
   if (!match) {
