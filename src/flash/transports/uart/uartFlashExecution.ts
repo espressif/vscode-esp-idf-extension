@@ -16,12 +16,20 @@
  * limitations under the License.
  */
 import { Uri } from "vscode";
+import { readParameter } from "../../../configuration/idf";
 import { FlashModel } from "./types/flashModel";
 import { addProcessTask } from "../../../taskManager/taskManager";
 import { ESP } from "../../../config";
+import { resolveEsptoolLaunchStyle } from "../../shared/esptool/esptoolCli";
 import { resolveEsptoolInvocation } from "../../shared/esptool/resolveEsptoolInvocation";
 import { getFlasherArgs, getSingleBinFlasherArgs } from "./flashArgsBuilder";
 import { assertFlashSectionsReadable } from "../../shared/verifyFlashBins";
+import {
+  existingFlashedReferences,
+  fastReflashArgs,
+  fastReflashBinPaths,
+  saveFlashedBinCopies,
+} from "../../shared/esptool/fastReflash";
 
 export async function createUartFlashProcessTask(
   workspace: Uri,
@@ -29,22 +37,57 @@ export async function createUartFlashProcessTask(
   modifiedEnv: { [key: string]: string },
   buildDirPath: string,
   encryptPartitions: boolean,
-  partitionToUse?: ESP.PartitionType
+  partitionToUse?: ESP.PartitionType,
+  forceFullImageArg = false
 ) {
   assertFlashSectionsReadable(buildDirPath, model);
   const {
     pythonPath: pythonBinPath,
     esptoolScriptPath,
   } = await resolveEsptoolInvocation(modifiedEnv["IDF_PATH"]!);
+  const launchStyle = await resolveEsptoolLaunchStyle(pythonBinPath);
   const flasherArgs = partitionToUse
-    ? getSingleBinFlasherArgs(model, esptoolScriptPath, partitionToUse)
-    : getFlasherArgs(model, esptoolScriptPath, encryptPartitions);
+    ? getSingleBinFlasherArgs(
+        model,
+        esptoolScriptPath,
+        partitionToUse,
+        false,
+        launchStyle.hyphenCli,
+        launchStyle.useModule
+      )
+    : getFlasherArgs(
+        model,
+        esptoolScriptPath,
+        encryptPartitions,
+        false,
+        launchStyle.hyphenCli,
+        launchStyle.useModule
+      );
+  const binPaths = fastReflashBinPaths(flasherArgs, launchStyle.fastReflash);
+  const forceFullImage =
+    forceFullImageArg ||
+    readParameter("idf.flashFullImage", workspace) === true;
+  if (!forceFullImage) {
+    const existingRefs = await existingFlashedReferences(
+      buildDirPath,
+      binPaths
+    );
+    flasherArgs.push(
+      ...fastReflashArgs(binPaths, (refPath) => existingRefs.has(refPath))
+    );
+  }
   return addProcessTask(
     "Flash",
     workspace,
     pythonBinPath,
     flasherArgs,
     buildDirPath,
-    modifiedEnv
+    modifiedEnv,
+    {
+      epilogue: async () => {
+        await saveFlashedBinCopies(buildDirPath, binPaths);
+        return undefined;
+      },
+    }
   );
 }

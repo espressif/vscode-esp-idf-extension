@@ -6,9 +6,24 @@
  * you may not use this file except in compliance with the License.
  */
 
+import {
+  esptoolProgramArgs,
+  formatEsptoolArgs,
+} from "../../../flash/shared/esptool/esptoolCli";
+
 export function buildUartEraseFlashArgs(
   esptoolScriptPath: string,
-  port: string
+  port: string,
+  hyphenCli: boolean = false,
+  useModule: boolean = false
 ): string[] {
-  return [esptoolScriptPath, "-p", port, "erase_flash"];
+  return formatEsptoolArgs(
+    [
+      ...esptoolProgramArgs(esptoolScriptPath, useModule),
+      "-p",
+      port,
+      "erase_flash",
+    ],
+    hyphenCli
+  );
 }

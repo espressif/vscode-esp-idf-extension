@@ -41,6 +41,9 @@ export function registerFlashCommands(context: ExtensionContext) {
   registerFlashCommand(context, "espIdf.flashUart", () =>
     flash(undefined, ESP.FlashType.UART)
   );
+  registerFlashCommand(context, "espIdf.flashFullImage", () =>
+    flash(undefined, ESP.FlashType.UART, undefined, true)
+  );
   registerFlashCommand(context, "espIdf.flashDevice", () => flash(undefined));
   registerFlashCommand(context, "espIdf.flashAndEncryptDevice", () =>
     flash(true)

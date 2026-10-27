@@ -58,6 +58,8 @@
      - 通过 DFU，将当前 ESP-IDF 项目的二进制文件写入 flash 芯片，此方案仅适用于 ESP32-S2 和 ESP32-S3。
    * - 通过 UART 接口烧录项目
      - 通过 esptool.py，将当前 ESP-IDF 项目的二进制文件写入 flash 芯片。
+   * - 通过 UART 接口完整烧录项目
+     - 通过 esptool.py 将所选镜像的全部字节写入 flash 芯片，不使用 ``--diff-with`` 或 ``--skip-flashed``。此命令不会更改 **idf.flashFullImage**。
    * - 通过 JTAG 接口烧录项目
      - 通过 OpenOCD JTAG，将当前 ESP-IDF 项目的二进制文件写入 flash 芯片。
    * - 将二进制文件烧录到分区…
