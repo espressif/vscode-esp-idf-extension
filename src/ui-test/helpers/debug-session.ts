@@ -575,7 +575,7 @@ export async function launchDebugger(timeoutMs = 60000): Promise<DebugToolbar> {
     if (await waitForAlreadyRunningDialog(10000)) {
       await logStatusBar("after failed relaunch");
       throw new Error(
-        "Eclipse CDT GDB Adapter still running after stop and relaunch"
+        "ESP-IDF GDB Adapter still running after stop and relaunch"
       );
     }
   }

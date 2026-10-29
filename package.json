@@ -1931,7 +1931,7 @@
     "debuggers": [
       {
         "type": "gdbtarget",
-        "label": "Eclipse GDB Target",
+        "label": "ESP-IDF",
         "runtime": "node",
         "configurationAttributes": {
           "launch": {
@@ -2444,17 +2444,17 @@
           {
             "type": "gdbtarget",
             "request": "attach",
-            "name": "Eclipse CDT GDB Adapter"
+            "name": "ESP-IDF"
           }
         ],
         "configurationSnippets": [
           {
-            "label": "Eclipse CDT GDB Adapter",
-            "description": "A espidf configuration for remote debugging using GDB.",
+            "label": "ESP-IDF",
+            "description": "ESP-IDF configuration for debugging using GDB.",
             "body": {
               "type": "gdbtarget",
               "request": "attach",
-              "name": "Eclipse CDT GDB Adapter"
+              "name": "ESP-IDF"
             }
           }
         ]
