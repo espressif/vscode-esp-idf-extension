@@ -22,6 +22,7 @@ import { getIdfSetups } from "./getExistingSetups";
 import { IdfSetup } from "./types";
 import { getEnvVariables } from "./loadSettings";
 import { readParameter } from "../configuration/idf";
+import { getVenvPythonBinPath } from "../configuration/env";
 import { getEspIdfFromCMake, isBinInPath } from "../utils";
 import { join } from "path";
 import { isIdfSetupValid, saveSettings } from "./verifySetup";
@@ -218,15 +219,10 @@ export async function loadEnvVarsAsIdfSetup(
     );
     return;
   }
-  const pyDir =
-    process.platform === "win32"
-      ? ["Scripts", "python.exe"]
-      : ["bin", "python3"];
   let venvPythonPath = "";
   if (envVarsForValidation["IDF_PYTHON_ENV_PATH"]) {
-    venvPythonPath = join(
-      envVarsForValidation["IDF_PYTHON_ENV_PATH"],
-      ...pyDir
+    venvPythonPath = getVenvPythonBinPath(
+      envVarsForValidation["IDF_PYTHON_ENV_PATH"]
     );
   }
 

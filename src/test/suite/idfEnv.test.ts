@@ -17,11 +17,15 @@
  */
 
 import * as assert from "assert";
-import { resolve } from "path";
+import { mkdirSync, mkdtempSync, writeFileSync } from "fs";
+import { tmpdir } from "os";
+import { join, resolve } from "path";
 import * as vscode from "vscode";
 import { ESP } from "../../config";
 import {
   getCurrentIdfConfiguration,
+  getVenvPythonBinPath,
+  getVirtualEnvPythonPath,
   updateCurrentIdfEnvVar,
 } from "../../configuration/env";
 import { ProjectConfigStore } from "../../project-conf/store";
@@ -67,5 +71,80 @@ suite("configuration/env.ts", () => {
   test("updateCurrentIdfEnvVar persists into the store", () => {
     updateCurrentIdfEnvVar("IDF_TARGET", "esp32s3");
     assert.strictEqual(getCurrentIdfConfiguration().IDF_TARGET, "esp32s3");
+  });
+
+  suite("venv python binary", () => {
+    const isWindows = process.platform === "win32";
+
+    function createVenv(binaries: string[]) {
+      const venvDir = mkdtempSync(join(tmpdir(), "idf-venv-"));
+      const binDir = join(venvDir, isWindows ? "Scripts" : "bin");
+      mkdirSync(binDir);
+      for (const binary of binaries) {
+        writeFileSync(join(binDir, binary), "");
+      }
+      return venvDir;
+    }
+
+    test("getVenvPythonBinPath prefers python over python3", function () {
+      if (isWindows) {
+        this.skip();
+      }
+      const venvDir = createVenv(["python", "python3"]);
+      assert.strictEqual(
+        getVenvPythonBinPath(venvDir),
+        join(venvDir, "bin", "python")
+      );
+    });
+
+    test("getVenvPythonBinPath falls back to python3", function () {
+      if (isWindows) {
+        this.skip();
+      }
+      const venvDir = createVenv(["python3"]);
+      assert.strictEqual(
+        getVenvPythonBinPath(venvDir),
+        join(venvDir, "bin", "python3")
+      );
+    });
+
+    test("getVenvPythonBinPath uses python.exe on Windows", function () {
+      if (!isWindows) {
+        this.skip();
+      }
+      const venvDir = createVenv(["python.exe"]);
+      assert.strictEqual(
+        getVenvPythonBinPath(venvDir),
+        join(venvDir, "Scripts", "python.exe")
+      );
+    });
+
+    function setIdfConfiguration(env: { [key: string]: string }) {
+      ESP.ProjectConfiguration.store.set(
+        ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+        env
+      );
+    }
+
+    test("getVirtualEnvPythonPath returns the stored PYTHON value", () => {
+      setIdfConfiguration({
+        PYTHON: "/venv/bin/python",
+        IDF_PYTHON_ENV_PATH: "/venv",
+      });
+      assert.strictEqual(getVirtualEnvPythonPath(), "/venv/bin/python");
+    });
+
+    test("getVirtualEnvPythonPath derives from IDF_PYTHON_ENV_PATH", () => {
+      const venvDir = createVenv(isWindows ? ["python.exe"] : ["python"]);
+      setIdfConfiguration({ IDF_PYTHON_ENV_PATH: venvDir });
+      assert.strictEqual(
+        getVirtualEnvPythonPath(),
+        getVenvPythonBinPath(venvDir)
+      );
+    });
+
+    test("getVirtualEnvPythonPath is undefined without a venv", () => {
+      assert.strictEqual(getVirtualEnvPythonPath(), undefined);
+    });
   });
 });
