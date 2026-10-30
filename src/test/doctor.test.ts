@@ -51,7 +51,9 @@ suite("Doctor Command tests", () => {
     globalState: createMockMemento(),
   } as vscode.ExtensionContext;
   Logger.init(mockUpContext);
-  ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(
+    mockUpContext
+  );
   setup(async () => {
     reportObj.workspaceFolder = join(
       __dirname,
@@ -226,19 +228,101 @@ suite("Doctor Command tests", () => {
   });
 
   test("Match written report", async () => {
-    const actualReport = await writeTextReport(reportObj, mockUpContext);
-    assert.ok(actualReport.includes("CONFIGURATION SUMMARY"));
-    assert.ok(actualReport.includes("Overall status:"));
-    assert.ok(actualReport.includes("Configuration checks"));
-    assert.ok(actualReport.includes("Additional extension settings"));
+    const report = await writeTextReport(reportObj, mockUpContext);
+    const { summary, details } = splitDoctorReport(report);
+    assert.ok(summary.includes("ISSUES"));
+    assert.ok(summary.includes("Active ESP-IDF Setup"));
+    assert.ok(summary.includes("All ESP-IDF setups"));
+    assert.ok(summary.includes("Overall:"));
+    assert.ok(!summary.includes("Python packages in Virtual environment"));
+    assert.ok(!summary.includes('"stack":'));
+    assert.ok(details.includes("Configuration checks"));
+    assert.ok(details.includes("Python packages in Virtual environment"));
+    assert.ok(details.includes("Logfile"));
+    assert.ok(details.includes("Additional extension settings"));
     assert.ok(
-      !actualReport.includes(
+      !summary.includes(
         "-------------------------------------------------------- Configurations access -------------------------------------------------------------"
       )
     );
+    assert.ok(!report.includes("report-full.txt"));
     assert.ok(reportObj.reportSummary);
+    const overall = reportObj.reportSummary.overall;
+    assert.ok(["PASS", "FAIL", "WARN"].includes(overall));
+    if (overall === "FAIL") {
+      assert.ok(summary.includes("ACTIONS"));
+      assert.ok(summary.includes("Open ESP-IDF Installation Manager"));
+    } else {
+      assert.ok(!summary.includes("ACTIONS"));
+    }
+  });
+
+  test("Summary hides detail and full report keeps it", async () => {
+    const report = initializeReportObject();
+    report.configurationSettings.espIdfPath = "/idf/v6.1";
+    report.configurationSettings.toolsPath = "/tools";
+    report.configurationSettings.pythonBinPath = "/venv/bin/python";
+    report.configurationAccess.espIdfPath = true;
+    report.configurationAccess.toolsPath = true;
+    report.configurationAccess.pythonBinPath = true;
+    report.configurationAccess.cmakeInEnv = true;
+    report.configurationAccess.ninjaInEnv = true;
+    report.espIdfVersion.result = "6.1.0";
+    report.pythonVersion.result = "3.13.15";
+    report.pipVersion.result = "26.2";
+    report.idfCheckRequirements.result = "Python requirements are satisfied.";
+    report.configurationSettings.pythonPackages = [
+      { name: "widget-pkg", version: "1.2.3" },
+    ];
+
+    const passing = await writeTextReport(report, mockUpContext);
+    const passingParts = splitDoctorReport(passing);
+    assert.equal(report.reportSummary?.overall, "PASS");
+    assert.ok(passingParts.summary.includes("ISSUES"));
+    assert.ok(passingParts.summary.includes("Active ESP-IDF Setup"));
+    assert.ok(passingParts.summary.includes("All ESP-IDF setups"));
+    assert.ok(!passing.includes("ACTIONS"));
+    assert.ok(!passingParts.summary.includes("widget-pkg version:"));
+    assert.ok(passingParts.details.includes("Configuration checks"));
+    assert.ok(!passingParts.details.includes("\nIssues\n"));
+    assert.ok(passingParts.details.includes("widget-pkg version: 1.2.3"));
+    assert.ok(passingParts.details.includes("Logfile"));
+
+    report.configurationSettings.systemEnvPath =
+      "/usr/bin:/Applications/VMware Fusion.app/Contents/Public:/usr/sbin";
+    report.configurationSpacesValidation.systemEnvPath = true;
+    const warning = await writeTextReport(report, mockUpContext);
+    const warningParts = splitDoctorReport(warning);
+    assert.equal(report.reportSummary?.overall, "WARN");
+    assert.ok(!warning.includes("ACTIONS"));
     assert.ok(
-      ["PASS", "FAIL", "WARN"].includes(reportObj.reportSummary.overall)
+      !warningParts.summary.includes("Open ESP-IDF Installation Manager")
+    );
+    assert.ok(warningParts.summary.includes("VMware Fusion.app"));
+    assert.ok(!warningParts.summary.includes("/usr/bin"));
+    assert.ok(
+      warningParts.summary.includes("[WARN] System PATH contains a space")
+    );
+    assert.ok(
+      !warningParts.details.includes("[WARN] System PATH contains a space")
+    );
+    assert.ok(!warningParts.details.includes("\nIssues\n"));
+    assert.ok(
+      warningParts.details.includes(
+        "/usr/bin:/Applications/VMware Fusion.app/Contents/Public:/usr/sbin"
+      )
     );
   });
 });
+
+function splitDoctorReport(
+  report: string
+): { summary: string; details: string } {
+  const marker = "\nDETAILS\n";
+  const index = report.indexOf(marker);
+  assert.ok(index > 0);
+  return {
+    summary: report.slice(0, index),
+    details: report.slice(index),
+  };
+}

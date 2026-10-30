@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 import * as vscode from "vscode";
-import { Logger } from "../common/logger";
 import { reportObj } from "./types";
 import { getConfigurationSettings } from "./configurationSettings";
 import { getConfigurationAccess } from "./configurationAccess";
@@ -129,11 +128,6 @@ export async function generateConfigurationReport(
     message: "Generating report...",
     increment: 100,
   });
-  const reportOutput = await writeTextReport(reportedResult, context);
-  await vscode.env.clipboard.writeText(reportOutput);
-  reportedResult.formatedOutput = reportOutput;
-  Logger.infoNotify(
-    "Extension configuration report has been copied to clipboard"
-  );
+  await writeTextReport(reportedResult, context);
   return reportedResult;
 }
