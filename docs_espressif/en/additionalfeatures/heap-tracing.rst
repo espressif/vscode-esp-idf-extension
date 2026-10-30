@@ -38,9 +38,16 @@ Let's open an ESP-IDF project. For this tutorial, we will use the ``system/sysvi
 
     .. image:: ../../../media/tutorials/heap_trace/start_heap_tracing.png
 
-6.  Click ``Heap Trace Log #1`` and choose the ``Heap Tracing`` option for the ``ESP-IDF Tracing`` report window. Click the ``Show Report`` button to reload the visualization.
+6.  Click ``Heap Trace Log #1`` and choose the ``Heap Tracing`` option for the ``ESP-IDF Tracing`` report window. Click the ``Show Report`` button to load the visualization.
 
     .. image:: ../../../media/tutorials/heap_trace/heap_trace_report.png
+
+    The report has four tabs:
+
+    - ``Overview`` plots memory in use over time. ``Total memory`` is the sum of every context. Each context can be shown or hidden on its own: a free is applied to the context that allocated the memory. Drag to pan, use the scroll wheel to zoom, and use the chart toolbar to reset the axes or save an image. Click a point to open its call stack.
+    - ``Details`` lists every allocation and free. Green rows are frees. Orange rows are possible leaks: allocations that were still outstanding when the trace ended. Check ``Possible leaks only`` to hide the other rows. Select a row to open its call stack and, from a resolved frame, the matching source line.
+    - ``Overall Stats`` summarizes how many allocations are still outstanding and how many were freed during the trace.
+    - ``Totals`` groups allocated bytes by call stack.
 
 7.  Click ``Heap Trace Log #1`` and choose the ``SystemView Tracing`` option for the ``ESP-IDF System View Report`` window.
 
