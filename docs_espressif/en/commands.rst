@@ -28,6 +28,8 @@ All commands start with ``ESP-IDF:``.
      - Clear results from ESP Explorer Documentation Search Results.
    * - Configure Project SDKConfig for Coverage
      - Set required values in your project SDKConfig to enable code coverage analysis.
+   * - Configure Project for Runtime GDB Stub
+     - Add the ``esp_gdbstub`` component to your project's ``idf_component_register`` private requirements, enable ``CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME`` in the project's sdkconfig, and add an ``ESP-IDF Runtime GDB Stub`` debug configuration. After you build and flash, select that configuration and press ``F5`` to debug the running application over the serial port.
    * - Configure project for ESP-Clang
      - Configure the current ESP-IDF project to use esp-clang as toolchain to use and configure LLVM Clang extension in settings.json.
    * - Create New ESP-IDF Component

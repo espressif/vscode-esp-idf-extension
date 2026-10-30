@@ -21,8 +21,9 @@ import {
   DebugConfiguration,
   DebugConfigurationProvider,
   WorkspaceFolder,
+  l10n,
 } from "vscode";
-import { readParameter } from "../configuration/idf";
+import { readParameter, readSerialPort } from "../configuration/idf";
 import {
   getProjectDescriptionJson,
   getConfigValueFromSDKConfig,
@@ -34,6 +35,8 @@ import { Logger } from "../common/logger";
 import { execChildProcess } from "../utils";
 import { buildFlashAndMonitor } from "../buildFlashMonitor";
 import { monitorMain } from "../espIdf/monitor/main";
+import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
+import { getMonitorBaudRate } from "../espIdf/monitor/getMonitorBaudRate";
 import { handleError } from "../common/error/handler";
 import {
   gdbinitPrefixMapMissing,
@@ -46,6 +49,15 @@ import {
   resolveDebugProgram,
   verifyAppBeforeDebug,
 } from "./validation";
+import {
+  RUNTIME_GDBSTUB_SESSION_ID,
+  applyRuntimeGdbStubDebugConfig,
+  isNonJtagDebugSession,
+  isSdkconfigOptionEnabled,
+  parseHardwareDebugLimit,
+  parseMonitorBaudRate,
+  shouldUseRuntimeGdbStub,
+} from "../espIdf/gdbstub/debugConfig";
 
 /** ESP-IDF generated gdbinit files, in `idf.py gdb` order. */
 const GDBINIT_FILE_NAMES = [
@@ -282,6 +294,9 @@ export class CDTDebugConfigurationProvider
       "idf.launchMonitorOnDebugSession",
       folder
     );
+    if (debugConfiguration.sessionID === RUNTIME_GDBSTUB_SESSION_ID) {
+      await prepareSerialPortForRuntimeGdbStub(folder);
+    }
     if (debugConfiguration.buildFlashMonitor) {
       try {
         await buildFlashAndMonitor(folder.uri, true);
@@ -293,8 +308,7 @@ export class CDTDebugConfigurationProvider
         throw error;
       }
     } else if (
-      debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
-      debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
+      !isNonJtagDebugSession(debugConfiguration.sessionID) &&
       useMonitorWithDebug
     ) {
       try {
@@ -310,8 +324,7 @@ export class CDTDebugConfigurationProvider
     const openOCDManager = OpenOCDManager.init();
     if (
       !openOCDManager.isRunning() &&
-      debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
-      debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
+      !isNonJtagDebugSession(debugConfiguration.sessionID) &&
       debugConfiguration.sessionID !== "qemu.debug.session" &&
       debugConfiguration.runOpenOCD !== false
     ) {
@@ -345,10 +358,10 @@ export class CDTDebugConfigurationProvider
         ? await resolveDebugGdb(config)
         : config.gdb;
 
+      await applyRuntimeGdbStubIfNeeded(folder, config);
+
       const buildDirPath = requireBuildDirPath(folder);
-      const isPostMortemSession =
-        config.sessionID === "core-dump.debug.session.ws" ||
-        config.sessionID === "gdbstub.debug.session.ws";
+      const isNonJtagSession = isNonJtagDebugSession(config.sessionID);
       const projectDescription = await getProjectDescriptionJson(folder.uri);
       const gdbinitFiles = projectDescription?.gdbinitFiles;
       const gdbinitPaths = await resolveGdbinitFilePaths(
@@ -366,7 +379,7 @@ export class CDTDebugConfigurationProvider
         gdbPath
       );
 
-      if (!isPostMortemSession) {
+      if (!isNonJtagSession) {
         const connectCommands =
           (await getConnectCommands(
             gdbinitPaths.get(GDBINIT_CONNECT_FILE_NAME),
@@ -375,7 +388,7 @@ export class CDTDebugConfigurationProvider
         preConnectCommands.push(...connectCommands);
       }
 
-      if (!isPostMortemSession && !prefixMapFound) {
+      if (!isNonJtagSession && !prefixMapFound) {
         try {
           const isAppReproducibleBuildEnabled = await getConfigValueFromSDKConfig(
             "CONFIG_APP_REPRODUCIBLE_BUILD",
@@ -397,14 +410,14 @@ export class CDTDebugConfigurationProvider
         }
       }
 
-      if (!isPostMortemSession && config.initialBreakpoint) {
+      if (!isNonJtagSession && config.initialBreakpoint) {
         if (!Array.isArray(config.initCommands)) {
           config.initCommands = [];
         }
         config.initCommands.push(`thb ${config.initialBreakpoint.trim()}`);
       }
 
-      if (preConnectCommands.length > 0) {
+      if (!isNonJtagSession && preConnectCommands.length > 0) {
         if (!config.target) {
           config.target = { connectCommands: [] };
         }
@@ -427,4 +440,77 @@ export class CDTDebugConfigurationProvider
     }
     return config;
   }
+}
+
+async function applyRuntimeGdbStubIfNeeded(
+  folder: WorkspaceFolder,
+  config: DebugConfiguration
+): Promise<void> {
+  const flashType = readParameter("idf.flashType", folder) as string;
+  let runtimeEnabled = false;
+  try {
+    runtimeEnabled = isSdkconfigOptionEnabled(
+      await getConfigValueFromSDKConfig(
+        "CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME",
+        folder.uri
+      )
+    );
+  } catch {
+    runtimeEnabled = false;
+  }
+
+  if (!shouldUseRuntimeGdbStub(config, { flashType, runtimeEnabled })) {
+    return;
+  }
+
+  const port = await readSerialPort(folder.uri, false);
+  if (!port) {
+    throw new Error(
+      l10n.t(
+        "Select a serial port (idf.port) before debugging with UART GDB Stub."
+      )
+    );
+  }
+
+  applyRuntimeGdbStubDebugConfig(config, {
+    port,
+    baudRate: parseMonitorBaudRate(await getMonitorBaudRate(folder.uri)),
+    hardwareWatchpointLimit: await readHardwareDebugLimit(
+      "CONFIG_SOC_CPU_WATCHPOINTS_NUM",
+      folder
+    ),
+  });
+  Logger.info(`Using UART GDB Stub on ${port}`);
+}
+
+async function readHardwareDebugLimit(
+  sdkconfigKey: string,
+  folder: WorkspaceFolder
+): Promise<number | undefined> {
+  try {
+    return parseHardwareDebugLimit(
+      await getConfigValueFromSDKConfig(sdkconfigKey, folder.uri)
+    );
+  } catch (error) {
+    Logger.error(
+      `Failed to read ${sdkconfigKey} from sdkconfig`,
+      error as Error,
+      "CDTDebugConfigurationProvider readHardwareDebugLimit"
+    );
+    return undefined;
+  }
+}
+
+async function prepareSerialPortForRuntimeGdbStub(
+  folder: WorkspaceFolder
+): Promise<void> {
+  const openOCDManager = OpenOCDManager.init();
+  if (openOCDManager.isRunning()) {
+    throw new Error(
+      l10n.t(
+        "Stop OpenOCD before debugging with UART GDB Stub. JTAG and the serial port cannot be used at the same time."
+      )
+    );
+  }
+  await interruptMonitorWithDelay(folder.uri);
 }
