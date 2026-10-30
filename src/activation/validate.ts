@@ -100,7 +100,7 @@ async function configureLoadedSetup(
   }
   if (!hasRequiredIdfEnv(getStoredIdfSetupEnv())) {
     const detail = loadDetail || missingIdfEnvDetail();
-    Logger.info(detail, "runValidations");
+    Logger.error(detail, new Error(detail), "runValidations", undefined, false);
     return { kind: "nonConfigured", failure: "invalidCurrentSetup", detail };
   }
   Logger.info(`Using finished ESP-IDF setup ${idfPath}.`, "runValidations");
@@ -112,16 +112,15 @@ export async function runValidations(
 ): Promise<ActivationDecision> {
   const espIdfJson = await resolveEimIdfJson();
   if (!espIdfJson) {
-    Logger.info("eim_idf.json was not found.", "runValidations");
+    const message = "eim_idf.json was not found.";
+    Logger.error(message, new Error(message), "runValidations", undefined, false);
     return { kind: "nonConfigured", failure: "eimJsonMissing" };
   }
 
   const finishedInstalls = await finishedIdfInstalls(espIdfJson);
   if (!finishedInstalls.length) {
-    Logger.info(
-      "eim_idf.json has no finished ESP-IDF setup.",
-      "runValidations"
-    );
+    const message = "eim_idf.json has no finished ESP-IDF setup.";
+    Logger.error(message, new Error(message), "runValidations", undefined, false);
     return {
       kind: "nonConfigured",
       failure: "noFinishedSetup",
@@ -180,7 +179,14 @@ export async function runValidations(
       workspaceFolder
     );
     if (!written) {
-      Logger.info("Could not save idf.currentSetup.", "runValidations");
+      const message = "Could not save idf.currentSetup.";
+      Logger.error(
+        message,
+        new Error(message),
+        "runValidations",
+        undefined,
+        false
+      );
       return {
         kind: "nonConfigured",
         failure: "invalidCurrentSetup",
@@ -202,10 +208,8 @@ export async function runValidations(
     (install) => install.path === currentSetup
   );
   if (!matchingInstall) {
-    Logger.info(
-      `idf.currentSetup ${currentSetup} is not a finished ESP-IDF setup.`,
-      "runValidations"
-    );
+    const message = `idf.currentSetup ${currentSetup} is not a finished ESP-IDF setup.`;
+    Logger.error(message, new Error(message), "runValidations", undefined, false);
     return {
       kind: "nonConfigured",
       failure: "invalidCurrentSetup",

@@ -19,18 +19,20 @@ import * as assert from "assert";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
-import { l10n } from "vscode";
+import { l10n, MarkdownString } from "vscode";
 import {
   idfInstallRejectReason,
   isFinishedIdfInstall,
   resolveEimIdfJsonCandidates,
 } from "../../eim/getExistingSetups";
 import {
+  installPathMissingDetail,
   missingActivationScriptDetail,
   statusBarFailureTooltip,
+  wrapTooltipText,
 } from "../../eim/setupFailureDetail";
 import { EspIdfJson, InstallationStatus } from "../../eim/types";
-import { hasRequiredIdfEnv } from "../../eim/verifySetup";
+import { hasRequiredIdfEnv, missingToolNames } from "../../eim/verifySetup";
 
 function finishedCatalog(): EspIdfJson {
   return {
@@ -106,13 +108,41 @@ suite("setup validation", () => {
     });
   });
 
+  suite("missingToolNames", () => {
+    const tools = [
+      { name: "cmake", doesToolExist: false },
+      { name: "ninja", doesToolExist: false },
+      { name: "xtensa-esp-elf", doesToolExist: false },
+    ];
+
+    test("a system PATH hit exempts that tool", () => {
+      const missing = missingToolNames(tools, ["cmake"]);
+      assert.ok(!missing.includes("cmake"));
+      assert.ok(missing.includes("ninja"));
+    });
+
+    test("a tool missing from the system PATH stays missing", () => {
+      const missing = missingToolNames(tools, []);
+      assert.ok(missing.includes("cmake"));
+      assert.ok(missing.includes("ninja"));
+    });
+
+    test("another required tool is still reported", () => {
+      assert.deepStrictEqual(missingToolNames(tools, ["cmake", "ninja"]), [
+        "xtensa-esp-elf",
+      ]);
+    });
+  });
+
   suite("isFinishedIdfInstall", () => {
     test("a missing activation script is not a finished install", async () => {
       tempDir = mkdtempSync(join(tmpdir(), "esp-idf-finished-"));
+      const idfPath = join(tempDir, "esp-idf");
+      mkdirSync(idfPath);
       const finished = await isFinishedIdfInstall(finishedCatalog(), {
         id: "esp-idf",
         name: "esp-idf",
-        path: join(tempDir, "esp-idf"),
+        path: idfPath,
         idfToolsPath: join(tempDir, "tools"),
         status: InstallationStatus.Finished,
         activationScript: join(tempDir, "missing-activate.sh"),
@@ -122,12 +152,14 @@ suite("setup validation", () => {
 
     test("an activation script that exists is a finished install", async () => {
       tempDir = mkdtempSync(join(tmpdir(), "esp-idf-finished-"));
+      const idfPath = join(tempDir, "esp-idf");
+      mkdirSync(idfPath);
       const activationScript = join(tempDir, "activate.sh");
       writeFileSync(activationScript, "#!/bin/sh\n");
       const finished = await isFinishedIdfInstall(finishedCatalog(), {
         id: "esp-idf",
         name: "esp-idf",
-        path: join(tempDir, "esp-idf"),
+        path: idfPath,
         idfToolsPath: join(tempDir, "tools"),
         status: InstallationStatus.Finished,
         activationScript,
@@ -136,11 +168,14 @@ suite("setup validation", () => {
     });
 
     test("an empty activation script stays finished", async () => {
+      tempDir = mkdtempSync(join(tmpdir(), "esp-idf-finished-"));
+      const idfPath = join(tempDir, "esp-idf");
+      mkdirSync(idfPath);
       const finished = await isFinishedIdfInstall(finishedCatalog(), {
         id: "esp-idf",
         name: "esp-idf",
-        path: "/esp/esp-idf",
-        idfToolsPath: "/esp/tools",
+        path: idfPath,
+        idfToolsPath: join(tempDir, "tools"),
         status: InstallationStatus.Finished,
         activationScript: "",
       });
@@ -149,21 +184,43 @@ suite("setup validation", () => {
 
     test("a missing activation script names the script", async () => {
       tempDir = mkdtempSync(join(tmpdir(), "esp-idf-finished-"));
+      const idfPath = join(tempDir, "esp-idf");
+      mkdirSync(idfPath);
       const script = join(tempDir, "missing-activate.sh");
       const detail = await idfInstallRejectReason(finishedCatalog(), {
         id: "esp-idf",
         name: "esp-idf",
-        path: join(tempDir, "esp-idf"),
+        path: idfPath,
         idfToolsPath: join(tempDir, "tools"),
         status: InstallationStatus.Finished,
         activationScript: script,
       });
       assert.strictEqual(
         detail,
-        missingActivationScriptDetail(join(tempDir, "esp-idf"), script)
+        missingActivationScriptDetail(idfPath, script)
       );
-      assert.ok(detail.includes(join(tempDir, "esp-idf")));
+      assert.ok(detail.includes(idfPath));
       assert.ok(detail.includes(script));
+    });
+
+    test("a missing install directory names the path", async () => {
+      tempDir = mkdtempSync(join(tmpdir(), "esp-idf-finished-"));
+      const idfPath = join(tempDir, "esp-idf");
+      const activationScript = join(tempDir, "activate.sh");
+      writeFileSync(activationScript, "#!/bin/sh\n");
+      const install = {
+        id: "esp-idf",
+        name: "esp-idf",
+        path: idfPath,
+        idfToolsPath: join(tempDir, "tools"),
+        status: InstallationStatus.Finished,
+        activationScript,
+      };
+      const finished = await isFinishedIdfInstall(finishedCatalog(), install);
+      const detail = await idfInstallRejectReason(finishedCatalog(), install);
+      assert.strictEqual(finished, false);
+      assert.strictEqual(detail, installPathMissingDetail(idfPath));
+      assert.ok(detail.includes(idfPath));
     });
   });
 
@@ -175,13 +232,48 @@ suite("setup validation", () => {
         "/tools/activate.sh"
       );
       const action = l10n.t("Select current ESP-IDF version");
-      assert.strictEqual(
-        statusBarFailureTooltip(action, detail),
-        `${detail}\n${action}`
-      );
+      const tooltip = statusBarFailureTooltip(action, detail);
+      const reasonAt = tooltip.value.indexOf("Activation script for");
+      const actionAt = tooltip.value.indexOf("Select current ESP");
+      assert.ok(tooltip instanceof MarkdownString);
+      assert.ok(reasonAt >= 0);
+      assert.ok(actionAt > reasonAt);
+      assert.ok(tooltip.value.includes("activate"));
       assert.ok(detail.includes(idfPath));
       assert.ok(detail.includes("/tools/activate.sh"));
-      assert.strictEqual(statusBarFailureTooltip(action), action);
+      const actionOnly = statusBarFailureTooltip(action);
+      assert.ok(actionOnly instanceof MarkdownString);
+      assert.ok(actionOnly.value.includes("Select current ESP"));
+      assert.ok(actionOnly.value.includes("version"));
+    });
+
+    test("wraps a long activation script path before esp-idf", () => {
+      const reported =
+        "Activation script for /Users/brainignacio/.espressif/v6.1/esp-idf does not exist: /Users/brainignacio/.espressif/tools/activate_idf_v6.1_not.sh";
+      const wrapped = wrapTooltipText(reported);
+      assert.ok(wrapped.includes("\nesp-idf"));
+      assert.ok(!wrapped.includes("esp-\n"));
+      for (const line of wrapped.split("\n")) {
+        if (line.length <= 60) {
+          continue;
+        }
+        assert.ok(!/[\/\\ ]/.test(line.slice(0, -1)));
+      }
+    });
+
+    test("wraps a Windows path after a backslash", () => {
+      const reported =
+        "The ESP-IDF install path does not exist: C:\\Users\\brainignacio\\.espressif\\v6.1\\esp-idf";
+      const wrapped = wrapTooltipText(reported);
+      assert.ok(wrapped.split("\n").some((line) => line.endsWith("\\")));
+      assert.ok(wrapped.includes("esp-idf"));
+      assert.ok(!wrapped.includes("esp-\n"));
+      for (const line of wrapped.split("\n")) {
+        if (line.length <= 60) {
+          continue;
+        }
+        assert.ok(!/[\/\\ ]/.test(line.slice(0, -1)));
+      }
     });
   });
 
