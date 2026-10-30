@@ -19,7 +19,7 @@
 import { dirname, relative } from "path";
 import { commands, l10n, Uri, window } from "vscode";
 import { ensureDir, pathExists, readFile, stat, writeFile } from "fs-extra";
-import { getWorkspaceFolder } from "../../support/getWorkspaceFolder";
+import { ESP } from "../../config";
 import { extractFsFile } from "./parsers";
 import { workspaceDestination } from "./savePath";
 import { FsImageItem } from "./tree";
@@ -37,7 +37,7 @@ export async function saveFsImageFile(
     );
     return;
   }
-  const folder = getWorkspaceFolder();
+  const folder = ESP.GlobalConfiguration.store.findSelectedWorkspaceFolder();
   if (!folder) {
     window.showErrorMessage(
       l10n.t(
