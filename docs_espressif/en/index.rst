@@ -8,7 +8,7 @@ The ESP-IDF extension for VSCode Code empowers developers to efficiently develop
 .. note::
 
    If you are migrating an existing project from Espressif-IDE, see the
-   `Espressif-IDE to ESP-IDF VS Code Extension Migration Guide <https://github.com/espressif/idf-eclipse-plugin/blob/master/MIGRATION_GUIDE.md>`_.
+   `Espressif-IDE to ESP-IDF VS Code Extension Migration Guide <https://docs.espressif.com/projects/espressif-ide/en/latest/migrate-to-vscode.html>`_.
 
 .. toctree::
     :maxdepth: 1
