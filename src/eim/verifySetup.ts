@@ -19,8 +19,8 @@
 import { pathExists } from "fs-extra";
 import { Logger } from "../common/logger";
 import { IdfSetup } from "./types";
-import { execChildProcess, getEspIdfFromCMake } from "../utils";
-import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
+import { execChildProcess, getEspIdfFromCMake, isBinInPath } from "../utils";
+import { IdfToolsManager } from "../idfToolsManager";
 import { join } from "path";
 import { ConfigurationTarget, WorkspaceFolder } from "vscode";
 import { writeParameter } from "../configuration/idf";
@@ -31,6 +31,9 @@ import { OutputChannel } from "../common/outputChannel";
 import { statusBarItems } from "../statusBar";
 import { storeIdfSetupEnvironment } from "../common/prepareEnv";
 import { warnAboutStaleCustomExtraVars } from "../configuration/staleCustomExtraVars";
+import { missingIdfEnvDetail } from "./setupFailureDetail";
+
+export type SaveSettingsResult = { ok: true } | { ok: false; detail: string };
 
 export function pathVarFromEnvVars(envVars: {
   [key: string]: string;
@@ -43,6 +46,65 @@ export function pathVarFromEnvVars(envVars: {
     return { key, value: envVars[key] };
   }
   return { key: "PATH", value: undefined };
+}
+
+export function hasRequiredIdfEnv(
+  envVars: { [key: string]: string } | undefined
+): boolean {
+  if (!envVars?.["IDF_PATH"] || !envVars["IDF_PYTHON_ENV_PATH"]) {
+    return false;
+  }
+  return !!pathVarFromEnvVars(envVars).value;
+}
+
+const systemPathBuildTools = ["cmake", "ninja"];
+
+export function missingToolNames(
+  tools: { name: string; doesToolExist: boolean }[],
+  foundOnSystemPath: string[]
+): string[] {
+  return tools
+    .filter((tool) => {
+      if (
+        systemPathBuildTools.indexOf(tool.name) !== -1 &&
+        foundOnSystemPath.indexOf(tool.name) !== -1
+      ) {
+        return false;
+      }
+      return !tool.doesToolExist;
+    })
+    .map((tool) => tool.name);
+}
+
+export async function missingRequiredToolsDetail(
+  extensionPath: string,
+  envVars: { [key: string]: string },
+  logToChannel = false
+): Promise<string | undefined> {
+  const { value: pathEnvValue } = pathVarFromEnvVars(envVars);
+  if (!envVars["IDF_PATH"] || !pathEnvValue) {
+    return;
+  }
+  const foundOnSystemPath: string[] = [];
+  for (const tool of systemPathBuildTools) {
+    if (await isBinInPath(tool, process.env)) {
+      foundOnSystemPath.push(tool);
+    }
+  }
+  const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+    extensionPath,
+    envVars["IDF_PATH"]
+  );
+  const toolsInfo = await idfToolsManager.getRequiredToolsInfo(
+    pathEnvValue,
+    ["cmake", "ninja"],
+    logToChannel
+  );
+  const missingTools = missingToolNames(toolsInfo, foundOnSystemPath);
+  if (!missingTools.length) {
+    return;
+  }
+  return `Missing required tools: ${missingTools.join(", ")}`;
 }
 
 /**
@@ -65,31 +127,19 @@ export async function isIdfSetupValid(
       return [false, `IDF_PATH does not exist: ${envVars["IDF_PATH"]}`];
     }
 
-    const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
-      extensionPath,
-      envVars["IDF_PATH"]
-    );
-
     const { key: pathEnvKey, value: pathEnvValue } = pathVarFromEnvVars(
       envVars
     );
     if (!pathEnvValue) {
       return [false, `${pathEnvKey} is not set in environment variables`];
     }
-    let toolsInfo: IEspIdfTool[] = await idfToolsManager.getRequiredToolsInfo(
-      pathEnvValue,
-      ["cmake", "ninja"],
+    const missingTools = await missingRequiredToolsDetail(
+      extensionPath,
+      envVars,
       logToChannel
     );
-
-    const failedToolsResult = toolsInfo.filter(
-      (tInfo) =>
-        !tInfo.doesToolExist && ["cmake", "ninja"].indexOf(tInfo.name) === -1
-    );
-
-    if (failedToolsResult.length) {
-      const missingTools = failedToolsResult.map((t) => t.name).join(", ");
-      return [false, `Missing required tools: ${missingTools}`];
+    if (missingTools) {
+      return [false, missingTools];
     }
 
     if (!envVars["IDF_PYTHON_ENV_PATH"]) {
@@ -162,19 +212,77 @@ export async function saveSettings(
   extensionPath: string,
   setupConf: IdfSetup,
   workspaceFolder: WorkspaceFolder
-) {
+): Promise<SaveSettingsResult> {
+  let envVars: { [key: string]: string };
+  try {
+    envVars = await getEnvVariables(extensionPath, setupConf);
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Error loading ESP-IDF environment";
+    Logger.error(
+      message,
+      error instanceof Error ? error : new Error(message),
+      "verifySetup saveSettings",
+      undefined,
+      false
+    );
+    return { ok: false, detail: message };
+  }
+
+  if (setupConf.python) {
+    envVars["PYTHON"] = setupConf.python;
+  }
+
+  if (!hasRequiredIdfEnv(envVars)) {
+    const detail = missingIdfEnvDetail();
+    Logger.error(
+      detail,
+      new Error(detail),
+      "verifySetup saveSettings",
+      undefined,
+      false
+    );
+    return { ok: false, detail };
+  }
+
+  try {
+    const missingTools = await missingRequiredToolsDetail(
+      extensionPath,
+      envVars
+    );
+    if (missingTools) {
+      Logger.error(
+        missingTools,
+        new Error(missingTools),
+        "verifySetup saveSettings",
+        undefined,
+        false
+      );
+      return { ok: false, detail: missingTools };
+    }
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Error checking required ESP-IDF tools";
+    Logger.error(
+      message,
+      error instanceof Error ? error : new Error(message),
+      "verifySetup saveSettings",
+      undefined,
+      false
+    );
+    return { ok: false, detail: message };
+  }
+
   await writeParameter(
     "idf.currentSetup",
     setupConf.idfPath,
     ConfigurationTarget.WorkspaceFolder,
     workspaceFolder
   );
-
-  const envVars = await getEnvVariables(extensionPath, setupConf);
-
-  if (setupConf.python) {
-    envVars["PYTHON"] = setupConf.python;
-  }
 
   await storeIdfSetupEnvironment(envVars, workspaceFolder);
   void warnAboutStaleCustomExtraVars(workspaceFolder);
@@ -184,6 +292,7 @@ export async function saveSettings(
     }) ESP-IDF v${setupConf.version}`;
   }
   Logger.infoNotify("ESP-IDF has been configured");
+  return { ok: true };
 }
 
 export async function startPythonReqsProcess(

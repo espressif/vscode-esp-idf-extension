@@ -17,6 +17,7 @@
  */
 
 import { commands, l10n, window, WorkspaceFolder } from "vscode";
+import { Logger } from "../common/logger";
 import { getIdfSetups } from "../eim/getExistingSetups";
 import { saveSettings } from "../eim/verifySetup";
 
@@ -55,10 +56,14 @@ export async function selectIdfSetup(
   if (!selectedIdfSetupOption) {
     return;
   }
-  await saveSettings(
+  const saved = await saveSettings(
     extensionPath,
     selectedIdfSetupOption.target,
     workspaceFolder
   );
+  if (saved.ok === false) {
+    Logger.info(saved.detail, "selectIdfSetup");
+    return;
+  }
   return selectedIdfSetupOption.target;
 }

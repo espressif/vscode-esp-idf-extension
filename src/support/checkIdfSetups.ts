@@ -34,10 +34,21 @@ export async function checkIDFSetups(reportedResult: reportObj) {
       reason: "",
     };
     const extensionInfo = extensions.getExtension(ESP.extensionID);
-    let envVars: { [key: string]: string } = await getEnvVariables(
-      extensionInfo?.extensionPath || "",
-      idfSetup
-    );
+    let envVars: { [key: string]: string };
+    try {
+      envVars = await getEnvVariables(
+        extensionInfo?.extensionPath || "",
+        idfSetup
+      );
+    } catch (error) {
+      extendedIdfSetup.isValid = false;
+      extendedIdfSetup.reason =
+        error instanceof Error
+          ? error.message
+          : "Error loading ESP-IDF setup environment";
+      reportedResult.espIdfSetups.push(extendedIdfSetup);
+      continue;
+    }
     [extendedIdfSetup.isValid, extendedIdfSetup.reason] = await isIdfSetupValid(
       extensionInfo?.extensionPath || "",
       envVars,

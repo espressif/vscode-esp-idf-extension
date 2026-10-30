@@ -54,7 +54,10 @@ suite("ChildProcessFailed", () => {
         stderr: "err",
         detail: "spawn python ENOENT",
       });
-      assert.strictEqual(capturedProcessText(error), "out\nerr\nspawn python ENOENT");
+      assert.strictEqual(
+        capturedProcessText(error),
+        "out\nerr\nspawn python ENOENT"
+      );
     });
 
     test("falls back to Error.message", () => {
@@ -258,9 +261,27 @@ suite("ChildProcessFailed", () => {
         ].join("\n")
       );
 
-      const envDict = await getEnvVariablesFromActivationScript(scriptPath);
+      const envDict = await getEnvVariablesFromActivationScript(
+        join(tempDir, "esp-idf"),
+        scriptPath
+      );
 
       assert.strictEqual(envDict["FOO"], "bar");
+    });
+
+    test("rejects when the activation script does not exist", async () => {
+      const missingScript = join(tmpdir(), "esp-idf-missing-activate.sh");
+      const idfPath = join(tmpdir(), "esp-idf");
+      await assert.rejects(
+        () => getEnvVariablesFromActivationScript(idfPath, missingScript),
+        (error: unknown) => {
+          assert.ok(error instanceof Error);
+          assert.match(error.message, /Activation script for/);
+          assert.ok(error.message.includes(idfPath));
+          assert.ok(error.message.includes(missingScript));
+          return true;
+        }
+      );
     });
   });
 });

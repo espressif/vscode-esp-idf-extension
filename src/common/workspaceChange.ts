@@ -35,7 +35,15 @@ import {
   OpenOCDManager,
 } from "../espIdf/openOcd/openOcdManager";
 import { OpenOCDErrorMonitor } from "../espIdf/hints/openocdhint";
+import { leaveActivation } from "../activation/session";
+import { Logger } from "./logger";
+import { getStoredIdfSetupEnv } from "./prepareEnv";
+import { getCurrentIdfConfiguration } from "../configuration/env";
 import { loadIdfSetup } from "../eim/loadIdfSetup";
+import { missingIdfEnvDetail } from "../eim/setupFailureDetail";
+import { IdfSetup } from "../eim/types";
+import { hasRequiredIdfEnv } from "../eim/verifySetup";
+import { getEspIdfFromCMake } from "../utils";
 import { ExtensionConfigStore } from "./store";
 
 export function registerOnDidWorkspaceFolderChanges(context: ExtensionContext) {
@@ -67,7 +75,7 @@ export function registerOnDidWorkspaceFolderChanges(context: ExtensionContext) {
 export async function configureForWorkspace(
   context: ExtensionContext,
   workspaceFolder: WorkspaceFolder
-) {
+): Promise<boolean> {
   const prevWorkspaceFolderStr = ESP.GlobalConfiguration.store.get<string>(
     ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
     ""
@@ -91,7 +99,47 @@ export async function configureForWorkspace(
       );
     }
   }
-  const idfSetup = await loadIdfSetup(context.extensionPath, workspaceFolder);
+  const folderUnchanged =
+    !!prevWorkspaceFolderStr &&
+    prevWorkspaceFolderStr === workspaceFolder.uri.toString();
+  let idfSetup: IdfSetup | undefined;
+  // A second load clears the stored env and spawns the activation script again.
+  if (!(folderUnchanged && hasRequiredIdfEnv(getStoredIdfSetupEnv()))) {
+    let loadDetail: string | undefined;
+    try {
+      const loaded = await loadIdfSetup(context.extensionPath, workspaceFolder);
+      if (loaded.ok === true) {
+        idfSetup = loaded.setup;
+      } else {
+        loadDetail = loaded.detail;
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to load ESP-IDF setup.";
+      loadDetail = message;
+      Logger.error(
+        message,
+        error instanceof Error ? error : new Error(message),
+        "configureForWorkspace",
+        undefined,
+        false
+      );
+    }
+    if (!hasRequiredIdfEnv(getStoredIdfSetupEnv())) {
+      leaveActivation(
+        "invalidCurrentSetup",
+        loadDetail || missingIdfEnvDetail()
+      );
+      return false;
+    }
+  }
+  const storedEnv = getStoredIdfSetupEnv();
+  let version = idfSetup?.version || storedEnv?.["ESP_IDF_VERSION"] || "";
+  if (!version && storedEnv?.["IDF_PATH"]) {
+    version = await getEspIdfFromCMake(storedEnv["IDF_PATH"]);
+  }
   await getIdfTargetFromSdkconfig(
     workspaceFolder.uri,
     statusBarItems["target"]
@@ -118,15 +166,17 @@ export async function configureForWorkspace(
   }
 
   updateIdfComponentsTree(workspaceFolder.uri);
-  statusBarItems["workspace"].text = `$(file-submodule)`;
-  statusBarItems["workspace"].tooltip =
-    l10n.t("ESP-IDF: Current Project") + workspaceFolder.uri.fsPath;
-  statusBarItems["workspace"].command = "espIdf.pickAWorkspaceFolder";
+  if (statusBarItems["workspace"]) {
+    statusBarItems["workspace"].text = `$(file-submodule)`;
+    statusBarItems["workspace"].tooltip =
+      l10n.t("ESP-IDF: Current Project") + workspaceFolder.uri.fsPath;
+    statusBarItems["workspace"].command = "espIdf.pickAWorkspaceFolder";
+  }
   if (statusBarItems["currentIdfVersion"]) {
-    statusBarItems["currentIdfVersion"].text = idfSetup?.version
+    statusBarItems["currentIdfVersion"].text = version
       ? `$(${
           commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-        }) ESP-IDF v${idfSetup.version}`
+        }) ESP-IDF v${version}`
       : `$(${
           commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
         }) ESP-IDF InvalidSetup`;
@@ -145,6 +195,7 @@ export async function configureForWorkspace(
     ProjectConfigurationManager.instance.dispose();
   }
   new ProjectConfigurationManager(workspaceFolder.uri, context, statusBarItems);
+  return true;
 }
 
 export async function useFirstWorkspaceFolder(context: ExtensionContext) {
@@ -153,9 +204,18 @@ export async function useFirstWorkspaceFolder(context: ExtensionContext) {
       ? workspace.workspaceFolders[0]
       : undefined;
   if (wsFolder) {
-    if (Object.keys(statusBarItems).length === 0) {
-      await createCmdsStatusBarItems(context, wsFolder.uri);
+    const createStatusBar = Object.keys(statusBarItems).length === 0;
+    const ready = await configureForWorkspace(context, wsFolder);
+    if (!ready) {
+      return;
     }
-    await configureForWorkspace(context, wsFolder);
+    if (createStatusBar) {
+      await createCmdsStatusBarItems(
+        context,
+        wsFolder.uri,
+        getCurrentIdfConfiguration()["IDF_PATH"] || ""
+      );
+      await configureForWorkspace(context, wsFolder);
+    }
   }
 }

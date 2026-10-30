@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { commands, l10n, window, WorkspaceFolder } from "vscode";
+import { l10n, WorkspaceFolder } from "vscode";
 import { ESP } from "../config";
 import { getIdfSetups } from "./getExistingSetups";
 import { IdfSetup } from "./types";
@@ -30,6 +30,10 @@ import { Logger } from "../common/logger";
 import { createHash } from "crypto";
 import { pathExists } from "fs-extra";
 import { IdfToolsManager } from "../idfToolsManager";
+
+export type LoadIdfSetupResult =
+  | { ok: true; setup: IdfSetup }
+  | { ok: false; detail: string };
 
 export async function getCurrentIdfSetup(
   workspaceFolder?: WorkspaceFolder
@@ -54,7 +58,7 @@ export async function getCurrentIdfSetup(
 export async function loadIdfSetup(
   extensionPath: string,
   workspaceFolder: WorkspaceFolder
-) {
+): Promise<LoadIdfSetupResult> {
   ESP.ProjectConfiguration.store.clear(
     ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
   );
@@ -65,19 +69,22 @@ export async function loadIdfSetup(
     extensionPath,
     workspaceFolder
   );
-  if (idfEnvSetup) {
+  if (idfEnvSetup && "setup" in idfEnvSetup) {
     Logger.info("Using environment variables to configure extension");
-    return idfEnvSetup;
+    return { ok: true, setup: idfEnvSetup.setup };
   }
+  const envLoadDetail =
+    idfEnvSetup && "detail" in idfEnvSetup ? idfEnvSetup.detail : undefined;
   const idfSetups = await getIdfSetups(workspaceFolder);
 
   if (!idfSetups || idfSetups.length < 1) {
-    window.showInformationMessage(l10n.t("No ESP-IDF Setups found"));
-    void promptOpenEspIdfInstallationManager();
-    return;
+    const detail = envLoadDetail || l10n.t("No ESP-IDF Setups found");
+    Logger.error(detail, new Error(detail), "loadIdfSetup", undefined, false);
+    return { ok: false, detail };
   }
 
   let idfSetupToUse: IdfSetup | undefined;
+  let loadDetail = envLoadDetail;
   if (idfSetups && idfSetups.length > 0) {
     let idfConfigurationName: string = readParameter(
       "idf.currentSetup",
@@ -93,24 +100,45 @@ export async function loadIdfSetup(
       });
     } else {
       for (const idfSetup of idfSetups) {
-        const envVars = await getEnvVariables(extensionPath, idfSetup);
-        const [isValid] = await isIdfSetupValid(extensionPath, envVars);
-        if (isValid) {
-          idfSetupToUse = idfSetup;
-          break;
+        try {
+          const envVars = await getEnvVariables(extensionPath, idfSetup);
+          const [isValid] = await isIdfSetupValid(extensionPath, envVars);
+          if (isValid) {
+            idfSetupToUse = idfSetup;
+            break;
+          }
+        } catch (error) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Error loading ESP-IDF setup environment";
+          loadDetail = message;
+          Logger.error(
+            message,
+            error as Error,
+            "loadIdfSetup",
+            undefined,
+            false
+          );
         }
       }
     }
   }
 
   if (!idfSetupToUse) {
-    Logger.infoNotify("Current ESP-IDF setup is not found.");
-    // Do not await here: activation must continue to register the command first.
-    void promptOpenEspIdfInstallationManager();
-    return;
+    const detail = loadDetail || l10n.t("Current ESP-IDF setup is not found.");
+    Logger.error(detail, new Error(detail), "loadIdfSetup", undefined, false);
+    return { ok: false, detail };
   }
-  await saveSettings(extensionPath, idfSetupToUse, workspaceFolder);
-  return idfSetupToUse;
+  const saved = await saveSettings(
+    extensionPath,
+    idfSetupToUse,
+    workspaceFolder
+  );
+  if (saved.ok === false) {
+    return { ok: false, detail: saved.detail };
+  }
+  return { ok: true, setup: idfSetupToUse };
 }
 
 function getIdfMd5sum(idfPath: string) {
@@ -126,7 +154,7 @@ function getIdfMd5sum(idfPath: string) {
 export async function loadEnvVarsAsIdfSetup(
   extensionPath: string,
   workspaceFolder: WorkspaceFolder
-): Promise<IdfSetup | undefined> {
+): Promise<{ setup: IdfSetup } | { detail: string } | undefined> {
   const customVarsSetting = readParameter(
     "idf.customExtraVars",
     workspaceFolder
@@ -257,20 +285,15 @@ export async function loadEnvVarsAsIdfSetup(
   };
 
   if (isValid) {
-    await saveSettings(extensionPath, envDefinedIdfSetup, workspaceFolder);
-    return envDefinedIdfSetup;
+    const saved = await saveSettings(
+      extensionPath,
+      envDefinedIdfSetup,
+      workspaceFolder
+    );
+    if (saved.ok === false) {
+      return { detail: saved.detail };
+    }
+    return { setup: envDefinedIdfSetup };
   }
 }
 
-async function promptOpenEspIdfInstallationManager(): Promise<void> {
-  const openESPIDFManager = l10n.t(
-    "Open ESP-IDF Installation Manager"
-  ) as string;
-  const action = await window.showInformationMessage(
-    l10n.t("The extension configuration is not valid. Choose an action:"),
-    openESPIDFManager
-  );
-  if (action && action === openESPIDFManager) {
-    await commands.executeCommand("espIdf.installManager");
-  }
-}
