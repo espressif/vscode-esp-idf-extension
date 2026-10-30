@@ -29,6 +29,7 @@ import { readParameter } from "../configuration/idf";
 import { getVenvPythonBinPath } from "../configuration/env";
 import {
   currentSetupNotFinishedDetail,
+  installPathMissingDetail,
   installStatusDetail,
   missingActivationScriptDetail,
 } from "./setupFailureDetail";
@@ -57,6 +58,9 @@ export async function idfInstallRejectReason(
     idfInstalled.status !== InstallationStatus.Finished
   ) {
     return installStatusDetail(idfInstalled.path, idfInstalled.status);
+  }
+  if (idfInstalled.path && !(await pathExists(idfInstalled.path))) {
+    return installPathMissingDetail(idfInstalled.path);
   }
   if (
     idfInstalled.activationScript &&
@@ -123,11 +127,20 @@ export async function finishedIdfInstalls(
     return [];
   }
   const installs = await Promise.all(
-    espIdfJson.idfInstalled.map(async (idfInstalled) =>
-      (await isFinishedIdfInstall(espIdfJson, idfInstalled))
-        ? idfInstalled
-        : undefined
-    )
+    espIdfJson.idfInstalled.map(async (idfInstalled) => {
+      const detail = await idfInstallRejectReason(espIdfJson, idfInstalled);
+      if (detail) {
+        Logger.error(
+          detail,
+          new Error(detail),
+          "finishedIdfInstalls",
+          undefined,
+          false
+        );
+        return undefined;
+      }
+      return idfInstalled;
+    })
   );
   return installs.filter((install): install is IdfInstalled => !!install);
 }

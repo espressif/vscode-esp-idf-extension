@@ -174,9 +174,13 @@ async function onCatalogChanged() {
   if (mode === "configured") {
     const failure = await configuredSetupFailure();
     if (failure) {
-      Logger.info(
-        `eim_idf.json no longer matches idf.currentSetup (${failure.failure}).`,
-        "eimIdfJsonWatcher"
+      const message = `eim_idf.json no longer matches idf.currentSetup (${failure.failure}).`;
+      Logger.error(
+        message,
+        new Error(message),
+        "eimIdfJsonWatcher",
+        undefined,
+        false
       );
       watcherHost.leaveForFailure(failure.failure, failure.detail);
     }
@@ -185,9 +189,13 @@ async function onCatalogChanged() {
   if (mode === "configuredNoWorkspaceFolder") {
     const failure = await noWorkspaceCatalogFailure();
     if (failure) {
-      Logger.info(
-        `eim_idf.json has no finished ESP-IDF setup (${failure.failure}).`,
-        "eimIdfJsonWatcher"
+      const message = `eim_idf.json has no finished ESP-IDF setup (${failure.failure}).`;
+      Logger.error(
+        message,
+        new Error(message),
+        "eimIdfJsonWatcher",
+        undefined,
+        false
       );
       watcherHost.leaveForFailure(failure.failure, failure.detail);
     }

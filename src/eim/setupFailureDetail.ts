@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { l10n } from "vscode";
+import { l10n, MarkdownString } from "vscode";
 
 export function missingActivationScriptDetail(
   idfPath: string,
@@ -27,6 +27,10 @@ export function missingActivationScriptDetail(
     idfPath,
     scriptPath
   );
+}
+
+export function installPathMissingDetail(idfPath: string): string {
+  return l10n.t("The ESP-IDF install path does not exist: {0}.", idfPath);
 }
 
 export function installStatusDetail(idfPath: string, status: string): string {
@@ -50,12 +54,64 @@ export function couldNotSaveCurrentSetupDetail(): string {
   return l10n.t("Could not save idf.currentSetup.");
 }
 
+/** Status bar markdown hovers hard-break near this width when spaces cannot wrap. */
+const tooltipLineLimit = 60;
+
+function tooltipPieces(line: string): string[] {
+  const pieces: string[] = [];
+  let current = "";
+  for (const char of line) {
+    current += char;
+    if (char === "/" || char === "\\" || char === " ") {
+      pieces.push(current);
+      current = "";
+    }
+  }
+  if (current) {
+    pieces.push(current);
+  }
+  return pieces;
+}
+
+function wrapTooltipLine(line: string, limit: number): string {
+  const lines: string[] = [];
+  let current = "";
+  for (const piece of tooltipPieces(line)) {
+    if (current && current.length + piece.length > limit) {
+      lines.push(current.trimEnd());
+      current = piece.trimStart();
+    } else {
+      current += piece;
+    }
+  }
+  if (current.trim()) {
+    lines.push(current.trimEnd());
+  }
+  return lines.join("\n");
+}
+
+export function wrapTooltipText(
+  text: string,
+  limit = tooltipLineLimit
+): string {
+  return text
+    .split("\n")
+    .map((line) => wrapTooltipLine(line, limit))
+    .join("\n");
+}
+
+function escapeTooltipMarkdown(text: string): string {
+  return text.replace(/[\\`*_{}[\]()#+\-.!]/g, "\\$&");
+}
+
 export function statusBarFailureTooltip(
   action: string,
   detail?: string
-): string {
-  if (!detail) {
-    return action;
-  }
-  return `${detail}\n${action}`;
+): MarkdownString {
+  const tooltip = new MarkdownString();
+  const wrapped = detail
+    ? `${wrapTooltipText(detail)}\n${wrapTooltipText(action)}`
+    : wrapTooltipText(action);
+  tooltip.appendMarkdown(escapeTooltipMarkdown(wrapped).replace(/\n/g, "  \n"));
+  return tooltip;
 }

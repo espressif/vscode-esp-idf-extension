@@ -18,6 +18,7 @@
 
 import {
   l10n,
+  MarkdownString,
   StatusBarAlignment,
   StatusBarItem,
   ThemeColor,
@@ -34,7 +35,7 @@ function failurePresentation(
   detail?: string
 ): {
   text: string;
-  tooltip: string;
+  tooltip: string | MarkdownString;
   command: string;
 } {
   switch (failure) {

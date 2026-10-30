@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { commands, l10n, window, WorkspaceFolder } from "vscode";
+import { l10n, WorkspaceFolder } from "vscode";
 import { ESP } from "../config";
 import { getIdfSetups } from "./getExistingSetups";
 import { IdfSetup } from "./types";
@@ -79,8 +79,7 @@ export async function loadIdfSetup(
 
   if (!idfSetups || idfSetups.length < 1) {
     const detail = envLoadDetail || l10n.t("No ESP-IDF Setups found");
-    window.showInformationMessage(detail);
-    void promptOpenEspIdfInstallationManager();
+    Logger.error(detail, new Error(detail), "loadIdfSetup", undefined, false);
     return { ok: false, detail };
   }
 
@@ -128,9 +127,7 @@ export async function loadIdfSetup(
 
   if (!idfSetupToUse) {
     const detail = loadDetail || l10n.t("Current ESP-IDF setup is not found.");
-    Logger.infoNotify(detail);
-    // Do not await here: activation must continue to register the command first.
-    void promptOpenEspIdfInstallationManager();
+    Logger.error(detail, new Error(detail), "loadIdfSetup", undefined, false);
     return { ok: false, detail };
   }
   const saved = await saveSettings(
@@ -300,15 +297,3 @@ export async function loadEnvVarsAsIdfSetup(
   }
 }
 
-async function promptOpenEspIdfInstallationManager(): Promise<void> {
-  const openESPIDFManager = l10n.t(
-    "Open ESP-IDF Installation Manager"
-  ) as string;
-  const action = await window.showInformationMessage(
-    l10n.t("The extension configuration is not valid. Choose an action:"),
-    openESPIDFManager
-  );
-  if (action && action === openESPIDFManager) {
-    await commands.executeCommand("espIdf.installManager");
-  }
-}
