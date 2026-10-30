@@ -21,7 +21,6 @@ import {
   DebugConfiguration,
   DebugConfigurationProvider,
   WorkspaceFolder,
-  l10n,
 } from "vscode";
 import { readParameter, readSerialPort } from "../configuration/idf";
 import {
@@ -41,6 +40,9 @@ import { handleError } from "../common/error/handler";
 import {
   gdbinitPrefixMapMissing,
   isKnownError,
+  noPortSelected,
+  openOcdBlocksUartGdbStub,
+  runtimeGdbStubNotEnabled,
 } from "../common/error/knownError";
 import {
   requireBuildDirPath,
@@ -49,10 +51,12 @@ import {
   resolveDebugProgram,
   verifyAppBeforeDebug,
 } from "./validation";
+import { debugErrorPresentation } from "./debugErrorPresentation";
 import {
   RUNTIME_GDBSTUB_SESSION_ID,
   applyRuntimeGdbStubDebugConfig,
   isNonJtagDebugSession,
+  isRuntimeGdbStubFirmwareMissing,
   isSdkconfigOptionEnabled,
   parseHardwareDebugLimit,
   parseMonitorBaudRate,
@@ -179,6 +183,21 @@ function getRemoteTargetAddress(target: { host?: string; port?: string }) {
   return target?.host ? `${target.host}:${port}` : `:${port}`;
 }
 
+/** Puts gdbinit `source` commands ahead of an existing connect list, skipping duplicates. */
+export function mergeGdbinitSourceCommands(
+  connectCommands: string[],
+  gdbinitSourceCommands: string[]
+): string[] {
+  const merged = [...connectCommands];
+  for (let i = gdbinitSourceCommands.length - 1; i >= 0; i--) {
+    const command = gdbinitSourceCommands[i];
+    if (!merged.includes(command)) {
+      merged.unshift(command);
+    }
+  }
+  return merged;
+}
+
 /** GDB constructs spanning multiple lines, which this flat-list parser cannot handle. */
 const GDB_SCRIPTING_KEYWORDS = /^(define|document|python|if|while|end|source|shell)\b/;
 const GDB_RESUME_COMMAND = /^(c|continue|r|run|start)$/;
@@ -270,9 +289,9 @@ async function handleDebugConfigurationError(
     return undefined;
   }
   const msg = error instanceof Error ? error.message : String(error);
-  Logger.error(
+  Logger.errorNotify(
     msg,
-    error as Error,
+    error instanceof Error ? error : new Error(msg),
     "CDTDebugConfigurationProvider resolveDebugConfiguration"
   );
   return undefined;
@@ -287,60 +306,60 @@ export class CDTDebugConfigurationProvider
   ) {
     try {
       folder = await requireWorkspaceFolderForDebug(folder);
+      const useMonitorWithDebug = readParameter(
+        "idf.launchMonitorOnDebugSession",
+        folder
+      );
+      if (debugConfiguration.sessionID === RUNTIME_GDBSTUB_SESSION_ID) {
+        await prepareSerialPortForRuntimeGdbStub(folder);
+      }
+      if (debugConfiguration.buildFlashMonitor) {
+        try {
+          await buildFlashAndMonitor(folder.uri, true);
+        } catch (error) {
+          if (isKnownError(error)) {
+            await handleError("espIdf.buildFlashMonitor", error);
+            return debugConfiguration;
+          }
+          throw error;
+        }
+      } else if (
+        !isNonJtagDebugSession(debugConfiguration.sessionID) &&
+        useMonitorWithDebug
+      ) {
+        try {
+          await monitorMain(folder, true);
+        } catch (error) {
+          if (isKnownError(error)) {
+            await handleError("espIdf.monitorDevice", error);
+            return debugConfiguration;
+          }
+          throw error;
+        }
+      }
+      const openOCDManager = OpenOCDManager.init();
+      if (
+        !openOCDManager.isRunning() &&
+        !isNonJtagDebugSession(debugConfiguration.sessionID) &&
+        debugConfiguration.sessionID !== "qemu.debug.session" &&
+        debugConfiguration.runOpenOCD !== false
+      ) {
+        try {
+          await openOCDManager.start({ launchedByDebug: true });
+        } catch (error) {
+          if (isKnownError(error)) {
+            await handleError("debug.resolveConfiguration", error, undefined, {
+              outputChannel: "Debug",
+            });
+            return debugConfiguration;
+          }
+          throw error;
+        }
+      }
+      return debugConfiguration;
     } catch (error) {
       return handleDebugConfigurationError(error);
     }
-    const useMonitorWithDebug = readParameter(
-      "idf.launchMonitorOnDebugSession",
-      folder
-    );
-    if (debugConfiguration.sessionID === RUNTIME_GDBSTUB_SESSION_ID) {
-      await prepareSerialPortForRuntimeGdbStub(folder);
-    }
-    if (debugConfiguration.buildFlashMonitor) {
-      try {
-        await buildFlashAndMonitor(folder.uri, true);
-      } catch (error) {
-        if (isKnownError(error)) {
-          await handleError("espIdf.buildFlashMonitor", error);
-          return debugConfiguration;
-        }
-        throw error;
-      }
-    } else if (
-      !isNonJtagDebugSession(debugConfiguration.sessionID) &&
-      useMonitorWithDebug
-    ) {
-      try {
-        await monitorMain(folder, true);
-      } catch (error) {
-        if (isKnownError(error)) {
-          await handleError("espIdf.monitorDevice", error);
-          return debugConfiguration;
-        }
-        throw error;
-      }
-    }
-    const openOCDManager = OpenOCDManager.init();
-    if (
-      !openOCDManager.isRunning() &&
-      !isNonJtagDebugSession(debugConfiguration.sessionID) &&
-      debugConfiguration.sessionID !== "qemu.debug.session" &&
-      debugConfiguration.runOpenOCD !== false
-    ) {
-      try {
-        await openOCDManager.start({ launchedByDebug: true });
-      } catch (error) {
-        if (isKnownError(error)) {
-          await handleError("debug.resolveConfiguration", error, undefined, {
-            outputChannel: "Debug",
-          });
-          return debugConfiguration;
-        }
-        throw error;
-      }
-    }
-    return debugConfiguration;
   }
   public async resolveDebugConfiguration(
     folder: WorkspaceFolder | undefined,
@@ -424,13 +443,19 @@ export class CDTDebugConfigurationProvider
         if (!Array.isArray(config.target.connectCommands)) {
           config.target.connectCommands = [];
         }
-        const connectCommands = config.target.connectCommands as string[];
-        for (let i = preConnectCommands.length - 1; i >= 0; i--) {
-          const cmd = preConnectCommands[i];
-          if (!connectCommands.includes(cmd)) {
-            connectCommands.unshift(cmd);
-          }
-        }
+        config.target.connectCommands = mergeGdbinitSourceCommands(
+          config.target.connectCommands as string[],
+          preConnectCommands
+        );
+      } else if (
+        isNonJtagSession &&
+        preConnectCommands.length > 0 &&
+        Array.isArray(config.target?.connectCommands)
+      ) {
+        config.target.connectCommands = mergeGdbinitSourceCommands(
+          config.target.connectCommands as string[],
+          preConnectCommands
+        );
       }
       if (folder && folder.uri && config.verifyAppBinBeforeDebug) {
         await verifyAppBeforeDebug(folder.uri);
@@ -463,13 +488,13 @@ async function applyRuntimeGdbStubIfNeeded(
     return;
   }
 
+  if (isRuntimeGdbStubFirmwareMissing(config.sessionID, runtimeEnabled)) {
+    throw runtimeGdbStubNotEnabled();
+  }
+
   const port = await readSerialPort(folder.uri, false);
   if (!port) {
-    throw new Error(
-      l10n.t(
-        "Select a serial port (idf.port) before debugging with UART GDB Stub."
-      )
-    );
+    throw noPortSelected(debugErrorPresentation.uartGdbStubNoPortSelected);
   }
 
   applyRuntimeGdbStubDebugConfig(config, {
@@ -506,11 +531,7 @@ async function prepareSerialPortForRuntimeGdbStub(
 ): Promise<void> {
   const openOCDManager = OpenOCDManager.init();
   if (openOCDManager.isRunning()) {
-    throw new Error(
-      l10n.t(
-        "Stop OpenOCD before debugging with UART GDB Stub. JTAG and the serial port cannot be used at the same time."
-      )
-    );
+    throw openOcdBlocksUartGdbStub();
   }
   await interruptMonitorWithDelay(folder.uri);
 }

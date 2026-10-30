@@ -53,6 +53,19 @@ export const debugErrorPresentation = {
     actions: [{ label: "Select ESP-IDF Version", execute: () => commands.executeCommand("espIdf.selectCurrentIdfVersion") }],
     outputChannel: debugOutputChannel,
   } satisfies ErrorPresentation,
+  uartGdbStubNoPortSelected: {
+    severity: ErrorSeverity.Error,
+    userMessage:
+      "Select a serial port (idf.port) before debugging with UART GDB Stub.",
+    logMessage: "No serial port selected for UART GDB Stub.",
+    actions: [
+      {
+        label: "Select Port",
+        execute: () => commands.executeCommand("espIdf.selectPort"),
+      },
+    ],
+    outputChannel: debugOutputChannel,
+  } satisfies ErrorPresentation,
   noSerialPort: {
     severity: ErrorSeverity.Warning,
     userMessage: "No serial port found for IDF target {idfTarget}. App binary verification was skipped.",

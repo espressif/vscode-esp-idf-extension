@@ -10,11 +10,15 @@ import {
   configureProjectForRuntimeGdbStub,
   GdbStubProjectIo,
 } from "../espIdf/gdbstub/configureProject";
+import { mergeGdbinitSourceCommands } from "../debugAdapter/debugConfProvider";
+import { ErrorCode } from "../common/error/types";
+import { getErrorDescriptor } from "../common/error/registry";
 import {
   RUNTIME_GDBSTUB_LAUNCH_NAME,
   RUNTIME_GDBSTUB_SESSION_ID,
   RuntimeGdbStubLaunchConfig,
   applyRuntimeGdbStubDebugConfig,
+  isRuntimeGdbStubFirmwareMissing,
   isSdkconfigOptionEnabled,
   mergeRuntimeGdbStubLaunchConfigurations,
   parseHardwareDebugLimit,
@@ -23,6 +27,11 @@ import {
   toGdbSerialPort,
   toNodeSerialPortPath,
 } from "../espIdf/gdbstub/debugConfig";
+import {
+  bufferHasGdbStubStopPacket,
+  GdbStubByteSource,
+  readGdbStubStopPacket,
+} from "../espIdf/gdbstub/uart";
 
 const requirement = "esp_gdbstub";
 const option = "CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME";
@@ -710,5 +719,158 @@ suite("GDB Stub UART debug configuration", () => {
     assert.strictEqual(changed, false);
     assert.strictEqual(configurations.length, 1);
     assert.strictEqual(configurations[0].sessionID, RUNTIME_GDBSTUB_SESSION_ID);
+  });
+
+  test("rejects a runtime session when CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME is off", () => {
+    assert.strictEqual(
+      isRuntimeGdbStubFirmwareMissing(RUNTIME_GDBSTUB_SESSION_ID, false),
+      true
+    );
+    const descriptor = getErrorDescriptor(ErrorCode.RuntimeGdbStubNotEnabled);
+    assert.ok(descriptor);
+    assert.match(
+      descriptor.userMessage,
+      /ESP-IDF: Configure Project for Runtime GDB Stub/
+    );
+    assert.match(descriptor.userMessage, /build and flash/);
+    assert.ok(
+      descriptor.actions.some((action) => action.label === "Configure Project")
+    );
+    const openOcdDescriptor = getErrorDescriptor(
+      ErrorCode.OpenOcdBlocksUartGdbStub
+    );
+    assert.ok(openOcdDescriptor);
+    assert.ok(
+      openOcdDescriptor.actions.some((action) => action.label === "Stop OpenOCD")
+    );
+    assert.deepStrictEqual(
+      getErrorDescriptor(ErrorCode.NoPortSelected)?.actions,
+      []
+    );
+  });
+
+  test("prepends gdbinit sources to UART connect commands", () => {
+    const symbols = "source /tmp/gdbinit/symbols";
+    const prefixMap = "source /tmp/gdbinit/prefix_map";
+    const pyExtensions = "source /tmp/gdbinit/py_extensions";
+    const merged = mergeGdbinitSourceCommands(
+      [
+        "set remotetimeout 20",
+        "set serial baud 115200",
+        "target remote /dev/cu.usbserial-13501",
+      ],
+      [symbols, prefixMap, pyExtensions]
+    );
+    assert.deepStrictEqual(merged.slice(0, 3), [
+      symbols,
+      prefixMap,
+      pyExtensions,
+    ]);
+    assert.deepStrictEqual(merged.slice(3), [
+      "set remotetimeout 20",
+      "set serial baud 115200",
+      "target remote /dev/cu.usbserial-13501",
+    ]);
+    assert.ok(!merged.some((command) => command.includes("target remote :3333")));
+    assert.ok(!merged.some((command) => command.includes("thbreak app_main")));
+  });
+
+  test("allows a runtime session when CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME is on", () => {
+    assert.strictEqual(
+      isRuntimeGdbStubFirmwareMissing(RUNTIME_GDBSTUB_SESSION_ID, true),
+      false
+    );
+  });
+
+  test("does not apply the runtime firmware check to other sessions", () => {
+    assert.strictEqual(isRuntimeGdbStubFirmwareMissing(undefined, false), false);
+    assert.strictEqual(
+      isRuntimeGdbStubFirmwareMissing("gdbstub.debug.session.ws", false),
+      false
+    );
+  });
+});
+
+class FakeUart implements GdbStubByteSource {
+  private listener?: (chunk: Buffer) => void;
+
+  on(_event: "data", listener: (chunk: Buffer) => void): void {
+    this.listener = listener;
+  }
+
+  off(_event: "data", listener: (chunk: Buffer) => void): void {
+    if (this.listener === listener) {
+      this.listener = undefined;
+    }
+  }
+
+  emit(chunk: Buffer): void {
+    this.listener?.(chunk);
+  }
+}
+
+suite("GDB Stub stop packet", () => {
+  // T05 checksum is 0x54 + 0x30 + 0x35 = 0xb9, the SIGTRAP packet IDF Monitor accepts.
+  const stopPacket = Buffer.from("$T05#b9");
+
+  test("accepts a checksum-valid stop packet", () => {
+    assert.strictEqual(
+      bufferHasGdbStubStopPacket(Buffer.from("boot log\r\n$T05#b9")),
+      true
+    );
+  });
+
+  test("rejects console text and a bad checksum", () => {
+    assert.strictEqual(
+      bufferHasGdbStubStopPacket(Buffer.from("I (100) app: hello\r\n")),
+      false
+    );
+    assert.strictEqual(bufferHasGdbStubStopPacket(Buffer.from("$T05#00")), false);
+  });
+
+  test("reads a stop packet from the UART", async () => {
+    const uart = new FakeUart();
+    const entered = await readGdbStubStopPacket(uart, {
+      timeoutMs: 50,
+      attempts: 1,
+      sendInterrupt: async () => {
+        uart.emit(Buffer.from("ready\r\n"));
+        uart.emit(stopPacket);
+      },
+    });
+    assert.strictEqual(entered, true);
+  });
+
+  test("rejects a console that never sends a stop packet", async () => {
+    const uart = new FakeUart();
+    let interrupts = 0;
+    const entered = await readGdbStubStopPacket(uart, {
+      timeoutMs: 10,
+      attempts: 2,
+      sendInterrupt: async () => {
+        interrupts += 1;
+        uart.emit(Buffer.from("I (200) app: still running\r\n"));
+      },
+    });
+    assert.strictEqual(entered, false);
+    assert.strictEqual(interrupts, 2);
+  });
+
+  test("retries the interrupt until the stop packet arrives", async () => {
+    const uart = new FakeUart();
+    let interrupts = 0;
+    const entered = await readGdbStubStopPacket(uart, {
+      timeoutMs: 10,
+      attempts: 3,
+      sendInterrupt: async () => {
+        interrupts += 1;
+        if (interrupts === 3) {
+          uart.emit(Buffer.from("$T0"));
+          uart.emit(Buffer.from("5#b9"));
+        }
+      },
+    });
+    assert.strictEqual(entered, true);
+    assert.strictEqual(interrupts, 3);
   });
 });
