@@ -28,7 +28,6 @@
   "OpenOCD server stopped to scan for connected boards.": "Сервер OpenOCD остановлен для поиска подключённых плат.",
   "The OpenOCD server did not stop in time, so connected boards cannot be scanned. Stop it and run the command again.": "Сервер OpenOCD не остановился вовремя, поэтому поиск подключённых плат невозможен. Остановите его и запустите команду снова.",
   "OpenOCD adapter serial and USB location cleared.": "Серийный номер и расположение USB адаптера OpenOCD сброшены.",
-  "Set Target": "Задать цель",
   "Default Boards": "Платы по умолчанию",
   "Other Boards": "Другие платы",
   "Select the output and notification mode": "Выберите режим вывода и уведомления",

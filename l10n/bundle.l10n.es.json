@@ -28,7 +28,6 @@
   "OpenOCD server stopped to scan for connected boards.": "Servidor OpenOCD detenido para buscar placas conectadas.",
   "The OpenOCD server did not stop in time, so connected boards cannot be scanned. Stop it and run the command again.": "El servidor OpenOCD no se detuvo a tiempo, por lo que no se pueden buscar las placas conectadas. Deténgalo y vuelva a ejecutar el comando.",
   "OpenOCD adapter serial and USB location cleared.": "Número de serie y ubicación USB del adaptador OpenOCD borrados.",
-  "Set Target": "Establecer objetivo",
   "Default Boards": "Placas predeterminadas",
   "Other Boards": "Otras placas",
   "Select the output and notification mode": "Seleccione el modo de salida y notificación",
