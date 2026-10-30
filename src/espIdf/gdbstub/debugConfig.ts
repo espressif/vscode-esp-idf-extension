@@ -11,6 +11,13 @@ const defaultJtagConnectCommands = [
 
 export const RUNTIME_GDBSTUB_LAUNCH_NAME = "ESP-IDF Runtime GDB Stub";
 
+export function isRuntimeGdbStubFirmwareMissing(
+  sessionID: string | undefined,
+  runtimeEnabled: boolean
+): boolean {
+  return sessionID === RUNTIME_GDBSTUB_SESSION_ID && !runtimeEnabled;
+}
+
 export interface RuntimeGdbStubLaunchConfig {
   type?: string;
   name?: string;
