@@ -17,17 +17,18 @@
 
 import { pathExists } from "fs-extra";
 import { basename, resolve } from "path";
+import { WebElement } from "selenium-webdriver";
 import {
   BottomBarPanel,
   By,
   InputBox,
   OutputView,
+  StatusBar,
   WebView,
   Workbench,
 } from "vscode-extension-tester";
 
-const BUILD_FAILURE_PATTERN =
-  /ninja: build stopped|CMake Error|FAILED:|ninja: error|Compilation failed/i;
+const BUILD_FAILURE_PATTERN = /ninja: build stopped|CMake Error|FAILED:|ninja: error|Compilation failed/i;
 
 export const testWorkspaceDir = resolve(
   __dirname,
@@ -148,9 +149,9 @@ export const ESP_IDF_COMMANDS = {
   setTarget: "ESP-IDF: Set Espressif Device Target",
   flash: "ESP-IDF: Flash Your Project",
   monitor: "ESP-IDF: Monitor Device",
-  buildFlashMonitor:
-    "ESP-IDF: Build, Flash and Start a Monitor on Your Device",
+  buildFlashMonitor: "ESP-IDF: Build, Flash and Start a Monitor on Your Device",
   openOcdManager: "ESP-IDF: OpenOCD Manager",
+  openIdfTerminal: "ESP-IDF: Open ESP-IDF Terminal",
 } as const;
 
 export async function openTestProject(): Promise<void> {
@@ -170,7 +171,9 @@ export async function ensureTestProjectOpen(): Promise<void> {
   await openTestProject();
 }
 
-export async function executeEspIdfCommand(exactCommandLabel: string): Promise<void> {
+export async function executeEspIdfCommand(
+  exactCommandLabel: string
+): Promise<void> {
   const workbench = new Workbench();
   const prompt = await workbench.openCommandPrompt();
   await prompt.setText(`>${exactCommandLabel}`);
@@ -178,7 +181,9 @@ export async function executeEspIdfCommand(exactCommandLabel: string): Promise<v
   await selectCommandPaletteItem(exactCommandLabel);
 }
 
-async function selectCommandPaletteItem(exactCommandLabel: string): Promise<void> {
+async function selectCommandPaletteItem(
+  exactCommandLabel: string
+): Promise<void> {
   const inputBox = await InputBox.create();
   const pick = await findQuickPickByExactLabel(inputBox, exactCommandLabel);
   if (pick) {
@@ -196,7 +201,9 @@ async function selectCommandPaletteItem(exactCommandLabel: string): Promise<void
 
   const labels = await listQuickPickLabels(inputBox);
   throw new Error(
-    `Exact command palette match not found: "${exactCommandLabel}". Visible: [${labels.join(" | ")}]`
+    `Exact command palette match not found: "${exactCommandLabel}". Visible: [${labels.join(
+      " | "
+    )}]`
   );
 }
 
@@ -237,13 +244,18 @@ async function selectQuickPickByExactLabel(exactLabel: string): Promise<void> {
   if (!pick) {
     const labels = await listQuickPickLabels(inputBox);
     throw new Error(
-      `Exact quick pick label not found: "${exactLabel}". Visible: [${labels.join(" | ")}]`
+      `Exact quick pick label not found: "${exactLabel}". Visible: [${labels.join(
+        " | "
+      )}]`
     );
   }
   await pick.select();
 }
 
-export async function findQuickPickByExactLabel(inputBox: InputBox, exactLabel: string) {
+export async function findQuickPickByExactLabel(
+  inputBox: InputBox,
+  exactLabel: string
+) {
   const picks = await inputBox.getQuickPicks();
   for (const pick of picks) {
     if ((await pick.getLabel()) === exactLabel) {
@@ -253,12 +265,16 @@ export async function findQuickPickByExactLabel(inputBox: InputBox, exactLabel: 
   return undefined;
 }
 
-export async function listQuickPickLabels(inputBox: InputBox): Promise<string[]> {
+export async function listQuickPickLabels(
+  inputBox: InputBox
+): Promise<string[]> {
   const picks = await inputBox.getQuickPicks();
   return Promise.all(picks.map((pick) => pick.getLabel()));
 }
 
-async function hasWorkbenchTitle(expectedTitleFragment: string): Promise<boolean> {
+async function hasWorkbenchTitle(
+  expectedTitleFragment: string
+): Promise<boolean> {
   try {
     const title = await new Workbench().getTitleBar().getTitle();
     return title.includes(expectedTitleFragment);
@@ -413,6 +429,94 @@ export async function waitForNewTerminalOutput(
 
   const full = await terminalView.getText();
   throw new Error(
-    `Timed out waiting for NEW terminal output matching ${pattern}.\nNew text since snapshot:\n${newTextSince(full)}`
+    `Timed out waiting for NEW terminal output matching ${pattern}.\nNew text since snapshot:\n${newTextSince(
+      full
+    )}`
   );
+}
+
+const STATUS_BAR_IDF_VERSION = /ESP-IDF\s+v?(\d+\.\d+(?:\.\d+)?)/;
+
+type StatusBarEntry = {
+  item: WebElement;
+  text: string;
+  ariaLabel: string;
+  title: string;
+};
+
+function normalizeStatusText(value: string | null): string {
+  return (value ?? "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function readStatusBarEntries(): Promise<StatusBarEntry[]> {
+  const items = await new StatusBar().getItems();
+  const entries: StatusBarEntry[] = [];
+  for (const item of items) {
+    entries.push({
+      item,
+      text: normalizeStatusText(await item.getText().catch(() => "")),
+      ariaLabel: normalizeStatusText(
+        await item.getAttribute("aria-label").catch(() => null)
+      ),
+      title: normalizeStatusText(
+        await item.getAttribute("title").catch(() => null)
+      ),
+    });
+  }
+  return entries;
+}
+
+function statusBarEntryLabel(entry: StatusBarEntry): string {
+  return entry.text || entry.ariaLabel || entry.title;
+}
+
+/** Visible status-bar version, e.g. `6.1.0` from `ESP-IDF v6.1.0`. */
+export async function readActiveEspIdfVersion(): Promise<string> {
+  const entries = await readStatusBarEntries();
+  for (const entry of entries) {
+    for (const candidate of [entry.text, entry.ariaLabel, entry.title]) {
+      const match = candidate.match(STATUS_BAR_IDF_VERSION);
+      if (match) {
+        return match[1];
+      }
+    }
+  }
+  const visible = entries.map(statusBarEntryLabel).filter(Boolean);
+  throw new Error(
+    `Active ESP-IDF version was not found on the status bar. Visible: [${visible.join(
+      " | "
+    )}]`
+  );
+}
+
+/**
+ * Clicks a status-bar item by its tooltip or visible label.
+ * Icon-only items (such as Open ESP-IDF Terminal) expose the tooltip as
+ * `aria-label` / `title` and have no visible text.
+ */
+export async function clickStatusBarItem(label: string): Promise<void> {
+  const entries = await readStatusBarEntries();
+  const match =
+    entries.find(
+      (entry) =>
+        entry.ariaLabel === label ||
+        entry.title === label ||
+        entry.text === label
+    ) ??
+    entries.find(
+      (entry) =>
+        entry.ariaLabel.includes(label) ||
+        entry.title.includes(label) ||
+        entry.text.includes(label)
+    );
+  if (!match) {
+    const visible = entries.map(statusBarEntryLabel).filter(Boolean);
+    throw new Error(
+      `Status bar item not found: "${label}". Visible: [${visible.join(" | ")}]`
+    );
+  }
+  await match.item.click();
 }
