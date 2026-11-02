@@ -141,6 +141,15 @@ suite("Doctor Command tests", () => {
     assert.equal(reportObj.cCppPropertiesJson, templateLaunchJson);
   });
 
+  test("missing vscode files are recorded as not present", async () => {
+    const report = initializeReportObject();
+    report.workspaceFolder = join(__dirname, "no-such-workspace");
+    await checkLaunchJson(report);
+    await checkCCppPropertiesJson(report);
+    assert.equal(report.launchJson, "not present");
+    assert.equal(report.cCppPropertiesJson, "not present");
+  });
+
   test("Test configuration settings", async () => {
     const settingsJsonObj = await readJSON(
       join(__dirname, "../../testFiles/testWorkspace/.vscode/settings.json")
@@ -234,6 +243,7 @@ suite("Doctor Command tests", () => {
     assert.ok(summary.includes("Active ESP-IDF Setup"));
     assert.ok(summary.includes("All ESP-IDF setups"));
     assert.ok(summary.includes("Overall:"));
+    assert.ok(summary.includes("RECENT LOG ERRORS (last 200 lines)"));
     assert.ok(!summary.includes("Python packages in Virtual environment"));
     assert.ok(!summary.includes('"stack":'));
     assert.ok(details.includes("Configuration checks"));
@@ -245,7 +255,11 @@ suite("Doctor Command tests", () => {
         "-------------------------------------------------------- Configurations access -------------------------------------------------------------"
       )
     );
-    assert.ok(!report.includes("report-full.txt"));
+    assert.ok(reportObj.formatedOutput.length > 0);
+    const writtenReport = await readJSON(
+      join(mockUpContext.extensionPath, "report.json")
+    );
+    assert.equal(writtenReport.formatedOutput, undefined);
     assert.ok(reportObj.reportSummary);
     const overall = reportObj.reportSummary.overall;
     assert.ok(["PASS", "FAIL", "WARN"].includes(overall));
@@ -257,7 +271,7 @@ suite("Doctor Command tests", () => {
     }
   });
 
-  test("Summary hides detail and full report keeps it", async () => {
+  test("Summary omits detail that the report keeps", async () => {
     const report = initializeReportObject();
     report.configurationSettings.espIdfPath = "/idf/v6.1";
     report.configurationSettings.toolsPath = "/tools";
@@ -291,6 +305,9 @@ suite("Doctor Command tests", () => {
     report.configurationSettings.systemEnvPath =
       "/usr/bin:/Applications/VMware Fusion.app/Contents/Public:/usr/sbin";
     report.configurationSpacesValidation.systemEnvPath = true;
+    report.configurationSpacesValidation.customExtraPaths = {
+      "/Program Files/tool": true,
+    };
     const warning = await writeTextReport(report, mockUpContext);
     const warningParts = splitDoctorReport(warning);
     assert.equal(report.reportSummary?.overall, "WARN");
@@ -302,6 +319,11 @@ suite("Doctor Command tests", () => {
     assert.ok(!warningParts.summary.includes("/usr/bin"));
     assert.ok(
       warningParts.summary.includes("[WARN] System PATH contains a space")
+    );
+    const customExtraPath = "/Program Files/tool";
+    assert.equal(warningParts.summary.split(customExtraPath).length - 1, 1);
+    assert.ok(
+      warningParts.summary.includes("[WARN] Custom extra path contains a space")
     );
     assert.ok(
       !warningParts.details.includes("[WARN] System PATH contains a space")

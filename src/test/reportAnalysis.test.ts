@@ -377,7 +377,11 @@ suite("Report analysis tests", () => {
 
   test("summarizeLogTail groups repeated errors and drops serial ports", () => {
     const log = [
+      "null",
+      "123",
       logLine("/dev/tty.usbserial-13500", "2026-10-19T08:26:26.128Z"),
+      logLine("/dev/cu.usbserial-13500", "2026-10-19T08:26:26.140Z"),
+      logLine("COM10", "2026-10-19T08:26:26.145Z"),
       logLine("/dev/tty.wlan-debug", "2026-10-19T08:26:26.151Z"),
       JSON.stringify({
         command: "xtensa-esp32-elf-gdb",
@@ -393,15 +397,28 @@ suite("Report analysis tests", () => {
         level: "info",
         timestamp: "2026-10-19T09:00:00.000Z",
       }),
+      JSON.stringify({
+        command: "idf.py",
+        args: "COMMAND1",
+        message: "build failed",
+        level: "error",
+        timestamp: "2026-10-19T10:00:00.000Z",
+      }),
     ].join("\n");
 
     const groups = summarizeLogTail(log);
-    assert.equal(groups.length, 2);
+    assert.equal(groups.length, 3);
     const esptool = groups.find((group) => group.label.includes("esptool.py"));
     assert.ok(esptool);
-    assert.equal(esptool.count, 2);
+    assert.equal(esptool.count, 4);
     assert.equal(esptool.lastTimestamp, "2026-10-19T08:26:26.151Z");
     assert.ok(!esptool.label.includes("/dev/tty"));
+    assert.ok(!esptool.label.includes("/dev/cu"));
+    assert.ok(!esptool.label.includes("COM10"));
+    const commandToken = groups.find((group) =>
+      group.label.includes("COMMAND1")
+    );
+    assert.ok(commandToken);
     assert.ok(
       groups.some((group) =>
         group.label.includes("Python scripting is not supported")

@@ -71,7 +71,9 @@ export async function writeTextReport(
     formatDetailsReport(reportedResult, logTail);
   reportedResult.formatedOutput = reportText;
   await writeFile(join(context.extensionPath, DOCTOR_SUMMARY_FILE), reportText);
-  await writeJson(join(context.extensionPath, "report.json"), reportedResult, {
+  const persistedReport = { ...reportedResult };
+  delete persistedReport.formatedOutput;
+  await writeJson(join(context.extensionPath, "report.json"), persistedReport, {
     spaces: 2,
   });
   return reportText;
@@ -111,9 +113,15 @@ export function formatSummaryReport(report: reportObj, logText = ""): string {
     output += section("ACTIONS", [DOCTOR_REPAIR_INSTRUCTION]);
   }
 
-  output += section("Active ESP-IDF Setup", formatActiveSetupLines(report, summary));
+  output += section(
+    "Active ESP-IDF Setup",
+    formatActiveSetupLines(report, summary)
+  );
   output += section("All ESP-IDF setups", formatSetupLines(summary.setups));
-  output += section("RECENT LOG ERRORS", formatRecentLogErrors(logText));
+  output += section(
+    `RECENT LOG ERRORS (last ${LOG_TAIL_LINES} lines)`,
+    formatRecentLogErrors(logText)
+  );
   return output;
 }
 

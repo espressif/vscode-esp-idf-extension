@@ -18,7 +18,9 @@
 
 import { reportObj } from "./types";
 import { join } from "path";
-import { readFile } from "fs-extra";
+import { pathExists, readFile } from "fs-extra";
+
+const VSCODE_FILE_NOT_PRESENT = "not present";
 
 export async function checkLaunchJson(reportedResult: reportObj) {
   if (!reportedResult.workspaceFolder) {
@@ -30,6 +32,10 @@ export async function checkLaunchJson(reportedResult: reportObj) {
     ".vscode",
     "launch.json"
   );
+  if (!(await pathExists(launchJsonPath))) {
+    reportedResult.launchJson = VSCODE_FILE_NOT_PRESENT;
+    return;
+  }
   const launchJsonObj = await readFile(launchJsonPath, "utf8");
   reportedResult.launchJson = launchJsonObj;
 }
@@ -44,6 +50,10 @@ export async function checkCCppPropertiesJson(reportedResult: reportObj) {
     ".vscode",
     "c_cpp_properties.json"
   );
+  if (!(await pathExists(cCppPropertiesJsonPath))) {
+    reportedResult.cCppPropertiesJson = VSCODE_FILE_NOT_PRESENT;
+    return;
+  }
   const cCppPropertiesObj = await readFile(cCppPropertiesJsonPath, "utf8");
   reportedResult.cCppPropertiesJson = cCppPropertiesObj;
 }

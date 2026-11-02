@@ -448,12 +448,7 @@ export function analyzeReport(report: reportObj): ReportSummary {
   for (const [toolPath, hasSpaces] of Object.entries(
     report.configurationSpacesValidation.customExtraPaths
   )) {
-    addSpacesWarning(
-      findings,
-      `Custom extra path (${toolPath})`,
-      hasSpaces,
-      toolPath
-    );
+    addSpacesWarning(findings, "Custom extra path", hasSpaces, toolPath);
   }
 
   const espIdfVersion =
@@ -617,7 +612,7 @@ export function analyzeReport(report: reportObj): ReportSummary {
 }
 
 function stripSerialPorts(value: string): string {
-  return value.replace(/(?:\/dev\/tty\S+|COM\d+)/gi, "");
+  return value.replace(/\/dev\/(?:tty|cu)[.\w-]+|\bCOM\d+\b/gi, "");
 }
 
 function unescapeLogFragment(value: string): string {
@@ -676,6 +671,9 @@ export function summarizeLogTail(logText: string): LogErrorGroup[] {
     try {
       entry = JSON.parse(trimmed);
     } catch {
+      continue;
+    }
+    if (!entry || typeof entry !== "object") {
       continue;
     }
     if (entry.level && entry.level !== "error") {

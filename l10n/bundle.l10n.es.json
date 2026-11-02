@@ -47,6 +47,7 @@
   "Flash binary to this partition": "Flash binario a esta partición",
   "Select an action to use": "Seleccione una acción para usar",
   "ESP-IDF Doctor": "Diagnóstico ESP-IDF",
+  "ESP-IDF Doctor report has been copied to clipboard.": "El informe de Diagnóstico ESP-IDF se ha copiado al portapapeles.",
   "Extension configuration report has been copied to clipboard with errors": "El informe de configuración de la extensión se ha copiado al portapapeles con errores",
   "Do you want to view Heap Trace plot or System View Trace": "¿Quiere ver el gráfico de seguimiento del montón o el seguimiento de vista del sistema?",
   "Show System View Tracing Plot (will open a webview window)": "Mostrar gráfico de seguimiento de vista del sistema (se abrirá una ventana de vista web)",

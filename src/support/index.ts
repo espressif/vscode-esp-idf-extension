@@ -41,23 +41,34 @@ async function presentDoctorSummary(
   if (reportedResult.reportSummary?.overall === "FAIL") {
     actions.push(openInstallationManager);
   }
-  const choice = await window.showInformationMessage(
-    l10n.t("ESP-IDF Doctor report has been copied to clipboard."),
-    ...actions
-  );
-  if (choice === openInstallationManager) {
-    await commands.executeCommand("espIdf.installManager");
-  }
+  void window
+    .showInformationMessage(
+      l10n.t("ESP-IDF Doctor report has been copied to clipboard."),
+      ...actions
+    )
+    .then((choice) => {
+      if (choice === openInstallationManager) {
+        return commands.executeCommand("espIdf.installManager");
+      }
+      return undefined;
+    });
 }
 
-async function showDoctorReportOnError(
+async function writeDoctorReportOnError(
   error: unknown,
   reportedResult: reportObj,
   context: ExtensionContext
 ): Promise<void> {
   reportedResult.latestError = error as Error;
   const errMsg = error instanceof Error ? error.message : String(error);
-  Logger.error(errMsg, error as Error, "extension DoctorCommand");
+  const rethrow = !isKnownError(error);
+  Logger.error(
+    errMsg,
+    error as Error,
+    "extension DoctorCommand",
+    undefined,
+    !rethrow
+  );
   await writeTextReport(reportedResult, context);
 }
 
@@ -74,7 +85,7 @@ export function registerDoctorCommand(context: ExtensionContext) {
           await generateConfigurationReport(context, reportedResult, progress);
           reportReady = true;
         } catch (error) {
-          await showDoctorReportOnError(error, reportedResult, context);
+          await writeDoctorReportOnError(error, reportedResult, context);
           reportReady = true;
           if (!isKnownError(error)) {
             errorToRethrow = error;
