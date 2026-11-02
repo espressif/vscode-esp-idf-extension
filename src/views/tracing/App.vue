@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
+import { TOTAL_SERIES_COLOR } from "./heapTraceModel";
 import { useTracingStore } from "./store";
 import { computed, onMounted } from "vue";
 import { IconPulse, IconClose } from "@iconify-prerendered/vue-codicon";
@@ -7,56 +8,43 @@ import { IconPulse, IconClose } from "@iconify-prerendered/vue-codicon";
 const store = useTracingStore();
 
 const {
-  allocLookupTable,
   callStacks,
   callersAddressTranslationTable,
+  contextColors,
+  contextVisibility,
+  contexts,
   dataPlot,
-  eventIDs,
+  detailRows,
   errorMsg,
   fileName,
   isCalculating,
   heap,
   heapView,
   log,
-  plotDataReceived,
+  plotRevision,
+  selectedDetailIndex,
+  showTotal,
+  summary,
   traceInfo,
   tracePane,
 } = storeToRefs(store);
 
-const persistentBytes = computed(() => {
-  //amount of allocated memory that hasn't been freed yet
-  return Object.keys(allocLookupTable.value).reduce(
-    (acc: any, currentKey: string) => acc + allocLookupTable.value[currentKey].size,
-    0
-  );
+const activeHeapView = computed(() => {
+  const active = Object.entries(heapView.value).find(([, enabled]) => enabled);
+  return active ? active[0] : "plot";
 });
-const persistentCount = computed(() => {
-  //number of allocations that haven't been freed yet
-  return Object.keys(allocLookupTable.value).length;
-});
-const transientCount = computed(() => {
-  //total number of memory allocations that have been freed
-  if (!plotDataReceived.value) {
-    return 0;
-  }
-  return (
-    plotDataReceived.value.events.filter(
-      (event: any) => event.id === eventIDs.value.alloc
-    ).length - persistentCount.value
-  );
-});
-const totalBytes = computed(() => {
-  //total allocated memory
-  if (!plotDataReceived.value) {
-    return 0;
-  }
-  return plotDataReceived.value.events
-    .filter((event: any) => event.id === eventIDs.value.alloc)
-    .reduce((acc: any, current: any) => acc + current.size, 0);
-});
-const totalCount = computed(() => {
-  return persistentCount.value + transientCount.value;
-});
+
+function onAllContextsToggle(event: Event) {
+  store.setAllContextsVisible((event.target as HTMLInputElement).checked);
+}
+
+function onTotalToggle(event: Event) {
+  store.setShowTotal((event.target as HTMLInputElement).checked);
+}
+
+function onContextToggle(context: string, event: Event) {
+  store.setContextVisible(context, (event.target as HTMLInputElement).checked);
+}
 
 onMounted(() => {
   store.getInitialData();
@@ -115,36 +103,80 @@ onMounted(() => {
       </div>
 
       <div class="settings-section" v-if="heap">
-        <div class="settings-section-content">
+        <div class="settings-section-content settings-section-content-open">
           <quick-action-menu
+            :active="activeHeapView"
             @change="store.heapViewChange"
           ></quick-action-menu>
           <div>
-            <plot
-              v-show="heapView.plot"
-              v-bind:chart="dataPlot"
-              @selected="store.plotSelected"
-              v-bind:events="eventIDs"
-            >
-            </plot>
+            <div v-show="heapView.plot">
+              <div v-if="dataPlot.length" class="context-filters">
+                <label>
+                  <input
+                    type="checkbox"
+                    :checked="showTotal"
+                    @change="onTotalToggle"
+                  />
+                  <span
+                    class="context-swatch"
+                    :style="{ backgroundColor: TOTAL_SERIES_COLOR }"
+                  ></span>
+                  <span>Total memory</span>
+                </label>
+                <label v-if="contexts.length">
+                  <input
+                    type="checkbox"
+                    :checked="store.allContextsVisible"
+                    @change="onAllContextsToggle"
+                  />
+                  <span>All contexts</span>
+                </label>
+                <label v-for="context in contexts" :key="context">
+                  <input
+                    type="checkbox"
+                    :checked="contextVisibility[context] !== false"
+                    @change="onContextToggle(context, $event)"
+                  />
+                  <span
+                    class="context-swatch"
+                    :style="{ backgroundColor: contextColors[context] }"
+                  ></span>
+                  <span>{{ context }}</span>
+                </label>
+              </div>
+              <p
+                v-if="detailRows.length && dataPlot.length === 0"
+                class="context-empty"
+              >
+                No allocation changes to plot.
+              </p>
+              <plot
+                v-bind:chart="dataPlot"
+                v-bind:revision="plotRevision"
+                @selected="store.plotSelected"
+                @toggle-trace="store.setTraceVisible"
+              >
+              </plot>
+            </div>
+            <heap-trace-details
+              v-show="heapView.details"
+              :rows="detailRows"
+              :selected-index="selectedDetailIndex"
+              @select="store.selectDetail"
+            ></heap-trace-details>
             <call-stack
               v-show="heapView.callStack"
               v-bind:callstack="callStacks"
               v-bind:cache="callersAddressTranslationTable"
               v-on:event-filter-updated="store.filterCallStacks"
             ></call-stack>
-            <leak-list
-              v-show="heapView.leaks"
-              v-bind:leaks="allocLookupTable"
-              v-bind:cache="callersAddressTranslationTable"
-            ></leak-list>
             <stats-view
               v-show="heapView.stats"
-              v-bind:persistent-count="persistentCount"
-              v-bind:persistent-bytes="persistentBytes"
-              v-bind:transient-count="transientCount"
-              v-bind:total-bytes="totalBytes"
-              v-bind:total-count="totalCount"
+              v-bind:persistent-count="summary.persistentCount"
+              v-bind:persistent-bytes="summary.persistentBytes"
+              v-bind:transient-count="summary.transientCount"
+              v-bind:total-bytes="summary.totalBytes"
+              v-bind:total-count="summary.totalCount"
             ></stats-view>
           </div>
         </div>
@@ -268,6 +300,38 @@ onMounted(() => {
   padding: 1rem;
   max-height: calc(65vh);
   overflow: auto;
+}
+
+.settings-section-content-open {
+  max-height: none;
+  overflow: visible;
+}
+
+.context-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin: 0.75rem 0;
+}
+
+.context-filters label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 12px;
+}
+
+.context-swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.context-empty {
+  margin: 0.75rem 0 0;
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
 }
 
 .settings-section-content pre {

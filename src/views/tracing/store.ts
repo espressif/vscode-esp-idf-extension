@@ -18,7 +18,19 @@
 
 import { relative } from "path";
 import { defineStore } from "pinia";
-import { ref, Ref } from "vue";
+import { computed, ref, Ref } from "vue";
+import {
+  analyzeHeapTrace,
+  buildHeapPlotTraces,
+  emptyHeapTraceAnalysis,
+  eventMatchesHeapFilter,
+  HeapDetailRow,
+  HeapPlotTrace,
+  HeapTraceAnalysis,
+  HeapTraceEvent,
+  HeapTraceSummary,
+  TOTAL_SERIES_NAME,
+} from "./heapTraceModel";
 
 declare var acquireVsCodeApi: any;
 let vscode: any;
@@ -40,6 +52,7 @@ export interface TraceInfo {
   addr: string;
   size: number;
   callers: string[];
+  detailIndex?: number;
 }
 
 export interface StackInfo {
@@ -62,6 +75,8 @@ export interface TracingTree {
   child?: TracingTree;
 }
 
+const EMPTY_SUMMARY: HeapTraceSummary = emptyHeapTraceAnalysis().summary;
+
 export const useTracingStore = defineStore("tracing", () => {
   const fileName: Ref<string> = ref("");
   const traceType: Ref<number> = ref(0);
@@ -71,13 +86,13 @@ export const useTracingStore = defineStore("tracing", () => {
   const heapView: Ref<{
     stats: boolean;
     plot: boolean;
+    details: boolean;
     callStack: boolean;
-    leaks: boolean;
   }> = ref({
     stats: false,
     plot: true,
+    details: false,
     callStack: false,
-    leaks: false,
   });
   const eventIDs: Ref<{ alloc: string; free: string; print: string }> = ref({
     alloc: "",
@@ -94,57 +109,69 @@ export const useTracingStore = defineStore("tracing", () => {
     size: 0,
     callers: [],
   });
-  const callStacks: Ref<any[]> = ref([]);
+  const callStacks: Ref<string[][]> = ref([]);
   const pathInfo: Ref<{ idfPath: string; workspacePath: string }> = ref({
     idfPath: "",
     workspacePath: "",
   });
   const errorMsg: Ref<string> = ref("");
-  const dataPlot: Ref<string[]> = ref([]);
+  const dataPlot: Ref<HeapPlotTrace[]> = ref([]);
   const callersAddressTranslationTable: Ref<{}> = ref({});
-  const allocLookupTable: Ref<{}> = ref({});
+  const plotDataReceived: Ref<{ events: HeapTraceEvent[] }> = ref({
+    events: [],
+  });
+  const analysis: Ref<HeapTraceAnalysis> = ref(emptyHeapTraceAnalysis());
+  const summary: Ref<HeapTraceSummary> = ref({ ...EMPTY_SUMMARY });
+  const detailRows: Ref<HeapDetailRow[]> = ref([]);
+  const contexts: Ref<string[]> = ref([]);
+  const contextColors: Ref<Record<string, string>> = ref({});
+  const contextVisibility: Ref<Record<string, boolean>> = ref({});
+  const showTotal: Ref<boolean> = ref(true);
+  const selectedDetailIndex: Ref<number | null> = ref(null);
+  const plotRevision: Ref<number> = ref(0);
 
-  const plotDataReceived: Ref<{ events: any[] }> = ref({ events: [] });
+  const allContextsVisible = computed(
+    () =>
+      contexts.value.length > 0 &&
+      contexts.value.every(
+        (context) => contextVisibility.value[context] !== false
+      )
+  );
 
   function filterCallStacks(filter: string) {
+    const next: string[][] = [];
     plotDataReceived.value.events.forEach((event) => {
-      if (event.callers) {
-        let shallAdd = false;
-        switch (filter) {
-          case "all":
-            shallAdd = true;
-            break;
-          case "allocations":
-            shallAdd = event.id === eventIDs.value.alloc;
-            break;
-          case "free":
-            shallAdd = event.id === eventIDs.value.free;
-            break;
-          case "irq-all":
-            shallAdd = event.in_irq;
-            break;
-          case "irq-allocations":
-            shallAdd = event.in_irq && event.id === eventIDs.value.alloc;
-            break;
-          case "irq-free":
-            shallAdd = event.in_irq && event.id === eventIDs.value.free;
-            break;
-          default:
-            break;
-        }
-        if (shallAdd) {
-          callStacks.value.push(
-            event.callers.filter((value) => value !== "0x0")
-          );
-        }
+      if (
+        !event.callers ||
+        !eventMatchesHeapFilter(event, filter, eventIDs.value)
+      ) {
+        return;
+      }
+      const callers = event.callers.filter((value) => value && value !== "0x0");
+      if (callers.length > 0) {
+        next.push(callers);
       }
     });
+    callStacks.value = next;
   }
 
   function plotSelected(info: TraceInfo) {
-    console.log(info);
     tracePane.value = true;
     traceInfo.value = info;
+    selectedDetailIndex.value =
+      typeof info.detailIndex === "number" ? info.detailIndex : null;
+  }
+
+  function selectDetail(row: HeapDetailRow) {
+    plotSelected({
+      task: row.context,
+      type: row.kind === "alloc" ? "Allocated" : "Freed",
+      ts: row.timestamp,
+      addr: row.address,
+      size: row.size,
+      callers: row.callers,
+      detailIndex: row.index,
+    });
   }
 
   function callStackAddressTranslation(address: string, key: string) {
@@ -159,27 +186,46 @@ export const useTracingStore = defineStore("tracing", () => {
 
   function heapViewChange(buttonKey: string) {
     Object.keys(heapView.value).forEach((key) => {
-      if (key === buttonKey) {
-        heapView.value[key] = true;
-        return;
-      }
-      heapView.value[key] = false;
+      heapView.value[key] = key === buttonKey;
     });
   }
 
+  function resetHeapReport() {
+    analysis.value = emptyHeapTraceAnalysis();
+    summary.value = { ...EMPTY_SUMMARY };
+    detailRows.value = [];
+    contexts.value = [];
+    contextColors.value = {};
+    contextVisibility.value = {};
+    showTotal.value = true;
+    selectedDetailIndex.value = null;
+    dataPlot.value = [];
+    callStacks.value = [];
+    callersAddressTranslationTable.value = {};
+    plotDataReceived.value = { events: [] };
+    tracePane.value = false;
+    log.value = "";
+  }
+
   function showReport() {
+    if (isCalculating.value) {
+      return;
+    }
+    errorMsg.value = "";
     if (traceType.value === TraceType.HeapTrace) {
-      isCalculating.value = !isCalculating.value;
+      resetHeapReport();
+      isCalculating.value = true;
       vscode.postMessage({
         command: "calculateHeapTrace",
       });
     } else if (traceType.value === TraceType.AppTrace) {
-      isCalculating.value = !isCalculating.value;
+      isCalculating.value = true;
+      log.value = "";
       vscode.postMessage({
         command: "calculate",
       });
     } else {
-      displayError(`Tracing Type Not yet implemented`);
+      displayError("Tracing Type Not yet implemented");
       // tslint:disable-next-line: no-console
       console.error("Tracing Type Not yet implemented");
     }
@@ -276,9 +322,41 @@ export const useTracingStore = defineStore("tracing", () => {
     return root;
   }
 
-  function drawPlot(data: any[]) {
-    heap.value = true;
-    dataPlot.value = data;
+  function refreshPlot() {
+    dataPlot.value = buildHeapPlotTraces(analysis.value, {
+      total: showTotal.value,
+      contexts: contextVisibility.value,
+    });
+  }
+
+  function setShowTotal(visible: boolean) {
+    showTotal.value = visible;
+    refreshPlot();
+  }
+
+  function setContextVisible(context: string, visible: boolean) {
+    contextVisibility.value = {
+      ...contextVisibility.value,
+      [context]: visible,
+    };
+    refreshPlot();
+  }
+
+  function setAllContextsVisible(visible: boolean) {
+    const next: Record<string, boolean> = {};
+    contexts.value.forEach((context) => {
+      next[context] = visible;
+    });
+    contextVisibility.value = next;
+    refreshPlot();
+  }
+
+  function setTraceVisible(name: string, visible: boolean) {
+    if (name === TOTAL_SERIES_NAME) {
+      setShowTotal(visible);
+      return;
+    }
+    setContextVisible(name, visible);
   }
 
   function updateModelWithTraceData({ trace }) {
@@ -303,130 +381,14 @@ export const useTracingStore = defineStore("tracing", () => {
   }
 
   const calculateFailed = ({ error }) => {
-    if (error) {
-      isCalculating.value = false;
-      log.value = "";
-    }
-  };
-
-  const free = (
-    size: number,
-    time: number,
-    index: number,
-    evt: any,
-    data: any[]
-  ) => {
-    allocFree(size, time, index, data, evt, "f");
-  };
-
-  const alloc = (
-    size: number,
-    time: number,
-    index: number,
-    evt: any,
-    data: any[]
-  ) => {
-    allocFree(size, time, index, data, evt, "a");
-  };
-
-  const allocFree = (
-    size: number,
-    time: number,
-    index: number,
-    data: any[],
-    evt: any,
-    type: string
-  ) => {
-    let currentValue: number;
-    if (data[index].y.length === 0) {
-      currentValue = 0;
-    } else {
-      currentValue = data[index].y[data[index].y.length - 1];
-    }
-    if (type === "a") {
-      data[index].y.push(currentValue + size);
-    } else if (type === "f") {
-      data[index].y.push(currentValue - size);
-    }
-    data[index].x.push(time);
-    data[index].evt.push(evt);
-  };
-
-  const getIndex = (evt: any, data: any[]) => {
-    let index = -1;
-    data.forEach((d, i) => {
-      if (d.name === evt.ctx_name) {
-        index = i;
-      }
-    });
-    return index;
-  };
-
-  function injectDataToGraph(evt: any, data: any[]) {
-    if (evt.id === eventIDs.value.free) {
-      // FREE
-      if (allocLookupTable.value[evt.addr]) {
-        const index = allocLookupTable.value[evt.addr].index;
-        const size = allocLookupTable.value[evt.addr].size;
-        free(size, evt.ts, index, evt, data);
-        delete allocLookupTable.value[evt.addr];
-      }
-    } else if (evt.id === eventIDs.value.alloc) {
-      // ALLOC
-      const index = getIndex(evt, data);
-      allocLookupTable.value[evt.addr] = { index, size: evt.size, evt };
-      alloc(evt.size, evt.ts, index, evt, data);
-    }
-  }
-
-  function traceExists(evt: any, data: any[]) {
-    return data.filter((d) => d.name === evt.ctx_name).length > 0;
-  }
-
-  const computeTotalScatterLine = (plot: any, data: any[]) => {
-    const store: { [key: string]: number } = {};
-    const totalPlot: {
-      type: string;
-      name: string;
-      x: number[];
-      y: number[];
-      visible: string;
-    } = {
-      type: "scatter",
-      name: "Total Memory",
-      x: [],
-      y: [],
-      visible: "legendonly",
-    };
-    const evt = plot.events;
-    evt
-      .filter(
-        (value: any) =>
-          value.id === eventIDs.value.alloc || value.id === eventIDs.value.free
-      )
-      .forEach((e) => {
-        let finalSize = 0;
-        if (e.id === eventIDs.value.alloc) {
-          finalSize = e.size;
-        } else if (e.id === eventIDs.value.free) {
-          finalSize = -e.size;
-        }
-        store[e.ts] = store[e.ts] ? store[e.ts] + finalSize : finalSize;
-      });
-    Object.keys(store)
-      .sort()
-      .forEach((ts, index) => {
-        totalPlot.x.push(parseFloat(ts));
-        const yPush =
-          index === 0 ? store[ts] : totalPlot.y[index - 1] + store[ts];
-        totalPlot.y.push(yPush);
-      });
-    data.push(totalPlot);
+    isCalculating.value = false;
+    log.value = "";
+    displayError(formatCalculationError(error));
   };
 
   function populateGlobalCallStackCountAndSize(value) {
     callersAddressTranslationTable.value = value;
-    plotDataReceived.value.events.forEach((evt: any) => {
+    plotDataReceived.value.events.forEach((evt: HeapTraceEvent) => {
       if (evt.callers) {
         evt.callers.forEach((callAddr) => {
           if (!callersAddressTranslationTable.value[callAddr]) {
@@ -449,94 +411,113 @@ export const useTracingStore = defineStore("tracing", () => {
   }
 
   function plotData(value: { plot }) {
-    if (value.plot && isCalculating.value) {
-      if (value.plot.version && value.plot.version !== "1.0") {
-        return displayError("Invalid tracing data received!");
-      }
-
-      plotDataReceived.value = value.plot;
-
-      isCalculating.value = false;
-      eventIDs.value.alloc = value.plot.streams.heap.alloc;
-      eventIDs.value.free = value.plot.streams.heap.free;
-      eventIDs.value.print = value.plot.streams.log.print;
-
-      const data: any[] = [];
-      value.plot.events.forEach((evt: any) => {
-        if (!traceExists(evt, data)) {
-          data.push({
-            line: {
-              shape: "hv",
-            },
-            fill: "tozeroy",
-            name: evt.ctx_name,
-            x: [],
-            y: [],
-            evt: [],
-            clickable: true,
-          });
-        }
-        if (evt.callers) {
-          evt.callers.forEach((caller) => {
-            callersAddressTranslationTable[caller] = {};
-          });
-          callStacks.value.push(evt.callers.filter((value) => value !== "0x0"));
-        }
-        injectDataToGraph(evt, data);
-      });
-      if (data.length === 0) {
-        return displayError("Tracing Data Received is Empty");
-      }
-      vscode.postMessage({
-        command: "resolveAddresses",
-        addresses: JSON.stringify(callersAddressTranslationTable),
-      });
-      computeTotalScatterLine(value.plot, data);
-      drawPlot(data);
+    if (!value.plot || !isCalculating.value) {
+      return;
     }
+    if (value.plot.version && value.plot.version !== "1.0") {
+      isCalculating.value = false;
+      displayError("Invalid tracing data received!");
+      return;
+    }
+
+    const nextAnalysis = analyzeHeapTrace(value.plot);
+    if (nextAnalysis.details.length === 0) {
+      isCalculating.value = false;
+      displayError("Tracing Data Received is Empty");
+      return;
+    }
+
+    plotDataReceived.value = value.plot;
+    analysis.value = nextAnalysis;
+    summary.value = nextAnalysis.summary;
+    detailRows.value = nextAnalysis.details;
+    contexts.value = nextAnalysis.contexts;
+    contextColors.value = nextAnalysis.contextColors;
+    contextVisibility.value = Object.fromEntries(
+      nextAnalysis.contexts.map((context) => [context, true])
+    );
+    showTotal.value = true;
+    selectedDetailIndex.value = null;
+    plotRevision.value += 1;
+    callStacks.value = nextAnalysis.callStacks.map((callers) => [...callers]);
+    eventIDs.value.alloc = value.plot.streams.heap.alloc;
+    eventIDs.value.free = value.plot.streams.heap.free;
+    eventIDs.value.print = value.plot.streams.log?.print ?? "";
+
+    const addressMap: Record<string, Record<string, never>> = {};
+    nextAnalysis.callerAddresses.forEach((address) => {
+      addressMap[address] = {};
+    });
+    callersAddressTranslationTable.value = addressMap;
+    vscode.postMessage({
+      command: "resolveAddresses",
+      addresses: JSON.stringify(addressMap),
+    });
+
+    refreshPlot();
+    heap.value = true;
+    isCalculating.value = false;
   }
 
   return {
+    allContextsVisible,
+    analysis,
+    callStackAddressTranslation,
+    callStacks,
+    calculateFailed,
+    callersAddressTranslationTable,
+    contextColors,
+    contextVisibility,
+    contexts,
+    createTreeFromAddressArray,
     dataPlot,
-    fileName,
-    traceType,
-    isCalculating,
-    log,
-    heap,
-    heapView,
+    detailRows,
+    displayError,
     errorMsg,
     eventIDs,
-    loaded,
-    tracePane,
-    traceInfo,
-    callStacks,
-    pathInfo,
-    plotDataReceived,
-    callersAddressTranslationTable,
-    allocLookupTable,
-    alloc,
-    allocFree,
-    callStackAddressTranslation,
-    calculateFailed,
-    computeTotalScatterLine,
-    createTreeFromAddressArray,
-    displayError,
-    drawPlot,
+    fileName,
     filterCallStacks,
-    free,
-    getIndex,
     getInitialData,
+    heap,
+    heapView,
     heapViewChange,
-    injectDataToGraph,
-    populateGlobalCallStackCountAndSize,
+    isCalculating,
+    loaded,
+    log,
+    pathInfo,
     plotData,
+    plotRevision,
     plotSelected,
+    populateGlobalCallStackCountAndSize,
     resolveAbsoluteFilePath,
     resolveAddress,
-    traceExists,
-    treeOpenFileHandler,
+    selectDetail,
+    selectedDetailIndex,
+    setAllContextsVisible,
+    setContextVisible,
+    setShowTotal,
+    setTraceVisible,
     showLog,
     showReport,
+    showTotal,
+    summary,
+    traceInfo,
+    tracePane,
+    traceType,
+    treeOpenFileHandler,
     updateModelWithTraceData,
   };
 });
+
+function formatCalculationError(error: unknown): string {
+  if (typeof error === "string" && error.trim()) {
+    return error;
+  }
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim()) {
+      return message;
+    }
+  }
+  return "Heap trace calculation failed";
+}

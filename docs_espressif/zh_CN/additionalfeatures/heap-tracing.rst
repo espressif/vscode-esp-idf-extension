@@ -38,9 +38,16 @@
 
     .. image:: ../../../media/tutorials/heap_trace/start_heap_tracing.png
 
-6.  点击 ``Heap Trace Log #1`` ，并在 ``ESP-IDF Tracing`` 报告窗口中选择 ``Heap Tracing`` 选项。点击 ``Show Report`` 按钮，重新加载可视化界面。
+6.  点击 ``Heap Trace Log #1`` ，并在 ``ESP-IDF Tracing`` 报告窗口中选择 ``Heap Tracing`` 选项。点击 ``Show Report`` 按钮以加载可视化界面。
 
     .. image:: ../../../media/tutorials/heap_trace/heap_trace_report.png
+
+    报告包含四个标签页：
+
+    - ``Overview`` 按时间显示正在使用的内存。``Total memory`` 是所有上下文的总和。每个上下文都可以单独显示或隐藏：释放会计入分配该内存的上下文。拖动可平移，滚轮可缩放，图表工具栏可重置坐标轴或保存图片。点击数据点可打开其调用栈。
+    - ``Details`` 列出每一次分配和释放。绿色行表示释放。橙色行表示可能的泄漏，即跟踪结束时仍未释放的分配。勾选 ``Possible leaks only`` 可隐藏其他行。选择一行可打开其调用栈；对于已解析的栈帧，还可以打开对应的源代码行。
+    - ``Overall Stats`` 汇总仍然占用的分配，以及跟踪期间已经释放的分配。
+    - ``Totals`` 按调用栈汇总已分配的字节数。
 
 7.  点击 ``Heap Trace Log #1`` ，并在 ``ESP-IDF System View Report`` 窗口中选择 ``SystemView Tracing`` 选项。
 
