@@ -5,6 +5,11 @@
 
 借助乐鑫 IoT 开发框架 (ESP-IDF)，专为 VS Code 设计的 ESP-IDF 扩展能够助力开发者高效地进行基于乐鑫芯片的项目开发、构建、烧录、监控、调试和管理。此扩展与 VS Code 无缝集成，在开发者熟悉的环境中提供了便捷的工作流程。本文档旨在帮助初学者和经验丰富的开发者完成设置和配置，并且更有效地利用 ESP-IDF 扩展，从而充分挖掘乐鑫芯片在物联网应用中的无限潜能。
 
+.. note::
+
+    如果您正在从 Espressif-IDE 迁移现有项目，请参阅
+    `Espressif-IDE 到 ESP-IDF VS Code 扩展迁移指南 <https://docs.espressif.com/projects/espressif-ide/zh_CN/latest/migrate-to-vscode.html>`_。
+
 .. toctree::
     :maxdepth: 1
 
