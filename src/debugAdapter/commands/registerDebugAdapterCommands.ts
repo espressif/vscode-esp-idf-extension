@@ -23,10 +23,12 @@ import {
   window,
   workspace,
 } from "vscode";
-import { join } from "path";
-import { pathExists } from "fs-extra";
 import { HexTreeItem, HexViewProvider } from "../hexViewProvider";
-import { CDTDebugConfigurationProvider } from "../debugConfProvider";
+import {
+  CDTDebugConfigurationProvider,
+  INITIAL_GDBTARGET_CONFIG,
+  workspaceHasGdbTargetAttachConfig,
+} from "../debugConfProvider";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../../common/PreCheck";
 import { ESP } from "../../config";
@@ -168,10 +170,7 @@ async function startFirstGdbTargetConfiguration(
       conf
     );
     if (!resolvedConf) {
-      throw invalidConfiguration(
-        "launch.configurations",
-        debugErrorPresentation.invalidConfiguration
-      );
+      return;
     }
     await debug.startDebugging(workspaceFolder, resolvedConf);
     return;
@@ -193,27 +192,8 @@ export function registerEspIdfDebugCommand(
       if (!workspaceFolder) {
         throw noWorkspaceOpen(debugErrorPresentation.noWorkspaceOpen);
       }
-      const launchJsonPath = join(
-        workspaceFolder.uri.fsPath,
-        ".vscode",
-        "launch.json"
-      );
-      if (!(await pathExists(launchJsonPath))) {
-        const resolvedConf = await cdtDebugProvider.resolveDebugConfiguration(
-          workspaceFolder,
-          {
-            type: "gdbtarget",
-            request: "attach",
-            name: "ESP-IDF",
-          }
-        );
-        if (!resolvedConf) {
-          throw invalidConfiguration(
-            "launch.configurations",
-            debugErrorPresentation.invalidConfiguration
-          );
-        }
-        await debug.startDebugging(workspaceFolder, resolvedConf);
+      if (!workspaceHasGdbTargetAttachConfig(workspaceFolder)) {
+        await debug.startDebugging(workspaceFolder, INITIAL_GDBTARGET_CONFIG);
         return;
       }
       await startFirstGdbTargetConfiguration(workspaceFolder, cdtDebugProvider);
