@@ -382,7 +382,7 @@ ESP-IDF 扩展在 ``运行和调试`` 视图中提供了 ``ESP-IDF：外设视�
 
 除了紧急处理程序外，还可以在应用程序运行期间按需进入 GDB Stub。使用 ``ESP-IDF：配置项目以启用运行时 GDB Stub`` 命令配置项目：
 
-- 将 ``esp_gdbstub`` 添加到项目 ``idf_component_register`` 的 ``PRIV_REQUIRES`` 列表中。自 ESP-IDF 6.0 起，构建系统仅编译项目显式依赖的组件，因此该步骤是必需的。
+- 在组件的 ``idf_component.yml`` 中添加指向 ESP-IDF 自带 ``esp_gdbstub`` 的私有依赖。该条目使用 ``path: ${IDF_PATH}/components/esp_gdbstub`` 和 ``require: private``。``CMakeLists.txt`` 保持不变，因此未声明 ``REQUIRES`` 或 ``PRIV_REQUIRES`` 的 ``main`` 组件仍会链接构建中的全部组件。最小构建也会编译 ``esp_gdbstub``。
 - 在项目 sdkconfig 中设置 ``CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y``。
 - 在 ``.vscode/launch.json`` 顶部添加 ``ESP-IDF Runtime GDB Stub`` 调试配置。
 

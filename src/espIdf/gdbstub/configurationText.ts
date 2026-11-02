@@ -1,33 +1,8 @@
 const componentRegisterCommand = "idf_component_register";
 
-const componentRegisterKeywords = new Set([
-  "SRCS",
-  "SRC_DIRS",
-  "EXCLUDE_SRCS",
-  "INCLUDE_DIRS",
-  "PRIV_INCLUDE_DIRS",
-  "LDFRAGMENTS",
-  "REQUIRES",
-  "PRIV_REQUIRES",
-  "REQUIRED_IDF_TARGETS",
-  "EMBED_FILES",
-  "EMBED_TXTFILES",
-  "KCONFIG",
-  "KCONFIG_PROJBUILD",
-  "WHOLE_ARCHIVE",
-]);
-
 interface CommandRange {
   openParenthesis: number;
   closeParenthesis: number;
-}
-
-interface BodyToken {
-  kind: "keyword" | "value";
-  raw: string;
-  value: string;
-  start: number;
-  end: number;
 }
 
 function isIdentifierChar(character: string | undefined): boolean {
@@ -122,117 +97,6 @@ function findComponentRegister(text: string): CommandRange | undefined {
   return undefined;
 }
 
-function unquote(raw: string): string {
-  if (
-    raw.length >= 2 &&
-    ((raw.startsWith('"') && raw.endsWith('"')) ||
-      (raw.startsWith("'") && raw.endsWith("'")))
-  ) {
-    return raw.slice(1, -1);
-  }
-  return raw;
-}
-
-function tokenizeCommandBody(body: string): BodyToken[] {
-  const tokens: BodyToken[] = [];
-  let index = 0;
-  while (index < body.length) {
-    const character = body[index];
-    if (character === "#") {
-      index = skipLineComment(body, index);
-      continue;
-    }
-    if (/\s/.test(character)) {
-      index++;
-      continue;
-    }
-    if (character === '"' || character === "'") {
-      const start = index;
-      index = readQuoteEnd(body, index);
-      const raw = body.slice(start, index);
-      tokens.push({
-        kind: "value",
-        raw,
-        value: unquote(raw),
-        start,
-        end: index,
-      });
-      continue;
-    }
-    const start = index;
-    while (
-      index < body.length &&
-      !/\s/.test(body[index]) &&
-      body[index] !== "#" &&
-      body[index] !== '"' &&
-      body[index] !== "'"
-    ) {
-      index++;
-    }
-    const raw = body.slice(start, index);
-    if (!raw) {
-      index++;
-      continue;
-    }
-    tokens.push({
-      kind: componentRegisterKeywords.has(raw) ? "keyword" : "value",
-      raw,
-      value: raw,
-      start,
-      end: index,
-    });
-  }
-  return tokens;
-}
-
-function commandAlreadyRequires(
-  tokens: BodyToken[],
-  requirement: string
-): boolean {
-  let currentKeyword: string | undefined;
-  for (const token of tokens) {
-    if (token.kind === "keyword") {
-      currentKeyword = token.raw;
-      continue;
-    }
-    if (
-      (currentKeyword === "REQUIRES" || currentKeyword === "PRIV_REQUIRES") &&
-      token.value === requirement
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function lastPrivateRequiresToken(tokens: BodyToken[]): BodyToken | undefined {
-  let currentKeyword: string | undefined;
-  let keywordToken: BodyToken | undefined;
-  let lastValue: BodyToken | undefined;
-  for (const token of tokens) {
-    if (token.kind === "keyword") {
-      currentKeyword = token.raw;
-      if (token.raw === "PRIV_REQUIRES") {
-        keywordToken = token;
-        lastValue = undefined;
-      }
-      continue;
-    }
-    if (currentKeyword === "PRIV_REQUIRES") {
-      lastValue = token;
-    }
-  }
-  return lastValue ?? keywordToken;
-}
-
-function getContinuationIndent(commandBody: string): string {
-  const lines = commandBody.split(/\r?\n/);
-  const continuationLine = lines
-    .slice(1)
-    .find((line) => line.trim().length > 0);
-  return continuationLine?.match(/^\s*/)?.[0] || "  ";
-}
-
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -245,53 +109,126 @@ export function hasIdfComponentRegister(text: string): boolean {
   }
 }
 
-export function addPrivateRequirement(
-  cmakeText: string,
-  requirement: string
-): string {
-  const commandRange = findComponentRegister(cmakeText);
-  if (!commandRange) {
-    throw new Error("idf_component_register was not found");
-  }
+const gdbStubManifestPath = "${IDF_PATH}/components/esp_gdbstub";
 
-  const commandBody = cmakeText.slice(
-    commandRange.openParenthesis + 1,
-    commandRange.closeParenthesis
-  );
-  const tokens = tokenizeCommandBody(commandBody);
-  if (commandAlreadyRequires(tokens, requirement)) {
-    return cmakeText;
-  }
-
-  const privateRequiresToken = lastPrivateRequiresToken(tokens);
-  if (privateRequiresToken) {
-    const insertionIndex =
-      commandRange.openParenthesis + 1 + privateRequiresToken.end;
-    return (
-      cmakeText.slice(0, insertionIndex) +
-      ` ${requirement}` +
-      cmakeText.slice(insertionIndex)
+export function manifestHasGdbStubDependency(manifestText: string): boolean {
+  return manifestText
+    .split(/\r?\n/)
+    .some(
+      (line) =>
+        !line.trim().startsWith("#") && /^[ \t]*esp_gdbstub[ \t]*:/.test(line)
     );
+}
+
+function manifestLineEnding(text: string): "\n" | "\r\n" {
+  return text.includes("\r\n") ? "\r\n" : "\n";
+}
+
+function leadingWhitespace(line: string): string {
+  return line.match(/^[ \t]*/)?.[0] ?? "";
+}
+
+function isIgnorableManifestLine(line: string): boolean {
+  const trimmed = line.trim();
+  return trimmed.length === 0 || trimmed.startsWith("#");
+}
+
+function dependencyBlock(indent: string): string[] {
+  return [
+    `${indent}esp_gdbstub:`,
+    `${indent}  path: ${gdbStubManifestPath}`,
+    `${indent}  require: private`,
+  ];
+}
+
+function splitManifestLines(text: string): {
+  lines: string[];
+  lineEnding: "\n" | "\r\n";
+  hadTrailingLineEnding: boolean;
+} {
+  const lineEnding = manifestLineEnding(text);
+  const hadTrailingLineEnding = /\r?\n$/.test(text);
+  const body =
+    text === "" ? "" : hadTrailingLineEnding ? text.replace(/\r?\n$/, "") : text;
+  return {
+    lines: body === "" ? [] : body.split(/\r?\n/),
+    lineEnding,
+    hadTrailingLineEnding,
+  };
+}
+
+function joinManifestLines(
+  lines: string[],
+  lineEnding: string,
+  hadTrailingLineEnding: boolean
+): string {
+  const joined = lines.join(lineEnding);
+  return hadTrailingLineEnding ? joined + lineEnding : joined;
+}
+
+function dependenciesHeaderIndex(lines: string[]): number {
+  return lines.findIndex((line) =>
+    /^dependencies[ \t]*:[ \t]*(?:#.*)?$/.test(line)
+  );
+}
+
+function childIndent(lines: string[], headerIndex: number): string {
+  const headerIndent = leadingWhitespace(lines[headerIndex]);
+  for (let index = headerIndex + 1; index < lines.length; index++) {
+    const line = lines[index];
+    if (isIgnorableManifestLine(line)) {
+      continue;
+    }
+    const indent = leadingWhitespace(line);
+    if (indent.length > headerIndent.length) {
+      return indent;
+    }
+    break;
+  }
+  return `${headerIndent}  `;
+}
+
+function dependenciesSectionEnd(lines: string[], headerIndex: number): number {
+  const headerIndent = leadingWhitespace(lines[headerIndex]);
+  for (let index = headerIndex + 1; index < lines.length; index++) {
+    const line = lines[index];
+    if (isIgnorableManifestLine(line)) {
+      continue;
+    }
+    if (leadingWhitespace(line).length <= headerIndent.length) {
+      return index;
+    }
+  }
+  return lines.length;
+}
+
+/** Adds a private Component Manager dependency on the ESP-IDF copy of esp_gdbstub. */
+export function addGdbStubManifestDependency(manifestText: string): string {
+  if (manifestHasGdbStubDependency(manifestText)) {
+    return manifestText;
   }
 
-  const lineEnding = cmakeText.includes("\r\n") ? "\r\n" : "\n";
-  const isMultiline = commandBody.includes("\n");
-  const trailingLineEnding = commandBody.match(/\r?\n[ \t]*$/);
-  const insertionIndex =
-    isMultiline && trailingLineEnding
-      ? commandRange.closeParenthesis - trailingLineEnding[0].length
-      : commandRange.closeParenthesis;
-  const addition = isMultiline
-    ? `${lineEnding}${getContinuationIndent(
-        commandBody
-      )}PRIV_REQUIRES ${requirement}`
-    : ` PRIV_REQUIRES ${requirement}`;
+  const { lines, lineEnding, hadTrailingLineEnding } =
+    splitManifestLines(manifestText);
+  const headerIndex = dependenciesHeaderIndex(lines);
+  if (headerIndex === -1) {
+    const block = ["dependencies:", ...dependencyBlock("  ")];
+    if (lines.length === 0) {
+      return block.join(lineEnding) + lineEnding;
+    }
+    if (!hadTrailingLineEnding) {
+      lines.push("");
+    }
+    lines.push(...block);
+    return joinManifestLines(lines, lineEnding, true);
+  }
 
-  return (
-    cmakeText.slice(0, insertionIndex) +
-    addition +
-    cmakeText.slice(insertionIndex)
+  lines.splice(
+    dependenciesSectionEnd(lines, headerIndex),
+    0,
+    ...dependencyBlock(childIndent(lines, headerIndex))
   );
+  return joinManifestLines(lines, lineEnding, hadTrailingLineEnding);
 }
 
 export function enableSdkconfigOption(

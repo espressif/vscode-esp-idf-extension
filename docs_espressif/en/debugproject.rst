@@ -382,7 +382,7 @@ Runtime GDB Stub
 
 Besides the panic handler, the GDB Stub can also be entered on demand while the application is running. Use the ``ESP-IDF: Configure Project for Runtime GDB Stub`` command to prepare the project:
 
-- ``esp_gdbstub`` is added to the ``PRIV_REQUIRES`` list of the project ``idf_component_register`` call, which is required since ESP-IDF 6.0 builds only the components requested by the project.
+- A private ``esp_gdbstub`` dependency is added to the component ``idf_component.yml``. The entry points at the copy shipped with ESP-IDF (``path: ${IDF_PATH}/components/esp_gdbstub``, ``require: private``). ``CMakeLists.txt`` is left unchanged, so a ``main`` component that does not list ``REQUIRES`` or ``PRIV_REQUIRES`` keeps ESP-IDF's default of linking every component in the build. A minimal build still compiles ``esp_gdbstub``.
 - ``CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y`` is set in the project sdkconfig.
 - An ``ESP-IDF Runtime GDB Stub`` configuration is added at the top of ``.vscode/launch.json``.
 

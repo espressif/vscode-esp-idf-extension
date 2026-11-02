@@ -28,8 +28,10 @@ import {
   getProjectDescriptionJson,
   getConfigValueFromSDKConfig,
 } from "../configuration/workspace";
-import { dirname, join } from "path";
+import { basename, dirname, join } from "path";
+import { existsSync } from "fs";
 import { outputFile, pathExists, readFile } from "fs-extra";
+import { quoteGdbinitScript, withPathSeparators } from "./gdbinitQuote";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../common/logger";
 import { execChildProcess } from "../utils";
@@ -135,6 +137,9 @@ const GDBINIT_FILE_NAMES = [
 /** Expanded by {@link getConnectCommands} rather than sourced like the other files. */
 const GDBINIT_CONNECT_FILE_NAME = "connect";
 
+/** Rewritten gdbinit scripts whose paths needed quotes. Kept next to the originals. */
+const QUOTED_GDBINIT_DIRECTORY = "quoted";
+
 /** Some GDB builds stall when their Python runtime is unusable, so the probe is bounded. */
 async function isGdbWithPython(gdbPath: string) {
   try {
@@ -220,7 +225,7 @@ async function getGdbinitSourceCommands(
     if (name === "py_extensions" && !(await isGdbWithPython(gdbPath))) {
       continue;
     }
-    commands.push(`source ${filePath}`);
+    commands.push(await gdbinitSourceCommand(filePath));
     if (name === "prefix_map") {
       prefixMapFound = true;
       prefixMapFilePath = filePath;
@@ -230,13 +235,58 @@ async function getGdbinitSourceCommands(
   if (!prefixMapFound && buildDirPath) {
     const legacyPrefixMap = join(buildDirPath, "prefix_map_gdbinit");
     if (await pathExists(legacyPrefixMap)) {
-      commands.push(`source ${legacyPrefixMap}`);
+      commands.push(await gdbinitSourceCommand(legacyPrefixMap));
       prefixMapFound = true;
       prefixMapFilePath = legacyPrefixMap;
     }
   }
 
   return { commands, prefixMapFound, prefixMapFilePath };
+}
+
+/**
+ * `source` takes the remainder of the line as the filename and does not strip
+ * quotes, so a path with spaces stays unquoted. Commands inside the file that
+ * do split on spaces are rewritten into a sibling script.
+ */
+async function gdbinitSourceCommand(filePath: string): Promise<string> {
+  return `source ${await gdbinitFileToSource(filePath)}`;
+}
+
+async function gdbinitFileToSource(filePath: string): Promise<string> {
+  let content: string;
+  try {
+    content = (await readFile(filePath)).toString();
+  } catch (error) {
+    Logger.error(
+      `Failed to read gdbinit file ${filePath}`,
+      error as Error,
+      "CDTDebugConfigurationProvider gdbinitFileToSource"
+    );
+    return filePath;
+  }
+  const quoted = quoteGdbinitScript(content, {
+    romElfExists: existsSync,
+  });
+  if (quoted === content) {
+    return filePath;
+  }
+  const quotedPath = join(
+    dirname(filePath),
+    QUOTED_GDBINIT_DIRECTORY,
+    basename(filePath)
+  );
+  try {
+    await outputFile(quotedPath, quoted);
+  } catch (error) {
+    Logger.error(
+      `Failed to write gdbinit file with quoted paths ${quotedPath}`,
+      error as Error,
+      "CDTDebugConfigurationProvider gdbinitFileToSource"
+    );
+    return filePath;
+  }
+  return withPathSeparators(quotedPath, filePath);
 }
 
 function getRemoteTargetAddress(target: { host?: string; port?: string }) {

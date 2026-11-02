@@ -46,6 +46,7 @@ import {
   isNonJtagDebugSession,
 } from "../../espIdf/gdbstub/debugConfig";
 import { enterRuntimeGdbStub } from "../../espIdf/gdbstub/uart";
+import { projectDirectoryFromProgram } from "./gdbstubStop";
 
 interface UARTArguments {
   // Path to the serial port connected to the UART on the board.
@@ -160,6 +161,10 @@ export class GDBTargetDebugSession extends GDBDebugSession {
     }
     if (args.sessionID === RUNTIME_GDBSTUB_SESSION_ID || args.gdbStubUart) {
       this.isHaltedOnAttach = true;
+      this.stubProjectDirectory = projectDirectoryFromProgram(
+        args.program,
+        args.cwd
+      );
     }
 
     if (args.gdbStubUart) {

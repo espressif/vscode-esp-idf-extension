@@ -12,12 +12,11 @@ import {
 import { ConfserverProcess } from "../menuconfig/confserver/confServerProcess";
 import { getSDKConfigFilePath } from "../../configuration/workspace";
 import {
-  addPrivateRequirement,
+  addGdbStubManifestDependency,
   enableSdkconfigOption,
   hasIdfComponentRegister,
 } from "./configurationText";
 
-const gdbStubComponent = "esp_gdbstub";
 const runtimeGdbStubOption = "CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME";
 const runtimeGdbStubKconfigId = "ESP_SYSTEM_GDBSTUB_RUNTIME";
 
@@ -115,11 +114,15 @@ export async function configureProjectForRuntimeGdbStub(
     return "cancelled";
   }
 
-  const updatedCmakeText = addPrivateRequirement(
-    componentCmake.text,
-    gdbStubComponent
+  const manifestPath = path.join(
+    path.dirname(componentCmake.filePath),
+    "idf_component.yml"
   );
-  const cmakeChanged = updatedCmakeText !== componentCmake.text;
+  const manifestText = (await io.pathExists(manifestPath))
+    ? await io.readFile(manifestPath)
+    : "";
+  const updatedManifestText = addGdbStubManifestDependency(manifestText);
+  const manifestChanged = updatedManifestText !== manifestText;
 
   const sdkconfigPath = await io.resolveSdkconfigPath(workspacePath);
   const sdkconfigText = (await io.pathExists(sdkconfigPath))
@@ -131,12 +134,12 @@ export async function configureProjectForRuntimeGdbStub(
   );
   const sdkconfigNeedsUpdate = updatedSdkconfigText !== sdkconfigText;
 
-  if (!cmakeChanged && !sdkconfigNeedsUpdate) {
+  if (!manifestChanged && !sdkconfigNeedsUpdate) {
     return "unchanged";
   }
 
-  if (cmakeChanged) {
-    await io.replaceFileText(componentCmake.filePath, updatedCmakeText);
+  if (manifestChanged) {
+    await io.replaceFileText(manifestPath, updatedManifestText);
   }
 
   if (sdkconfigNeedsUpdate) {
@@ -147,10 +150,10 @@ export async function configureProjectForRuntimeGdbStub(
         await io.replaceFileText(sdkconfigPath, updatedSdkconfigText);
       }
     } catch (error) {
-      if (cmakeChanged) {
+      if (manifestChanged) {
         throw new Error(
           l10n.t(
-            "esp_gdbstub was added to CMakeLists.txt, but CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME could not be enabled."
+            "esp_gdbstub was added to idf_component.yml, but CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME could not be enabled."
           )
         );
       }

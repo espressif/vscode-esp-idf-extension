@@ -2,7 +2,7 @@ import * as assert from "assert";
 import * as path from "path";
 import { Uri } from "vscode";
 import {
-  addPrivateRequirement,
+  addGdbStubManifestDependency,
   enableSdkconfigOption,
   hasIdfComponentRegister,
 } from "../espIdf/gdbstub/configurationText";
@@ -33,130 +33,9 @@ import {
   readGdbStubStopPacket,
 } from "../espIdf/gdbstub/uart";
 
-const requirement = "esp_gdbstub";
 const option = "CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME";
 
 suite("GDB Stub project configuration", () => {
-  const cmakeCases: { name: string; input: string; expected: string }[] = [
-    {
-      name: "adds esp_gdbstub to existing private requirements",
-      input: [
-        'idf_component_register(SRCS "hello_world_main.c"',
-        "                       PRIV_REQUIRES spi_flash",
-        '                       INCLUDE_DIRS "")',
-      ].join("\n"),
-      expected: [
-        'idf_component_register(SRCS "hello_world_main.c"',
-        "                       PRIV_REQUIRES spi_flash esp_gdbstub",
-        '                       INCLUDE_DIRS "")',
-      ].join("\n"),
-    },
-    {
-      name: "creates private requirements when missing",
-      input: [
-        'idf_component_register(SRCS "hello_world_main.c"',
-        '                       INCLUDE_DIRS "")',
-      ].join("\n"),
-      expected: [
-        'idf_component_register(SRCS "hello_world_main.c"',
-        '                       INCLUDE_DIRS ""',
-        "                       PRIV_REQUIRES esp_gdbstub)",
-      ].join("\n"),
-    },
-    {
-      name: "does not add an existing private requirement twice",
-      input: "idf_component_register(SRCS main.c PRIV_REQUIRES esp_gdbstub)",
-      expected: "idf_component_register(SRCS main.c PRIV_REQUIRES esp_gdbstub)",
-    },
-    {
-      name: "does not add PRIV_REQUIRES when already in REQUIRES",
-      input: "idf_component_register(SRCS main.c REQUIRES esp_gdbstub)",
-      expected: "idf_component_register(SRCS main.c REQUIRES esp_gdbstub)",
-    },
-    {
-      name: "treats a quoted private requirement as already present",
-      input: 'idf_component_register(SRCS main.c PRIV_REQUIRES "esp_gdbstub")',
-      expected:
-        'idf_component_register(SRCS main.c PRIV_REQUIRES "esp_gdbstub")',
-    },
-    {
-      name: "preserves a closing parenthesis on its own line",
-      input: ["idf_component_register(", "  SRCS main.c", ")"].join("\n"),
-      expected: [
-        "idf_component_register(",
-        "  SRCS main.c",
-        "  PRIV_REQUIRES esp_gdbstub",
-        ")",
-      ].join("\n"),
-    },
-    {
-      name: "does not treat a source filename as an existing requirement",
-      input: 'idf_component_register(SRCS "esp_gdbstub.c")',
-      expected:
-        'idf_component_register(SRCS "esp_gdbstub.c" PRIV_REQUIRES esp_gdbstub)',
-    },
-    {
-      name: "does not rewrite PRIV_REQUIRES inside a source filename",
-      input: 'idf_component_register(SRCS "file_with_PRIV_REQUIRES_in_name.c")',
-      expected:
-        'idf_component_register(SRCS "file_with_PRIV_REQUIRES_in_name.c" PRIV_REQUIRES esp_gdbstub)',
-    },
-    {
-      name: "ignores a commented register and edits the real call",
-      input: [
-        "# idf_component_register(SRCS dummy.c)",
-        "idf_component_register(SRCS main.c)",
-      ].join("\n"),
-      expected: [
-        "# idf_component_register(SRCS dummy.c)",
-        "idf_component_register(SRCS main.c PRIV_REQUIRES esp_gdbstub)",
-      ].join("\n"),
-    },
-    {
-      name: "does not insert into a commented PRIV_REQUIRES",
-      input: [
-        "idf_component_register(",
-        "  SRCS main.c",
-        "  # PRIV_REQUIRES spi_flash",
-        ")",
-      ].join("\n"),
-      expected: [
-        "idf_component_register(",
-        "  SRCS main.c",
-        "  # PRIV_REQUIRES spi_flash",
-        "  PRIV_REQUIRES esp_gdbstub",
-        ")",
-      ].join("\n"),
-    },
-    {
-      name: "does not close the command on a quoted parenthesis",
-      input: 'idf_component_register(SRCS ")")',
-      expected: 'idf_component_register(SRCS ")" PRIV_REQUIRES esp_gdbstub)',
-    },
-    {
-      name: "preserves CRLF when adding PRIV_REQUIRES",
-      input: ["idf_component_register(", "  SRCS main.c", ")"].join("\r\n"),
-      expected: [
-        "idf_component_register(",
-        "  SRCS main.c",
-        "  PRIV_REQUIRES esp_gdbstub",
-        ")",
-      ].join("\r\n"),
-    },
-  ];
-
-  for (const cmakeCase of cmakeCases) {
-    test(cmakeCase.name, () => {
-      const result = addPrivateRequirement(cmakeCase.input, requirement);
-      assert.strictEqual(result, cmakeCase.expected);
-      assert.strictEqual(
-        addPrivateRequirement(result, requirement),
-        result,
-        "addPrivateRequirement should be idempotent"
-      );
-    });
-  }
-
   test("hasIdfComponentRegister ignores comments, strings, and unclosed calls", () => {
     assert.strictEqual(
       hasIdfComponentRegister(
@@ -178,10 +57,101 @@ suite("GDB Stub project configuration", () => {
     );
   });
 
-  test("addPrivateRequirement throws when the command is missing", () => {
-    assert.throws(() =>
-      addPrivateRequirement("project(hello_world)", requirement)
+  const manifestDependency = [
+    "  esp_gdbstub:",
+    "    path: ${IDF_PATH}/components/esp_gdbstub",
+    "    require: private",
+  ].join("\n");
+
+  test("adds a private esp_gdbstub dependency to an empty manifest", () => {
+    const result = addGdbStubManifestDependency("");
+    assert.strictEqual(
+      result,
+      ["dependencies:", manifestDependency, ""].join("\n")
     );
+    assert.strictEqual(addGdbStubManifestDependency(result), result);
+  });
+
+  test("appends esp_gdbstub after existing dependencies", () => {
+    const input = [
+      "dependencies:",
+      '  espressif/led_strip: "^3.0.0"',
+      "",
+    ].join("\n");
+    const result = addGdbStubManifestDependency(input);
+    assert.strictEqual(
+      result,
+      [
+        "dependencies:",
+        '  espressif/led_strip: "^3.0.0"',
+        manifestDependency,
+        "",
+      ].join("\n")
+    );
+  });
+
+  test("keeps a nested dependency and the next top-level key intact", () => {
+    const input = [
+      "dependencies:",
+      "  espressif/led_strip:",
+      '    version: "^3.0.0"',
+      "",
+      "description: blink",
+      "",
+    ].join("\n");
+    const result = addGdbStubManifestDependency(input);
+    assert.strictEqual(
+      result,
+      [
+        "dependencies:",
+        "  espressif/led_strip:",
+        '    version: "^3.0.0"',
+        "",
+        manifestDependency,
+        "description: blink",
+        "",
+      ].join("\n")
+    );
+  });
+
+  test("uses the existing dependency indent", () => {
+    const input = [
+      "dependencies:",
+      '    espressif/led_strip: "^3.0.0"',
+      "",
+    ].join("\n");
+    const result = addGdbStubManifestDependency(input);
+    assert.strictEqual(
+      result,
+      [
+        "dependencies:",
+        '    espressif/led_strip: "^3.0.0"',
+        "    esp_gdbstub:",
+        "      path: ${IDF_PATH}/components/esp_gdbstub",
+        "      require: private",
+        "",
+      ].join("\n")
+    );
+  });
+
+  test("does not duplicate an existing esp_gdbstub manifest dependency", () => {
+    const input = [
+      "dependencies:",
+      "  # esp_gdbstub: ignored",
+      "  esp_gdbstub:",
+      "    version: '*'",
+      "",
+    ].join("\n");
+    assert.strictEqual(addGdbStubManifestDependency(input), input);
+  });
+
+  test("preserves CRLF when adding the manifest dependency", () => {
+    const input = ["dependencies:", '  espressif/led_strip: "^3.0.0"', ""].join(
+      "\r\n"
+    );
+    const result = addGdbStubManifestDependency(input);
+    assert.ok(result.includes("\r\n  esp_gdbstub:\r\n"));
+    assert.ok(!result.includes("\n  esp_gdbstub:\n"));
   });
 
   const sdkconfigCases: {
@@ -327,13 +297,19 @@ suite("GDB Stub project orchestration", () => {
 
     const result = await configureProjectForRuntimeGdbStub(workspacePath, io);
 
+    const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
     assert.strictEqual(result, "updated");
-    assert.ok(files[mainPath].includes("PRIV_REQUIRES esp_gdbstub"));
+    assert.strictEqual(files[mainPath], 'idf_component_register(SRCS "main.c")');
     assert.ok(!files[otherPath].includes("esp_gdbstub"));
+    assert.match(files[manifestPath], /require: private/);
+    assert.match(
+      files[manifestPath],
+      /path: \$\{IDF_PATH\}\/components\/esp_gdbstub/
+    );
     assert.ok(
       files[sdkconfigPath].includes("CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y")
     );
-    assert.deepStrictEqual(writes, [mainPath, sdkconfigPath]);
+    assert.deepStrictEqual(writes, [manifestPath, sdkconfigPath]);
     assert.strictEqual(getEditorSetCalls(), 0);
   });
 
@@ -381,14 +357,16 @@ suite("GDB Stub project orchestration", () => {
     );
   });
 
-  test("returns unchanged when CMake and sdkconfig are already configured", async () => {
+  test("returns unchanged when the manifest and sdkconfig are already configured", async () => {
     const workspacePath = Uri.file(path.join(__dirname, "gdbstub-ws-done"));
     const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
     const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
+    const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
     const { io, writes, getEditorSetCalls } = createTestIo({
       files: {
-        [mainPath]:
-          "idf_component_register(SRCS main.c PRIV_REQUIRES esp_gdbstub)",
+        [mainPath]: "idf_component_register(SRCS main.c)",
+        [manifestPath]:
+          "dependencies:\n  esp_gdbstub:\n    path: ${IDF_PATH}/components/esp_gdbstub\n    require: private\n",
         [sdkconfigPath]: "CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y\n",
       },
     });
@@ -400,9 +378,10 @@ suite("GDB Stub project orchestration", () => {
     assert.strictEqual(getEditorSetCalls(), 0);
   });
 
-  test("updates CMake without touching sdkconfig when the option is already set", async () => {
+  test("updates the manifest without touching sdkconfig when the option is already set", async () => {
     const workspacePath = Uri.file(path.join(__dirname, "gdbstub-ws-cmake"));
     const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
+    const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
     const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
     const { io, files, writes, getEditorSetCalls } = createTestIo({
       files: {
@@ -414,19 +393,22 @@ suite("GDB Stub project orchestration", () => {
     const result = await configureProjectForRuntimeGdbStub(workspacePath, io);
 
     assert.strictEqual(result, "updated");
-    assert.ok(files[mainPath].includes("PRIV_REQUIRES esp_gdbstub"));
-    assert.deepStrictEqual(writes, [mainPath]);
+    assert.strictEqual(files[mainPath], "idf_component_register(SRCS main.c)");
+    assert.match(files[manifestPath], /require: private/);
+    assert.deepStrictEqual(writes, [manifestPath]);
     assert.strictEqual(getEditorSetCalls(), 0);
   });
 
-  test("writes sdkconfig without rewriting CMake when the requirement exists", async () => {
+  test("writes sdkconfig without rewriting the manifest when the dependency exists", async () => {
     const workspacePath = Uri.file(path.join(__dirname, "gdbstub-ws-kconfig"));
     const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
+    const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
     const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
     const { io, files, writes, getEditorSetCalls } = createTestIo({
       files: {
-        [mainPath]:
-          "idf_component_register(SRCS main.c PRIV_REQUIRES esp_gdbstub)",
+        [mainPath]: "idf_component_register(SRCS main.c)",
+        [manifestPath]:
+          "dependencies:\n  esp_gdbstub:\n    require: private\n",
         [sdkconfigPath]: "CONFIG_OTHER=y\n",
       },
     });
@@ -444,11 +426,13 @@ suite("GDB Stub project orchestration", () => {
   test("sets the option through a running SDK Configuration Editor", async () => {
     const workspacePath = Uri.file(path.join(__dirname, "gdbstub-ws-editor"));
     const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
+    const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
     const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
     const { io, files, writes, getEditorSetCalls } = createTestIo({
       files: {
-        [mainPath]:
-          "idf_component_register(SRCS main.c PRIV_REQUIRES esp_gdbstub)",
+        [mainPath]: "idf_component_register(SRCS main.c)",
+        [manifestPath]:
+          "dependencies:\n  esp_gdbstub:\n    require: private\n",
         [sdkconfigPath]: "CONFIG_OTHER=y\n",
       },
       editorRunning: true,
@@ -462,9 +446,10 @@ suite("GDB Stub project orchestration", () => {
     assert.strictEqual(getEditorSetCalls(), 1);
   });
 
-  test("reports that CMake was updated if the running editor cannot set the option", async () => {
+  test("reports that the manifest was updated if the running editor cannot set the option", async () => {
     const workspacePath = Uri.file(path.join(__dirname, "gdbstub-ws-fail"));
     const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
+    const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
     const { io, files } = createTestIo({
       files: {
         [mainPath]: "idf_component_register(SRCS main.c)",
@@ -477,9 +462,10 @@ suite("GDB Stub project orchestration", () => {
 
     await assert.rejects(
       () => configureProjectForRuntimeGdbStub(workspacePath, io),
-      /CMakeLists\.txt/
+      /idf_component\.yml/
     );
-    assert.ok(files[mainPath].includes("PRIV_REQUIRES esp_gdbstub"));
+    assert.strictEqual(files[mainPath], "idf_component_register(SRCS main.c)");
+    assert.match(files[manifestPath], /require: private/);
   });
 
   test("skips a malformed CMakeLists.txt while scanning", async () => {
@@ -505,8 +491,15 @@ suite("GDB Stub project orchestration", () => {
 
     const result = await configureProjectForRuntimeGdbStub(workspacePath, io);
 
+    const manifestPath = wsFile(
+      workspacePath,
+      "components",
+      "app",
+      "idf_component.yml"
+    );
     assert.strictEqual(result, "updated");
-    assert.ok(files[goodPath].includes("PRIV_REQUIRES esp_gdbstub"));
+    assert.strictEqual(files[goodPath], "idf_component_register(SRCS app.c)");
+    assert.match(files[manifestPath], /require: private/);
     assert.strictEqual(files[badPath], "idf_component_register(SRCS broken.c");
   });
 });

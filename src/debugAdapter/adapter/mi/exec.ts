@@ -39,6 +39,10 @@ export function sendExecNext(gdb: GDBBackend, threadId?: number) {
     return gdb.sendCommand(command);
 }
 
+export function sendExecUntil(gdb: GDBBackend, location: string) {
+    return gdb.sendCommand(`-exec-until ${location}`);
+}
+
 export function sendExecNextInstruction(gdb: GDBBackend, threadId?: number) {
     let command = '-exec-next-instruction';
     if (threadId !== undefined) {
