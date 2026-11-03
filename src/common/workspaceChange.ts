@@ -220,6 +220,7 @@ export async function useSelectedWorkspaceFolder(
       );
       return await configureForWorkspace(context, wsFolder);
     }
+    return true;
   }
   return false;
 }

@@ -79,15 +79,17 @@ import { disposeNonConfiguredStatusBar } from "./nonConfigured";
 
 let configuredActivated = false;
 
-export async function activateConfigured(context: ExtensionContext) {
+export async function activateConfigured(
+  context: ExtensionContext
+): Promise<boolean> {
   const ready = await useSelectedWorkspaceFolder(context);
   if (!ready) {
-    return;
+    return false;
   }
   showConfiguredStatusBarItems();
   disposeNonConfiguredStatusBar();
   if (configuredActivated) {
-    return;
+    return true;
   }
 
   if (PreCheck.isRunningInVSCodeFork()) {
@@ -137,4 +139,5 @@ export async function activateConfigured(context: ExtensionContext) {
   showWalkthroughOnFirstActivation();
   checkAndNotifyMissingCompileCommands();
   configuredActivated = true;
+  return true;
 }

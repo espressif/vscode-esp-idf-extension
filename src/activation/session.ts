@@ -20,7 +20,10 @@ import {
   IdfCommandTreeMode,
   setCommandsTreeMode,
 } from "../cmdTreeView/cmdTreeDataProvider";
-import { enterNonConfigured } from "./nonConfigured";
+import {
+  disposeNonConfiguredStatusBar,
+  enterNonConfigured,
+} from "./nonConfigured";
 import type { ActivationFailure } from "./validate";
 
 let activationMode: IdfCommandTreeMode = "pending";
@@ -32,6 +35,9 @@ export function getActivationMode(): IdfCommandTreeMode {
 export function setActivationMode(mode: IdfCommandTreeMode) {
   activationMode = mode;
   setCommandsTreeMode(mode);
+  if (mode === "configured") {
+    disposeNonConfiguredStatusBar();
+  }
 }
 
 export function leaveActivation(failure: ActivationFailure, detail?: string) {

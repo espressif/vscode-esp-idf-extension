@@ -19,8 +19,11 @@
 import { ExtensionContext, workspace } from "vscode";
 import { Logger } from "../common/logger";
 import { PreCheck } from "../common/PreCheck";
+import { ESP } from "../config";
 import { getCurrentIdfConfiguration } from "../configuration/env";
+import { getIdfConfigurationSource } from "../configuration/idfConfigurationSource";
 import { missingIdfEnvDetail } from "../eim/setupFailureDetail";
+import { resolveEimIdfJsonPath } from "../eim/getExistingSetups";
 import { registerSelectCurrentIdfVersionCommand } from "../eim";
 import { enterConfiguredNoWorkspaceFolder } from "./configuredNoWorkspace";
 import { activateConfigured } from "./configured";
@@ -46,6 +49,30 @@ let applying = false;
 let activationPending = false;
 let listenersRegistered = false;
 let extensionContext: ExtensionContext | undefined;
+let hasLoadedCatalog = false;
+let loadedCatalogPath: string | undefined;
+
+async function clearStoredIdfEnv() {
+  const store = ESP.ProjectConfiguration.store;
+  if (!store) {
+    return;
+  }
+  await Promise.all([
+    store.clear(ESP.ProjectConfiguration.CURRENT_IDF_SETUP_ENV),
+    store.clear(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION),
+  ]);
+}
+
+function scheduleActivationAfterDemotion() {
+  setTimeout(() => {
+    void applyActivation();
+  }, 0);
+}
+
+function revalidateCatalogPath() {
+  getIdfConfigurationSource().refreshConfiguration();
+  void revalidateIfLighterMode();
+}
 
 function revalidateIfLighterMode() {
   if (applying) {
@@ -74,11 +101,19 @@ function registerActivationListeners(context: ExtensionContext) {
       void revalidateIfLighterMode();
     }),
     workspace.onDidChangeConfiguration((event) => {
+      const catalogPathChanged = event.affectsConfiguration(
+        "idf.eimIdfJsonPath"
+      );
       if (
-        !event.affectsConfiguration("idf.eimIdfJsonPath") &&
+        !catalogPathChanged &&
         !event.affectsConfiguration("idf.currentSetup") &&
         !event.affectsConfiguration("idf.extensionActivationMode")
       ) {
+        return;
+      }
+      if (catalogPathChanged) {
+        getIdfConfigurationSource().refreshConfiguration();
+        setTimeout(revalidateCatalogPath, 0);
         return;
       }
       void revalidateIfLighterMode();
@@ -97,10 +132,23 @@ async function applyActivation() {
   const context = extensionContext;
   applying = true;
   try {
+    getIdfConfigurationSource().refreshConfiguration();
+    const catalogPathAtStart = await resolveEimIdfJsonPath();
+    const catalogChanged =
+      hasLoadedCatalog && catalogPathAtStart !== loadedCatalogPath;
+    if (catalogChanged) {
+      await clearStoredIdfEnv();
+    }
     const decision = await runValidations(context.extensionPath);
     if (PreCheck.isWorkspaceFolderOpen()) {
       registerSelectCurrentIdfVersionCommand(context);
     }
+    if ((await resolveEimIdfJsonPath()) !== catalogPathAtStart) {
+      activationPending = true;
+      return;
+    }
+    hasLoadedCatalog = true;
+    loadedCatalogPath = catalogPathAtStart;
     switch (decision.kind) {
       case "nonConfigured":
         enterNonConfigured(decision.failure, decision.detail);
@@ -124,8 +172,8 @@ async function applyActivation() {
           leaveActivation("invalidCurrentSetup", missingIdfEnvDetail());
           break;
         }
-        await activateConfigured(context);
-        if (getActivationMode() === "nonConfigured") {
+        const activated = await activateConfigured(context);
+        if (!activated) {
           break;
         }
         setActivationMode("configured");
@@ -167,6 +215,7 @@ export async function runActivation(context: ExtensionContext) {
     isApplying: () => applying,
     leaveForFailure: (failure, detail) => {
       leaveActivation(failure, detail);
+      scheduleActivationAfterDemotion();
     },
   });
 }

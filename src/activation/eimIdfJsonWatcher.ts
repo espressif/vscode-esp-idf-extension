@@ -27,6 +27,7 @@ import {
   workspace,
 } from "vscode";
 import { Logger } from "../common/logger";
+import { getIdfConfigurationSource } from "../configuration/idfConfigurationSource";
 import { PreCheck } from "../common/PreCheck";
 import { ESP } from "../config";
 import { readParameter, writeParameter } from "../configuration/idf";
@@ -55,6 +56,9 @@ let watchedPath: string | undefined;
 let configListener: Disposable | undefined;
 let catalogChangeTimer: ReturnType<typeof setTimeout> | undefined;
 let writingEimIdfJsonPath = false;
+let catalogGeneration = 0;
+let catalogReactionRunning = false;
+let catalogReactionFollowUp = false;
 
 async function resolveWatchPath(): Promise<string | undefined> {
   const customPath = readParameter("idf.eimIdfJsonPath") as string;
@@ -75,10 +79,7 @@ async function resolveWatchPath(): Promise<string | undefined> {
 }
 
 function disposeWatcher() {
-  if (catalogChangeTimer) {
-    clearTimeout(catalogChangeTimer);
-    catalogChangeTimer = undefined;
-  }
+  clearCatalogTimer();
   for (const event of watcherEvents) {
     event.dispose();
   }
@@ -102,14 +103,50 @@ function watchFile(filePath: string) {
   ];
 }
 
-function scheduleCatalogReaction() {
+function bumpCatalogGeneration() {
+  catalogGeneration += 1;
+}
+
+function clearCatalogTimer() {
   if (catalogChangeTimer) {
     clearTimeout(catalogChangeTimer);
+    catalogChangeTimer = undefined;
   }
+}
+
+function armCatalogTimer() {
+  clearCatalogTimer();
   catalogChangeTimer = setTimeout(() => {
     catalogChangeTimer = undefined;
-    void onCatalogChanged();
+    void runCatalogReaction();
   }, catalogChangeDelayMs);
+}
+
+function scheduleCatalogReaction() {
+  bumpCatalogGeneration();
+  armCatalogTimer();
+}
+
+async function runCatalogReaction() {
+  if (catalogReactionRunning) {
+    catalogReactionFollowUp = true;
+    return;
+  }
+  catalogReactionRunning = true;
+  catalogReactionFollowUp = false;
+  try {
+    const generation = catalogGeneration;
+    const retryWhenIdle = await onCatalogChanged(generation);
+    if (retryWhenIdle) {
+      armCatalogTimer();
+    }
+  } finally {
+    catalogReactionRunning = false;
+    if (catalogReactionFollowUp) {
+      catalogReactionFollowUp = false;
+      void runCatalogReaction();
+    }
+  }
 }
 
 type CatalogFailure = { failure: ActivationFailure; detail?: string };
@@ -162,17 +199,26 @@ async function noWorkspaceCatalogFailure(): Promise<
   return undefined;
 }
 
-async function onCatalogChanged() {
-  if (!watcherHost || watcherHost.isApplying()) {
-    return;
+async function onCatalogChanged(generation: number): Promise<boolean> {
+  if (!watcherHost || generation !== catalogGeneration) {
+    return false;
+  }
+  if (watcherHost.isApplying()) {
+    return true;
   }
   const mode = watcherHost.getMode();
   if (mode === "nonConfigured" || mode === "skipped" || mode === "undetected") {
+    if (generation !== catalogGeneration) {
+      return false;
+    }
     await commands.executeCommand("espIdf.retryActivation");
-    return;
+    return false;
   }
   if (mode === "configured") {
     const failure = await configuredSetupFailure();
+    if (generation !== catalogGeneration || !watcherHost) {
+      return false;
+    }
     if (failure) {
       const message = `eim_idf.json no longer matches idf.currentSetup (${failure.failure}).`;
       Logger.error(
@@ -184,10 +230,13 @@ async function onCatalogChanged() {
       );
       watcherHost.leaveForFailure(failure.failure, failure.detail);
     }
-    return;
+    return false;
   }
   if (mode === "configuredNoWorkspaceFolder") {
     const failure = await noWorkspaceCatalogFailure();
+    if (generation !== catalogGeneration || !watcherHost) {
+      return false;
+    }
     if (failure) {
       const message = `eim_idf.json has no finished ESP-IDF setup (${failure.failure}).`;
       Logger.error(
@@ -200,24 +249,33 @@ async function onCatalogChanged() {
       watcherHost.leaveForFailure(failure.failure, failure.detail);
     }
   }
+  return false;
 }
 
 async function syncWatcher(runReaction: boolean) {
+  if (runReaction) {
+    getIdfConfigurationSource().refreshConfiguration();
+    bumpCatalogGeneration();
+    clearCatalogTimer();
+  }
   const nextPath = await resolveWatchPath();
   if (!nextPath) {
     const hadWatcher = !!watcher;
     disposeWatcher();
     if (runReaction && hadWatcher) {
-      await onCatalogChanged();
+      await runCatalogReaction();
     }
     return;
   }
   if (watcher && watchedPath === nextPath) {
+    if (runReaction) {
+      await runCatalogReaction();
+    }
     return;
   }
   watchFile(nextPath);
   if (runReaction) {
-    await onCatalogChanged();
+    await runCatalogReaction();
   }
 }
 
