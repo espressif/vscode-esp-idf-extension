@@ -1346,7 +1346,7 @@
       },
       {
         "command": "espIdf.openWalkthrough",
-        "title": "ESP-IDF: Open Get Started Walkthrough",
+        "title": "%espIdf.openWalkthrough.title%",
         "category": "ESP-IDF"
       },
       {

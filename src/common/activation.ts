@@ -191,27 +191,59 @@ export function checkAndNotifyMissingCompileCommands() {
   }
 }
 
-export function registerWalkthroughCommands(context: ExtensionContext) {
-  registerIDFCommand(context, "espIdf.openWalkthrough", async () => {
-    commands.executeCommand(
-      "workbench.action.openWalkthrough",
-      "espressif.esp-idf-extension#espIdf.walkthrough.basic-usage"
-    );
-  });
+const basicUsageWalkthroughId =
+  "espressif.esp-idf-extension#espIdf.walkthrough.basic-usage";
+
+let walkthroughOpenRequested = false;
+let extensionConfigurationWalkthroughOpened = false;
+
+function openBasicUsageWalkthrough(basicUsageStep?: string) {
+  if (basicUsageStep) {
+    return commands.executeCommand("workbench.action.openWalkthrough", {
+      category: basicUsageWalkthroughId,
+      step: basicUsageStep,
+    });
+  }
+  return commands.executeCommand(
+    "workbench.action.openWalkthrough",
+    basicUsageWalkthroughId
+  );
 }
 
-export function showWalkthroughOnFirstActivation() {
-  const hasWalkthroughBeenShown = readParameter("idf.hasWalkthroughBeenShown");
+export function registerWalkthroughCommands(context: ExtensionContext) {
+  registerIDFCommand(context, "espIdf.openWalkthrough", () =>
+    openBasicUsageWalkthrough()
+  );
+}
 
-  if (!hasWalkthroughBeenShown) {
-    writeParameter(
-      "idf.hasWalkthroughBeenShown",
-      true,
-      ConfigurationTarget.Global
-    );
-    commands.executeCommand(
-      "workbench.action.openWalkthrough",
-      "espressif.esp-idf-extension#espIdf.walkthrough.basic-usage"
-    );
+export function showExtensionConfigurationWalkthrough() {
+  if (extensionConfigurationWalkthroughOpened) {
+    return;
   }
+  extensionConfigurationWalkthroughOpened = true;
+  walkthroughOpenRequested = true;
+  writeParameter(
+    "idf.hasWalkthroughBeenShown",
+    true,
+    ConfigurationTarget.Global
+  );
+  void openBasicUsageWalkthrough("extension-configuration");
+}
+
+export function showWalkthroughOnFirstActivation(basicUsageStep?: string) {
+  if (walkthroughOpenRequested) {
+    return;
+  }
+  const hasWalkthroughBeenShown = readParameter("idf.hasWalkthroughBeenShown");
+  if (hasWalkthroughBeenShown) {
+    walkthroughOpenRequested = true;
+    return;
+  }
+  walkthroughOpenRequested = true;
+  writeParameter(
+    "idf.hasWalkthroughBeenShown",
+    true,
+    ConfigurationTarget.Global
+  );
+  void openBasicUsageWalkthrough(basicUsageStep);
 }

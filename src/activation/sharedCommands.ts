@@ -35,6 +35,7 @@ export interface SharedActivationActions {
   retryActivation: () => Promise<void>;
   activateAnyway: () => Promise<void>;
   selectEimIdfJson: () => Promise<void>;
+  resolveMissingEimIdfJson: () => Promise<void>;
 }
 
 let sharedCommandsRegistered = false;
@@ -63,6 +64,9 @@ export function registerSharedCommands(
 
   registerIDFCommand(context, "espIdf.selectEimIdfJson", () =>
     actions.selectEimIdfJson()
+  );
+  registerIDFCommand(context, "espIdf.resolveMissingEimIdfJson", () =>
+    actions.resolveMissingEimIdfJson()
   );
   registerIDFCommand(context, "espIdf.retryActivation", () =>
     actions.retryActivation()

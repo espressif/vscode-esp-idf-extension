@@ -19,6 +19,29 @@
 import { ConfigurationTarget, l10n, window } from "vscode";
 import { writeParameter } from "../configuration/idf";
 
+export type MissingEimIdfJsonChoice = "install" | "select";
+
+export async function promptMissingEimIdfJson(): Promise<
+  MissingEimIdfJsonChoice | undefined
+> {
+  const installLabel = l10n.t("Open ESP-IDF Installation Manager");
+  const selectLabel = l10n.t("Select eim_idf.json");
+  const choice = await window.showWarningMessage(
+    l10n.t(
+      "eim_idf.json was not found. Install ESP-IDF with the ESP-IDF Installation Manager, or select a custom eim_idf.json location."
+    ),
+    installLabel,
+    selectLabel
+  );
+  if (choice === installLabel) {
+    return "install";
+  }
+  if (choice === selectLabel) {
+    return "select";
+  }
+  return undefined;
+}
+
 export async function selectEimIdfJsonFile(): Promise<boolean> {
   const selected = await window.showOpenDialog({
     canSelectFiles: true,
