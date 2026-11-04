@@ -177,7 +177,12 @@ async function startFirstGdbTargetConfiguration(
     if (!resolvedConf) {
       return;
     }
-    await debug.startDebugging(workspaceFolder, resolvedConf);
+    const started = await debug.startDebugging(workspaceFolder, resolvedConf);
+    if (started) {
+      // startDebugging waits for a break before showing this view, and that
+      // path only checks the primary sidebar if the view was moved.
+      await commands.executeCommand("workbench.view.debug");
+    }
     return;
   }
   throw invalidConfiguration(
