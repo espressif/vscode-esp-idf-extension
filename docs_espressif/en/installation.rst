@@ -53,6 +53,8 @@ After installing Visual Studio Code (VS Code), install the ESP-IDF extension for
 
         Check the :ref:`Troubleshooting <troubleshooting-section>` section if you encounter any issues during installation.
 
+.. _manual_idf_configuration:
+
 Manual configuration of ESP-IDF and Tools in the ESP-IDF extension for VS Code
 -------------------------------------------------------------------------------
 

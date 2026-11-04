@@ -35,6 +35,11 @@ import { missingIdfEnvDetail } from "./setupFailureDetail";
 
 export type SaveSettingsResult = { ok: true } | { ok: false; detail: string };
 
+export type SaveSettingsOptions = {
+  /** When false, leave idf.currentSetup unchanged. */
+  writeCurrentSetup?: boolean;
+};
+
 export function pathVarFromEnvVars(envVars: {
   [key: string]: string;
 }): {
@@ -208,10 +213,28 @@ export async function checkPyVenv(
   return [true, ""];
 }
 
+export async function writeCurrentSetupSetting(
+  idfPath: string,
+  workspaceFolder: WorkspaceFolder,
+  writeCurrentSetup = true
+): Promise<boolean> {
+  if (!writeCurrentSetup) {
+    return false;
+  }
+  await writeParameter(
+    "idf.currentSetup",
+    idfPath,
+    ConfigurationTarget.WorkspaceFolder,
+    workspaceFolder
+  );
+  return true;
+}
+
 export async function saveSettings(
   extensionPath: string,
   setupConf: IdfSetup,
-  workspaceFolder: WorkspaceFolder
+  workspaceFolder: WorkspaceFolder,
+  options?: SaveSettingsOptions
 ): Promise<SaveSettingsResult> {
   let envVars: { [key: string]: string };
   try {
@@ -277,11 +300,10 @@ export async function saveSettings(
     return { ok: false, detail: message };
   }
 
-  await writeParameter(
-    "idf.currentSetup",
+  await writeCurrentSetupSetting(
     setupConf.idfPath,
-    ConfigurationTarget.WorkspaceFolder,
-    workspaceFolder
+    workspaceFolder,
+    options?.writeCurrentSetup !== false
   );
 
   await storeIdfSetupEnvironment(envVars, workspaceFolder);

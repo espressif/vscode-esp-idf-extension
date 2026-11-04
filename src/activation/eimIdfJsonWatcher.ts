@@ -214,6 +214,9 @@ async function onCatalogChanged(generation: number): Promise<boolean> {
     await commands.executeCommand("espIdf.retryActivation");
     return false;
   }
+  if (mode === "configuredFromEnvVars") {
+    return false;
+  }
   if (mode === "configured") {
     const failure = await configuredSetupFailure();
     if (generation !== catalogGeneration || !watcherHost) {

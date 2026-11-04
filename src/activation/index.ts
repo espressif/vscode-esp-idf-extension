@@ -17,6 +17,7 @@
  */
 
 import { commands, ExtensionContext, workspace } from "vscode";
+import { isProjectConfiguredMode } from "../cmdTreeView/cmdTreeDataProvider";
 import { Logger } from "../common/logger";
 import { PreCheck } from "../common/PreCheck";
 import { ESP } from "../config";
@@ -50,6 +51,7 @@ import { requestProjectActivation, runValidations } from "./validate";
 
 let applying = false;
 let activationPending = false;
+let activationPendingForce = false;
 let listenersRegistered = false;
 let extensionContext: ExtensionContext | undefined;
 let hasLoadedCatalog = false;
@@ -118,14 +120,22 @@ function registerActivationListeners(context: ExtensionContext) {
       void revalidateIfLighterMode();
     }),
     workspace.onDidChangeConfiguration((event) => {
+      const customExtraVarsChanged = event.affectsConfiguration(
+        "idf.customExtraVars"
+      );
       const catalogPathChanged = event.affectsConfiguration(
         "idf.eimIdfJsonPath"
       );
       if (
+        !customExtraVarsChanged &&
         !catalogPathChanged &&
         !event.affectsConfiguration("idf.currentSetup") &&
         !event.affectsConfiguration("idf.extensionActivationMode")
       ) {
+        return;
+      }
+      if (customExtraVarsChanged) {
+        void applyActivation({ force: true });
         return;
       }
       if (catalogPathChanged) {
@@ -138,12 +148,16 @@ function registerActivationListeners(context: ExtensionContext) {
   );
 }
 
-async function applyActivation() {
-  if (getActivationMode() === "configured" || !extensionContext) {
+async function applyActivation(options?: { force?: boolean }) {
+  if (!extensionContext) {
+    return;
+  }
+  if (!options?.force && isProjectConfiguredMode(getActivationMode())) {
     return;
   }
   if (applying) {
     activationPending = true;
+    activationPendingForce = activationPendingForce || !!options?.force;
     return;
   }
   const context = extensionContext;
@@ -162,6 +176,7 @@ async function applyActivation() {
     }
     if ((await resolveEimIdfJsonPath()) !== catalogPathAtStart) {
       activationPending = true;
+      activationPendingForce = activationPendingForce || !!options?.force;
       return;
     }
     hasLoadedCatalog = true;
@@ -183,7 +198,8 @@ async function applyActivation() {
         enterUndetected();
         setActivationMode("undetected");
         break;
-      case "configured": {
+      case "configured":
+      case "configuredFromEnvVars": {
         const idfPath = getCurrentIdfConfiguration()["IDF_PATH"];
         if (!idfPath) {
           leaveActivation("invalidCurrentSetup", missingIdfEnvDetail());
@@ -193,15 +209,17 @@ async function applyActivation() {
         if (!activated) {
           break;
         }
-        setActivationMode("configured");
+        setActivationMode(decision.kind);
         break;
       }
     }
   } finally {
     applying = false;
     if (activationPending) {
+      const force = activationPendingForce;
       activationPending = false;
-      await applyActivation();
+      activationPendingForce = false;
+      await applyActivation(force ? { force: true } : undefined);
     }
   }
 }

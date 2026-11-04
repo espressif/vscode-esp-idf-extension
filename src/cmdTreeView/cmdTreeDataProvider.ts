@@ -45,7 +45,12 @@ export type IdfCommandTreeMode =
   | "configuredNoWorkspaceFolder"
   | "skipped"
   | "undetected"
-  | "configured";
+  | "configured"
+  | "configuredFromEnvVars";
+
+export function isProjectConfiguredMode(mode: IdfCommandTreeMode): boolean {
+  return mode === "configured" || mode === "configuredFromEnvVars";
+}
 
 export class CommandsProvider implements TreeDataProvider<CommandItem> {
   private mode: IdfCommandTreeMode = "pending";
@@ -69,7 +74,7 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
   }
 
   getChildren(element?: CommandItem): ProviderResult<CommandItem[]> {
-    if (this.mode !== "configured") {
+    if (!isProjectConfiguredMode(this.mode)) {
       if (element) {
         return [];
       }
@@ -224,6 +229,6 @@ export function setCommandsTreeMode(mode: IdfCommandTreeMode) {
   void commands.executeCommand(
     "setContext",
     "espIdf.configured",
-    mode === "configured"
+    isProjectConfiguredMode(mode)
   );
 }

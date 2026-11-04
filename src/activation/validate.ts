@@ -31,13 +31,17 @@ import {
   resolveEimIdfJsonPath,
   unfinishedInstallDetails,
 } from "../eim/getExistingSetups";
-import { loadIdfSetup } from "../eim/loadIdfSetup";
+import { loadEnvVarsAsIdfSetup, loadIdfSetup } from "../eim/loadIdfSetup";
 import {
   couldNotSaveCurrentSetupDetail,
   missingIdfEnvDetail,
 } from "../eim/setupFailureDetail";
-import { hasRequiredIdfEnv } from "../eim/verifySetup";
 import { EspIdfJson } from "../eim/types";
+import { hasRequiredIdfEnv } from "../eim/verifySetup";
+import {
+  configuredFromEnvVarsDecision,
+  customExtraVarsIdfPath,
+} from "./customExtraVars";
 
 export type ActivationFailure =
   | "eimJsonMissing"
@@ -49,7 +53,8 @@ export type ActivationDecision =
   | { kind: "configuredNoWorkspaceFolder" }
   | { kind: "skipped" }
   | { kind: "undetected" }
-  | { kind: "configured" };
+  | { kind: "configured" }
+  | { kind: "configuredFromEnvVars" };
 
 /** Consumed once when idf.currentSetup is empty. Does not change idf.extensionActivationMode. */
 let forceProjectActivation = false;
@@ -107,20 +112,91 @@ async function configureLoadedSetup(
   return { kind: "configured" };
 }
 
+async function tryConfigureFromCustomExtraVars(
+  extensionPath: string
+): Promise<ActivationDecision | undefined> {
+  if (!PreCheck.isWorkspaceFolderOpen()) {
+    return;
+  }
+  const workspaceFolder =
+    ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder() ||
+    workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    return;
+  }
+  const customVars = readParameter("idf.customExtraVars", workspaceFolder);
+  if (!customExtraVarsIdfPath(customVars)) {
+    return;
+  }
+  let loaded: Awaited<ReturnType<typeof loadEnvVarsAsIdfSetup>>;
+  try {
+    loaded = await loadEnvVarsAsIdfSetup(extensionPath, workspaceFolder, {
+      writeCurrentSetup: false,
+      notifyOnInvalid: false,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to load ESP-IDF setup from idf.customExtraVars.";
+    Logger.error(
+      message,
+      error instanceof Error ? error : new Error(message),
+      "runValidations",
+      undefined,
+      false
+    );
+    return;
+  }
+  const decision = configuredFromEnvVarsDecision(
+    customVars,
+    loaded,
+    hasRequiredIdfEnv(getStoredIdfSetupEnv())
+  );
+  if (!decision || !loaded || !("setup" in loaded)) {
+    return;
+  }
+  ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(workspaceFolder.uri);
+  Logger.info(
+    `Using idf.customExtraVars ESP-IDF setup ${loaded.setup.idfPath}.`,
+    "runValidations"
+  );
+  return decision;
+}
+
 export async function runValidations(
   extensionPath: string
 ): Promise<ActivationDecision> {
+  const fromCustomExtraVars = await tryConfigureFromCustomExtraVars(
+    extensionPath
+  );
+  if (fromCustomExtraVars) {
+    return fromCustomExtraVars;
+  }
+
   const espIdfJson = await resolveEimIdfJson();
   if (!espIdfJson) {
     const message = "eim_idf.json was not found.";
-    Logger.error(message, new Error(message), "runValidations", undefined, false);
+    Logger.error(
+      message,
+      new Error(message),
+      "runValidations",
+      undefined,
+      false
+    );
     return { kind: "nonConfigured", failure: "eimJsonMissing" };
   }
 
   const finishedInstalls = await finishedIdfInstalls(espIdfJson);
   if (!finishedInstalls.length) {
     const message = "eim_idf.json has no finished ESP-IDF setup.";
-    Logger.error(message, new Error(message), "runValidations", undefined, false);
+    Logger.error(
+      message,
+      new Error(message),
+      "runValidations",
+      undefined,
+      false
+    );
     return {
       kind: "nonConfigured",
       failure: "noFinishedSetup",
@@ -209,7 +285,13 @@ export async function runValidations(
   );
   if (!matchingInstall) {
     const message = `idf.currentSetup ${currentSetup} is not a finished ESP-IDF setup.`;
-    Logger.error(message, new Error(message), "runValidations", undefined, false);
+    Logger.error(
+      message,
+      new Error(message),
+      "runValidations",
+      undefined,
+      false
+    );
     return {
       kind: "nonConfigured",
       failure: "invalidCurrentSetup",

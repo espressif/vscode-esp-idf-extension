@@ -18,6 +18,7 @@
 
 import {
   IdfCommandTreeMode,
+  isProjectConfiguredMode,
   setCommandsTreeMode,
 } from "../cmdTreeView/cmdTreeDataProvider";
 import {
@@ -35,7 +36,7 @@ export function getActivationMode(): IdfCommandTreeMode {
 export function setActivationMode(mode: IdfCommandTreeMode) {
   activationMode = mode;
   setCommandsTreeMode(mode);
-  if (mode === "configured") {
+  if (isProjectConfiguredMode(mode)) {
     disposeNonConfiguredStatusBar();
   }
 }
