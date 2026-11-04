@@ -151,10 +151,17 @@ function getIdfMd5sum(idfPath: string) {
   return `esp-idf-${md5Value}`;
 }
 
+export type LoadEnvVarsAsIdfSetupOptions = {
+  writeCurrentSetup?: boolean;
+  notifyOnInvalid?: boolean;
+};
+
 export async function loadEnvVarsAsIdfSetup(
   extensionPath: string,
-  workspaceFolder: WorkspaceFolder
+  workspaceFolder: WorkspaceFolder,
+  options?: LoadEnvVarsAsIdfSetupOptions
 ): Promise<{ setup: IdfSetup } | { detail: string } | undefined> {
+  const notifyOnInvalid = options?.notifyOnInvalid !== false;
   const customVarsSetting = readParameter(
     "idf.customExtraVars",
     workspaceFolder
@@ -235,16 +242,18 @@ export async function loadEnvVarsAsIdfSetup(
     gitPath = await isBinInPath("git", process.env);
   }
   if (!gitPath) {
-    Logger.infoNotify(
-      l10n.t(
-        "ESP-IDF Setup from environment variables is not valid: {0}",
-        "Git not found in PATH"
-      ),
-      {
-        category: "espIdf.installManager",
-        reason: "Git not found in PATH",
-      }
-    );
+    if (notifyOnInvalid) {
+      Logger.infoNotify(
+        l10n.t(
+          "ESP-IDF Setup from environment variables is not valid: {0}",
+          "Git not found in PATH"
+        ),
+        {
+          category: "espIdf.installManager",
+          reason: "Git not found in PATH",
+        }
+      );
+    }
     return;
   }
   let venvPythonPath = "";
@@ -260,16 +269,18 @@ export async function loadEnvVarsAsIdfSetup(
   );
 
   if (!isValid) {
-    Logger.infoNotify(
-      l10n.t(
-        "ESP-IDF Setup from environment variables is not valid: {0}",
-        reason
-      ),
-      {
-        category: "espIdf.installManager",
-        reason,
-      }
-    );
+    if (notifyOnInvalid) {
+      Logger.infoNotify(
+        l10n.t(
+          "ESP-IDF Setup from environment variables is not valid: {0}",
+          reason
+        ),
+        {
+          category: "espIdf.installManager",
+          reason,
+        }
+      );
+    }
     return;
   }
   const envDefinedIdfSetup: IdfSetup = {
@@ -288,7 +299,8 @@ export async function loadEnvVarsAsIdfSetup(
     const saved = await saveSettings(
       extensionPath,
       envDefinedIdfSetup,
-      workspaceFolder
+      workspaceFolder,
+      { writeCurrentSetup: options?.writeCurrentSetup }
     );
     if (saved.ok === false) {
       return { detail: saved.detail };
@@ -296,4 +308,3 @@ export async function loadEnvVarsAsIdfSetup(
     return { setup: envDefinedIdfSetup };
   }
 }
-

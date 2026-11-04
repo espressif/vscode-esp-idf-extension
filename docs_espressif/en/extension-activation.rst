@@ -37,23 +37,35 @@ Once VS Code loads the extension (Phase 1), the extension's ``activate()`` funct
      - VS Code platform (``activationEvents`` in ``package.json``)
      - VS Code decides whether to load and start the extension's code
    * - **Phase 2** — Initialization
-     - Extension code (``eim_idf.json``, ``idf.currentSetup``, and ``idf.extensionActivationMode`` when that setup is empty)
-     - Extension enters non-configured mode, configured mode with no workspace folder, or full configured mode
+     - Extension code (``idf.customExtraVars``, ``eim_idf.json``, ``idf.currentSetup``, and ``idf.extensionActivationMode`` when that setup is empty)
+     - Extension enters non-configured mode, configured mode with no workspace folder, full configured mode, or configured mode from environment variables
 
 Setup Validation (Phase 2)
 --------------------------
 
-After the extension loads, it checks the ESP-IDF Installation Manager catalog before project commands are registered. Commands that do not need a workspace folder, including the Installation Manager, the welcome page, and the new-project wizard, are registered either way.
+After the extension loads, it checks ``idf.customExtraVars`` for the selected workspace folder before the ESP-IDF Installation Manager catalog. Commands that do not need a workspace folder, including the Installation Manager, the welcome page, and the new-project wizard, are registered either way.
 
-1. **``eim_idf.json`` must exist**
+1. **A valid ``idf.customExtraVars`` setup**
+
+   .. note::
+
+      This path is only for users who configure the extension with :ref:`Manual configuration of ESP-IDF and Tools in the ESP-IDF extension for VS Code <manual_idf_configuration>`. The ESP-IDF Installation Manager (EIM) is the preferred way to install an ESP-IDF setup.
+
+   When a workspace folder is open, the folder is the extension's stored workspace selection, or the first workspace folder when nothing is stored. If that folder's ``idf.customExtraVars`` contains a non-empty ``IDF_PATH`` and that setup validates, the extension enters configured mode from environment variables. This does not read or write ``idf.currentSetup``, and it does not require ``eim_idf.json``. ``IDF_PATH`` is taken from ``idf.customExtraVars``. ``IDF_TOOLS_PATH``, ``PATH``, and ``IDF_PYTHON_ENV_PATH`` still use the existing environment-variable defaults. ``process.env.IDF_PATH`` alone does not select this path.
+
+   If ``IDF_PATH`` is missing, or the setup does not validate, activation continues with the catalog checks below. An invalid custom setup is not a separate failure.
+
+   The commands view and status bar match full configured mode. Changes to ``eim_idf.json`` do not leave this mode. Changing ``idf.customExtraVars`` runs validation again, including when the extension is already configured from the catalog or from environment variables. A custom setup that is no longer valid continues with the catalog checks. Changes to ``idf.currentSetup`` or ``idf.eimIdfJsonPath`` do not leave this mode.
+
+2. **``eim_idf.json`` must exist**
 
    The extension uses ``idf.eimIdfJsonPath`` when that file exists. If the setting is empty, or it points at a missing file while the platform default exists, the setting is cleared and the default file is used (``C:\\Espressif\\tools\\eim_idf.json`` on Windows, ``~/.espressif/tools/eim_idf.json`` elsewhere). If neither file exists, the status bar shows ``eim_idf.json not found``. Clicking it runs **ESP-IDF: Select eim_idf.json**.
 
-2. **At least one finished ESP-IDF setup**
+3. **At least one finished ESP-IDF setup**
 
    ``eim_idf.json`` must contain an install whose status is ``finished``. Catalogs older than 3.0, and entries with no status, are treated as finished. If none qualify, the status bar shows ``No valid ESP-IDF setup found``. Clicking it opens the ESP-IDF Installation Manager. After the install finishes, run **ESP-IDF: Retry ESP-IDF Activation**.
 
-3. **Workspace folder, then ``idf.currentSetup``**
+4. **Workspace folder, then ``idf.currentSetup``**
 
    If no workspace folder is open, validation stops. The extension stays in configured mode without a workspace folder and does not read or write ``idf.currentSetup``. Opening a folder runs validation again.
 
@@ -63,7 +75,7 @@ After the extension loads, it checks the ESP-IDF Installation Manager catalog be
    - A path that is missing from ``eim_idf.json``, or is not finished, shows ``Invalid ESP-IDF Setup``. Clicking the status bar runs **ESP-IDF: Select Current ESP-IDF Version**.
    - An empty ``idf.currentSetup`` runs the ``idf.extensionActivationMode`` check below. When that check allows activation, the first finished install is saved as ``idf.currentSetup`` and full configured mode starts. When the check declines because the mode is ``never``, project commands are not registered and no activation status bar is shown. When no standard project is detected, the status bar shows ``No ESP-IDF project detected``. Clicking it, or running **ESP-IDF: Activate ESP-IDF**, saves the first finished install and starts full configured mode without changing ``idf.extensionActivationMode``.
 
-**ESP-IDF: Retry ESP-IDF Activation** runs these checks again. While the extension is still outside full configured mode, they also run again when ``idf.eimIdfJsonPath``, ``idf.currentSetup``, or ``idf.extensionActivationMode`` changes, and when a workspace folder is added. After the extension is fully configured, changes to the ``eim_idf.json`` file itself are handled by the watcher described in `Watching eim_idf.json`_.
+**ESP-IDF: Retry ESP-IDF Activation** runs these checks again, starting with ``idf.customExtraVars``. While the extension is still outside full configured mode, they also run again when ``idf.eimIdfJsonPath``, ``idf.currentSetup``, or ``idf.extensionActivationMode`` changes, and when a workspace folder is added. Changing ``idf.customExtraVars`` runs them again even after the extension is fully configured, from the catalog or from environment variables. After the extension is fully configured from the catalog, changes to the ``eim_idf.json`` file itself are handled by the watcher described in `Watching eim_idf.json`_. A folder configured from ``idf.customExtraVars`` ignores those catalog changes.
 
 ESP-IDF Commands View
 ---------------------
@@ -84,7 +96,7 @@ In non-configured mode, when activation was skipped, and when no project was det
 
 When no project was detected, the list also includes **ESP-IDF: Activate ESP-IDF**. **ESP-IDF: Retry ESP-IDF Activation** runs detection again and does not opt in.
 
-Full configured mode shows the project command list and the Advanced category with checkboxes.
+Full configured mode, including configuration from ``idf.customExtraVars``, shows the project command list and the Advanced category with checkboxes.
 
 When a catalog change leaves configured mode, the view switches to the shorter list. Project commands that were already registered stay registered, but the Command Palette and their keybindings hide until the extension is configured again. A later successful retry restores the full list.
 
@@ -95,6 +107,7 @@ After the first validation, the extension watches the resolved catalog file. Tha
 
 - **Non-configured, skipped, and no project detected**: run **ESP-IDF: Retry ESP-IDF Activation**.
 - **Configured**: stay configured when ``idf.currentSetup`` still matches a finished install. If the file is missing, unreadable, or that setup is gone or not finished, hide the configured status bar items and show the non-configured status bar (``Invalid ESP-IDF Setup``, or ``eim_idf.json not found`` / ``No valid ESP-IDF setup found`` when that is the real failure). Switch the commands view to the shorter list. Already registered project commands stay registered. A later successful activation shows the configured status bar items again.
+- **Configured from environment variables**: catalog changes are ignored. The extension stays on the ``idf.customExtraVars`` setup.
 - **No workspace folder**: stay in that mode when at least one finished install remains. Otherwise show the non-configured status bar for a missing catalog (``eim_idf.json not found``) or no finished setup (``No valid ESP-IDF setup found``).
 
 Changing ``idf.eimIdfJsonPath`` retargets the watcher. A custom path that points at a missing file is cleared, and the default file is watched when it exists. If the watcher is already on that default path, it stays there. If neither file exists, watching stops. After the watched path changes, the same reactions run immediately.
@@ -102,7 +115,7 @@ Changing ``idf.eimIdfJsonPath`` retargets the watcher. A custom path that points
 Activation Mode Priority Hierarchy (Phase 2)
 ----------------------------------------------
 
-``idf.extensionActivationMode`` runs only when a workspace folder is open and ``idf.currentSetup`` is empty. A result that allows activation saves the first finished ESP-IDF install and registers project commands. A result that declines does not. The check follows this priority:
+``idf.extensionActivationMode`` runs only when a workspace folder is open, ``idf.customExtraVars`` did not select a valid ESP-IDF setup, and ``idf.currentSetup`` is empty. A result that allows activation saves the first finished ESP-IDF install and registers project commands. A result that declines does not. The check follows this priority:
 
 1. **Workspace/Global Setting = "always"**
 
