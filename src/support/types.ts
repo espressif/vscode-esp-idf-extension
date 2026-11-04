@@ -109,11 +109,26 @@ export interface DiagnosticFinding {
   message: string;
 }
 
+export interface SetupReportStatus {
+  idfPath: string;
+  version: string;
+  isValid: boolean;
+  isActive: boolean;
+  reason: string;
+}
+
 export interface ReportSummary {
   overall: "PASS" | "FAIL" | "WARN";
   findings: DiagnosticFinding[];
   errorCount: number;
   warningCount: number;
+  setups: SetupReportStatus[];
+}
+
+export interface LogErrorGroup {
+  label: string;
+  count: number;
+  lastTimestamp: string;
 }
 
 export interface ConfigCheckLine {
@@ -121,6 +136,7 @@ export interface ConfigCheckLine {
   value: string;
   status: CheckStatus;
   message: string;
+  presentation?: "heading" | "indented-path";
 }
 
 export interface BuildToolAvailability {

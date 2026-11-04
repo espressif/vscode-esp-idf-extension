@@ -47,6 +47,7 @@
   "Flash binary to this partition": "Записать двоичный файл в этот раздел",
   "Select an action to use": "Выбор действия для использования",
   "ESP-IDF Doctor": "ESP-IDF Доктор",
+  "ESP-IDF Doctor report has been copied to clipboard.": "Отчет ESP-IDF Доктор скопирован в буфер обмена.",
   "Extension configuration report has been copied to clipboard with errors": "Отчет о конфигурации расширения скопирован в буфер обмена с ошибками",
   "Do you want to view Heap Trace plot or System View Trace": "Вы хотите просмотреть график Heap Trace или System View Trace?",
   "Show System View Tracing Plot (will open a webview window)": "Показать график трассировки системного представления (откроется окно веб-просмотра)",
