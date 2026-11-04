@@ -29,6 +29,8 @@ import {
 import { join } from "path";
 import { IdfSetup } from "../eim/types";
 import { readParameter } from "../configuration/idf";
+import { isKnownError } from "../common/error/knownError";
+import { ErrorCode } from "../common/error/types";
 
 export interface INewProjectArgs {
   espIdfSetup: IdfSetup;
@@ -41,8 +43,8 @@ export interface INewProjectArgs {
   workspaceFolder?: WorkspaceFolder;
 }
 
-async function loadSerialPorts(workspaceFolder?: WorkspaceFolder) {
-  let serialPortList: Array<string> = ["detect"];
+export async function loadSerialPorts(workspaceFolder?: WorkspaceFolder) {
+  const serialPortList: Array<string> = ["detect"];
   if (!workspaceFolder) {
     return serialPortList;
   }
@@ -52,16 +54,23 @@ async function loadSerialPorts(workspaceFolder?: WorkspaceFolder) {
       true
     );
     serialPortList.push(...serialPortListDetails.map((p) => p.comName));
-    return serialPortList;
   } catch (error) {
-    const msg =
-      error instanceof Error && error.message
-        ? error.message
-        : "Error looking for serial ports.";
-    Logger.infoNotify(msg);
-    Logger.error(msg, error as Error, "getNewProjectArgs getSerialPort");
-    return ["no port"];
+    if (
+      isKnownError(error) &&
+      error.code === ErrorCode.NoSerialPortsAvailable
+    ) {
+      Logger.info(
+        "No serial ports found while loading the new project wizard."
+      );
+    } else {
+      const msg =
+        error instanceof Error && error.message
+          ? error.message
+          : "Error looking for serial ports.";
+      Logger.error(msg, error as Error, "getNewProjectArgs getSerialPort");
+    }
   }
+  return serialPortList;
 }
 
 export async function loadNewProjectTemplates(
