@@ -240,6 +240,8 @@ export class GDBDebugSession extends LoggingDebugSession {
     addr?: string;
     level?: string;
   };
+  /** Empty when the launch config disables the entry breakpoint. */
+  protected stubEntrySymbol?: string;
   protected stubProjectDirectory = "";
 
   /* A reference to the logger to be used by subclasses */

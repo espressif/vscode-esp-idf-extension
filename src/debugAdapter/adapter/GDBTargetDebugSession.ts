@@ -161,6 +161,10 @@ export class GDBTargetDebugSession extends GDBDebugSession {
     }
     if (args.sessionID === RUNTIME_GDBSTUB_SESSION_ID || args.gdbStubUart) {
       this.isHaltedOnAttach = true;
+      const configured = (args as { initialBreakpoint?: string })
+        .initialBreakpoint;
+      this.stubEntrySymbol =
+        configured === undefined ? "app_main" : configured.trim();
       this.stubProjectDirectory = projectDirectoryFromProgram(
         args.program,
         args.cwd

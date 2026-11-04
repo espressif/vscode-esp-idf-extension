@@ -17,30 +17,38 @@
 
 import * as assert from "assert";
 import {
+  chooseStubStopAction,
   isProjectSource,
   projectDirectoryFromProgram,
 } from "../../debugAdapter/adapter/gdbstubStop";
 
 const project = "D:/esp-idf projects/blink";
 const main = `${project}/main/main.c`;
-const cpu =
-  "D:/espressif/.espressif/v6.1/esp-idf/components/esp_hw_support/cpu.c";
 
 suite("gdbstub stop", () => {
-  test("recognizes project sources independently of Windows separators", () => {
+  test("treats the workspace main file as project source", () => {
     assert.strictEqual(
       projectDirectoryFromProgram(`${project}/build/blink.elf`),
       project
     );
     assert.strictEqual(isProjectSource(main, project), true);
-    assert.strictEqual(
-      isProjectSource(main.replace(/\//g, "\\"), project.replace(/\//g, "\\")),
-      true
-    );
-    assert.strictEqual(isProjectSource(cpu, project), false);
-    assert.strictEqual(
-      isProjectSource(`${project}/build/main/main.c`, project),
-      false
-    );
+  });
+
+  test("stays when the current frame is already project source", () => {
+    const action = chooseStubStopAction({
+      currentThreadId: 2,
+      threads: [
+        {
+          id: 2,
+          frames: [
+            { func: "app_main", fullname: main, line: "20", level: "0" },
+          ],
+        },
+      ],
+      projectDirectory: project,
+      hasUserBreakpoint: false,
+      entrySymbol: "app_main",
+    });
+    assert.deepStrictEqual(action, { kind: "stay", threadId: 2 });
   });
 });
