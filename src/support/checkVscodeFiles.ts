@@ -22,22 +22,35 @@ import { pathExists, readFile } from "fs-extra";
 
 const VSCODE_FILE_NOT_PRESENT = "not present";
 
+function describeUnreadableVscodeFile(error: unknown): string {
+  const code = (error as NodeJS.ErrnoException)?.code;
+  return code ? `could not read (${code})` : "could not read";
+}
+
+export async function readVscodeFile(
+  workspaceFolder: string,
+  fileName: string
+): Promise<string> {
+  const filePath = join(workspaceFolder, ".vscode", fileName);
+  if (!(await pathExists(filePath))) {
+    return VSCODE_FILE_NOT_PRESENT;
+  }
+  try {
+    return await readFile(filePath, "utf8");
+  } catch (error) {
+    return describeUnreadableVscodeFile(error);
+  }
+}
+
 export async function checkLaunchJson(reportedResult: reportObj) {
   if (!reportedResult.workspaceFolder) {
     reportedResult.launchJson = "No workspace folder is opened";
     return;
   }
-  const launchJsonPath = join(
+  reportedResult.launchJson = await readVscodeFile(
     reportedResult.workspaceFolder,
-    ".vscode",
     "launch.json"
   );
-  if (!(await pathExists(launchJsonPath))) {
-    reportedResult.launchJson = VSCODE_FILE_NOT_PRESENT;
-    return;
-  }
-  const launchJsonObj = await readFile(launchJsonPath, "utf8");
-  reportedResult.launchJson = launchJsonObj;
 }
 
 export async function checkCCppPropertiesJson(reportedResult: reportObj) {
@@ -45,15 +58,8 @@ export async function checkCCppPropertiesJson(reportedResult: reportObj) {
     reportedResult.cCppPropertiesJson = "No workspace folder is opened";
     return;
   }
-  const cCppPropertiesJsonPath = join(
+  reportedResult.cCppPropertiesJson = await readVscodeFile(
     reportedResult.workspaceFolder,
-    ".vscode",
     "c_cpp_properties.json"
   );
-  if (!(await pathExists(cCppPropertiesJsonPath))) {
-    reportedResult.cCppPropertiesJson = VSCODE_FILE_NOT_PRESENT;
-    return;
-  }
-  const cCppPropertiesObj = await readFile(cCppPropertiesJsonPath, "utf8");
-  reportedResult.cCppPropertiesJson = cCppPropertiesObj;
 }

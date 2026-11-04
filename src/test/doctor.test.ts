@@ -27,12 +27,13 @@ import { getEspIdfVersion } from "../support/espIdfVersion";
 import { getPythonVersion } from "../support/pythonVersion";
 import { checkSystemInfo } from "../support/checkSystemInfo";
 import { getConfigurationSettings } from "../support/configurationSettings";
-import { readFile, readJSON } from "fs-extra";
+import { ensureDir, readFile, readJSON, remove } from "fs-extra";
 import { getPipVersion } from "../support/pipVersion";
 import { checkEspIdfRequirements } from "../support/checkEspIdfRequirements";
 import {
   checkCCppPropertiesJson,
   checkLaunchJson,
+  readVscodeFile,
 } from "../support/checkVscodeFiles";
 import { getPythonPackages } from "../support/pythonPackages";
 import { writeTextReport } from "../support/writeReport";
@@ -148,6 +149,20 @@ suite("Doctor Command tests", () => {
     await checkCCppPropertiesJson(report);
     assert.equal(report.launchJson, "not present");
     assert.equal(report.cCppPropertiesJson, "not present");
+  });
+
+  test("unreadable vscode files are recorded instead of thrown", async () => {
+    const workspaceFolder = join(
+      os.tmpdir(),
+      `doctor-unreadable-${Date.now()}`
+    );
+    await ensureDir(join(workspaceFolder, ".vscode", "launch.json"));
+    try {
+      const result = await readVscodeFile(workspaceFolder, "launch.json");
+      assert.equal(result, "could not read (EISDIR)");
+    } finally {
+      await remove(workspaceFolder);
+    }
   });
 
   test("Test configuration settings", async () => {
