@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { ExtensionContext, workspace } from "vscode";
+import { commands, ExtensionContext, workspace } from "vscode";
 import { Logger } from "../common/logger";
 import { PreCheck } from "../common/PreCheck";
 import { ESP } from "../config";
@@ -32,7 +32,10 @@ import {
   enterNonConfigured,
   enterUndetected,
 } from "./nonConfigured";
-import { selectEimIdfJsonFile } from "./selectEimIdfJson";
+import {
+  promptMissingEimIdfJson,
+  selectEimIdfJsonFile,
+} from "./selectEimIdfJson";
 import {
   disposeEimIdfJsonWatcher,
   startEimIdfJsonWatcher,
@@ -61,6 +64,20 @@ async function clearStoredIdfEnv() {
     store.clear(ESP.ProjectConfiguration.CURRENT_IDF_SETUP_ENV),
     store.clear(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION),
   ]);
+}
+
+async function resolveMissingEimIdfJson() {
+  const choice = await promptMissingEimIdfJson();
+  if (choice === "install") {
+    await commands.executeCommand("espIdf.installManager");
+    return;
+  }
+  if (choice === "select") {
+    const selected = await selectEimIdfJsonFile();
+    if (selected) {
+      await applyActivation();
+    }
+  }
 }
 
 function scheduleActivationAfterDemotion() {
@@ -203,6 +220,7 @@ export async function runActivation(context: ExtensionContext) {
         await applyActivation();
       }
     },
+    resolveMissingEimIdfJson,
   });
   registerActivationListeners(context);
   try {

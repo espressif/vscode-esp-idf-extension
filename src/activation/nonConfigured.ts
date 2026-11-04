@@ -17,6 +17,7 @@
  */
 
 import {
+  commands,
   l10n,
   MarkdownString,
   StatusBarAlignment,
@@ -24,11 +25,14 @@ import {
   ThemeColor,
   window,
 } from "vscode";
+import { showExtensionConfigurationWalkthrough } from "../common/activation";
 import { hideConfiguredStatusBarItems } from "../statusBar";
 import { statusBarFailureTooltip } from "../eim/setupFailureDetail";
 import { ActivationFailure } from "./validate";
 
 let statusBarItem: StatusBarItem | undefined;
+/** Auto-prompt is once per window; the status item can open it again. */
+let missingEimIdfJsonPromptShown = false;
 
 function failurePresentation(
   failure: ActivationFailure,
@@ -42,8 +46,11 @@ function failurePresentation(
     case "eimJsonMissing":
       return {
         text: l10n.t("eim_idf.json not found"),
-        tooltip: statusBarFailureTooltip(l10n.t("Select eim_idf.json"), detail),
-        command: "espIdf.selectEimIdfJson",
+        tooltip: statusBarFailureTooltip(
+          l10n.t("Open ESP-IDF Installation Manager or select eim_idf.json"),
+          detail
+        ),
+        command: "espIdf.resolveMissingEimIdfJson",
       };
     case "noFinishedSetup":
       return {
@@ -83,6 +90,15 @@ export function enterNonConfigured(
   statusBarItem.tooltip = presentation.tooltip;
   statusBarItem.command = presentation.command;
   statusBarItem.show();
+  if (failure !== "eimJsonMissing") {
+    return;
+  }
+  showExtensionConfigurationWalkthrough();
+  if (missingEimIdfJsonPromptShown) {
+    return;
+  }
+  missingEimIdfJsonPromptShown = true;
+  void commands.executeCommand("espIdf.resolveMissingEimIdfJson");
 }
 
 export function enterUndetected() {

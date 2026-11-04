@@ -113,6 +113,7 @@
   "espIdf.viewAsHex.title": "View as Hex",
   "espIdf.viewVariableAsImage.title": "View Variable as Image",
   "espIdf.openImageViewer.title": "Open Image Viewer",
+  "espIdf.openWalkthrough.title": "Open Get Started Walkthrough",
   "espIdf.loadImageFromFile.title": "Load Image from LVGL C File",
   "espIdf.hexView.copyValue.title": "Copy value to clipboard",
   "espIdf.hexView.deleteElement.title": "Delete hex value from list",

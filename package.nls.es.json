@@ -113,6 +113,7 @@
   "espIdf.viewAsHex.title": "Ver como Hexadecimal",
   "espIdf.viewVariableAsImage.title": "Ver variable como imagen",
   "espIdf.openImageViewer.title": "Abrir Visualizador de Imágenes",
+  "espIdf.openWalkthrough.title": "Abrir el recorrido de introducción",
   "espIdf.loadImageFromFile.title": "Cargar Imagen desde Archivo C LVGL",
   "espIdf.hexView.copyValue.title": "Copiar valor al portapapeles",
   "espIdf.hexView.deleteElement.title": "Eliminar valor hexadecimal de la lista",
