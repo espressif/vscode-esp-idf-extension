@@ -25,6 +25,8 @@ import { Logger } from "../../common/logger";
 import { OutputChannel } from "../../common/outputChannel";
 import { handleError } from "../../common/error/handler";
 import {
+  openOcdAdapterNotConnected,
+  openOcdAdapterSerialNotFound,
   openOcdProcessExited,
   openOcdStartFailed,
 } from "../../common/error/knownError";
@@ -42,7 +44,9 @@ import {
   getStoredAdapterSerial,
   supportsAdapterUsbLocationCommand,
   supportsSerialFromDetectConfig,
+  outputIndicatesAdapterSerialNotFound,
 } from "./adapterSerial";
+import { resolveAdapterBindingForLaunch } from "./adapterBinding";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
 import { validateOpenOcdStartPrerequisites, requireOpenOcdWorkspace } from "./validation";
 import { ensureOpenOcdServerRunning } from "./openOcdLaunch";
@@ -200,21 +204,42 @@ export class OpenOCDManager extends EventEmitter {
     const versionString = await this.version(true);
     const useLocationCommand = supportsAdapterUsbLocationCommand(versionString);
     const useDetectConfigSerial = supportsSerialFromDetectConfig(versionString);
-    const adapterLocation = modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
+    const openOcdLaunchArgs = readParameter(
+      "idf.openOcdLaunchArgs",
+      this.workspace
+    ) as string[];
+    const hasLaunchArgs = openOcdLaunchArgs && openOcdLaunchArgs.length > 0;
+    let storedSerial = getStoredAdapterSerial(this.workspace);
+    let adapterLocation = modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
+    if (useDetectConfigSerial && storedSerial && !hasLaunchArgs) {
+      const binding = await resolveAdapterBindingForLaunch(this.workspace, {
+        serial: storedSerial,
+        location: adapterLocation,
+      });
+      if (binding.stale) {
+        void handleError(
+          "espIdf.openOCDCommand",
+          openOcdAdapterNotConnected(storedSerial),
+          undefined,
+          { outputChannel: "OpenOCD" }
+        );
+        storedSerial = binding.serial;
+      }
+      adapterLocation = binding.location;
+      if (adapterLocation) {
+        modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"] = adapterLocation;
+      } else {
+        delete modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
+      }
+    }
     if (useLocationCommand && adapterLocation) {
       delete modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
     }
 
     const openOcdArgs: string[] = [];
-    const openOcdLaunchArgs = readParameter(
-      "idf.openOcdLaunchArgs",
-      this.workspace
-    ) as string[];
-
-    const storedSerial = getStoredAdapterSerial(this.workspace);
     const needsSerialDiscovery = !storedSerial && !useDetectConfigSerial;
 
-    if (openOcdLaunchArgs && openOcdLaunchArgs.length > 0) {
+    if (hasLaunchArgs) {
       openOcdArgs.push(...openOcdLaunchArgs);
 
       // If no adapter serial is stored yet, ensure OpenOCD runs at least at -d2
@@ -320,7 +345,11 @@ export class OpenOCDManager extends EventEmitter {
           this.startFailureNotified = true;
           void handleError(
             "espIdf.openOCDCommand",
-            openOcdStartFailed(matchArr.join(" "), this.capturedProcessOutput()),
+            this.adapterSerialNotFoundError(storedSerial) ||
+              openOcdStartFailed(
+                matchArr.join(" "),
+                this.capturedProcessOutput()
+              ),
             undefined,
             { outputChannel: "OpenOCD" }
           );
@@ -384,7 +413,8 @@ export class OpenOCDManager extends EventEmitter {
           this.startFailureNotified = true;
           void handleError(
             "espIdf.openOCDCommand",
-            openOcdProcessExited(code, this.capturedProcessOutput()),
+            this.adapterSerialNotFoundError(storedSerial, code) ||
+              openOcdProcessExited(code, this.capturedProcessOutput()),
             undefined,
             { outputChannel: "OpenOCD" }
           );
@@ -466,6 +496,24 @@ export class OpenOCDManager extends EventEmitter {
 
   private sendToOutputChannel(data: Buffer) {
     this.chan = Buffer.concat([this.chan, data]);
+  }
+
+  private adapterSerialNotFoundError(
+    serial: string | undefined,
+    exitCode?: number
+  ) {
+    if (!serial) {
+      return undefined;
+    }
+    const output = this.capturedProcessOutput();
+    if (
+      !outputIndicatesAdapterSerialNotFound(
+        `${output.stdout}\n${output.stderr}`
+      )
+    ) {
+      return undefined;
+    }
+    return openOcdAdapterSerialNotFound(serial, { ...output, exitCode });
   }
 
   private capturedProcessOutput() {

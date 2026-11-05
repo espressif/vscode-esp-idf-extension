@@ -493,6 +493,11 @@ const viewOpenOcdOutputAction = {
   execute: () => OutputChannel.show(),
 };
 
+const openOcdAdapterAction = {
+  label: "OpenOCD Adapter (Serial & Location)",
+  execute: () => commands.executeCommand("espIdf.openOcdAdapterStatusBar"),
+};
+
 const openOcdTroubleshootingFaqAction = {
   label: "Troubleshooting FAQ",
   execute: () =>
@@ -601,6 +606,28 @@ registerNewErrorInRegistry({
       execute: () => commands.executeCommand("espIdf.errorHints.focus"),
     },
   ],
+  outputChannel: openOcdOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdAdapterNotConnected,
+  severity: ErrorSeverity.Warning,
+  userMessage:
+    "The board pinned for OpenOCD (serial {serial}) is not connected. OpenOCD will start without the stored adapter serial and use the board that is attached now.",
+  logMessage:
+    "Stored OpenOCD adapter serial {serial} does not match any connected board.",
+  actions: [openOcdAdapterAction],
+  outputChannel: openOcdOutputChannel,
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdAdapterSerialNotFound,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "OpenOCD could not find a board with adapter serial {serial}. Connect that board, or use OpenOCD Adapter (Serial & Location) to pin a connected board or clear the binding.",
+  logMessage:
+    "OpenOCD reported no device matching the stored adapter serial {serial}.",
+  actions: [openOcdAdapterAction, viewOpenOcdOutputAction],
   outputChannel: openOcdOutputChannel,
 });
 
