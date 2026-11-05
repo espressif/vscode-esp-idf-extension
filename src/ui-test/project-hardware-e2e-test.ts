@@ -43,6 +43,7 @@ import {
   testWorkspaceDir,
   waitForBuildComplete,
   waitForCallStackMatching,
+  evaluateDebugConsole,
   evaluateDebugConsoleAndWait,
   waitForLocalVariable,
   waitForOutputChannelText,
@@ -71,12 +72,16 @@ const DEBUG_FATAL_ERROR_PATTERN =
 // statement (lines 6–8). The user breakpoint is the next volatile assignment
 // so Continue cannot be confused with that halt. Step-over target is ESP_LOGI
 // (a statement, not a step-into of the log macro). add_one() is after printf
-// so these line numbers stay put.
+// so lines 9–12 stay put. The loop is after that call, and add_one() shifts
+// down with it.
 const USER_BREAKPOINT_LINE = 9;
 const STEP_OVER_TARGET_LINE = 10;
 const STEP_INTO_CALL_LINE = 12;
-const ADD_ONE_BODY_START = 16;
-const ADD_ONE_BODY_END_EXCLUSIVE = 19;
+const ADD_ONE_BODY_START = 22;
+const ADD_ONE_BODY_END_EXCLUSIVE = 25;
+const LOOP_HEAD_LINE = 16;
+const CONDITIONAL_BREAKPOINT_LINE = 17;
+const CONDITIONAL_HIT_VALUE = 2;
 const SOURCE_FILE_NAME = "hello_world_main.c";
 const SOURCE_FILE_PATH = resolve(testWorkspaceDir, "main", SOURCE_FILE_NAME);
 const APP_MAIN_STACK_PATTERN = /app_main/;
@@ -129,6 +134,14 @@ function step(stepName: string, action: () => Promise<void>): void {
       throw new Error(`Test failed at: ${stepName}\n${orig}`);
     }
   });
+}
+
+function breakpointAtLine(line: number): RegExp {
+  const fileName = SOURCE_FILE_NAME.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(
+    `breakpoint\\s+\\d+\\s+at\\b[^\\n]*${fileName}, line ${line}\\b`,
+    "i"
+  );
 }
 
 async function assertNoOpenOcdFatal(when: string): Promise<void> {
@@ -406,6 +419,114 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
         );
       }
       console.log(`[hardware-debug] ${symbolText.trim().split("\n").slice(0, 4).join(" ")}`);
+    });
+  });
+
+  scenario("stops on a conditional breakpoint", () => {
+    let conditionalBreakpointNumber = "";
+
+    before(function () {
+      if (!state.debugSmokeSucceeded) {
+        this.skip();
+      }
+    });
+
+    after(async function () {
+      this.timeout(30000);
+      if (!conditionalBreakpointNumber) {
+        return;
+      }
+      await evaluateDebugConsole(
+        `>delete ${conditionalBreakpointNumber}`
+      ).catch(() => undefined);
+      conditionalBreakpointNumber = "";
+      await removeAllBreakpoints().catch(() => undefined);
+    });
+
+    step("Wait until the leftover debug session is paused", async () => {
+      await waitUntilDebugPaused(60000);
+      await assertNoOpenOcdFatal("before conditional breakpoint");
+    });
+
+    step("Open Debug Console", async () => {
+      await new BottomBarPanel().openDebugConsoleView();
+    });
+
+    step("Run to the loop head with i == 0", async () => {
+      const breakText = await evaluateDebugConsoleAndWait(
+        `>tbreak ${SOURCE_FILE_NAME}:${LOOP_HEAD_LINE}`,
+        breakpointAtLine(LOOP_HEAD_LINE),
+        20000
+      );
+      console.log(
+        `[hardware-debug] ${breakText.trim().split("\n").slice(0, 3).join(" ")}`
+      );
+      await executeDebugAction("continue");
+      await waitUntilDebugPaused(60000);
+      await waitForPausedAtLine(SOURCE_FILE_PATH, LOOP_HEAD_LINE, 30000);
+      await waitForLocalVariable("i", 0, 20000);
+    });
+
+    step(
+      `Set breakpoint at a = i with condition i == ${CONDITIONAL_HIT_VALUE}`,
+      async () => {
+        const breakText = await evaluateDebugConsoleAndWait(
+          `>break ${SOURCE_FILE_NAME}:${CONDITIONAL_BREAKPOINT_LINE} if i == ${CONDITIONAL_HIT_VALUE}`,
+          breakpointAtLine(CONDITIONAL_BREAKPOINT_LINE),
+          20000
+        );
+        const breakpointNumber = breakText.match(
+          /breakpoint\s+(\d+)\s+at\b/i
+        )?.[1];
+        if (!breakpointNumber) {
+          throw new Error(`Could not parse breakpoint number:\n${breakText}`);
+        }
+        conditionalBreakpointNumber = breakpointNumber;
+
+        const infoText = await evaluateDebugConsoleAndWait(
+          ">info breakpoints",
+          new RegExp(`stop only if \\(?i == ${CONDITIONAL_HIT_VALUE}\\)?`, "i"),
+          20000
+        );
+        console.log(
+          `[hardware-debug] ${infoText.trim().split("\n").slice(0, 6).join(" ")}`
+        );
+      }
+    );
+
+    step(
+      `Continue and halt only when i == ${CONDITIONAL_HIT_VALUE}`,
+      async () => {
+        await executeDebugAction("continue");
+        await waitUntilDebugPaused(60000);
+        await assertNoOpenOcdFatal("after conditional breakpoint");
+        await waitForPausedAtLine(
+          SOURCE_FILE_PATH,
+          CONDITIONAL_BREAKPOINT_LINE,
+          30000
+        );
+        await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
+        await waitForLocalVariable("i", CONDITIONAL_HIT_VALUE, 20000);
+      }
+    );
+
+    step("Clear the conditional breakpoint", async () => {
+      await evaluateDebugConsole(`>delete ${conditionalBreakpointNumber}`);
+      const infoText = await evaluateDebugConsoleAndWait(
+        ">info breakpoints",
+        /No breakpoints\b|Num\s+Type/i,
+        20000
+      );
+      if (
+        new RegExp(
+          `stop only if \\(?i == ${CONDITIONAL_HIT_VALUE}\\)?`,
+          "i"
+        ).test(infoText)
+      ) {
+        throw new Error(`Conditional breakpoint still set:\n${infoText}`);
+      }
+      conditionalBreakpointNumber = "";
+      await removeAllBreakpoints().catch(() => undefined);
     });
   });
 
