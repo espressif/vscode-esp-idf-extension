@@ -144,7 +144,7 @@
             {
                 "type": "gdbtarget",
                 "request": "attach",
-                "name": "Eclipse CDT GDB Adapter"
+                "name": "ESP-IDF"
             }
         ]
     }
@@ -158,7 +158,7 @@
 - ``gdb``: 要使用的 GDB 可执行文件。默认情况下，"${command:espIdf.getToolchainGdb}" 将查询扩展以查找当前 ESP-IDF 项目的 IDF_TARGET（esp32、esp32c6 等）对应的 ESP-IDF 工具链 GDB。
 
 .. note::
-     **GDB 命令顺序。** Eclipse CDT GDB 适配器会先执行 ``target.connectCommands`` 以附加到目标，然后再执行 ``initCommands``。
+     **GDB 命令顺序。** ESP-IDF GDB 适配器会先执行 ``target.connectCommands`` 以附加到目标，然后再执行 ``initCommands``。
 
      扩展会将这些命令 **前置** 到 ``target.connectCommands``（位于任何用户定义的 ``connectCommands`` 之前），顺序如下：
 
@@ -233,7 +233,7 @@
             {
                 "type": "gdbtarget",
                 "request": "attach",
-                "name": "Eclipse CDT GDB Adapter",
+                "name": "ESP-IDF",
                 "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
                 "gdb": "${command:espIdf.getToolchainGdb}",
                 "initialBreakpoint": "app_main",

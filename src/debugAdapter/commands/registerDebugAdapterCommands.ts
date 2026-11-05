@@ -23,10 +23,12 @@ import {
   window,
   workspace,
 } from "vscode";
-import { join } from "path";
-import { pathExists } from "fs-extra";
 import { HexTreeItem, HexViewProvider } from "../hexViewProvider";
-import { CDTDebugConfigurationProvider } from "../debugConfProvider";
+import {
+  CDTDebugConfigurationProvider,
+  INITIAL_GDBTARGET_CONFIG,
+  workspaceHasGdbTargetAttachConfig,
+} from "../debugConfProvider";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../../common/PreCheck";
 import { ESP } from "../../config";
@@ -37,7 +39,6 @@ import {
   isVariableCommandContextReady,
 } from "./variableCommandContext";
 import {
-  fileNotFound,
   invalidConfiguration,
   noWorkspaceOpen,
 } from "../../common/error/knownError";
@@ -169,10 +170,7 @@ async function startFirstGdbTargetConfiguration(
       conf
     );
     if (!resolvedConf) {
-      throw invalidConfiguration(
-        "launch.configurations",
-        debugErrorPresentation.invalidConfiguration
-      );
+      return;
     }
     await debug.startDebugging(workspaceFolder, resolvedConf);
     return;
@@ -194,13 +192,9 @@ export function registerEspIdfDebugCommand(
       if (!workspaceFolder) {
         throw noWorkspaceOpen(debugErrorPresentation.noWorkspaceOpen);
       }
-      const launchJsonPath = join(
-        workspaceFolder.uri.fsPath,
-        ".vscode",
-        "launch.json"
-      );
-      if (!(await pathExists(launchJsonPath))) {
-        throw fileNotFound(launchJsonPath, debugErrorPresentation.fileNotFound);
+      if (!workspaceHasGdbTargetAttachConfig(workspaceFolder)) {
+        await debug.startDebugging(workspaceFolder, INITIAL_GDBTARGET_CONFIG);
+        return;
       }
       await startFirstGdbTargetConfiguration(workspaceFolder, cdtDebugProvider);
     });

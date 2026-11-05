@@ -144,7 +144,7 @@ To configure the debugging session, open the project's ``.vscode/launch.json`` f
             {
                 "type": "gdbtarget",
                 "request": "attach",
-                "name": "Eclipse CDT GDB Adapter"
+                "name": "ESP-IDF"
             }
         ]
     }
@@ -158,7 +158,7 @@ You can modify the configuration to suit your needs. Let's describe the configur
 - ``gdb``: GDB executable to be used. By default "${command:espIdf.getToolchainGdb}" will query the extension to find the ESP-IDF toolchain GDB for the current IDF_TARGET of your esp-idf project (esp32, esp32c6, etc.).
 
 .. note::
-     **GDB command order.** The Eclipse CDT GDB Adapter runs ``target.connectCommands`` first to attach to the target, then runs ``initCommands``.
+     **GDB command order.** The ESP-IDF GDB Adapter runs ``target.connectCommands`` first to attach to the target, then runs ``initCommands``.
 
      The extension **prepends** commands to ``target.connectCommands`` (before any user-defined ``connectCommands``), in this order:
 
@@ -233,7 +233,7 @@ An example of a customized ``launch.json`` is shown below. The minimal default c
             {
                 "type": "gdbtarget",
                 "request": "attach",
-                "name": "Eclipse CDT GDB Adapter",
+                "name": "ESP-IDF",
                 "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
                 "gdb": "${command:espIdf.getToolchainGdb}",
                 "initialBreakpoint": "app_main",
