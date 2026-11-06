@@ -23,6 +23,7 @@ import { EraseFlashSession } from "../../eraseFlash/eraseFlashSession";
 import { getMonitorBaudRate } from "./getMonitorBaudRate";
 import { MonitorConfig } from "./types";
 import { canAccessFile, getEspIdfFromCMake, getToolchainToolName } from "../../utils";
+import { toMacOSCalloutPort } from "../serial/serialPort";
 import {
   fileNotFound,
   idfTargetNotSet,
@@ -75,7 +76,7 @@ export async function loadMonitorLaunchConfig(
     "idf.monitorPort",
     workspaceFolder
   ) as string;
-  const port = monitorPort ? monitorPort : serialPort;
+  const port = monitorPort ? toMacOSCalloutPort(monitorPort) : serialPort;
   if (!port) {
     throw noPortSelected({
       userMessage: "Select a serial port before starting the monitor.",

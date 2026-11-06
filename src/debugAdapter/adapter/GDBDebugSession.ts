@@ -38,7 +38,23 @@ import {
   clearInsertedFunctionsCache,
 } from "./util/disassembly";
 import { invalidConfiguration } from "../../common/error/knownError";
+import {
+  isProjectSource,
+  StubStopFrame,
+  StubThreadFrames,
+} from "./gdbstubStop";
 import { resolveDapErrorMessage } from "../dapError";
+
+type RuntimeStubStartupAction =
+  | { kind: "stay"; threadId: number }
+  | { kind: "continue"; threadId: number }
+  | {
+      kind: "next";
+      threadId: number;
+      frameId: number;
+      file?: string;
+      line?: number;
+    };
 
 export interface RequestArguments extends DebugProtocol.LaunchRequestArguments {
   gdb?: string;
@@ -164,6 +180,26 @@ export function base64ToHex(base64: string): string {
   return buffer.toString("hex");
 }
 
+export function raceTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  message: string
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
 export class GDBDebugSession extends LoggingDebugSession {
   /**
    * Initial (aka default) configuration for launch/attach request
@@ -186,6 +222,33 @@ export class GDBDebugSession extends LoggingDebugSession {
   protected supportsGdbConsole = false;
 
   protected isPostMortem = false;
+  // Target is already halted (e.g. UART GDB Stub). Do not auto-continue on attach.
+  protected isHaltedOnAttach = false;
+  // The editor draws the current line only after configurationDone is answered.
+  // Stops that arrive earlier are kept here and published once that is true.
+  protected gdbStubUiReady = false;
+  protected stubHoldStops = false;
+  protected queuedStubStop: any;
+  /** Thread GDB marks with * in `info threads` for this stop. */
+  protected stubCurrentThreadId = 0;
+  /** Task selected in Call Stack; used by the next stepping request. */
+  protected stubSelectedThreadId = 0;
+  /** Last stopped line in the project, kept while a step falls into a CPU vector. */
+  protected stubApplicationFrame?: { file: string; line: number };
+  /** Source line a stub Step Over is trying to reach. */
+  protected stubStepResume?: { file: string; line: number };
+  protected stubTrampolineResumeStarted = false;
+  protected stubStoppedFrame?: {
+    file?: string;
+    fullname?: string;
+    line?: string;
+    func?: string;
+    addr?: string;
+    level?: string;
+  };
+  /** Empty when the launch config disables the entry breakpoint. */
+  protected stubEntrySymbol?: string;
+  protected stubProjectDirectory = "";
 
   /* A reference to the logger to be used by subclasses */
   protected logger: Logger.Logger;
@@ -959,14 +1022,72 @@ export class GDBDebugSession extends LoggingDebugSession {
           "console"
         )
       );
-      if (!this.isPostMortem) {
-        if (this.isAttach) {
-          await mi.sendExecContinue(this.gdb);
-        } else {
-          await mi.sendExecRun(this.gdb);
-        }
-      } else {
+      if (this.isPostMortem) {
+        this.sendResponse(response);
         this.sendEvent(new StoppedEvent("exception", 1, true));
+        return;
+      }
+      if (this.isHaltedOnAttach) {
+        this.stubHoldStops = true;
+        const stop = await this.prepareRuntimeStubStop();
+        this.sendResponse(response);
+        // configurationDone's response has to be applied before a stopped
+        // event, or the editor never focuses a source line.
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        if (stop.kind === "stay") {
+          this.stubHoldStops = false;
+          this.gdbStubUiReady = true;
+          this.publishStubStop(this.queuedStubStop);
+          this.queuedStubStop = undefined;
+          return;
+        }
+        this.queuedStubStop = undefined;
+        try {
+          if (stop.kind === "next" && this.stubApplicationFrame) {
+            // `next` from this halt single-steps: on RISC-V the stub reports
+            // each instruction as SIGTRAP, and esp_cpu_wait_for_intr returns
+            // immediately while a debugger is attached, so the step never
+            // leaves cpu.c. A breakpoint at the application line plus a
+            // continue from the halted thread is what reaches main.
+            this.sendEvent(
+              new OutputEvent("Continuing to the application line\n")
+            );
+            await this.continueToStubLine(
+              this.stubApplicationFrame.file,
+              this.stubApplicationFrame.line
+            );
+          } else if (stop.kind === "next") {
+            await mi.sendExecNext(this.gdb);
+          } else {
+            await mi.sendExecContinue(this.gdb);
+          }
+        } catch (err) {
+          this.sendEvent(
+            new OutputEvent(
+              `Could not leave the idle task: ${
+                err instanceof Error ? err.message : String(err)
+              }\n`,
+              "stderr"
+            )
+          );
+          this.stubHoldStops = false;
+          this.gdbStubUiReady = true;
+          this.publishStubStop(this.queuedStubStop);
+          this.queuedStubStop = undefined;
+          return;
+        }
+        this.stubHoldStops = false;
+        this.gdbStubUiReady = true;
+        if (this.queuedStubStop) {
+          this.publishStubStop(this.queuedStubStop);
+          this.queuedStubStop = undefined;
+        }
+        return;
+      }
+      if (this.isAttach) {
+        await mi.sendExecContinue(this.gdb);
+      } else {
+        await mi.sendExecRun(this.gdb);
       }
       this.sendResponse(response);
     } catch (err) {
@@ -978,8 +1099,13 @@ export class GDBDebugSession extends LoggingDebugSession {
     }
   }
 
-  protected convertThread(thread: mi.MIThreadInfo) {
-    let name = thread.name || thread.id;
+  protected convertThread(thread: mi.MIThreadInfo, likeInfoThreads = false) {
+    const targetId =
+      thread.targetId ||
+      (thread as mi.MIThreadInfo & { "target-id"?: string })["target-id"];
+    let name = likeInfoThreads
+      ? targetId || thread.name || thread.id
+      : thread.name || thread.id;
 
     if (thread.details) {
       name += ` (${thread.details})`;
@@ -994,6 +1120,12 @@ export class GDBDebugSession extends LoggingDebugSession {
     response: DebugProtocol.ThreadsResponse
   ): Promise<void> {
     try {
+      if (this.isHaltedOnAttach) {
+        await this.refreshStubThreads();
+        response.body = { threads: this.threads };
+        this.sendResponse(response);
+        return;
+      }
       if (!this.isRunning) {
         const result = await mi.sendThreadInfoRequest(this.gdb, {});
         this.threads = result.threads
@@ -1015,17 +1147,523 @@ export class GDBDebugSession extends LoggingDebugSession {
     }
   }
 
+  /**
+   * The UART stub unwinds slowly once ROM symbols are loaded. A short
+   * `-stack-info-depth` walk used to time out and the adapter published an
+   * empty call stack. Ask only for the frames the client wants.
+   */
+  protected async respondHaltedStack(
+    response: DebugProtocol.StackTraceResponse,
+    args: DebugProtocol.StackTraceArguments
+  ): Promise<void> {
+    const levels =
+      args.levels && args.levels > 0 ? Math.min(args.levels, 50) : 20;
+    const lowFrame = args.startFrame || 0;
+    const highFrame = lowFrame + levels - 1;
+    const threadId = this.stubStackThreadId(args.threadId);
+    try {
+      const listResult = await raceTimeout(
+        mi.sendStackListFramesRequest(this.gdb, {
+          lowFrame,
+          highFrame,
+          threadId,
+        }),
+        10000,
+        "stack-list-frames timed out"
+      );
+      if (threadId !== undefined) {
+        this.stubSelectedThreadId = threadId;
+      }
+      let frames = listResult.stack || [];
+      if (
+        lowFrame === 0 &&
+        frames.length === 0 &&
+        this.stubStoppedFrame
+      ) {
+        frames = [{ ...this.stubStoppedFrame, level: "0" }];
+      }
+      const stack = frames.map((frame) => {
+        const line = this.stubFrameLine(frame.line);
+        const frameHandle = this.frameHandles.create({
+          threadId: args.threadId,
+          frameId: parseInt(frame.level, 10),
+        });
+        const sf = new StackFrame(
+          frameHandle,
+          frame.func || frame.fullname || frame.file || "",
+          this.stubFrameSource(frame.file, frame.fullname),
+          line,
+          line ? 1 : undefined
+        ) as DebugProtocol.StackFrame;
+        sf.instructionPointerReference = frame.addr;
+        return sf;
+      });
+      response.body = {
+        stackFrames: stack,
+        totalFrames:
+          frames.length < levels ? lowFrame + frames.length : highFrame + 2,
+      };
+      this.sendResponse(response);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      logger.warn(`Halted stack trace failed: ${message}`);
+      const fallback = this.stubStoppedFrame;
+      if (fallback && (args.startFrame || 0) === 0) {
+        const line = this.stubFrameLine(fallback.line);
+        const frameHandle = this.frameHandles.create({
+          threadId: args.threadId,
+          frameId: 0,
+        });
+        const sf = new StackFrame(
+          frameHandle,
+          fallback.func || fallback.fullname || fallback.file || "",
+          this.stubFrameSource(fallback.file, fallback.fullname),
+          line,
+          line ? 1 : undefined
+        ) as DebugProtocol.StackFrame;
+        sf.instructionPointerReference = fallback.addr;
+        response.body = { stackFrames: [sf], totalFrames: 1 };
+        this.sendResponse(response);
+        return;
+      }
+      response.body = { stackFrames: [], totalFrames: 0 };
+      this.sendResponse(response);
+    }
+  }
+
+  protected stubFrameLine(line: string | undefined): number | undefined {
+    const parsed = line ? parseInt(line, 10) : NaN;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  }
+
+  protected stubFrameSource(
+    file: string | undefined,
+    fullname: string | undefined
+  ): Source | undefined {
+    const reported = (fullname || "").trim();
+    if (reported) {
+      const normalized = path.normalize(reported);
+      return new Source(path.basename(normalized), normalized);
+    }
+    const relative = (file || "").trim();
+    if (!relative) {
+      return undefined;
+    }
+    if (path.isAbsolute(relative)) {
+      const normalized = path.normalize(relative);
+      return new Source(path.basename(normalized), normalized);
+    }
+    if (!this.stubProjectDirectory) {
+      return undefined;
+    }
+    const rooted = path.join(this.stubProjectDirectory, relative);
+    if (!fs.existsSync(rooted)) {
+      return undefined;
+    }
+    return new Source(path.basename(rooted), rooted);
+  }
+
+  protected stubStopReason(result: any): string {
+    if (result?.reason === "breakpoint-hit") {
+      return this.functionBreakpoints.indexOf(result.bkptno) > -1
+        ? "function breakpoint"
+        : "breakpoint";
+    }
+    if (
+      result?.reason === "end-stepping-range" ||
+      result?.reason === "function-finished"
+    ) {
+      return "step";
+    }
+    if (result?.reason === "signal-received") {
+      return result["signal-name"] || "signal";
+    }
+    return "pause";
+  }
+
+  protected noteStubStop(result: any): void {
+    if (!result) {
+      return;
+    }
+    const parsed = parseInt(result["thread-id"], 10);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      this.stubCurrentThreadId = parsed;
+    }
+    if (result.frame) {
+      this.stubStoppedFrame = result.frame;
+      const source = this.stubFrameSource(
+        result.frame.file,
+        result.frame.fullname
+      );
+      const line = this.stubFrameLine(result.frame.line);
+      if (
+        source?.path &&
+        line &&
+        isProjectSource(source.path, this.stubProjectDirectory)
+      ) {
+        this.stubApplicationFrame = { file: source.path, line };
+      }
+    }
+  }
+
+  protected isStubTrampolineFrame(frame: {
+    file?: string;
+    fullname?: string;
+    func?: string;
+  } | undefined): boolean {
+    if (!frame) {
+      return false;
+    }
+    const base = (frame.fullname || frame.file || "")
+      .replace(/\\/g, "/")
+      .split("/")
+      .pop()
+      ?.toLowerCase();
+    if (
+      base === "xtensa_vectors.s" ||
+      base === "xtensa_context.s" ||
+      base === "portasm.s" ||
+      base === "vectors.s"
+    ) {
+      return true;
+    }
+    if (frame.func === "esp_cpu_wait_for_intr") {
+      return true;
+    }
+    return /^(?:windowoverflow|windowunderflow|_xt_|xt_alloca|xt_syscall)/i.test(
+      frame.func || ""
+    );
+  }
+
+  protected async continueToStubLine(file: string, line: number): Promise<void> {
+    await mi.sendBreakpointInsert(
+      this.gdb,
+      mi.sourceBreakpointLocation(this.gdb, file, String(line), true),
+      { temporary: true }
+    );
+    await mi.sendExecContinue(this.gdb);
+  }
+
+  protected stubStepLanded(frame: {
+    file?: string;
+    fullname?: string;
+  } | undefined): boolean {
+    const target = this.stubStepResume;
+    if (!target || !frame) {
+      return false;
+    }
+    const source = this.stubFrameSource(frame.file, frame.fullname);
+    if (!source?.path) {
+      return false;
+    }
+    return (
+      path.normalize(source.path).toLowerCase() ===
+      path.normalize(target.file).toLowerCase()
+    );
+  }
+
+  protected async continuePastStubTrampoline(): Promise<void> {
+    const target = this.stubStepResume;
+    if (!target) {
+      return;
+    }
+    try {
+      await this.continueToStubLine(target.file, target.line);
+    } catch (err) {
+      logger.warn(
+        `Could not leave the CPU vector: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+      this.stubStepResume = undefined;
+      this.stubTrampolineResumeStarted = false;
+      this.publishStubStop({ reason: "step", frame: this.stubStoppedFrame });
+    }
+  }
+
+  protected async stepOverStubSource(threadId?: number): Promise<void> {
+    await this.selectStubThread(threadId);
+    const frame = this.stubStoppedFrame;
+    if (this.isStubTrampolineFrame(frame) && this.stubApplicationFrame) {
+      this.stubStepResume = {
+        file: this.stubApplicationFrame.file,
+        line: this.stubApplicationFrame.line + 1,
+      };
+      this.stubTrampolineResumeStarted = true;
+      await this.continueToStubLine(
+        this.stubStepResume.file,
+        this.stubStepResume.line
+      );
+      return;
+    }
+    const source = frame
+      ? this.stubFrameSource(frame.file, frame.fullname)
+      : undefined;
+    const line = this.stubFrameLine(frame?.line);
+    if (source?.path && line) {
+      this.stubStepResume = { file: source.path, line: line + 1 };
+    }
+    this.stubTrampolineResumeStarted = false;
+    try {
+      await mi.sendStackSelectFrame(this.gdb, { framenum: 0 });
+      await mi.sendExecUntil(this.gdb, "+1");
+    } catch (err) {
+      logger.warn(
+        `until +1 failed, using next: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+      await mi.sendExecNext(this.gdb);
+    }
+  }
+
+  protected stubStackThreadId(requested?: number): number | undefined {
+    if (
+      requested !== undefined &&
+      this.threads.some((thread) => thread.id === requested)
+    ) {
+      return requested;
+    }
+    return this.stubCurrentThreadId > 0 ? this.stubCurrentThreadId : undefined;
+  }
+
+  protected async refreshStubThreads(): Promise<void> {
+    try {
+      const result = await raceTimeout(
+        mi.sendThreadInfoRequest(this.gdb, {}),
+        15000,
+        "thread-info timed out"
+      );
+      if (result.threads?.length) {
+        this.threads = result.threads
+          .map((thread) => this.convertThread(thread, true))
+          .sort((a, b) => a.id - b.id);
+        if (this.stubCurrentThreadId <= 0) {
+          const current = parseInt(result["current-thread-id"], 10);
+          if (Number.isFinite(current) && current > 0) {
+            this.stubCurrentThreadId = current;
+          }
+        }
+      }
+    } catch (err) {
+      logger.warn(
+        `Halted thread list failed: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+    }
+    if (this.threads.length === 0) {
+      this.threads = [
+        new ThreadWithStatus(this.stubCurrentThreadId || 1, "Thread 1", false),
+      ];
+    }
+  }
+
+  protected async selectStubThread(threadId?: number): Promise<void> {
+    const selected = threadId || this.stubSelectedThreadId;
+    if (selected <= 0) {
+      return;
+    }
+    try {
+      await mi.sendThreadSelectRequest(this.gdb, {
+        threadId: selected,
+      });
+      this.stubSelectedThreadId = selected;
+    } catch (err) {
+      logger.warn(
+        `thread-select failed: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+    }
+  }
+
+  protected publishStubStop(result?: any): void {
+    const stop = result ?? { reason: "pause" };
+    this.noteStubStop(stop);
+    this.stubSelectedThreadId = this.stubCurrentThreadId;
+    this.isRunning = false;
+    this.sendStoppedEvent(
+      this.stubStopReason(stop),
+      this.stubCurrentThreadId || 1,
+      true
+    );
+  }
+
+  /**
+   * The halted CPU is the idle task in cpu.c. A source step from there stays
+   * in cpu.c: RISC-V returns immediately while a debugger is attached and the
+   * stub reports every single-step as SIGTRAP, and selecting the application
+   * task makes GDB single-step on continue. Remember the project line and
+   * leave the halted thread selected so a later continue can run to it.
+   */
+  protected async prepareRuntimeStubStop(): Promise<{
+    kind: RuntimeStubStartupAction["kind"];
+    threadId: number;
+  }> {
+    const stay: RuntimeStubStartupAction = {
+      kind: "stay",
+      threadId: 1,
+    };
+    try {
+      const action = await this.chooseRuntimeStubAction();
+      if (action.kind === "stay") {
+        return action;
+      }
+      if (action.kind === "continue") {
+        this.sendEvent(new OutputEvent("Continuing to a breakpoint\n"));
+        return action;
+      }
+      if (action.file && action.line) {
+        this.stubApplicationFrame = { file: action.file, line: action.line };
+      }
+      return action;
+    } catch (err) {
+      this.sendEvent(
+        new OutputEvent(
+          `Stopped at the GDB Stub entry: ${
+            err instanceof Error ? err.message : String(err)
+          }\n`,
+          "stderr"
+        )
+      );
+      return stay;
+    }
+  }
+
+  protected async chooseRuntimeStubAction(): Promise<RuntimeStubStartupAction> {
+    await this.refreshStubThreads();
+    const haltedThreadId = this.stubCurrentThreadId || 1;
+    const candidates = await this.collectStubThreadFrames();
+    // Reading another task's stack selects that thread. Continuing from it
+    // single-steps, so go back to the thread that was halted in cpu.c.
+    await this.selectStubThread(haltedThreadId);
+    this.stubCurrentThreadId = haltedThreadId;
+    try {
+      await mi.sendStackSelectFrame(this.gdb, { framenum: 0 });
+    } catch (err) {
+      logger.warn(
+        `stack-select-frame failed: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+    }
+    const applicationFrame = this.findApplicationFrame(candidates);
+    if (!applicationFrame) {
+      return { kind: "stay", threadId: this.stubCurrentThreadId || 1 };
+    }
+    return {
+      kind: "next",
+      threadId: applicationFrame.threadId,
+      frameId: applicationFrame.frameId,
+      file: applicationFrame.file,
+      line: applicationFrame.line,
+    };
+  }
+
+  protected async collectStubThreadFrames(): Promise<StubThreadFrames[]> {
+    const threads: StubThreadFrames[] = [];
+    for (const thread of this.threads.slice(0, 16)) {
+      try {
+        const result = await raceTimeout(
+          mi.sendStackListFramesRequest(this.gdb, {
+            lowFrame: 0,
+            highFrame: 12,
+            threadId: thread.id,
+          }),
+          10000,
+          "stack-list-frames timed out"
+        );
+        threads.push({ id: thread.id, frames: result.stack || [] });
+      } catch (err) {
+        logger.warn(
+          `Stub task backtrace failed: ${
+            err instanceof Error ? err.message : String(err)
+          }`
+        );
+        break;
+      }
+    }
+    return threads;
+  }
+
+  protected findApplicationFrame(
+    threads: StubThreadFrames[]
+  ): {
+    threadId: number;
+    frameId: number;
+    file?: string;
+    line?: number;
+  } | undefined {
+    let selected:
+      | {
+          threadId: number;
+          frameId: number;
+          level: number;
+          file?: string;
+          line?: number;
+        }
+      | undefined;
+    for (const thread of threads) {
+      for (const frame of thread.frames as StubStopFrame[]) {
+        const source = this.stubFrameSource(frame.file, frame.fullname);
+        if (
+          !source?.path ||
+          !isProjectSource(source.path, this.stubProjectDirectory)
+        ) {
+          continue;
+        }
+        const level = Number(frame.level);
+        if (!Number.isFinite(level)) {
+          continue;
+        }
+        if (!selected || level < selected.level) {
+          selected = {
+            threadId: thread.id,
+            frameId: level,
+            level,
+            file: source.path,
+            line: this.stubFrameLine(frame.line),
+          };
+        }
+      }
+    }
+    return selected;
+  }
+
+  protected async getStackDepth(
+    threadId?: number,
+    maxDepth = 100
+  ): Promise<number> {
+    const useLimitedDepthFallback = this.isHaltedOnAttach || this.isPostMortem;
+    const depthRequest = mi.sendStackInfoDepth(this.gdb, {
+      maxDepth,
+      ...(this.isHaltedOnAttach ? {} : { threadId }),
+    });
+    try {
+      const depthResult = useLimitedDepthFallback
+        ? await raceTimeout(depthRequest, 1500, "stack-info-depth timed out")
+        : await depthRequest;
+      return parseInt(depthResult.depth, 10);
+    } catch (err) {
+      if (useLimitedDepthFallback) {
+        return Math.min(maxDepth, 8);
+      }
+      throw err;
+    }
+  }
+
   protected async stackTraceRequest(
     response: DebugProtocol.StackTraceResponse,
     args: DebugProtocol.StackTraceArguments
   ): Promise<void> {
+    if (this.isHaltedOnAttach) {
+      await this.respondHaltedStack(response, args);
+      return;
+    }
     try {
       const threadId = args.threadId;
-      const depthResult = await mi.sendStackInfoDepth(this.gdb, {
-        maxDepth: 100,
-        threadId,
-      });
-      const depth = parseInt(depthResult.depth, 10);
+      const depth = await this.getStackDepth(threadId);
       const levels = args.levels
         ? args.levels > depth
           ? depth
@@ -1033,13 +1671,17 @@ export class GDBDebugSession extends LoggingDebugSession {
         : depth;
       const lowFrame = args.startFrame || 0;
       const highFrame = lowFrame + levels - 1;
-      const listResult = await mi.sendStackListFramesRequest(this.gdb, {
+      const frameRequest = mi.sendStackListFramesRequest(this.gdb, {
         lowFrame,
         highFrame,
-        threadId,
+        ...(this.isHaltedOnAttach ? {} : { threadId }),
       });
+      const listResult = this.isHaltedOnAttach
+        ? await raceTimeout(frameRequest, 1500, "stack-list-frames timed out")
+        : await frameRequest;
+      const frames = listResult.stack || [];
 
-      const stack = listResult.stack.map((frame) => {
+      const stack = frames.map((frame) => {
         let source;
         if (frame.fullname) {
           source = new Source(
@@ -1073,6 +1715,11 @@ export class GDBDebugSession extends LoggingDebugSession {
 
       this.sendResponse(response);
     } catch (err) {
+      if (this.isHaltedOnAttach) {
+        response.body = { stackFrames: [], totalFrames: 0 };
+        this.sendResponse(response);
+        return;
+      }
       this.sendErrorResponse(
         response,
         1,
@@ -1081,14 +1728,25 @@ export class GDBDebugSession extends LoggingDebugSession {
     }
   }
 
+  protected stubExecThread(threadId?: number): number | undefined {
+    return this.isHaltedOnAttach ? undefined : threadId;
+  }
+
   protected async nextRequest(
     response: DebugProtocol.NextResponse,
     args: DebugProtocol.NextArguments
   ): Promise<void> {
     try {
-      await (args.granularity === "instruction"
-        ? mi.sendExecNextInstruction(this.gdb, args.threadId)
-        : mi.sendExecNext(this.gdb, args.threadId));
+      if (this.isHaltedOnAttach && args.granularity !== "instruction") {
+        await this.stepOverStubSource(args.threadId);
+        this.sendResponse(response);
+        return;
+      }
+      if (this.isHaltedOnAttach) {
+        await this.selectStubThread(args.threadId);
+      }
+      const threadId = this.stubExecThread(args.threadId);
+      await mi.sendExecNextInstruction(this.gdb, threadId);
       this.sendResponse(response);
     } catch (err) {
       this.sendErrorResponse(
@@ -1104,9 +1762,13 @@ export class GDBDebugSession extends LoggingDebugSession {
     args: DebugProtocol.StepInArguments
   ): Promise<void> {
     try {
+      if (this.isHaltedOnAttach) {
+        await this.selectStubThread(args.threadId);
+      }
+      const threadId = this.stubExecThread(args.threadId);
       await (args.granularity === "instruction"
-        ? mi.sendExecStepInstruction(this.gdb, args.threadId)
-        : mi.sendExecStep(this.gdb, args.threadId));
+        ? mi.sendExecStepInstruction(this.gdb, threadId)
+        : mi.sendExecStep(this.gdb, threadId));
       this.sendResponse(response);
     } catch (err) {
       this.sendErrorResponse(
@@ -1122,7 +1784,10 @@ export class GDBDebugSession extends LoggingDebugSession {
     args: DebugProtocol.StepOutArguments
   ): Promise<void> {
     try {
-      await mi.sendExecFinish(this.gdb, args.threadId);
+      if (this.isHaltedOnAttach) {
+        await this.selectStubThread(args.threadId);
+      }
+      await mi.sendExecFinish(this.gdb, this.stubExecThread(args.threadId));
       this.sendResponse(response);
     } catch (err) {
       this.sendErrorResponse(
@@ -1138,7 +1803,13 @@ export class GDBDebugSession extends LoggingDebugSession {
     args: DebugProtocol.ContinueArguments
   ): Promise<void> {
     try {
-      await mi.sendExecContinue(this.gdb, args.threadId);
+      if (this.isHaltedOnAttach) {
+        await this.selectStubThread(args.threadId);
+      }
+      await mi.sendExecContinue(
+        this.gdb,
+        this.stubExecThread(args.threadId)
+      );
       let isAllThreadsContinued;
       if (this.gdb.isNonStopMode()) {
         isAllThreadsContinued = args.threadId ? false : true;
@@ -1190,7 +1861,11 @@ export class GDBDebugSession extends LoggingDebugSession {
 
     response.body = {
       scopes: [
-        new Scope("Local", this.variableHandles.create(frame), false),
+        new Scope(
+          "Local",
+          this.variableHandles.create(frame),
+          this.isHaltedOnAttach
+        ),
         new Scope("Registers", this.variableHandles.create(registers), true),
       ],
     };
@@ -1255,10 +1930,7 @@ export class GDBDebugSession extends LoggingDebugSession {
       const depth =
         ref.type === "registers"
           ? this.getRegisterVarDepth()
-          : parseInt(
-              (await mi.sendStackInfoDepth(this.gdb, { maxDepth: 100 })).depth,
-              10
-            );
+          : await this.getStackDepth();
       let varobj = this.gdb.varManager.getVar(
         frame.frameId,
         frame.threadId,
@@ -1403,10 +2075,7 @@ export class GDBDebugSession extends LoggingDebugSession {
         return;
       }
 
-      const stackDepth = await mi.sendStackInfoDepth(this.gdb, {
-        maxDepth: 100,
-      });
-      const depth = parseInt(stackDepth.depth, 10);
+      const depth = await this.getStackDepth();
       let varobj = this.gdb.varManager.getVar(
         frame.frameId,
         frame.threadId,
@@ -1730,9 +2399,38 @@ export class GDBDebugSession extends LoggingDebugSession {
   }
 
   protected handleGDBStopped(result: any) {
-    const getThreadId = (resultData: any) =>
-      parseInt(resultData["thread-id"], 10);
+    if (this.isHaltedOnAttach) {
+      const trampoline = this.isStubTrampolineFrame(result?.frame);
+      if (
+        this.stubStepResume &&
+        trampoline &&
+        !this.stubTrampolineResumeStarted
+      ) {
+        this.stubTrampolineResumeStarted = true;
+        void this.continuePastStubTrampoline();
+        return;
+      }
+      this.noteStubStop(result);
+      if (this.stubStepResume && !trampoline && this.stubStepLanded(result?.frame)) {
+        this.stubStepResume = undefined;
+        this.stubTrampolineResumeStarted = false;
+        this.sendStoppedEvent("step", this.stubCurrentThreadId || 1, true);
+        return;
+      }
+      this.stubStepResume = undefined;
+      this.stubTrampolineResumeStarted = false;
+    }
+    const getThreadId = (resultData: any) => {
+      if (this.isHaltedOnAttach) {
+        return this.stubCurrentThreadId || 1;
+      }
+      const parsed = parseInt(resultData["thread-id"], 10);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+    };
     const getAllThreadsStopped = (resultData: any) => {
+      if (this.isHaltedOnAttach) {
+        return true;
+      }
       return (
         !!resultData["stopped-threads"] &&
         resultData["stopped-threads"] === "all"
@@ -1849,9 +2547,16 @@ export class GDBDebugSession extends LoggingDebugSession {
 
         const wasRunning = this.isRunning;
         updateIsRunning();
+        if (this.isHaltedOnAttach && this.stubHoldStops) {
+          this.queuedStubStop = resultData;
+          this.noteStubStop(resultData);
+          break;
+        }
         if (
           !suppressHandleGDBStopped &&
-          (this.gdb.isNonStopMode() || (wasRunning && !this.isRunning))
+          (this.gdb.isNonStopMode() ||
+            (wasRunning && !this.isRunning) ||
+            (this.isHaltedOnAttach && this.gdbStubUiReady))
         ) {
           if (this.isInitialized) {
             this.handleGDBStopped(resultData);
@@ -1909,10 +2614,7 @@ export class GDBDebugSession extends LoggingDebugSession {
     let numVars = 0;
 
     // stack depth necessary for differentiating between similarly named variables at different stack depths
-    const stackDepth = await mi.sendStackInfoDepth(this.gdb, {
-      maxDepth: 100,
-    });
-    const depth = parseInt(stackDepth.depth, 10);
+    const depth = await this.getStackDepth();
 
     // array of varnames to delete. Cannot delete while iterating through the vars array below.
     const toDelete = new Array<string>();
@@ -2068,10 +2770,7 @@ export class GDBDebugSession extends LoggingDebugSession {
     }
 
     // fetch stack depth to obtain frameId/threadId/depth tuple
-    const stackDepth = await mi.sendStackInfoDepth(this.gdb, {
-      maxDepth: 100,
-    });
-    const depth = parseInt(stackDepth.depth, 10);
+    const depth = await this.getStackDepth();
     // we need to keep track of children and the parent varname in GDB
     let children;
     let parentVarname = ref.varobjName;

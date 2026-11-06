@@ -31,6 +31,7 @@ import { ErrorCode } from "../../common/error/types";
 import {
   SerialPort,
   setSerialPortModuleTestHooks,
+  toMacOSCalloutPort,
 } from "../../espIdf/serial/serialPort";
 import { serialErrorPresentation } from "../../espIdf/serial/serialErrorPresentation";
 import {
@@ -124,6 +125,21 @@ suite("serial errors", () => {
         (error: unknown) =>
           isKnownError(error) &&
           error.code === ErrorCode.NoSerialPortsAvailable
+      );
+    });
+
+    test("uses the macOS callout device instead of the dial-in device", () => {
+      assert.strictEqual(
+        toMacOSCalloutPort("/dev/tty.usbserial-3140", "darwin"),
+        "/dev/cu.usbserial-3140"
+      );
+      assert.strictEqual(
+        toMacOSCalloutPort("/dev/cu.usbserial-3140", "darwin"),
+        "/dev/cu.usbserial-3140"
+      );
+      assert.strictEqual(
+        toMacOSCalloutPort("/dev/ttyUSB0", "linux"),
+        "/dev/ttyUSB0"
       );
     });
 
