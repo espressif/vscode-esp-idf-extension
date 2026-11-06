@@ -194,20 +194,53 @@ export function checkAndNotifyMissingCompileCommands() {
 const basicUsageWalkthroughId =
   "espressif.esp-idf-extension#espIdf.walkthrough.basic-usage";
 
+const basicUsageStepIds = [
+  "introduction",
+  "extension-configuration",
+  "create-example-project",
+  "setup-project",
+  "build-flash-monitor",
+  "additional-resources-and-ui",
+];
+
 let walkthroughOpenRequested = false;
 let extensionConfigurationWalkthroughOpened = false;
 
-function openBasicUsageWalkthrough(basicUsageStep?: string) {
+async function markBasicUsageStepsIncomplete() {
+  await Promise.all(
+    basicUsageStepIds.map(async (stepId) => {
+      try {
+        await commands.executeCommand(
+          "welcome.markStepIncomplete",
+          `${basicUsageWalkthroughId}#${stepId}`
+        );
+      } catch (error) {
+        Logger.error(
+          `Could not mark walkthrough step ${stepId} incomplete.`,
+          error as Error,
+          "openBasicUsageWalkthrough"
+        );
+      }
+    })
+  );
+}
+
+async function openBasicUsageWalkthrough(basicUsageStep?: string) {
+  await markBasicUsageStepsIncomplete();
+  // Opening the walkthrough runs workbench.action.openWalkthrough, which is
+  // the completion command for additional-resources-and-ui. Clear again after.
   if (basicUsageStep) {
-    return commands.executeCommand("workbench.action.openWalkthrough", {
+    await commands.executeCommand("workbench.action.openWalkthrough", {
       category: basicUsageWalkthroughId,
       step: basicUsageStep,
     });
+  } else {
+    await commands.executeCommand(
+      "workbench.action.openWalkthrough",
+      basicUsageWalkthroughId
+    );
   }
-  return commands.executeCommand(
-    "workbench.action.openWalkthrough",
-    basicUsageWalkthroughId
-  );
+  await markBasicUsageStepsIncomplete();
 }
 
 export function registerWalkthroughCommands(context: ExtensionContext) {
