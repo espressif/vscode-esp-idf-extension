@@ -53,6 +53,8 @@
 
         若在安装过程中遇到问题，请查看 :ref:`故障排除 <troubleshooting-section>` 章节。
 
+.. _manual_idf_configuration:
+
 在 VS Code 的 ESP-IDF 扩展中手动配置 ESP-IDF 与工具
 ---------------------------------------------------
 
