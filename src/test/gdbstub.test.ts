@@ -235,6 +235,8 @@ suite("GDB Stub project orchestration", () => {
     }
     const writes: string[] = [];
     let editorSetCalls = 0;
+    let editorCloseCalls = 0;
+    let reconfigureCalls = 0;
     const io: GdbStubProjectIo = {
       pathExists: async (filePath) =>
         Object.prototype.hasOwnProperty.call(files, Uri.file(filePath).fsPath),
@@ -269,12 +271,20 @@ suite("GDB Stub project orchestration", () => {
           await options.setInEditor();
         }
       },
+      closeSdkconfigEditor: () => {
+        editorCloseCalls++;
+      },
+      reconfigureProject: async () => {
+        reconfigureCalls++;
+      },
     };
     return {
       io,
       files,
       writes,
       getEditorSetCalls: () => editorSetCalls,
+      getEditorCloseCalls: () => editorCloseCalls,
+      getReconfigureCalls: () => reconfigureCalls,
     };
   }
 
@@ -288,7 +298,8 @@ suite("GDB Stub project orchestration", () => {
       "CMakeLists.txt"
     );
     const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
-    const { io, files, writes, getEditorSetCalls } = createTestIo({
+    const { io, files, writes, getEditorSetCalls, getReconfigureCalls } =
+      createTestIo({
       files: {
         [mainPath]: 'idf_component_register(SRCS "main.c")',
         [otherPath]: 'idf_component_register(SRCS "foo.c")',
@@ -311,6 +322,7 @@ suite("GDB Stub project orchestration", () => {
     );
     assert.deepStrictEqual(writes, [manifestPath, sdkconfigPath]);
     assert.strictEqual(getEditorSetCalls(), 0);
+    assert.strictEqual(getReconfigureCalls(), 1);
   });
 
   test("returns cancelled when the component QuickPick is dismissed", async () => {
@@ -362,7 +374,7 @@ suite("GDB Stub project orchestration", () => {
     const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
     const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
     const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
-    const { io, writes, getEditorSetCalls } = createTestIo({
+    const { io, writes, getEditorSetCalls, getReconfigureCalls } = createTestIo({
       files: {
         [mainPath]: "idf_component_register(SRCS main.c)",
         [manifestPath]:
@@ -376,6 +388,7 @@ suite("GDB Stub project orchestration", () => {
     assert.strictEqual(result, "unchanged");
     assert.deepStrictEqual(writes, []);
     assert.strictEqual(getEditorSetCalls(), 0);
+    assert.strictEqual(getReconfigureCalls(), 0);
   });
 
   test("updates the manifest without touching sdkconfig when the option is already set", async () => {
@@ -383,7 +396,8 @@ suite("GDB Stub project orchestration", () => {
     const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
     const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
     const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
-    const { io, files, writes, getEditorSetCalls } = createTestIo({
+    const { io, files, writes, getEditorSetCalls, getReconfigureCalls } =
+      createTestIo({
       files: {
         [mainPath]: "idf_component_register(SRCS main.c)",
         [sdkconfigPath]: "CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y\n",
@@ -397,6 +411,7 @@ suite("GDB Stub project orchestration", () => {
     assert.match(files[manifestPath], /require: private/);
     assert.deepStrictEqual(writes, [manifestPath]);
     assert.strictEqual(getEditorSetCalls(), 0);
+    assert.strictEqual(getReconfigureCalls(), 1);
   });
 
   test("writes sdkconfig without rewriting the manifest when the dependency exists", async () => {
@@ -404,7 +419,8 @@ suite("GDB Stub project orchestration", () => {
     const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
     const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
     const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
-    const { io, files, writes, getEditorSetCalls } = createTestIo({
+    const { io, files, writes, getEditorSetCalls, getReconfigureCalls } =
+      createTestIo({
       files: {
         [mainPath]: "idf_component_register(SRCS main.c)",
         [manifestPath]:
@@ -421,6 +437,7 @@ suite("GDB Stub project orchestration", () => {
       files[sdkconfigPath].includes("CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y")
     );
     assert.strictEqual(getEditorSetCalls(), 0);
+    assert.strictEqual(getReconfigureCalls(), 1);
   });
 
   test("sets the option through a running SDK Configuration Editor", async () => {
@@ -428,7 +445,14 @@ suite("GDB Stub project orchestration", () => {
     const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
     const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
     const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
-    const { io, files, writes, getEditorSetCalls } = createTestIo({
+    const {
+      io,
+      files,
+      writes,
+      getEditorSetCalls,
+      getEditorCloseCalls,
+      getReconfigureCalls,
+    } = createTestIo({
       files: {
         [mainPath]: "idf_component_register(SRCS main.c)",
         [manifestPath]:
@@ -444,28 +468,77 @@ suite("GDB Stub project orchestration", () => {
     assert.deepStrictEqual(writes, []);
     assert.strictEqual(files[sdkconfigPath], "CONFIG_OTHER=y\n");
     assert.strictEqual(getEditorSetCalls(), 1);
+    assert.strictEqual(getEditorCloseCalls(), 0);
+    assert.strictEqual(getReconfigureCalls(), 0);
   });
 
-  test("reports that the manifest was updated if the running editor cannot set the option", async () => {
+  test("writes sdkconfig and reconfigures when the running editor cannot see the new component", async () => {
     const workspacePath = Uri.file(path.join(__dirname, "gdbstub-ws-fail"));
     const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
     const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
-    const { io, files } = createTestIo({
+    const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
+    const {
+      io,
+      files,
+      getEditorSetCalls,
+      getEditorCloseCalls,
+      getReconfigureCalls,
+    } = createTestIo({
       files: {
         [mainPath]: "idf_component_register(SRCS main.c)",
+        [sdkconfigPath]: "CONFIG_OTHER=y\n",
       },
       editorRunning: true,
       setInEditor: async () => {
-        throw new Error("confserver down");
+        throw new Error("not visible");
       },
     });
 
-    await assert.rejects(
-      () => configureProjectForRuntimeGdbStub(workspacePath, io),
-      /idf_component\.yml/
-    );
-    assert.strictEqual(files[mainPath], "idf_component_register(SRCS main.c)");
+    const result = await configureProjectForRuntimeGdbStub(workspacePath, io);
+
+    assert.strictEqual(result, "updated");
+    assert.strictEqual(getEditorSetCalls(), 0);
+    assert.strictEqual(getEditorCloseCalls(), 1);
+    assert.strictEqual(getReconfigureCalls(), 1);
     assert.match(files[manifestPath], /require: private/);
+    assert.ok(
+      files[sdkconfigPath].includes("CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y")
+    );
+  });
+
+  test("writes sdkconfig when the running editor rejects an already added component", async () => {
+    const workspacePath = Uri.file(path.join(__dirname, "gdbstub-ws-reject"));
+    const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
+    const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
+    const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
+    const {
+      io,
+      files,
+      getEditorSetCalls,
+      getEditorCloseCalls,
+      getReconfigureCalls,
+    } = createTestIo({
+      files: {
+        [mainPath]: "idf_component_register(SRCS main.c)",
+        [manifestPath]:
+          "dependencies:\n  esp_gdbstub:\n    require: private\n",
+        [sdkconfigPath]: "# CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME is not set\n",
+      },
+      editorRunning: true,
+      setInEditor: async () => {
+        throw new Error("not visible");
+      },
+    });
+
+    const result = await configureProjectForRuntimeGdbStub(workspacePath, io);
+
+    assert.strictEqual(result, "updated");
+    assert.strictEqual(getEditorSetCalls(), 1);
+    assert.strictEqual(getEditorCloseCalls(), 1);
+    assert.strictEqual(getReconfigureCalls(), 1);
+    assert.ok(
+      files[sdkconfigPath].includes("CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y")
+    );
   });
 
   test("skips a malformed CMakeLists.txt while scanning", async () => {

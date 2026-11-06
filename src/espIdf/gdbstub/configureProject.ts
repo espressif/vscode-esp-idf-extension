@@ -11,6 +11,8 @@ import {
 } from "vscode";
 import { ConfserverProcess } from "../menuconfig/confserver/confServerProcess";
 import { getSDKConfigFilePath } from "../../configuration/workspace";
+import { TaskManager } from "../../taskManager/taskManager";
+import { addIdfReconfigureTask } from "../reconfigure/task";
 import {
   addGdbStubManifestDependency,
   enableSdkconfigOption,
@@ -33,6 +35,8 @@ export interface GdbStubProjectIo {
   resolveSdkconfigPath(workspacePath: Uri): Promise<string>;
   sdkconfigEditorIsRunning(): boolean;
   setRuntimeGdbStubInEditor(): Promise<void>;
+  closeSdkconfigEditor(): void;
+  reconfigureProject(workspacePath: Uri): Promise<void>;
 }
 
 async function readOpenDocumentText(filePath: string): Promise<string> {
@@ -103,6 +107,12 @@ const defaultGdbStubProjectIo: GdbStubProjectIo = {
   resolveSdkconfigPath: getSDKConfigFilePath,
   sdkconfigEditorIsRunning: () => ConfserverProcess.exists(),
   setRuntimeGdbStubInEditor,
+  closeSdkconfigEditor: () => ConfserverProcess.dispose(),
+  reconfigureProject: async (workspacePath) => {
+    await addIdfReconfigureTask(workspacePath);
+    await TaskManager.runTasks();
+    TaskManager.disposeListeners();
+  },
 };
 
 export async function configureProjectForRuntimeGdbStub(
@@ -142,23 +152,31 @@ export async function configureProjectForRuntimeGdbStub(
     await io.replaceFileText(manifestPath, updatedManifestText);
   }
 
+  // The running editor loaded Kconfig before esp_gdbstub was in the build, so
+  // it rejects ESP_SYSTEM_GDBSTUB_RUNTIME as not visible. Write sdkconfig
+  // directly unless the dependency was already present and the editor can
+  // update its current model.
+  let wroteSdkconfig = false;
   if (sdkconfigNeedsUpdate) {
-    try {
-      if (io.sdkconfigEditorIsRunning()) {
+    const editorHasSymbol = !manifestChanged && io.sdkconfigEditorIsRunning();
+    if (editorHasSymbol) {
+      try {
         await io.setRuntimeGdbStubInEditor();
-      } else {
+      } catch {
         await io.replaceFileText(sdkconfigPath, updatedSdkconfigText);
+        wroteSdkconfig = true;
       }
-    } catch (error) {
-      if (manifestChanged) {
-        throw new Error(
-          l10n.t(
-            "esp_gdbstub was added to idf_component.yml, but CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME could not be enabled."
-          )
-        );
-      }
-      throw error instanceof Error ? error : new Error(String(error));
+    } else {
+      await io.replaceFileText(sdkconfigPath, updatedSdkconfigText);
+      wroteSdkconfig = true;
     }
+  }
+
+  if (manifestChanged || wroteSdkconfig) {
+    if (io.sdkconfigEditorIsRunning()) {
+      io.closeSdkconfigEditor();
+    }
+    await io.reconfigureProject(workspacePath);
   }
 
   return "updated";

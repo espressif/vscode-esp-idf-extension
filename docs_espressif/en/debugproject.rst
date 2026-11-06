@@ -383,7 +383,7 @@ Runtime GDB Stub
 Besides the panic handler, the GDB Stub can also be entered on demand while the application is running. Use the ``ESP-IDF: Configure Project for Runtime GDB Stub`` command to prepare the project:
 
 - A private ``esp_gdbstub`` dependency is added to the component ``idf_component.yml``. The entry points at the copy shipped with ESP-IDF (``path: ${IDF_PATH}/components/esp_gdbstub``, ``require: private``). ``CMakeLists.txt`` is left unchanged, so a ``main`` component that does not list ``REQUIRES`` or ``PRIV_REQUIRES`` keeps ESP-IDF's default of linking every component in the build. A minimal build still compiles ``esp_gdbstub``.
-- ``CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y`` is set in the project sdkconfig.
+- ``CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y`` is written to the project sdkconfig, then the project is reconfigured so ``esp_gdbstub`` enters the build and the option is kept. If the SDK Configuration editor is open, it is closed first: that editor was started before the component existed, and it would otherwise reject ``ESP_SYSTEM_GDBSTUB_RUNTIME`` as not visible.
 - An ``ESP-IDF Runtime GDB Stub`` configuration is added at the top of ``.vscode/launch.json``.
 
 Build and flash the project, select **ESP-IDF Runtime GDB Stub** in **Run and Debug**, then press ``F5``. The extension resets the chip over the serial port, sends Ctrl-C (``0x03``) so the firmware enters GDB Stub, and attaches GDB to that port. Close **IDF Monitor** first if it is using the same serial port.
