@@ -17,7 +17,7 @@
  */
 
 import { pathExists } from "fs-extra";
-import { basename, dirname, resolve } from "path";
+import { basename, dirname, relative, resolve, sep } from "path";
 import {
   commands,
   ConfigurationTarget,
@@ -33,6 +33,7 @@ import { ESP } from "../config";
 import { readParameter, writeParameter } from "../configuration/idf";
 import {
   currentSetupRejectDetail,
+  defaultEimIdfJsonPath,
   finishedIdfInstalls,
   getEimIdfJson,
   resolveEimIdfJsonPath,
@@ -49,10 +50,15 @@ export interface EimIdfJsonWatcherHost {
   leaveForFailure: (failure: ActivationFailure, detail?: string) => void;
 }
 
+export interface EimIdfJsonWatchTarget {
+  base: string;
+  pattern: string;
+}
+
 let watcherHost: EimIdfJsonWatcherHost | undefined;
 let watcher: FileSystemWatcher | undefined;
 let watcherEvents: Disposable[] = [];
-let watchedPath: string | undefined;
+let watchedKey: string | undefined;
 let configListener: Disposable | undefined;
 let catalogChangeTimer: ReturnType<typeof setTimeout> | undefined;
 let writingEimIdfJsonPath = false;
@@ -60,7 +66,7 @@ let catalogGeneration = 0;
 let catalogReactionRunning = false;
 let catalogReactionFollowUp = false;
 
-async function resolveWatchPath(): Promise<string | undefined> {
+async function resolveWatchPath(): Promise<string> {
   const customPath = readParameter("idf.eimIdfJsonPath") as string;
   if (customPath && !(await pathExists(customPath))) {
     writingEimIdfJsonPath = true;
@@ -75,25 +81,54 @@ async function resolveWatchPath(): Promise<string | undefined> {
     }
   }
   const resolved = await resolveEimIdfJsonPath();
-  return resolved ? resolve(resolved) : undefined;
+  return resolve(resolved || defaultEimIdfJsonPath());
 }
 
-function disposeWatcher() {
-  clearCatalogTimer();
+export async function eimIdfJsonWatchTarget(
+  filePath: string
+): Promise<EimIdfJsonWatchTarget> {
+  const resolvedFile = resolve(filePath);
+  const directory = dirname(resolvedFile);
+  if (await pathExists(directory)) {
+    return { base: directory, pattern: basename(resolvedFile) };
+  }
+  // FileSystemWatcher misses creates under a directory that did not exist yet.
+  let base = directory;
+  while (!(await pathExists(base))) {
+    const parent = dirname(base);
+    if (parent === base) {
+      break;
+    }
+    base = parent;
+  }
+  const pattern = relative(base, resolvedFile).split(sep).join("/");
+  return { base, pattern };
+}
+
+function watchKey(target: EimIdfJsonWatchTarget) {
+  return `${target.base}\0${target.pattern}`;
+}
+
+function closeWatcher() {
   for (const event of watcherEvents) {
     event.dispose();
   }
   watcherEvents = [];
   watcher?.dispose();
   watcher = undefined;
-  watchedPath = undefined;
+  watchedKey = undefined;
 }
 
-function watchFile(filePath: string) {
-  disposeWatcher();
-  watchedPath = filePath;
+function disposeWatcher() {
+  clearCatalogTimer();
+  closeWatcher();
+}
+
+function watchTarget(target: EimIdfJsonWatchTarget) {
+  closeWatcher();
+  watchedKey = watchKey(target);
   watcher = workspace.createFileSystemWatcher(
-    new RelativePattern(dirname(filePath), basename(filePath))
+    new RelativePattern(target.base, target.pattern)
   );
   const schedule = () => scheduleCatalogReaction();
   watcherEvents = [
@@ -137,7 +172,10 @@ async function runCatalogReaction() {
   try {
     const generation = catalogGeneration;
     const retryWhenIdle = await onCatalogChanged(generation);
-    if (retryWhenIdle) {
+    if (watcherHost) {
+      await syncWatcher(false);
+    }
+    if (retryWhenIdle && generation === catalogGeneration) {
       armCatalogTimer();
     }
   } finally {
@@ -262,21 +300,24 @@ async function syncWatcher(runReaction: boolean) {
     clearCatalogTimer();
   }
   const nextPath = await resolveWatchPath();
-  if (!nextPath) {
-    const hadWatcher = !!watcher;
-    disposeWatcher();
-    if (runReaction && hadWatcher) {
-      await runCatalogReaction();
-    }
+  if (!watcherHost) {
     return;
   }
-  if (watcher && watchedPath === nextPath) {
+  const target = await eimIdfJsonWatchTarget(nextPath);
+  if (!watcherHost) {
+    return;
+  }
+  const nextKey = watchKey(target);
+  if (watcher && watchedKey === nextKey) {
     if (runReaction) {
       await runCatalogReaction();
     }
     return;
   }
-  watchFile(nextPath);
+  if (runReaction) {
+    clearCatalogTimer();
+  }
+  watchTarget(target);
   if (runReaction) {
     await runCatalogReaction();
   }

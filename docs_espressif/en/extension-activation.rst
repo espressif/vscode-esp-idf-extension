@@ -103,14 +103,14 @@ When a catalog change leaves configured mode, the view switches to the shorter l
 Watching eim_idf.json
 ---------------------
 
-After the first validation, the extension watches the resolved catalog file. That file is ``idf.eimIdfJsonPath`` when the file exists. Otherwise it is ``C:\\Espressif\\tools\\eim_idf.json`` on Windows, or ``~/.espressif/tools/eim_idf.json`` elsewhere. The file is outside the workspace. Create, change, and delete events for one edit are handled once. Events are ignored while activation is already running.
+After the first validation, the extension watches the resolved catalog file. That file is ``idf.eimIdfJsonPath`` when the file exists. Otherwise it is ``C:\\Espressif\\tools\\eim_idf.json`` on Windows, or ``~/.espressif/tools/eim_idf.json`` elsewhere, including when that file is not on disk yet. The file is outside the workspace. Create, change, and delete events for one edit are handled once. Events are ignored while activation is already running.
 
 - **Non-configured, skipped, and no project detected**: run **ESP-IDF: Retry ESP-IDF Activation**.
 - **Configured**: stay configured when ``idf.currentSetup`` still matches a finished install. If the file is missing, unreadable, or that setup is gone or not finished, hide the configured status bar items and show the non-configured status bar (``Invalid ESP-IDF Setup``, or ``eim_idf.json not found`` / ``No valid ESP-IDF setup found`` when that is the real failure). Switch the commands view to the shorter list. Already registered project commands stay registered. A later successful activation shows the configured status bar items again.
 - **Configured from environment variables**: catalog changes are ignored. The extension stays on the ``idf.customExtraVars`` setup.
 - **No workspace folder**: stay in that mode when at least one finished install remains. Otherwise show the non-configured status bar for a missing catalog (``eim_idf.json not found``) or no finished setup (``No valid ESP-IDF setup found``).
 
-Changing ``idf.eimIdfJsonPath`` retargets the watcher. A custom path that points at a missing file is cleared, and the default file is watched when it exists. If the watcher is already on that default path, it stays there. If neither file exists, watching stops. After the watched path changes, the same reactions run immediately.
+Changing ``idf.eimIdfJsonPath`` retargets the watcher. A custom path that points at a missing file is cleared, and the platform default path is watched. If the watcher is already on that default path, it stays there. If neither file exists, the extension still watches the platform default path, attached to the nearest existing parent directory, so the file is seen when the ESP-IDF Installation Manager creates it. Once that directory exists, the watcher narrows to the file's directory. Creation runs **ESP-IDF: Retry ESP-IDF Activation** while the extension is non-configured, skipped, or no project was detected. After the watched path changes, the same reactions run immediately.
 
 Activation Mode Priority Hierarchy (Phase 2)
 ----------------------------------------------
