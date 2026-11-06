@@ -24,6 +24,8 @@ import {
   window,
   workspace,
 } from "vscode";
+import { join } from "path";
+import { pathExists } from "fs-extra";
 import { HexTreeItem, HexViewProvider } from "../hexViewProvider";
 import {
   CDTDebugConfigurationProvider,
