@@ -1043,7 +1043,20 @@ export class GDBDebugSession extends LoggingDebugSession {
         }
         this.queuedStubStop = undefined;
         try {
-          if (stop.kind === "next") {
+          if (stop.kind === "next" && this.stubApplicationFrame) {
+            // `next` from this halt single-steps: on RISC-V the stub reports
+            // each instruction as SIGTRAP, and esp_cpu_wait_for_intr returns
+            // immediately while a debugger is attached, so the step never
+            // leaves cpu.c. A breakpoint at the application line plus a
+            // continue from the halted thread is what reaches main.
+            this.sendEvent(
+              new OutputEvent("Continuing to the application line\n")
+            );
+            await this.continueToStubLine(
+              this.stubApplicationFrame.file,
+              this.stubApplicationFrame.line
+            );
+          } else if (stop.kind === "next") {
             await mi.sendExecNext(this.gdb);
           } else {
             await mi.sendExecContinue(this.gdb);
@@ -1062,32 +1075,6 @@ export class GDBDebugSession extends LoggingDebugSession {
           this.publishStubStop(this.queuedStubStop);
           this.queuedStubStop = undefined;
           return;
-        }
-        if (
-          stop.kind === "next" &&
-          this.queuedStubStop &&
-          this.isStubTrampolineFrame(this.queuedStubStop.frame) &&
-          this.stubApplicationFrame
-        ) {
-          const target = this.stubApplicationFrame;
-          const idleStop = this.queuedStubStop;
-          this.queuedStubStop = undefined;
-          try {
-            this.sendEvent(
-              new OutputEvent("Continuing to the application line\n")
-            );
-            await this.continueToStubLine(target.file, target.line + 1);
-          } catch (err) {
-            this.queuedStubStop = this.queuedStubStop ?? idleStop;
-            this.sendEvent(
-              new OutputEvent(
-                `Could not leave the idle task: ${
-                  err instanceof Error ? err.message : String(err)
-                }\n`,
-                "stderr"
-              )
-            );
-          }
         }
         this.stubHoldStops = false;
         this.gdbStubUiReady = true;
@@ -1504,10 +1491,11 @@ export class GDBDebugSession extends LoggingDebugSession {
   }
 
   /**
-   * The halted CPU is often the idle task in cpu.c on every ESP32 target.
-   * Select the project frame and step once so the first stop is application
-   * source. A plain continue from that idle instruction stays in cpu.c, and
-   * on RISC-V the stub reports it as SIGILL.
+   * The halted CPU is the idle task in cpu.c. A source step from there stays
+   * in cpu.c: RISC-V returns immediately while a debugger is attached and the
+   * stub reports every single-step as SIGTRAP, and selecting the application
+   * task makes GDB single-step on continue. Remember the project line and
+   * leave the halted thread selected so a later continue can run to it.
    */
   protected async prepareRuntimeStubStop(): Promise<{
     kind: RuntimeStubStartupAction["kind"];
@@ -1529,12 +1517,6 @@ export class GDBDebugSession extends LoggingDebugSession {
       if (action.file && action.line) {
         this.stubApplicationFrame = { file: action.file, line: action.line };
       }
-      await this.selectStubThread(action.threadId);
-      this.stubCurrentThreadId = action.threadId;
-      await mi.sendStackSelectFrame(this.gdb, { framenum: action.frameId });
-      this.sendEvent(
-        new OutputEvent("Stepping from the application task\n")
-      );
       return action;
     } catch (err) {
       this.sendEvent(
@@ -1551,7 +1533,21 @@ export class GDBDebugSession extends LoggingDebugSession {
 
   protected async chooseRuntimeStubAction(): Promise<RuntimeStubStartupAction> {
     await this.refreshStubThreads();
+    const haltedThreadId = this.stubCurrentThreadId || 1;
     const candidates = await this.collectStubThreadFrames();
+    // Reading another task's stack selects that thread. Continuing from it
+    // single-steps, so go back to the thread that was halted in cpu.c.
+    await this.selectStubThread(haltedThreadId);
+    this.stubCurrentThreadId = haltedThreadId;
+    try {
+      await mi.sendStackSelectFrame(this.gdb, { framenum: 0 });
+    } catch (err) {
+      logger.warn(
+        `stack-select-frame failed: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+    }
     const applicationFrame = this.findApplicationFrame(candidates);
     if (!applicationFrame) {
       return { kind: "stay", threadId: this.stubCurrentThreadId || 1 };
