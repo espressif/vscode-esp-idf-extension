@@ -48,7 +48,13 @@ import { resolveDapErrorMessage } from "../dapError";
 type RuntimeStubStartupAction =
   | { kind: "stay"; threadId: number }
   | { kind: "continue"; threadId: number }
-  | { kind: "next"; threadId: number; frameId: number };
+  | {
+      kind: "next";
+      threadId: number;
+      frameId: number;
+      file?: string;
+      line?: number;
+    };
 
 export interface RequestArguments extends DebugProtocol.LaunchRequestArguments {
   gdb?: string;
@@ -1057,6 +1063,32 @@ export class GDBDebugSession extends LoggingDebugSession {
           this.queuedStubStop = undefined;
           return;
         }
+        if (
+          stop.kind === "next" &&
+          this.queuedStubStop &&
+          this.isStubTrampolineFrame(this.queuedStubStop.frame) &&
+          this.stubApplicationFrame
+        ) {
+          const target = this.stubApplicationFrame;
+          const idleStop = this.queuedStubStop;
+          this.queuedStubStop = undefined;
+          try {
+            this.sendEvent(
+              new OutputEvent("Continuing to the application line\n")
+            );
+            await this.continueToStubLine(target.file, target.line + 1);
+          } catch (err) {
+            this.queuedStubStop = this.queuedStubStop ?? idleStop;
+            this.sendEvent(
+              new OutputEvent(
+                `Could not leave the idle task: ${
+                  err instanceof Error ? err.message : String(err)
+                }\n`,
+                "stderr"
+              )
+            );
+          }
+        }
         this.stubHoldStops = false;
         this.gdbStubUiReady = true;
         if (this.queuedStubStop) {
@@ -1303,8 +1335,12 @@ export class GDBDebugSession extends LoggingDebugSession {
     if (
       base === "xtensa_vectors.s" ||
       base === "xtensa_context.s" ||
-      base === "portasm.s"
+      base === "portasm.s" ||
+      base === "vectors.s"
     ) {
+      return true;
+    }
+    if (frame.func === "esp_cpu_wait_for_intr") {
       return true;
     }
     return /^(?:windowoverflow|windowunderflow|_xt_|xt_alloca|xt_syscall)/i.test(
@@ -1468,10 +1504,10 @@ export class GDBDebugSession extends LoggingDebugSession {
   }
 
   /**
-   * The halted CPU is often the idle task in cpu.c. Continue to a user
-   * breakpoint without selecting another FreeRTOS task. Selecting one makes
-   * GDB single-step on continue, and a step from the UART stub does not
-   * resume the application, so the breakpoint never hits.
+   * The halted CPU is often the idle task in cpu.c on every ESP32 target.
+   * Select the project frame and step once so the first stop is application
+   * source. A plain continue from that idle instruction stays in cpu.c, and
+   * on RISC-V the stub reports it as SIGILL.
    */
   protected async prepareRuntimeStubStop(): Promise<{
     kind: RuntimeStubStartupAction["kind"];
@@ -1489,6 +1525,9 @@ export class GDBDebugSession extends LoggingDebugSession {
       if (action.kind === "continue") {
         this.sendEvent(new OutputEvent("Continuing to a breakpoint\n"));
         return action;
+      }
+      if (action.file && action.line) {
+        this.stubApplicationFrame = { file: action.file, line: action.line };
       }
       await this.selectStubThread(action.threadId);
       this.stubCurrentThreadId = action.threadId;
@@ -1511,27 +1550,6 @@ export class GDBDebugSession extends LoggingDebugSession {
   }
 
   protected async chooseRuntimeStubAction(): Promise<RuntimeStubStartupAction> {
-    let hasUserBreakpoint = false;
-    try {
-      const list = await mi.sendBreakList(this.gdb);
-      hasUserBreakpoint = list.BreakpointTable.body.some(
-        (breakpoint) =>
-          !breakpoint.number.includes(".") &&
-          !!(breakpoint.fullname || breakpoint["original-location"])
-      );
-    } catch (err) {
-      logger.warn(
-        `break-list failed: ${
-          err instanceof Error ? err.message : String(err)
-        }`
-      );
-    }
-    if (hasUserBreakpoint) {
-      return {
-        kind: "continue",
-        threadId: this.stubCurrentThreadId || 1,
-      };
-    }
     await this.refreshStubThreads();
     const candidates = await this.collectStubThreadFrames();
     const applicationFrame = this.findApplicationFrame(candidates);
@@ -1542,6 +1560,8 @@ export class GDBDebugSession extends LoggingDebugSession {
       kind: "next",
       threadId: applicationFrame.threadId,
       frameId: applicationFrame.frameId,
+      file: applicationFrame.file,
+      line: applicationFrame.line,
     };
   }
 
@@ -1573,9 +1593,20 @@ export class GDBDebugSession extends LoggingDebugSession {
 
   protected findApplicationFrame(
     threads: StubThreadFrames[]
-  ): { threadId: number; frameId: number } | undefined {
+  ): {
+    threadId: number;
+    frameId: number;
+    file?: string;
+    line?: number;
+  } | undefined {
     let selected:
-      | { threadId: number; frameId: number; level: number }
+      | {
+          threadId: number;
+          frameId: number;
+          level: number;
+          file?: string;
+          line?: number;
+        }
       | undefined;
     for (const thread of threads) {
       for (const frame of thread.frames as StubStopFrame[]) {
@@ -1591,7 +1622,13 @@ export class GDBDebugSession extends LoggingDebugSession {
           continue;
         }
         if (!selected || level < selected.level) {
-          selected = { threadId: thread.id, frameId: level, level };
+          selected = {
+            threadId: thread.id,
+            frameId: level,
+            level,
+            file: source.path,
+            line: this.stubFrameLine(frame.line),
+          };
         }
       }
     }
