@@ -23,6 +23,7 @@ import { EraseFlashSession } from "../../eraseFlash/eraseFlashSession";
 import { getMonitorBaudRate } from "./getMonitorBaudRate";
 import { MonitorConfig } from "./types";
 import { SerialPort } from "../serial/serialPort";
+import { Logger } from "../../common/logger";
 import { canAccessFile, getEspIdfFromCMake, getToolchainToolName } from "../../utils";
 import {
   fileNotFound,
@@ -32,6 +33,7 @@ import {
   invalidConfiguration,
   invalidIdfVersion,
   IdfTaskName,
+  isKnownError,
   missingDependency,
   noPortSelected,
 } from "../../common/error/knownError";
@@ -42,40 +44,51 @@ type ReadSerialPortFn = (
   workspaceFolder: Uri,
   useMonitorPort: boolean
 ) => Promise<string>;
-type ReadMonitorPortFn = (workspaceFolder: WorkspaceFolder) => string;
 type PromptForPortFn = (
   workspaceFolder: Uri,
   useMonitorPort: boolean
 ) => Promise<string | undefined>;
 
 let readSerialPortForTests: ReadSerialPortFn | undefined;
-let readMonitorPortForTests: ReadMonitorPortFn | undefined;
 let promptForPortForTests: PromptForPortFn | undefined;
 
 /** @internal Test helper to stub serial port resolution for the monitor. */
 export function setMonitorLaunchConfigTestHooks(hooks?: {
   readSerialPort?: ReadSerialPortFn;
-  readMonitorPort?: ReadMonitorPortFn;
   promptForPort?: PromptForPortFn;
 }): void {
   readSerialPortForTests = hooks?.readSerialPort;
-  readMonitorPortForTests = hooks?.readMonitorPort;
   promptForPortForTests = hooks?.promptForPort;
+}
+
+async function readMonitorSerialPort(
+  workspaceFolder: Uri,
+  useMonitorPort: boolean
+): Promise<string> {
+  try {
+    return await (readSerialPortForTests ?? readSerialPort)(
+      workspaceFolder,
+      useMonitorPort
+    );
+  } catch (error) {
+    if (!isKnownError(error)) {
+      throw error;
+    }
+    Logger.warn(
+      `Serial port auto-detection failed (${error.code}), asking for a port.`
+    );
+    return "";
+  }
 }
 
 export async function resolveMonitorPort(
   workspaceFolder: WorkspaceFolder
 ): Promise<string> {
-  const monitorPort = readMonitorPortForTests
-    ? readMonitorPortForTests(workspaceFolder)
-    : (readParameter("idf.monitorPort", workspaceFolder) as string);
+  const monitorPort = await readMonitorSerialPort(workspaceFolder.uri, true);
   if (monitorPort) {
     return monitorPort;
   }
-  const serialPort = await (readSerialPortForTests ?? readSerialPort)(
-    workspaceFolder.uri,
-    false
-  );
+  const serialPort = await readMonitorSerialPort(workspaceFolder.uri, false);
   if (serialPort) {
     return serialPort;
   }

@@ -67,7 +67,11 @@ export async function loadSerialPorts(workspaceFolder?: WorkspaceFolder) {
         error instanceof Error && error.message
           ? error.message
           : "Error looking for serial ports.";
-      Logger.error(msg, error as Error, "getNewProjectArgs getSerialPort");
+      Logger.errorNotify(
+        msg,
+        error as Error,
+        "getNewProjectArgs getSerialPort"
+      );
     }
   }
   return serialPortList;
