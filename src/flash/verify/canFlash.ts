@@ -82,16 +82,17 @@ export async function verifyCanFlash(
     );
     throw fileNotFound(errStr);
   }
-  if (flashType === ESP.FlashType.UART) {
-    if (!port) {
-      try {
-        await commands.executeCommand("espIdf.selectPort");
-      } catch (error) {
-        const errStr = "Unable to execute the command: espIdf.selectPort";
-        Logger.error(errStr, error as Error, "verifyCanFlash selectPort");
-      }
-      throw noPortSelected();
-    }
+  if (flashType === ESP.FlashType.UART && !port) {
+    throw noPortSelected({
+      userMessage: "Select a serial port before flashing.",
+      logMessage: "No serial port selected for flashing.",
+      actions: [
+        {
+          label: "Select Port",
+          execute: () => commands.executeCommand("espIdf.selectPort"),
+        },
+      ],
+    });
   }
   if (flashType === ESP.FlashType.UART && !flashBaudRate) {
     throw noBaudRateSelected();
