@@ -237,6 +237,13 @@ export class GDBDebugSession extends LoggingDebugSession {
   protected stubApplicationFrame?: { file: string; line: number };
   /** Source line a stub Step Over is trying to reach. */
   protected stubStepResume?: { file: string; line: number };
+  /**
+   * Breakpoints on the line being stepped, disabled for the duration of the
+   * step. Left in place, GDB single-steps off them inside the stub interrupt.
+   */
+  protected stubDisabledBreakpoints: string[] = [];
+  /** Temporary address breakpoints for one stub Step Over. */
+  protected stubStepTempBreakpoints: string[] = [];
   protected stubTrampolineResumeStarted = false;
   protected stubStoppedFrame?: {
     file?: string;
@@ -1401,19 +1408,269 @@ export class GDBDebugSession extends LoggingDebugSession {
       : undefined;
     const line = this.stubFrameLine(frame?.line);
     if (source?.path && line) {
-      this.stubStepResume = { file: source.path, line: line + 1 };
+      this.stubStepResume = { file: source.path, line };
     }
     this.stubTrampolineResumeStarted = false;
+    await mi.sendStackSelectFrame(this.gdb, { framenum: 0 });
+    await this.disableBreakpointsOnStubLine(source?.path, line);
+    const pc = this.parseCodeAddress(frame?.addr);
+    const stops =
+      pc && line ? await this.stubStepStopAddresses(pc, line) : [];
     try {
-      await mi.sendStackSelectFrame(this.gdb, { framenum: 0 });
-      await mi.sendExecUntil(this.gdb, "+1");
+      if (stops.length > 0) {
+        await this.continueToStubAddresses(stops);
+      } else {
+        await mi.sendExecUntil(this.gdb, "+1");
+      }
+    } catch (err) {
+      await this.clearStubStepTempBreakpoints();
+      await this.restoreStubStepBreakpoints();
+      throw err;
+    }
+  }
+
+  protected parseCodeAddress(value: string | undefined): number | undefined {
+    if (!value) {
+      return undefined;
+    }
+    const match = value.trim().match(/^(?:0x)?([0-9a-f]+)$/i);
+    if (!match) {
+      return undefined;
+    }
+    const parsed = parseInt(match[1], 16);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+
+  protected flattenStubDisassembly(
+    decoded: mi.MIDataDisassembleResponse
+  ): Array<{ addr: number; inst: string; line?: number }> {
+    const rows: Array<{ addr: number; inst: string; line?: number }> = [];
+    for (const group of decoded.asm_insns || []) {
+      const parsed = group.line ? parseInt(group.line, 10) : NaN;
+      const line = Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+      for (const insn of group.line_asm_insn || []) {
+        const addr = this.parseCodeAddress(insn.address);
+        if (addr === undefined) {
+          continue;
+        }
+        rows.push({ addr, inst: insn.inst || "", line });
+      }
+    }
+    rows.sort((left, right) => left.addr - right.addr);
+    return rows;
+  }
+
+  protected insnMnemonic(inst: string): string {
+    return (inst.trim().split(/\s+/)[0] || "").toLowerCase();
+  }
+
+  protected branchTargetAddress(inst: string): number | undefined {
+    const tokens = inst.trim().split(/[\s,]+/);
+    for (let index = tokens.length - 1; index >= 1; index--) {
+      const parsed = this.parseCodeAddress(tokens[index].replace(/<.*$/, ""));
+      if (parsed !== undefined && parsed > 0x1000) {
+        return parsed;
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Addresses where execution next has a different source line. Calls are
+   * stepped over. At most two, which is the hardware-breakpoint budget.
+   */
+  protected async stubStepStopAddresses(
+    pc: number,
+    originLine: number
+  ): Promise<number[]> {
+    let decoded: mi.MIDataDisassembleResponse;
+    try {
+      decoded = await mi.sendDataDisassemble(
+        this.gdb,
+        `0x${pc.toString(16)}`,
+        `0x${(pc + 0x80).toString(16)}`
+      );
     } catch (err) {
       logger.warn(
-        `until +1 failed, using next: ${
+        `Stub step disassembly failed: ${
           err instanceof Error ? err.message : String(err)
         }`
       );
-      await mi.sendExecNext(this.gdb);
+      return [];
+    }
+    const insns = this.flattenStubDisassembly(decoded);
+    const indexAt = (addr: number) =>
+      insns.findIndex((insn, index) => {
+        const next = insns[index + 1]?.addr ?? insn.addr + 4;
+        return addr >= insn.addr && addr < next;
+      });
+    const start = indexAt(pc);
+    if (start < 0) {
+      return [];
+    }
+
+    const stops: number[] = [];
+    const seen = new Set<number>();
+    const queue = [start];
+    const enqueueOrStop = (addr: number | undefined) => {
+      if (addr === undefined || stops.length > 2) {
+        return;
+      }
+      const index = indexAt(addr);
+      if (index >= 0 && (!insns[index].line || insns[index].line === originLine)) {
+        queue.push(index);
+        return;
+      }
+      stops.push(addr);
+    };
+
+    let walked = 0;
+    while (queue.length > 0 && walked < 48 && stops.length <= 2) {
+      const index = queue.shift();
+      if (index === undefined || seen.has(index) || index >= insns.length) {
+        continue;
+      }
+      seen.add(index);
+      walked++;
+      const insn = insns[index];
+      const mnemonic = this.insnMnemonic(insn.inst);
+      if (/^call(?:x)?(?:0|4|8|12)$/.test(mnemonic)) {
+        queue.push(index + 1);
+        continue;
+      }
+      if (/^ret(?:w)?(?:\.n)?$/.test(mnemonic)) {
+        return [];
+      }
+      if (mnemonic === "j" || mnemonic === "jx") {
+        enqueueOrStop(this.branchTargetAddress(insn.inst));
+        continue;
+      }
+      if (mnemonic.startsWith("b") && mnemonic !== "break") {
+        enqueueOrStop(this.branchTargetAddress(insn.inst));
+        enqueueOrStop(insns[index + 1]?.addr);
+        continue;
+      }
+      if (insn.line && insn.line !== originLine) {
+        stops.push(insn.addr);
+        continue;
+      }
+      queue.push(index + 1);
+    }
+
+    const unique = [...new Set(stops)];
+    return unique.length > 0 && unique.length <= 2 ? unique : [];
+  }
+
+  protected async continueToStubAddresses(addresses: number[]): Promise<void> {
+    for (const address of addresses) {
+      try {
+        const inserted = await mi.sendBreakpointInsert(
+          this.gdb,
+          `*0x${address.toString(16)}`,
+          { temporary: true }
+        );
+        if (inserted.bkpt?.number) {
+          this.stubStepTempBreakpoints.push(inserted.bkpt.number);
+        }
+      } catch (err) {
+        logger.warn(
+          `Stub step breakpoint at 0x${address.toString(16)} failed: ${
+            err instanceof Error ? err.message : String(err)
+          }`
+        );
+      }
+    }
+    if (this.stubStepTempBreakpoints.length === 0) {
+      throw new Error("Could not arm a stub step breakpoint");
+    }
+    await mi.sendExecContinue(this.gdb);
+  }
+
+  protected async clearStubStepTempBreakpoints(): Promise<void> {
+    const numbers = this.stubStepTempBreakpoints;
+    this.stubStepTempBreakpoints = [];
+    for (const number of numbers) {
+      try {
+        await mi.sendBreakDelete(this.gdb, { breakpoints: [number] });
+      } catch {
+        // The breakpoint that was hit is already gone.
+      }
+    }
+  }
+
+  protected stubSourcesMatch(reported: string, target: string): boolean {
+    const left = path.normalize(reported).replace(/\\/g, "/").toLowerCase();
+    const right = path.normalize(target).replace(/\\/g, "/").toLowerCase();
+    return (
+      left === right ||
+      left.endsWith(`/${right}`) ||
+      right.endsWith(`/${left}`)
+    );
+  }
+
+  protected breakpointCoversStubLine(
+    bkpt: mi.MIBreakpointInfo,
+    file: string,
+    line: number
+  ): boolean {
+    const places = [
+      { file: bkpt.fullname || bkpt.file, line: bkpt.line },
+      ...(bkpt.locations ?? []).map((location) => ({
+        file: location.fullname || location.file,
+        line: location.line,
+      })),
+    ];
+    return places.some((place) => {
+      const parsed = place.line ? parseInt(place.line, 10) : NaN;
+      return (
+        parsed === line &&
+        !!place.file &&
+        this.stubSourcesMatch(place.file, file)
+      );
+    });
+  }
+
+  protected async disableBreakpointsOnStubLine(
+    file: string | undefined,
+    line: number | undefined
+  ): Promise<void> {
+    if (!file || !line) {
+      return;
+    }
+    const listed = await mi.sendBreakList(this.gdb);
+    const body = listed.BreakpointTable?.body as
+      | mi.MIBreakpointInfo[]
+      | mi.MIBreakpointInfo
+      | undefined;
+    const rows = !body ? [] : Array.isArray(body) ? body : [body];
+    const numbers = rows
+      .filter(
+        (bkpt) =>
+          bkpt.enabled !== "n" &&
+          this.breakpointCoversStubLine(bkpt, file, line)
+      )
+      .map((bkpt) => bkpt.number);
+    if (numbers.length === 0) {
+      return;
+    }
+    await this.gdb.sendCommand(`-break-disable ${numbers.join(" ")}`);
+    this.stubDisabledBreakpoints.push(...numbers);
+  }
+
+  protected async restoreStubStepBreakpoints(): Promise<void> {
+    const numbers = this.stubDisabledBreakpoints;
+    this.stubDisabledBreakpoints = [];
+    if (numbers.length === 0) {
+      return;
+    }
+    try {
+      await this.gdb.sendCommand(`-break-enable ${numbers.join(" ")}`);
+    } catch (err) {
+      logger.warn(
+        `Could not restore breakpoints after stub Step Over: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
     }
   }
 
@@ -1746,7 +2003,9 @@ export class GDBDebugSession extends LoggingDebugSession {
         await this.selectStubThread(args.threadId);
       }
       const threadId = this.stubExecThread(args.threadId);
-      await mi.sendExecNextInstruction(this.gdb, threadId);
+      await (args.granularity === "instruction"
+        ? mi.sendExecNextInstruction(this.gdb, threadId)
+        : mi.sendExecNext(this.gdb, threadId));
       this.sendResponse(response);
     } catch (err) {
       this.sendErrorResponse(
@@ -2407,9 +2666,15 @@ export class GDBDebugSession extends LoggingDebugSession {
         !this.stubTrampolineResumeStarted
       ) {
         this.stubTrampolineResumeStarted = true;
-        void this.continuePastStubTrampoline();
+        if (this.stubStepTempBreakpoints.length > 0) {
+          void mi.sendExecContinue(this.gdb);
+        } else {
+          void this.continuePastStubTrampoline();
+        }
         return;
       }
+      void this.clearStubStepTempBreakpoints();
+      void this.restoreStubStepBreakpoints();
       this.noteStubStop(result);
       if (this.stubStepResume && !trampoline && this.stubStepLanded(result?.frame)) {
         this.stubStepResume = undefined;
