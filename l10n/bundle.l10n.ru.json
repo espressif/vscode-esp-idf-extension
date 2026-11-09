@@ -27,6 +27,8 @@
   "OpenOCD adapter serial and USB location cleared. OpenOCD server stopped.": "Серийный номер и расположение USB адаптера OpenOCD сброшены. Сервер OpenOCD остановлен.",
   "OpenOCD server stopped to scan for connected boards.": "Сервер OpenOCD остановлен для поиска подключённых плат.",
   "The OpenOCD server did not stop in time, so connected boards cannot be scanned. Stop it and run the command again.": "Сервер OpenOCD не остановился вовремя, поэтому поиск подключённых плат невозможен. Остановите его и запустите команду снова.",
+  "No board was selected. The OpenOCD server was stopped for the scan and is not running.": "Плата не выбрана. Сервер OpenOCD был остановлен для поиска и сейчас не запущен.",
+  "Start OpenOCD": "Запустить OpenOCD",
   "OpenOCD adapter serial and USB location cleared.": "Серийный номер и расположение USB адаптера OpenOCD сброшены.",
   "Default Boards": "Платы по умолчанию",
   "Other Boards": "Другие платы",

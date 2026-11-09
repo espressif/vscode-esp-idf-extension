@@ -27,6 +27,8 @@
   "OpenOCD adapter serial and USB location cleared. OpenOCD server stopped.": "Número de serie y ubicación USB del adaptador OpenOCD borrados. Servidor OpenOCD detenido.",
   "OpenOCD server stopped to scan for connected boards.": "Servidor OpenOCD detenido para buscar placas conectadas.",
   "The OpenOCD server did not stop in time, so connected boards cannot be scanned. Stop it and run the command again.": "El servidor OpenOCD no se detuvo a tiempo, por lo que no se pueden buscar las placas conectadas. Deténgalo y vuelva a ejecutar el comando.",
+  "No board was selected. The OpenOCD server was stopped for the scan and is not running.": "No se seleccionó ninguna placa. El servidor OpenOCD se detuvo para la búsqueda y no está en ejecución.",
+  "Start OpenOCD": "Iniciar OpenOCD",
   "OpenOCD adapter serial and USB location cleared.": "Número de serie y ubicación USB del adaptador OpenOCD borrados.",
   "Default Boards": "Placas predeterminadas",
   "Other Boards": "Otras placas",

@@ -408,26 +408,36 @@ suite("OpenOCD adapter binding", () => {
       pick: (
         items: AdapterCommandQuickPickItem[]
       ) => AdapterCommandQuickPickItem | undefined,
-      serverRunning = false
+      serverRunning = false,
+      options: { boardApplied?: boolean; infoChoice?: string } = {}
     ) {
       const seen: {
         items: AdapterCommandQuickPickItem[];
         placeHolder?: string;
+        info?: { message: string; items: string[] };
       } = { items: [] };
-      const calls: ("select" | "stop")[] = [];
+      const calls: ("select" | "stop" | "start")[] = [];
       setAdapterCommandTestHooks({
-        showQuickPick: async (items, options) => {
+        showQuickPick: async (items, quickPickOptions) => {
           seen.items = items;
-          seen.placeHolder = options.placeHolder;
+          seen.placeHolder = quickPickOptions.placeHolder;
           return pick(items);
         },
         selectConnectedBoard: async () => {
           calls.push("select");
+          return options.boardApplied ?? true;
+        },
+        showInformationMessage: async (message, ...items) => {
+          seen.info = { message, items };
+          return options.infoChoice;
         },
         openOcdServer: {
           isRunning: () => serverRunning,
           stop: () => {
             calls.push("stop");
+          },
+          start: async () => {
+            calls.push("start");
           },
         },
       });
@@ -509,6 +519,52 @@ suite("OpenOCD adapter binding", () => {
       assert.deepStrictEqual(calls, ["stop", "select"]);
     });
 
+    test("select offers to start OpenOCD again when the board list is dismissed after stopping it", async () => {
+      setIdfConfigurationSource(createFakeIdfSource({}));
+      const { calls, seen } = stubQuickPick(
+        (items) => items.find((i) => i.action === "select"),
+        true,
+        { boardApplied: false, infoChoice: "Start OpenOCD" }
+      );
+
+      await runOpenOcdAdapterCommand(fakeWorkspaceFolder);
+
+      assert.deepStrictEqual(calls, ["stop", "select", "start"]);
+      assert.deepStrictEqual(seen.info?.items, ["Start OpenOCD"]);
+    });
+
+    test("select leaves OpenOCD stopped when the restart offer is dismissed", async () => {
+      setIdfConfigurationSource(createFakeIdfSource({}));
+      const { calls, seen } = stubQuickPick(
+        (items) => items.find((i) => i.action === "select"),
+        true,
+        { boardApplied: false }
+      );
+
+      await runOpenOcdAdapterCommand(fakeWorkspaceFolder);
+
+      assert.deepStrictEqual(calls, ["stop", "select"]);
+      assert.ok(seen.info);
+    });
+
+    test("select shows no restart offer when a board was chosen or OpenOCD was not running", async () => {
+      setIdfConfigurationSource(createFakeIdfSource({}));
+      const chosen = stubQuickPick(
+        (items) => items.find((i) => i.action === "select"),
+        true
+      );
+      await runOpenOcdAdapterCommand(fakeWorkspaceFolder);
+      assert.strictEqual(chosen.seen.info, undefined);
+
+      const notRunning = stubQuickPick(
+        (items) => items.find((i) => i.action === "select"),
+        false,
+        { boardApplied: false }
+      );
+      await runOpenOcdAdapterCommand(fakeWorkspaceFolder);
+      assert.strictEqual(notRunning.seen.info, undefined);
+    });
+
     test("select waits for the OpenOCD process to close before scanning", async () => {
       setIdfConfigurationSource(createFakeIdfSource({}));
       const calls: string[] = [];
@@ -518,6 +574,7 @@ suite("OpenOCD adapter binding", () => {
           items.find((i) => i.action === "select"),
         selectConnectedBoard: async () => {
           calls.push("select");
+          return true;
         },
         openOcdServer: {
           isRunning: () => true,
@@ -539,18 +596,26 @@ suite("OpenOCD adapter binding", () => {
       assert.deepStrictEqual(calls, ["stop", "close", "select"]);
     });
 
-    test("select does not scan when the OpenOCD process never closes", async () => {
+    test("select does not scan when the OpenOCD process never closes and drops its close listener", async () => {
       setIdfConfigurationSource(createFakeIdfSource({}));
       const calls: string[] = [];
+      let registered: (() => void) | undefined;
+      let removed: (() => void) | undefined;
       setAdapterCommandTestHooks({
         showQuickPick: async (items) =>
           items.find((i) => i.action === "select"),
         selectConnectedBoard: async () => {
           calls.push("select");
+          return true;
         },
         openOcdServer: {
           isRunning: () => true,
-          once: () => undefined,
+          once: (_event, listener) => {
+            registered = listener;
+          },
+          off: (_event, listener) => {
+            removed = listener;
+          },
           stop: () => {
             calls.push("stop");
           },
@@ -561,6 +626,8 @@ suite("OpenOCD adapter binding", () => {
       await runOpenOcdAdapterCommand(fakeWorkspaceFolder);
 
       assert.deepStrictEqual(calls, ["stop"]);
+      assert.ok(registered);
+      assert.strictEqual(removed, registered);
     });
 
     test("clear removes the serial and the location", async () => {

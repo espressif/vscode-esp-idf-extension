@@ -47,7 +47,11 @@ interface AdapterCommandTestHooks {
     items: AdapterCommandQuickPickItem[],
     options: QuickPickOptions
   ) => Thenable<AdapterCommandQuickPickItem | undefined>;
-  selectConnectedBoard?: (workspaceFolder: WorkspaceFolder) => Promise<void>;
+  selectConnectedBoard?: (workspaceFolder: WorkspaceFolder) => Promise<boolean>;
+  showInformationMessage?: (
+    message: string,
+    ...items: string[]
+  ) => Thenable<string | undefined>;
   openOcdServer?: OpenOcdServerControl;
   exitTimeoutMs?: number;
 }
@@ -55,7 +59,9 @@ interface AdapterCommandTestHooks {
 interface OpenOcdServerControl {
   isRunning(): boolean;
   stop(): void;
+  start?(): Promise<void>;
   once?(event: "close", listener: () => void): unknown;
+  off?(event: "close", listener: () => void): unknown;
 }
 
 const OPENOCD_EXIT_TIMEOUT_MS = 2000;
@@ -68,14 +74,15 @@ async function stopOpenOcdServer(
       resolve(true);
       return;
     }
-    const timer = setTimeout(
-      () => resolve(false),
-      testHooks?.exitTimeoutMs ?? OPENOCD_EXIT_TIMEOUT_MS
-    );
-    server.once("close", () => {
+    const onClose = () => {
       clearTimeout(timer);
       resolve(true);
-    });
+    };
+    const timer = setTimeout(() => {
+      server.off?.("close", onClose);
+      resolve(false);
+    }, testHooks?.exitTimeoutMs ?? OPENOCD_EXIT_TIMEOUT_MS);
+    server.once("close", onClose);
   });
   server.stop();
   return exited;
@@ -132,6 +139,7 @@ export async function runOpenOcdAdapterCommand(
 
   const openOcdServer = testHooks?.openOcdServer || OpenOCDManager.init();
   if (selected.action === "select") {
+    let stoppedServer = false;
     if (openOcdServer.isRunning()) {
       const stopped = await stopOpenOcdServer(openOcdServer);
       if (!stopped) {
@@ -145,11 +153,26 @@ export async function runOpenOcdAdapterCommand(
       Logger.infoNotify(
         l10n.t("OpenOCD server stopped to scan for connected boards.")
       );
+      stoppedServer = true;
     }
     const selectConnectedBoard =
       testHooks?.selectConnectedBoard || selectOpenOcdConfigFiles;
-    await selectConnectedBoard(wsFolder);
+    const boardApplied = await selectConnectedBoard(wsFolder);
     updateOpenOcdAdapterStatusBarItem(wsFolder.uri);
+    if (stoppedServer && !boardApplied) {
+      const startOpenOcd = l10n.t("Start OpenOCD");
+      const showInformationMessage =
+        testHooks?.showInformationMessage || window.showInformationMessage;
+      const choice = await showInformationMessage(
+        l10n.t(
+          "No board was selected. The OpenOCD server was stopped for the scan and is not running."
+        ),
+        startOpenOcd
+      );
+      if (choice === startOpenOcd && openOcdServer.start) {
+        await openOcdServer.start();
+      }
+    }
     return;
   }
 
