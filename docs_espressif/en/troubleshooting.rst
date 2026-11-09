@@ -41,6 +41,29 @@ Review `OpenOCD Troubleshooting FAQ <https://github.com/espressif/openocd-esp32/
 
     If you receive errors like "unable to create symlink" while cloning ESP-IDF on Windows, enabling **Developer Mode** may help resolve the issue.
 
+.. _openocd-adapter-serial-not-found:
+
+OpenOCD Cannot Find the Pinned Board
+------------------------------------
+
+When you choose a connected board in ``ESP-IDF: Set Espressif Device Target`` or ``ESP-IDF: Select OpenOCD Board Configuration``, the extension stores that board's USB-JTAG serial number and USB location and passes them to OpenOCD on every start. This makes OpenOCD attach to the right board when several boards are connected. If that board is no longer connected, for example after you swap it for another one, OpenOCD fails with:
+
+.. code-block:: text
+
+    Info : No device matches the serial string
+    Error: esp_usb_jtag: could not find or open device!
+
+When no USB-JTAG board is connected at all, only the ``Error`` line is printed. In both cases the extension shows a notification that names the stored serial number and offers the command below.
+
+On OpenOCD ``v0.12.0-esp32-20260304`` or newer, the extension checks the connected boards before each start. If the stored serial number is found on another USB port, OpenOCD is started with the new port and the stored USB location is replaced with it. If the stored serial number is not found but other boards are, it starts OpenOCD without the stored serial number and shows a warning. On older OpenOCD builds, or when no board is detected, OpenOCD fails as above and the notification is shown. When ``idf.openOcdLaunchArgs`` is set, the custom arguments replace the generated ones and the stored serial number is not passed with them, so the warning is not shown; the stored USB location is still applied and still follows the board.
+
+To fix it, run ``ESP-IDF: OpenOCD Adapter (Serial & Location)`` and choose one of:
+
+- **Select connected board** to pin OpenOCD to a board that is connected now. A running OpenOCD server is stopped first, because the board scan cannot open a USB-JTAG device that OpenOCD holds. If you close the list without choosing a board, a notification offers to start the server again.
+- **Clear adapter binding** to remove the stored serial number and USB location. OpenOCD then uses whichever board is connected.
+
+Selecting a plain chip target such as ``esp32s3`` instead of a connected board does not store a serial number. The current values are shown in the ``[Adapter] S:<serial> L:<location>`` status bar item, which you can enable from the ESP-IDF Explorer commands list.
+
 EIM Launch Modes (GUI vs CLI)
 -----------------------------
 
