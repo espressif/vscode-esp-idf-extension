@@ -16,6 +16,7 @@
   "configuration.section.unitTest": "Pruebas unitarias",
   "configuration.section.other": "Otros",
   "debug.target.connectCommands.description": "Comandos a ejecutar para la conexión con el destino. Normalmente algo como [`target remote localhost:3333`]",
+  "debug.sessionID.description": "Marcador de sesión interno establecido por la extensión ESP-IDF. Déjelo sin definir para una sesión de depuración JTAG normal.",
   "esp.component-manager.ui.show.title": "Mostrar Registro de Componentes ESP",
   "esp.component-manager.url.description": "URL del registro de componentes",
   "esp.efuse.summary.title": "Obtener Resumen de efuse",

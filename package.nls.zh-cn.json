@@ -16,6 +16,7 @@
   "configuration.section.unitTest": "单元测试",
   "configuration.section.other": "其他",
   "debug.target.connectCommands.description": "用于建立目标连接的命令。通常类似 [`target remote localhost:3333`]",
+  "debug.sessionID.description": "由 ESP-IDF 扩展设置的内部会话标记。普通 JTAG 调试会话请勿设置。",
   "esp.component-manager.ui.show.title": "乐鑫组件注册表",
   "esp.component-manager.url.description": "乐鑫组件注册表 URL",
   "esp.efuse.summary.title": "获取 eFuse 摘要",

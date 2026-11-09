@@ -1961,6 +1961,10 @@
                 "description": "Run OpenOCD Server",
                 "default": true
               },
+              "sessionID": {
+                "type": "string",
+                "description": "%debug.sessionID.description%"
+              },
               "environment": {
                 "additionalProperties": {
                   "type": [
@@ -2234,6 +2238,10 @@
                 "type": "boolean",
                 "description": "Run OpenOCD Server",
                 "default": true
+              },
+              "sessionID": {
+                "type": "string",
+                "description": "%debug.sessionID.description%"
               },
               "environment": {
                 "additionalProperties": {
