@@ -46,6 +46,7 @@ const TERMINAL_STABLE_MS = 2000;
 const TERMINAL_READ_GAP_MS = 3000;
 const IDF_PY_BEFORE_READ_MS = 3000;
 const FOCUS_TERMINAL_COMMAND = "Terminal: Focus Terminal";
+const KILL_ALL_TERMINALS_COMMAND = "Terminal: Kill All Terminals";
 
 type IdfVersionParts = {
   major: number;
@@ -158,12 +159,9 @@ async function readTerminalText(): Promise<string> {
   return stripTerminalText(await readCurrentTerminalText());
 }
 
-async function rememberTerminalSnapshot(): Promise<void> {
-  try {
-    terminalSnapshot = await readTerminalText();
-  } catch {
-    terminalSnapshot = "";
-  }
+/** Empty snapshot means the whole buffer of the new terminal is the output under test. */
+function resetTerminalSnapshot(): void {
+  terminalSnapshot = "";
 }
 
 async function waitForActiveEspIdfVersion(): Promise<string> {
@@ -317,18 +315,9 @@ async function pressEnterInTerminal(): Promise<void> {
 }
 
 async function closeActiveTerminal(): Promise<void> {
-  let text = "";
-  let terminalView;
-  try {
-    terminalView = await new BottomBarPanel().openTerminalView();
-    text = await terminalView.getText();
-  } catch {
-    return;
-  }
-  if (!text.trim()) {
-    return;
-  }
-  await terminalView.killTerminal();
+  // Opening the Terminal panel with no terminal makes VS Code create a default shell.
+  await executeEspIdfCommand(KILL_ALL_TERMINALS_COMMAND);
+  await waitUntilCommandPaletteClosed();
   await delay(1500);
 }
 
@@ -397,7 +386,7 @@ describe("ESP-IDF terminal", () => {
     "opens from the command palette and activates the selected ESP-IDF",
     () => {
       step("Open ESP-IDF terminal from the command palette", async () => {
-        await rememberTerminalSnapshot();
+        resetTerminalSnapshot();
         await executeEspIdfCommand(ESP_IDF_COMMANDS.openIdfTerminal);
       });
 
@@ -433,7 +422,7 @@ describe("ESP-IDF terminal", () => {
 
       step("Open ESP-IDF terminal from the status bar", async () => {
         await dismissNotifications();
-        await rememberTerminalSnapshot();
+        resetTerminalSnapshot();
         await clickStatusBarItem(IDF_TERMINAL_STATUS_BAR_LABEL);
       });
 
