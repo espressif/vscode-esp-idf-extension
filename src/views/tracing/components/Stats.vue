@@ -44,8 +44,22 @@ defineProps<{
 </template>
 
 <style lang="scss" scoped>
-.table thead th,
-.table thead td {
+.table {
+  --bulma-table-color: var(--vscode-foreground);
+  --bulma-table-background-color: transparent;
+  --bulma-table-cell-background-color: transparent;
+  --bulma-table-cell-border-color: var(--vscode-panel-border);
+  --bulma-table-head-cell-color: var(--vscode-foreground);
+  --bulma-table-head-background-color: transparent;
+  --bulma-table-row-hover-background-color: var(--vscode-list-hoverBackground);
+  background-color: transparent;
   color: var(--vscode-foreground);
+}
+
+.table td,
+.table th {
+  color: var(--vscode-foreground);
+  background-color: transparent;
+  border-color: var(--vscode-panel-border);
 }
 </style>

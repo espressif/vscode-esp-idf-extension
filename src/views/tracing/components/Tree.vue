@@ -1,16 +1,17 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { TracingTree, useTracingStore } from "../store";
 
 defineProps<{
   tree: TracingTree;
 }>();
 
-let isOpen = false;
+const isOpen = ref(false);
 
 const store = useTracingStore();
 
 function toggle() {
-  isOpen = !isOpen;
+  isOpen.value = !isOpen.value;
 }
 
 function openFileAtLine(filePath: string, lineNumber: string) {
@@ -32,9 +33,11 @@ function openFileAtLine(filePath: string, lineNumber: string) {
       <strong>{{ tree.name }}</strong>
       <span v-if="tree.filePath !== '' && tree.lineNumber !== ''">
         <span>&nbsp;-&nbsp;</span>
-        <a href="#" @click="openFileAtLine(tree.filePath, tree.lineNumber)">{{
-          tree.description
-        }}</a>
+        <a
+          href="#"
+          @click.prevent="openFileAtLine(tree.filePath, tree.lineNumber)"
+          >{{ tree.description }}</a
+        >
       </span>
     </div>
     <ul v-show="isOpen" v-if="tree.child">

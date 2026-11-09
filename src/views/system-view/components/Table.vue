@@ -25,7 +25,7 @@ defineProps<{
 
 <style scoped>
 p {
-  color: var(--vscode-editor-foreground);
+  color: var(--vscode-foreground);
 }
 .table-container {
   max-height: 150px;
@@ -44,20 +44,26 @@ tr {
   cursor: pointer;
 }
 
-.table td,
-.table th {
-  border-color: var(--vscode-sideBarSectionHeader-border);
+.table {
+  --bulma-table-color: var(--vscode-foreground);
+  --bulma-table-background-color: transparent;
+  --bulma-table-cell-background-color: transparent;
+  --bulma-table-cell-border-color: var(--vscode-panel-border);
+  --bulma-table-head-cell-color: var(--vscode-foreground);
+  --bulma-table-head-background-color: transparent;
+  --bulma-table-row-hover-background-color: var(--vscode-list-hoverBackground);
+  background-color: transparent;
+  color: var(--vscode-foreground);
 }
 
-.table thead td,
-.table thead th {
-  color: var(--vscode-editor-foreground);
+.table td,
+.table th {
+  color: var(--vscode-foreground);
+  background-color: transparent;
+  border-color: var(--vscode-panel-border);
 }
-table {
-  background-color: var(--vscode-editor-background);
-  color: var(--vscode-editor-foreground);
-}
+
 .table.is-hoverable tbody tr:not(.is-selected):hover {
-  background-color: var(--vscode-sideBar-dropBackground);
+  background-color: var(--vscode-list-hoverBackground);
 }
 </style>
