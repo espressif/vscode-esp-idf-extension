@@ -117,7 +117,6 @@ export async function resolveAdapterBindingForLaunch(
       Logger.info(
         `OpenOCD adapter ${stored.serial} is now at USB location ${detectedLocation}. Replacing the stored location ${stored.location}.`
       );
-      await storeAdapterLocation(workspaceFolder, detectedLocation);
     }
     return { ...unchanged, location: detectedLocation ?? stored.location };
   }

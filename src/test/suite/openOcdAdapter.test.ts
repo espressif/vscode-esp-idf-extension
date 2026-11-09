@@ -315,13 +315,10 @@ suite("OpenOCD adapter binding", () => {
       assert.deepStrictEqual(source.writes, []);
     });
 
-    test("adopts and stores the detected location when the pinned board moved port", async () => {
+    test("adopts the detected location when the pinned board moved port without writing settings", async () => {
       stubDetection([board({ serial_number: "aa:bb", location: "usb://1-7" })]);
       const source = createFakeIdfSource({
-        "idf.customExtraVars": {
-          OPENOCD_SCRIPTS: "/opt/openocd/scripts",
-          OPENOCD_USB_ADAPTER_LOCATION: "1-2",
-        },
+        "idf.customExtraVars": { OPENOCD_USB_ADAPTER_LOCATION: "1-2" },
       });
       setIdfConfigurationSource(source);
       const binding = await resolveAdapterBindingForLaunch(workspaceUri, {
@@ -333,15 +330,7 @@ suite("OpenOCD adapter binding", () => {
         location: "1-7",
         stale: false,
       });
-      assert.deepStrictEqual(source.writes, [
-        {
-          key: "idf.customExtraVars",
-          value: {
-            OPENOCD_SCRIPTS: "/opt/openocd/scripts",
-            OPENOCD_USB_ADAPTER_LOCATION: "1-7",
-          },
-        },
-      ]);
+      assert.deepStrictEqual(source.writes, []);
     });
 
     test("storeAdapterLocation writes the location to the selected preset", async () => {

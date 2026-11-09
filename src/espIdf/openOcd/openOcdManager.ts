@@ -46,7 +46,11 @@ import {
   supportsSerialFromDetectConfig,
   outputIndicatesAdapterSerialNotFound,
 } from "./adapterSerial";
-import { resolveAdapterBindingForLaunch } from "./adapterBinding";
+import {
+  resolveAdapterBindingForLaunch,
+  storeAdapterLocation,
+} from "./adapterBinding";
+import { buildOpenOcdLaunch } from "./openOcdArgs";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
 import { validateOpenOcdStartPrerequisites, requireOpenOcdWorkspace } from "./validation";
 import { ensureOpenOcdServerRunning } from "./openOcdLaunch";
@@ -95,6 +99,7 @@ export class OpenOCDManager extends EventEmitter {
   private startFailureNotified: boolean = false;
   private stdoutAccumulator: string = "";
   private stderrAccumulator: string = "";
+  private starting: Promise<void> | undefined;
 
   private constructor() {
     super();
@@ -193,6 +198,16 @@ export class OpenOCDManager extends EventEmitter {
     if (this.isRunning()) {
       return;
     }
+    if (this.starting) {
+      return this.starting;
+    }
+    this.starting = this.launch(options).finally(() => {
+      this.starting = undefined;
+    });
+    return this.starting;
+  }
+
+  private async launch(options?: { launchedByDebug?: boolean }) {
     this.startFailureNotified = false;
     this.resetProcessOutput();
     const modifiedEnv = getCurrentIdfConfiguration();
@@ -208,9 +223,11 @@ export class OpenOCDManager extends EventEmitter {
       "idf.openOcdLaunchArgs",
       this.workspace
     ) as string[];
-    const hasLaunchArgs = openOcdLaunchArgs && openOcdLaunchArgs.length > 0;
+    const hasLaunchArgs =
+      Array.isArray(openOcdLaunchArgs) && openOcdLaunchArgs.length > 0;
     let storedSerial = getStoredAdapterSerial(this.workspace);
     let adapterLocation = modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
+    let locationToStore: string | undefined;
     if (useDetectConfigSerial && storedSerial) {
       const binding = await resolveAdapterBindingForLaunch(
         this.workspace,
@@ -227,80 +244,25 @@ export class OpenOCDManager extends EventEmitter {
           );
         }
         storedSerial = binding.serial;
+      } else if (binding.location && binding.location !== adapterLocation) {
+        locationToStore = binding.location;
       }
       adapterLocation = binding.location;
-      if (adapterLocation) {
-        modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"] = adapterLocation;
-      } else {
-        delete modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
-      }
-    }
-    if (useLocationCommand && adapterLocation) {
-      delete modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
     }
 
-    const openOcdArgs: string[] = [];
-    const needsSerialDiscovery = !storedSerial && !useDetectConfigSerial;
-
-    if (hasLaunchArgs) {
-      openOcdArgs.push(...openOcdLaunchArgs);
-
-      // If no adapter serial is stored yet, ensure OpenOCD runs at least at -d2
-      // so the usb-jtag serial line is printed and can be parsed.
-      if (
-        needsSerialDiscovery &&
-        !openOcdArgs.some((a) => typeof a === "string" && a.match(/^-d-?\d+$/))
-      ) {
-        openOcdArgs.unshift("-d2");
-      }
-
-      const alreadyHasLocation = openOcdArgs.some(
-        (a) => typeof a === "string" && a.includes("adapter usb location")
-      );
-      if (useLocationCommand && adapterLocation && !alreadyHasLocation) {
-        openOcdArgs.unshift("-c", `adapter usb location ${adapterLocation}`);
-      }
+    const { args: openOcdArgs, envAdapterLocation } = buildOpenOcdLaunch({
+      launchArgs: openOcdLaunchArgs,
+      configFiles: readParameter("idf.openOcdConfigs", this.workspace),
+      debugLevel: readParameter("idf.openOcdDebugLevel", this.workspace),
+      storedSerial,
+      adapterLocation,
+      useLocationCommand,
+      useDetectConfigSerial,
+    });
+    if (envAdapterLocation) {
+      modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"] = envAdapterLocation;
     } else {
-      const openOcdConfigFilesList = readParameter(
-        "idf.openOcdConfigs",
-        this.workspace
-      ) as string[];
-
-      const openOcdDebugLevelRaw = readParameter(
-        "idf.openOcdDebugLevel",
-        this.workspace
-      ) as unknown;
-      const parsedLevel =
-        typeof openOcdDebugLevelRaw === "number"
-          ? openOcdDebugLevelRaw
-          : parseInt(String(openOcdDebugLevelRaw), 10);
-      const hasValidLevel = Number.isFinite(parsedLevel);
-      const debugLevelToUse = needsSerialDiscovery
-        ? Math.max(hasValidLevel ? parsedLevel : 0, 2)
-        : hasValidLevel
-        ? parsedLevel
-        : 0;
-
-      openOcdArgs.push(`-d${debugLevelToUse}`);
-
-      // Inject adapter serial command if we have a stored serial number
-      if (storedSerial) {
-        openOcdArgs.push("-c", `adapter serial ${storedSerial}`);
-      }
-
-      if (useLocationCommand && adapterLocation) {
-        openOcdArgs.push("-c", `adapter usb location ${adapterLocation}`);
-      }
-
-      openOcdConfigFilesList.forEach((configFile) => {
-        const isFileAlreadyInArgs = openOcdArgs.some((arg) =>
-          arg.includes(configFile)
-        );
-        if (!isFileAlreadyInArgs) {
-          openOcdArgs.push("-f");
-          openOcdArgs.push(configFile);
-        }
-      });
+      delete modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
     }
 
     this.server = spawn(openOcdPath, openOcdArgs, {
@@ -444,6 +406,19 @@ export class OpenOCDManager extends EventEmitter {
     });
     this.updateStatusText(`❇️ ${vscode.l10n.t("OpenOCD Server (Running)")}`);
     OutputChannel.show();
+
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(workspace);
+    if (locationToStore && workspaceFolder) {
+      storeAdapterLocation(workspaceFolder, locationToStore).catch((error) => {
+        Logger.error(
+          `Failed to store OpenOCD adapter USB location ${locationToStore}`,
+          error,
+          "OpenOCDManager storeAdapterLocation",
+          undefined,
+          false
+        );
+      });
+    }
   }
 
   public stop() {
