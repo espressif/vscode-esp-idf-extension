@@ -272,7 +272,7 @@ export function initCommandDictionary(): void {
       TreeItemCheckboxState.Checked
     ),
     iconId: "debug-alt",
-    tooltip: l10n.t("Launch Debug"),
+    tooltip: l10n.t("Launch OpenOCD Debug"),
   },
   [CommandKeys.IDFTerminal]: {
     checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(

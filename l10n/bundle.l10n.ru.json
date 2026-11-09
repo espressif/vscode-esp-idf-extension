@@ -167,7 +167,7 @@
   "💡 New ESP-IDF Hints!": "💡 Новые подсказки ESP-IDF!",
   "ESP-IDF: Hints available. Click to view.": "ESP-IDF: Подсказки доступны. Нажмите для просмотра.",
   "Open Reference": "Открыть ссылку",
-  "Launch Debug": "Запуск отладки",
+  "Launch OpenOCD Debug": "Запуск отладки OpenOCD",
   "Copy EIM Path": "Копировать путь к EIM",
   "Run EIM in Terminal": "Запустить EIM в терминале",
   "VS Code installed via Snap cannot launch EIM's GUI due to sandbox restrictions. You can run EIM in CLI mode directly from the integrated terminal, or copy the path to run the GUI manually from a system terminal.": "VS Code, установленный через Snap, не может запустить графический интерфейс EIM из-за ограничений песочницы. Вы можете запустить EIM в режиме CLI непосредственно из встроенного терминала или скопировать путь для запуска GUI вручную из системного терминала.",

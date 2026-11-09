@@ -3,6 +3,8 @@ import { ESP } from "../../config";
 export const RUNTIME_GDBSTUB_SESSION_ID = "gdbstub.debug.session.runtime";
 export const PANIC_GDBSTUB_SESSION_ID = "gdbstub.debug.session.ws";
 export const CORE_DUMP_SESSION_ID = "core-dump.debug.session.ws";
+// Launch Debug sets this so the session stays on OpenOCD when the UART stub would otherwise be selected.
+export const OPENOCD_DEBUG_SESSION_ID = "openocd.debug.session";
 
 const defaultJtagConnectCommands = [
   "set remotetimeout 20",

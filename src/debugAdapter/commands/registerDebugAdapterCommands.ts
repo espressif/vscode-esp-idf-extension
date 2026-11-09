@@ -17,21 +17,15 @@
 import {
   commands,
   debug,
-  DebugConfiguration,
   ExtensionContext,
   env,
   l10n,
   window,
-  workspace,
 } from "vscode";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { HexTreeItem, HexViewProvider } from "../hexViewProvider";
-import {
-  CDTDebugConfigurationProvider,
-  INITIAL_GDBTARGET_CONFIG,
-  workspaceHasGdbTargetAttachConfig,
-} from "../debugConfProvider";
+import { OPENOCD_DEBUG_CONFIG } from "../debugConfProvider";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../../common/PreCheck";
 import { ESP } from "../../config";
@@ -152,47 +146,6 @@ export function registerImageViewCommands(context: ExtensionContext) {
   });
 }
 
-async function startFirstGdbTargetConfiguration(
-  workspaceFolder: NonNullable<
-    ReturnType<typeof ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder>
-  >,
-  cdtDebugProvider: CDTDebugConfigurationProvider
-): Promise<void> {
-  const config = workspace.getConfiguration("launch", workspaceFolder);
-  const configurations = config.get(
-    "configurations"
-  ) as DebugConfiguration[];
-  if (!configurations?.length) {
-    throw invalidConfiguration(
-      "launch.configurations",
-      debugErrorPresentation.invalidConfiguration
-    );
-  }
-  for (const conf of configurations) {
-    if (conf.type !== "gdbtarget") {
-      continue;
-    }
-    const resolvedConf = await cdtDebugProvider.resolveDebugConfiguration(
-      workspaceFolder,
-      conf
-    );
-    if (!resolvedConf) {
-      return;
-    }
-    const started = await debug.startDebugging(workspaceFolder, resolvedConf);
-    if (started) {
-      // startDebugging waits for a break before showing this view, and that
-      // path only checks the primary sidebar if the view was moved.
-      await commands.executeCommand("workbench.view.debug");
-    }
-    return;
-  }
-  throw invalidConfiguration(
-    "launch.configurations",
-    debugErrorPresentation.invalidConfiguration
-  );
-}
-
 async function notifyRuntimeGdbStubReady(
   alreadyConfigured: boolean
 ): Promise<void> {
@@ -213,10 +166,7 @@ async function notifyRuntimeGdbStubReady(
   await commands.executeCommand("espIdf.flashDevice");
 }
 
-export function registerEspIdfDebugCommand(
-  context: ExtensionContext,
-  cdtDebugProvider: CDTDebugConfigurationProvider
-) {
+export function registerEspIdfDebugCommand(context: ExtensionContext) {
   registerDebugCommand(context, "espIdf.debug", async () => {
     await PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
       const workspaceFolder =
@@ -224,11 +174,14 @@ export function registerEspIdfDebugCommand(
       if (!workspaceFolder) {
         throw noWorkspaceOpen(debugErrorPresentation.noWorkspaceOpen);
       }
-      if (!workspaceHasGdbTargetAttachConfig(workspaceFolder)) {
-        await debug.startDebugging(workspaceFolder, INITIAL_GDBTARGET_CONFIG);
-        return;
+      const started = await debug.startDebugging(workspaceFolder, {
+        ...OPENOCD_DEBUG_CONFIG,
+      });
+      if (started) {
+        // startDebugging waits for a break before showing this view, and that
+        // path only checks the primary sidebar if the view was moved.
+        await commands.executeCommand("workbench.view.debug");
       }
-      await startFirstGdbTargetConfiguration(workspaceFolder, cdtDebugProvider);
     });
   });
 

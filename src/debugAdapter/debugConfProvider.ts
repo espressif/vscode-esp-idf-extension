@@ -56,6 +56,7 @@ import {
 } from "./validation";
 import { debugErrorPresentation } from "./debugErrorPresentation";
 import {
+  OPENOCD_DEBUG_SESSION_ID,
   RUNTIME_GDBSTUB_SESSION_ID,
   applyRuntimeGdbStubDebugConfig,
   isNonJtagDebugSession,
@@ -70,6 +71,13 @@ export const INITIAL_GDBTARGET_CONFIG: DebugConfiguration = {
   type: "gdbtarget",
   request: "attach",
   name: "ESP-IDF",
+};
+
+/** In-memory configuration started by Launch Debug. launch.json is not consulted. */
+export const OPENOCD_DEBUG_CONFIG: DebugConfiguration = {
+  ...INITIAL_GDBTARGET_CONFIG,
+  runOpenOCD: true,
+  sessionID: OPENOCD_DEBUG_SESSION_ID,
 };
 
 /** Legacy projects use other names, such as "Eclipse CDT GDB Adapter". */

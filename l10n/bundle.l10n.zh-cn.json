@@ -168,7 +168,7 @@
   "💡 New ESP-IDF Hints!": "💡 新的 ESP-IDF 提示！",
   "ESP-IDF: Hints available. Click to view.": "ESP-IDF：提示可用。点击查看。",
   "Open Reference": "打开参考",
-  "Launch Debug": "启动调试",
+  "Launch OpenOCD Debug": "启动 OpenOCD 调试",
   "Copy EIM Path": "复制 EIM 路径",
   "Run EIM in Terminal": "在终端中运行 EIM",
   "VS Code installed via Snap cannot launch EIM's GUI due to sandbox restrictions. You can run EIM in CLI mode directly from the integrated terminal, or copy the path to run the GUI manually from a system terminal.": "通过 Snap 安装的 VS Code 由于沙盒限制无法启动 EIM 的图形界面。您可以直接从集成终端以 CLI 模式运行 EIM，或复制路径以从系统终端手动运行 GUI。",

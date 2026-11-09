@@ -14,10 +14,12 @@ import { mergeGdbinitSourceCommands } from "../debugAdapter/debugConfProvider";
 import { ErrorCode } from "../common/error/types";
 import { getErrorDescriptor } from "../common/error/registry";
 import {
+  OPENOCD_DEBUG_SESSION_ID,
   RUNTIME_GDBSTUB_LAUNCH_NAME,
   RUNTIME_GDBSTUB_SESSION_ID,
   RuntimeGdbStubLaunchConfig,
   applyRuntimeGdbStubDebugConfig,
+  isNonJtagDebugSession,
   isRuntimeGdbStubFirmwareMissing,
   isSdkconfigOptionEnabled,
   mergeRuntimeGdbStubLaunchConfigurations,
@@ -656,6 +658,17 @@ suite("GDB Stub UART debug configuration", () => {
       ),
       true
     );
+  });
+
+  test("keeps the OpenOCD debug button on JTAG when runtime GDB Stub is enabled", () => {
+    assert.strictEqual(
+      shouldUseRuntimeGdbStub(
+        { sessionID: OPENOCD_DEBUG_SESSION_ID },
+        { flashType: "UART", runtimeEnabled: true }
+      ),
+      false
+    );
+    assert.strictEqual(isNonJtagDebugSession(OPENOCD_DEBUG_SESSION_ID), false);
   });
 
   test("maps platform-specific serial ports for GDB", () => {
