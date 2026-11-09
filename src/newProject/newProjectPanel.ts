@@ -20,14 +20,12 @@ import { IComponent } from "../espIdf/idfComponent/IdfComponent";
 import { copy, ensureDir, readFile } from "fs-extra";
 import { IExample, IExampleCategory } from "./Example";
 import {
+  configureIdfProject,
   copyFromSrcProject,
   markdownToWebviewHtml,
-  setCurrentSettingsInTemplate,
   updateProjectNameInCMakeLists,
 } from "./utils";
 import { NotificationMode, readParameter } from "../configuration/idf";
-import { createClangdFile } from "../clang";
-import { updateJsonPreservingComments } from "../jsonc/updateJsonPreservingComments";
 import { IdfSetup } from "../eim/types";
 import { WorkspaceFolder } from "vscode";
 import { dirExistPromise } from "../utils";
@@ -182,10 +180,7 @@ export class NewProjectPanel {
             const defConfigFiles =
               newProjectArgs.boards && newProjectArgs.boards.length > 0
                 ? newProjectArgs.boards[0].configFiles.join(",")
-                : [
-                    "interface/ftdi/esp_ftdi.cfg",
-                    "target/esp32.cfg",
-                  ].join(",");
+                : ["interface/ftdi/esp_ftdi.cfg", "target/esp32.cfg"].join(",");
             this.panel.webview.postMessage({
               boards: newProjectArgs.boards,
               command: "initialLoad",
@@ -248,9 +243,7 @@ export class NewProjectPanel {
         token: vscode.CancellationToken
       ) => {
         try {
-          const projectDirExists = await dirExistPromise(
-            projectDirectory
-          );
+          const projectDirExists = await dirExistPromise(projectDirectory);
           if (!projectDirExists) {
             vscode.window.showInformationMessage(
               "Project directory doesn't exists."
@@ -296,29 +289,20 @@ export class NewProjectPanel {
             );
           }
           await updateProjectNameInCMakeLists(newProjectPath, projectName);
-          const settingsJsonPath = path.join(
-            newProjectPath,
-            ".vscode",
-            "settings.json"
-          );
-          const settingsJson = await setCurrentSettingsInTemplate(
-            settingsJsonPath,
+          await configureIdfProject(
+            this.extensionPath,
+            vscode.Uri.file(newProjectPath),
             idfSetup,
             port,
             selectedIdfTarget,
-            vscode.Uri.file(newProjectPath),
             openOcdConfigs
           );
-          await createClangdFile(vscode.Uri.file(newProjectPath));
-          await updateJsonPreservingComments(settingsJsonPath, settingsJson);
 
           if (components && components.length > 0) {
             const componentsPath = path.join(newProjectPath, "components");
             await ensureDir(componentsPath, { mode: 0o775 });
             for (const comp of components) {
-              const doesComponentExists = await dirExistPromise(
-                comp.path
-              );
+              const doesComponentExists = await dirExistPromise(comp.path);
               if (doesComponentExists) {
                 const compPath = path.join(componentsPath, comp.name);
                 await ensureDir(compPath, { mode: 0o775 });
