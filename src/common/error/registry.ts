@@ -626,7 +626,7 @@ registerNewErrorInRegistry({
   userMessage:
     "OpenOCD could not find a board with adapter serial {serial}. Connect that board, or use OpenOCD Adapter (Serial & Location) to pin a connected board or clear the binding.",
   logMessage:
-    "OpenOCD reported no device matching the stored adapter serial {serial}.",
+    "OpenOCD could not open a USB-JTAG device while adapter serial {serial} was stored.",
   actions: [openOcdAdapterAction, viewOpenOcdOutputAction],
   outputChannel: openOcdOutputChannel,
 });

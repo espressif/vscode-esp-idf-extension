@@ -126,7 +126,7 @@ export function clearAdapterSerial(
   }
 }
 
-const ADAPTER_SERIAL_NOT_FOUND_REGEX = /No device matches the serial string/i;
+const ADAPTER_SERIAL_NOT_FOUND_REGEX = /No device matches the serial string|esp_usb_jtag: could not find or open device/i;
 
 export function outputIndicatesAdapterSerialNotFound(output: string): boolean {
   return ADAPTER_SERIAL_NOT_FOUND_REGEX.test(output);

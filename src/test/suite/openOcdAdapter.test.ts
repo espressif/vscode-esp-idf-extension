@@ -164,10 +164,18 @@ suite("OpenOCD adapter binding", () => {
       );
     });
 
+    test("outputIndicatesAdapterSerialNotFound matches the device-not-found line printed when no board is attached", () => {
+      assert.ok(
+        outputIndicatesAdapterSerialNotFound(
+          "Info : esp_usb_jtag: VID set to 0x303a and PID to 0x1001\nError: esp_usb_jtag: could not find or open device!"
+        )
+      );
+    });
+
     test("outputIndicatesAdapterSerialNotFound ignores other failures", () => {
       assert.strictEqual(
         outputIndicatesAdapterSerialNotFound(
-          "Error: esp_usb_jtag: could not find or open device!"
+          "Error: libusb_open() failed with LIBUSB_ERROR_ACCESS\nError: esp_usb_jtag: could not claim interface"
         ),
         false
       );
