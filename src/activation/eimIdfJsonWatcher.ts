@@ -17,10 +17,9 @@
  */
 
 import { pathExists } from "fs-extra";
-import { basename, dirname, relative, resolve, sep } from "path";
+import { basename, dirname, resolve } from "path";
 import {
   commands,
-  ConfigurationTarget,
   Disposable,
   FileSystemWatcher,
   RelativePattern,
@@ -30,12 +29,13 @@ import { Logger } from "../common/logger";
 import { getIdfConfigurationSource } from "../configuration/idfConfigurationSource";
 import { PreCheck } from "../common/PreCheck";
 import { ESP } from "../config";
-import { readParameter, writeParameter } from "../configuration/idf";
+import { readParameter } from "../configuration/idf";
 import {
   currentSetupRejectDetail,
   defaultEimIdfJsonPath,
   finishedIdfInstalls,
   getEimIdfJson,
+  noteMissingCustomEimIdfJsonPath,
   resolveEimIdfJsonPath,
   unfinishedInstallDetails,
 } from "../eim/getExistingSetups";
@@ -61,25 +61,12 @@ let watcherEvents: Disposable[] = [];
 let watchedKey: string | undefined;
 let configListener: Disposable | undefined;
 let catalogChangeTimer: ReturnType<typeof setTimeout> | undefined;
-let writingEimIdfJsonPath = false;
 let catalogGeneration = 0;
 let catalogReactionRunning = false;
 let catalogReactionFollowUp = false;
 
 async function resolveWatchPath(): Promise<string> {
-  const customPath = readParameter("idf.eimIdfJsonPath") as string;
-  if (customPath && !(await pathExists(customPath))) {
-    writingEimIdfJsonPath = true;
-    try {
-      await writeParameter(
-        "idf.eimIdfJsonPath",
-        "",
-        ConfigurationTarget.Global
-      );
-    } finally {
-      writingEimIdfJsonPath = false;
-    }
-  }
+  await noteMissingCustomEimIdfJsonPath();
   const resolved = await resolveEimIdfJsonPath();
   return resolve(resolved || defaultEimIdfJsonPath());
 }
@@ -92,17 +79,16 @@ export async function eimIdfJsonWatchTarget(
   if (await pathExists(directory)) {
     return { base: directory, pattern: basename(resolvedFile) };
   }
-  // FileSystemWatcher misses creates under a directory that did not exist yet.
-  let base = directory;
-  while (!(await pathExists(base))) {
-    const parent = dirname(base);
-    if (parent === base) {
-      break;
-    }
-    base = parent;
+  // A RelativePattern with path separators is recursive. Watch the nearest
+  // existing ancestor for its next missing child only. syncWatcher retargets
+  // when that child appears.
+  let missing = directory;
+  let parent = dirname(missing);
+  while (parent !== missing && !(await pathExists(parent))) {
+    missing = parent;
+    parent = dirname(missing);
   }
-  const pattern = relative(base, resolvedFile).split(sep).join("/");
-  return { base, pattern };
+  return { base: parent, pattern: basename(missing) };
 }
 
 function watchKey(target: EimIdfJsonWatchTarget) {
@@ -327,10 +313,7 @@ export function startEimIdfJsonWatcher(host: EimIdfJsonWatcherHost) {
   watcherHost = host;
   if (!configListener) {
     configListener = workspace.onDidChangeConfiguration((event) => {
-      if (
-        writingEimIdfJsonPath ||
-        !event.affectsConfiguration("idf.eimIdfJsonPath")
-      ) {
+      if (!event.affectsConfiguration("idf.eimIdfJsonPath")) {
         return;
       }
       void syncWatcher(true);
