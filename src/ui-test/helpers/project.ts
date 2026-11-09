@@ -499,19 +499,12 @@ export async function readActiveEspIdfVersion(): Promise<string> {
  */
 export async function clickStatusBarItem(label: string): Promise<void> {
   const entries = await readStatusBarEntries();
-  const match =
-    entries.find(
-      (entry) =>
-        entry.ariaLabel === label ||
-        entry.title === label ||
-        entry.text === label
-    ) ??
-    entries.find(
-      (entry) =>
-        entry.ariaLabel.includes(label) ||
-        entry.title.includes(label) ||
-        entry.text.includes(label)
-    );
+  const match = entries.find(
+    (entry) =>
+      entry.ariaLabel === label ||
+      entry.title === label ||
+      entry.text === label
+  );
   if (!match) {
     const visible = entries.map(statusBarEntryLabel).filter(Boolean);
     throw new Error(

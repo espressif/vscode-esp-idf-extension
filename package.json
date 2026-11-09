@@ -2695,6 +2695,7 @@
     "@vue/compiler-sfc": "^3.3.4",
     "bulma": "^1.0.4",
     "chai": "^4.3.4",
+    "clipboardy": "^5.0.0",
     "css-loader": "^6.8.1",
     "d3-scale": "^4.0.2",
     "esbuild-loader": "^4.5.0",
