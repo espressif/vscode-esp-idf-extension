@@ -152,7 +152,8 @@ function textAfterSnapshot(full: string, snapshot: string): string {
   }
   const anchor = snapshot.slice(-200);
   const index = full.lastIndexOf(anchor);
-  return index >= 0 ? full.slice(index + anchor.length) : full;
+  // A missing anchor means the new text is not readable yet, not the old buffer.
+  return index >= 0 ? full.slice(index + anchor.length) : "";
 }
 
 async function readTerminalText(): Promise<string> {
