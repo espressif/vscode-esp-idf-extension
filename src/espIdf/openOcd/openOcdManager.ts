@@ -211,19 +211,21 @@ export class OpenOCDManager extends EventEmitter {
     const hasLaunchArgs = openOcdLaunchArgs && openOcdLaunchArgs.length > 0;
     let storedSerial = getStoredAdapterSerial(this.workspace);
     let adapterLocation = modifiedEnv["OPENOCD_USB_ADAPTER_LOCATION"];
-    if (useDetectConfigSerial && storedSerial && !hasLaunchArgs) {
+    if (useDetectConfigSerial && storedSerial) {
       const binding = await resolveAdapterBindingForLaunch(
         this.workspace,
         { serial: storedSerial, location: adapterLocation },
         { openOCDVersion: versionString }
       );
       if (binding.stale) {
-        void handleError(
-          "espIdf.openOCDCommand",
-          openOcdAdapterNotConnected(storedSerial),
-          undefined,
-          { outputChannel: "OpenOCD" }
-        );
+        if (!hasLaunchArgs) {
+          void handleError(
+            "espIdf.openOCDCommand",
+            openOcdAdapterNotConnected(storedSerial),
+            undefined,
+            { outputChannel: "OpenOCD" }
+          );
+        }
         storedSerial = binding.serial;
       }
       adapterLocation = binding.location;

@@ -55,7 +55,7 @@ When you choose a connected board in ``ESP-IDF: Set Espressif Device Target`` or
 
 When no USB-JTAG board is connected at all, only the ``Error`` line is printed. In both cases the extension shows a notification that names the stored serial number and offers the command below.
 
-On OpenOCD ``v0.12.0-esp32-20260304`` or newer, the extension checks the connected boards before each start, unless ``idf.openOcdLaunchArgs`` is set, because custom launch arguments replace the generated ones and the stored serial number is not passed with them. If the stored serial number is found on another USB port, OpenOCD is started with the new port and the stored USB location is replaced with it. If the stored serial number is not found but other boards are, it starts OpenOCD without the stored serial number and shows a warning. On older OpenOCD builds, or when no board is detected, OpenOCD fails as above and the notification is shown.
+On OpenOCD ``v0.12.0-esp32-20260304`` or newer, the extension checks the connected boards before each start. If the stored serial number is found on another USB port, OpenOCD is started with the new port and the stored USB location is replaced with it. If the stored serial number is not found but other boards are, it starts OpenOCD without the stored serial number and shows a warning. On older OpenOCD builds, or when no board is detected, OpenOCD fails as above and the notification is shown. When ``idf.openOcdLaunchArgs`` is set, the custom arguments replace the generated ones and the stored serial number is not passed with them, so the warning is not shown; the stored USB location is still applied and still follows the board.
 
 To fix it, run ``ESP-IDF: OpenOCD Adapter (Serial & Location)`` and choose one of:
 
