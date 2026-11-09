@@ -23,6 +23,7 @@ import { updateCurrentProfileCustomExtraVars } from "../../project-conf";
 import { updateOpenOcdAdapterStatusBarItem } from "../../statusBar";
 import {
   detectConnectedBoards,
+  DetectConnectedBoardsOptions,
   DetectConnectedBoardsResult,
 } from "./detectConnectedBoards";
 
@@ -35,9 +36,14 @@ export interface ResolvedAdapterBinding extends AdapterBinding {
   stale: boolean;
 }
 
+export interface ResolveAdapterBindingOptions {
+  openOCDVersion?: string;
+}
+
 interface AdapterBindingTestHooks {
   detectConnectedBoards?: (
-    workspaceFolder: WorkspaceFolder
+    workspaceFolder: WorkspaceFolder,
+    options: DetectConnectedBoardsOptions
   ) => Promise<DetectConnectedBoardsResult>;
 }
 
@@ -76,7 +82,8 @@ export async function storeAdapterLocation(
 
 export async function resolveAdapterBindingForLaunch(
   workspaceUri: Uri,
-  stored: AdapterBinding
+  stored: AdapterBinding,
+  options?: ResolveAdapterBindingOptions
 ): Promise<ResolvedAdapterBinding> {
   const unchanged: ResolvedAdapterBinding = { ...stored, stale: false };
   if (!stored.serial) {
@@ -87,12 +94,13 @@ export async function resolveAdapterBindingForLaunch(
     return unchanged;
   }
 
-  const detect = testHooks?.detectConnectedBoards
-    ? testHooks.detectConnectedBoards
-    : (folder: WorkspaceFolder) =>
-        detectConnectedBoards(folder, { silent: true });
-  const { boards } = await detect(workspaceFolder);
-  if (boards.length === 0) {
+  const detect = testHooks?.detectConnectedBoards ?? detectConnectedBoards;
+  const { boards, skipped } = await detect(workspaceFolder, {
+    silent: true,
+    allowWhileDebugging: true,
+    openOCDVersion: options?.openOCDVersion,
+  });
+  if (skipped || boards.length === 0) {
     return unchanged;
   }
 

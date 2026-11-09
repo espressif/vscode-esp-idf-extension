@@ -43,7 +43,11 @@ import {
   parseAdapterSerialFromLog,
   storeAdapterSerial,
 } from "../../espIdf/openOcd/adapterSerial";
-import { ConnectedBoard } from "../../espIdf/openOcd/detectConnectedBoards";
+import {
+  ConnectedBoard,
+  DetectConnectedBoardsOptions,
+  DetectConnectedBoardsResult,
+} from "../../espIdf/openOcd/detectConnectedBoards";
 import { ProjectConfigStore } from "../../project-conf/store";
 import { createMockMemento } from "../mockUtils";
 
@@ -200,12 +204,14 @@ suite("OpenOCD adapter binding", () => {
     const workspaceUri =
       vscode.workspace.workspaceFolders?.[0].uri || fakeWorkspaceFolder.uri;
 
-    function stubDetection(boards: ConnectedBoard[]) {
+    function stubDetection(
+      result: ConnectedBoard[] | DetectConnectedBoardsResult
+    ) {
       let calls = 0;
       setAdapterBindingTestHooks({
         detectConnectedBoards: async () => {
           calls += 1;
-          return { boards };
+          return Array.isArray(result) ? { boards: result } : result;
         },
       });
       return () => calls;
@@ -244,6 +250,39 @@ suite("OpenOCD adapter binding", () => {
         serial: "AA:BB",
         location: "1-2",
         stale: false,
+      });
+    });
+
+    test("keeps the binding when the scan did not run", async () => {
+      stubDetection({ boards: [], skipped: true });
+      const binding = await resolveAdapterBindingForLaunch(workspaceUri, {
+        serial: "AA:BB",
+        location: "1-2",
+      });
+      assert.deepStrictEqual(binding, {
+        serial: "AA:BB",
+        location: "1-2",
+        stale: false,
+      });
+    });
+
+    test("scans silently, during a debug session, with the known OpenOCD version", async () => {
+      let seen: DetectConnectedBoardsOptions | undefined;
+      setAdapterBindingTestHooks({
+        detectConnectedBoards: async (_folder, options) => {
+          seen = options;
+          return { boards: [board({ serial_number: "AA:BB" })] };
+        },
+      });
+      await resolveAdapterBindingForLaunch(
+        workspaceUri,
+        { serial: "AA:BB", location: "1-2" },
+        { openOCDVersion: "v0.12.0-esp32-20260304" }
+      );
+      assert.deepStrictEqual(seen, {
+        silent: true,
+        allowWhileDebugging: true,
+        openOCDVersion: "v0.12.0-esp32-20260304",
       });
     });
 
