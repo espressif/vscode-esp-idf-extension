@@ -12,15 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  ConfigurationScope,
-  ConfigurationTarget,
-  workspace,
-} from "vscode";
+import { ConfigurationScope, ConfigurationTarget, workspace } from "vscode";
 
-/** Minimal shape used by checkTypeOfConfiguration */
+/** Minimal shape used by configuration reads of `inspect()`. */
 export type IdfInspectResult = {
   defaultValue?: unknown;
+  globalValue?: unknown;
+  workspaceValue?: unknown;
+  workspaceFolderValue?: unknown;
 };
 
 /**
@@ -58,7 +57,9 @@ export const vscodeIdfConfigurationSource: IdfConfigurationSource = {
     return workspace.getConfiguration().inspect(key);
   },
   updateScoped(section, scope, key, value, target) {
-    return workspace.getConfiguration(section, scope).update(key, value, target);
+    return workspace
+      .getConfiguration(section, scope)
+      .update(key, value, target);
   },
   updateGlobal(key, value, target) {
     return workspace.getConfiguration().update(key, value, target);
@@ -75,7 +76,9 @@ export function getIdfConfigurationSource(): IdfConfigurationSource {
 }
 
 /** Intended for tests; extension activate resets to the VS Code implementation. */
-export function setIdfConfigurationSource(source: IdfConfigurationSource): void {
+export function setIdfConfigurationSource(
+  source: IdfConfigurationSource
+): void {
   activeSource = source;
 }
 

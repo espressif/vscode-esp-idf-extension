@@ -49,6 +49,20 @@ export function normalizeActivationMode(
   return "detect";
 }
 
+/** Workspace value wins over global. Folder values are ignored. */
+export function isWorkspaceOrGlobalActivationNever(
+  inspected: { globalValue?: unknown; workspaceValue?: unknown } | undefined
+): boolean {
+  if (!inspected) {
+    return false;
+  }
+  const value =
+    inspected.workspaceValue !== undefined
+      ? inspected.workspaceValue
+      : inspected.globalValue;
+  return value === "never";
+}
+
 export async function checkIfActivateExtension(): Promise<ProjectActivation> {
   // Validate workspace activation eligibility
   // See docs_espressif/en/extension-activation.rst for details
@@ -61,12 +75,12 @@ export async function checkIfActivateExtension(): Promise<ProjectActivation> {
       );
       if (workspaceValue === "always") {
         // Activate immediately; skip folder checks and CMake detection.
-        Logger.info(
+        Logger.warn(
           "Extension activation forced by workspace/global idf.extensionActivationMode=always setting."
         );
         return "activate";
       } else if (workspaceValue === "never") {
-        Logger.info(
+        Logger.warn(
           "Extension activation suppressed by workspace/global idf.extensionActivationMode=never setting."
         );
         return "suppress";
@@ -81,7 +95,7 @@ export async function checkIfActivateExtension(): Promise<ProjectActivation> {
           if (folderValue === "always") {
             hasAnyFolderAlways = true;
             allFoldersNever = false;
-            Logger.info(
+            Logger.warn(
               "Extension activation forced by folder-level idf.extensionActivationMode=always setting."
             );
             break;
@@ -93,7 +107,7 @@ export async function checkIfActivateExtension(): Promise<ProjectActivation> {
 
         if (!hasAnyFolderAlways) {
           if (allFoldersNever) {
-            Logger.info(
+            Logger.warn(
               "Extension activation suppressed because all workspace folders set idf.extensionActivationMode=never."
             );
             return "suppress";
@@ -118,7 +132,7 @@ export async function checkIfActivateExtension(): Promise<ProjectActivation> {
                 )
               ) {
                 hasCMakeIdfProject = true;
-                Logger.info(
+                Logger.warn(
                   "Extension activated via CMakeLists.txt ESP-IDF project detection."
                 );
                 break;
@@ -133,7 +147,7 @@ export async function checkIfActivateExtension(): Promise<ProjectActivation> {
           }
 
           if (!hasCMakeIdfProject) {
-            Logger.info(
+            Logger.warn(
               "No standard ESP-IDF project was found in this workspace."
             );
             return "undetected";
@@ -206,29 +220,36 @@ const basicUsageStepIds = [
 let walkthroughOpenRequested = false;
 let extensionConfigurationWalkthroughOpened = false;
 
+async function markBasicUsageStepIncomplete(stepId: string) {
+  try {
+    await commands.executeCommand(
+      "welcome.markStepIncomplete",
+      `${basicUsageWalkthroughId}#${stepId}`
+    );
+  } catch (error) {
+    Logger.error(
+      `Could not mark walkthrough step ${stepId} incomplete.`,
+      error as Error,
+      "openBasicUsageWalkthrough"
+    );
+  }
+}
+
 async function markBasicUsageStepsIncomplete() {
   await Promise.all(
-    basicUsageStepIds.map(async (stepId) => {
-      try {
-        await commands.executeCommand(
-          "welcome.markStepIncomplete",
-          `${basicUsageWalkthroughId}#${stepId}`
-        );
-      } catch (error) {
-        Logger.error(
-          `Could not mark walkthrough step ${stepId} incomplete.`,
-          error as Error,
-          "openBasicUsageWalkthrough"
-        );
-      }
-    })
+    basicUsageStepIds.map((stepId) => markBasicUsageStepIncomplete(stepId))
   );
 }
 
-async function openBasicUsageWalkthrough(basicUsageStep?: string) {
-  await markBasicUsageStepsIncomplete();
-  // Opening the walkthrough runs workbench.action.openWalkthrough, which is
-  // the completion command for additional-resources-and-ui. Clear again after.
+async function openBasicUsageWalkthrough(
+  basicUsageStep?: string,
+  options?: { resetProgress?: boolean }
+) {
+  if (options?.resetProgress) {
+    await markBasicUsageStepsIncomplete();
+  }
+  // Opening the walkthrough runs workbench.action.openWalkthrough, which
+  // completes additional-resources-and-ui. Clear that step again after.
   if (basicUsageStep) {
     await commands.executeCommand("workbench.action.openWalkthrough", {
       category: basicUsageWalkthroughId,
@@ -240,7 +261,7 @@ async function openBasicUsageWalkthrough(basicUsageStep?: string) {
       basicUsageWalkthroughId
     );
   }
-  await markBasicUsageStepsIncomplete();
+  await markBasicUsageStepIncomplete("additional-resources-and-ui");
 }
 
 export function registerWalkthroughCommands(context: ExtensionContext) {
@@ -260,7 +281,9 @@ export function showExtensionConfigurationWalkthrough() {
     true,
     ConfigurationTarget.Global
   );
-  void openBasicUsageWalkthrough("extension-configuration");
+  void openBasicUsageWalkthrough("extension-configuration", {
+    resetProgress: true,
+  });
 }
 
 export function showWalkthroughOnFirstActivation(basicUsageStep?: string) {

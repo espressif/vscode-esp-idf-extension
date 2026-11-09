@@ -16,19 +16,23 @@
  * limitations under the License.
  */
 
-import { pathExists } from "fs-extra";
 import { ConfigurationTarget, workspace, WorkspaceFolder } from "vscode";
-import { checkIfActivateExtension } from "../common/activation";
+import {
+  activationModeConfigKey,
+  checkIfActivateExtension,
+  isWorkspaceOrGlobalActivationNever,
+} from "../common/activation";
 import { Logger } from "../common/logger";
 import { getStoredIdfSetupEnv } from "../common/prepareEnv";
 import { PreCheck } from "../common/PreCheck";
 import { ESP } from "../config";
+import { getIdfConfigurationSource } from "../configuration/idfConfigurationSource";
 import { readParameter, writeParameter } from "../configuration/idf";
 import {
   currentSetupRejectDetail,
   finishedIdfInstalls,
   getEimIdfJson,
-  resolveEimIdfJsonPath,
+  noteMissingCustomEimIdfJsonPath,
   unfinishedInstallDetails,
 } from "../eim/getExistingSetups";
 import { loadEnvVarsAsIdfSetup, loadIdfSetup } from "../eim/loadIdfSetup";
@@ -64,14 +68,7 @@ export function requestProjectActivation() {
 }
 
 async function resolveEimIdfJson(): Promise<EspIdfJson | undefined> {
-  const customPath = readParameter("idf.eimIdfJsonPath") as string;
-  const resolved = await resolveEimIdfJsonPath();
-  if (!resolved) {
-    return;
-  }
-  if (customPath && !(await pathExists(customPath))) {
-    await writeParameter("idf.eimIdfJsonPath", "", ConfigurationTarget.Global);
-  }
+  await noteMissingCustomEimIdfJsonPath();
   return getEimIdfJson();
 }
 
@@ -82,8 +79,11 @@ async function configureLoadedSetup(
 ): Promise<ActivationDecision> {
   ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(workspaceFolder.uri);
   let loadDetail: string | undefined;
+  const customVars = readParameter("idf.customExtraVars", workspaceFolder);
   try {
-    const loaded = await loadIdfSetup(extensionPath, workspaceFolder);
+    const loaded = await loadIdfSetup(extensionPath, workspaceFolder, {
+      skipEnvVars: !!customExtraVarsIdfPath(customVars),
+    });
     if (loaded.ok === false) {
       loadDetail = loaded.detail;
     }
@@ -108,7 +108,7 @@ async function configureLoadedSetup(
     Logger.error(detail, new Error(detail), "runValidations", undefined, false);
     return { kind: "nonConfigured", failure: "invalidCurrentSetup", detail };
   }
-  Logger.info(`Using finished ESP-IDF setup ${idfPath}.`, "runValidations");
+  Logger.warn(`Using finished ESP-IDF setup ${idfPath}.`, "runValidations");
   return { kind: "configured" };
 }
 
@@ -157,7 +157,7 @@ async function tryConfigureFromCustomExtraVars(
     return;
   }
   ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(workspaceFolder.uri);
-  Logger.info(
+  Logger.warn(
     `Using idf.customExtraVars ESP-IDF setup ${loaded.setup.idfPath}.`,
     "runValidations"
   );
@@ -167,6 +167,18 @@ async function tryConfigureFromCustomExtraVars(
 export async function runValidations(
   extensionPath: string
 ): Promise<ActivationDecision> {
+  if (
+    isWorkspaceOrGlobalActivationNever(
+      getIdfConfigurationSource().inspectGlobal(activationModeConfigKey)
+    )
+  ) {
+    Logger.warn(
+      "Extension activation suppressed by workspace/global idf.extensionActivationMode=never before catalog validation.",
+      "runValidations"
+    );
+    return { kind: "skipped" };
+  }
+
   const fromCustomExtraVars = await tryConfigureFromCustomExtraVars(
     extensionPath
   );
@@ -205,7 +217,7 @@ export async function runValidations(
   }
 
   if (!PreCheck.isWorkspaceFolderOpen()) {
-    Logger.info(
+    Logger.warn(
       "ESP-IDF catalog is valid and no workspace folder is open.",
       "runValidations"
     );
@@ -229,21 +241,21 @@ export async function runValidations(
       ? "activate"
       : await checkIfActivateExtension();
     if (projectActivation === "suppress") {
-      Logger.info(
+      Logger.warn(
         "idf.currentSetup is empty and the project activation check declined.",
         "runValidations"
       );
       return { kind: "skipped" };
     }
     if (projectActivation === "undetected") {
-      Logger.info(
+      Logger.warn(
         "No standard ESP-IDF project was found. Waiting for explicit activation.",
         "runValidations"
       );
       return { kind: "undetected" };
     }
     if (optedIn) {
-      Logger.info(
+      Logger.warn(
         "User chose to activate the ESP-IDF extension without a detected ESP-IDF project.",
         "runValidations"
       );
@@ -269,7 +281,7 @@ export async function runValidations(
         detail: couldNotSaveCurrentSetupDetail(),
       };
     }
-    Logger.info(
+    Logger.warn(
       `Selected ESP-IDF setup ${finishedInstalls[0].path} for ${workspaceFolder.uri.fsPath}.`,
       "runValidations"
     );

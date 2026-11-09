@@ -81,10 +81,10 @@ export function enterNonConfigured(
   const presentation = failurePresentation(failure, detail);
   if (!statusBarItem) {
     statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 110);
-    statusBarItem.backgroundColor = new ThemeColor(
-      "statusBarItem.warningBackground"
-    );
   }
+  statusBarItem.backgroundColor = new ThemeColor(
+    "statusBarItem.warningBackground"
+  );
   statusBarItem.name = presentation.text;
   statusBarItem.text = `$(warning) ${presentation.text}`;
   statusBarItem.tooltip = presentation.tooltip;
@@ -106,12 +106,10 @@ export function enterUndetected() {
   const text = l10n.t("No ESP-IDF project detected");
   if (!statusBarItem) {
     statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 110);
-    statusBarItem.backgroundColor = new ThemeColor(
-      "statusBarItem.warningBackground"
-    );
   }
+  statusBarItem.backgroundColor = undefined;
   statusBarItem.name = text;
-  statusBarItem.text = `$(warning) ${text}`;
+  statusBarItem.text = text;
   statusBarItem.tooltip = l10n.t(
     "Activate the ESP-IDF extension for this workspace"
   );

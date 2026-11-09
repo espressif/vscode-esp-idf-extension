@@ -43,13 +43,25 @@ suite("eimIdfJsonWatchTarget", () => {
     assert.strictEqual(target.pattern, "eim_idf.json");
   });
 
-  test("a missing parent watches from the nearest existing directory", async () => {
+  test("a missing parent watches the next missing child", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "esp-idf-eim-watch-"));
     const filePath = join(tempDir, "missing", "tools", "eim_idf.json");
 
     const target = await eimIdfJsonWatchTarget(filePath);
 
     assert.strictEqual(target.base, resolve(tempDir));
-    assert.strictEqual(target.pattern, "missing/tools/eim_idf.json");
+    assert.strictEqual(target.pattern, "missing");
+  });
+
+  test("an existing intermediate directory watches the next missing child", async () => {
+    tempDir = mkdtempSync(join(tmpdir(), "esp-idf-eim-watch-"));
+    const missingDir = join(tempDir, "missing");
+    mkdirSync(missingDir);
+    const filePath = join(missingDir, "tools", "eim_idf.json");
+
+    const target = await eimIdfJsonWatchTarget(filePath);
+
+    assert.strictEqual(target.base, resolve(missingDir));
+    assert.strictEqual(target.pattern, "tools");
   });
 });

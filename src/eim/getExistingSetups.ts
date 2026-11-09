@@ -180,6 +180,24 @@ export async function resolveEimIdfJsonPath(): Promise<string | undefined> {
   );
 }
 
+let loggedMissingCustomEimIdfJsonPath: string | undefined;
+
+/** Logs a missing custom catalog path once per session and leaves the setting unchanged. */
+export async function noteMissingCustomEimIdfJsonPath(): Promise<void> {
+  const customPath = (readParameter("idf.eimIdfJsonPath") as string) || "";
+  if (!customPath || (await pathExists(customPath))) {
+    return;
+  }
+  if (loggedMissingCustomEimIdfJsonPath === customPath) {
+    return;
+  }
+  loggedMissingCustomEimIdfJsonPath = customPath;
+  Logger.warn(
+    `idf.eimIdfJsonPath is set to ${customPath}, which is not available. Leaving the setting unchanged and using the default catalog when that file exists.`,
+    "eimIdfJsonPath"
+  );
+}
+
 function defaultIdfToolsPath() {
   const containerPath =
     (process.platform === "win32"

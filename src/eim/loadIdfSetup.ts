@@ -55,9 +55,15 @@ export async function getCurrentIdfSetup(
   return idfSetupToUse;
 }
 
+export type LoadIdfSetupOptions = {
+  /** Skip idf.customExtraVars after that path was already validated. */
+  skipEnvVars?: boolean;
+};
+
 export async function loadIdfSetup(
   extensionPath: string,
-  workspaceFolder: WorkspaceFolder
+  workspaceFolder: WorkspaceFolder,
+  options?: LoadIdfSetupOptions
 ): Promise<LoadIdfSetupResult> {
   ESP.ProjectConfiguration.store.clear(
     ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
@@ -65,10 +71,9 @@ export async function loadIdfSetup(
   ESP.ProjectConfiguration.store.clear(
     ESP.ProjectConfiguration.CURRENT_IDF_SETUP_ENV
   );
-  const idfEnvSetup = await loadEnvVarsAsIdfSetup(
-    extensionPath,
-    workspaceFolder
-  );
+  const idfEnvSetup = options?.skipEnvVars
+    ? undefined
+    : await loadEnvVarsAsIdfSetup(extensionPath, workspaceFolder);
   if (idfEnvSetup && "setup" in idfEnvSetup) {
     Logger.info("Using environment variables to configure extension");
     return { ok: true, setup: idfEnvSetup.setup };
