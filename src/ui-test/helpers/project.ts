@@ -473,6 +473,15 @@ function statusBarEntryLabel(entry: StatusBarEntry): string {
   return entry.text || entry.ariaLabel || entry.title;
 }
 
+/** Icon items render as `{codicon}, {tooltip}`, e.g. `terminal, Open ESP-IDF Terminal`. */
+function statusBarFieldMatches(value: string, label: string): boolean {
+  if (value === label) {
+    return true;
+  }
+  const iconLabel = value.match(/^[\w-]+, (.*)$/);
+  return iconLabel?.[1] === label;
+}
+
 /** Visible status-bar version, e.g. `6.1.0` from `ESP-IDF v6.1.0`. */
 export async function readActiveEspIdfVersion(): Promise<string> {
   const entries = await readStatusBarEntries();
@@ -494,16 +503,14 @@ export async function readActiveEspIdfVersion(): Promise<string> {
 
 /**
  * Clicks a status-bar item by its tooltip or visible label.
- * Icon-only items (such as Open ESP-IDF Terminal) expose the tooltip as
- * `aria-label` / `title` and have no visible text.
+ * Icon items are matched by the tooltip after the codicon prefix.
  */
 export async function clickStatusBarItem(label: string): Promise<void> {
   const entries = await readStatusBarEntries();
-  const match = entries.find(
-    (entry) =>
-      entry.ariaLabel === label ||
-      entry.title === label ||
-      entry.text === label
+  const match = entries.find((entry) =>
+    [entry.ariaLabel, entry.title, entry.text].some((value) =>
+      statusBarFieldMatches(value, label)
+    )
   );
   if (!match) {
     const visible = entries.map(statusBarEntryLabel).filter(Boolean);
