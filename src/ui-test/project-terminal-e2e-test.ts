@@ -269,22 +269,29 @@ function chromeDriver(): ChromeDriver {
   return new Workbench().getDriver() as ChromeDriver;
 }
 
+async function isCommandPaletteOpen(): Promise<boolean> {
+  return chromeDriver().executeScript<boolean>(`
+    const widget = document.querySelector(".quick-input-widget");
+    if (!widget) {
+      return false;
+    }
+    const style = window.getComputedStyle(widget);
+    return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
+  `);
+}
+
 async function waitUntilCommandPaletteClosed(): Promise<void> {
   const deadline = Date.now() + 5000;
   while (Date.now() < deadline) {
-    const open = await chromeDriver().executeScript<boolean>(`
-      const widget = document.querySelector(".quick-input-widget");
-      if (!widget) {
-        return false;
-      }
-      const style = window.getComputedStyle(widget);
-      return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
-    `);
-    if (!open) {
+    if (!(await isCommandPaletteOpen())) {
       return;
     }
     await delay(100);
   }
+  // Enter would activate the highlighted palette command instead of the shell.
+  throw new Error(
+    "Command palette stayed open, so Enter was not sent to the terminal."
+  );
 }
 
 async function focusTerminalByCommand(): Promise<void> {
