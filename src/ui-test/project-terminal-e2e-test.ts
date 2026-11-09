@@ -147,13 +147,25 @@ function assertNoProblems(text: string, where: string): void {
 }
 
 function textAfterSnapshot(full: string, snapshot: string): string {
-  if (!snapshot) {
-    return full;
+  if (!snapshot || full.startsWith(snapshot)) {
+    return full.slice(snapshot.length);
   }
   const anchor = snapshot.slice(-200);
   const index = full.lastIndexOf(anchor);
-  // A missing anchor means the new text is not readable yet, not the old buffer.
-  return index >= 0 ? full.slice(index + anchor.length) : "";
+  if (index >= 0) {
+    return full.slice(index + anchor.length);
+  }
+  // The terminal can rewrite the anchor, for example when the prompt line wraps.
+  return full.slice(commonPrefixLength(full, snapshot));
+}
+
+function commonPrefixLength(full: string, snapshot: string): number {
+  const limit = Math.min(full.length, snapshot.length);
+  let index = 0;
+  while (index < limit && full[index] === snapshot[index]) {
+    index += 1;
+  }
+  return index;
 }
 
 async function readTerminalText(): Promise<string> {
@@ -298,7 +310,31 @@ async function focusTerminalByCommand(): Promise<void> {
   await waitUntilCommandPaletteClosed();
 }
 
+async function readFocusedTerminalInput(): Promise<string> {
+  return chromeDriver().executeScript<string>(`
+    const active = document.activeElement;
+    if (!active) {
+      return "";
+    }
+    if (active.matches("textarea.xterm-helper-textarea, .native-edit-context")) {
+      return "terminal";
+    }
+    const className = typeof active.className === "string" ? active.className.trim() : "";
+    const classSuffix = className ? "." + className.split(/\\s+/).join(".") : "";
+    return active.tagName.toLowerCase() + classSuffix;
+  `);
+}
+
 async function pressEnterInTerminal(): Promise<void> {
+  const focused = await readFocusedTerminalInput();
+  if (focused !== "terminal") {
+    // Enter reaches the focused element and would type into the editor.
+    throw new Error(
+      `Terminal input is not focused, so Enter was not sent. Active element: ${
+        focused || "none"
+      }`
+    );
+  }
   const event = {
     key: "Enter",
     code: "Enter",
