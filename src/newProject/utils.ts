@@ -246,14 +246,16 @@ export async function updateProjectNameInCMakeLists(
     }
     throw error;
   }
-  const projectMatches = content.match(/(project\(.*?\))/g);
-  if (projectMatches && projectMatches.length) {
-    content = content.replace(
-      /(project\(.*?\))/g,
-      `project(${newProjectName})`
-    );
-    await writeFile(cmakeListFile, content);
+  const projectCall = /(project\s*\(\s*)([^\s)]+)([^)]*\))/g;
+  const updatedContent = content.replace(
+    projectCall,
+    (_match, prefix: string, _projectName: string, rest: string) =>
+      `${prefix}${newProjectName}${rest}`
+  );
+  if (updatedContent === content) {
+    return;
   }
+  await writeFile(cmakeListFile, updatedContent);
 }
 
 export function readProjectCMakeLists(dirPath: string) {

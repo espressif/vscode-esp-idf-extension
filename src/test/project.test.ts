@@ -17,12 +17,14 @@
  */
 import * as assert from "assert";
 import {
+  ensureDir,
   readdir,
   readFile,
   readJson,
   remove,
   stat,
   utimes,
+  writeFile,
   writeJson,
 } from "fs-extra";
 import { join, resolve } from "path";
@@ -432,6 +434,28 @@ suite("Project tests", () => {
     assert.notEqual(newProjectName, undefined);
     assert.equal(currProjectName, `${prevName}`);
     assert.equal(newProjectName, `${newName}`);
+  });
+
+  test("Update project name keeps languages", async () => {
+    const projectPath = join(wsFolder, "project-with-languages");
+    await ensureDir(projectPath);
+    const cmakeListPath = join(projectPath, "CMakeLists.txt");
+    const cmakeContent = [
+      "cmake_minimum_required(VERSION 3.16)",
+      "project(hello_world C CXX ASM)",
+      "",
+    ].join("\n");
+    await writeFile(cmakeListPath, cmakeContent);
+    await updateProjectNameInCMakeLists(projectPath, "new_name");
+    const updated = await readFile(cmakeListPath, "utf8");
+    assert.equal(
+      updated,
+      [
+        "cmake_minimum_required(VERSION 3.16)",
+        "project(new_name C CXX ASM)",
+        "",
+      ].join("\n")
+    );
   });
 
   test("get templates projects", async () => {
