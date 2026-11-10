@@ -190,10 +190,19 @@ async function waitForFocusInside(
   return false;
 }
 
+async function widgetExpressionText(widget: WebElement): Promise<string> {
+  const lines = await widget.findElements(By.css(".inputContainer .view-line"));
+  const parts: string[] = [];
+  for (const line of lines) {
+    parts.push(((await line.getText().catch(() => "")) ?? "").trim());
+  }
+  return parts.join(" ").replace(/\s+/g, " ").trim();
+}
+
 /**
- * The condition command draws the zone widget but leaves keyboard focus on the
- * editor (`div.native-edit-context`) under Xephyr. Click the Expression field
- * and type only after focus is inside `.breakpoint-widget`.
+ * BreakpointWidget's Expression field is a nested Monaco editor, not an
+ * input box. The hint is a decoration. Click that editor and type only after
+ * focus is inside `.breakpoint-widget`, so keys do not reach hello_world_main.c.
  */
 async function typeIntoConditionalBreakpointWidget(
   expression: string
@@ -218,52 +227,63 @@ async function typeIntoConditionalBreakpointWidget(
     );
   }
 
-  const inputDeadline = Date.now() + 5000;
-  let input: WebElement | undefined;
-  while (Date.now() < inputDeadline) {
-    const inputs = await widget.findElements(
-      By.css(".monaco-inputbox input.input, .monaco-inputbox textarea.input")
+  const editorDeadline = Date.now() + 5000;
+  let expressionEditor: WebElement | undefined;
+  while (Date.now() < editorDeadline) {
+    const editors = await widget.findElements(
+      By.css(".inputContainer .monaco-editor")
     );
-    if (inputs.length > 0) {
-      input = inputs[0];
+    if (editors.length > 0) {
+      expressionEditor = editors[0];
       break;
     }
     await delay(100);
   }
-  if (!input) {
+  if (!expressionEditor) {
     throw new Error(
-      `Conditional breakpoint widget is open but its Expression field was not found. Refusing to type "${expression}" so the editor does not receive it.`
+      `Conditional breakpoint widget is open but its Expression editor (.inputContainer .monaco-editor) was not found. Refusing to type "${expression}" so the source file does not receive it.`
     );
   }
 
-  let focused = await waitForFocusInside(widget, 2000);
+  let focused = await waitForFocusInside(widget, 500);
   if (!focused) {
+    const viewLines = await expressionEditor.findElements(By.css(".view-lines"));
+    const clickTarget = viewLines[0] ?? expressionEditor;
     console.log(
-      `[hardware-debug] Condition widget is open but focus is ${await describeActiveElement()}. Clicking the Expression field.`
+      `[hardware-debug] Condition widget is open but focus is ${await describeActiveElement()}. Clicking the Expression editor.`
     );
     try {
-      await input.click();
+      await clickTarget.click();
     } catch (err) {
       throw new Error(
-        `Conditional breakpoint widget is open but its Expression field could not be clicked (${await describeActiveElement()}). "${expression}" was not typed.\n${failureText(err)}`
+        `Conditional breakpoint widget is open but its Expression editor could not be clicked (${await describeActiveElement()}). "${expression}" was not typed.\n${failureText(err)}`
       );
     }
     focused = await waitForFocusInside(widget, 3000);
   }
   if (!focused) {
     throw new Error(
-      `Conditional breakpoint widget is open but clicking its Expression field left focus outside it (${await describeActiveElement()}). Refusing to type "${expression}" so the editor does not receive it.`
+      `Conditional breakpoint widget is open but clicking its Expression editor left focus outside it (${await describeActiveElement()}). Refusing to type "${expression}" so the source file does not receive it.`
     );
   }
 
-  await input.sendKeys(expression);
-  const typed = ((await input.getAttribute("value")) ?? "").trim();
-  if (typed !== expression) {
+  const active = await driver.switchTo().activeElement();
+  await active.sendKeys(expression);
+  const typedDeadline = Date.now() + 3000;
+  let typed = "";
+  while (Date.now() < typedDeadline) {
+    typed = await widgetExpressionText(widget);
+    if (typed.includes(expression)) {
+      break;
+    }
+    await delay(100);
+  }
+  if (!typed.includes(expression)) {
     throw new Error(
-      `Expression field contains "${typed}", expected "${expression}". Enter was not pressed, so no breakpoint was submitted.`
+      `Expression editor shows "${typed}", expected "${expression}". Enter was not pressed, so no breakpoint was submitted.`
     );
   }
-  await input.sendKeys(Key.ENTER);
+  await active.sendKeys(Key.ENTER);
 }
 
 async function assertNoOpenOcdFatal(when: string): Promise<void> {
