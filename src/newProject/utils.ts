@@ -250,9 +250,17 @@ export async function updateProjectNameInCMakeLists(
   // contents cannot be mistaken for a project command or its first argument.
   const cmakeToken = /#\[(=*)\[[\s\S]*?\]\1\]|#[^\r\n]*|"(?:\\[\s\S]|[^"\\])*"|\[(=*)\[[\s\S]*?\]\2\]|(?:\\[\s\S]|[^\s()"#\\])+|[()]/g;
   let expecting: "command" | "open" | "name" = "command";
+  // project() is a command only at depth 0. Nested arguments such as
+  // set(PROJECT (old_value)) must not match.
+  let parenDepth = 0;
   const updatedContent = content.replace(cmakeToken, (token: string) => {
     if (token.startsWith("#")) {
       return token;
+    }
+    if (token === "(") {
+      parenDepth++;
+    } else if (token === ")") {
+      parenDepth = Math.max(0, parenDepth - 1);
     }
     if (expecting === "name") {
       expecting = "command";
@@ -260,8 +268,10 @@ export async function updateProjectNameInCMakeLists(
     }
     if (expecting === "open" && token === "(") {
       expecting = "name";
+    } else if (parenDepth === 0 && token.toLowerCase() === "project") {
+      expecting = "open";
     } else {
-      expecting = token.toLowerCase() === "project" ? "open" : "command";
+      expecting = "command";
     }
     return token;
   });

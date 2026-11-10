@@ -483,6 +483,21 @@ suite("Project tests", () => {
       after:
         '#[=[\nproject(unchanged)\n]=]\nmessage("project(unchanged)")\nproject(#[[comment]] new_name C CXX ASM)',
     },
+    {
+      name: "project only at command boundaries",
+      before: [
+        "set(PROJECT (old_value))",
+        "set(FOO (bar) PROJECT (old_value))",
+        "PROJECT(hello_world C CXX ASM)",
+        "project(hello (nested))",
+      ].join("\n"),
+      after: [
+        "set(PROJECT (old_value))",
+        "set(FOO (bar) PROJECT (old_value))",
+        "PROJECT(new_name C CXX ASM)",
+        "project(new_name (nested))",
+      ].join("\n"),
+    },
   ];
   for (const { name, before, after } of projectRenameCases) {
     test(`Update project name handles ${name}`, async () => {
