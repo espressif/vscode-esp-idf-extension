@@ -18,8 +18,10 @@
 
 import { expect } from "chai";
 import { resolve } from "path";
+import { Key, WebElement } from "selenium-webdriver";
 import {
   BottomBarPanel,
+  By,
   DebugToolbar,
   EditorView,
   TextEditor,
@@ -27,12 +29,14 @@ import {
 } from "vscode-extension-tester";
 import {
   ESP_IDF_COMMANDS,
+  delay,
   dismissNotifications,
   executeDebugAction,
   executeEspIdfCommand,
   executeEspIdfCommandAndSelectOption,
   helloWorldBinPath,
   launchDebugger,
+  openFileInEditor,
   openTestProject,
   removeAllBreakpoints,
   reuseOrLaunchDebugger,
@@ -71,12 +75,16 @@ const DEBUG_FATAL_ERROR_PATTERN =
 // statement (lines 6–8). The user breakpoint is the next volatile assignment
 // so Continue cannot be confused with that halt. Step-over target is ESP_LOGI
 // (a statement, not a step-into of the log macro). add_one() is after printf
-// so these line numbers stay put.
+// so lines 9–12 stay put. The loop is after that call, and add_one() shifts
+// down with it.
 const USER_BREAKPOINT_LINE = 9;
 const STEP_OVER_TARGET_LINE = 10;
 const STEP_INTO_CALL_LINE = 12;
-const ADD_ONE_BODY_START = 16;
-const ADD_ONE_BODY_END_EXCLUSIVE = 19;
+const ADD_ONE_BODY_START = 22;
+const ADD_ONE_BODY_END_EXCLUSIVE = 25;
+const LOOP_HEAD_LINE = 16;
+const CONDITIONAL_BREAKPOINT_LINE = 17;
+const CONDITIONAL_HIT_VALUE = 2;
 const SOURCE_FILE_NAME = "hello_world_main.c";
 const SOURCE_FILE_PATH = resolve(testWorkspaceDir, "main", SOURCE_FILE_NAME);
 const APP_MAIN_STACK_PATTERN = /app_main/;
@@ -129,6 +137,188 @@ function step(stepName: string, action: () => Promise<void>): void {
       throw new Error(`Test failed at: ${stepName}\n${orig}`);
     }
   });
+}
+
+function breakpointAtLine(line: number): RegExp {
+  const fileName = SOURCE_FILE_NAME.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(
+    `breakpoint\\s+\\d+\\s+at\\b[^\\n]*${fileName}, line ${line}\\b`,
+    "i"
+  );
+}
+
+function conditionStillSet(expression: string): RegExp {
+  return new RegExp(`stop only if \\(?${expression}\\)?`, "i");
+}
+
+/**
+ * editor.getBreakpoint() matches only codicon-debug-breakpoint.
+ * A condition is drawn as codicon-debug-breakpoint-conditional, so that call stays empty.
+ */
+async function conditionalBreakpointOnLine(
+  editor: TextEditor,
+  line: number
+): Promise<boolean> {
+  const lineNumbers = await editor.findElements(
+    By.css(".margin-view-overlays .line-numbers")
+  );
+  let lineElement: WebElement | undefined;
+  for (const candidate of lineNumbers) {
+    const text = ((await candidate.getText().catch(() => "")) ?? "").trim();
+    if (text === String(line)) {
+      lineElement = candidate;
+      break;
+    }
+  }
+  if (!lineElement) {
+    return false;
+  }
+  const lineRect = await lineElement.getRect();
+  const glyphs = await editor.findElements(
+    By.css(".glyph-margin-widgets .codicon-debug-breakpoint-conditional")
+  );
+  for (const glyph of glyphs) {
+    const glyphRect = await glyph.getRect();
+    if (Math.abs(glyphRect.y - lineRect.y) <= lineRect.height / 2) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function failureText(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+async function activeElementIsInside(widget: WebElement): Promise<boolean> {
+  const driver = new Workbench().getDriver();
+  const active = await driver.switchTo().activeElement();
+  return driver.executeScript<boolean>(
+    "const widget = arguments[0]; const active = arguments[1]; return !!(widget && active && (widget === active || widget.contains(active)));",
+    widget,
+    active
+  );
+}
+
+async function describeActiveElement(): Promise<string> {
+  const active = await new Workbench()
+    .getDriver()
+    .switchTo()
+    .activeElement()
+    .catch(() => undefined);
+  const tag = (await active?.getTagName().catch(() => "")) ?? "none";
+  const className = (await active?.getAttribute("class").catch(() => "")) ?? "";
+  return `${tag}${className ? "." + className : ""}`;
+}
+
+async function waitForFocusInside(
+  widget: WebElement,
+  timeoutMs: number
+): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await activeElementIsInside(widget).catch(() => false)) {
+      return true;
+    }
+    await delay(100);
+  }
+  return false;
+}
+
+async function widgetExpressionText(widget: WebElement): Promise<string> {
+  const lines = await widget.findElements(By.css(".inputContainer .view-line"));
+  const parts: string[] = [];
+  for (const line of lines) {
+    parts.push(((await line.getText().catch(() => "")) ?? "").trim());
+  }
+  return parts.join(" ").replace(/\s+/g, " ").trim();
+}
+
+/**
+ * BreakpointWidget's Expression field is a nested Monaco editor, not an
+ * input box. The hint is a decoration. Click that editor and type only after
+ * focus is inside `.breakpoint-widget`, so keys do not reach hello_world_main.c.
+ */
+async function typeIntoConditionalBreakpointWidget(
+  expression: string
+): Promise<void> {
+  await new Workbench().executeCommand(
+    "editor.debug.action.conditionalBreakpoint"
+  );
+  const driver = new Workbench().getDriver();
+  const deadline = Date.now() + 10000;
+  let widget: WebElement | undefined;
+  while (Date.now() < deadline) {
+    const found = await driver.findElements(By.css(".breakpoint-widget"));
+    if (found.length > 0) {
+      widget = found[0];
+      break;
+    }
+    await delay(200);
+  }
+  if (!widget) {
+    throw new Error(
+      `Conditional breakpoint widget did not appear for ${SOURCE_FILE_NAME}:${CONDITIONAL_BREAKPOINT_LINE}. "${expression}" was not typed, so the source file was left unchanged.`
+    );
+  }
+
+  const editorDeadline = Date.now() + 5000;
+  let expressionEditor: WebElement | undefined;
+  while (Date.now() < editorDeadline) {
+    const editors = await widget.findElements(
+      By.css(".inputContainer .monaco-editor")
+    );
+    if (editors.length > 0) {
+      expressionEditor = editors[0];
+      break;
+    }
+    await delay(100);
+  }
+  if (!expressionEditor) {
+    throw new Error(
+      `Conditional breakpoint widget is open but its Expression editor (.inputContainer .monaco-editor) was not found. Refusing to type "${expression}" so the source file does not receive it.`
+    );
+  }
+
+  let focused = await waitForFocusInside(widget, 500);
+  if (!focused) {
+    const viewLines = await expressionEditor.findElements(By.css(".view-lines"));
+    const clickTarget = viewLines[0] ?? expressionEditor;
+    console.log(
+      `[hardware-debug] Condition widget is open but focus is ${await describeActiveElement()}. Clicking the Expression editor.`
+    );
+    try {
+      await clickTarget.click();
+    } catch (err) {
+      throw new Error(
+        `Conditional breakpoint widget is open but its Expression editor could not be clicked (${await describeActiveElement()}). "${expression}" was not typed.\n${failureText(err)}`
+      );
+    }
+    focused = await waitForFocusInside(widget, 3000);
+  }
+  if (!focused) {
+    throw new Error(
+      `Conditional breakpoint widget is open but clicking its Expression editor left focus outside it (${await describeActiveElement()}). Refusing to type "${expression}" so the source file does not receive it.`
+    );
+  }
+
+  const active = await driver.switchTo().activeElement();
+  await active.sendKeys(expression);
+  const typedDeadline = Date.now() + 3000;
+  let typed = "";
+  while (Date.now() < typedDeadline) {
+    typed = await widgetExpressionText(widget);
+    if (typed.includes(expression)) {
+      break;
+    }
+    await delay(100);
+  }
+  if (!typed.includes(expression)) {
+    throw new Error(
+      `Expression editor shows "${typed}", expected "${expression}". Enter was not pressed, so no breakpoint was submitted.`
+    );
+  }
+  await active.sendKeys(Key.ENTER);
 }
 
 async function assertNoOpenOcdFatal(when: string): Promise<void> {
@@ -406,6 +596,179 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
         );
       }
       console.log(`[hardware-debug] ${symbolText.trim().split("\n").slice(0, 4).join(" ")}`);
+    });
+  });
+
+  scenario("stops on a conditional breakpoint set from the editor", () => {
+    const condition = `i == ${CONDITIONAL_HIT_VALUE}`;
+
+    before(function () {
+      if (!state.debugSmokeSucceeded) {
+        this.skip();
+      }
+    });
+
+    after(async function () {
+      this.timeout(30000);
+      await removeAllBreakpoints().catch((err) => {
+        console.log(
+          `[hardware-debug] Could not clear breakpoints after the editor condition scenario: ${failureText(err)}`
+        );
+      });
+    });
+
+    step("Wait until the leftover debug session is paused", async () => {
+      try {
+        await waitUntilDebugPaused(60000);
+      } catch (err) {
+        throw new Error(
+          `Debug session was not paused before the editor condition widget.\n${failureText(err)}`
+        );
+      }
+      await assertNoOpenOcdFatal("before conditional breakpoint");
+    });
+
+    step("Run to the loop head with i == 0", async () => {
+      let breakText = "";
+      try {
+        breakText = await evaluateDebugConsoleAndWait(
+          `>tbreak ${SOURCE_FILE_NAME}:${LOOP_HEAD_LINE}`,
+          breakpointAtLine(LOOP_HEAD_LINE),
+          20000
+        );
+      } catch (err) {
+        throw new Error(
+          `Temporary breakpoint on the while line (${SOURCE_FILE_NAME}:${LOOP_HEAD_LINE}) was not confirmed, so i is not in scope for the condition.\n${failureText(err)}`
+        );
+      }
+      console.log(
+        `[hardware-debug] ${breakText.trim().split("\n").slice(0, 3).join(" ")}`
+      );
+      await executeDebugAction("continue");
+      try {
+        await waitUntilDebugPaused(60000);
+        await waitForPausedAtLine(SOURCE_FILE_PATH, LOOP_HEAD_LINE, 30000);
+        await waitForLocalVariable("i", 0, 20000);
+      } catch (err) {
+        throw new Error(
+          `Did not stop on ${SOURCE_FILE_NAME}:${LOOP_HEAD_LINE} with i == 0 before setting the editor condition.\n${failureText(err)}`
+        );
+      }
+    });
+
+    step(`Set editor conditional breakpoint ${condition} on a = i`, async () => {
+      await dismissNotifications();
+      let editor: TextEditor;
+      try {
+        editor = await openFileInEditor(SOURCE_FILE_PATH);
+        await editor.setCursor(CONDITIONAL_BREAKPOINT_LINE, 1, 10000);
+      } catch (err) {
+        throw new Error(
+          `Could not place the cursor on ${SOURCE_FILE_NAME}:${CONDITIONAL_BREAKPOINT_LINE} before opening the condition widget.\n${failureText(err)}`
+        );
+      }
+      const [cursorLine] = await editor.getCoordinates();
+      if (cursorLine !== CONDITIONAL_BREAKPOINT_LINE) {
+        throw new Error(
+          `Cursor is on line ${cursorLine}, expected ${CONDITIONAL_BREAKPOINT_LINE} (${SOURCE_FILE_NAME}). The condition widget was not opened.`
+        );
+      }
+
+      await typeIntoConditionalBreakpointWidget(condition);
+
+      const sourceLine = await editor.getTextAtLine(CONDITIONAL_BREAKPOINT_LINE);
+      if (sourceLine.includes(condition) || !/a\s*=\s*i/.test(sourceLine)) {
+        throw new Error(
+          `Source line ${CONDITIONAL_BREAKPOINT_LINE} changed while setting the condition. It is now:\n${sourceLine}`
+        );
+      }
+
+      const deadline = Date.now() + 10000;
+      let gutter = await conditionalBreakpointOnLine(
+        editor,
+        CONDITIONAL_BREAKPOINT_LINE
+      );
+      while (!gutter && Date.now() < deadline) {
+        await delay(500);
+        gutter = await conditionalBreakpointOnLine(
+          editor,
+          CONDITIONAL_BREAKPOINT_LINE
+        );
+      }
+      if (!gutter) {
+        throw new Error(
+          `No conditional gutter breakpoint (codicon-debug-breakpoint-conditional) at ${SOURCE_FILE_NAME}:${CONDITIONAL_BREAKPOINT_LINE} after submitting "${condition}" in the editor widget.`
+        );
+      }
+    });
+
+    step(`Confirm GDB stored stop only if ${condition}`, async () => {
+      let infoText = "";
+      try {
+        infoText = await evaluateDebugConsoleAndWait(
+          ">info breakpoints",
+          conditionStillSet(condition),
+          20000
+        );
+      } catch (err) {
+        throw new Error(
+          `Editor breakpoint at ${SOURCE_FILE_NAME}:${CONDITIONAL_BREAKPOINT_LINE} did not reach GDB as "stop only if ${condition}".\n${failureText(err)}`
+        );
+      }
+      console.log(
+        `[hardware-debug] ${infoText.trim().split("\n").slice(0, 6).join(" ")}`
+      );
+    });
+
+    step(`Continue and halt only when ${condition}`, async () => {
+      await executeDebugAction("continue");
+      try {
+        await waitUntilDebugPaused(60000);
+        await assertNoOpenOcdFatal("after conditional breakpoint");
+        await waitForPausedAtLine(
+          SOURCE_FILE_PATH,
+          CONDITIONAL_BREAKPOINT_LINE,
+          30000
+        );
+        await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
+        await waitForLocalVariable("i", CONDITIONAL_HIT_VALUE, 20000);
+      } catch (err) {
+        throw new Error(
+          `Conditional breakpoint "${condition}" did not stop on ${SOURCE_FILE_NAME}:${CONDITIONAL_BREAKPOINT_LINE} with i == ${CONDITIONAL_HIT_VALUE}. A plain breakpoint would have stopped at i == 0.\n${failureText(err)}`
+        );
+      }
+    });
+
+    step("Clear the editor conditional breakpoint", async () => {
+      await removeAllBreakpoints();
+      const editor = (await new EditorView().openEditor(
+        SOURCE_FILE_NAME
+      )) as TextEditor;
+      const leftover =
+        (await editor.getBreakpoint(CONDITIONAL_BREAKPOINT_LINE)) ||
+        (await conditionalBreakpointOnLine(editor, CONDITIONAL_BREAKPOINT_LINE));
+      if (leftover) {
+        throw new Error(
+          `Gutter breakpoint is still present at ${SOURCE_FILE_NAME}:${CONDITIONAL_BREAKPOINT_LINE} after removeAllBreakpoints.`
+        );
+      }
+      let infoText = "";
+      try {
+        infoText = await evaluateDebugConsoleAndWait(
+          ">info breakpoints",
+          /No breakpoints\b|Num\s+Type/i,
+          20000
+        );
+      } catch (err) {
+        throw new Error(
+          `Could not read GDB's breakpoint list after removeAllBreakpoints.\n${failureText(err)}`
+        );
+      }
+      if (conditionStillSet(condition).test(infoText)) {
+        throw new Error(
+          `GDB still has "stop only if ${condition}" after removeAllBreakpoints.\n${infoText}`
+        );
+      }
     });
   });
 

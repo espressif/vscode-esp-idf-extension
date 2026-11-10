@@ -11,6 +11,12 @@ void app_main(void)
     printf("Result: %d\n", b);
     volatile int c = add_one((int)a);
     (void)c;
+    /* Three passes so a breakpoint condition can ignore i == 0 and i == 1. */
+    volatile int i = 0;
+    while (i < 3) {
+        a = i;
+        i++;
+    }
 }
 
 static int __attribute__((noinline)) add_one(int x)
