@@ -458,6 +458,43 @@ suite("Project tests", () => {
     );
   });
 
+  const projectRenameCases = [
+    {
+      name: "quoted project name",
+      before: 'project("hello world" C CXX ASM)',
+      after: "project(new_name C CXX ASM)",
+    },
+    {
+      name: "complete command identifier and whitespace",
+      before: "my_project(unchanged C)\nproject \t(hello_world C CXX ASM)",
+      after: "my_project(unchanged C)\nproject \t(new_name C CXX ASM)",
+    },
+    {
+      name: "commented declarations and comments before the name",
+      before:
+        "# project(unchanged C)\nproject(\n  # project(fake C)\n  # name follows\n  hello_world C CXX ASM\n)",
+      after:
+        "# project(unchanged C)\nproject(\n  # project(fake C)\n  # name follows\n  new_name C CXX ASM\n)",
+    },
+    {
+      name: "bracket comments and quoted command text",
+      before:
+        '#[=[\nproject(unchanged)\n]=]\nmessage("project(unchanged)")\nproject(#[[comment]] "hello world" C CXX ASM)',
+      after:
+        '#[=[\nproject(unchanged)\n]=]\nmessage("project(unchanged)")\nproject(#[[comment]] new_name C CXX ASM)',
+    },
+  ];
+  for (const { name, before, after } of projectRenameCases) {
+    test(`Update project name handles ${name}`, async () => {
+      const projectPath = join(wsFolder, "project-rename-regression");
+      await ensureDir(projectPath);
+      const cmakeListPath = join(projectPath, "CMakeLists.txt");
+      await writeFile(cmakeListPath, before);
+      await updateProjectNameInCMakeLists(projectPath, "new_name");
+      assert.equal(await readFile(cmakeListPath, "utf8"), after);
+    });
+  }
+
   test("get templates projects", async () => {
     const templatesCategories = await getExamplesList(mockUpContext.extensionPath, [
       "templates",

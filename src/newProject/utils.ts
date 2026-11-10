@@ -246,12 +246,25 @@ export async function updateProjectNameInCMakeLists(
     }
     throw error;
   }
-  const projectCall = /(project\s*\(\s*)([^\s)]+)([^)]*\))/g;
-  const updatedContent = content.replace(
-    projectCall,
-    (_match, prefix: string, _projectName: string, rest: string) =>
-      `${prefix}${newProjectName}${rest}`
-  );
+  // Consume comments and quoted/bracket arguments as complete tokens so their
+  // contents cannot be mistaken for a project command or its first argument.
+  const cmakeToken = /#\[(=*)\[[\s\S]*?\]\1\]|#[^\r\n]*|"(?:\\[\s\S]|[^"\\])*"|\[(=*)\[[\s\S]*?\]\2\]|(?:\\[\s\S]|[^\s()"#\\])+|[()]/g;
+  let expecting: "command" | "open" | "name" = "command";
+  const updatedContent = content.replace(cmakeToken, (token: string) => {
+    if (token.startsWith("#")) {
+      return token;
+    }
+    if (expecting === "name") {
+      expecting = "command";
+      return token === ")" ? token : newProjectName;
+    }
+    if (expecting === "open" && token === "(") {
+      expecting = "name";
+    } else {
+      expecting = token === "project" ? "open" : "command";
+    }
+    return token;
+  });
   if (updatedContent === content) {
     return;
   }
