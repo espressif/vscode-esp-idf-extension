@@ -151,6 +151,41 @@ function conditionStillSet(expression: string): RegExp {
   return new RegExp(`stop only if \\(?${expression}\\)?`, "i");
 }
 
+/**
+ * editor.getBreakpoint() matches only codicon-debug-breakpoint.
+ * A condition is drawn as codicon-debug-breakpoint-conditional, so that call stays empty.
+ */
+async function conditionalBreakpointOnLine(
+  editor: TextEditor,
+  line: number
+): Promise<boolean> {
+  const lineNumbers = await editor.findElements(
+    By.css(".margin-view-overlays .line-numbers")
+  );
+  let lineElement: WebElement | undefined;
+  for (const candidate of lineNumbers) {
+    const text = ((await candidate.getText().catch(() => "")) ?? "").trim();
+    if (text === String(line)) {
+      lineElement = candidate;
+      break;
+    }
+  }
+  if (!lineElement) {
+    return false;
+  }
+  const lineRect = await lineElement.getRect();
+  const glyphs = await editor.findElements(
+    By.css(".glyph-margin-widgets .codicon-debug-breakpoint-conditional")
+  );
+  for (const glyph of glyphs) {
+    const glyphRect = await glyph.getRect();
+    if (Math.abs(glyphRect.y - lineRect.y) <= lineRect.height / 2) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function failureText(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
@@ -649,14 +684,20 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       }
 
       const deadline = Date.now() + 10000;
-      let gutter = await editor.getBreakpoint(CONDITIONAL_BREAKPOINT_LINE);
+      let gutter = await conditionalBreakpointOnLine(
+        editor,
+        CONDITIONAL_BREAKPOINT_LINE
+      );
       while (!gutter && Date.now() < deadline) {
         await delay(500);
-        gutter = await editor.getBreakpoint(CONDITIONAL_BREAKPOINT_LINE);
+        gutter = await conditionalBreakpointOnLine(
+          editor,
+          CONDITIONAL_BREAKPOINT_LINE
+        );
       }
       if (!gutter) {
         throw new Error(
-          `No gutter breakpoint at ${SOURCE_FILE_NAME}:${CONDITIONAL_BREAKPOINT_LINE} after submitting "${condition}" in the editor widget.`
+          `No conditional gutter breakpoint (codicon-debug-breakpoint-conditional) at ${SOURCE_FILE_NAME}:${CONDITIONAL_BREAKPOINT_LINE} after submitting "${condition}" in the editor widget.`
         );
       }
     });
@@ -703,7 +744,9 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       const editor = (await new EditorView().openEditor(
         SOURCE_FILE_NAME
       )) as TextEditor;
-      const leftover = await editor.getBreakpoint(CONDITIONAL_BREAKPOINT_LINE);
+      const leftover =
+        (await editor.getBreakpoint(CONDITIONAL_BREAKPOINT_LINE)) ||
+        (await conditionalBreakpointOnLine(editor, CONDITIONAL_BREAKPOINT_LINE));
       if (leftover) {
         throw new Error(
           `Gutter breakpoint is still present at ${SOURCE_FILE_NAME}:${CONDITIONAL_BREAKPOINT_LINE} after removeAllBreakpoints.`
