@@ -6,7 +6,8 @@
 	"customizations": {
 		"vscode": {
 			"settings": {
-				"terminal.integrated.defaultProfile.linux": "bash"
+				"terminal.integrated.defaultProfile.linux": "bash",
+				"idf.currentSetup": "/root/.espressif/esp-idf"
 			},
 			"extensions": [
 				"espressif.esp-idf-extension",
