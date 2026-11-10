@@ -165,9 +165,35 @@ async function activeElementIsInside(widget: WebElement): Promise<boolean> {
   );
 }
 
+async function describeActiveElement(): Promise<string> {
+  const active = await new Workbench()
+    .getDriver()
+    .switchTo()
+    .activeElement()
+    .catch(() => undefined);
+  const tag = (await active?.getTagName().catch(() => "")) ?? "none";
+  const className = (await active?.getAttribute("class").catch(() => "")) ?? "";
+  return `${tag}${className ? "." + className : ""}`;
+}
+
+async function waitForFocusInside(
+  widget: WebElement,
+  timeoutMs: number
+): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await activeElementIsInside(widget).catch(() => false)) {
+      return true;
+    }
+    await delay(100);
+  }
+  return false;
+}
+
 /**
- * Types into the editor condition widget only when that widget owns focus.
- * Otherwise the keystrokes would land in hello_world_main.c.
+ * The condition command draws the zone widget but leaves keyboard focus on the
+ * editor (`div.native-edit-context`) under Xephyr. Click the Expression field
+ * and type only after focus is inside `.breakpoint-widget`.
  */
 async function typeIntoConditionalBreakpointWidget(
   expression: string
@@ -192,18 +218,52 @@ async function typeIntoConditionalBreakpointWidget(
     );
   }
 
-  const focused = await activeElementIsInside(widget).catch(() => false);
-  if (!focused) {
-    const active = await driver.switchTo().activeElement().catch(() => undefined);
-    const tag = (await active?.getTagName().catch(() => "")) ?? "none";
-    const className = (await active?.getAttribute("class").catch(() => "")) ?? "";
+  const inputDeadline = Date.now() + 5000;
+  let input: WebElement | undefined;
+  while (Date.now() < inputDeadline) {
+    const inputs = await widget.findElements(
+      By.css(".monaco-inputbox input.input, .monaco-inputbox textarea.input")
+    );
+    if (inputs.length > 0) {
+      input = inputs[0];
+      break;
+    }
+    await delay(100);
+  }
+  if (!input) {
     throw new Error(
-      `Conditional breakpoint widget is open but focus is outside it (${tag}${className ? "." + className : ""}). Refusing to type "${expression}" so the editor does not receive it.`
+      `Conditional breakpoint widget is open but its Expression field was not found. Refusing to type "${expression}" so the editor does not receive it.`
     );
   }
 
-  const active = await driver.switchTo().activeElement();
-  await active.sendKeys(expression, Key.ENTER);
+  let focused = await waitForFocusInside(widget, 2000);
+  if (!focused) {
+    console.log(
+      `[hardware-debug] Condition widget is open but focus is ${await describeActiveElement()}. Clicking the Expression field.`
+    );
+    try {
+      await input.click();
+    } catch (err) {
+      throw new Error(
+        `Conditional breakpoint widget is open but its Expression field could not be clicked (${await describeActiveElement()}). "${expression}" was not typed.\n${failureText(err)}`
+      );
+    }
+    focused = await waitForFocusInside(widget, 3000);
+  }
+  if (!focused) {
+    throw new Error(
+      `Conditional breakpoint widget is open but clicking its Expression field left focus outside it (${await describeActiveElement()}). Refusing to type "${expression}" so the editor does not receive it.`
+    );
+  }
+
+  await input.sendKeys(expression);
+  const typed = ((await input.getAttribute("value")) ?? "").trim();
+  if (typed !== expression) {
+    throw new Error(
+      `Expression field contains "${typed}", expected "${expression}". Enter was not pressed, so no breakpoint was submitted.`
+    );
+  }
+  await input.sendKeys(Key.ENTER);
 }
 
 async function assertNoOpenOcdFatal(when: string): Promise<void> {
