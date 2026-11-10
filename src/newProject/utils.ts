@@ -261,7 +261,7 @@ export async function updateProjectNameInCMakeLists(
     if (expecting === "open" && token === "(") {
       expecting = "name";
     } else {
-      expecting = token === "project" ? "open" : "command";
+      expecting = token.toLowerCase() === "project" ? "open" : "command";
     }
     return token;
   });
