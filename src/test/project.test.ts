@@ -34,6 +34,7 @@ import {
   addVscodeFolderToWorkspace,
   copyFromSrcProject,
   createVscodeFolder,
+  checkIsProjectCmakeLists,
   readProjectCMakeLists,
   setCurrentSettingsInTemplate,
   updateProjectNameInCMakeLists,
@@ -509,6 +510,74 @@ suite("Project tests", () => {
       assert.equal(await readFile(cmakeListPath, "utf8"), after);
     });
   }
+
+  const projectDetectionCases = [
+    {
+      name: "project command",
+      content: "project(hello_world)",
+      isProject: true,
+    },
+    {
+      name: "case-insensitive project command with whitespace",
+      content: "PROJECT (hello)",
+      isProject: true,
+    },
+    {
+      name: "project command split from its name by a comment",
+      content: "project(\n  # name follows\n  hello\n)",
+      isProject: true,
+    },
+    {
+      name: "project command after a nested false positive",
+      content: "set(PROJECT (old_value))\nproject(hello (nested))",
+      isProject: true,
+    },
+    {
+      name: "line comment",
+      content: "# project(hello)",
+      isProject: false,
+    },
+    {
+      name: "quoted command text",
+      content: 'message("project(hello)")',
+      isProject: false,
+    },
+    {
+      name: "longer command identifier",
+      content: "my_project(hello)",
+      isProject: false,
+    },
+    {
+      name: "nested project argument",
+      content: "set(PROJECT (old_value))",
+      isProject: false,
+    },
+    {
+      name: "project argument after a nested group",
+      content: "set(FOO (bar) PROJECT (old_value))",
+      isProject: false,
+    },
+    {
+      name: "bracket comment",
+      content: "#[=[\nproject(hello)\n]=]",
+      isProject: false,
+    },
+  ];
+  for (const { name, content, isProject } of projectDetectionCases) {
+    test(`checkIsProjectCmakeLists handles ${name}`, async () => {
+      const projectPath = join(wsFolder, "project-detection");
+      await ensureDir(projectPath);
+      await writeFile(join(projectPath, "CMakeLists.txt"), content);
+      assert.equal(checkIsProjectCmakeLists(projectPath), isProject);
+    });
+  }
+
+  test("checkIsProjectCmakeLists handles a missing CMakeLists.txt", () => {
+    assert.equal(
+      checkIsProjectCmakeLists(join(wsFolder, "missing-cmake-project")),
+      false
+    );
+  });
 
   test("get templates projects", async () => {
     const templatesCategories = await getExamplesList(mockUpContext.extensionPath, [

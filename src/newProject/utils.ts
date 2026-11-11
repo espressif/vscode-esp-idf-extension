@@ -246,13 +246,25 @@ export async function updateProjectNameInCMakeLists(
     }
     throw error;
   }
-  // Consume comments and quoted/bracket arguments as complete tokens so their
-  // contents cannot be mistaken for a project command or its first argument.
+  const scanned = scanCmakeProjectCommands(content, () => newProjectName);
+  if (scanned.content === content) {
+    return;
+  }
+  await writeFile(cmakeListFile, scanned.content);
+}
+
+// Consume comments and quoted/bracket arguments as complete tokens so their
+// contents cannot be mistaken for a project command or its first argument.
+// project() is a command only at depth 0. Nested arguments such as
+// set(PROJECT (old_value)) must not match.
+function scanCmakeProjectCommands(
+  content: string,
+  replaceName: (token: string) => string = (token) => token
+): { content: string; hasProjectCommand: boolean } {
   const cmakeToken = /#\[(=*)\[[\s\S]*?\]\1\]|#[^\r\n]*|"(?:\\[\s\S]|[^"\\])*"|\[(=*)\[[\s\S]*?\]\2\]|(?:\\[\s\S]|[^\s()"#\\])+|[()]/g;
   let expecting: "command" | "open" | "name" = "command";
-  // project() is a command only at depth 0. Nested arguments such as
-  // set(PROJECT (old_value)) must not match.
   let parenDepth = 0;
+  let hasProjectCommand = false;
   const updatedContent = content.replace(cmakeToken, (token: string) => {
     if (token.startsWith("#")) {
       return token;
@@ -264,9 +276,10 @@ export async function updateProjectNameInCMakeLists(
     }
     if (expecting === "name") {
       expecting = "command";
-      return token === ")" ? token : newProjectName;
+      return token === ")" ? token : replaceName(token);
     }
     if (expecting === "open" && token === "(") {
+      hasProjectCommand = true;
       expecting = "name";
     } else if (parenDepth === 0 && token.toLowerCase() === "project") {
       expecting = "open";
@@ -275,10 +288,7 @@ export async function updateProjectNameInCMakeLists(
     }
     return token;
   });
-  if (updatedContent === content) {
-    return;
-  }
-  await writeFile(cmakeListFile, updatedContent);
+  return { content: updatedContent, hasProjectCommand };
 }
 
 export function readProjectCMakeLists(dirPath: string) {
@@ -293,16 +303,12 @@ export function readProjectCMakeLists(dirPath: string) {
 }
 
 export function checkIsProjectCmakeLists(dir: string) {
-  // Check if folder contain CMakeLists.txt with project(name) call.
   const cmakeListFile = join(dir, "CMakeLists.txt");
-  if (existsSync(cmakeListFile)) {
-    const content = readFileSync(cmakeListFile, "utf-8");
-    const projectMatches = content.match(/(project\(.*?\))/g);
-    if (projectMatches && projectMatches.length > 0) {
-      return true;
-    }
+  if (!existsSync(cmakeListFile)) {
+    return false;
   }
-  return false;
+  const content = readFileSync(cmakeListFile, "utf-8");
+  return scanCmakeProjectCommands(content).hasProjectCommand;
 }
 
 /**
