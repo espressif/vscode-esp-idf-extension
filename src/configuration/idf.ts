@@ -376,11 +376,6 @@ export async function readSerialPort(
         focusOnOutputChannel
       );
       Logger.info(`Auto-detected port: ${detectedPort}`);
-      await SerialPort.shared().updatePortListStatus(
-        detectedPort,
-        workspaceFolder,
-        useMonitorPort
-      );
       return detectedPort;
     } catch (error) {
       if (isKnownError(error) && error.code === ErrorCode.NoSerialPort) {

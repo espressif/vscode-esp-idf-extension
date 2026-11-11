@@ -194,7 +194,7 @@ export class SerialPort {
   public promptUserToSelect(
     workspaceFolder: Uri,
     useMonitorPort: boolean
-  ) {
+  ): Promise<string | undefined> {
     return SerialPort.shared().displayList(workspaceFolder, useMonitorPort);
   }
 
@@ -358,7 +358,7 @@ export class SerialPort {
   private async displayList(
     workspaceFolder: Uri,
     useMonitorPort: boolean
-  ) {
+  ): Promise<string | undefined> {
     const msg = l10n.t(
       "Select the available serial port where your device is connected."
     );
@@ -413,24 +413,18 @@ export class SerialPort {
 
     quickPick.dispose();
 
-    if (chosen && chosen.label) {
-      if (chosen.label === "detect") {
-        const detectedPort = await SerialPort.detectDefaultPort(
-          workspaceFolder
-        );
-        await this.updatePortListStatus(
-          detectedPort,
-          workspaceFolder,
-          useMonitorPort
-        );
-      } else {
-        await this.updatePortListStatus(
-          chosen.label,
-          workspaceFolder,
-          useMonitorPort
-        );
-      }
+    if (!chosen || !chosen.label) {
+      return undefined;
     }
+    await this.updatePortListStatus(
+      chosen.label,
+      workspaceFolder,
+      useMonitorPort
+    );
+    if (chosen.label !== "detect") {
+      return chosen.label;
+    }
+    return await SerialPort.detectDefaultPort(workspaceFolder);
   }
 
   public async getListArray(
