@@ -416,16 +416,15 @@ export class SerialPort {
     if (!chosen || !chosen.label) {
       return undefined;
     }
-    const selectedPort =
-      chosen.label === "detect"
-        ? await SerialPort.detectDefaultPort(workspaceFolder)
-        : chosen.label;
     await this.updatePortListStatus(
-      selectedPort,
+      chosen.label,
       workspaceFolder,
       useMonitorPort
     );
-    return selectedPort;
+    if (chosen.label !== "detect") {
+      return chosen.label;
+    }
+    return await SerialPort.detectDefaultPort(workspaceFolder);
   }
 
   public async getListArray(
