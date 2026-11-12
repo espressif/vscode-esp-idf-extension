@@ -25,7 +25,7 @@ import { canAccessFile, dirExistPromise } from "../utils";
 import { Logger } from "../common/logger";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
 import { join } from "path";
-import { constants, rm } from "fs/promises";
+import { constants } from "fs/promises";
 import { FlashSession } from "../flash/shared/flashSession";
 import { BuildSession } from "../build/buildSession";
 import { pathExists } from "fs-extra";
@@ -36,6 +36,12 @@ import {
   IdfTaskName,
   noBuildDirToClean,
 } from "../common/error/knownError";
+import { IDFMonitor } from "../espIdf/monitor/terminal";
+import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
+import { removePath } from "./removePath";
+
+const MONITOR_CLOSE_TIMEOUT_MS = 3000;
+const CONFSERVER_CLOSE_TIMEOUT_MS = 3000;
 
 export function registerFullCleanCmd(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.fullClean", async () => {
@@ -46,13 +52,6 @@ export function registerFullCleanCmd(context: ExtensionContext) {
       const buildDirExists = await dirExistPromise(buildDir);
       if (!buildDirExists) {
         throw noBuildDirToClean(buildDir);
-      }
-      if (ConfserverProcess.exists()) {
-        const closingSDKConfigMsg = l10n.t(
-          `Trying to delete the build folder. Closing existing SDK Configuration editor process...`
-        );
-        Logger.info(closingSDKConfigMsg);
-        ConfserverProcess.dispose();
       }
       const cmakeCacheFile = join(buildDir, "CMakeCache.txt");
       const doesCmakeCacheExists = canAccessFile(
@@ -68,8 +67,23 @@ export function registerFullCleanCmd(context: ExtensionContext) {
       if (FlashSession.isActive) {
         throw idfTaskInProgress(IdfTaskName.Flash);
       }
-
-      await rm(buildDir, { recursive: true, force: true });
+      if (IDFMonitor.terminal) {
+        Logger.info(
+          l10n.t(
+            "Trying to delete the build folder. Closing the ESP-IDF Monitor..."
+          )
+        );
+        await interruptMonitorWithDelay(selectWorkspaceFolder.uri);
+        await IDFMonitor.disposeAndWait(MONITOR_CLOSE_TIMEOUT_MS);
+      }
+      if (ConfserverProcess.isRunning()) {
+        const closingSDKConfigMsg = l10n.t(
+          `Trying to delete the build folder. Closing existing SDK Configuration editor process...`
+        );
+        Logger.info(closingSDKConfigMsg);
+        await ConfserverProcess.disposeAndWait(CONFSERVER_CLOSE_TIMEOUT_MS);
+      }
+      await removePath(buildDir);
       const extraPathsToClean = readParameter(
         "idf.extraCleanPaths",
         selectWorkspaceFolder
@@ -79,7 +93,7 @@ export function registerFullCleanCmd(context: ExtensionContext) {
           const fullPath = join(selectWorkspaceFolder.uri.fsPath, extraPath);
           const doesExtraPathExist = await pathExists(fullPath);
           if (doesExtraPathExist) {
-            await rm(fullPath, { recursive: true, force: true });
+            await removePath(fullPath);
           }
         }
       }

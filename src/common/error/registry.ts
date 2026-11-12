@@ -83,6 +83,21 @@ registerNewErrorInRegistry({
 });
 
 registerNewErrorInRegistry({
+  code: ErrorCode.BuildDirLocked,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "Could not delete {path} because another program is using it. Close the ESP-IDF Monitor and any terminal open inside the build folder, pause OneDrive or antivirus scanning, then run Full Clean again.",
+  logMessage: "Full clean failed: {path} is locked by another process ({errnoCode}).",
+  actions: [
+    {
+      label: "Show Terminals",
+      execute: () => commands.executeCommand("workbench.action.terminal.focus"),
+    },
+  ],
+  outputChannel: "ESP-IDF",
+});
+
+registerNewErrorInRegistry({
   code: ErrorCode.IdfToolNotFound,
   severity: ErrorSeverity.Error,
   userMessage:

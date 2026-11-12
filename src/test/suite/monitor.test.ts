@@ -24,6 +24,8 @@ import {
   isKnownError,
 } from "../../common/error/knownError";
 import { resolveKnownErrorUserMessage } from "../../common/error/resolve";
+import { IDFMonitor } from "../../espIdf/monitor/terminal";
+import { window } from "vscode";
 
 const baseUnquotedInput = {
   port: "COM1",
@@ -250,5 +252,46 @@ suite("monitor launch cross-guards", () => {
       isKnownError(error) && error.code === ErrorCode.IdfTaskInProgress,
       true
     );
+  });
+});
+
+suite("IDFMonitor.disposeAndWait", function () {
+  this.timeout(15000);
+
+  teardown(() => {
+    IDFMonitor.terminal = undefined;
+  });
+
+  test("returns immediately when no monitor terminal exists", async () => {
+    IDFMonitor.terminal = undefined;
+    await IDFMonitor.disposeAndWait(100);
+  });
+
+  test("clears the terminal once it has closed", async () => {
+    IDFMonitor.terminal = window.createTerminal({
+      name: "disposeAndWait test",
+    });
+    await IDFMonitor.disposeAndWait(10000);
+    assert.strictEqual(IDFMonitor.terminal, undefined);
+  });
+
+  test("force closes the terminal when it does not exit in time", async () => {
+    const terminal = window.createTerminal({
+      name: "disposeAndWait timeout test",
+      shellPath: process.execPath,
+      shellArgs: ["-e", "setInterval(() => {}, 1000)"],
+    });
+    IDFMonitor.terminal = terminal;
+    const closed = new Promise<void>((resolve) => {
+      const listener = window.onDidCloseTerminal((t) => {
+        if (t === terminal) {
+          listener.dispose();
+          resolve();
+        }
+      });
+    });
+    await IDFMonitor.disposeAndWait(500);
+    assert.strictEqual(IDFMonitor.terminal, undefined);
+    await closed;
   });
 });

@@ -247,6 +247,14 @@ export function cmakeCacheNotFound(
   return known(ErrorCode.CMakeCacheNotFound, { buildDir }, presentation);
 }
 
+export function buildDirLocked(
+  path: string,
+  errnoCode: string,
+  presentation?: ErrorPresentation
+): KnownError {
+  return known(ErrorCode.BuildDirLocked, { path, errnoCode }, presentation);
+}
+
 export function environmentNotSupported(
   envName: string,
   presentation?: ErrorPresentation
