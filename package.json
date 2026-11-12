@@ -60,6 +60,7 @@
   ],
   "activationEvents": [
     "onCommand:espIdf.addArduinoAsComponentToCurFolder",
+    "onCommand:espIdf.configureRuntimeGdbStub",
     "onCommand:espIdf.createIdfTerminal",
     "onCommand:espIdf.createVsCodeFolder",
     "onCommand:espIdf.selectConfTarget",
@@ -1918,6 +1919,11 @@
         "command": "espIdf.setClangSettings",
         "title": "%espIdf.setClangSettings.title%",
         "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.configureRuntimeGdbStub",
+        "title": "%espIdf.configureRuntimeGdbStub.title%",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [
@@ -1954,6 +1960,10 @@
                 "type": "boolean",
                 "description": "Run OpenOCD Server",
                 "default": true
+              },
+              "sessionID": {
+                "type": "string",
+                "description": "%debug.sessionID.description%"
               },
               "environment": {
                 "additionalProperties": {
@@ -2228,6 +2238,10 @@
                 "type": "boolean",
                 "description": "Run OpenOCD Server",
                 "default": true
+              },
+              "sessionID": {
+                "type": "string",
+                "description": "%debug.sessionID.description%"
               },
               "environment": {
                 "additionalProperties": {

@@ -20,6 +20,7 @@ import { HexViewProvider } from "../hexViewProvider";
 import { OpenOCDManager } from "../../espIdf/openOcd/openOcdManager";
 import { RunOpenOCDWarningTrackerFactory } from "../runOpenOcdWarning";
 import { readParameter } from "../../configuration/idf";
+import { isNonJtagDebugSession } from "../../espIdf/gdbstub/debugConfig";
 
 export type DebugSessionOpenOcdFlags = {
   isDebugRestarted: { value: boolean };
@@ -112,10 +113,13 @@ export function registerGdbTargetDebugAdapterTracker(
 ) {
   context.subscriptions.push(
     debug.registerDebugAdapterTrackerFactory("gdbtarget", {
-      createDebugAdapterTracker(_session: DebugSession) {
+      createDebugAdapterTracker(session: DebugSession) {
         return {
           onDidSendMessage: async (m) => {
             if (m && m.type === "event" && m.event === "stopped") {
+              if (isNonJtagDebugSession(session.configuration.sessionID)) {
+                return;
+              }
               await refreshPeripheralsOnStopped(peripheralTreeProvider);
             }
             if (

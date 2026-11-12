@@ -15,20 +15,17 @@
  */
 
 import {
+  commands,
   debug,
-  DebugConfiguration,
   ExtensionContext,
   env,
   l10n,
   window,
-  workspace,
 } from "vscode";
+import { join } from "path";
+import { pathExists } from "fs-extra";
 import { HexTreeItem, HexViewProvider } from "../hexViewProvider";
-import {
-  CDTDebugConfigurationProvider,
-  INITIAL_GDBTARGET_CONFIG,
-  workspaceHasGdbTargetAttachConfig,
-} from "../debugConfProvider";
+import { OPENOCD_DEBUG_CONFIG } from "../debugConfProvider";
 import { registerIDFCommand } from "../../common/registerCommand";
 import { openFolderCheck, PreCheck, webIdeCheck } from "../../common/PreCheck";
 import { ESP } from "../../config";
@@ -43,6 +40,10 @@ import {
   noWorkspaceOpen,
 } from "../../common/error/knownError";
 import { debugErrorPresentation } from "../debugErrorPresentation";
+import { configureProjectForRuntimeGdbStub } from "../../espIdf/gdbstub/configureProject";
+import { ensureRuntimeGdbStubLaunchJson } from "../../espIdf/gdbstub/launchJson";
+import { Logger } from "../../common/logger";
+import { checkIsProjectCmakeLists, createVscodeFolder } from "../../newProject/utils";
 
 function registerDebugCommand(
   context: ExtensionContext,
@@ -145,46 +146,27 @@ export function registerImageViewCommands(context: ExtensionContext) {
   });
 }
 
-async function startFirstGdbTargetConfiguration(
-  workspaceFolder: NonNullable<
-    ReturnType<typeof ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder>
-  >,
-  cdtDebugProvider: CDTDebugConfigurationProvider
+async function notifyRuntimeGdbStubReady(
+  alreadyConfigured: boolean
 ): Promise<void> {
-  const config = workspace.getConfiguration("launch", workspaceFolder);
-  const configurations = config.get(
-    "configurations"
-  ) as DebugConfiguration[];
-  if (!configurations?.length) {
-    throw invalidConfiguration(
-      "launch.configurations",
-      debugErrorPresentation.invalidConfiguration
-    );
-  }
-  for (const conf of configurations) {
-    if (conf.type !== "gdbtarget") {
-      continue;
-    }
-    const resolvedConf = await cdtDebugProvider.resolveDebugConfiguration(
-      workspaceFolder,
-      conf
-    );
-    if (!resolvedConf) {
-      return;
-    }
-    await debug.startDebugging(workspaceFolder, resolvedConf);
+  const message = alreadyConfigured
+    ? l10n.t(
+        'Runtime GDB Stub is already configured. Build and flash the project, then select "ESP-IDF Runtime GDB Stub" and press F5.'
+      )
+    : l10n.t(
+        'Runtime GDB Stub is configured. Build and flash the project, then select "ESP-IDF Runtime GDB Stub" and press F5.'
+      );
+  const buildAndFlash = l10n.t("Build and Flash");
+  Logger.info(message);
+  const choice = await window.showInformationMessage(message, buildAndFlash);
+  if (choice !== buildAndFlash) {
     return;
   }
-  throw invalidConfiguration(
-    "launch.configurations",
-    debugErrorPresentation.invalidConfiguration
-  );
+  await commands.executeCommand("espIdf.buildDevice");
+  await commands.executeCommand("espIdf.flashDevice");
 }
 
-export function registerEspIdfDebugCommand(
-  context: ExtensionContext,
-  cdtDebugProvider: CDTDebugConfigurationProvider
-) {
+export function registerEspIdfDebugCommand(context: ExtensionContext) {
   registerDebugCommand(context, "espIdf.debug", async () => {
     await PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
       const workspaceFolder =
@@ -192,11 +174,48 @@ export function registerEspIdfDebugCommand(
       if (!workspaceFolder) {
         throw noWorkspaceOpen(debugErrorPresentation.noWorkspaceOpen);
       }
-      if (!workspaceHasGdbTargetAttachConfig(workspaceFolder)) {
-        await debug.startDebugging(workspaceFolder, INITIAL_GDBTARGET_CONFIG);
+      const started = await debug.startDebugging(workspaceFolder, {
+        ...OPENOCD_DEBUG_CONFIG,
+      });
+      if (started) {
+        // startDebugging waits for a break before showing this view, and that
+        // path only checks the primary sidebar if the view was moved.
+        await commands.executeCommand("workbench.view.debug");
+      }
+    });
+  });
+
+  registerDebugCommand(context, "espIdf.configureRuntimeGdbStub", async () => {
+    await PreCheck.perform([openFolderCheck], async () => {
+      const workspaceFolder =
+        ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      if (!workspaceFolder) {
+        throw noWorkspaceOpen(debugErrorPresentation.noWorkspaceOpen);
+      }
+      if (!checkIsProjectCmakeLists(workspaceFolder.uri.fsPath)) {
+        Logger.infoNotify(
+          l10n.t("The current directory is not an ESP-IDF project.")
+        );
         return;
       }
-      await startFirstGdbTargetConfiguration(workspaceFolder, cdtDebugProvider);
+      const result = await configureProjectForRuntimeGdbStub(
+        workspaceFolder.uri
+      );
+      if (result === "cancelled") {
+        return;
+      }
+      const launchJsonPath = join(
+        workspaceFolder.uri.fsPath,
+        ".vscode",
+        "launch.json"
+      );
+      if (!(await pathExists(launchJsonPath))) {
+        await createVscodeFolder(context.extensionPath, workspaceFolder.uri);
+      }
+      const launchChanged = await ensureRuntimeGdbStubLaunchJson(
+        workspaceFolder.uri
+      );
+      await notifyRuntimeGdbStubReady(result === "unchanged" && !launchChanged);
     });
   });
 }

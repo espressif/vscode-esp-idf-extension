@@ -23,22 +23,29 @@ import {
   workspace,
   WorkspaceFolder,
 } from "vscode";
-import { readParameter } from "../configuration/idf";
+import { readParameter, readSerialPort } from "../configuration/idf";
 import {
   getProjectDescriptionJson,
   getConfigValueFromSDKConfig,
 } from "../configuration/workspace";
-import { dirname, join } from "path";
+import { basename, dirname, join } from "path";
+import { existsSync } from "fs";
 import { outputFile, pathExists, readFile } from "fs-extra";
+import { quoteGdbinitScript, withPathSeparators } from "./gdbinitQuote";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../common/logger";
 import { execChildProcess } from "../utils";
 import { buildFlashAndMonitor } from "../buildFlashMonitor";
 import { monitorMain } from "../espIdf/monitor/main";
+import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
+import { getMonitorBaudRate } from "../espIdf/monitor/getMonitorBaudRate";
 import { handleError } from "../common/error/handler";
 import {
   gdbinitPrefixMapMissing,
   isKnownError,
+  noPortSelected,
+  openOcdBlocksUartGdbStub,
+  runtimeGdbStubNotEnabled,
 } from "../common/error/knownError";
 import {
   requireBuildDirPath,
@@ -47,11 +54,30 @@ import {
   resolveDebugProgram,
   verifyAppBeforeDebug,
 } from "./validation";
+import { debugErrorPresentation } from "./debugErrorPresentation";
+import {
+  OPENOCD_DEBUG_SESSION_ID,
+  RUNTIME_GDBSTUB_SESSION_ID,
+  applyRuntimeGdbStubDebugConfig,
+  isNonJtagDebugSession,
+  isRuntimeGdbStubFirmwareMissing,
+  isSdkconfigOptionEnabled,
+  parseHardwareDebugLimit,
+  parseMonitorBaudRate,
+  shouldUseRuntimeGdbStub,
+} from "../espIdf/gdbstub/debugConfig";
 
 export const INITIAL_GDBTARGET_CONFIG: DebugConfiguration = {
   type: "gdbtarget",
   request: "attach",
   name: "ESP-IDF",
+};
+
+/** In-memory configuration started by Launch Debug. launch.json is not consulted. */
+export const OPENOCD_DEBUG_CONFIG: DebugConfiguration = {
+  ...INITIAL_GDBTARGET_CONFIG,
+  runOpenOCD: true,
+  sessionID: OPENOCD_DEBUG_SESSION_ID,
 };
 
 /** Legacy projects use other names, such as "Eclipse CDT GDB Adapter". */
@@ -118,6 +144,9 @@ const GDBINIT_FILE_NAMES = [
 
 /** Expanded by {@link getConnectCommands} rather than sourced like the other files. */
 const GDBINIT_CONNECT_FILE_NAME = "connect";
+
+/** Rewritten gdbinit scripts whose paths needed quotes. Kept next to the originals. */
+const QUOTED_GDBINIT_DIRECTORY = "quoted";
 
 /** Some GDB builds stall when their Python runtime is unusable, so the probe is bounded. */
 async function isGdbWithPython(gdbPath: string) {
@@ -204,7 +233,7 @@ async function getGdbinitSourceCommands(
     if (name === "py_extensions" && !(await isGdbWithPython(gdbPath))) {
       continue;
     }
-    commands.push(`source ${filePath}`);
+    commands.push(await gdbinitSourceCommand(filePath));
     if (name === "prefix_map") {
       prefixMapFound = true;
       prefixMapFilePath = filePath;
@@ -214,7 +243,7 @@ async function getGdbinitSourceCommands(
   if (!prefixMapFound && buildDirPath) {
     const legacyPrefixMap = join(buildDirPath, "prefix_map_gdbinit");
     if (await pathExists(legacyPrefixMap)) {
-      commands.push(`source ${legacyPrefixMap}`);
+      commands.push(await gdbinitSourceCommand(legacyPrefixMap));
       prefixMapFound = true;
       prefixMapFilePath = legacyPrefixMap;
     }
@@ -223,9 +252,69 @@ async function getGdbinitSourceCommands(
   return { commands, prefixMapFound, prefixMapFilePath };
 }
 
+/**
+ * `source` takes the remainder of the line as the filename and does not strip
+ * quotes, so a path with spaces stays unquoted. Commands inside the file that
+ * do split on spaces are rewritten into a sibling script.
+ */
+async function gdbinitSourceCommand(filePath: string): Promise<string> {
+  return `source ${await gdbinitFileToSource(filePath)}`;
+}
+
+async function gdbinitFileToSource(filePath: string): Promise<string> {
+  let content: string;
+  try {
+    content = (await readFile(filePath)).toString();
+  } catch (error) {
+    Logger.error(
+      `Failed to read gdbinit file ${filePath}`,
+      error as Error,
+      "CDTDebugConfigurationProvider gdbinitFileToSource"
+    );
+    return filePath;
+  }
+  const quoted = quoteGdbinitScript(content, {
+    romElfExists: existsSync,
+  });
+  if (quoted === content) {
+    return filePath;
+  }
+  const quotedPath = join(
+    dirname(filePath),
+    QUOTED_GDBINIT_DIRECTORY,
+    basename(filePath)
+  );
+  try {
+    await outputFile(quotedPath, quoted);
+  } catch (error) {
+    Logger.error(
+      `Failed to write gdbinit file with quoted paths ${quotedPath}`,
+      error as Error,
+      "CDTDebugConfigurationProvider gdbinitFileToSource"
+    );
+    return filePath;
+  }
+  return withPathSeparators(quotedPath, filePath);
+}
+
 function getRemoteTargetAddress(target: { host?: string; port?: string }) {
   const port = target?.port ?? "3333";
   return target?.host ? `${target.host}:${port}` : `:${port}`;
+}
+
+/** Puts gdbinit `source` commands ahead of an existing connect list, skipping duplicates. */
+export function mergeGdbinitSourceCommands(
+  connectCommands: string[],
+  gdbinitSourceCommands: string[]
+): string[] {
+  const merged = [...connectCommands];
+  for (let i = gdbinitSourceCommands.length - 1; i >= 0; i--) {
+    const command = gdbinitSourceCommands[i];
+    if (!merged.includes(command)) {
+      merged.unshift(command);
+    }
+  }
+  return merged;
 }
 
 /** GDB constructs spanning multiple lines, which this flat-list parser cannot handle. */
@@ -319,9 +408,9 @@ async function handleDebugConfigurationError(
     return undefined;
   }
   const msg = error instanceof Error ? error.message : String(error);
-  Logger.error(
+  Logger.errorNotify(
     msg,
-    error as Error,
+    error instanceof Error ? error : new Error(msg),
     "CDTDebugConfigurationProvider resolveDebugConfiguration"
   );
   return undefined;
@@ -345,59 +434,60 @@ export class CDTDebugConfigurationProvider
   ) {
     try {
       folder = await requireWorkspaceFolderForDebug(folder);
+      const useMonitorWithDebug = readParameter(
+        "idf.launchMonitorOnDebugSession",
+        folder
+      );
+      if (debugConfiguration.sessionID === RUNTIME_GDBSTUB_SESSION_ID) {
+        await prepareSerialPortForRuntimeGdbStub(folder);
+      }
+      if (debugConfiguration.buildFlashMonitor) {
+        try {
+          await buildFlashAndMonitor(folder.uri, true);
+        } catch (error) {
+          if (isKnownError(error)) {
+            await handleError("espIdf.buildFlashMonitor", error);
+            return debugConfiguration;
+          }
+          throw error;
+        }
+      } else if (
+        !isNonJtagDebugSession(debugConfiguration.sessionID) &&
+        useMonitorWithDebug
+      ) {
+        try {
+          await monitorMain(folder, true);
+        } catch (error) {
+          if (isKnownError(error)) {
+            await handleError("espIdf.monitorDevice", error);
+            return debugConfiguration;
+          }
+          throw error;
+        }
+      }
+      const openOCDManager = OpenOCDManager.init();
+      if (
+        !openOCDManager.isRunning() &&
+        !isNonJtagDebugSession(debugConfiguration.sessionID) &&
+        debugConfiguration.sessionID !== "qemu.debug.session" &&
+        debugConfiguration.runOpenOCD !== false
+      ) {
+        try {
+          await openOCDManager.start({ launchedByDebug: true });
+        } catch (error) {
+          if (isKnownError(error)) {
+            await handleError("debug.resolveConfiguration", error, undefined, {
+              outputChannel: "Debug",
+            });
+            return debugConfiguration;
+          }
+          throw error;
+        }
+      }
+      return debugConfiguration;
     } catch (error) {
       return handleDebugConfigurationError(error);
     }
-    const useMonitorWithDebug = readParameter(
-      "idf.launchMonitorOnDebugSession",
-      folder
-    );
-    if (debugConfiguration.buildFlashMonitor) {
-      try {
-        await buildFlashAndMonitor(folder.uri, true);
-      } catch (error) {
-        if (isKnownError(error)) {
-          await handleError("espIdf.buildFlashMonitor", error);
-          return debugConfiguration;
-        }
-        throw error;
-      }
-    } else if (
-      debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
-      debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
-      useMonitorWithDebug
-    ) {
-      try {
-        await monitorMain(folder, true);
-      } catch (error) {
-        if (isKnownError(error)) {
-          await handleError("espIdf.monitorDevice", error);
-          return debugConfiguration;
-        }
-        throw error;
-      }
-    }
-    const openOCDManager = OpenOCDManager.init();
-    if (
-      !openOCDManager.isRunning() &&
-      debugConfiguration.sessionID !== "core-dump.debug.session.ws" &&
-      debugConfiguration.sessionID !== "gdbstub.debug.session.ws" &&
-      debugConfiguration.sessionID !== "qemu.debug.session" &&
-      debugConfiguration.runOpenOCD !== false
-    ) {
-      try {
-        await openOCDManager.start({ launchedByDebug: true });
-      } catch (error) {
-        if (isKnownError(error)) {
-          await handleError("debug.resolveConfiguration", error, undefined, {
-            outputChannel: "Debug",
-          });
-          return debugConfiguration;
-        }
-        throw error;
-      }
-    }
-    return debugConfiguration;
   }
   public async resolveDebugConfiguration(
     folder: WorkspaceFolder | undefined,
@@ -420,10 +510,10 @@ export class CDTDebugConfigurationProvider
         ? await resolveDebugGdb(config)
         : config.gdb;
 
+      await applyRuntimeGdbStubIfNeeded(folder, config);
+
       const buildDirPath = requireBuildDirPath(folder);
-      const isPostMortemSession =
-        config.sessionID === "core-dump.debug.session.ws" ||
-        config.sessionID === "gdbstub.debug.session.ws";
+      const isNonJtagSession = isNonJtagDebugSession(config.sessionID);
       const projectDescription = await getProjectDescriptionJson(folder.uri);
       const gdbinitFiles = projectDescription?.gdbinitFiles;
       const gdbinitPaths = await resolveGdbinitFilePaths(
@@ -441,7 +531,7 @@ export class CDTDebugConfigurationProvider
         gdbPath
       );
 
-      if (!isPostMortemSession) {
+      if (!isNonJtagSession) {
         const connectCommands =
           (await getConnectCommands(
             gdbinitPaths.get(GDBINIT_CONNECT_FILE_NAME),
@@ -450,7 +540,7 @@ export class CDTDebugConfigurationProvider
         preConnectCommands.push(...connectCommands);
       }
 
-      if (!isPostMortemSession && !prefixMapFound) {
+      if (!isNonJtagSession && !prefixMapFound) {
         try {
           const isAppReproducibleBuildEnabled = await getConfigValueFromSDKConfig(
             "CONFIG_APP_REPRODUCIBLE_BUILD",
@@ -472,27 +562,33 @@ export class CDTDebugConfigurationProvider
         }
       }
 
-      if (!isPostMortemSession && config.initialBreakpoint) {
+      if (!isNonJtagSession && config.initialBreakpoint) {
         if (!Array.isArray(config.initCommands)) {
           config.initCommands = [];
         }
         config.initCommands.push(`thb ${config.initialBreakpoint.trim()}`);
       }
 
-      if (preConnectCommands.length > 0) {
+      if (!isNonJtagSession && preConnectCommands.length > 0) {
         if (!config.target) {
           config.target = { connectCommands: [] };
         }
         if (!Array.isArray(config.target.connectCommands)) {
           config.target.connectCommands = [];
         }
-        const connectCommands = config.target.connectCommands as string[];
-        for (let i = preConnectCommands.length - 1; i >= 0; i--) {
-          const cmd = preConnectCommands[i];
-          if (!connectCommands.includes(cmd)) {
-            connectCommands.unshift(cmd);
-          }
-        }
+        config.target.connectCommands = mergeGdbinitSourceCommands(
+          config.target.connectCommands as string[],
+          preConnectCommands
+        );
+      } else if (
+        isNonJtagSession &&
+        preConnectCommands.length > 0 &&
+        Array.isArray(config.target?.connectCommands)
+      ) {
+        config.target.connectCommands = mergeGdbinitSourceCommands(
+          config.target.connectCommands as string[],
+          preConnectCommands
+        );
       }
       if (folder && folder.uri && config.verifyAppBinBeforeDebug) {
         await verifyAppBeforeDebug(folder.uri);
@@ -505,4 +601,72 @@ export class CDTDebugConfigurationProvider
     }
     return config;
   }
+}
+
+async function applyRuntimeGdbStubIfNeeded(
+  folder: WorkspaceFolder,
+  config: DebugConfiguration
+): Promise<void> {
+  if (!shouldUseRuntimeGdbStub(config)) {
+    return;
+  }
+
+  let runtimeEnabled = false;
+  try {
+    runtimeEnabled = isSdkconfigOptionEnabled(
+      await getConfigValueFromSDKConfig(
+        "CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME",
+        folder.uri
+      )
+    );
+  } catch {
+    runtimeEnabled = false;
+  }
+
+  if (isRuntimeGdbStubFirmwareMissing(config.sessionID, runtimeEnabled)) {
+    throw runtimeGdbStubNotEnabled();
+  }
+
+  const port = await readSerialPort(folder.uri, false);
+  if (!port) {
+    throw noPortSelected(debugErrorPresentation.uartGdbStubNoPortSelected);
+  }
+
+  applyRuntimeGdbStubDebugConfig(config, {
+    port,
+    baudRate: parseMonitorBaudRate(await getMonitorBaudRate(folder.uri)),
+    hardwareWatchpointLimit: await readHardwareDebugLimit(
+      "CONFIG_SOC_CPU_WATCHPOINTS_NUM",
+      folder
+    ),
+  });
+  Logger.info(`Using UART GDB Stub on ${port}`);
+}
+
+async function readHardwareDebugLimit(
+  sdkconfigKey: string,
+  folder: WorkspaceFolder
+): Promise<number | undefined> {
+  try {
+    return parseHardwareDebugLimit(
+      await getConfigValueFromSDKConfig(sdkconfigKey, folder.uri)
+    );
+  } catch (error) {
+    Logger.error(
+      `Failed to read ${sdkconfigKey} from sdkconfig`,
+      error as Error,
+      "CDTDebugConfigurationProvider readHardwareDebugLimit"
+    );
+    return undefined;
+  }
+}
+
+async function prepareSerialPortForRuntimeGdbStub(
+  folder: WorkspaceFolder
+): Promise<void> {
+  const openOCDManager = OpenOCDManager.init();
+  if (openOCDManager.isRunning()) {
+    throw openOcdBlocksUartGdbStub();
+  }
+  await interruptMonitorWithDelay(folder.uri);
 }

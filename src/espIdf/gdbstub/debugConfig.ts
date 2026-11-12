@@ -1,0 +1,157 @@
+export const RUNTIME_GDBSTUB_SESSION_ID = "gdbstub.debug.session.runtime";
+export const PANIC_GDBSTUB_SESSION_ID = "gdbstub.debug.session.ws";
+export const CORE_DUMP_SESSION_ID = "core-dump.debug.session.ws";
+/** In-memory session started by Launch Debug. It is not the runtime stub. */
+export const OPENOCD_DEBUG_SESSION_ID = "openocd.debug.session";
+
+export const RUNTIME_GDBSTUB_LAUNCH_NAME = "ESP-IDF Runtime GDB Stub";
+
+export function isRuntimeGdbStubFirmwareMissing(
+  sessionID: string | undefined,
+  runtimeEnabled: boolean
+): boolean {
+  return sessionID === RUNTIME_GDBSTUB_SESSION_ID && !runtimeEnabled;
+}
+
+export interface RuntimeGdbStubLaunchConfig {
+  type?: string;
+  name?: string;
+  request?: string;
+  sessionID?: string;
+  target?: { connectCommands?: string[] };
+  runOpenOCD?: boolean;
+  initCommands?: string[];
+  gdbStubUart?: { port: string; baudRate: number };
+  hardwareBreakpoint?: boolean;
+}
+
+export function getRuntimeGdbStubLaunchConfiguration(): RuntimeGdbStubLaunchConfig {
+  return {
+    name: RUNTIME_GDBSTUB_LAUNCH_NAME,
+    type: "gdbtarget",
+    request: "attach",
+    sessionID: RUNTIME_GDBSTUB_SESSION_ID,
+    runOpenOCD: false,
+    initCommands: [],
+  };
+}
+
+export function mergeRuntimeGdbStubLaunchConfigurations(
+  configurations: RuntimeGdbStubLaunchConfig[]
+): { configurations: RuntimeGdbStubLaunchConfig[]; changed: boolean } {
+  const stub = getRuntimeGdbStubLaunchConfiguration();
+  const index = configurations.findIndex(
+    (config) =>
+      config.sessionID === RUNTIME_GDBSTUB_SESSION_ID ||
+      config.name === RUNTIME_GDBSTUB_LAUNCH_NAME
+  );
+  if (index === -1) {
+    return { configurations: [stub, ...configurations], changed: true };
+  }
+  const current = configurations[index];
+  const merged: RuntimeGdbStubLaunchConfig = {
+    ...current,
+    ...stub,
+    name: current.name || stub.name,
+  };
+  if (
+    index === 0 &&
+    current.sessionID === stub.sessionID &&
+    current.type === stub.type &&
+    current.request === stub.request &&
+    current.runOpenOCD === false
+  ) {
+    return { configurations, changed: false };
+  }
+  const rest = configurations.filter((_, itemIndex) => itemIndex !== index);
+  return { configurations: [merged, ...rest], changed: true };
+}
+
+export function isNonJtagDebugSession(sessionID?: string): boolean {
+  return (
+    sessionID === RUNTIME_GDBSTUB_SESSION_ID ||
+    sessionID === PANIC_GDBSTUB_SESSION_ID ||
+    sessionID === CORE_DUMP_SESSION_ID
+  );
+}
+
+export function isSdkconfigOptionEnabled(value: string | undefined): boolean {
+  return (value ?? "").trim() === "y";
+}
+
+export function shouldUseRuntimeGdbStub(
+  config: RuntimeGdbStubLaunchConfig
+): boolean {
+  return config.sessionID === RUNTIME_GDBSTUB_SESSION_ID;
+}
+
+export function parseMonitorBaudRate(value: string | undefined): number {
+  const parsed = Number.parseInt(String(value ?? "").trim(), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 115200;
+}
+
+export function toGdbSerialPort(
+  port: string,
+  platform: NodeJS.Platform = process.platform
+): string {
+  if (platform === "darwin" && port.startsWith("/dev/tty.")) {
+    return port.replace("/dev/tty.", "/dev/cu.");
+  }
+  if (platform === "win32" && /^COM\d+$/i.test(port)) {
+    return `\\\\.\\${port}`;
+  }
+  return port;
+}
+
+const windowsDevicePrefix = "\\\\.\\";
+
+// node-serialport prepends \\.\ on Windows and keeps only the first 10
+// characters of the supplied path, so the GDB form must be stripped first.
+export function toNodeSerialPortPath(port: string): string {
+  if (!port.startsWith(windowsDevicePrefix)) {
+    return port;
+  }
+  return port.slice(windowsDevicePrefix.length);
+}
+
+export function parseHardwareDebugLimit(
+  value: string | undefined
+): number | undefined {
+  const parsed = Number.parseInt(String(value ?? "").trim(), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+export function applyRuntimeGdbStubDebugConfig(
+  config: RuntimeGdbStubLaunchConfig,
+  options: {
+    port: string;
+    baudRate: number;
+    hardwareWatchpointLimit?: number;
+    platform?: NodeJS.Platform;
+  }
+): void {
+  const gdbPort = toGdbSerialPort(options.port, options.platform);
+  config.sessionID = RUNTIME_GDBSTUB_SESSION_ID;
+  config.runOpenOCD = false;
+  config.initCommands = [];
+  if (options.hardwareWatchpointLimit !== undefined) {
+    config.initCommands.push(
+      `set remote hardware-watchpoint-limit ${options.hardwareWatchpointLimit}`
+    );
+  }
+  config.initCommands.push("set backtrace limit 16");
+  // The stub handles Z0 and programs the CPU breakpoint registers itself.
+  // hardwareBreakpoint makes GDB send Z1, which the stub does not implement.
+  config.hardwareBreakpoint = false;
+  config.gdbStubUart = {
+    port: gdbPort,
+    baudRate: options.baudRate,
+  };
+  config.target = {
+    connectCommands: [
+      "set remotetimeout 20",
+      `set serial baud ${options.baudRate}`,
+      `target remote ${gdbPort}`,
+    ],
+  };
+}

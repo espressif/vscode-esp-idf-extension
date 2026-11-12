@@ -167,7 +167,7 @@
   "💡 New ESP-IDF Hints!": "💡 ¡Nuevas Pistas ESP-IDF!",
   "ESP-IDF: Hints available. Click to view.": "ESP-IDF: Pistas disponibles. Haga clic para ver.",
   "Open Reference": "Abrir Referencia",
-  "Launch Debug": "Iniciar depuración",
+  "Launch OpenOCD Debug": "Iniciar depuración OpenOCD",
   "Copy EIM Path": "Copiar ruta de EIM",
   "Run EIM in Terminal": "Ejecutar EIM en la terminal",
   "VS Code installed via Snap cannot launch EIM's GUI due to sandbox restrictions. You can run EIM in CLI mode directly from the integrated terminal, or copy the path to run the GUI manually from a system terminal.": "VS Code instalado mediante Snap no puede iniciar la interfaz gráfica de EIM debido a las restricciones del sandbox. Puede ejecutar EIM en modo CLI directamente desde la terminal integrada, o copiar la ruta para ejecutar la GUI manualmente desde una terminal del sistema.",
