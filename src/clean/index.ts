@@ -40,6 +40,7 @@ import { IDFMonitor } from "../espIdf/monitor/terminal";
 import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 
 const MONITOR_CLOSE_TIMEOUT_MS = 3000;
+const CONFSERVER_CLOSE_TIMEOUT_MS = 3000;
 
 export function registerFullCleanCmd(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.fullClean", async () => {
@@ -66,12 +67,12 @@ export function registerFullCleanCmd(context: ExtensionContext) {
         await interruptMonitorWithDelay(selectWorkspaceFolder.uri);
         await IDFMonitor.disposeAndWait(MONITOR_CLOSE_TIMEOUT_MS);
       }
-      if (ConfserverProcess.exists()) {
+      if (ConfserverProcess.isRunning()) {
         const closingSDKConfigMsg = l10n.t(
           `Trying to delete the build folder. Closing existing SDK Configuration editor process...`
         );
         Logger.info(closingSDKConfigMsg);
-        ConfserverProcess.dispose();
+        await ConfserverProcess.disposeAndWait(CONFSERVER_CLOSE_TIMEOUT_MS);
       }
       const cmakeCacheFile = join(buildDir, "CMakeCache.txt");
       const doesCmakeCacheExists = canAccessFile(
