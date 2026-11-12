@@ -47,6 +47,12 @@ export function registerFullCleanCmd(context: ExtensionContext) {
       if (!buildDirExists) {
         throw noBuildDirToClean(buildDir);
       }
+      if (BuildSession.isActive) {
+        throw idfTaskInProgress(IdfTaskName.Build);
+      }
+      if (FlashSession.isActive) {
+        throw idfTaskInProgress(IdfTaskName.Flash);
+      }
       if (ConfserverProcess.exists()) {
         const closingSDKConfigMsg = l10n.t(
           `Trying to delete the build folder. Closing existing SDK Configuration editor process...`
@@ -62,13 +68,6 @@ export function registerFullCleanCmd(context: ExtensionContext) {
       if (!doesCmakeCacheExists) {
         throw cmakeCacheNotFound(buildDir);
       }
-      if (BuildSession.isActive) {
-        throw idfTaskInProgress(IdfTaskName.Build);
-      }
-      if (FlashSession.isActive) {
-        throw idfTaskInProgress(IdfTaskName.Flash);
-      }
-
       await rm(buildDir, { recursive: true, force: true });
       const extraPathsToClean = readParameter(
         "idf.extraCleanPaths",
