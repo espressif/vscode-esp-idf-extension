@@ -18,7 +18,7 @@
 
 import { MonitorConfig } from "./types";
 import { ESP } from "../../config";
-import { window, Terminal, env, debug } from "vscode";
+import { window, Terminal, env, debug, Disposable } from "vscode";
 import { Logger } from "../../common/logger";
 import {
   buildIdfMonitorQuotedInvokeTokens,
@@ -143,6 +143,35 @@ export class IDFMonitor {
         false
       );
     }
+  }
+
+  static async disposeAndWait(timeoutMs: number): Promise<void> {
+    const terminal = IDFMonitor.terminal;
+    if (!terminal) {
+      return;
+    }
+    const closed = new Promise<void>((resolve) => {
+      let listener: Disposable | undefined;
+      const finish = () => {
+        clearTimeout(timer);
+        listener?.dispose();
+        if (IDFMonitor.terminal === terminal) {
+          IDFMonitor.terminal = undefined;
+        }
+        resolve();
+      };
+      const timer = setTimeout(() => {
+        terminal.dispose();
+        finish();
+      }, timeoutMs);
+      listener = window.onDidCloseTerminal((closedTerminal) => {
+        if (closedTerminal === terminal) {
+          finish();
+        }
+      });
+    });
+    await IDFMonitor.dispose();
+    await closed;
   }
 
   private static isDebugSessionActive(): boolean {

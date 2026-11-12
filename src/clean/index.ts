@@ -36,6 +36,10 @@ import {
   IdfTaskName,
   noBuildDirToClean,
 } from "../common/error/knownError";
+import { IDFMonitor } from "../espIdf/monitor/terminal";
+import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
+
+const MONITOR_CLOSE_TIMEOUT_MS = 3000;
 
 export function registerFullCleanCmd(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.fullClean", async () => {
@@ -52,6 +56,15 @@ export function registerFullCleanCmd(context: ExtensionContext) {
       }
       if (FlashSession.isActive) {
         throw idfTaskInProgress(IdfTaskName.Flash);
+      }
+      if (IDFMonitor.terminal) {
+        Logger.info(
+          l10n.t(
+            "Trying to delete the build folder. Closing the ESP-IDF Monitor..."
+          )
+        );
+        await interruptMonitorWithDelay(selectWorkspaceFolder.uri);
+        await IDFMonitor.disposeAndWait(MONITOR_CLOSE_TIMEOUT_MS);
       }
       if (ConfserverProcess.exists()) {
         const closingSDKConfigMsg = l10n.t(
