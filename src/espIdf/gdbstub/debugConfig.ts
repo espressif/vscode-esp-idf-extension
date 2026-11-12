@@ -1,15 +1,8 @@
-import { ESP } from "../../config";
-
 export const RUNTIME_GDBSTUB_SESSION_ID = "gdbstub.debug.session.runtime";
 export const PANIC_GDBSTUB_SESSION_ID = "gdbstub.debug.session.ws";
 export const CORE_DUMP_SESSION_ID = "core-dump.debug.session.ws";
-// Launch Debug sets this so the session stays on OpenOCD when the UART stub would otherwise be selected.
+/** In-memory session started by Launch Debug. It is not the runtime stub. */
 export const OPENOCD_DEBUG_SESSION_ID = "openocd.debug.session";
-
-const defaultJtagConnectCommands = [
-  "set remotetimeout 20",
-  "-target-select extended-remote localhost:3333",
-];
 
 export const RUNTIME_GDBSTUB_LAUNCH_NAME = "ESP-IDF Runtime GDB Stub";
 
@@ -86,44 +79,10 @@ export function isSdkconfigOptionEnabled(value: string | undefined): boolean {
   return (value ?? "").trim() === "y";
 }
 
-export function isDefaultJtagTarget(target: unknown): boolean {
-  if (target == null) {
-    return true;
-  }
-  if (typeof target !== "object") {
-    return false;
-  }
-  const connectCommands = (target as { connectCommands?: unknown })
-    .connectCommands;
-  if (!Array.isArray(connectCommands) || connectCommands.length === 0) {
-    return true;
-  }
-  return (
-    connectCommands.length === defaultJtagConnectCommands.length &&
-    defaultJtagConnectCommands.every(
-      (command, index) => connectCommands[index] === command
-    )
-  );
-}
-
 export function shouldUseRuntimeGdbStub(
-  config: RuntimeGdbStubLaunchConfig,
-  options: { flashType?: string; runtimeEnabled: boolean }
+  config: RuntimeGdbStubLaunchConfig
 ): boolean {
-  if (config.sessionID === RUNTIME_GDBSTUB_SESSION_ID) {
-    return true;
-  }
-  if (config.sessionID) {
-    return false;
-  }
-  if (!isDefaultJtagTarget(config.target)) {
-    return false;
-  }
-  if (!options.runtimeEnabled) {
-    return false;
-  }
-  const flashType = (options.flashType || "").trim();
-  return flashType !== ESP.FlashType.JTAG && flashType !== ESP.FlashType.DFU;
+  return config.sessionID === RUNTIME_GDBSTUB_SESSION_ID;
 }
 
 export function parseMonitorBaudRate(value: string | undefined): number {

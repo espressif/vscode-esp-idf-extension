@@ -607,7 +607,10 @@ async function applyRuntimeGdbStubIfNeeded(
   folder: WorkspaceFolder,
   config: DebugConfiguration
 ): Promise<void> {
-  const flashType = readParameter("idf.flashType", folder) as string;
+  if (!shouldUseRuntimeGdbStub(config)) {
+    return;
+  }
+
   let runtimeEnabled = false;
   try {
     runtimeEnabled = isSdkconfigOptionEnabled(
@@ -618,10 +621,6 @@ async function applyRuntimeGdbStubIfNeeded(
     );
   } catch {
     runtimeEnabled = false;
-  }
-
-  if (!shouldUseRuntimeGdbStub(config, { flashType, runtimeEnabled })) {
-    return;
   }
 
   if (isRuntimeGdbStubFirmwareMissing(config.sessionID, runtimeEnabled)) {

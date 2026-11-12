@@ -580,92 +580,22 @@ suite("GDB Stub project orchestration", () => {
 });
 
 suite("GDB Stub UART debug configuration", () => {
-  const emptyLaunch = {};
-
-  test("uses UART GDB Stub for an empty gdbtarget attach when flash type is UART and runtime is enabled", () => {
+  test("uses UART GDB Stub only for the runtime stub configuration", () => {
     assert.strictEqual(
-      shouldUseRuntimeGdbStub(emptyLaunch, {
-        flashType: "UART",
-        runtimeEnabled: true,
-      }),
+      shouldUseRuntimeGdbStub({ sessionID: RUNTIME_GDBSTUB_SESSION_ID }),
       true
     );
-  });
-
-  test("does not override JTAG debug when flash type is JTAG", () => {
     assert.strictEqual(
-      shouldUseRuntimeGdbStub(emptyLaunch, {
-        flashType: "JTAG",
-        runtimeEnabled: true,
+      shouldUseRuntimeGdbStub({
+        type: "gdbtarget",
+        request: "attach",
+        name: "ESP-IDF",
       }),
       false
     );
-  });
-
-  test("uses GDB Stub when flash type is unset and runtime is enabled", () => {
+    assert.strictEqual(shouldUseRuntimeGdbStub({}), false);
     assert.strictEqual(
-      shouldUseRuntimeGdbStub(emptyLaunch, {
-        flashType: "",
-        runtimeEnabled: true,
-      }),
-      true
-    );
-  });
-
-  test("does not override UART flash when runtime GDB Stub is not enabled", () => {
-    assert.strictEqual(
-      shouldUseRuntimeGdbStub(emptyLaunch, {
-        flashType: "UART",
-        runtimeEnabled: false,
-      }),
-      false
-    );
-  });
-
-  test("treats the default OpenOCD target as eligible for UART GDB Stub", () => {
-    assert.strictEqual(
-      shouldUseRuntimeGdbStub(
-        {
-          target: {
-            connectCommands: [
-              "set remotetimeout 20",
-              "-target-select extended-remote localhost:3333",
-            ],
-          },
-          runOpenOCD: true,
-        },
-        { flashType: "UART", runtimeEnabled: true }
-      ),
-      true
-    );
-  });
-
-  test("does not override an explicit non-default target", () => {
-    assert.strictEqual(
-      shouldUseRuntimeGdbStub(
-        { target: { connectCommands: ["target remote localhost:3333"] } },
-        { flashType: "UART", runtimeEnabled: true }
-      ),
-      false
-    );
-  });
-
-  test("honors an explicit runtime GDB Stub session id", () => {
-    assert.strictEqual(
-      shouldUseRuntimeGdbStub(
-        { sessionID: RUNTIME_GDBSTUB_SESSION_ID },
-        { flashType: "JTAG", runtimeEnabled: false }
-      ),
-      true
-    );
-  });
-
-  test("keeps the OpenOCD debug button on JTAG when runtime GDB Stub is enabled", () => {
-    assert.strictEqual(
-      shouldUseRuntimeGdbStub(
-        { sessionID: OPENOCD_DEBUG_SESSION_ID },
-        { flashType: "UART", runtimeEnabled: true }
-      ),
+      shouldUseRuntimeGdbStub({ sessionID: OPENOCD_DEBUG_SESSION_ID }),
       false
     );
     assert.strictEqual(isNonJtagDebugSession(OPENOCD_DEBUG_SESSION_ID), false);
