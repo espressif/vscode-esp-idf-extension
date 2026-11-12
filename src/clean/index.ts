@@ -26,6 +26,7 @@ import { Logger } from "../common/logger";
 import { ConfserverProcess } from "../espIdf/menuconfig/confserver/confServerProcess";
 import { join } from "path";
 import { constants, rm } from "fs/promises";
+import { RmOptions } from "fs";
 import { FlashSession } from "../flash/shared/flashSession";
 import { BuildSession } from "../build/buildSession";
 import { pathExists } from "fs-extra";
@@ -41,6 +42,12 @@ import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWit
 
 const MONITOR_CLOSE_TIMEOUT_MS = 3000;
 const CONFSERVER_CLOSE_TIMEOUT_MS = 3000;
+const REMOVE_OPTIONS: RmOptions = {
+  recursive: true,
+  force: true,
+  maxRetries: 5,
+  retryDelay: 200,
+};
 
 export function registerFullCleanCmd(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.fullClean", async () => {
@@ -82,7 +89,7 @@ export function registerFullCleanCmd(context: ExtensionContext) {
       if (!doesCmakeCacheExists) {
         throw cmakeCacheNotFound(buildDir);
       }
-      await rm(buildDir, { recursive: true, force: true });
+      await rm(buildDir, REMOVE_OPTIONS);
       const extraPathsToClean = readParameter(
         "idf.extraCleanPaths",
         selectWorkspaceFolder
@@ -92,7 +99,7 @@ export function registerFullCleanCmd(context: ExtensionContext) {
           const fullPath = join(selectWorkspaceFolder.uri.fsPath, extraPath);
           const doesExtraPathExist = await pathExists(fullPath);
           if (doesExtraPathExist) {
-            await rm(fullPath, { recursive: true, force: true });
+            await rm(fullPath, REMOVE_OPTIONS);
           }
         }
       }
