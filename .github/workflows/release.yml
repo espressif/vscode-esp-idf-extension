@@ -4,14 +4,15 @@ on:
   push:
     tags:
       - "v*.*.*"
-      - "!v*.*.*-rc.*"
 
 jobs:
   build:
     name: Upload .vsix in release asset
+    if: ${{ !contains(github.ref, '-rc.') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -51,10 +52,45 @@ jobs:
 
       - name: Marketplace release
         run: yarn run release
-        env:
-          VS_MARKETPLACE_TOKEN: ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
       - name: OpenVSX release
         run: yarn run open-vsx-release
-        env:
-          OPENVSX_MARKETPLACE_TOKEN: ${{ secrets.OPENVSX_MARKETPLACE_TOKEN }}
+
+  pre-release:
+    name: Publish pre-release
+    if: ${{ contains(github.ref, '-rc.') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          submodules: "recursive"
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install Dependencies
+        run: yarn
+
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/v}
+          VERSION=$(echo $TAG | sed 's/-rc.*//')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Update package.json version
+        run: yarn version --new-version $VERSION --no-git-tag-version
+
+      - name: VSIX Package
+        run: yarn run package --pre-release
+
+      - name: Marketplace release
+        run: yarn run release --pre-release
+
+      - name: OpenVSX release
+        run: yarn run open-vsx-release --pre-release
