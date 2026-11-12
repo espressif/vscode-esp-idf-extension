@@ -53,6 +53,14 @@ export function registerFullCleanCmd(context: ExtensionContext) {
       if (!buildDirExists) {
         throw noBuildDirToClean(buildDir);
       }
+      const cmakeCacheFile = join(buildDir, "CMakeCache.txt");
+      const doesCmakeCacheExists = canAccessFile(
+        cmakeCacheFile,
+        constants.R_OK
+      );
+      if (!doesCmakeCacheExists) {
+        throw cmakeCacheNotFound(buildDir);
+      }
       if (BuildSession.isActive) {
         throw idfTaskInProgress(IdfTaskName.Build);
       }
@@ -74,14 +82,6 @@ export function registerFullCleanCmd(context: ExtensionContext) {
         );
         Logger.info(closingSDKConfigMsg);
         await ConfserverProcess.disposeAndWait(CONFSERVER_CLOSE_TIMEOUT_MS);
-      }
-      const cmakeCacheFile = join(buildDir, "CMakeCache.txt");
-      const doesCmakeCacheExists = canAccessFile(
-        cmakeCacheFile,
-        constants.R_OK
-      );
-      if (!doesCmakeCacheExists) {
-        throw cmakeCacheNotFound(buildDir);
       }
       await removePath(buildDir);
       const extraPathsToClean = readParameter(
