@@ -75,12 +75,12 @@ export async function checkIfActivateExtension(): Promise<ProjectActivation> {
       );
       if (workspaceValue === "always") {
         // Activate immediately; skip folder checks and CMake detection.
-        Logger.warn(
+        Logger.info(
           "Extension activation forced by workspace/global idf.extensionActivationMode=always setting."
         );
         return "activate";
       } else if (workspaceValue === "never") {
-        Logger.warn(
+        Logger.info(
           "Extension activation suppressed by workspace/global idf.extensionActivationMode=never setting."
         );
         return "suppress";
@@ -95,7 +95,7 @@ export async function checkIfActivateExtension(): Promise<ProjectActivation> {
           if (folderValue === "always") {
             hasAnyFolderAlways = true;
             allFoldersNever = false;
-            Logger.warn(
+            Logger.info(
               "Extension activation forced by folder-level idf.extensionActivationMode=always setting."
             );
             break;
@@ -107,7 +107,7 @@ export async function checkIfActivateExtension(): Promise<ProjectActivation> {
 
         if (!hasAnyFolderAlways) {
           if (allFoldersNever) {
-            Logger.warn(
+            Logger.info(
               "Extension activation suppressed because all workspace folders set idf.extensionActivationMode=never."
             );
             return "suppress";
@@ -132,7 +132,7 @@ export async function checkIfActivateExtension(): Promise<ProjectActivation> {
                 )
               ) {
                 hasCMakeIdfProject = true;
-                Logger.warn(
+                Logger.info(
                   "Extension activated via CMakeLists.txt ESP-IDF project detection."
                 );
                 break;
@@ -147,7 +147,7 @@ export async function checkIfActivateExtension(): Promise<ProjectActivation> {
           }
 
           if (!hasCMakeIdfProject) {
-            Logger.warn(
+            Logger.info(
               "No standard ESP-IDF project was found in this workspace."
             );
             return "undetected";
