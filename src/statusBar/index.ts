@@ -31,7 +31,6 @@ import {
 } from "vscode";
 import { readParameter } from "../configuration/idf";
 import { ESP } from "../config";
-import { getCurrentIdfConfiguration } from "../configuration/env";
 import { CommandItem } from "../cmdTreeView/cmdTreeDataProvider";
 import { CommandKeys, commandDictionary } from "../cmdTreeView/cmdStore";
 import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
@@ -44,6 +43,59 @@ import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { QemuManager } from "../qemu/qemuManager";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
+
+/** Configured items stay hidden until activation returns to configured mode. */
+let configuredStatusBarsSuppressed = false;
+/** Hints visibility, kept while configured items are suppressed. */
+let hintsStatusBarVisible = false;
+
+export function areConfiguredStatusBarsSuppressed() {
+  return configuredStatusBarsSuppressed;
+}
+
+function isStatusBarCommandChecked(command: string) {
+  if (!commandDictionary || !(command in commandDictionary)) {
+    return false;
+  }
+  const fallback =
+    commandDictionary[command as CommandKeys].checkboxState ??
+    TreeItemCheckboxState.Unchecked;
+  return (
+    ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+      command,
+      fallback
+    ) === TreeItemCheckboxState.Checked
+  );
+}
+
+export function hideConfiguredStatusBarItems() {
+  configuredStatusBarsSuppressed = true;
+  for (const item of Object.values(statusBarItems)) {
+    item.hide();
+  }
+}
+
+export function showConfiguredStatusBarItems() {
+  configuredStatusBarsSuppressed = false;
+  for (const [key, item] of Object.entries(statusBarItems)) {
+    if (key === "hints") {
+      if (hintsStatusBarVisible) {
+        item.show();
+      }
+      continue;
+    }
+    if (key === "monitorPort" && !item.text) {
+      item.hide();
+      continue;
+    }
+    const command = item.command;
+    if (typeof command === "string" && isStatusBarCommandChecked(command)) {
+      item.show();
+    } else {
+      item.hide();
+    }
+  }
+}
 
 export function updateOpenOcdAdapterStatusBarItem(workspaceFolder: Uri) {
   const item = statusBarItems["openOcdAdapter"];
@@ -72,9 +124,14 @@ export function updateStatusBarItemVisibility(cmdItem: CommandItem) {
       cmdItem.command &&
       statusBarItems[statusBarItemKey].command === cmdItem.command.command
     ) {
-      cmdItem.checkboxState === TreeItemCheckboxState.Checked
-        ? statusBarItems[statusBarItemKey].show()
-        : statusBarItems[statusBarItemKey].hide();
+      if (
+        cmdItem.checkboxState === TreeItemCheckboxState.Checked &&
+        !configuredStatusBarsSuppressed
+      ) {
+        statusBarItems[statusBarItemKey].show();
+      } else {
+        statusBarItems[statusBarItemKey].hide();
+      }
 
       ESP.GlobalConfiguration.store.set(
         cmdItem.command?.command,
@@ -94,7 +151,8 @@ export function updateStatusBarItemVisibility(cmdItem: CommandItem) {
 
 export async function createCmdsStatusBarItems(
   context: ExtensionContext,
-  workspaceFolder: Uri
+  workspaceFolder: Uri,
+  idfPath: string
 ) {
   const enableStatusBar = readParameter("idf.enableStatusBar") as boolean;
   if (!enableStatusBar) {
@@ -139,8 +197,6 @@ export async function createCmdsStatusBarItems(
       hasConfigurePresets = false;
     }
   }
-  const currentEnvVars = getCurrentIdfConfiguration();
-
   statusBarItems["workspace"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.pickWorkspace].iconId})`,
     commandDictionary[CommandKeys.pickWorkspace].tooltip,
@@ -159,7 +215,7 @@ export async function createCmdsStatusBarItems(
   );
   updateOpenOcdAdapterStatusBarItem(workspaceFolder);
 
-  const idfVersion = await getEspIdfFromCMake(currentEnvVars["IDF_PATH"]);
+  const idfVersion = await getEspIdfFromCMake(idfPath);
   statusBarItems["currentIdfVersion"] = createStatusBarItem(
     `$(${
       commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
@@ -343,6 +399,7 @@ export function createStatusBarItem(
   statusBarItem.tooltip = tooltip;
   statusBarItem.command = cmd;
   if (
+    !configuredStatusBarsSuppressed &&
     typeof showItem !== "undefined" &&
     showItem === TreeItemCheckboxState.Checked
   ) {
@@ -356,6 +413,7 @@ export function createStatusBarItem(
  * @param {boolean} hasHints - Whether hints are available
  */
 export function updateHintsStatusBarItem(hasHints: boolean) {
+  hintsStatusBarVisible = hasHints;
   if (!statusBarItems["hints"]) return;
   if (hasHints) {
     statusBarItems["hints"].text = l10n.t("💡 New ESP-IDF Hints!");
@@ -365,7 +423,9 @@ export function updateHintsStatusBarItem(hasHints: boolean) {
     statusBarItems["hints"].backgroundColor = new ThemeColor(
       "statusBarItem.warningBackground"
     );
-    statusBarItems["hints"].show();
+    if (!configuredStatusBarsSuppressed) {
+      statusBarItems["hints"].show();
+    }
   } else {
     statusBarItems["hints"].hide();
     statusBarItems["hints"].color = undefined;

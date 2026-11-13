@@ -151,7 +151,7 @@ export class Logger {
   private constructor(context: vscode.ExtensionContext) {
     const fileTransport = new winston.transports.File({
       filename: context.asAbsolutePath(this.LOG_FILE_NAME),
-      level: "warn",
+      level: "info",
     });
     const userNotificationTransport = new UserNotificationManagerTransport({
       level: "info",
