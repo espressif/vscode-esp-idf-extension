@@ -67,6 +67,11 @@ export function requestProjectActivation() {
   forceProjectActivation = true;
 }
 
+/** Used by unit tests to assert one-shot force activation is consumed. */
+export function isForceProjectActivationPending(): boolean {
+  return forceProjectActivation;
+}
+
 async function resolveEimIdfJson(): Promise<EspIdfJson | undefined> {
   await noteMissingCustomEimIdfJsonPath();
   return getEimIdfJson();
@@ -108,7 +113,7 @@ async function configureLoadedSetup(
     Logger.error(detail, new Error(detail), "runValidations", undefined, false);
     return { kind: "nonConfigured", failure: "invalidCurrentSetup", detail };
   }
-  Logger.warn(`Using finished ESP-IDF setup ${idfPath}.`, "runValidations");
+  Logger.info(`Using finished ESP-IDF setup ${idfPath}.`, "runValidations");
   return { kind: "configured" };
 }
 
@@ -157,7 +162,7 @@ async function tryConfigureFromCustomExtraVars(
     return;
   }
   ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(workspaceFolder.uri);
-  Logger.warn(
+  Logger.info(
     `Using idf.customExtraVars ESP-IDF setup ${loaded.setup.idfPath}.`,
     "runValidations"
   );
@@ -167,12 +172,15 @@ async function tryConfigureFromCustomExtraVars(
 export async function runValidations(
   extensionPath: string
 ): Promise<ActivationDecision> {
+  const optedIn = forceProjectActivation;
+  forceProjectActivation = false;
+
   if (
     isWorkspaceOrGlobalActivationNever(
       getIdfConfigurationSource().inspectGlobal(activationModeConfigKey)
     )
   ) {
-    Logger.warn(
+    Logger.info(
       "Extension activation suppressed by workspace/global idf.extensionActivationMode=never before catalog validation.",
       "runValidations"
     );
@@ -217,7 +225,7 @@ export async function runValidations(
   }
 
   if (!PreCheck.isWorkspaceFolderOpen()) {
-    Logger.warn(
+    Logger.info(
       "ESP-IDF catalog is valid and no workspace folder is open.",
       "runValidations"
     );
@@ -235,27 +243,25 @@ export async function runValidations(
     workspaceFolder
   ) as string;
   if (!currentSetup) {
-    const optedIn = forceProjectActivation;
-    forceProjectActivation = false;
     const projectActivation = optedIn
       ? "activate"
       : await checkIfActivateExtension();
     if (projectActivation === "suppress") {
-      Logger.warn(
+      Logger.info(
         "idf.currentSetup is empty and the project activation check declined.",
         "runValidations"
       );
       return { kind: "skipped" };
     }
     if (projectActivation === "undetected") {
-      Logger.warn(
+      Logger.info(
         "No standard ESP-IDF project was found. Waiting for explicit activation.",
         "runValidations"
       );
       return { kind: "undetected" };
     }
     if (optedIn) {
-      Logger.warn(
+      Logger.info(
         "User chose to activate the ESP-IDF extension without a detected ESP-IDF project.",
         "runValidations"
       );
@@ -281,7 +287,7 @@ export async function runValidations(
         detail: couldNotSaveCurrentSetupDetail(),
       };
     }
-    Logger.warn(
+    Logger.info(
       `Selected ESP-IDF setup ${finishedInstalls[0].path} for ${workspaceFolder.uri.fsPath}.`,
       "runValidations"
     );

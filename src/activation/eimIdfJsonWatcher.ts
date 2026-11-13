@@ -95,6 +95,13 @@ function watchKey(target: EimIdfJsonWatchTarget) {
   return `${target.base}\0${target.pattern}`;
 }
 
+export function shouldScheduleReactionAfterWatcherSync(
+  runReaction: boolean,
+  willRetarget: boolean
+): boolean {
+  return !runReaction && willRetarget;
+}
+
 function closeWatcher() {
   for (const event of watcherEvents) {
     event.dispose();
@@ -300,12 +307,15 @@ async function syncWatcher(runReaction: boolean) {
     }
     return;
   }
+  const willRetarget = watchedKey !== nextKey || !watcher;
   if (runReaction) {
     clearCatalogTimer();
   }
   watchTarget(target);
   if (runReaction) {
     await runCatalogReaction();
+  } else if (shouldScheduleReactionAfterWatcherSync(runReaction, willRetarget)) {
+    scheduleCatalogReaction();
   }
 }
 

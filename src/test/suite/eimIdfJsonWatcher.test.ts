@@ -19,7 +19,33 @@ import * as assert from "assert";
 import { mkdirSync, mkdtempSync, rmSync } from "fs";
 import { tmpdir } from "os";
 import { join, resolve } from "path";
-import { eimIdfJsonWatchTarget } from "../../activation/eimIdfJsonWatcher";
+import {
+  eimIdfJsonWatchTarget,
+  shouldScheduleReactionAfterWatcherSync,
+} from "../../activation/eimIdfJsonWatcher";
+
+suite("shouldScheduleReactionAfterWatcherSync", () => {
+  test("schedules a reaction after retarget when runReaction is false", () => {
+    assert.strictEqual(
+      shouldScheduleReactionAfterWatcherSync(false, true),
+      true
+    );
+  });
+
+  test("does not schedule when runReaction is true", () => {
+    assert.strictEqual(
+      shouldScheduleReactionAfterWatcherSync(true, true),
+      false
+    );
+  });
+
+  test("does not schedule when the watch target is unchanged", () => {
+    assert.strictEqual(
+      shouldScheduleReactionAfterWatcherSync(false, false),
+      false
+    );
+  });
+});
 
 suite("eimIdfJsonWatchTarget", () => {
   let tempDir: string | undefined;
