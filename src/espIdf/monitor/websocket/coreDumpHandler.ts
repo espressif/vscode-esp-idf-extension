@@ -19,7 +19,10 @@ import { registerWsMonitorDebugCleanup } from "./monitorDebugCleanup";
 import { CoreDumpResponse } from "../../communications/ws";
 import { NotificationMode, readParameter } from "../../../configuration/idf";
 import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "../../core-dump";
-import { getIdfBuildPath, getProjectName } from "../../../configuration/workspace";
+import {
+  getIdfBuildPath,
+  getProjectName,
+} from "../../../configuration/workspace";
 import { IdfMonitorWebSocketServer } from ".";
 import { IDFMonitor } from "../terminal";
 import { handleError } from "../../../common/error/handler";
@@ -28,8 +31,8 @@ import {
   monitorCoreDumpElfGenerationFailed,
   monitorDebugLaunchFailed,
 } from "../../../common/error/knownError";
+import { ESP } from "../../../config";
 
-const CORE_DUMP_SESSION_ID = "core-dump.debug.session.ws";
 const LAUNCH_WS_MONITOR_COMMAND = "espIdf.launchWSServerAndMonitor";
 
 export interface WsCoreDumpHandlerContext {
@@ -88,14 +91,17 @@ export function handleWsCoreDumpDetected(
           ),
         });
         const workspaceFolder = workspace.getWorkspaceFolder(wsFolder.uri);
-        registerWsMonitorDebugCleanup(CORE_DUMP_SESSION_ID, () => {
-          IdfMonitorWebSocketServer.done();
-          IDFMonitor.dispose();
-          IdfMonitorWebSocketServer.close();
-        });
+        registerWsMonitorDebugCleanup(
+          ESP.DebugSession.CORE_DUMP_SESSION_ID,
+          () => {
+            IdfMonitorWebSocketServer.done();
+            IDFMonitor.dispose();
+            IdfMonitorWebSocketServer.close();
+          }
+        );
         await debug.startDebugging(workspaceFolder, {
           name: "Core Dump Debug",
-          sessionID: CORE_DUMP_SESSION_ID,
+          sessionID: ESP.DebugSession.CORE_DUMP_SESSION_ID,
           type: "gdbtarget",
           request: "attach",
           gdb: gdbPath,
@@ -110,8 +116,7 @@ export function handleWsCoreDumpDetected(
           await handleError(LAUNCH_WS_MONITOR_COMMAND, error);
           return;
         }
-        const detail =
-          error instanceof Error ? error.message : String(error);
+        const detail = error instanceof Error ? error.message : String(error);
         await handleError(
           LAUNCH_WS_MONITOR_COMMAND,
           monitorDebugLaunchFailed("core_dump", detail)

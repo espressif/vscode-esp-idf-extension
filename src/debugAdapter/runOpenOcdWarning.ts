@@ -32,18 +32,20 @@ import {
 import { readParameter } from "../configuration/idf";
 import { TCLClient } from "../espIdf/openOcd/tcl/tclClient";
 import { Logger } from "../common/logger";
+import { ESP } from "../config";
+import { GDBSTUB_UART_CONNECTION_MODE } from "./gdbstub/debugConfig";
 
 /** Sessions that never rely on the extension OpenOCD server. */
 const SESSIONS_WITHOUT_OPENOCD = [
-  "core-dump.debug.session.ws",
-  "gdbstub.debug.session.ws",
-  "gdbstub.debug.session.runtime",
-  "qemu.debug.session",
+  ESP.DebugSession.CORE_DUMP_SESSION_ID,
+  ESP.DebugSession.PANIC_GDBSTUB_SESSION_ID,
+  ESP.DebugSession.QEMU_DEBUG_SESSION_ID,
 ];
 
 function skipsExtensionOpenOCD(session: DebugSession) {
   return (
     session.configuration.runOpenOCD === false &&
+    session.configuration.connectionMode !== GDBSTUB_UART_CONNECTION_MODE &&
     SESSIONS_WITHOUT_OPENOCD.indexOf(session.configuration.sessionID) === -1
   );
 }

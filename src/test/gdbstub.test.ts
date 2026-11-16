@@ -1,39 +1,46 @@
 import * as assert from "assert";
 import * as path from "path";
 import { Uri } from "vscode";
+import { ESP } from "../config";
 import {
   addGdbStubManifestDependency,
   enableSdkconfigOption,
   hasIdfComponentRegister,
-} from "../espIdf/gdbstub/configurationText";
+} from "../configuration/gdbstub/configurationText";
 import {
   configureProjectForRuntimeGdbStub,
   GdbStubProjectIo,
-} from "../espIdf/gdbstub/configureProject";
+} from "../configuration/gdbstub/configureProject";
 import { mergeGdbinitSourceCommands } from "../debugAdapter/debugConfProvider";
 import { ErrorCode } from "../common/error/types";
 import { getErrorDescriptor } from "../common/error/registry";
 import {
-  OPENOCD_DEBUG_SESSION_ID,
+  ESP_IDF_LAUNCH_NAME,
+  GDBSTUB_UART_CONNECTION_MODE,
+  OPENOCD_JTAG_CONNECTION_MODE,
   RUNTIME_GDBSTUB_LAUNCH_NAME,
-  RUNTIME_GDBSTUB_SESSION_ID,
   RuntimeGdbStubLaunchConfig,
+  applyGdbstubUartLaunchConfiguration,
   applyRuntimeGdbStubDebugConfig,
   isNonJtagDebugSession,
   isRuntimeGdbStubFirmwareMissing,
   isSdkconfigOptionEnabled,
-  mergeRuntimeGdbStubLaunchConfigurations,
   parseHardwareDebugLimit,
   parseMonitorBaudRate,
+  applyDebugConnectionMode,
+  debugConnectionModePresentation,
+  selectDebugLaunchConfiguration,
   shouldUseRuntimeGdbStub,
   toGdbSerialPort,
   toNodeSerialPortPath,
-} from "../espIdf/gdbstub/debugConfig";
+} from "../debugAdapter/gdbstub/debugConfig";
 import {
   bufferHasGdbStubStopPacket,
   GdbStubByteSource,
   readGdbStubStopPacket,
-} from "../espIdf/gdbstub/uart";
+} from "../debugAdapter/adapter/gdbstub/uart";
+
+const { CORE_DUMP_SESSION_ID, PANIC_GDBSTUB_SESSION_ID } = ESP.DebugSession;
 
 const option = "CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME";
 
@@ -75,11 +82,9 @@ suite("GDB Stub project configuration", () => {
   });
 
   test("appends esp_gdbstub after existing dependencies", () => {
-    const input = [
-      "dependencies:",
-      '  espressif/led_strip: "^3.0.0"',
-      "",
-    ].join("\n");
+    const input = ["dependencies:", '  espressif/led_strip: "^3.0.0"', ""].join(
+      "\n"
+    );
     const result = addGdbStubManifestDependency(input);
     assert.strictEqual(
       result,
@@ -300,8 +305,13 @@ suite("GDB Stub project orchestration", () => {
       "CMakeLists.txt"
     );
     const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
-    const { io, files, writes, getEditorSetCalls, getReconfigureCalls } =
-      createTestIo({
+    const {
+      io,
+      files,
+      writes,
+      getEditorSetCalls,
+      getReconfigureCalls,
+    } = createTestIo({
       files: {
         [mainPath]: 'idf_component_register(SRCS "main.c")',
         [otherPath]: 'idf_component_register(SRCS "foo.c")',
@@ -312,7 +322,10 @@ suite("GDB Stub project orchestration", () => {
 
     const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
     assert.strictEqual(result, "updated");
-    assert.strictEqual(files[mainPath], 'idf_component_register(SRCS "main.c")');
+    assert.strictEqual(
+      files[mainPath],
+      'idf_component_register(SRCS "main.c")'
+    );
     assert.ok(!files[otherPath].includes("esp_gdbstub"));
     assert.match(files[manifestPath], /require: private/);
     assert.match(
@@ -376,14 +389,16 @@ suite("GDB Stub project orchestration", () => {
     const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
     const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
     const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
-    const { io, writes, getEditorSetCalls, getReconfigureCalls } = createTestIo({
-      files: {
-        [mainPath]: "idf_component_register(SRCS main.c)",
-        [manifestPath]:
-          "dependencies:\n  esp_gdbstub:\n    path: ${IDF_PATH}/components/esp_gdbstub\n    require: private\n",
-        [sdkconfigPath]: "CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y\n",
-      },
-    });
+    const { io, writes, getEditorSetCalls, getReconfigureCalls } = createTestIo(
+      {
+        files: {
+          [mainPath]: "idf_component_register(SRCS main.c)",
+          [manifestPath]:
+            "dependencies:\n  esp_gdbstub:\n    path: ${IDF_PATH}/components/esp_gdbstub\n    require: private\n",
+          [sdkconfigPath]: "CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y\n",
+        },
+      }
+    );
 
     const result = await configureProjectForRuntimeGdbStub(workspacePath, io);
 
@@ -398,8 +413,13 @@ suite("GDB Stub project orchestration", () => {
     const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
     const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
     const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
-    const { io, files, writes, getEditorSetCalls, getReconfigureCalls } =
-      createTestIo({
+    const {
+      io,
+      files,
+      writes,
+      getEditorSetCalls,
+      getReconfigureCalls,
+    } = createTestIo({
       files: {
         [mainPath]: "idf_component_register(SRCS main.c)",
         [sdkconfigPath]: "CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME=y\n",
@@ -421,12 +441,16 @@ suite("GDB Stub project orchestration", () => {
     const mainPath = wsFile(workspacePath, "main", "CMakeLists.txt");
     const manifestPath = wsFile(workspacePath, "main", "idf_component.yml");
     const sdkconfigPath = wsFile(workspacePath, "sdkconfig");
-    const { io, files, writes, getEditorSetCalls, getReconfigureCalls } =
-      createTestIo({
+    const {
+      io,
+      files,
+      writes,
+      getEditorSetCalls,
+      getReconfigureCalls,
+    } = createTestIo({
       files: {
         [mainPath]: "idf_component_register(SRCS main.c)",
-        [manifestPath]:
-          "dependencies:\n  esp_gdbstub:\n    require: private\n",
+        [manifestPath]: "dependencies:\n  esp_gdbstub:\n    require: private\n",
         [sdkconfigPath]: "CONFIG_OTHER=y\n",
       },
     });
@@ -457,8 +481,7 @@ suite("GDB Stub project orchestration", () => {
     } = createTestIo({
       files: {
         [mainPath]: "idf_component_register(SRCS main.c)",
-        [manifestPath]:
-          "dependencies:\n  esp_gdbstub:\n    require: private\n",
+        [manifestPath]: "dependencies:\n  esp_gdbstub:\n    require: private\n",
         [sdkconfigPath]: "CONFIG_OTHER=y\n",
       },
       editorRunning: true,
@@ -522,8 +545,7 @@ suite("GDB Stub project orchestration", () => {
     } = createTestIo({
       files: {
         [mainPath]: "idf_component_register(SRCS main.c)",
-        [manifestPath]:
-          "dependencies:\n  esp_gdbstub:\n    require: private\n",
+        [manifestPath]: "dependencies:\n  esp_gdbstub:\n    require: private\n",
         [sdkconfigPath]: "# CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME is not set\n",
       },
       editorRunning: true,
@@ -580,25 +602,38 @@ suite("GDB Stub project orchestration", () => {
 });
 
 suite("GDB Stub UART debug configuration", () => {
-  test("uses UART GDB Stub only for the runtime stub configuration", () => {
+  test("uses UART GDB Stub only when connectionMode is Gdbstub-UART", () => {
     assert.strictEqual(
-      shouldUseRuntimeGdbStub({ sessionID: RUNTIME_GDBSTUB_SESSION_ID }),
+      shouldUseRuntimeGdbStub({ connectionMode: GDBSTUB_UART_CONNECTION_MODE }),
       true
     );
     assert.strictEqual(
       shouldUseRuntimeGdbStub({
         type: "gdbtarget",
         request: "attach",
-        name: "ESP-IDF",
+        name: ESP_IDF_LAUNCH_NAME,
+        connectionMode: OPENOCD_JTAG_CONNECTION_MODE,
       }),
       false
     );
     assert.strictEqual(shouldUseRuntimeGdbStub({}), false);
     assert.strictEqual(
-      shouldUseRuntimeGdbStub({ sessionID: OPENOCD_DEBUG_SESSION_ID }),
+      isNonJtagDebugSession({ connectionMode: GDBSTUB_UART_CONNECTION_MODE }),
+      true
+    );
+    assert.strictEqual(
+      isNonJtagDebugSession({ connectionMode: OPENOCD_JTAG_CONNECTION_MODE }),
       false
     );
-    assert.strictEqual(isNonJtagDebugSession(OPENOCD_DEBUG_SESSION_ID), false);
+    assert.strictEqual(isNonJtagDebugSession({}), false);
+    assert.strictEqual(
+      isNonJtagDebugSession({ sessionID: PANIC_GDBSTUB_SESSION_ID }),
+      true
+    );
+    assert.strictEqual(
+      isNonJtagDebugSession({ sessionID: CORE_DUMP_SESSION_ID }),
+      true
+    );
   });
 
   test("maps platform-specific serial ports for GDB", () => {
@@ -630,7 +665,7 @@ suite("GDB Stub UART debug configuration", () => {
       hardwareWatchpointLimit: 2,
       platform: "win32",
     });
-    assert.strictEqual(config.sessionID, RUNTIME_GDBSTUB_SESSION_ID);
+    assert.strictEqual(config.sessionID, undefined);
     assert.strictEqual(config.runOpenOCD, false);
     assert.strictEqual(config.hardwareBreakpoint, false);
     assert.deepStrictEqual(config.initCommands, [
@@ -696,43 +731,152 @@ suite("GDB Stub UART debug configuration", () => {
     assert.strictEqual(isSdkconfigOptionEnabled("n"), false);
   });
 
-  test("inserts the Runtime GDB Stub launch configuration first", () => {
-    const { configurations, changed } = mergeRuntimeGdbStubLaunchConfigurations(
-      [
-        {
-          name: "Eclipse CDT GDB Adapter",
-          type: "gdbtarget",
-          request: "attach",
-        },
-      ]
-    );
+  test("sets Gdbstub-UART on the existing launch configuration and removes the legacy stub entry", () => {
+    const { configurations, changed } = applyGdbstubUartLaunchConfiguration([
+      {
+        name: RUNTIME_GDBSTUB_LAUNCH_NAME,
+        type: "gdbtarget",
+        request: "attach",
+        runOpenOCD: false,
+      },
+      {
+        name: "Eclipse CDT GDB Adapter",
+        type: "gdbtarget",
+        request: "attach",
+      },
+    ]);
     assert.strictEqual(changed, true);
-    assert.strictEqual(configurations.length, 2);
-    assert.strictEqual(configurations[0].name, RUNTIME_GDBSTUB_LAUNCH_NAME);
-    assert.strictEqual(configurations[0].sessionID, RUNTIME_GDBSTUB_SESSION_ID);
-    assert.strictEqual(configurations[0].runOpenOCD, false);
-    assert.strictEqual(configurations[1].name, "Eclipse CDT GDB Adapter");
+    assert.strictEqual(configurations.length, 1);
+    assert.strictEqual(configurations[0].name, "Eclipse CDT GDB Adapter");
+    assert.strictEqual(
+      configurations[0].connectionMode,
+      GDBSTUB_UART_CONNECTION_MODE
+    );
+    assert.strictEqual(configurations[0].sessionID, undefined);
+    assert.strictEqual(configurations[0].runOpenOCD, undefined);
   });
 
-  test("does not duplicate an existing Runtime GDB Stub launch configuration", () => {
+  test("leaves an existing Gdbstub-UART configuration unchanged", () => {
     const existing = {
-      name: RUNTIME_GDBSTUB_LAUNCH_NAME,
+      name: ESP_IDF_LAUNCH_NAME,
       type: "gdbtarget",
       request: "attach",
-      sessionID: RUNTIME_GDBSTUB_SESSION_ID,
-      runOpenOCD: false,
+      connectionMode: GDBSTUB_UART_CONNECTION_MODE,
     };
-    const { configurations, changed } = mergeRuntimeGdbStubLaunchConfigurations([
+    const { configurations, changed } = applyGdbstubUartLaunchConfiguration([
       existing,
     ]);
     assert.strictEqual(changed, false);
     assert.strictEqual(configurations.length, 1);
-    assert.strictEqual(configurations[0].sessionID, RUNTIME_GDBSTUB_SESSION_ID);
+    assert.strictEqual(
+      configurations[0].connectionMode,
+      GDBSTUB_UART_CONNECTION_MODE
+    );
+  });
+
+  test("converts a lone legacy stub configuration into the ESP-IDF entry", () => {
+    const { configurations, changed } = applyGdbstubUartLaunchConfiguration([
+      {
+        name: RUNTIME_GDBSTUB_LAUNCH_NAME,
+        type: "gdbtarget",
+        request: "attach",
+        runOpenOCD: false,
+      },
+    ]);
+    assert.strictEqual(changed, true);
+    assert.strictEqual(configurations.length, 1);
+    assert.strictEqual(configurations[0].name, ESP_IDF_LAUNCH_NAME);
+    assert.strictEqual(
+      configurations[0].connectionMode,
+      GDBSTUB_UART_CONNECTION_MODE
+    );
+    assert.strictEqual(configurations[0].sessionID, undefined);
+    assert.strictEqual(configurations[0].runOpenOCD, undefined);
+  });
+
+  test("sets OpenOCD-JTAG on the existing launch configuration", () => {
+    const { configurations, changed } = applyDebugConnectionMode(
+      [
+        {
+          name: ESP_IDF_LAUNCH_NAME,
+          type: "gdbtarget",
+          request: "attach",
+          connectionMode: GDBSTUB_UART_CONNECTION_MODE,
+        },
+      ],
+      OPENOCD_JTAG_CONNECTION_MODE
+    );
+    assert.strictEqual(changed, true);
+    assert.strictEqual(configurations.length, 1);
+    assert.strictEqual(
+      configurations[0].connectionMode,
+      OPENOCD_JTAG_CONNECTION_MODE
+    );
+  });
+
+  test("leaves an existing OpenOCD-JTAG configuration unchanged", () => {
+    const existing = {
+      name: ESP_IDF_LAUNCH_NAME,
+      type: "gdbtarget",
+      request: "attach",
+      connectionMode: OPENOCD_JTAG_CONNECTION_MODE,
+    };
+    const { configurations, changed } = applyDebugConnectionMode(
+      [existing],
+      OPENOCD_JTAG_CONNECTION_MODE
+    );
+    assert.strictEqual(changed, false);
+    assert.strictEqual(configurations[0], existing);
+  });
+
+  test("status label is JTAG when connectionMode is missing", () => {
+    assert.deepStrictEqual(debugConnectionModePresentation(undefined), {
+      shortLabel: "JTAG",
+      mode: OPENOCD_JTAG_CONNECTION_MODE,
+    });
+    assert.deepStrictEqual(debugConnectionModePresentation({}), {
+      shortLabel: "JTAG",
+      mode: OPENOCD_JTAG_CONNECTION_MODE,
+    });
+  });
+
+  test("status label is UART for connectionMode or a gdbStubUart field", () => {
+    assert.deepStrictEqual(
+      debugConnectionModePresentation({
+        connectionMode: GDBSTUB_UART_CONNECTION_MODE,
+      }),
+      { shortLabel: "UART", mode: GDBSTUB_UART_CONNECTION_MODE }
+    );
+    assert.deepStrictEqual(
+      debugConnectionModePresentation({
+        gdbStubUart: { port: "COM3", baudRate: 115200 },
+      }),
+      { shortLabel: "UART", mode: GDBSTUB_UART_CONNECTION_MODE }
+    );
+  });
+
+  test("Launch Debug starts the primary gdbtarget configuration", () => {
+    const selected = selectDebugLaunchConfiguration([
+      {
+        name: RUNTIME_GDBSTUB_LAUNCH_NAME,
+        type: "gdbtarget",
+      },
+      {
+        name: ESP_IDF_LAUNCH_NAME,
+        type: "gdbtarget",
+        connectionMode: GDBSTUB_UART_CONNECTION_MODE,
+      },
+    ]);
+    assert.strictEqual(selected?.name, ESP_IDF_LAUNCH_NAME);
+    assert.strictEqual(selected?.connectionMode, GDBSTUB_UART_CONNECTION_MODE);
   });
 
   test("rejects a runtime session when CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME is off", () => {
     assert.strictEqual(
-      isRuntimeGdbStubFirmwareMissing(RUNTIME_GDBSTUB_SESSION_ID, false),
+      isRuntimeGdbStubFirmwareMissing(
+        { connectionMode: GDBSTUB_UART_CONNECTION_MODE },
+        false
+      ),
       true
     );
     const descriptor = getErrorDescriptor(ErrorCode.RuntimeGdbStubNotEnabled);
@@ -750,7 +894,9 @@ suite("GDB Stub UART debug configuration", () => {
     );
     assert.ok(openOcdDescriptor);
     assert.ok(
-      openOcdDescriptor.actions.some((action) => action.label === "Stop OpenOCD")
+      openOcdDescriptor.actions.some(
+        (action) => action.label === "Stop OpenOCD"
+      )
     );
     assert.deepStrictEqual(
       getErrorDescriptor(ErrorCode.NoPortSelected)?.actions,
@@ -780,21 +926,32 @@ suite("GDB Stub UART debug configuration", () => {
       "set serial baud 115200",
       "target remote /dev/cu.usbserial-13501",
     ]);
-    assert.ok(!merged.some((command) => command.includes("target remote :3333")));
+    assert.ok(
+      !merged.some((command) => command.includes("target remote :3333"))
+    );
     assert.ok(!merged.some((command) => command.includes("thbreak app_main")));
   });
 
   test("allows a runtime session when CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME is on", () => {
     assert.strictEqual(
-      isRuntimeGdbStubFirmwareMissing(RUNTIME_GDBSTUB_SESSION_ID, true),
+      isRuntimeGdbStubFirmwareMissing(
+        { connectionMode: GDBSTUB_UART_CONNECTION_MODE },
+        true
+      ),
       false
     );
   });
 
   test("does not apply the runtime firmware check to other sessions", () => {
-    assert.strictEqual(isRuntimeGdbStubFirmwareMissing(undefined, false), false);
     assert.strictEqual(
-      isRuntimeGdbStubFirmwareMissing("gdbstub.debug.session.ws", false),
+      isRuntimeGdbStubFirmwareMissing(undefined, false),
+      false
+    );
+    assert.strictEqual(
+      isRuntimeGdbStubFirmwareMissing(
+        { connectionMode: OPENOCD_JTAG_CONNECTION_MODE },
+        false
+      ),
       false
     );
   });
@@ -834,7 +991,10 @@ suite("GDB Stub stop packet", () => {
       bufferHasGdbStubStopPacket(Buffer.from("I (100) app: hello\r\n")),
       false
     );
-    assert.strictEqual(bufferHasGdbStubStopPacket(Buffer.from("$T05#00")), false);
+    assert.strictEqual(
+      bufferHasGdbStubStopPacket(Buffer.from("$T05#00")),
+      false
+    );
   });
 
   test("reads a stop packet from the UART", async () => {

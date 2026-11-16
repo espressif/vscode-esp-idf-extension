@@ -9,10 +9,10 @@ import {
   workspace,
   WorkspaceEdit,
 } from "vscode";
-import { ConfserverProcess } from "../menuconfig/confserver/confServerProcess";
-import { getSDKConfigFilePath } from "../../configuration/workspace";
+import { ConfserverProcess } from "../../espIdf/menuconfig/confserver/confServerProcess";
+import { getSDKConfigFilePath } from "../workspace";
 import { TaskManager } from "../../taskManager/taskManager";
-import { addIdfReconfigureTask } from "../reconfigure/task";
+import { addIdfReconfigureTask } from "../../espIdf/reconfigure/task";
 import {
   addGdbStubManifestDependency,
   enableSdkconfigOption,

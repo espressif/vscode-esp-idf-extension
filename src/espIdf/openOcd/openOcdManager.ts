@@ -44,7 +44,10 @@ import {
   supportsSerialFromDetectConfig,
 } from "./adapterSerial";
 import { getCurrentIdfConfiguration } from "../../configuration/env";
-import { validateOpenOcdStartPrerequisites, requireOpenOcdWorkspace } from "./validation";
+import {
+  validateOpenOcdStartPrerequisites,
+  requireOpenOcdWorkspace,
+} from "./validation";
 import { ensureOpenOcdServerRunning } from "./openOcdLaunch";
 
 export interface IOpenOCDConfig {
@@ -179,7 +182,7 @@ export class OpenOCDManager extends EventEmitter {
   public isLaunchedByDebug(): boolean {
     return this.launchedByDebug;
   }
-  
+
   public async promptUserToLaunchOpenOCDServer(): Promise<void> {
     const workspace = requireOpenOcdWorkspace(this.workspace);
     await ensureOpenOcdServerRunning(workspace);
@@ -194,8 +197,15 @@ export class OpenOCDManager extends EventEmitter {
     const modifiedEnv = getCurrentIdfConfiguration();
     const workspace = requireOpenOcdWorkspace(this.workspace);
     this.workspace = workspace;
-    const openOcdPath = await OpenOCDManager.getOpenOcdPath(workspace, modifiedEnv);
-    await validateOpenOcdStartPrerequisites(workspace, openOcdPath, modifiedEnv);
+    const openOcdPath = await OpenOCDManager.getOpenOcdPath(
+      workspace,
+      modifiedEnv
+    );
+    await validateOpenOcdStartPrerequisites(
+      workspace,
+      openOcdPath,
+      modifiedEnv
+    );
 
     const versionString = await this.version(true);
     const useLocationCommand = supportsAdapterUsbLocationCommand(versionString);
@@ -320,7 +330,10 @@ export class OpenOCDManager extends EventEmitter {
           this.startFailureNotified = true;
           void handleError(
             "espIdf.openOCDCommand",
-            openOcdStartFailed(matchArr.join(" "), this.capturedProcessOutput()),
+            openOcdStartFailed(
+              matchArr.join(" "),
+              this.capturedProcessOutput()
+            ),
             undefined,
             { outputChannel: "OpenOCD" }
           );
@@ -397,9 +410,12 @@ export class OpenOCDManager extends EventEmitter {
       if (
         !session ||
         session.type !== "gdbtarget" ||
-        session.configuration.sessionID === "core-dump.debug.session.ws" ||
-        session.configuration.sessionID === "gdbstub.debug.session.ws" ||
-        session.configuration.sessionID === "qemu.debug.session" ||
+        session.configuration.sessionID ===
+          ESP.DebugSession.CORE_DUMP_SESSION_ID ||
+        session.configuration.sessionID ===
+          ESP.DebugSession.PANIC_GDBSTUB_SESSION_ID ||
+        session.configuration.sessionID ===
+          ESP.DebugSession.QEMU_DEBUG_SESSION_ID ||
         session.configuration.runOpenOCD === false
       ) {
         return;

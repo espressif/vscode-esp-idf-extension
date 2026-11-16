@@ -1,5 +1,5 @@
 import { SerialPort } from "serialport";
-import { toNodeSerialPortPath } from "./debugConfig";
+import { toNodeSerialPortPath } from "../../gdbstub/debugConfig";
 
 const interruptByte = Buffer.from([0x03]);
 const resetHoldMs = 100;

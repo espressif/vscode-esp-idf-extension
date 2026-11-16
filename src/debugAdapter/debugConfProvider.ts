@@ -55,9 +55,8 @@ import {
   verifyAppBeforeDebug,
 } from "./validation";
 import { debugErrorPresentation } from "./debugErrorPresentation";
+import { ESP } from "../config";
 import {
-  OPENOCD_DEBUG_SESSION_ID,
-  RUNTIME_GDBSTUB_SESSION_ID,
   applyRuntimeGdbStubDebugConfig,
   isNonJtagDebugSession,
   isRuntimeGdbStubFirmwareMissing,
@@ -65,19 +64,12 @@ import {
   parseHardwareDebugLimit,
   parseMonitorBaudRate,
   shouldUseRuntimeGdbStub,
-} from "../espIdf/gdbstub/debugConfig";
+} from "./gdbstub/debugConfig";
 
 export const INITIAL_GDBTARGET_CONFIG: DebugConfiguration = {
   type: "gdbtarget",
   request: "attach",
   name: "ESP-IDF",
-};
-
-/** In-memory configuration started by Launch Debug. launch.json is not consulted. */
-export const OPENOCD_DEBUG_CONFIG: DebugConfiguration = {
-  ...INITIAL_GDBTARGET_CONFIG,
-  runOpenOCD: true,
-  sessionID: OPENOCD_DEBUG_SESSION_ID,
 };
 
 /** Legacy projects use other names, such as "Eclipse CDT GDB Adapter". */
@@ -438,10 +430,11 @@ export class CDTDebugConfigurationProvider
         "idf.launchMonitorOnDebugSession",
         folder
       );
-      if (debugConfiguration.sessionID === RUNTIME_GDBSTUB_SESSION_ID) {
+      const useRuntimeGdbStub = shouldUseRuntimeGdbStub(debugConfiguration);
+      if (useRuntimeGdbStub) {
         await prepareSerialPortForRuntimeGdbStub(folder);
       }
-      if (debugConfiguration.buildFlashMonitor) {
+      if (debugConfiguration.buildFlashMonitor && !useRuntimeGdbStub) {
         try {
           await buildFlashAndMonitor(folder.uri, true);
         } catch (error) {
@@ -452,7 +445,7 @@ export class CDTDebugConfigurationProvider
           throw error;
         }
       } else if (
-        !isNonJtagDebugSession(debugConfiguration.sessionID) &&
+        !isNonJtagDebugSession(debugConfiguration) &&
         useMonitorWithDebug
       ) {
         try {
@@ -468,8 +461,9 @@ export class CDTDebugConfigurationProvider
       const openOCDManager = OpenOCDManager.init();
       if (
         !openOCDManager.isRunning() &&
-        !isNonJtagDebugSession(debugConfiguration.sessionID) &&
-        debugConfiguration.sessionID !== "qemu.debug.session" &&
+        !isNonJtagDebugSession(debugConfiguration) &&
+        debugConfiguration.sessionID !==
+          ESP.DebugSession.QEMU_DEBUG_SESSION_ID &&
         debugConfiguration.runOpenOCD !== false
       ) {
         try {
@@ -513,7 +507,7 @@ export class CDTDebugConfigurationProvider
       await applyRuntimeGdbStubIfNeeded(folder, config);
 
       const buildDirPath = requireBuildDirPath(folder);
-      const isNonJtagSession = isNonJtagDebugSession(config.sessionID);
+      const isNonJtagSession = isNonJtagDebugSession(config);
       const projectDescription = await getProjectDescriptionJson(folder.uri);
       const gdbinitFiles = projectDescription?.gdbinitFiles;
       const gdbinitPaths = await resolveGdbinitFilePaths(
@@ -623,7 +617,12 @@ async function applyRuntimeGdbStubIfNeeded(
     runtimeEnabled = false;
   }
 
-  if (isRuntimeGdbStubFirmwareMissing(config.sessionID, runtimeEnabled)) {
+  if (
+    isRuntimeGdbStubFirmwareMissing(
+      { connectionMode: config.connectionMode },
+      runtimeEnabled
+    )
+  ) {
     throw runtimeGdbStubNotEnabled();
   }
 

@@ -39,14 +39,19 @@ import {
   debugErrorPresentation,
 } from "../debugErrorPresentation";
 import { Logger as ExtensionLogger } from "../../common/logger";
+import { ESP } from "../../config";
 import {
+  isGdbstubUartConnection,
+  isNonJtagDebugSession,
+} from "../gdbstub/debugConfig";
+import { enterRuntimeGdbStub } from "./gdbstub/uart";
+import { projectDirectoryFromProgram } from "./gdbstubStop";
+
+const {
   CORE_DUMP_SESSION_ID,
   PANIC_GDBSTUB_SESSION_ID,
-  RUNTIME_GDBSTUB_SESSION_ID,
-  isNonJtagDebugSession,
-} from "../../espIdf/gdbstub/debugConfig";
-import { enterRuntimeGdbStub } from "../../espIdf/gdbstub/uart";
-import { projectDirectoryFromProgram } from "./gdbstubStop";
+  QEMU_DEBUG_SESSION_ID,
+} = ESP.DebugSession;
 
 interface UARTArguments {
   // Path to the serial port connected to the UART on the board.
@@ -119,6 +124,7 @@ export interface TargetAttachRequestArguments extends RequestArguments {
   // Optional commands to issue between loading image and resuming target
   preRunCommands?: string[];
   runOpenOCD?: boolean;
+  connectionMode?: string;
   gdbStubUart?: { port: string; baudRate: number };
 }
 
@@ -159,7 +165,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
     ) {
       this.isPostMortem = true;
     }
-    if (args.sessionID === RUNTIME_GDBSTUB_SESSION_ID || args.gdbStubUart) {
+    if (isGdbstubUartConnection(args)) {
       this.isHaltedOnAttach = true;
       const configured = (args as { initialBreakpoint?: string })
         .initialBreakpoint;
@@ -191,10 +197,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
       }
     }
 
-    if (
-      request === "launch" &&
-      args.sessionID !== RUNTIME_GDBSTUB_SESSION_ID
-    ) {
+    if (request === "launch" && !isGdbstubUartConnection(args)) {
       const launchArgs = args as TargetLaunchRequestArguments;
       if (
         launchArgs.target?.serverParameters === undefined &&
@@ -345,7 +348,10 @@ export class GDBTargetDebugSession extends GDBDebugSession {
           checkTargetPort(accumulatedStdout);
         });
       } else {
-        throw idfToolNotFound("gdbserver", debugErrorPresentation.idfToolNotFound);
+        throw idfToolNotFound(
+          "gdbserver",
+          debugErrorPresentation.idfToolNotFound
+        );
       }
 
       if (this.gdbserver.stderr) {
@@ -358,7 +364,10 @@ export class GDBTargetDebugSession extends GDBDebugSession {
           checkTargetPort(accumulatedStderr);
         });
       } else {
-        throw idfToolNotFound("gdbserver", debugErrorPresentation.idfToolNotFound);
+        throw idfToolNotFound(
+          "gdbserver",
+          debugErrorPresentation.idfToolNotFound
+        );
       }
 
       this.gdbserver.on("exit", (code, signal) => {
@@ -515,7 +524,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
 
       await this.spawn(args);
       await this.gdb.sendFileExecAndSymbols(args.program);
-      if (args.sessionID !== RUNTIME_GDBSTUB_SESSION_ID) {
+      if (!isGdbstubUartConnection(args)) {
         await this.gdb.sendEnablePrettyPrint();
       }
       if (args.imageAndSymbols) {
@@ -535,8 +544,8 @@ export class GDBTargetDebugSession extends GDBDebugSession {
 
       // Check if OpenOCD is running before GDB tries to connect to it
       if (
-        !isNonJtagDebugSession(args.sessionID) &&
-        args.sessionID !== "qemu.debug.session" &&
+        !isNonJtagDebugSession(args) &&
+        args.sessionID !== QEMU_DEBUG_SESSION_ID &&
         args.runOpenOCD !== false
       ) {
         const openOCDManager = OpenOCDManager.init();
@@ -577,7 +586,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
         );
       } else {
         this.targetType = target.type !== undefined ? target.type : "remote";
-        if (args.sessionID === RUNTIME_GDBSTUB_SESSION_ID) {
+        if (isGdbstubUartConnection(args)) {
           await raceTimeout(
             this.gdb.sendCommands(target.connectCommands),
             15000,
@@ -612,7 +621,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
     } catch (err) {
       this.gdb.kill();
       const message = err instanceof Error ? err.message : String(err);
-      if (args.sessionID === RUNTIME_GDBSTUB_SESSION_ID) {
+      if (isGdbstubUartConnection(args)) {
         ExtensionLogger.errorNotify(
           message,
           err instanceof Error ? err : new Error(message),

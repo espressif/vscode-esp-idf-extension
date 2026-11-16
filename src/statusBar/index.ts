@@ -25,6 +25,7 @@ import {
   UIKind,
   Uri,
   window,
+  workspace,
   l10n,
   ThemeColor,
   ExtensionContext,
@@ -42,8 +43,34 @@ import { getProjectConfigurationElements } from "../project-conf";
 import { Logger } from "../common/logger";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { QemuManager } from "../qemu/qemuManager";
+import {
+  debugConnectionModePresentation,
+  RuntimeGdbStubLaunchConfig,
+  selectDebugLaunchConfiguration,
+} from "../debugAdapter/gdbstub/debugConfig";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
+
+export function updateDebugConnectionModeStatusBarItem(workspaceFolder?: Uri) {
+  const item = statusBarItems["debugConnectionMode"];
+  if (!item) {
+    return;
+  }
+  const configurations = workspaceFolder
+    ? workspace
+        .getConfiguration("launch", workspaceFolder)
+        .get<RuntimeGdbStubLaunchConfig[]>("configurations")
+    : undefined;
+  const presentation = debugConnectionModePresentation(
+    selectDebugLaunchConfiguration(configurations)
+  );
+  item.text = `$(${
+    commandDictionary[CommandKeys.SelectDebugConnectionMode].iconId
+  }) ${presentation.shortLabel}`;
+  item.tooltip = l10n.t("Select Debug Connection Mode ({mode})", {
+    mode: presentation.mode,
+  });
+}
 
 export function updateOpenOcdAdapterStatusBarItem(workspaceFolder: Uri) {
   const item = statusBarItems["openOcdAdapter"];
@@ -283,6 +310,16 @@ export async function createCmdsStatusBarItems(
       93,
       commandDictionary[CommandKeys.Monitor].checkboxState
     );
+    statusBarItems["debugConnectionMode"] = createStatusBarItem(
+      `$(${commandDictionary[CommandKeys.SelectDebugConnectionMode].iconId})`,
+      commandDictionary[CommandKeys.SelectDebugConnectionMode].tooltip,
+      CommandKeys.SelectDebugConnectionMode,
+      92.5,
+      commandDictionary[CommandKeys.SelectDebugConnectionMode].checkboxState
+    );
+    statusBarItems["debugConnectionMode"].name =
+      commandDictionary[CommandKeys.SelectDebugConnectionMode].tooltip;
+    updateDebugConnectionModeStatusBarItem(workspaceFolder);
     statusBarItems["debug"] = createStatusBarItem(
       `$(${commandDictionary[CommandKeys.Debug].iconId})`,
       commandDictionary[CommandKeys.Debug].tooltip,
