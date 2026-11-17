@@ -97,7 +97,7 @@ export interface HeapPlotTrace {
   fill?: "tozeroy";
   line: { shape: "hv"; color: string; width: number };
   hovertemplate: string;
-  visible: boolean;
+  visible: boolean | "legendonly";
 }
 
 export interface HeapContextSeries {
@@ -370,7 +370,7 @@ function toTrace(
     line: { shape: "hv", color, width: 2 },
     hovertemplate:
       "%{customdata[0]} %{customdata[1]} bytes @ %{customdata[2]}<br>%{x} s<br>%{y} bytes used<extra>%{fullData.name}</extra>",
-    visible,
+    visible: visible ? true : "legendonly",
   };
 }
 

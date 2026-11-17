@@ -172,7 +172,7 @@ suite("Heap trace model", () => {
     const wifi = traces.find((series) => series.name === "wifi");
     const ble = traces.find((series) => series.name === "ble");
     assert.strictEqual(total?.visible, true);
-    assert.strictEqual(wifi?.visible, false);
+    assert.strictEqual(wifi?.visible, "legendonly");
     assert.deepStrictEqual(wifi?.y, [3]);
     assert.strictEqual(ble?.visible, true);
     assert.notStrictEqual(wifi?.line.color, ble?.line.color);
