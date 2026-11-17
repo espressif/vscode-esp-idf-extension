@@ -187,11 +187,6 @@ function collapseOrExpandCalls() {
         ></calls>
       </div>
     </div>
-    <div class="columns foot">
-      <div class="column is-2">Bytes Used Total</div>
-      <div class="column is-2">Count Total</div>
-      <div class="column">Totals</div>
-    </div>
   </div>
 </template>
 
