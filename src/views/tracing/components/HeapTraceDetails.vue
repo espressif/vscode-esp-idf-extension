@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { filterHeapDetails, HeapDetailRow } from "../heapTraceModel";
 
 const props = defineProps<{
@@ -13,14 +13,65 @@ const emit = defineEmits<{
 
 type SortKey = "timestamp" | "kind" | "context" | "core" | "inIrq" | "size" | "address";
 
+const PAGE_SIZE = 100;
+
 const leaksOnly = ref(false);
 const sortKey = ref<SortKey>("timestamp");
 const sortDirection = ref<1 | -1>(1);
+const page = ref(1);
 
 const visibleRows = computed(() => {
   const filtered = filterHeapDetails(props.rows, leaksOnly.value);
   return [...filtered].sort((left, right) => compareRows(left, right));
 });
+
+const pageCount = computed(() =>
+  Math.max(1, Math.ceil(visibleRows.value.length / PAGE_SIZE))
+);
+
+const pagedRows = computed(() => {
+  const start = (page.value - 1) * PAGE_SIZE;
+  return visibleRows.value.slice(start, start + PAGE_SIZE);
+});
+
+const pageStart = computed(() =>
+  visibleRows.value.length === 0 ? 0 : (page.value - 1) * PAGE_SIZE + 1
+);
+
+const pageEnd = computed(() =>
+  Math.min(page.value * PAGE_SIZE, visibleRows.value.length)
+);
+
+function pageForSelection(): number {
+  if (props.selectedIndex === null) {
+    return 1;
+  }
+  const position = visibleRows.value.findIndex(
+    (row) => row.index === props.selectedIndex
+  );
+  if (position < 0) {
+    return 1;
+  }
+  return Math.floor(position / PAGE_SIZE) + 1;
+}
+
+watch(
+  () =>
+    [leaksOnly.value, sortKey.value, sortDirection.value, props.rows] as const,
+  () => {
+    page.value = pageForSelection();
+  }
+);
+
+watch(
+  () => props.selectedIndex,
+  () => {
+    if (props.selectedIndex === null) {
+      return;
+    }
+    page.value = pageForSelection();
+  }
+);
 
 const leakCount = computed(
   () => props.rows.filter((row) => row.possibleLeak).length
@@ -103,6 +154,14 @@ function displayCore(core: string): string {
 function selectRow(row: HeapDetailRow) {
   emit("select", row);
 }
+
+function showPreviousPage() {
+  page.value = Math.max(1, page.value - 1);
+}
+
+function showNextPage() {
+  page.value = Math.min(pageCount.value, page.value + 1);
+}
 </script>
 
 <template>
@@ -113,7 +172,7 @@ function selectRow(row: HeapDetailRow) {
         <span>Possible leaks only</span>
       </label>
       <p class="heap-details-summary">
-        Showing {{ visibleRows.length }} of {{ rows.length }} events.
+        Showing {{ pageStart }}–{{ pageEnd }} of {{ visibleRows.length }} events.
         {{ leakCount }} possible leak{{ leakCount === 1 ? "" : "s" }}.
       </p>
     </div>
@@ -150,7 +209,7 @@ function selectRow(row: HeapDetailRow) {
         </thead>
         <tbody>
           <tr
-            v-for="row in visibleRows"
+            v-for="row in pagedRows"
             :key="row.index"
             :class="rowClass(row)"
             :aria-label="rowLabel(row)"
@@ -171,6 +230,19 @@ function selectRow(row: HeapDetailRow) {
           </tr>
         </tbody>
       </table>
+    </div>
+    <div v-if="pageCount > 1" class="heap-details-pager">
+      <button type="button" :disabled="page === 1" @click="showPreviousPage">
+        Previous
+      </button>
+      <span>Page {{ page }} of {{ pageCount }}</span>
+      <button
+        type="button"
+        :disabled="page === pageCount"
+        @click="showNextPage"
+      >
+        Next
+      </button>
     </div>
   </div>
 </template>
@@ -271,6 +343,28 @@ function selectRow(row: HeapDetailRow) {
 .heap-detail-selected {
   outline: 1px solid var(--vscode-focusBorder);
   outline-offset: -1px;
+}
+
+.heap-details-pager {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 12px;
+}
+
+.heap-details-pager button {
+  height: 24px;
+  padding: 0 8px;
+  background: var(--vscode-button-secondaryBackground, var(--vscode-button-background));
+  color: var(--vscode-button-secondaryForeground, var(--vscode-button-foreground));
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.heap-details-pager button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 code {
