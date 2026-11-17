@@ -109,7 +109,12 @@ onMounted(() => {
             @change="store.heapViewChange"
           ></quick-action-menu>
           <div>
-            <div v-show="heapView.plot">
+            <div
+              v-show="heapView.plot"
+              id="heap-panel-plot"
+              role="tabpanel"
+              aria-labelledby="heap-tab-plot"
+            >
               <div v-if="dataPlot.length" class="context-filters">
                 <label>
                   <input
@@ -158,26 +163,44 @@ onMounted(() => {
               >
               </plot>
             </div>
-            <heap-trace-details
+            <div
               v-show="heapView.details"
-              :rows="detailRows"
-              :selected-index="selectedDetailIndex"
-              @select="store.selectDetail"
-            ></heap-trace-details>
-            <call-stack
+              id="heap-panel-details"
+              role="tabpanel"
+              aria-labelledby="heap-tab-details"
+            >
+              <heap-trace-details
+                :rows="detailRows"
+                :selected-index="selectedDetailIndex"
+                @select="store.selectDetail"
+              ></heap-trace-details>
+            </div>
+            <div
               v-show="heapView.callStack"
-              v-bind:callstack="callStacks"
-              v-bind:cache="callersAddressTranslationTable"
-              v-on:event-filter-updated="store.filterCallStacks"
-            ></call-stack>
-            <stats-view
+              id="heap-panel-callStack"
+              role="tabpanel"
+              aria-labelledby="heap-tab-callStack"
+            >
+              <call-stack
+                v-bind:callstack="callStacks"
+                v-bind:cache="callersAddressTranslationTable"
+                v-on:event-filter-updated="store.filterCallStacks"
+              ></call-stack>
+            </div>
+            <div
               v-show="heapView.stats"
-              v-bind:persistent-count="summary.persistentCount"
-              v-bind:persistent-bytes="summary.persistentBytes"
-              v-bind:transient-count="summary.transientCount"
-              v-bind:total-bytes="summary.totalBytes"
-              v-bind:total-count="summary.totalCount"
-            ></stats-view>
+              id="heap-panel-stats"
+              role="tabpanel"
+              aria-labelledby="heap-tab-stats"
+            >
+              <stats-view
+                v-bind:persistent-count="summary.persistentCount"
+                v-bind:persistent-bytes="summary.persistentBytes"
+                v-bind:transient-count="summary.transientCount"
+                v-bind:total-bytes="summary.totalBytes"
+                v-bind:total-count="summary.totalCount"
+              ></stats-view>
+            </div>
           </div>
         </div>
         <quick-call-stack

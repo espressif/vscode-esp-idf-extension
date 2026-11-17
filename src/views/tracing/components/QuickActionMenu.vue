@@ -56,6 +56,7 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
       role="tab"
       :ref="(element) => setTabRef(element, index)"
       :id="`heap-tab-${tab.key}`"
+      :aria-controls="`heap-panel-${tab.key}`"
       :aria-selected="props.active === tab.key"
       :tabindex="props.active === tab.key ? 0 : -1"
       @click="selectTab(tab.key)"
