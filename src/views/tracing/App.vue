@@ -160,6 +160,7 @@ onMounted(() => {
                 v-bind:revision="plotRevision"
                 @selected="store.plotSelected"
                 @toggle-trace="store.setTraceVisible"
+                @isolate-trace="store.isolateTrace"
               >
               </plot>
             </div>

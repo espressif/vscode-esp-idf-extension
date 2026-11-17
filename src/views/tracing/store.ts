@@ -359,6 +359,26 @@ export const useTracingStore = defineStore("tracing", () => {
     setContextVisible(name, visible);
   }
 
+  function isolateTrace(name: string, showAll: boolean) {
+    if (showAll) {
+      showTotal.value = true;
+      contextVisibility.value = Object.fromEntries(
+        contexts.value.map((context) => [context, true])
+      );
+    } else if (name === TOTAL_SERIES_NAME) {
+      showTotal.value = true;
+      contextVisibility.value = Object.fromEntries(
+        contexts.value.map((context) => [context, false])
+      );
+    } else {
+      showTotal.value = false;
+      contextVisibility.value = Object.fromEntries(
+        contexts.value.map((context) => [context, context === name])
+      );
+    }
+    refreshPlot();
+  }
+
   function updateModelWithTraceData({ trace }) {
     if (trace) {
       fileName.value = trace.fileName;
@@ -487,6 +507,7 @@ export const useTracingStore = defineStore("tracing", () => {
     pathInfo,
     plotData,
     plotRevision,
+    isolateTrace,
     plotSelected,
     populateGlobalCallStackCountAndSize,
     resolveAbsoluteFilePath,

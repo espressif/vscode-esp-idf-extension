@@ -47,11 +47,13 @@ const layout: Ref<Record<string, unknown>> = ref({
 const emit = defineEmits<{
   selected: [info: TraceInfo];
   "toggle-trace": [name: string, visible: boolean];
+  "isolate-trace": [name: string, showAll: boolean];
 }>();
 
 let resizeObserver: ResizeObserver | undefined;
 let plotReady = false;
 let drawQueued = false;
+let legendClickTimer: ReturnType<typeof setTimeout> | undefined;
 
 function plotClickHandler(event: {
   points?: Array<{ pointIndex: number; data: HeapPlotTrace }>;
@@ -75,6 +77,13 @@ function plotClickHandler(event: {
   });
 }
 
+function clearLegendClickTimer() {
+  if (legendClickTimer !== undefined) {
+    clearTimeout(legendClickTimer);
+    legendClickTimer = undefined;
+  }
+}
+
 function legendClickHandler(event: {
   curveNumber?: number;
   data?: Array<{ name?: string; visible?: boolean | string }>;
@@ -84,8 +93,34 @@ function legendClickHandler(event: {
   if (!trace?.name) {
     return false;
   }
-  const visible = trace.visible !== false && trace.visible !== "legendonly";
-  emit("toggle-trace", trace.name, !visible);
+  const name = trace.name;
+  const shown = trace.visible !== false && trace.visible !== "legendonly";
+  clearLegendClickTimer();
+  legendClickTimer = setTimeout(() => {
+    legendClickTimer = undefined;
+    emit("toggle-trace", name, !shown);
+  }, 400);
+  return false;
+}
+
+function legendDoubleClickHandler(event: {
+  curveNumber?: number;
+  data?: Array<{ name?: string; visible?: boolean | string }>;
+}) {
+  clearLegendClickTimer();
+  const curveNumber = event.curveNumber ?? 0;
+  const traces = event.data ?? [];
+  const trace = traces[curveNumber];
+  if (!trace?.name) {
+    return false;
+  }
+  const othersHidden = traces.every((item, index) => {
+    if (index === curveNumber || !item.name) {
+      return true;
+    }
+    return item.visible === false || item.visible === "legendonly";
+  });
+  emit("isolate-trace", trace.name, othersHidden);
   return false;
 }
 
@@ -119,6 +154,7 @@ onMounted(() => {
     plotReady = true;
     plot.on("plotly_click", plotClickHandler);
     plot.on("plotly_legendclick", legendClickHandler);
+    plot.on("plotly_legenddoubleclick", legendDoubleClickHandler);
     resizeObserver = new ResizeObserver(() => {
       Plotly.Plots.resize(plot);
     });
@@ -131,6 +167,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  clearLegendClickTimer();
   resizeObserver?.disconnect();
   Plotly.purge("plot");
 });
