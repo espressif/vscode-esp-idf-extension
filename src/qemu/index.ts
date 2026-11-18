@@ -73,7 +73,7 @@ export function registerQEMUCommands(context: ExtensionContext) {
           name: "GDB QEMU",
           type: "gdbtarget",
           request: "attach",
-          sessionID: "qemu.debug.session",
+          sessionID: ESP.DebugSession.QEMU_DEBUG_SESSION_ID,
           gdb: gdbPath,
           target: {
             type: "remote",
@@ -87,7 +87,10 @@ export function registerQEMUCommands(context: ExtensionContext) {
           );
         }
         debug.onDidTerminateDebugSession(async (session) => {
-          if (session.configuration.sessionID === "qemu.debug.session") {
+          if (
+            session.configuration.sessionID ===
+            ESP.DebugSession.QEMU_DEBUG_SESSION_ID
+          ) {
             QemuManager.init().stop();
           }
         });

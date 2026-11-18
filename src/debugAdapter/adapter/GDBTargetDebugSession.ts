@@ -8,7 +8,11 @@
  * SPDX-License-Identifier: EPL-2.0
  *********************************************************************/
 
-import { GDBDebugSession, RequestArguments } from "./GDBDebugSession";
+import {
+  GDBDebugSession,
+  RequestArguments,
+  raceTimeout,
+} from "./GDBDebugSession";
 import {
   InitializedEvent,
   Logger,
@@ -34,6 +38,20 @@ import {
   debugDapErrorPresentation,
   debugErrorPresentation,
 } from "../debugErrorPresentation";
+import { Logger as ExtensionLogger } from "../../common/logger";
+import { ESP } from "../../config";
+import {
+  isGdbstubUartConnection,
+  isNonJtagDebugSession,
+} from "../gdbstub/debugConfig";
+import { enterRuntimeGdbStub } from "./gdbstub/uart";
+import { projectDirectoryFromProgram } from "./gdbstubStop";
+
+const {
+  CORE_DUMP_SESSION_ID,
+  PANIC_GDBSTUB_SESSION_ID,
+  QEMU_DEBUG_SESSION_ID,
+} = ESP.DebugSession;
 
 interface UARTArguments {
   // Path to the serial port connected to the UART on the board.
@@ -106,6 +124,8 @@ export interface TargetAttachRequestArguments extends RequestArguments {
   // Optional commands to issue between loading image and resuming target
   preRunCommands?: string[];
   runOpenOCD?: boolean;
+  connectionMode?: string;
+  gdbStubUart?: { port: string; baudRate: number };
 }
 
 export interface TargetLaunchRequestArguments
@@ -140,13 +160,44 @@ export class GDBTargetDebugSession extends GDBDebugSession {
     this.setupCommonLoggerAndHandlers(args);
 
     if (
-      args.sessionID === "gdbstub.debug.session.ws" ||
-      args.sessionID === "core-dump.debug.session.ws"
+      args.sessionID === PANIC_GDBSTUB_SESSION_ID ||
+      args.sessionID === CORE_DUMP_SESSION_ID
     ) {
       this.isPostMortem = true;
     }
+    if (isGdbstubUartConnection(args)) {
+      this.isHaltedOnAttach = true;
+      const configured = (args as { initialBreakpoint?: string })
+        .initialBreakpoint;
+      this.stubEntrySymbol =
+        configured === undefined ? "app_main" : configured.trim();
+      this.stubProjectDirectory = projectDirectoryFromProgram(
+        args.program,
+        args.cwd
+      );
+    }
 
-    if (request === "launch") {
+    if (args.gdbStubUart) {
+      try {
+        await enterRuntimeGdbStub(
+          args.gdbStubUart.port,
+          args.gdbStubUart.baudRate,
+          (message) => this.sendEvent(new OutputEvent(`${message}\n`))
+        );
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        this.sendEvent(new OutputEvent(`❌ ${message}`, "stderr"));
+        ExtensionLogger.errorNotify(
+          message,
+          err instanceof Error ? err : new Error(message),
+          "GDBTargetDebugSession gdbstub interrupt"
+        );
+        this.sendErrorResponse(response, 1, resolveDapErrorMessage(err));
+        return;
+      }
+    }
+
+    if (request === "launch" && !isGdbstubUartConnection(args)) {
       const launchArgs = args as TargetLaunchRequestArguments;
       if (
         launchArgs.target?.serverParameters === undefined &&
@@ -297,7 +348,10 @@ export class GDBTargetDebugSession extends GDBDebugSession {
           checkTargetPort(accumulatedStdout);
         });
       } else {
-        throw idfToolNotFound("gdbserver", debugErrorPresentation.idfToolNotFound);
+        throw idfToolNotFound(
+          "gdbserver",
+          debugErrorPresentation.idfToolNotFound
+        );
       }
 
       if (this.gdbserver.stderr) {
@@ -310,7 +364,10 @@ export class GDBTargetDebugSession extends GDBDebugSession {
           checkTargetPort(accumulatedStderr);
         });
       } else {
-        throw idfToolNotFound("gdbserver", debugErrorPresentation.idfToolNotFound);
+        throw idfToolNotFound(
+          "gdbserver",
+          debugErrorPresentation.idfToolNotFound
+        );
       }
 
       this.gdbserver.on("exit", (code, signal) => {
@@ -467,7 +524,9 @@ export class GDBTargetDebugSession extends GDBDebugSession {
 
       await this.spawn(args);
       await this.gdb.sendFileExecAndSymbols(args.program);
-      await this.gdb.sendEnablePrettyPrint();
+      if (!isGdbstubUartConnection(args)) {
+        await this.gdb.sendEnablePrettyPrint();
+      }
       if (args.imageAndSymbols) {
         if (args.imageAndSymbols.symbolFileName) {
           if (args.imageAndSymbols.symbolOffset) {
@@ -485,9 +544,8 @@ export class GDBTargetDebugSession extends GDBDebugSession {
 
       // Check if OpenOCD is running before GDB tries to connect to it
       if (
-        args.sessionID !== "gdbstub.debug.session.ws" &&
-        args.sessionID !== "core-dump.debug.session.ws" &&
-        args.sessionID !== "qemu.debug.session" &&
+        !isNonJtagDebugSession(args) &&
+        args.sessionID !== QEMU_DEBUG_SESSION_ID &&
         args.runOpenOCD !== false
       ) {
         const openOCDManager = OpenOCDManager.init();
@@ -527,7 +585,16 @@ export class GDBTargetDebugSession extends GDBDebugSession {
           )
         );
       } else {
-        await this.gdb.sendCommands(target.connectCommands);
+        this.targetType = target.type !== undefined ? target.type : "remote";
+        if (isGdbstubUartConnection(args)) {
+          await raceTimeout(
+            this.gdb.sendCommands(target.connectCommands),
+            15000,
+            "Connecting to GDB Stub timed out after 15s"
+          );
+        } else {
+          await this.gdb.sendCommands(target.connectCommands);
+        }
         this.sendEvent(
           new OutputEvent("connected to target using provided connectCommands")
         );
@@ -552,6 +619,15 @@ export class GDBTargetDebugSession extends GDBDebugSession {
       this.sendResponse(response);
       this.isInitialized = true;
     } catch (err) {
+      this.gdb.kill();
+      const message = err instanceof Error ? err.message : String(err);
+      if (isGdbstubUartConnection(args)) {
+        ExtensionLogger.errorNotify(
+          message,
+          err instanceof Error ? err : new Error(message),
+          "GDBTargetDebugSession startGDBAndAttachToTarget"
+        );
+      }
       this.sendErrorResponse(response, 1, resolveDapErrorMessage(err));
     }
   }
@@ -600,11 +676,19 @@ export class GDBTargetDebugSession extends GDBDebugSession {
             // interrupt to be successful is needed to avoid future
             // "Cannot execute this command while the target is running"
             // errors
-            await this.gdb
-              .sendCommand("interrupt")
-              .then(() => this.gdb.sendCommand("disconnect"));
+            await raceTimeout(
+              this.gdb
+                .sendCommand("interrupt")
+                .then(() => this.gdb.sendCommand("disconnect")),
+              1500,
+              "Disconnect timed out"
+            );
           } else {
-            await this.gdb.sendCommand("disconnect");
+            await raceTimeout(
+              this.gdb.sendCommand("disconnect"),
+              1500,
+              "Disconnect timed out"
+            );
           }
         } catch (err) {
           this.sendEvent(
@@ -619,7 +703,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
       }
 
       try {
-        await this.gdb.sendGDBExit();
+        await raceTimeout(this.gdb.sendGDBExit(), 1500, "GDB exit timed out");
       } catch (err) {
         this.sendEvent(
           new OutputEvent(
@@ -629,6 +713,8 @@ export class GDBTargetDebugSession extends GDBDebugSession {
             "stderr"
           )
         );
+      } finally {
+        this.gdb.kill();
       }
 
       if (this.killGdbServer) {
@@ -648,6 +734,7 @@ export class GDBTargetDebugSession extends GDBDebugSession {
       }
       this.sendResponse(response);
     } catch (err) {
+      this.gdb.kill();
       // Still complete disconnect so VS Code can tear down the session
       // even if OpenOCD/GDB are already gone.
       this.sendEvent(

@@ -18,7 +18,7 @@ import {
   getPresetCustomExtraVars,
   getPresetParameterValue,
 } from "../project-conf/presetSettings";
-import { SerialPort } from "../espIdf/serial/serialPort";
+import { SerialPort, toMacOSCalloutPort } from "../espIdf/serial/serialPort";
 import {
   ConfigurationScope,
   ConfigurationTarget,
@@ -391,5 +391,5 @@ export async function readSerialPort(
     }
   }
 
-  return port;
+  return toMacOSCalloutPort(port);
 }

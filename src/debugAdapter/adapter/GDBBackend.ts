@@ -191,6 +191,12 @@ export class GDBBackend extends events.EventEmitter {
         }
     }
 
+    public kill(signal: NodeJS.Signals = 'SIGKILL') {
+        if (this.proc && !this.proc.killed) {
+            this.proc.kill(signal);
+        }
+    }
+
     public async supportsNewUi(
         gdbPath?: string,
         gdbCwd?: string,

@@ -60,6 +60,8 @@
   ],
   "activationEvents": [
     "onCommand:espIdf.addArduinoAsComponentToCurFolder",
+    "onCommand:espIdf.configureRuntimeGdbStub",
+    "onCommand:espIdf.selectDebugConnectionMode",
     "onCommand:espIdf.createIdfTerminal",
     "onCommand:espIdf.createVsCodeFolder",
     "onCommand:espIdf.selectConfTarget",
@@ -1918,6 +1920,16 @@
         "command": "espIdf.setClangSettings",
         "title": "%espIdf.setClangSettings.title%",
         "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.configureRuntimeGdbStub",
+        "title": "%espIdf.configureRuntimeGdbStub.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.selectDebugConnectionMode",
+        "title": "%espIdf.selectDebugConnectionMode.title%",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [
@@ -1954,6 +1966,19 @@
                 "type": "boolean",
                 "description": "Run OpenOCD Server",
                 "default": true
+              },
+              "sessionID": {
+                "type": "string",
+                "description": "%debug.sessionID.description%"
+              },
+              "connectionMode": {
+                "type": "string",
+                "enum": [
+                  "OpenOCD-JTAG",
+                  "Gdbstub-UART"
+                ],
+                "description": "%debug.connectionMode.description%",
+                "default": "OpenOCD-JTAG"
               },
               "environment": {
                 "additionalProperties": {
@@ -2228,6 +2253,19 @@
                 "type": "boolean",
                 "description": "Run OpenOCD Server",
                 "default": true
+              },
+              "sessionID": {
+                "type": "string",
+                "description": "%debug.sessionID.description%"
+              },
+              "connectionMode": {
+                "type": "string",
+                "enum": [
+                  "OpenOCD-JTAG",
+                  "Gdbstub-UART"
+                ],
+                "description": "%debug.connectionMode.description%",
+                "default": "OpenOCD-JTAG"
               },
               "environment": {
                 "additionalProperties": {

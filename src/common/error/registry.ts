@@ -618,6 +618,36 @@ registerNewErrorInRegistry({
   ],
 });
 
+registerNewErrorInRegistry({
+  code: ErrorCode.RuntimeGdbStubNotEnabled,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME is not enabled. Run ESP-IDF: Configure Project for Runtime GDB Stub, then build and flash the project.",
+  logMessage: "Runtime GDB stub debug blocked: CONFIG_ESP_SYSTEM_GDBSTUB_RUNTIME is not enabled.",
+  actions: [
+    {
+      label: "Configure Project",
+      execute: () => commands.executeCommand("espIdf.configureRuntimeGdbStub"),
+    },
+  ],
+  outputChannel: "Debug",
+});
+
+registerNewErrorInRegistry({
+  code: ErrorCode.OpenOcdBlocksUartGdbStub,
+  severity: ErrorSeverity.Error,
+  userMessage:
+    "Stop OpenOCD before debugging with UART GDB Stub. JTAG and the serial port cannot be used at the same time.",
+  logMessage: "UART GDB stub debug blocked because OpenOCD is running.",
+  actions: [
+    {
+      label: "Stop OpenOCD",
+      execute: () => commands.executeCommand("espIdf.openOCDCommand"),
+    },
+  ],
+  outputChannel: "Debug",
+});
+
 // ──────────────────────────── Tracing errors ───────────────────────────
 
 const tracingOutputChannel = "Tracing";

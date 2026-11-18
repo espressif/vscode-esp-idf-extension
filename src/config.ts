@@ -48,6 +48,14 @@ export namespace ESP {
     DFU = "DFU",
   }
 
+  export namespace DebugSession {
+    /** Panic stub started from the monitor websocket. */
+    export const PANIC_GDBSTUB_SESSION_ID = "gdbstub.debug.session.ws";
+    /** Core dump started from the monitor websocket. */
+    export const CORE_DUMP_SESSION_ID = "core-dump.debug.session.ws";
+    export const QEMU_DEBUG_SESSION_ID = "qemu.debug.session";
+  }
+
   export enum IdfMirror {
     Espressif,
     Github,
