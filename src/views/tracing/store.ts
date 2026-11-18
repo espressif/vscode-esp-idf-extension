@@ -18,6 +18,7 @@
 
 import { relative } from "path";
 import { defineStore } from "pinia";
+import { formatCalculationError } from "./calculationError";
 import { computed, ref, Ref } from "vue";
 import {
   analyzeHeapTrace,
@@ -410,7 +411,8 @@ export const useTracingStore = defineStore("tracing", () => {
   const calculateFailed = ({ error }) => {
     isCalculating.value = false;
     log.value = "";
-    displayError(formatCalculationError(error));
+    const trace = traceType.value === TraceType.AppTrace ? "app" : "heap";
+    displayError(formatCalculationError(error, trace));
   };
 
   function populateGlobalCallStackCountAndSize(value) {
@@ -536,16 +538,3 @@ export const useTracingStore = defineStore("tracing", () => {
     updateModelWithTraceData,
   };
 });
-
-function formatCalculationError(error: unknown): string {
-  if (typeof error === "string" && error.trim()) {
-    return error;
-  }
-  if (error && typeof error === "object" && "message" in error) {
-    const message = (error as { message?: unknown }).message;
-    if (typeof message === "string" && message.trim()) {
-      return message;
-    }
-  }
-  return "Heap trace calculation failed";
-}

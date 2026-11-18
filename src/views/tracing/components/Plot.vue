@@ -155,8 +155,22 @@ onMounted(() => {
     plot.on("plotly_click", plotClickHandler);
     plot.on("plotly_legendclick", legendClickHandler);
     plot.on("plotly_legenddoubleclick", legendDoubleClickHandler);
-    resizeObserver = new ResizeObserver(() => {
-      Plotly.Plots.resize(plot);
+    resizeObserver = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width ?? 0;
+      const height = entries[0]?.contentRect.height ?? 0;
+      // v-show hides Overview with display:none. Plotly rejects resize then.
+      if (width === 0 || height === 0) {
+        return;
+      }
+      void Promise.resolve(Plotly.Plots.resize(plot)).catch(
+        (error: unknown) => {
+          const message = error instanceof Error ? error.message : String(error);
+          if (message.includes("displayed plot div")) {
+            return;
+          }
+          console.error(error);
+        }
+      );
     });
     resizeObserver.observe(plot);
     if (drawQueued) {

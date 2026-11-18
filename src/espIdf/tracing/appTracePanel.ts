@@ -30,6 +30,7 @@ import { Addr2Line } from "./tools/xtensa/addr2line";
 import { ReadElf } from "./tools/xtensa/readelf";
 import { getProjectElfFilePath } from "../../configuration/workspace";
 import { traceArchiveFileNotFoundPresentation } from "./tracingOpenOcdPresentation";
+import { formatCalculationError } from "../../views/tracing/calculationError";
 
 export class AppTracePanel {
   public static createOrShow(
@@ -115,7 +116,9 @@ export class AppTracePanel {
                 });
               })
               .catch((error) => {
-                this.sendCommandToWebview("calculateFailed", { error });
+                this.sendCommandToWebview("calculateFailed", {
+                  error: formatCalculationError(error, "app"),
+                });
                 void this.handlePanelError(error);
               });
             break;
@@ -127,7 +130,9 @@ export class AppTracePanel {
                 this.sendCommandToWebview("calculatedHeapTrace", { plot });
               })
               .catch((error) => {
-                this.sendCommandToWebview("calculateFailed", { error });
+                this.sendCommandToWebview("calculateFailed", {
+                  error: formatCalculationError(error, "heap"),
+                });
                 void this.handlePanelError(error);
               });
             break;
