@@ -50,7 +50,9 @@ suite("Full clean locked build directory", function () {
     );
     assert.ok(descriptor);
     assert.ok(descriptor.userMessage.includes("/proj/build"));
-    assert.ok(descriptor.userMessage.includes("ESP-IDF Monitor"));
+    assert.ok(descriptor.userMessage.includes("terminal"));
+    assert.ok(descriptor.userMessage.includes("manually"));
+    assert.ok(!descriptor.userMessage.includes("Full Clean again"));
     assert.ok(descriptor.logMessage.includes("EBUSY"));
     assert.strictEqual(descriptor.outputChannel, "ESP-IDF");
     assert.deepStrictEqual(
