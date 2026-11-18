@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 6th January 2021 1:25:19 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,7 +31,7 @@ interface IMessage {
 }
 
 export class ComponentManagerUIPanel {
-  private static instance: ComponentManagerUIPanel;
+  private static instance: ComponentManagerUIPanel | null;
 
   private readonly panel: WebviewPanel;
   private readonly workspaceRoot: Uri;
@@ -42,10 +42,16 @@ export class ComponentManagerUIPanel {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
       : undefined;
-    if (!!ComponentManagerUIPanel.instance) {
-      ComponentManagerUIPanel.instance.panel.reveal(column);
+    const existingPanel = ComponentManagerUIPanel.instance;
+    if (existingPanel?.workspaceRoot.fsPath === workspaceRoot.fsPath) {
+      existingPanel.panel.reveal(column);
+      return;
     }
-    const url = readParameter("esp.component-manager.url", workspaceRoot) as string;
+    existingPanel?.dispose();
+    const url = readParameter(
+      "esp.component-manager.url",
+      workspaceRoot
+    ) as string;
     if (!url) {
       throw new Error("esp.component-manager.url is not set");
     }
@@ -109,13 +115,14 @@ export class ComponentManagerUIPanel {
         : vscode.ProgressLocation.Window;
     switch (message.message) {
       case "install":
-        if (!message.dependency) return;
+        const dependency = message.dependency;
+        if (!dependency) return;
         const component = message.component || "main";
         await vscode.window.withProgress(
           {
             cancellable: false,
             location: ProgressLocation,
-            title: `ESP-IDF: Adding ${message.dependency} to component ${component}...`,
+            title: `ESP-IDF: Adding ${dependency} to component ${component}...`,
           },
           async (
             progress: vscode.Progress<{ message: string; increment: number }>,
@@ -123,7 +130,7 @@ export class ComponentManagerUIPanel {
           ) => {
             await addDependency(
               this.workspaceRoot,
-              message.dependency,
+              dependency,
               component,
               cancelToken
             );
@@ -132,7 +139,8 @@ export class ComponentManagerUIPanel {
         break;
 
       case "create-project-from-example":
-        if (!message.example) return;
+        const example = message.example;
+        if (!example) return;
 
         const selectedFolder = await vscode.window.showOpenDialog({
           canSelectFolders: true,
@@ -150,7 +158,12 @@ export class ComponentManagerUIPanel {
             cancellable: false,
           },
           async () => {
-            const projectPath = await createProject(selectedFolder[0], message.example);
+            const projectPath = await createProject(
+              selectedFolder[0],
+              example,
+              this.extensionPath,
+              this.workspaceRoot
+            );
             await vscode.commands.executeCommand(
               "vscode.openFolder",
               projectPath,
