@@ -39,6 +39,7 @@ import {
 import { IDFMonitor } from "../espIdf/monitor/terminal";
 import { interruptMonitorWithDelay } from "../espIdf/monitor/interruptMonitorWithDelay";
 import { removePath } from "./removePath";
+import { CleanSession } from "./cleanSession";
 
 const MONITOR_CLOSE_TIMEOUT_MS = 3000;
 const CONFSERVER_CLOSE_TIMEOUT_MS = 3000;
@@ -67,44 +68,49 @@ export function registerFullCleanCmd(context: ExtensionContext) {
       if (FlashSession.isActive) {
         throw idfTaskInProgress(IdfTaskName.Flash);
       }
-      if (IDFMonitor.terminal) {
-        Logger.info(
-          l10n.t(
-            "Trying to delete the build folder. Closing the ESP-IDF Monitor..."
-          )
-        );
-        await interruptMonitorWithDelay(selectWorkspaceFolder.uri);
-        const monitorClosed = await IDFMonitor.disposeAndWait(
-          MONITOR_CLOSE_TIMEOUT_MS
-        );
-        if (!monitorClosed) {
-          Logger.warn(
-            "Full clean: the ESP-IDF Monitor terminal did not close in time."
+      const session = CleanSession.acquire();
+      try {
+        if (IDFMonitor.terminal) {
+          Logger.info(
+            l10n.t(
+              "Trying to delete the build folder. Closing the ESP-IDF Monitor..."
+            )
           );
-        }
-      }
-      if (ConfserverProcess.isRunning()) {
-        const closingSDKConfigMsg = l10n.t(
-          `Trying to delete the build folder. Closing existing SDK Configuration editor process...`
-        );
-        Logger.info(closingSDKConfigMsg);
-        await ConfserverProcess.disposeAndWait(CONFSERVER_CLOSE_TIMEOUT_MS);
-      }
-      await removePath(buildDir);
-      const extraPathsToClean = readParameter(
-        "idf.extraCleanPaths",
-        selectWorkspaceFolder
-      ) as string[];
-      if (extraPathsToClean && extraPathsToClean.length > 0) {
-        for (const extraPath of extraPathsToClean) {
-          const fullPath = join(selectWorkspaceFolder.uri.fsPath, extraPath);
-          const doesExtraPathExist = await pathExists(fullPath);
-          if (doesExtraPathExist) {
-            await removePath(fullPath);
+          await interruptMonitorWithDelay(selectWorkspaceFolder.uri);
+          const monitorClosed = await IDFMonitor.disposeAndWait(
+            MONITOR_CLOSE_TIMEOUT_MS
+          );
+          if (!monitorClosed) {
+            Logger.warn(
+              "Full clean: the ESP-IDF Monitor terminal did not close in time."
+            );
           }
         }
+        if (ConfserverProcess.isRunning()) {
+          const closingSDKConfigMsg = l10n.t(
+            `Trying to delete the build folder. Closing existing SDK Configuration editor process...`
+          );
+          Logger.info(closingSDKConfigMsg);
+          await ConfserverProcess.disposeAndWait(CONFSERVER_CLOSE_TIMEOUT_MS);
+        }
+        await removePath(buildDir);
+        const extraPathsToClean = readParameter(
+          "idf.extraCleanPaths",
+          selectWorkspaceFolder
+        ) as string[];
+        if (extraPathsToClean && extraPathsToClean.length > 0) {
+          for (const extraPath of extraPathsToClean) {
+            const fullPath = join(selectWorkspaceFolder.uri.fsPath, extraPath);
+            const doesExtraPathExist = await pathExists(fullPath);
+            if (doesExtraPathExist) {
+              await removePath(fullPath);
+            }
+          }
+        }
+        Logger.infoNotify(l10n.t("Build directory has been deleted."));
+      } finally {
+        session.end();
       }
-      Logger.infoNotify(l10n.t("Build directory has been deleted."));
     });
   });
 }

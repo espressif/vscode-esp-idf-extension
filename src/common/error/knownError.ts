@@ -355,6 +355,7 @@ export const IdfTaskName = {
   Build: "build",
   Flash: "flash",
   EraseFlash: "erase flash",
+  FullClean: "full clean",
   Monitor: "monitor",
   SetTarget: "set target",
 } as const;
