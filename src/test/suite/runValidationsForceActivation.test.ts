@@ -17,12 +17,15 @@
 
 import * as assert from "assert";
 import { join } from "path";
+import { ExtensionContext } from "vscode";
 import {
   isForceProjectActivationPending,
   requestProjectActivation,
   runValidations,
 } from "../../activation/validate";
 import { Logger } from "../../common/logger";
+import { ExtensionConfigStore } from "../../common/store";
+import { ESP } from "../../config";
 import {
   IdfConfigurationSource,
   resetIdfConfigurationSource,
@@ -32,15 +35,25 @@ import { createMockMemento } from "../mockUtils";
 
 suite("runValidations forceProjectActivation", () => {
   const extensionPath = __dirname;
+  const missingEimIdfJsonPath = join(extensionPath, "missing-eim_idf.json");
+  let previousStore: ExtensionConfigStore;
 
   suiteSetup(() => {
-    Logger.init({
+    previousStore = ESP.GlobalConfiguration.store;
+    const context = {
       subscriptions: [],
       extensionPath,
-      asAbsolutePath: (relativePath: string) => join(extensionPath, relativePath),
+      asAbsolutePath: (relativePath: string) =>
+        join(extensionPath, relativePath),
       globalState: createMockMemento(),
       workspaceState: createMockMemento(),
-    } as never);
+    } as ExtensionContext;
+    Logger.init(context);
+    ESP.GlobalConfiguration.store = ExtensionConfigStore.resetForTests(context);
+  });
+
+  suiteTeardown(() => {
+    ESP.GlobalConfiguration.store = previousStore;
   });
 
   teardown(() => {
@@ -65,10 +78,19 @@ suite("runValidations forceProjectActivation", () => {
 
   test("consumes force activation once at the start of each run", async () => {
     requestProjectActivation();
-    setIdfConfigurationSource(stubConfigurationSource());
+    setIdfConfigurationSource(
+      stubConfigurationSource({
+        getScoped: (_section, _scope, key) =>
+          key === "idf.eimIdfJsonPath" ? missingEimIdfJsonPath : undefined,
+      })
+    );
 
-    await runValidations(extensionPath);
+    const decision = await runValidations(extensionPath);
 
+    assert.deepStrictEqual(decision, {
+      kind: "nonConfigured",
+      failure: "eimJsonMissing",
+    });
     assert.strictEqual(isForceProjectActivationPending(), false);
   });
 });
@@ -82,6 +104,6 @@ function stubConfigurationSource(
     updateScoped: () => Promise.resolve(),
     updateGlobal: () => Promise.resolve(),
     refreshConfiguration: () => undefined,
-  ...overrides,
+    ...overrides,
   };
 }
