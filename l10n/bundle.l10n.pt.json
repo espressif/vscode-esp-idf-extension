@@ -7,6 +7,7 @@
   "Choose a container directory...": "Escolha um diretório de contêiner...",
   "Select a directory to use": "Selecione um diretório para usar",
   "Trying to delete the build folder. Closing existing SDK Configuration editor process...": "Tentando excluir a pasta build. ",
+  "Trying to delete the build folder. Closing the ESP-IDF Monitor...": "Tentando excluir a pasta build. Fechando o monitor ESP-IDF...",
   "Build directory has been deleted.": "O diretório de compilação foi excluído.",
   "ESP-IDF: Erasing device flash memory (erase_flash)": "ESP-IDF: Apagando a memória flash do dispositivo (erase_flash)",
   "ESP-IDF: Arduino ESP32 as ESP-IDF component": "ESP-IDF: Arduino ESP32 como componente ESP-IDF",

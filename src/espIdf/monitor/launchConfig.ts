@@ -20,6 +20,7 @@ import {
 import { FlashSession } from "../../flash/shared/flashSession";
 import { BuildSession } from "../../build/buildSession";
 import { EraseFlashSession } from "../../eraseFlash/eraseFlashSession";
+import { CleanSession } from "../../clean/cleanSession";
 import { getMonitorBaudRate } from "./getMonitorBaudRate";
 import { MonitorConfig } from "./types";
 import { canAccessFile, getEspIdfFromCMake, getToolchainToolName } from "../../utils";
@@ -62,6 +63,15 @@ export async function loadMonitorLaunchConfig(
   }
   if (EraseFlashSession.isActive) {
     throw idfTaskInProgress(IdfTaskName.EraseFlash, {
+      severity: ErrorSeverity.Warning,
+      userMessage:
+        "Wait for ESP-IDF {taskName} to finish before starting the monitor.",
+      logMessage: "Attempted to start monitor while {taskName} is in progress.",
+      actions: [],
+    });
+  }
+  if (CleanSession.isActive) {
+    throw idfTaskInProgress(IdfTaskName.FullClean, {
       severity: ErrorSeverity.Warning,
       userMessage:
         "Wait for ESP-IDF {taskName} to finish before starting the monitor.",

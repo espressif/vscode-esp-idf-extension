@@ -17,6 +17,7 @@
  */
 
 import { ChildProcess, spawn } from "child_process";
+import { waitForProcessExit } from "../../../common/processExit";
 import { EventEmitter } from "events";
 import { Logger } from "../../../common/logger";
 import { OutputChannel } from "../../../common/outputChannel";
@@ -145,6 +146,10 @@ export class ConfserverProcess {
       ConfserverProcess.instance.kconfigsMenus &&
       ConfserverProcess.instance.kconfigsMenus.length > 0
     );
+  }
+
+  public static isRunning(): boolean {
+    return ConfserverProcess.instance !== null;
   }
 
   public static isSavedByUI() {
@@ -382,6 +387,19 @@ export class ConfserverProcess {
     }
     if (MenuConfigPanel.currentPanel) {
       MenuConfigPanel.currentPanel.dispose();
+    }
+  }
+
+  public static async disposeAndWait(timeoutMs: number): Promise<void> {
+    const proc = ConfserverProcess.instance?.confServerProcess ?? null;
+    ConfserverProcess.dispose();
+    if (!proc) {
+      return;
+    }
+    const exited = await waitForProcessExit(proc, timeoutMs);
+    if (!exited) {
+      proc.kill("SIGKILL");
+      await waitForProcessExit(proc, timeoutMs);
     }
   }
   public static confserverVersion: number = 2;

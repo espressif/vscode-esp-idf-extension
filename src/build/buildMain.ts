@@ -20,6 +20,7 @@ import { BuildTask } from "./buildTask";
 import { BuildSession } from "./buildSession";
 import { FlashSession } from "../flash/shared/flashSession";
 import { EraseFlashSession } from "../eraseFlash/eraseFlashSession";
+import { CleanSession } from "../clean/cleanSession";
 import { Logger } from "../common/logger";
 import { idfTaskInProgress, IdfTaskName } from "../common/error/knownError";
 import { ErrorPresentation } from "../common/error/types";
@@ -81,6 +82,12 @@ export async function buildMain(
     if (EraseFlashSession.isActive) {
       throw idfTaskInProgress(
         IdfTaskName.EraseFlash,
+        buildIdfTaskInProgressPresentation
+      );
+    }
+    if (CleanSession.isActive) {
+      throw idfTaskInProgress(
+        IdfTaskName.FullClean,
         buildIdfTaskInProgressPresentation
       );
     }
