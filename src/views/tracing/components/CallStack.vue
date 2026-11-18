@@ -120,7 +120,7 @@ function collapseOrExpandCalls() {
             <option value="allocations">Allocations</option>
             <option value="free">Free</option>
             <option value="irq-all">IRQ All</option>
-            <option value="irq-allocationa">IRQ Allocations</option>
+            <option value="irq-allocations">IRQ Allocations</option>
             <option value="irq-free">IRQ Free</option>
           </select>
         </div>
@@ -186,11 +186,6 @@ function collapseOrExpandCalls() {
           :total="totalMemory"
         ></calls>
       </div>
-    </div>
-    <div class="columns foot">
-      <div class="column is-2">Bytes Used Total</div>
-      <div class="column is-2">Count Total</div>
-      <div class="column">Totals</div>
     </div>
   </div>
 </template>
