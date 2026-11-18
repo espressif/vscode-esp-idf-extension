@@ -173,6 +173,7 @@ onMounted(() => {
               <heap-trace-details
                 :rows="detailRows"
                 :selected-index="selectedDetailIndex"
+                :symbols="callersAddressTranslationTable"
                 @select="store.selectDetail"
               ></heap-trace-details>
             </div>

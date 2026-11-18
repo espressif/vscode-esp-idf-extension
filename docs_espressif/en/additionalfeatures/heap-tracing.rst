@@ -45,7 +45,7 @@ Let's open an ESP-IDF project. For this tutorial, we will use the ``system/sysvi
     The report has four tabs:
 
     - ``Overview`` plots memory in use over time. ``Total memory`` is the sum of every context. Each context can be shown or hidden on its own: a free is applied to the context that allocated the memory. Drag to pan, use the scroll wheel to zoom, and use the chart toolbar to reset the axes or save an image. Click a point to open its call stack.
-    - ``Details`` lists every allocation and free. Green rows are frees. Orange rows are possible leaks: allocations that were still outstanding when the trace ended. Check ``Possible leaks only`` to hide the other rows. Select a row to open its call stack and, from a resolved frame, the matching source line.
+    - ``Details`` lists every allocation and free. Green rows are frees. Orange rows are possible leaks: allocations that were still outstanding when the trace ended. Check ``Possible leaks only`` to hide the other rows. The ``Function`` column is the top call-stack frame, with its source file when the address has been resolved. ``Search function name`` keeps rows whose function, source file, or address contains that text. An unresolved frame shows the address and can be found by that address. Select a row to open its call stack and, from a resolved frame, the matching source line.
     - ``Overall Stats`` summarizes how many allocations are still outstanding and how many were freed during the trace.
     - ``Totals`` groups allocated bytes by call stack.
 

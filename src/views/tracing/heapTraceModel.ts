@@ -286,14 +286,57 @@ export function analyzeHeapTrace(plot: HeapTraceInput): HeapTraceAnalysis {
   return analysis;
 }
 
+export interface CallerSymbol {
+  funcName?: string;
+  filePath?: string;
+  lineNumber?: string;
+}
+
+export interface CallerFrameLabel {
+  name: string;
+  location: string;
+}
+
+/** Top call-stack frame. An unresolved symbol keeps the raw address as its name. */
+export function topCallerFrame(
+  row: HeapDetailRow,
+  locations: Record<string, CallerSymbol> = {}
+): CallerFrameLabel {
+  const address = row.callers[0] ?? "";
+  if (!address) {
+    return { name: "", location: "" };
+  }
+  const symbol = locations[address];
+  const funcName = symbol?.funcName?.trim() ?? "";
+  const filePath = (symbol?.filePath ?? "").replace(/\\/g, "/");
+  const lineNumber = symbol?.lineNumber?.trim() ?? "";
+  const location = filePath
+    ? `${filePath}${lineNumber ? `:${lineNumber}` : ""}`
+    : "";
+  return { name: funcName || address, location };
+}
+
 export function filterHeapDetails(
   rows: HeapDetailRow[],
-  leaksOnly: boolean
+  leaksOnly: boolean,
+  functionQuery = "",
+  locations: Record<string, CallerSymbol> = {}
 ): HeapDetailRow[] {
-  if (!leaksOnly) {
-    return rows;
-  }
-  return rows.filter((row) => row.possibleLeak);
+  const query = functionQuery.trim().toLowerCase();
+  return rows.filter((row) => {
+    if (leaksOnly && !row.possibleLeak) {
+      return false;
+    }
+    if (!query) {
+      return true;
+    }
+    const frame = topCallerFrame(row, locations);
+    const address = row.callers[0] ?? "";
+    return [frame.name, frame.location, address]
+      .join(" ")
+      .toLowerCase()
+      .includes(query);
+  });
 }
 
 export function eventMatchesHeapFilter(

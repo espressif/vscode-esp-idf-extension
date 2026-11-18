@@ -20,7 +20,9 @@ import {
   analyzeHeapTrace,
   buildHeapPlotTraces,
   eventMatchesHeapFilter,
+  CallerSymbol,
   filterHeapDetails,
+  HeapDetailRow,
   HeapTraceEvent,
   HeapTraceInput,
   TOTAL_SERIES_NAME,
@@ -156,6 +158,54 @@ suite("Heap trace model", () => {
     assert.strictEqual(filterHeapDetails(analysis.details, false).length, 3);
   });
 
+  test("filters details by the top function, its location, or its address", () => {
+    const rows: HeapDetailRow[] = [
+      detailRow({
+        index: 0,
+        callers: ["0x1000"],
+        possibleLeak: true,
+      }),
+      detailRow({
+        index: 1,
+        address: "0x2",
+        callers: ["0x2000"],
+        possibleLeak: true,
+      }),
+      detailRow({
+        index: 2,
+        address: "0x3",
+        callers: ["0x3000"],
+        possibleLeak: false,
+      }),
+    ];
+    const locations: Record<string, CallerSymbol> = {
+      "0x1000": {
+        funcName: "app_main",
+        filePath: "main/app_main.c",
+        lineNumber: "42",
+      },
+      "0x2000": { funcName: "", filePath: "", lineNumber: "" },
+    };
+
+    assert.strictEqual(
+      filterHeapDetails(rows, false, "app_main", locations)[0].index,
+      0
+    );
+    assert.strictEqual(
+      filterHeapDetails(rows, false, "app_main.c:42", locations)[0].index,
+      0
+    );
+    assert.strictEqual(
+      filterHeapDetails(rows, true, "0x2000", locations)[0].index,
+      1
+    );
+    assert.strictEqual(
+      filterHeapDetails(rows, true, "0x3000", locations).length,
+      0
+    );
+    assert.strictEqual(filterHeapDetails(rows, false, "  ", locations).length, 3);
+  });
+
   test("hides a context trace without dropping it", () => {
     const analysis = analyzeHeapTrace(
       trace([
@@ -236,3 +286,19 @@ suite("Heap trace model", () => {
     assert.deepStrictEqual(analysis.total.y, [7]);
   });
 });
+
+function detailRow(overrides: Partial<HeapDetailRow>): HeapDetailRow {
+  return {
+    index: 0,
+    timestamp: 1,
+    kind: "alloc",
+    context: "main",
+    core: "0",
+    inIrq: false,
+    size: 4,
+    address: "0x1",
+    callers: [],
+    possibleLeak: false,
+    ...overrides,
+  };
+}

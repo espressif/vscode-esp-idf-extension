@@ -1,27 +1,66 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { filterHeapDetails, HeapDetailRow } from "../heapTraceModel";
+import {
+  CallerSymbol,
+  filterHeapDetails,
+  HeapDetailRow,
+  topCallerFrame,
+} from "../heapTraceModel";
+import { useTracingStore } from "../store";
 
 const props = defineProps<{
   rows: HeapDetailRow[];
   selectedIndex: number | null;
+  symbols?: Record<string, CallerSymbol>;
 }>();
+
+const store = useTracingStore();
 
 const emit = defineEmits<{
   select: [row: HeapDetailRow];
 }>();
 
-type SortKey = "timestamp" | "kind" | "context" | "core" | "inIrq" | "size" | "address";
+type SortKey =
+  | "timestamp"
+  | "kind"
+  | "function"
+  | "context"
+  | "core"
+  | "inIrq"
+  | "size"
+  | "address";
 
 const PAGE_SIZE = 100;
 
 const leaksOnly = ref(false);
+const functionQuery = ref("");
 const sortKey = ref<SortKey>("timestamp");
 const sortDirection = ref<1 | -1>(1);
 const page = ref(1);
 
+const symbolMap = computed(() => {
+  const map: Record<string, CallerSymbol> = {};
+  const symbols = props.symbols ?? {};
+  Object.keys(symbols).forEach((address) => {
+    const symbol = symbols[address] ?? {};
+    map[address] = {
+      funcName: symbol.funcName,
+      filePath: symbol.filePath
+        ? store.resolveAbsoluteFilePath(symbol.filePath).replace(/\\/g, "/")
+        : "",
+      lineNumber: symbol.lineNumber,
+    };
+  });
+  return map;
+});
+
 const visibleRows = computed(() => {
-  const filtered = filterHeapDetails(props.rows, leaksOnly.value);
+  const filtered = filterHeapDetails(
+    props.rows,
+    leaksOnly.value,
+    functionQuery.value,
+    symbolMap.value
+  );
   return [...filtered].sort((left, right) => compareRows(left, right));
 });
 
@@ -57,7 +96,13 @@ function pageForSelection(): number {
 
 watch(
   () =>
-    [leaksOnly.value, sortKey.value, sortDirection.value, props.rows] as const,
+    [
+      leaksOnly.value,
+      functionQuery.value,
+      sortKey.value,
+      sortDirection.value,
+      props.rows,
+    ] as const,
   () => {
     page.value = pageForSelection();
   }
@@ -80,6 +125,7 @@ const leakCount = computed(
 const columns: Array<{ key: SortKey; label: string }> = [
   { key: "timestamp", label: "Time (s)" },
   { key: "kind", label: "Event" },
+  { key: "function", label: "Function" },
   { key: "context", label: "Context" },
   { key: "core", label: "Core" },
   { key: "inIrq", label: "IRQ" },
@@ -87,9 +133,30 @@ const columns: Array<{ key: SortKey; label: string }> = [
   { key: "address", label: "Address" },
 ];
 
+const emptyMessage = computed(() => {
+  const hasQuery = functionQuery.value.trim().length > 0;
+  if (hasQuery && leaksOnly.value) {
+    return "No possible leaks match this function.";
+  }
+  if (hasQuery) {
+    return "No events match this function.";
+  }
+  if (leaksOnly.value) {
+    return "No possible leaks in this trace.";
+  }
+  return "No heap events in this trace.";
+});
+
+function frameFor(row: HeapDetailRow) {
+  return topCallerFrame(row, symbolMap.value);
+}
+
 function compareRows(left: HeapDetailRow, right: HeapDetailRow): number {
   const key = sortKey.value;
   const direction = sortDirection.value;
+  if (key === "function") {
+    return frameFor(left).name.localeCompare(frameFor(right).name) * direction;
+  }
   if (key === "size" || key === "timestamp") {
     return (left[key] - right[key]) * direction;
   }
@@ -137,7 +204,9 @@ function rowClass(row: HeapDetailRow): string[] {
 
 function rowLabel(row: HeapDetailRow): string {
   const irq = row.inIrq ? "in IRQ" : "not in IRQ";
-  return `${eventLabel(row)}, ${row.size} bytes at ${row.address}, context ${row.context}, ${irq}`;
+  const frame = frameFor(row);
+  const functionName = frame.name || "unknown function";
+  return `${eventLabel(row)}, ${row.size} bytes at ${row.address}, ${functionName}, context ${row.context}, ${irq}`;
 }
 
 function formatTimestamp(value: number): string {
@@ -171,6 +240,13 @@ function showNextPage() {
         <input type="checkbox" v-model="leaksOnly" />
         <span>Possible leaks only</span>
       </label>
+      <input
+        class="heap-details-search"
+        type="search"
+        v-model="functionQuery"
+        placeholder="Search function name"
+        aria-label="Search function name"
+      />
       <p class="heap-details-summary">
         Showing {{ pageStart }}–{{ pageEnd }} of {{ visibleRows.length }} events.
         {{ leakCount }} possible leak{{ leakCount === 1 ? "" : "s" }}.
@@ -183,11 +259,7 @@ function showNextPage() {
       ended.
     </p>
     <p v-if="visibleRows.length === 0" class="heap-details-empty">
-      {{
-        leaksOnly
-          ? "No possible leaks in this trace."
-          : "No heap events in this trace."
-      }}
+      {{ emptyMessage }}
     </p>
     <div v-else class="heap-details-scroll">
       <table class="heap-details-table">
@@ -220,6 +292,17 @@ function showNextPage() {
           >
             <td>{{ formatTimestamp(row.timestamp) }}</td>
             <td>{{ eventLabel(row) }}</td>
+            <td class="heap-detail-function">
+              <span class="heap-detail-function-name">{{
+                frameFor(row).name || "-"
+              }}</span>
+              <span
+                v-if="frameFor(row).location"
+                class="heap-detail-function-location"
+              >
+                {{ frameFor(row).location }}
+              </span>
+            </td>
             <td>{{ row.context }}</td>
             <td>{{ displayCore(row.core) }}</td>
             <td>{{ row.inIrq ? "Yes" : "No" }}</td>
@@ -267,6 +350,23 @@ function showNextPage() {
   align-items: center;
   gap: 0.4rem;
   font-size: 13px;
+}
+
+.heap-details-search {
+  height: 24px;
+  min-width: 16rem;
+  padding: 0 8px;
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 2px;
+  font: inherit;
+  font-size: 12px;
+}
+
+.heap-details-search:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
 }
 
 .heap-details-summary,
@@ -330,6 +430,20 @@ function showNextPage() {
 .heap-detail-row:focus {
   outline: 1px solid var(--vscode-focusBorder);
   outline-offset: -1px;
+}
+
+.heap-details-table td.heap-detail-function {
+  white-space: normal;
+  min-width: 12rem;
+}
+
+.heap-detail-function-name {
+  font-weight: 600;
+}
+
+.heap-detail-function-location {
+  display: block;
+  color: var(--vscode-descriptionForeground);
 }
 
 .heap-detail-free {
