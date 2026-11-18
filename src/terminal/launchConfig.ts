@@ -23,10 +23,7 @@ import { readParameter } from "../configuration/idf";
 import { getCurrentIdfConfiguration } from "../configuration/env";
 import { getCurrentIdfSetup } from "../eim/loadIdfSetup";
 import { IdfSetup } from "../eim/types";
-import {
-  fileNotFound,
-  invalidConfiguration,
-} from "../common/error/knownError";
+import { fileNotFound, invalidConfiguration } from "../common/error/knownError";
 
 export type TerminalLaunchConfig = {
   shellPath: string;
@@ -61,6 +58,9 @@ async function resolveActivationScriptPath(
   currentSetup: IdfSetup,
   extensionPath: string
 ): Promise<string> {
+  if (!currentSetup.activationScript) {
+    return "";
+  }
   if (await pathExists(currentSetup.activationScript)) {
     return currentSetup.activationScript;
   }
@@ -111,8 +111,8 @@ export async function loadTerminalLaunchConfig(
     process.platform === "win32"
       ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
       : shellExecutablePath
-        ? shellExecutablePath
-        : "bash";
+      ? shellExecutablePath
+      : "bash";
 
   if (process.platform !== "win32" && shellExecutablePath) {
     if (!(await pathExists(shellExecutablePath))) {
@@ -129,7 +129,7 @@ export async function loadTerminalLaunchConfig(
 
   const currentSetup = await loadCurrentIdfSetup(workspaceFolder);
   if (!currentSetup) {
-    throw invalidConfiguration("idf.currentSetup", {
+    throw invalidConfiguration("selectedIdfSetup", {
       severity: ErrorSeverity.Error,
       userMessage:
         "No ESP-IDF setup is selected. Please select an ESP-IDF version.",
@@ -179,8 +179,7 @@ export async function loadTerminalLaunchConfig(
   );
 
   const env = getCurrentIdfConfiguration();
-  const cwd =
-    workspaceFolder.uri.fsPath || idfPath || process.cwd();
+  const cwd = workspaceFolder.uri.fsPath || idfPath || process.cwd();
 
   return {
     shellPath,

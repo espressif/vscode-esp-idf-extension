@@ -36,6 +36,10 @@ The settings are grouped in the same categories as in the VS Code Settings UI (a
 Setup & Installation
 --------------------
 
+.. note::
+
+    The selected ESP-IDF directory is not a setting. It is stored in the extension's workspace state for each workspace folder. See :ref:`Selected ESP-IDF setup <selected-idf-setup>`.
+
 .. list-table::
     :widths: 25 75
     :header-rows: 1
@@ -46,8 +50,6 @@ Setup & Installation
       - Path to the ESP-IDF Installation Manager (EIM) ``eim_idf.json`` file. Scope: Application.
     * - **idf.eimExecutableArgs**
       - Arguments for the EIM executable (default: ``["gui", "--idf-features ide"]``). This value is updated automatically by the extension based on the detected EIM launch mode. Scope: Application.
-    * - **idf.currentSetup**
-      - Path to the currently selected ESP-IDF directory. Scope: Resource.
     * - **idf.saveLastProjectConfiguration**
       - Restore the project configuration that was selected last when the workspace is reopened (default: ``true``). When disabled, no configuration is selected on startup. Scope: Resource.
     * - **idf.extensionActivationMode**

@@ -28,6 +28,7 @@ import {
 import { NotificationMode, readParameter } from "../configuration/idf";
 import { createClangdFile } from "../clang";
 import { updateJsonPreservingComments } from "../jsonc/updateJsonPreservingComments";
+import { rememberSelectedIdfSetupIfFolderOpen } from "../eim/selectedIdfSetup";
 import { IdfSetup } from "../eim/types";
 import { WorkspaceFolder } from "vscode";
 import { dirExistPromise } from "../utils";
@@ -311,6 +312,10 @@ export class NewProjectPanel {
           );
           await createClangdFile(vscode.Uri.file(newProjectPath));
           await updateJsonPreservingComments(settingsJsonPath, settingsJson);
+          await rememberSelectedIdfSetupIfFolderOpen(newProjectPath, {
+            idfPath: idfSetup.idfPath,
+            id: idfSetup.id,
+          });
 
           if (components && components.length > 0) {
             const componentsPath = path.join(newProjectPath, "components");

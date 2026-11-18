@@ -28,7 +28,6 @@ import {
 import { readParameter } from "../configuration/idf";
 import { getVenvPythonBinPath } from "../configuration/env";
 import {
-  currentSetupNotFinishedDetail,
   installPathMissingDetail,
   installStatusDetail,
   missingActivationScriptDetail,
@@ -104,22 +103,6 @@ export async function unfinishedInstallDetails(
   return details.join("\n");
 }
 
-export async function currentSetupRejectDetail(
-  espIdfJson: EspIdfJson,
-  currentSetup: string
-): Promise<string> {
-  const matchingInstall = Array.isArray(espIdfJson.idfInstalled)
-    ? espIdfJson.idfInstalled.find((install) => install.path === currentSetup)
-    : undefined;
-  if (!matchingInstall) {
-    return currentSetupNotFinishedDetail(currentSetup);
-  }
-  return (
-    (await idfInstallRejectReason(espIdfJson, matchingInstall)) ||
-    currentSetupNotFinishedDetail(currentSetup)
-  );
-}
-
 export async function finishedIdfInstalls(
   espIdfJson: EspIdfJson
 ): Promise<IdfInstalled[]> {
@@ -165,6 +148,7 @@ export async function resolveEimIdfJsonCandidates(
     if (await isExistingFile(nestedPath)) {
       return nestedPath;
     }
+    return undefined;
   }
   if (await isExistingFile(defaultPath)) {
     return defaultPath;
@@ -193,7 +177,7 @@ export async function noteMissingCustomEimIdfJsonPath(): Promise<void> {
   }
   loggedMissingCustomEimIdfJsonPath = customPath;
   Logger.warn(
-    `idf.eimIdfJsonPath is set to ${customPath}, which is not available. Leaving the setting unchanged and using the default catalog when that file exists.`,
+    `idf.eimIdfJsonPath is set to ${customPath}, which is not available. Leaving the setting unchanged. The catalog is missing until that path exists.`,
     "eimIdfJsonPath"
   );
 }

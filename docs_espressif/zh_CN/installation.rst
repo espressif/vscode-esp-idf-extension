@@ -43,7 +43,7 @@
 
    将显示可用的 ESP-IDF 配置列表，选择要用于当前 ESP-IDF 项目的配置。
 
-   - 所选配置将保存 idf.currentSetup（包含所选 ESP-IDF 路径），扩展会为当前 ESP-IDF 项目配置所需的环境变量，并保存为工作区文件夹状态。
+   - 所选配置会保存在当前工作区文件夹的工作区状态中，扩展会为当前 ESP-IDF 项目配置所需的环境变量，并保存在工作区状态中。
 
    - 可通过运行 **ESP-IDF: 诊断命令** 检查配置：前往 ``查看`` > ``命令面板``，输入 ``诊断命令``，在列表中选择 **ESP-IDF: 诊断命令**。
 
@@ -60,7 +60,7 @@
 
 .. note::
 
-     若通过环境变量配置了扩展，扩展将优先使用这些环境变量，而不会使用在 ``idf.currentSetup`` 中选定的 ESP-IDF 配置。因此，若要使用在扩展中选定的 ESP-IDF 配置，请清除相关环境变量。
+     若通过环境变量配置了扩展，扩展将使用这些环境变量，而不会使用为该工作区文件夹存储的 ESP-IDF 配置。因此，若要使用已存储的 ESP-IDF 配置，请清除相关环境变量。
      若使用 ``ESP-IDF: 选择当前使用的 ESP-IDF 版本`` 命令选择 ESP-IDF 配置，扩展将使用所选配置中的环境变量，并删除在设置中手动配置的环境变量 IDF_PATH、IDF_TOOLS_PATH 和 IDF_PYTHON_ENV_PATH。
 
 您可以手动配置 VS Code 的 ESP-IDF 扩展，使其使用已有的 ESP-IDF 环境，方法是在 Visual Studio Code 设置中为扩展设置所需环境变量。配置扩展需要提供 ESP-IDF 路径 (IDF_PATH)、要追加到 PATH 的 ESP-IDF 工具集或 ESP-IDF 工具路径 (IDF_TOOLS_PATH)，以及 Python 环境路径 (IDF_PYTHON_ENV_PATH)。

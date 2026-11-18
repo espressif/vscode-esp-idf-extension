@@ -10,6 +10,7 @@ Features and enhancements (Unreleased)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Contribute Espressif Documentation and ESP Component Registry MCP servers to VS Code Chat. The Documentation MCP server requires a GitHub or WeChat login.
+- Remove the ``idf.currentSetup`` setting. The selected ESP-IDF setup is stored in workspace state for each workspace folder, and a path that is no longer a finished install is replaced.
 
 2.0.2
 -----

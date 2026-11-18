@@ -16,10 +16,20 @@
  * limitations under the License.
  */
 
-import { ExtensionContext } from "vscode";
+import { ExtensionContext, WorkspaceFolder } from "vscode";
+
+export type SelectedIdfSetup = {
+  idfPath: string;
+  id?: string;
+  /** Present, including "", when this selection recorded an activation script. */
+  activationScript?: string;
+};
+
+type SelectedIdfSetupMap = { [folderUri: string]: SelectedIdfSetup };
 
 export class ProjectConfigStore {
   private static self: ProjectConfigStore;
+  private static readonly SELECTED_IDF_SETUPS = "SELECTED_IDF_SETUPS";
   private ctx: ExtensionContext;
 
   public static init(context: ExtensionContext): ProjectConfigStore {
@@ -46,5 +56,53 @@ export class ProjectConfigStore {
   }
   public clear(key: string) {
     return this.set(key, undefined);
+  }
+
+  public getSelectedIdfSetup(
+    folder: WorkspaceFolder
+  ): SelectedIdfSetup | undefined {
+    const map = this.ctx.workspaceState.get<SelectedIdfSetupMap>(
+      ProjectConfigStore.SELECTED_IDF_SETUPS,
+      {}
+    );
+    const entry = map[folder.uri.toString()];
+    if (!entry || typeof entry.idfPath !== "string" || !entry.idfPath) {
+      return undefined;
+    }
+    const selection: SelectedIdfSetup = { idfPath: entry.idfPath };
+    if (entry.id) {
+      selection.id = entry.id;
+    }
+    if (typeof entry.activationScript === "string") {
+      selection.activationScript = entry.activationScript;
+    }
+    return selection;
+  }
+
+  public async setSelectedIdfSetup(
+    folder: WorkspaceFolder,
+    selection: SelectedIdfSetup
+  ): Promise<void> {
+    if (!selection.idfPath) {
+      return;
+    }
+    const map = {
+      ...(this.ctx.workspaceState.get<SelectedIdfSetupMap>(
+        ProjectConfigStore.SELECTED_IDF_SETUPS,
+        {}
+      ) ?? {}),
+    };
+    const entry: SelectedIdfSetup = { idfPath: selection.idfPath };
+    if (selection.id) {
+      entry.id = selection.id;
+    }
+    if (typeof selection.activationScript === "string") {
+      entry.activationScript = selection.activationScript;
+    }
+    map[folder.uri.toString()] = entry;
+    await this.ctx.workspaceState.update(
+      ProjectConfigStore.SELECTED_IDF_SETUPS,
+      map
+    );
   }
 }

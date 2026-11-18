@@ -20,6 +20,7 @@ import { mkdirSync, mkdtempSync, rmSync } from "fs";
 import { tmpdir } from "os";
 import { join, resolve } from "path";
 import {
+  eimIdfJsonWatchFile,
   eimIdfJsonWatchTarget,
   shouldScheduleReactionAfterWatcherSync,
 } from "../../activation/eimIdfJsonWatcher";
@@ -44,6 +45,48 @@ suite("shouldScheduleReactionAfterWatcherSync", () => {
       shouldScheduleReactionAfterWatcherSync(false, false),
       false
     );
+  });
+});
+
+suite("eimIdfJsonWatchFile", () => {
+  const defaultPath = "/home/user/.espressif/tools/eim_idf.json";
+
+  test("a missing custom file is watched as itself", () => {
+    const customPath = "/home/user/.espressif/tools/eim_idf_nonn.json";
+
+    const watched = eimIdfJsonWatchFile(
+      customPath,
+      false,
+      defaultPath,
+      defaultPath
+    );
+
+    assert.strictEqual(watched, customPath);
+  });
+
+  test("an existing custom directory watches eim_idf.json inside it", () => {
+    const customPath = "/home/user/.espressif/tools";
+
+    const watched = eimIdfJsonWatchFile(
+      customPath,
+      true,
+      undefined,
+      defaultPath
+    );
+
+    assert.strictEqual(watched, join(customPath, "eim_idf.json"));
+  });
+
+  test("an empty setting uses the resolved default file", () => {
+    const watched = eimIdfJsonWatchFile("", false, defaultPath, defaultPath);
+
+    assert.strictEqual(watched, defaultPath);
+  });
+
+  test("an empty setting with no resolved file uses the given default", () => {
+    const watched = eimIdfJsonWatchFile("", false, undefined, defaultPath);
+
+    assert.strictEqual(watched, defaultPath);
   });
 });
 

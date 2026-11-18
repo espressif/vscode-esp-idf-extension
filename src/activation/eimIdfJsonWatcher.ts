@@ -16,22 +16,22 @@
  * limitations under the License.
  */
 
-import { pathExists } from "fs-extra";
-import { basename, dirname, resolve } from "path";
+import { pathExists, stat } from "fs-extra";
+import { basename, dirname, join, resolve } from "path";
 import {
   commands,
   Disposable,
   FileSystemWatcher,
+  l10n,
   RelativePattern,
   workspace,
 } from "vscode";
 import { Logger } from "../common/logger";
+import { readParameter } from "../configuration/idf";
 import { getIdfConfigurationSource } from "../configuration/idfConfigurationSource";
 import { PreCheck } from "../common/PreCheck";
 import { ESP } from "../config";
-import { readParameter } from "../configuration/idf";
 import {
-  currentSetupRejectDetail,
   defaultEimIdfJsonPath,
   finishedIdfInstalls,
   getEimIdfJson,
@@ -39,6 +39,14 @@ import {
   resolveEimIdfJsonPath,
   unfinishedInstallDetails,
 } from "../eim/getExistingSetups";
+import {
+  keepUnlistedCurrentSetup,
+  persistSelectedIdfSetup,
+  resolveFinishedInstall,
+  selectedIdfPath,
+} from "../eim/selectedIdfSetup";
+import { couldNotSaveSelectedSetupDetail } from "../eim/setupFailureDetail";
+import { IdfInstalled } from "../eim/types";
 import { IdfCommandTreeMode } from "../cmdTreeView/cmdTreeDataProvider";
 import { ActivationFailure } from "./validate";
 
@@ -48,6 +56,7 @@ export interface EimIdfJsonWatcherHost {
   getMode: () => IdfCommandTreeMode;
   isApplying: () => boolean;
   leaveForFailure: (failure: ActivationFailure, detail?: string) => void;
+  reconfigure: () => void;
 }
 
 export interface EimIdfJsonWatchTarget {
@@ -64,11 +73,43 @@ let catalogChangeTimer: ReturnType<typeof setTimeout> | undefined;
 let catalogGeneration = 0;
 let catalogReactionRunning = false;
 let catalogReactionFollowUp = false;
+let catalogReactionCause: "file" | "setting" = "file";
+
+export function eimIdfJsonWatchFile(
+  customPath: string,
+  customIsDirectory: boolean,
+  resolvedPath: string | undefined,
+  defaultPath: string
+): string {
+  if (customPath) {
+    return customIsDirectory ? join(customPath, "eim_idf.json") : customPath;
+  }
+  return resolvedPath || defaultPath;
+}
+
+async function pathIsDirectory(filePath: string): Promise<boolean> {
+  try {
+    return (await stat(filePath)).isDirectory();
+  } catch {
+    return false;
+  }
+}
 
 async function resolveWatchPath(): Promise<string> {
   await noteMissingCustomEimIdfJsonPath();
-  const resolved = await resolveEimIdfJsonPath();
-  return resolve(resolved || defaultEimIdfJsonPath());
+  const customPath = (readParameter("idf.eimIdfJsonPath") as string) || "";
+  const customIsDirectory = customPath
+    ? await pathIsDirectory(customPath)
+    : false;
+  const resolved = customPath ? undefined : await resolveEimIdfJsonPath();
+  return resolve(
+    eimIdfJsonWatchFile(
+      customPath,
+      customIsDirectory,
+      resolved,
+      defaultEimIdfJsonPath()
+    )
+  );
 }
 
 export async function eimIdfJsonWatchTarget(
@@ -151,6 +192,7 @@ function armCatalogTimer() {
 }
 
 function scheduleCatalogReaction() {
+  catalogReactionCause = "file";
   bumpCatalogGeneration();
   armCatalogTimer();
 }
@@ -164,7 +206,8 @@ async function runCatalogReaction() {
   catalogReactionFollowUp = false;
   try {
     const generation = catalogGeneration;
-    const retryWhenIdle = await onCatalogChanged(generation);
+    const cause = catalogReactionCause;
+    const retryWhenIdle = await onCatalogChanged(generation, cause);
     if (watcherHost) {
       await syncWatcher(false);
     }
@@ -182,36 +225,68 @@ async function runCatalogReaction() {
 
 type CatalogFailure = { failure: ActivationFailure; detail?: string };
 
-async function configuredSetupFailure(): Promise<CatalogFailure | undefined> {
+type SelectionSync = "unchanged" | "replaced" | "kept" | "failed";
+
+type ConfiguredCatalogReview =
+  | { failure: CatalogFailure }
+  | { sync: SelectionSync };
+
+async function reviewConfiguredCatalog(
+  cause: "file" | "setting"
+): Promise<ConfiguredCatalogReview> {
   const espIdfJson = await getEimIdfJson();
   if (!espIdfJson) {
-    return { failure: "eimJsonMissing" };
+    return { failure: { failure: "eimJsonMissing" } };
   }
   const finishedInstalls = await finishedIdfInstalls(espIdfJson);
   if (!finishedInstalls.length) {
     return {
-      failure: "noFinishedSetup",
-      detail: await unfinishedInstallDetails(espIdfJson),
+      failure: {
+        failure: "noFinishedSetup",
+        detail: await unfinishedInstallDetails(espIdfJson),
+      },
     };
   }
   if (!PreCheck.isWorkspaceFolderOpen()) {
-    return undefined;
+    return { sync: "unchanged" };
   }
+  return { sync: await syncSelectedSetup(finishedInstalls, cause) };
+}
+
+async function syncSelectedSetup(
+  finishedInstalls: IdfInstalled[],
+  cause: "file" | "setting"
+): Promise<SelectionSync> {
   const workspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-  const currentSetup = readParameter(
-    "idf.currentSetup",
-    workspaceFolder
-  ) as string;
-  const matchingInstall = finishedInstalls.find(
-    (install) => install.path === currentSetup
-  );
-  if (!matchingInstall) {
-    return {
-      failure: "invalidCurrentSetup",
-      detail: await currentSetupRejectDetail(espIdfJson, currentSetup),
-    };
+  const currentSetup = await selectedIdfPath(workspaceFolder);
+  const resolved = resolveFinishedInstall(currentSetup, finishedInstalls, true);
+  if (!resolved?.replaced) {
+    return "unchanged";
   }
-  return undefined;
+  if (await keepUnlistedCurrentSetup(workspaceFolder, currentSetup)) {
+    if (cause === "setting") {
+      Logger.warnNotify(
+        l10n.t(
+          "The eim_idf.json path changed. The current ESP-IDF setup is not listed in the new file: {0}",
+          currentSetup
+        )
+      );
+    }
+    return "kept";
+  }
+  const written = await persistSelectedIdfSetup(workspaceFolder, {
+    idfPath: resolved.install.path,
+    id: resolved.install.id,
+  });
+  if (!written) {
+    return "failed";
+  }
+  const previous = currentSetup || "none";
+  Logger.info(
+    `Selected ESP-IDF setup ${resolved.install.path} for ${workspaceFolder.uri.fsPath} (previous: ${previous}).`,
+    "eimIdfJsonWatcher"
+  );
+  return "replaced";
 }
 
 async function noWorkspaceCatalogFailure(): Promise<
@@ -230,7 +305,10 @@ async function noWorkspaceCatalogFailure(): Promise<
   return undefined;
 }
 
-async function onCatalogChanged(generation: number): Promise<boolean> {
+async function onCatalogChanged(
+  generation: number,
+  cause: "file" | "setting"
+): Promise<boolean> {
   if (!watcherHost || generation !== catalogGeneration) {
     return false;
   }
@@ -249,12 +327,12 @@ async function onCatalogChanged(generation: number): Promise<boolean> {
     return false;
   }
   if (mode === "configured") {
-    const failure = await configuredSetupFailure();
+    const review = await reviewConfiguredCatalog(cause);
     if (generation !== catalogGeneration || !watcherHost) {
       return false;
     }
-    if (failure) {
-      const message = `eim_idf.json no longer matches idf.currentSetup (${failure.failure}).`;
+    if ("failure" in review) {
+      const message = `eim_idf.json has no usable ESP-IDF setup (${review.failure.failure}).`;
       Logger.error(
         message,
         new Error(message),
@@ -262,7 +340,29 @@ async function onCatalogChanged(generation: number): Promise<boolean> {
         undefined,
         false
       );
-      watcherHost.leaveForFailure(failure.failure, failure.detail);
+      watcherHost.leaveForFailure(
+        review.failure.failure,
+        review.failure.detail
+      );
+      return false;
+    }
+    if (review.sync === "replaced") {
+      watcherHost.reconfigure();
+      return false;
+    }
+    if (review.sync === "kept") {
+      return false;
+    }
+    if (review.sync === "failed") {
+      const detail = couldNotSaveSelectedSetupDetail();
+      Logger.error(
+        detail,
+        new Error(detail),
+        "eimIdfJsonWatcher",
+        undefined,
+        false
+      );
+      watcherHost.leaveForFailure("invalidCurrentSetup", detail);
     }
     return false;
   }
@@ -288,6 +388,7 @@ async function onCatalogChanged(generation: number): Promise<boolean> {
 
 async function syncWatcher(runReaction: boolean) {
   if (runReaction) {
+    catalogReactionCause = "setting";
     getIdfConfigurationSource().refreshConfiguration();
     bumpCatalogGeneration();
     clearCatalogTimer();
@@ -314,7 +415,9 @@ async function syncWatcher(runReaction: boolean) {
   watchTarget(target);
   if (runReaction) {
     await runCatalogReaction();
-  } else if (shouldScheduleReactionAfterWatcherSync(runReaction, willRetarget)) {
+  } else if (
+    shouldScheduleReactionAfterWatcherSync(runReaction, willRetarget)
+  ) {
     scheduleCatalogReaction();
   }
 }

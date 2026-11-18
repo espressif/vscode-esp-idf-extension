@@ -22,8 +22,8 @@ import { IdfSetup } from "./types";
 import { execChildProcess, getEspIdfFromCMake, isBinInPath } from "../utils";
 import { IdfToolsManager } from "../idfToolsManager";
 import { join } from "path";
-import { ConfigurationTarget, WorkspaceFolder } from "vscode";
-import { writeParameter } from "../configuration/idf";
+import { WorkspaceFolder } from "vscode";
+import { persistSelectedIdfSetup } from "./selectedIdfSetup";
 import { getVenvPythonBinPath } from "../configuration/env";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { getEnvVariables } from "./loadSettings";
@@ -36,8 +36,8 @@ import { missingIdfEnvDetail } from "./setupFailureDetail";
 export type SaveSettingsResult = { ok: true } | { ok: false; detail: string };
 
 export type SaveSettingsOptions = {
-  /** When false, leave idf.currentSetup unchanged. */
-  writeCurrentSetup?: boolean;
+  /** When false, leave the selected ESP-IDF setup unchanged. */
+  writeSelection?: boolean;
 };
 
 export function pathVarFromEnvVars(envVars: {
@@ -213,23 +213,6 @@ export async function checkPyVenv(
   return [true, ""];
 }
 
-export async function writeCurrentSetupSetting(
-  idfPath: string,
-  workspaceFolder: WorkspaceFolder,
-  writeCurrentSetup = true
-): Promise<boolean> {
-  if (!writeCurrentSetup) {
-    return false;
-  }
-  await writeParameter(
-    "idf.currentSetup",
-    idfPath,
-    ConfigurationTarget.WorkspaceFolder,
-    workspaceFolder
-  );
-  return true;
-}
-
 export async function saveSettings(
   extensionPath: string,
   setupConf: IdfSetup,
@@ -300,10 +283,14 @@ export async function saveSettings(
     return { ok: false, detail: message };
   }
 
-  await writeCurrentSetupSetting(
-    setupConf.idfPath,
+  await persistSelectedIdfSetup(
     workspaceFolder,
-    options?.writeCurrentSetup !== false
+    {
+      idfPath: setupConf.idfPath,
+      id: setupConf.id,
+      activationScript: setupConf.activationScript || "",
+    },
+    options?.writeSelection !== false
   );
 
   await storeIdfSetupEnvironment(envVars, workspaceFolder);

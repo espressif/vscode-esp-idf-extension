@@ -21,11 +21,11 @@ VS Code 中的扩展激活是一个 **两阶段过程**。理解这两个阶段�
 
 .. important::
 
-   ``onStartupFinished`` 会在启动完成后加载已启用的扩展，与工作区内容无关。``idf.extensionActivationMode`` 设置控制加载后的项目初始化，不会阻止启动时加载。用户或工作区值为 ``never`` 时，会跳过目录验证和项目初始化，包括未打开工作区文件夹的情况，因此缺失的目录不会显示警告、演练或警告状态栏。其他激活模式值在未打开工作区文件夹时，以及 ``idf.currentSetup`` 已指向一个已完成的 ESP-IDF 安装时，仍然会被跳过。文件夹级 ``never`` 仅在目录有效且 ``idf.currentSetup`` 为空时才会被查阅。MCP 提供程序注册会单独进行检查：即使未打开工作区文件夹，``idf.extensionActivationMode = never`` 仍可能阻止 MCP 提供程序注册。
+   ``onStartupFinished`` 会在启动完成后加载已启用的扩展，与工作区内容无关。``idf.extensionActivationMode`` 设置控制加载后的项目初始化，不会阻止启动时加载。用户或工作区值为 ``never`` 时，会跳过目录验证和项目初始化，包括未打开工作区文件夹的情况，因此缺失的目录不会显示警告、演练或警告状态栏。其他激活模式值在未打开工作区文件夹时，以及该文件夹已存储所选 ESP-IDF 配置且该安装已完成时，仍然会被跳过。文件夹级 ``never`` 仅在目录有效且该文件夹未存储 ESP-IDF 配置时才会被查阅。MCP 提供程序注册会单独进行检查：即使未打开工作区文件夹，``idf.extensionActivationMode = never`` 仍可能阻止 MCP 提供程序注册。
 
 **阶段 2：扩展决定是否完全初始化**
 
-一旦 VS Code 加载了扩展（阶段 1），扩展的 ``activate()`` 函数就会运行。用户或工作区的 ``idf.extensionActivationMode`` 为 ``never`` 时，会在目录验证之前选择已跳过模式。否则，它会在注册项目命令之前验证 ESP-IDF 安装管理器目录和当前所选配置。其他激活模式值仅当工作区文件夹已打开且 ``idf.currentSetup`` 为空时才会使用。
+一旦 VS Code 加载了扩展（阶段 1），扩展的 ``activate()`` 函数就会运行。用户或工作区的 ``idf.extensionActivationMode`` 为 ``never`` 时，会在目录验证之前选择已跳过模式。否则，它会在注册项目命令之前验证 ESP-IDF 安装管理器目录和当前所选配置。其他激活模式值仅当工作区文件夹已打开且该文件夹未存储 ESP-IDF 配置时才会使用。
 
 .. list-table:: 两阶段总结
    :header-rows: 1
@@ -37,13 +37,30 @@ VS Code 中的扩展激活是一个 **两阶段过程**。理解这两个阶段�
      - VS Code 平台（``package.json`` 中的 ``activationEvents``）
      - VS Code 决定是否加载并启动扩展的代码
    * - **阶段 2** — 初始化
-     - 扩展代码（首先检查用户或工作区 ``idf.extensionActivationMode`` 是否为 ``never``，然后检查 ``idf.customExtraVars``、``eim_idf.json``、``idf.currentSetup``，以及该配置为空时的其他激活模式值）
+     - 扩展代码（首先检查用户或工作区 ``idf.extensionActivationMode`` 是否为 ``never``，然后检查 ``idf.customExtraVars``、``eim_idf.json``、已存储的 ESP-IDF 配置，以及该配置为空时的其他激活模式值）
      - 扩展进入未配置模式、无工作区文件夹的已配置模式、完整已配置模式，或由环境变量进入的已配置模式
 
 安装验证（阶段 2）
 ------------------
 
-扩展加载后，用户或工作区的 ``idf.extensionActivationMode`` 为 ``never`` 时，会在任何其他检查之前选择已跳过模式。此时没有缺失目录提示、演练或激活状态栏。否则，会在检查 ESP-IDF 安装管理器目录之前，先检查所选工作区文件夹的 ``idf.customExtraVars``。不需要工作区文件夹的命令（包括安装管理器、欢迎页和新项目向导）无论结果如何都会注册。
+扩展加载后，用户或工作区的 ``idf.extensionActivationMode`` 为 ``never`` 时，会在任何其他检查之前选择已跳过模式。此时没有缺失目录提示、演练或激活状态栏。否则，会在检查 ESP-IDF 安装管理器目录之前，先检查所选工作区文件夹的 ``idf.customExtraVars``。不需要工作区文件夹的命令（包括安装管理器、欢迎页、新项目向导和导入 ESP-IDF 项目）无论结果如何都会注册。
+
+.. _selected-idf-setup:
+
+所选 ESP-IDF 配置
+~~~~~~~~~~~~~~~~~
+
+所选 ESP-IDF 安装保存在扩展的工作区状态中，而不是 VS Code 设置中。该状态是一个以工作区文件夹 URI 为键的映射。每个条目保存 ESP-IDF 路径和目录 id。它不会写入 ``.vscode/settings.json``，也不会随项目进入另一个窗口或另一台机器。从未为该文件夹存储过选择的窗口，会从一个空条目开始。
+
+**ESP-IDF: 选择当前 ESP-IDF 版本** 会为当前文件夹写入该条目。从该配置解析出的环境变量会单独保存在同一工作区状态中，供当前窗口使用。
+
+空条目会等待下面描述的项目检查。检查允许激活时，会存储第一个已完成的安装。
+
+若已存储的路径仍然存在，即使它不在 ``eim_idf.json`` 中也会保留。更改 ``idf.eimIdfJsonPath`` 后，会警告该路径未列在新文件中。若已存储的路径不再存在，或其已存储的激活脚本缺失，会将其替换为第一个已完成的安装并加载。目录监视器会执行同样的处理。目录缺失，或目录中没有已完成的安装时，仍会离开已配置模式。仅当无法保存替换结果，或目录本身无法使用时，才会显示 ``Invalid ESP-IDF Setup``。
+
+有效的 ``idf.customExtraVars`` 配置会存储到当前文件夹，并清除其激活脚本。选择另一个 ESP-IDF 版本时，若该工作区文件夹的值指向不同的 ``IDF_PATH``，会移除工作区文件夹中的 ``idf.customExtraVars``。用户设置和工作区设置保持不变。没有 ``IDF_PATH`` 的文件夹值也会保留。
+
+首次读取某个文件夹时，遗留的 ``idf.currentSetup`` 值会被复制到此状态中，然后从设置里移除。之后对该旧设置的更改不会再次运行激活。
 
 1. **有效的 ``idf.customExtraVars`` 配置**
 
@@ -51,31 +68,31 @@ VS Code 中的扩展激活是一个 **两阶段过程**。理解这两个阶段�
 
       此路径仅适用于通过 :ref:`在 VS Code 的 ESP-IDF 扩展中手动配置 ESP-IDF 与工具 <manual_idf_configuration>` 配置扩展的用户。安装 ESP-IDF 的首选方式是 ESP-IDF 安装管理器 (EIM)。
 
-   当工作区文件夹已打开时，所用文件夹是扩展已存储的工作区选择；若尚未存储，则使用第一个工作区文件夹。若该文件夹的 ``idf.customExtraVars`` 包含非空的 ``IDF_PATH`` 且该配置通过验证，扩展进入由环境变量配置的已配置模式。此路径不读取也不写入 ``idf.currentSetup``，也不要求存在 ``eim_idf.json``。``IDF_PATH`` 取自 ``idf.customExtraVars``。``IDF_TOOLS_PATH``、``PATH`` 和 ``IDF_PYTHON_ENV_PATH`` 仍使用现有的环境变量默认值。仅有 ``process.env.IDF_PATH`` 不会选择此路径。
+   当工作区文件夹已打开时，所用文件夹是扩展已存储的工作区选择；若尚未存储，则使用第一个工作区文件夹。若该文件夹的 ``idf.customExtraVars`` 包含非空的 ``IDF_PATH`` 且该配置通过验证，扩展进入由环境变量配置的已配置模式。此路径会存储该 ESP-IDF 配置并清除其激活脚本，因此 ESP-IDF 终端不会执行之前所选配置的激活脚本。它不要求存在 ``eim_idf.json``。``IDF_PATH`` 取自 ``idf.customExtraVars``。``IDF_TOOLS_PATH``、``PATH`` 和 ``IDF_PYTHON_ENV_PATH`` 仍使用现有的环境变量默认值。仅有 ``process.env.IDF_PATH`` 不会选择此路径。
 
    若缺少 ``IDF_PATH``，或该配置未通过验证，激活继续执行下面的目录检查。无效的自定义配置不是单独的失败。
 
-   命令视图和状态栏与完整已配置模式一致。``eim_idf.json`` 的变化不会离开此模式。更改 ``idf.customExtraVars`` 会再次运行验证，包括扩展已经由目录或环境变量完成配置的情况。不再有效的自定义配置会继续执行目录检查。``idf.currentSetup`` 或 ``idf.eimIdfJsonPath`` 的变化不会离开此模式。
+   命令视图和状态栏与完整已配置模式一致。``eim_idf.json`` 的变化不会离开此模式。更改 ``idf.customExtraVars`` 会再次运行验证，包括扩展已经由目录或环境变量完成配置的情况。不再有效的自定义配置会继续执行目录检查。``idf.eimIdfJsonPath`` 的变化不会离开此模式。
 
 2. **必须存在 ``eim_idf.json``**
 
-   当 ``idf.eimIdfJsonPath`` 指向的文件存在时，扩展使用该文件。若该设置为空，或它指向一个不存在的文件，则保留该设置，并在平台默认文件存在时使用默认文件（Windows 上为 ``C:\\Espressif\\tools\\eim_idf.json``，其他平台为 ``~/.espressif/tools/eim_idf.json``）。缺失的自定义路径会记录一次日志。若两者都不存在，状态栏显示 ``eim_idf.json not found``。点击后运行 **ESP-IDF: 选择 eim_idf.json**。
+   当 ``idf.eimIdfJsonPath`` 是已存在的文件，或是包含 ``eim_idf.json`` 的目录时，扩展使用该路径。若该设置为空，则保留该设置，并在平台默认文件存在时使用默认文件（Windows 上为 ``C:\\Espressif\\tools\\eim_idf.json``，其他平台为 ``~/.espressif/tools/eim_idf.json``）。若该设置指向一个不存在的路径，则保留该设置并记录一次日志，且将该目录视为缺失。状态栏显示 ``eim_idf.json not found``。点击后运行 **ESP-IDF: 选择 eim_idf.json**。
 
 3. **至少有一个已完成的 ESP-IDF 配置**
 
    ``eim_idf.json`` 必须包含状态为 ``finished`` 的安装。低于 3.0 的目录，以及没有 status 的条目，视为已完成。若没有符合条件的安装，状态栏显示 ``No valid ESP-IDF setup found``。点击后打开 ESP-IDF 安装管理器。安装完成后，运行 **ESP-IDF: 重试 ESP-IDF 激活**。
 
-4. **先检查工作区文件夹，再检查 ``idf.currentSetup``**
+4. **先检查工作区文件夹，再检查已存储的 ESP-IDF 配置**
 
-   若未打开工作区文件夹，验证在此停止。扩展停留在无工作区文件夹的已配置模式，不会读取或写入 ``idf.currentSetup``。打开文件夹后会再次运行验证。
+   若未打开工作区文件夹，验证在此停止。扩展停留在无工作区文件夹的已配置模式，不会读取或写入已存储的 ESP-IDF 配置。打开文件夹后会再次运行验证。
 
    若已打开文件夹，所用文件夹是扩展已存储的工作区选择；若尚未存储，则使用第一个工作区文件夹。
 
-   - 若 ``idf.currentSetup`` 路径匹配一个已完成的安装，则进入完整已配置模式。
-   - 若路径不在 ``eim_idf.json`` 中，或状态不是已完成，状态栏显示 ``Invalid ESP-IDF Setup``。点击状态栏会运行 **ESP-IDF: 选择当前 ESP-IDF 版本**。
-   - 若 ``idf.currentSetup`` 为空，则运行下面的 ``idf.extensionActivationMode`` 检查。检查允许激活时，第一个已完成的安装会保存为 ``idf.currentSetup``，并进入完整已配置模式。若因模式为 ``never`` 而拒绝，则不注册项目命令，也不显示激活状态栏。若未检测到标准项目，状态栏显示普通的 ``No ESP-IDF project detected`` 项，没有警告样式。点击它，或运行 **ESP-IDF: 激活 ESP-IDF**，会保存第一个已完成的安装并进入完整已配置模式，且不更改 ``idf.extensionActivationMode``。
+   - 若已存储的路径匹配一个已完成的安装，则进入完整已配置模式。
+   - 若已存储的路径仍然存在，即使它不在 ``eim_idf.json`` 中也会保留。更改 ``idf.eimIdfJsonPath`` 会警告当前配置未列出。若已存储的路径不再存在，或其已存储的激活脚本缺失，会将其替换为第一个已完成的安装，并进入完整已配置模式。仅当无法保存该替换结果时，才显示 ``Invalid ESP-IDF Setup``。
+   - 若已存储的选择为空，则运行下面的 ``idf.extensionActivationMode`` 检查。检查允许激活时，会存储第一个已完成的安装，并进入完整已配置模式。若因模式为 ``never`` 而拒绝，则不注册项目命令，也不显示激活状态栏。若未检测到标准项目，状态栏显示普通的 ``No ESP-IDF project detected`` 项，没有警告样式。点击它，或运行 **ESP-IDF: 激活 ESP-IDF**，会存储第一个已完成的安装并进入完整已配置模式，且不更改 ``idf.extensionActivationMode``。
 
-**ESP-IDF: 重试 ESP-IDF 激活** 会再次运行这些检查，并从 ``idf.customExtraVars`` 开始。在扩展尚未进入完整已配置模式时，若 ``idf.eimIdfJsonPath``、``idf.currentSetup`` 或 ``idf.extensionActivationMode`` 发生变化，或添加了工作区文件夹，也会再次运行。更改 ``idf.customExtraVars`` 时，即使扩展已由目录或环境变量进入完整已配置模式，也会再次运行这些检查。扩展由目录进入完整已配置模式后，``eim_idf.json`` 文件本身的变化由 `监视 eim_idf.json`_ 中描述的监视器处理。由 ``idf.customExtraVars`` 配置的文件夹会忽略这些目录变化。
+**ESP-IDF: 重试 ESP-IDF 激活** 会再次运行这些检查，并从 ``idf.customExtraVars`` 开始。在扩展尚未进入完整已配置模式时，若 ``idf.eimIdfJsonPath`` 或 ``idf.extensionActivationMode`` 发生变化，或添加了工作区文件夹，也会再次运行。更改 ``idf.customExtraVars`` 时，即使扩展已由目录或环境变量进入完整已配置模式，也会再次运行这些检查。扩展由目录进入完整已配置模式后，``eim_idf.json`` 文件本身的变化由 `监视 eim_idf.json`_ 中描述的监视器处理。由 ``idf.customExtraVars`` 配置的文件夹会忽略这些目录变化。
 
 ESP-IDF 命令视图
 ----------------
@@ -87,6 +104,7 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 - **ESP-IDF: 打开 ESP-IDF 安装管理器**
 - **ESP-IDF: 新建项目**
 - **ESP-IDF: 创建新的空项目**
+- **ESP-IDF: 导入 ESP-IDF 项目**
 - **ESP-IDF: 诊断命令**
 - **ESP-IDF: 欢迎**
 - **ESP-IDF: 打开入门演练**
@@ -103,19 +121,19 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 监视 eim_idf.json
 -----------------
 
-首次验证之后，扩展会监视解析得到的目录文件。当 ``idf.eimIdfJsonPath`` 指向的文件存在时，监视该文件。否则，在 Windows 上监视 ``C:\\Espressif\\tools\\eim_idf.json``，在其他平台上监视 ``~/.espressif/tools/eim_idf.json``，包括该文件尚不存在的情况。该文件位于工作区之外。同一次编辑产生的创建、更改和删除事件只处理一次。激活正在运行时，这些事件会被忽略。
+首次验证之后，当设置了 ``idf.eimIdfJsonPath`` 时，扩展会监视该目录路径，包括该文件尚不存在的情况。若该设置是一个已存在的目录，则监视该目录中的 ``eim_idf.json``。当该设置为空时，在 Windows 上监视 ``C:\\Espressif\\tools\\eim_idf.json``，在其他平台上监视 ``~/.espressif/tools/eim_idf.json``，包括该文件尚不存在的情况。该文件位于工作区之外。同一次编辑产生的创建、更改和删除事件只处理一次。激活正在运行时，这些事件会被忽略。
 
 - **未配置、已跳过和未检测到项目**：运行 **ESP-IDF: 重试 ESP-IDF 激活**。
-- **已配置**：当 ``idf.currentSetup`` 仍匹配一个已完成的安装时，保持已配置。若文件缺失、无法读取，或该配置已不存在或未完成，则隐藏已配置模式的状态栏项，并显示未配置状态栏（``Invalid ESP-IDF Setup``，或在实际失败为目录缺失或没有已完成配置时显示 ``eim_idf.json not found`` / ``No valid ESP-IDF setup found``）。将命令视图切换为较短列表。已经注册的项目命令保持注册。之后成功激活时，会重新显示已配置模式的状态栏项。
+- **已配置**：当已存储的路径仍匹配一个已完成的安装时，保持已配置。若已存储的路径仍然存在，而新目录未列出它，则保留该路径。更改 ``idf.eimIdfJsonPath`` 会警告当前配置未列出；目录文件编辑不会显示该警告。若已存储的路径不再存在，或其已存储的激活脚本缺失，则用第一个已完成的安装替换已存储的路径并重新加载。若无法保存该替换结果，则隐藏已配置模式的状态栏项并显示 ``Invalid ESP-IDF Setup``。若目录文件缺失、无法读取，或没有已完成的安装，则隐藏已配置模式的状态栏项并显示 ``eim_idf.json not found`` 或 ``No valid ESP-IDF setup found``。离开已配置模式时，将命令视图切换为较短列表。已经注册的项目命令保持注册。之后成功激活时，会重新显示已配置模式的状态栏项。
 - **由环境变量配置**：目录变化会被忽略。扩展保持使用 ``idf.customExtraVars`` 中的配置。
 - **无工作区文件夹**：当至少还有一个已完成的安装时，保持该模式。否则，为缺失的目录（``eim_idf.json not found``）或没有已完成的配置（``No valid ESP-IDF setup found``）显示未配置状态栏。
 
-更改 ``idf.eimIdfJsonPath`` 会重新定位监视器。指向不存在文件的自定义路径会保留并记录一次日志；当平台默认文件存在时，监视该默认路径。若监视器已经位于该默认路径，则保持不变。若两个文件都不存在，扩展仍会监视平台默认路径。监视挂在最近的已存在祖先上，并且只监视该祖先的下一个缺失子项，因此不是递归监视。当该子项出现时，监视器向下移动一级，直到监视文件所在目录中的文件本身。在扩展处于未配置、已跳过或未检测到项目时，创建会运行 **ESP-IDF: 重试 ESP-IDF 激活**。监视路径变化后，会立即执行相同的反应。
+更改 ``idf.eimIdfJsonPath`` 会重新定位监视器，并立即执行相同的目录反应。指向不存在文件的自定义路径会保留、记录一次日志，并按该路径本身进行监视。由于目录缺失，已配置模式会随之离开，而不会继续使用之前的默认目录。空设置仍会监视平台默认路径。监视挂在最近的已存在祖先上，并且只监视该祖先的下一个缺失子项，因此不是递归监视。当该子项出现时，监视器向下移动一级，直到监视文件所在目录中的文件本身。在扩展处于未配置、已跳过或未检测到项目时，创建会运行 **ESP-IDF: 重试 ESP-IDF 激活**。
 
 激活模式优先级层次（阶段 2）
 ----------------------------
 
-用户或工作区值为 ``never`` 时，会在目录验证之前应用，无论是否打开工作区文件夹，并且不会保存 ``idf.currentSetup`` 或注册项目命令。``idf.extensionActivationMode`` 的其他值仅当工作区文件夹已打开、``idf.customExtraVars`` 未选出有效的 ESP-IDF 配置，且 ``idf.currentSetup`` 为空时才会运行。允许激活的结果会保存第一个已完成的 ESP-IDF 安装并注册项目命令。拒绝的结果则不会。该检查遵循以下优先级：
+用户或工作区值为 ``never`` 时，会在目录验证之前应用，无论是否打开工作区文件夹，并且不会保存所选 ESP-IDF 配置或注册项目命令。``idf.extensionActivationMode`` 的其他值仅当工作区文件夹已打开、``idf.customExtraVars`` 未选出有效的 ESP-IDF 配置，且该文件夹未存储 ESP-IDF 配置时才会运行。允许激活的结果会保存第一个已完成的 ESP-IDF 安装并注册项目命令。拒绝的结果则不会。该检查遵循以下优先级：
 
 1. **工作区/全局设置 = "always"**
 
@@ -126,8 +144,8 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 
 2. **工作区/全局设置 = "never"**
 
-   - **操作**: 跳过目录验证。不保存 ``idf.currentSetup``，也不注册项目命令。没有缺失目录提示、演练或激活状态栏
-   - **覆盖**: 所有文件夹级设置，包括 ``idf.currentSetup`` 已指向一个已完成安装的情况
+   - **操作**: 跳过目录验证。不保存所选 ESP-IDF 配置，也不注册项目命令。没有缺失目录提示、演练或激活状态栏
+   - **覆盖**: 所有文件夹级设置，包括某个文件夹已经存储了所选 ESP-IDF 配置的情况
    - **不显示状态栏操作**: 尊重您的显式选择
    - **用例**: 在特定工作区中显式禁用扩展，包括没有 ESP-IDF 项目的窗口
    - 当 VS Code 通过 MCP 发现在未打开工作区的情况下加载扩展时，此规则仍然适用；此时也不会注册 MCP 服务器。当模式为 ``"never"`` 或扩展停用时，这些服务器会被撤回；它们不是用户 ``mcp.json`` 中的条目。
@@ -141,7 +159,7 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 
 4. **所有文件夹设置 = "never"**
 
-   - **操作**: 不保存 ``idf.currentSetup``，也不注册项目命令
+   - **操作**: 不保存所选 ESP-IDF 配置，也不注册项目命令
    - **不显示状态栏操作**: 尊重显式配置
    - **用例**: 显式排除 ESP-IDF 的多根工作区
 
@@ -156,7 +174,7 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 配置设置
 --------
 
-用户或工作区值为 ``never`` 时，会在目录验证之前检查。其他值在工作区文件夹已打开且 ``idf.currentSetup`` 为空时使用：
+用户或工作区值为 ``never`` 时，会在目录验证之前检查。其他值在工作区文件夹已打开且该文件夹未存储 ESP-IDF 配置时使用：
 
 .. code-block:: json
 
@@ -168,7 +186,7 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 
 - ``"detect"`` （默认） — 通过检查 ``CMakeLists.txt`` 内容自动检测。未找到标准项目时，普通状态栏项提供激活操作。
 - ``"always"`` — 跳过 CMake 检测，保存第一个已完成的 ESP-IDF 安装，并注册项目命令。
-- ``"never"`` — 在用户或工作区设置中设置时，跳过目录验证并且不注册项目命令。文件夹级 ``never`` 在目录有效后不保存空的 ``idf.currentSetup``，也不注册项目命令，即使检测到 ESP-IDF 项目。
+- ``"never"`` — 在用户或工作区设置中设置时，跳过目录验证并且不注册项目命令。文件夹级 ``never`` 在目录有效后不保存空的选择，也不注册项目命令，即使检测到 ESP-IDF 项目。
 
 **设置范围:**
 
@@ -276,7 +294,7 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 如果您的工作区 **不** 包含任何 ``CMakeLists.txt`` 文件（例如，一个纯文档工作区，您希望在其中使用 ESP-IDF 工具）：
 
 1. VS Code 启动完成后会通过 ``onStartupFinished`` 加载扩展。
-2. 设置 ``"idf.extensionActivationMode": "always"``，可在 ``idf.currentSetup`` 为空时允许项目初始化。仍需要包含已完成 ESP-IDF 安装的有效目录。
+2. 设置 ``"idf.extensionActivationMode": "always"``，可在该文件夹未存储 ESP-IDF 配置时允许项目初始化。仍需要包含已完成 ESP-IDF 安装的有效目录。
 
 常见激活问题
 ------------
@@ -292,7 +310,7 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 
    **解决方案**: 在 VS Code 扩展视图中启用扩展，并等待启动完成。若仍无法加载，请检查扩展宿主日志。
 
-2. **显式 "never" 设置** （阶段 2）：用户或工作区的 ``idf.extensionActivationMode`` 为 ``"never"``。目录验证会被跳过，因此缺失的 ``eim_idf.json`` 不会显示警告。即使 ``idf.currentSetup`` 已指向一个已完成的安装，也不会注册项目命令。文件夹级 ``never`` 仅当每个文件夹都是 ``never``、目录有效且 ``idf.currentSetup`` 为空时才适用。
+2. **显式 "never" 设置** （阶段 2）：用户或工作区的 ``idf.extensionActivationMode`` 为 ``"never"``。目录验证会被跳过，因此缺失的 ``eim_idf.json`` 不会显示警告。即使已经存储了所选 ESP-IDF 配置，也不会注册项目命令。文件夹级 ``never`` 仅当每个文件夹都是 ``never``、目录有效且未存储 ESP-IDF 配置时才适用。
 
    **解决方案**: 将用户或工作区值设置为 ``"always"`` 或 ``"detect"``，或在更改设置后运行 **ESP-IDF: 重试 ESP-IDF 激活**。
 
@@ -300,16 +318,16 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 
    **解决方案**: 在工作区设置中添加 ``"idf.extensionActivationMode": "always"``。
 
-4. **未检测到标准项目** （阶段 2）：``idf.currentSetup`` 为空，激活模式为 ``detect``，且根目录 ``CMakeLists.txt`` 不包含 ESP-IDF ``project.cmake`` 行。状态栏显示普通的 ``No ESP-IDF project detected`` 项，没有警告样式。
+4. **未检测到标准项目** （阶段 2）：未存储 ESP-IDF 配置，激活模式为 ``detect``，且根目录 ``CMakeLists.txt`` 不包含 ESP-IDF ``project.cmake`` 行。状态栏显示普通的 ``No ESP-IDF project detected`` 项，没有警告样式。
 
-   **解决方案**: 点击该状态栏项，或运行 **ESP-IDF: 激活 ESP-IDF**。这会把第一个已完成的安装保存为 ``idf.currentSetup``。也可以设置 ``"idf.extensionActivationMode": "always"``。
+   **解决方案**: 点击该状态栏项，或运行 **ESP-IDF: 激活 ESP-IDF**。这会为该文件夹存储第一个已完成的安装。也可以设置 ``"idf.extensionActivationMode": "always"``。
 
 扩展在错误的工作区中激活
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 **症状**: ESP-IDF 扩展在非 ESP-IDF 项目中激活。
 
-**原因**: ``onStartupFinished`` 会在每个启用了扩展的窗口中加载扩展。``CMakeLists.txt`` 文件可以提前触发加载。项目初始化随后取决于配置验证。当目录有效且 ``idf.currentSetup`` 为空时，不是 ESP-IDF 项目的工作区会显示普通的 ``No ESP-IDF project detected`` 状态项。
+**原因**: ``onStartupFinished`` 会在每个启用了扩展的窗口中加载扩展。``CMakeLists.txt`` 文件可以提前触发加载。项目初始化随后取决于配置验证。当目录有效且未存储 ESP-IDF 配置时，不是 ESP-IDF 项目的工作区会显示普通的 ``No ESP-IDF project detected`` 状态项。
 
 **解决方案**: 在用户或工作区设置中添加 ``"idf.extensionActivationMode": "never"``，以跳过该窗口中的目录验证和阶段 2 初始化。
 
@@ -361,7 +379,7 @@ ESP-IDF 命令视图在扩展加载时创建，并在激活模式变化时刷新
 
 阶段 2 逻辑设计为最佳性能：
 
-1. **全局 Never 时提前退出**: 如果用户或工作区设置为 ``"never"``，验证会立即返回，而不读取目录、检查文件夹或读取文件。文件夹级 ``never`` 仍仅当工作区文件夹已打开、目录有效且 ``idf.currentSetup`` 为空时才会运行。
+1. **全局 Never 时提前退出**: 如果用户或工作区设置为 ``"never"``，验证会立即返回，而不读取目录、检查文件夹或读取文件。文件夹级 ``never`` 仍仅当工作区文件夹已打开、目录有效且未存储 ESP-IDF 配置时才会运行。
 2. **任何 Always 时提前退出**: 当任何文件夹为 ``"always"`` 时，扩展停止检查剩余文件夹。
 3. **跳过 CMake 检测**: 如果找到任何显式 ``"always"``，则完全跳过 CMake 文件检测。
 4. **延迟文件读取**: 仅在进入检测回退阶段时（无显式 ``"always"`` 或全部 ``"never"`` 覆盖）读取 CMakeLists.txt 文件。

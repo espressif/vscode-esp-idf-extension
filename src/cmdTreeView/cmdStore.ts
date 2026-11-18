@@ -144,6 +144,7 @@ export const advancedCommandDictionary = {
 
 export enum WorkspaceFreeCommandKeys {
   CreateNewProject = "espIdf.createNewProject",
+  ImportProject = "espIdf.importProject",
   Welcome = "espIdf.welcome.start",
   OpenWalkthrough = "espIdf.openWalkthrough",
   RetryActivation = "espIdf.retryActivation",
@@ -156,6 +157,10 @@ const workspaceFreeOnlyCommandDictionary: Record<
   [WorkspaceFreeCommandKeys.CreateNewProject]: {
     iconId: "new-file",
     tooltip: l10n.t("Create New Empty Project"),
+  },
+  [WorkspaceFreeCommandKeys.ImportProject]: {
+    iconId: "folder",
+    tooltip: l10n.t("Import ESP-IDF Project"),
   },
   [WorkspaceFreeCommandKeys.Welcome]: {
     iconId: "home",
@@ -188,6 +193,13 @@ export const workspaceFreeCommands: {
     description:
       workspaceFreeOnlyCommandDictionary[
         WorkspaceFreeCommandKeys.CreateNewProject
+      ],
+  },
+  {
+    command: WorkspaceFreeCommandKeys.ImportProject,
+    description:
+      workspaceFreeOnlyCommandDictionary[
+        WorkspaceFreeCommandKeys.ImportProject
       ],
   },
   {

@@ -11,7 +11,7 @@ All commands start with ``ESP-IDF:``.
    * - Command
      - Description
    * - Activate ESP-IDF
-     - When no standard ESP-IDF project is detected and **idf.currentSetup** is empty, save the first finished ESP-IDF install and initialize project commands. This does not change **idf.extensionActivationMode**.
+     - When no standard ESP-IDF project is detected and no ESP-IDF setup is stored for the folder, save the first finished ESP-IDF install and initialize project commands. This does not change **idf.extensionActivationMode**.
    * - Add Arduino ESP32 as ESP-IDF Component
      - Add `Arduino-ESP32 <https://github.com/espressif/arduino-esp32>`_ as an ESP-IDF component in your current directory (**${CURRENT_DIRECTORY}/components/arduino**).
    * - Add Docker Container Configuration

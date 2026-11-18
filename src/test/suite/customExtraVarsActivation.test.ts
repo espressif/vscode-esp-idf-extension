@@ -16,25 +16,20 @@
  */
 
 import * as assert from "assert";
-import { workspace, WorkspaceFolder } from "vscode";
+import { ExtensionContext, workspace, WorkspaceFolder } from "vscode";
 import {
   configuredFromEnvVarsDecision,
   customExtraVarsIdfPath,
+  shouldClearFolderCustomExtraVars,
 } from "../../activation/customExtraVars";
-import {
-  IdfConfigurationSource,
-  resetIdfConfigurationSource,
-  setIdfConfigurationSource,
-} from "../../configuration/idfConfigurationSource";
-import { writeCurrentSetupSetting } from "../../eim/verifySetup";
+import { ESP } from "../../config";
+import { persistSelectedIdfSetup } from "../../eim/selectedIdfSetup";
+import { ProjectConfigStore } from "../../project-conf/store";
+import { createMockMemento } from "../mockUtils";
 
 suite("configuredFromEnvVars", () => {
   const idfPath = "/esp/esp-idf";
   const loaded = { setup: { idfPath } };
-
-  teardown(() => {
-    resetIdfConfigurationSource();
-  });
 
   suite("customExtraVarsIdfPath", () => {
     test("requires a non-empty IDF_PATH string", () => {
@@ -47,6 +42,53 @@ suite("configuredFromEnvVars", () => {
       assert.strictEqual(
         customExtraVarsIdfPath({ IDF_PATH: idfPath }),
         idfPath
+      );
+    });
+  });
+
+  suite("shouldClearFolderCustomExtraVars", () => {
+    const selectedPath = "/esp/selected";
+
+    test("a different folder IDF_PATH is cleared", () => {
+      assert.strictEqual(
+        shouldClearFolderCustomExtraVars(
+          { workspaceFolderValue: { IDF_PATH: "/esp/env" } },
+          selectedPath
+        ),
+        true
+      );
+    });
+
+    test("the same folder IDF_PATH is kept", () => {
+      assert.strictEqual(
+        shouldClearFolderCustomExtraVars(
+          { workspaceFolderValue: { IDF_PATH: selectedPath } },
+          selectedPath
+        ),
+        false
+      );
+    });
+
+    test("a folder value without IDF_PATH is kept", () => {
+      assert.strictEqual(
+        shouldClearFolderCustomExtraVars(
+          { workspaceFolderValue: { IDF_TARGET: "esp32" } },
+          selectedPath
+        ),
+        false
+      );
+    });
+
+    test("a user or workspace value is not cleared", () => {
+      assert.strictEqual(
+        shouldClearFolderCustomExtraVars(
+          {
+            workspaceValue: { IDF_PATH: "/esp/workspace" },
+            globalValue: { IDF_PATH: "/esp/user" },
+          },
+          selectedPath
+        ),
+        false
       );
     });
   });
@@ -91,27 +133,48 @@ suite("configuredFromEnvVars", () => {
     });
   });
 
-  suite("writeCurrentSetupSetting", () => {
-    test("an env-sourced save does not write idf.currentSetup", async () => {
-      const writes: string[] = [];
-      setIdfConfigurationSource(recordingSource(writes));
-      const folder = workspaceFolder();
+  suite("persistSelectedIdfSetup", () => {
+    let previousStore: ProjectConfigStore;
+    let folder: WorkspaceFolder;
 
-      const wrote = await writeCurrentSetupSetting(idfPath, folder, false);
-
-      assert.strictEqual(wrote, false);
-      assert.deepStrictEqual(writes, []);
+    setup(() => {
+      previousStore = ESP.ProjectConfiguration.store;
+      folder = workspaceFolder();
+      ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests({
+        workspaceState: createMockMemento(),
+        globalState: createMockMemento(),
+      } as ExtensionContext);
     });
 
-    test("a catalog save still writes idf.currentSetup", async () => {
-      const writes: string[] = [];
-      setIdfConfigurationSource(recordingSource(writes));
-      const folder = workspaceFolder();
+    teardown(() => {
+      ESP.ProjectConfiguration.store = previousStore;
+    });
 
-      const wrote = await writeCurrentSetupSetting(idfPath, folder, true);
+    test("an env-sourced save does not write the selected setup", async () => {
+      const wrote = await persistSelectedIdfSetup(
+        folder,
+        { idfPath, id: "esp-idf" },
+        false
+      );
+
+      assert.strictEqual(wrote, false);
+      assert.strictEqual(
+        ESP.ProjectConfiguration.store.getSelectedIdfSetup(folder),
+        undefined
+      );
+    });
+
+    test("a catalog save writes the selected setup", async () => {
+      const wrote = await persistSelectedIdfSetup(folder, {
+        idfPath,
+        id: "esp-idf",
+      });
 
       assert.strictEqual(wrote, true);
-      assert.deepStrictEqual(writes, ["idf.currentSetup"]);
+      assert.deepStrictEqual(
+        ESP.ProjectConfiguration.store.getSelectedIdfSetup(folder),
+        { idfPath, id: "esp-idf" }
+      );
     });
   });
 });
@@ -120,26 +183,4 @@ function workspaceFolder(): WorkspaceFolder {
   const folder = workspace.workspaceFolders?.[0];
   assert.ok(folder);
   return folder;
-}
-
-function recordingSource(writes: string[]): IdfConfigurationSource {
-  return {
-    getScoped() {
-      return undefined;
-    },
-    inspectGlobal() {
-      return undefined;
-    },
-    updateScoped(_section, _scope, key) {
-      writes.push(key);
-      return Promise.resolve();
-    },
-    updateGlobal(key) {
-      writes.push(key);
-      return Promise.resolve();
-    },
-    refreshConfiguration() {
-      return undefined;
-    },
-  };
 }

@@ -129,7 +129,6 @@ function registerActivationListeners(context: ExtensionContext) {
       if (
         !customExtraVarsChanged &&
         !catalogPathChanged &&
-        !event.affectsConfiguration("idf.currentSetup") &&
         !event.affectsConfiguration("idf.extensionActivationMode")
       ) {
         return;
@@ -252,6 +251,11 @@ export async function runActivation(context: ExtensionContext) {
     leaveForFailure: (failure, detail) => {
       leaveActivation(failure, detail);
       scheduleActivationAfterDemotion();
+    },
+    reconfigure: () => {
+      setTimeout(() => {
+        void applyActivation({ force: true });
+      }, 0);
     },
   });
 }

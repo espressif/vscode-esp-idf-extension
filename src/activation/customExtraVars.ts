@@ -40,6 +40,24 @@ export function customExtraVarsIdfPath(
 }
 
 /**
+ * Workspace-folder idf.customExtraVars is removed when it names a different
+ * ESP-IDF path than the setup just selected. User and workspace values are ignored.
+ */
+export function shouldClearFolderCustomExtraVars(
+  inspected:
+    | {
+        workspaceFolderValue?: unknown;
+        workspaceValue?: unknown;
+        globalValue?: unknown;
+      }
+    | undefined,
+  selectedIdfPath: string
+): boolean {
+  const folderIdfPath = customExtraVarsIdfPath(inspected?.workspaceFolderValue);
+  return !!folderIdfPath && folderIdfPath !== selectedIdfPath;
+}
+
+/**
  * Env-vars activation when customExtraVars names an IDF_PATH and that load succeeded.
  * Missing or rejected setups return undefined so catalog validation can continue.
  */

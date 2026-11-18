@@ -16,6 +16,7 @@
  */
 
 import * as assert from "assert";
+import { join } from "path";
 import {
   isForceProjectActivationPending,
   requestProjectActivation,
@@ -36,6 +37,7 @@ suite("runValidations forceProjectActivation", () => {
     Logger.init({
       subscriptions: [],
       extensionPath,
+      asAbsolutePath: (relativePath: string) => join(extensionPath, relativePath),
       globalState: createMockMemento(),
       workspaceState: createMockMemento(),
     } as never);

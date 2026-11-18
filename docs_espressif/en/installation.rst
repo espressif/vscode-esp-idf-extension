@@ -43,7 +43,7 @@ After installing Visual Studio Code (VS Code), install the ESP-IDF extension for
 
    The list of available ESP-IDF setups will be shown, select which one you want to use for the current ESP-IDF project. 
    
-   - The selected setup will save a **idf.currentSetup** with selected ESP-IDF path and the extension will configure required environment variables for the current ESP-IDF project saved as workspace folder state. 
+   - The selected setup is saved in workspace state for the current workspace folder, and the extension configures the required environment variables for the current ESP-IDF project in workspace state. 
 
    - You can review the setup by running the **ESP-IDF: Doctor Command** by navigating to ``View`` > ``Command Palette`` and type ``doctor command`` and select **ESP-IDF: Doctor Command** from the list. 
 
@@ -60,7 +60,7 @@ Manual configuration of ESP-IDF and Tools in the ESP-IDF extension for VS Code
 
 .. note::
 
-     If you configure the extension using environment variables, the extension will use it over any selected ESP-IDF setup in ``idf.currentSetup``. So make sure to clear the environment variables if you want to use the selected ESP-IDF setup.
+     If you configure the extension using environment variables, the extension will use them instead of the ESP-IDF setup stored for the workspace folder. So make sure to clear the environment variables if you want to use the stored ESP-IDF setup.
      If you use the ``ESP-IDF: Select Current ESP-IDF Version`` command to select an ESP-IDF setup, the extension will use the environment variables from the selected IDF setup and delete manually configured environment variables IDF_PATH, IDF_TOOLS_PATH and IDF_PYTHON_ENV_PATH.
 
 You can manually configure the ESP-IDF extension for VS Code to use your existing ESP-IDF setup by setting required environment variables for the ESP-IDF extension in Visual Studio Code settings. You would need the ESP-IDF path (IDF_PATH), the set of ESP-IDF Tools to be appended in PATH or the ESP-IDF tools path (IDF_TOOLS_PATH), and Python environment path (IDF_PYTHON_ENV_PATH) to configure the extension.

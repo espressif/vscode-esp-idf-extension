@@ -304,7 +304,7 @@ suite("setup validation", () => {
       assert.strictEqual(resolved, customFile);
     });
 
-    test("a missing custom path falls back to the given default file", async () => {
+    test("a missing custom path does not use the default file", async () => {
       tempDir = mkdtempSync(join(tmpdir(), "esp-idf-eim-json-"));
       const fallback = join(tempDir, "default-eim_idf.json");
       writeFileSync(fallback, "{}");
@@ -313,6 +313,16 @@ suite("setup validation", () => {
         join(tempDir, "missing-tools"),
         fallback
       );
+
+      assert.strictEqual(resolved, undefined);
+    });
+
+    test("an empty custom path uses the given default file", async () => {
+      tempDir = mkdtempSync(join(tmpdir(), "esp-idf-eim-json-"));
+      const fallback = join(tempDir, "default-eim_idf.json");
+      writeFileSync(fallback, "{}");
+
+      const resolved = await resolveEimIdfJsonCandidates(undefined, fallback);
 
       assert.strictEqual(resolved, fallback);
     });

@@ -51,9 +51,11 @@ export async function createEspIdfTerminalMain(
     location,
   });
 
-  espIdfTerminal.sendText(
-    buildActivationCommand(config.activationScriptPath)
-  );
+  if (config.activationScriptPath) {
+    espIdfTerminal.sendText(
+      buildActivationCommand(config.activationScriptPath)
+    );
+  }
 
   if (initialCommand) {
     espIdfTerminal.sendText(initialCommand);

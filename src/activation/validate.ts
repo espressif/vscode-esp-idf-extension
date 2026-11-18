@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { ConfigurationTarget, workspace, WorkspaceFolder } from "vscode";
+import { workspace, WorkspaceFolder } from "vscode";
 import {
   activationModeConfigKey,
   checkIfActivateExtension,
@@ -27,9 +27,8 @@ import { getStoredIdfSetupEnv } from "../common/prepareEnv";
 import { PreCheck } from "../common/PreCheck";
 import { ESP } from "../config";
 import { getIdfConfigurationSource } from "../configuration/idfConfigurationSource";
-import { readParameter, writeParameter } from "../configuration/idf";
+import { readParameter } from "../configuration/idf";
 import {
-  currentSetupRejectDetail,
   finishedIdfInstalls,
   getEimIdfJson,
   noteMissingCustomEimIdfJsonPath,
@@ -37,7 +36,13 @@ import {
 } from "../eim/getExistingSetups";
 import { loadEnvVarsAsIdfSetup, loadIdfSetup } from "../eim/loadIdfSetup";
 import {
-  couldNotSaveCurrentSetupDetail,
+  keepUnlistedCurrentSetup,
+  persistSelectedIdfSetup,
+  resolveFinishedInstall,
+  selectedIdfPath,
+} from "../eim/selectedIdfSetup";
+import {
+  couldNotSaveSelectedSetupDetail,
   missingIdfEnvDetail,
 } from "../eim/setupFailureDetail";
 import { EspIdfJson } from "../eim/types";
@@ -60,7 +65,7 @@ export type ActivationDecision =
   | { kind: "configured" }
   | { kind: "configuredFromEnvVars" };
 
-/** Consumed once when idf.currentSetup is empty. Does not change idf.extensionActivationMode. */
+/** Consumed once when no ESP-IDF setup is selected. Does not change idf.extensionActivationMode. */
 let forceProjectActivation = false;
 
 export function requestProjectActivation() {
@@ -136,7 +141,7 @@ async function tryConfigureFromCustomExtraVars(
   let loaded: Awaited<ReturnType<typeof loadEnvVarsAsIdfSetup>>;
   try {
     loaded = await loadEnvVarsAsIdfSetup(extensionPath, workspaceFolder, {
-      writeCurrentSetup: false,
+      writeSelection: true,
       notifyOnInvalid: false,
     });
   } catch (error) {
@@ -238,17 +243,19 @@ export async function runValidations(
   if (!workspaceFolder) {
     return { kind: "configuredNoWorkspaceFolder" };
   }
-  const currentSetup = readParameter(
-    "idf.currentSetup",
-    workspaceFolder
-  ) as string;
-  if (!currentSetup) {
+  const currentSetup = await selectedIdfPath(workspaceFolder);
+  const resolved = resolveFinishedInstall(
+    currentSetup,
+    finishedInstalls,
+    false
+  );
+  if (!resolved) {
     const projectActivation = optedIn
       ? "activate"
       : await checkIfActivateExtension();
     if (projectActivation === "suppress") {
       Logger.info(
-        "idf.currentSetup is empty and the project activation check declined.",
+        "No ESP-IDF setup is selected and the project activation check declined.",
         "runValidations"
       );
       return { kind: "skipped" };
@@ -266,60 +273,53 @@ export async function runValidations(
         "runValidations"
       );
     }
-    const written = await writeParameter(
-      "idf.currentSetup",
-      finishedInstalls[0].path,
-      ConfigurationTarget.WorkspaceFolder,
-      workspaceFolder
-    );
+    const selected = finishedInstalls[0];
+    const written = await persistSelectedIdfSetup(workspaceFolder, {
+      idfPath: selected.path,
+      id: selected.id,
+    });
     if (!written) {
-      const message = "Could not save idf.currentSetup.";
-      Logger.error(
-        message,
-        new Error(message),
-        "runValidations",
-        undefined,
-        false
-      );
-      return {
-        kind: "nonConfigured",
-        failure: "invalidCurrentSetup",
-        detail: couldNotSaveCurrentSetupDetail(),
-      };
+      return couldNotSaveSelectedSetup(workspaceFolder);
     }
     Logger.info(
-      `Selected ESP-IDF setup ${finishedInstalls[0].path} for ${workspaceFolder.uri.fsPath}.`,
+      `Selected ESP-IDF setup ${selected.path} for ${workspaceFolder.uri.fsPath}.`,
       "runValidations"
     );
-    return configureLoadedSetup(
-      extensionPath,
-      workspaceFolder,
-      finishedInstalls[0].path
-    );
+    return configureLoadedSetup(extensionPath, workspaceFolder, selected.path);
   }
 
-  const matchingInstall = finishedInstalls.find(
-    (install) => install.path === currentSetup
-  );
-  if (!matchingInstall) {
-    const message = `idf.currentSetup ${currentSetup} is not a finished ESP-IDF setup.`;
-    Logger.error(
-      message,
-      new Error(message),
-      "runValidations",
-      undefined,
-      false
+  if (resolved.replaced) {
+    if (await keepUnlistedCurrentSetup(workspaceFolder, currentSetup)) {
+      return configureLoadedSetup(extensionPath, workspaceFolder, currentSetup);
+    }
+    const written = await persistSelectedIdfSetup(workspaceFolder, {
+      idfPath: resolved.install.path,
+      id: resolved.install.id,
+    });
+    if (!written) {
+      return couldNotSaveSelectedSetup(workspaceFolder);
+    }
+    Logger.info(
+      `Replaced ESP-IDF setup ${currentSetup} with ${resolved.install.path} for ${workspaceFolder.uri.fsPath}.`,
+      "runValidations"
     );
-    return {
-      kind: "nonConfigured",
-      failure: "invalidCurrentSetup",
-      detail: await currentSetupRejectDetail(espIdfJson, currentSetup),
-    };
   }
 
   return configureLoadedSetup(
     extensionPath,
     workspaceFolder,
-    matchingInstall.path
+    resolved.install.path
   );
+}
+
+function couldNotSaveSelectedSetup(
+  workspaceFolder: WorkspaceFolder
+): ActivationDecision {
+  const message = `Could not save the selected ESP-IDF setup for ${workspaceFolder.uri.fsPath}.`;
+  Logger.error(message, new Error(message), "runValidations", undefined, false);
+  return {
+    kind: "nonConfigured",
+    failure: "invalidCurrentSetup",
+    detail: couldNotSaveSelectedSetupDetail(),
+  };
 }

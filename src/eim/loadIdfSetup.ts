@@ -22,6 +22,7 @@ import { getIdfSetups } from "./getExistingSetups";
 import { IdfSetup } from "./types";
 import { getEnvVariables } from "./loadSettings";
 import { readParameter } from "../configuration/idf";
+import { selectedIdfPath } from "./selectedIdfSetup";
 import { getVenvPythonBinPath } from "../configuration/env";
 import { getEspIdfFromCMake, isBinInPath } from "../utils";
 import { join } from "path";
@@ -38,10 +39,10 @@ export type LoadIdfSetupResult =
 export async function getCurrentIdfSetup(
   workspaceFolder?: WorkspaceFolder
 ): Promise<IdfSetup | undefined> {
-  const idfConfigurationName = readParameter(
-    "idf.currentSetup",
-    workspaceFolder
-  ) as string;
+  if (!workspaceFolder) {
+    return;
+  }
+  const idfConfigurationName = await selectedIdfPath(workspaceFolder);
   if (!idfConfigurationName) {
     return;
   }
@@ -52,6 +53,15 @@ export async function getCurrentIdfSetup(
   const idfSetupToUse = idfSetups.find((idfSetup) => {
     return idfSetup.idfPath === idfConfigurationName;
   });
+  if (!idfSetupToUse) {
+    return;
+  }
+  const stored = ESP.ProjectConfiguration.store?.getSelectedIdfSetup(
+    workspaceFolder
+  );
+  if (stored && typeof stored.activationScript === "string") {
+    return { ...idfSetupToUse, activationScript: stored.activationScript };
+  }
   return idfSetupToUse;
 }
 
@@ -91,10 +101,7 @@ export async function loadIdfSetup(
   let idfSetupToUse: IdfSetup | undefined;
   let loadDetail = envLoadDetail;
   if (idfSetups && idfSetups.length > 0) {
-    let idfConfigurationName: string = readParameter(
-      "idf.currentSetup",
-      workspaceFolder
-    ) as string;
+    const idfConfigurationName = await selectedIdfPath(workspaceFolder);
     let doesIdfSetupToUseExist = false;
     if (idfConfigurationName) {
       doesIdfSetupToUseExist = await pathExists(idfConfigurationName);
@@ -103,7 +110,8 @@ export async function loadIdfSetup(
       idfSetupToUse = idfSetups.find((idfSetup) => {
         return idfSetup.idfPath === idfConfigurationName;
       });
-    } else {
+    }
+    if (!idfSetupToUse) {
       for (const idfSetup of idfSetups) {
         try {
           const envVars = await getEnvVariables(extensionPath, idfSetup);
@@ -157,7 +165,7 @@ function getIdfMd5sum(idfPath: string) {
 }
 
 export type LoadEnvVarsAsIdfSetupOptions = {
-  writeCurrentSetup?: boolean;
+  writeSelection?: boolean;
   notifyOnInvalid?: boolean;
 };
 
@@ -305,7 +313,7 @@ export async function loadEnvVarsAsIdfSetup(
       extensionPath,
       envDefinedIdfSetup,
       workspaceFolder,
-      { writeCurrentSetup: options?.writeCurrentSetup }
+      { writeSelection: options?.writeSelection }
     );
     if (saved.ok === false) {
       return { detail: saved.detail };

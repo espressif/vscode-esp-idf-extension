@@ -37,21 +37,14 @@ export function installStatusDetail(idfPath: string, status: string): string {
   return l10n.t("The ESP-IDF install at {0} is {1}.", idfPath, status);
 }
 
-export function currentSetupNotFinishedDetail(idfPath: string): string {
-  return l10n.t(
-    "idf.currentSetup {0} is not a finished ESP-IDF setup.",
-    idfPath
-  );
-}
-
 export function missingIdfEnvDetail(): string {
   return l10n.t(
     "The ESP-IDF environment is missing IDF_PATH, PATH, or IDF_PYTHON_ENV_PATH."
   );
 }
 
-export function couldNotSaveCurrentSetupDetail(): string {
-  return l10n.t("Could not save idf.currentSetup.");
+export function couldNotSaveSelectedSetupDetail(): string {
+  return l10n.t("Could not save the selected ESP-IDF setup.");
 }
 
 /** Status bar markdown hovers hard-break near this width when spaces cannot wrap. */

@@ -11,7 +11,7 @@
    * - 命令
      - 描述
    * - 激活 ESP-IDF
-     - 当未检测到标准 ESP-IDF 项目且 **idf.currentSetup** 为空时，保存第一个已完成的 ESP-IDF 安装并初始化项目命令。此操作不会更改 **idf.extensionActivationMode**。
+     - 当未检测到标准 ESP-IDF 项目且该文件夹未存储 ESP-IDF 配置时，保存第一个已完成的 ESP-IDF 安装并初始化项目命令。此操作不会更改 **idf.extensionActivationMode**。
    * - 添加 Arduino ESP32 为 ESP-IDF 组件
      - 将 `Arduino-ESP32 <https://github.com/espressif/arduino-esp32>`_ 添加为当前目录中的 ESP-IDF 组件 (**${CURRENT_DIRECTORY}/components/arduino**)。
    * - 添加 Docker 容器配置
