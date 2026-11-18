@@ -280,6 +280,7 @@ suite("IDFMonitor.disposeAndWait", function () {
       name: "disposeAndWait timeout test",
       shellPath: process.execPath,
       shellArgs: ["-e", "setInterval(() => {}, 1000)"],
+      env: { ELECTRON_RUN_AS_NODE: "1" },
     });
     IDFMonitor.terminal = terminal;
     const closed = new Promise<void>((resolve) => {

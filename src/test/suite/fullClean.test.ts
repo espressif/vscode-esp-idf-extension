@@ -81,6 +81,7 @@ suite("Full clean locked build directory", function () {
       {
         cwd: held,
         stdio: "ignore",
+        env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" },
       }
     );
     try {

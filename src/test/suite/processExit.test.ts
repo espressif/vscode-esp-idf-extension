@@ -2,9 +2,12 @@ import * as assert from "assert";
 import { spawn } from "child_process";
 import { hasProcessExited, waitForProcessExit } from "../../common/processExit";
 
+const NODE_ENV = { ...process.env, ELECTRON_RUN_AS_NODE: "1" };
+
 function spawnIdleNode() {
   return spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"], {
     stdio: "ignore",
+    env: NODE_ENV,
   });
 }
 
@@ -21,6 +24,7 @@ suite("processExit", function () {
   test("resolves true immediately for a process that already exited", async () => {
     const proc = spawn(process.execPath, ["-e", "process.exit(0)"], {
       stdio: "ignore",
+      env: NODE_ENV,
     });
     await new Promise<void>((resolve) => proc.once("exit", () => resolve()));
     assert.strictEqual(hasProcessExited(proc), true);
