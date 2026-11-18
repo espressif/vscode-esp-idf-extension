@@ -74,7 +74,14 @@ export function registerFullCleanCmd(context: ExtensionContext) {
           )
         );
         await interruptMonitorWithDelay(selectWorkspaceFolder.uri);
-        await IDFMonitor.disposeAndWait(MONITOR_CLOSE_TIMEOUT_MS);
+        const monitorClosed = await IDFMonitor.disposeAndWait(
+          MONITOR_CLOSE_TIMEOUT_MS
+        );
+        if (!monitorClosed) {
+          Logger.warn(
+            "Full clean: the ESP-IDF Monitor terminal did not close in time."
+          );
+        }
       }
       if (ConfserverProcess.isRunning()) {
         const closingSDKConfigMsg = l10n.t(

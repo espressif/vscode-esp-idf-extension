@@ -25,7 +25,7 @@ import {
 } from "../../common/error/knownError";
 import { resolveKnownErrorUserMessage } from "../../common/error/resolve";
 import { IDFMonitor } from "../../espIdf/monitor/terminal";
-import { window } from "vscode";
+import { Terminal, window } from "vscode";
 
 const baseUnquotedInput = {
   port: "COM1",
@@ -264,14 +264,14 @@ suite("IDFMonitor.disposeAndWait", function () {
 
   test("returns immediately when no monitor terminal exists", async () => {
     IDFMonitor.terminal = undefined;
-    await IDFMonitor.disposeAndWait(100);
+    assert.strictEqual(await IDFMonitor.disposeAndWait(100), true);
   });
 
   test("clears the terminal once it has closed", async () => {
     IDFMonitor.terminal = window.createTerminal({
       name: "disposeAndWait test",
     });
-    await IDFMonitor.disposeAndWait(10000);
+    assert.strictEqual(await IDFMonitor.disposeAndWait(10000), true);
     assert.strictEqual(IDFMonitor.terminal, undefined);
   });
 
@@ -283,16 +283,31 @@ suite("IDFMonitor.disposeAndWait", function () {
       env: { ELECTRON_RUN_AS_NODE: "1" },
     });
     IDFMonitor.terminal = terminal;
-    const closed = new Promise<void>((resolve) => {
-      const listener = window.onDidCloseTerminal((t) => {
-        if (t === terminal) {
-          listener.dispose();
-          resolve();
-        }
-      });
+    let closeEventSeen = false;
+    const listener = window.onDidCloseTerminal((t) => {
+      if (t === terminal) {
+        closeEventSeen = true;
+      }
     });
-    await IDFMonitor.disposeAndWait(500);
+    try {
+      assert.strictEqual(await IDFMonitor.disposeAndWait(500), true);
+      assert.strictEqual(closeEventSeen, true);
+      assert.strictEqual(IDFMonitor.terminal, undefined);
+    } finally {
+      listener.dispose();
+    }
+  });
+
+  test("reports a terminal that never closes after forced disposal", async () => {
+    let disposed = false;
+    IDFMonitor.terminal = ({
+      sendText: () => undefined,
+      dispose: () => {
+        disposed = true;
+      },
+    } as unknown) as Terminal;
+    assert.strictEqual(await IDFMonitor.disposeAndWait(100), false);
+    assert.strictEqual(disposed, true);
     assert.strictEqual(IDFMonitor.terminal, undefined);
-    await closed;
   });
 });

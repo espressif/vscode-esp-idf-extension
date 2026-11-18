@@ -18,7 +18,7 @@
 
 import { MonitorConfig } from "./types";
 import { ESP } from "../../config";
-import { window, Terminal, env, debug, Disposable } from "vscode";
+import { window, Terminal, env, debug } from "vscode";
 import { Logger } from "../../common/logger";
 import {
   buildIdfMonitorQuotedInvokeTokens,
@@ -145,33 +145,33 @@ export class IDFMonitor {
     }
   }
 
-  static async disposeAndWait(timeoutMs: number): Promise<void> {
+  static async disposeAndWait(timeoutMs: number): Promise<boolean> {
     const terminal = IDFMonitor.terminal;
     if (!terminal) {
-      return;
+      return true;
     }
-    const closed = new Promise<void>((resolve) => {
-      let listener: Disposable | undefined;
-      const finish = () => {
+    const closed = new Promise<boolean>((resolve) => {
+      let timer: NodeJS.Timeout;
+      const finish = (didClose: boolean) => {
         clearTimeout(timer);
-        listener?.dispose();
+        listener.dispose();
         if (IDFMonitor.terminal === terminal) {
           IDFMonitor.terminal = undefined;
         }
-        resolve();
+        resolve(didClose);
       };
-      const timer = setTimeout(() => {
-        terminal.dispose();
-        finish();
-      }, timeoutMs);
-      listener = window.onDidCloseTerminal((closedTerminal) => {
+      const listener = window.onDidCloseTerminal((closedTerminal) => {
         if (closedTerminal === terminal) {
-          finish();
+          finish(true);
         }
       });
+      timer = setTimeout(() => {
+        terminal.dispose();
+        timer = setTimeout(() => finish(false), timeoutMs);
+      }, timeoutMs);
     });
     await IDFMonitor.dispose();
-    await closed;
+    return closed;
   }
 
   private static isDebugSessionActive(): boolean {
