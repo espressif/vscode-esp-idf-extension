@@ -393,11 +393,18 @@ export const useTracingStore = defineStore("tracing", () => {
     }
   }
 
-  function showLog(value: { log: string }) {
-    if (value.log && isCalculating.value) {
-      isCalculating.value = false;
-      log.value = value.log;
+  function showLog(value: { log?: string }) {
+    // Empty stdout is a successful decode. Leaving the flag set disables
+    // Show Report for the rest of this panel.
+    if (!isCalculating.value) {
+      return;
     }
+    isCalculating.value = false;
+    if (value && value.log) {
+      log.value = value.log;
+      return;
+    }
+    log.value = "";
   }
 
   const calculateFailed = ({ error }) => {
