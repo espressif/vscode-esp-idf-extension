@@ -211,6 +211,29 @@ export async function evaluateDebugConsoleAndWait(
 }
 
 /**
+ * Waits for `pattern` in Debug Console text that appeared after `before`.
+ * GDB prints a watchpoint hit on its own, without a REPL command.
+ */
+export async function waitForDebugConsoleAppend(
+  before: string,
+  pattern: RegExp,
+  timeoutMs: number
+): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  let delta = "";
+  while (Date.now() < deadline) {
+    delta = debugConsoleNewText(before, await readDebugConsoleText());
+    if (pattern.test(delta)) {
+      return delta;
+    }
+    await delay(1000);
+  }
+  throw new Error(
+    `Timed out waiting for Debug Console append to match ${pattern}.\nAppended:\n${delta}`
+  );
+}
+
+/**
  * Force-terminates leftover OpenOCD, CDT gdb-adapter, and chip GDB processes.
  * Last resort after VS Code Stop + OpenOCD Manager; `pkill` exit 1 is ignored.
  */

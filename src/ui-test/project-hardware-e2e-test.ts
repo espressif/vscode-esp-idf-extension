@@ -37,7 +37,10 @@ import {
   helloWorldBinPath,
   launchDebugger,
   openFileInEditor,
+  breakOnLocalValueChange,
   openTestProject,
+  readDebugConsoleText,
+  readVariablesPaneText,
   removeAllBreakpoints,
   reuseOrLaunchDebugger,
   selectFromCurrentPicker,
@@ -48,6 +51,7 @@ import {
   waitForBuildComplete,
   waitForCallStackMatching,
   evaluateDebugConsoleAndWait,
+  waitForDebugConsoleAppend,
   waitForLocalVariable,
   waitForOutputChannelText,
   waitForPathAbsent,
@@ -85,6 +89,8 @@ const ADD_ONE_BODY_END_EXCLUSIVE = 25;
 const LOOP_HEAD_LINE = 16;
 const CONDITIONAL_BREAKPOINT_LINE = 17;
 const CONDITIONAL_HIT_VALUE = 2;
+const WATCHED_VARIABLE = "a";
+const WATCH_OLD_VALUE = 1;
 const SOURCE_FILE_NAME = "hello_world_main.c";
 const SOURCE_FILE_PATH = resolve(testWorkspaceDir, "main", SOURCE_FILE_NAME);
 const APP_MAIN_STACK_PATTERN = /app_main/;
@@ -99,6 +105,7 @@ const state = {
   monitorSucceeded: false,
   jtagReady: false,
   debugSmokeSucceeded: false,
+  watchpointReady: false,
   activeDebugToolbar: undefined as DebugToolbar | undefined,
 };
 
@@ -188,6 +195,51 @@ async function conditionalBreakpointOnLine(
 
 function failureText(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
+}
+
+function logTail(text: string, max = 1200): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= max) {
+    return trimmed;
+  }
+  return trimmed.slice(-max);
+}
+
+async function watchpointObserved(): Promise<string> {
+  const parts: string[] = [];
+  try {
+    const editor = (await new EditorView().openEditor(
+      SOURCE_FILE_NAME
+    )) as TextEditor;
+    const paused = await editor.getPausedBreakpoint();
+    parts.push(
+      `pause: ${
+        paused ? `${SOURCE_FILE_NAME}:${await paused.getLineNumber()}` : "none"
+      }`
+    );
+  } catch (err) {
+    parts.push(`pause: unreadable (${failureText(err)})`);
+  }
+  try {
+    parts.push(`variables:\n${logTail(await readVariablesPaneText())}`);
+  } catch (err) {
+    parts.push(`variables: unreadable (${failureText(err)})`);
+  }
+  try {
+    parts.push(`debug console:\n${logTail(await readDebugConsoleText())}`);
+  } catch (err) {
+    parts.push(`debug console: unreadable (${failureText(err)})`);
+  }
+  return parts.join("\n");
+}
+
+async function failWatchpoint(check: string, err?: unknown): Promise<never> {
+  const observed = await watchpointObserved().catch(
+    (snapshotError) => `snapshot failed: ${failureText(snapshotError)}`
+  );
+  const head = check.endsWith(".") ? check : `${check}.`;
+  const reason = err ? `\n${failureText(err)}` : "";
+  throw new Error(`${head}${reason}\n--- observed ---\n${observed}`);
 }
 
 async function activeElementIsInside(widget: WebElement): Promise<boolean> {
@@ -769,6 +821,201 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
           `GDB still has "stop only if ${condition}" after removeAllBreakpoints.\n${infoText}`
         );
       }
+      state.watchpointReady = true;
+    });
+  });
+
+  scenario("stops on a data watchpoint set from Variables", () => {
+    before(function () {
+      if (!state.jtagReady || !state.watchpointReady) {
+        console.log(
+          `  · [watchpoint] skip (jtagReady=${state.jtagReady}, watchpointReady=${state.watchpointReady})`
+        );
+        this.skip();
+      }
+    });
+
+    after(async function () {
+      this.timeout(30000);
+      await removeAllBreakpoints().catch((err) => {
+        console.log(
+          `[hardware-debug] Could not clear breakpoints after the watchpoint scenario: ${failureText(
+            err
+          )}`
+        );
+      });
+    });
+
+    step("Confirm the loop is paused before the last write", async () => {
+      console.log(
+        `  · [watchpoint] pause at ${SOURCE_FILE_NAME}:${CONDITIONAL_BREAKPOINT_LINE}`
+      );
+      try {
+        await waitForPausedAtLine(
+          SOURCE_FILE_PATH,
+          CONDITIONAL_BREAKPOINT_LINE,
+          15000
+        );
+      } catch (err) {
+        await failWatchpoint(
+          `Not paused at ${SOURCE_FILE_NAME}:${CONDITIONAL_BREAKPOINT_LINE}`,
+          err
+        );
+      }
+      console.log(
+        `  · [watchpoint] local i == ${CONDITIONAL_HIT_VALUE}`
+      );
+      try {
+        await waitForLocalVariable("i", CONDITIONAL_HIT_VALUE, 15000);
+      } catch (err) {
+        await failWatchpoint(
+          `Local i is not ${CONDITIONAL_HIT_VALUE}`,
+          err
+        );
+      }
+      console.log(
+        `  · [watchpoint] local ${WATCHED_VARIABLE} == ${WATCH_OLD_VALUE}`
+      );
+      try {
+        await waitForLocalVariable(WATCHED_VARIABLE, WATCH_OLD_VALUE, 15000);
+      } catch (err) {
+        await failWatchpoint(
+          `Local ${WATCHED_VARIABLE} is not ${WATCH_OLD_VALUE}`,
+          err
+        );
+      }
+    });
+
+    step(`Break on Value Change for local ${WATCHED_VARIABLE}`, async () => {
+      console.log(
+        `  · [watchpoint] Variables → ${WATCHED_VARIABLE} → Break on Value Change`
+      );
+      try {
+        await breakOnLocalValueChange(WATCHED_VARIABLE);
+      } catch (err) {
+        await failWatchpoint(
+          `Break on Value Change was not applied to local ${WATCHED_VARIABLE}`,
+          err
+        );
+      }
+    });
+
+    step("Confirm GDB stored a hardware watchpoint", async () => {
+      console.log("  · [watchpoint] >info breakpoints");
+      let infoText = "";
+      try {
+        infoText = await evaluateDebugConsoleAndWait(
+          ">info breakpoints",
+          /hw watchpoint/i,
+          20000
+        );
+      } catch (err) {
+        await failWatchpoint(
+          "GDB breakpoint list has no hardware watchpoint",
+          err
+        );
+      }
+      const onVariable = new RegExp(
+        `hw watchpoint[\\s\\S]{0,160}\\b${WATCHED_VARIABLE}\\b`,
+        "i"
+      );
+      if (!onVariable.test(infoText)) {
+        await failWatchpoint(
+          `Hardware watchpoint is not on ${WATCHED_VARIABLE}.\n${infoText}`
+        );
+      }
+      const listed = infoText
+        .split("\n")
+        .find((row) => /hw watchpoint/i.test(row));
+      console.log(
+        `  · [watchpoint] ${listed?.trim() || "hw watchpoint listed"}`
+      );
+    });
+
+    step(
+      `Continue and halt when ${WATCHED_VARIABLE} changes from ${WATCH_OLD_VALUE} to ${CONDITIONAL_HIT_VALUE}`,
+      async () => {
+        const before = await readDebugConsoleText();
+        console.log("  · [watchpoint] Continue");
+        await executeDebugAction("continue");
+        try {
+          await waitUntilDebugPaused(60000);
+        } catch (err) {
+          await failWatchpoint("Continue did not pause the session", err);
+        }
+        try {
+          await assertNoOpenOcdFatal("after data watchpoint");
+        } catch (err) {
+          await failWatchpoint("OpenOCD reported a fatal error after Continue", err);
+        }
+        let line = 0;
+        try {
+          line = await waitForPausedLineInRange(
+            SOURCE_FILE_PATH,
+            CONDITIONAL_BREAKPOINT_LINE,
+            CONDITIONAL_BREAKPOINT_LINE + 2,
+            30000
+          );
+        } catch (err) {
+          await failWatchpoint(
+            `Pause is not on ${SOURCE_FILE_NAME}:${CONDITIONAL_BREAKPOINT_LINE} or :${
+              CONDITIONAL_BREAKPOINT_LINE + 1
+            }`,
+            err
+          );
+        }
+        console.log(`  · [watchpoint] halted at ${SOURCE_FILE_NAME}:${line}`);
+        let hit = "";
+        try {
+          hit = await waitForDebugConsoleAppend(
+            before,
+            new RegExp(
+              `Old value\\s*=\\s*${WATCH_OLD_VALUE}[\\s\\S]*New value\\s*=\\s*${CONDITIONAL_HIT_VALUE}`
+            ),
+            20000
+          );
+        } catch (err) {
+          await failWatchpoint(
+            `Debug Console has no Old value = ${WATCH_OLD_VALUE} / New value = ${CONDITIONAL_HIT_VALUE}`,
+            err
+          );
+        }
+        if (!/watchpoint/i.test(hit)) {
+          await failWatchpoint(`Stop text is not a watchpoint hit.\n${hit}`);
+        }
+        console.log(
+          `  · [watchpoint] Old value = ${WATCH_OLD_VALUE}, New value = ${CONDITIONAL_HIT_VALUE}`
+        );
+      }
+    );
+
+    step("Clear the data watchpoint", async () => {
+      console.log("  · [watchpoint] removeAllBreakpoints");
+      try {
+        await removeAllBreakpoints();
+      } catch (err) {
+        await failWatchpoint("removeAllBreakpoints failed", err);
+      }
+      console.log("  · [watchpoint] >info breakpoints after clear");
+      let infoText = "";
+      try {
+        infoText = await evaluateDebugConsoleAndWait(
+          ">info breakpoints",
+          /No breakpoints\b|Num\s+Type/i,
+          20000
+        );
+      } catch (err) {
+        await failWatchpoint(
+          "Could not read GDB's breakpoint list after removeAllBreakpoints",
+          err
+        );
+      }
+      if (/hw watchpoint/i.test(infoText)) {
+        await failWatchpoint(
+          `GDB still has a hardware watchpoint after removeAllBreakpoints.\n${infoText}`
+        );
+      }
+      console.log("  · [watchpoint] breakpoint list has no hw watchpoint");
     });
   });
 

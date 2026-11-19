@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 
+import { WebElement } from "selenium-webdriver";
 import {
   ActivityBar,
+  By,
+  ContextMenu,
   DebugView,
   EditorView,
   InputBox,
@@ -227,10 +230,23 @@ export async function waitForCallStackMatching(
   );
 }
 
+type ContextMenuEntry = {
+  getLabel: () => Promise<string>;
+  select: () => Promise<unknown>;
+};
+
+type VariableContextMenu = {
+  getItem: (name: string) => Promise<ContextMenuEntry | undefined>;
+  getItems: () => Promise<ContextMenuEntry[]>;
+  close: () => Promise<void>;
+};
+
 type VariableTreeItem = {
   getVariableName?: () => Promise<string>;
   getVariableValue?: () => Promise<string>;
   getLabel?: () => Promise<string>;
+  getText?: () => Promise<string>;
+  openContextMenu?: () => Promise<VariableContextMenu>;
 };
 
 type VariablesSection = {
@@ -239,6 +255,7 @@ type VariablesSection = {
   findItem: (label: string) => Promise<VariableTreeItem | undefined>;
   getText: () => Promise<string>;
   getVisibleItems?: () => Promise<VariableTreeItem[]>;
+  findElements?: (locator: By) => Promise<WebElement[]>;
 };
 
 function localValueMatches(raw: string, expectedValue: number): boolean {
@@ -265,6 +282,122 @@ function variablesTextHasValue(
     "i"
   );
   return pattern.test(text) || alt.test(text);
+}
+
+const BREAK_ON_VALUE_CHANGE = "Break on Value Change";
+
+function collapsedLabel(label: string): string {
+  return label.replace(/\s+/g, " ").trim();
+}
+
+/** "a", "a =", "a = 1", and "a, value 1" all name the local `a`. */
+function rowNamesVariable(label: string, name: string): boolean {
+  const trimmed = collapsedLabel(label);
+  if (!trimmed) {
+    return false;
+  }
+  return trimmed.split(/[\s:=,]/, 1)[0] === name;
+}
+
+async function labelOf(item: VariableTreeItem): Promise<string> {
+  const fromName = await item.getVariableName?.().catch(() => undefined);
+  if (fromName && collapsedLabel(fromName)) {
+    return fromName;
+  }
+  const fromLabel = await item.getLabel?.().catch(() => undefined);
+  if (fromLabel && collapsedLabel(fromLabel)) {
+    return fromLabel;
+  }
+  return (await item.getText?.().catch(() => undefined)) ?? "";
+}
+
+async function openVariableContextMenu(
+  section: VariablesSection,
+  name: string
+): Promise<VariableContextMenu> {
+  const items = section.getVisibleItems ? await section.getVisibleItems() : [];
+  const seen: string[] = [];
+  for (const item of items) {
+    const label = await labelOf(item);
+    seen.push(collapsedLabel(label) || "(blank)");
+    if (rowNamesVariable(label, name) && item.openContextMenu) {
+      return item.openContextMenu();
+    }
+  }
+
+  const rows = section.findElements
+    ? await section.findElements(By.css(".monaco-list-row"))
+    : [];
+  const rowText: string[] = [];
+  let target: WebElement | undefined;
+  for (const row of rows) {
+    const aria = (await row.getAttribute("aria-label").catch(() => "")) ?? "";
+    const text = (await row.getText().catch(() => "")) ?? "";
+    const label = collapsedLabel(`${aria} ${text}`);
+    rowText.push(label || "(blank)");
+    if (!target && rowNamesVariable(label, name)) {
+      target = row;
+    }
+  }
+  if (!target) {
+    throw new Error(
+      `Local "${name}" is not a Variables row (${items.length} tree items, ${
+        rows.length
+      } list rows).\nTree: ${seen.join(" | ") || "(none)"}\nRows: ${
+        rowText.join(" | ") || "(none)"
+      }`
+    );
+  }
+
+  const driver = new Workbench().getDriver();
+  await driver.executeScript(
+    "arguments[0].scrollIntoView({block:'center'})",
+    target
+  );
+  const workbench = await driver.findElement(By.className("monaco-workbench"));
+  await driver.actions().contextClick(target).perform();
+  return new ContextMenu(workbench).wait(5000);
+}
+
+/**
+ * Sets a write watchpoint the way a user does: Variables row → Break on Value
+ * Change. That command goes through the debug adapter, so Remove All
+ * Breakpoints can delete it later. A GDB `watch` command would not.
+ */
+export async function breakOnLocalValueChange(name: string): Promise<void> {
+  const debugControl = await new ActivityBar().getViewControl("Run and Debug");
+  if (!debugControl) {
+    throw new Error("Run and Debug view is not available.");
+  }
+  const debugView = (await debugControl.openView()) as DebugView;
+  const section = (await debugView.getVariablesSection()) as VariablesSection;
+  try {
+    await section.expand?.();
+  } catch {
+    // Pane may already be expanded.
+  }
+  for (const scope of ["Local", "Locals"]) {
+    try {
+      await section.openItem(scope);
+    } catch {
+      // CDT may use a different scope label, or locals are already top-level.
+    }
+  }
+
+  const menu = await openVariableContextMenu(section, name);
+  const entry = await menu.getItem(BREAK_ON_VALUE_CHANGE);
+  if (!entry) {
+    const labels = await Promise.all(
+      (await menu.getItems()).map((item) => item.getLabel().catch(() => ""))
+    );
+    await menu.close().catch(() => undefined);
+    throw new Error(
+      `Context menu for "${name}" has no "${BREAK_ON_VALUE_CHANGE}". Items: ${labels
+        .filter(Boolean)
+        .join(", ")}`
+    );
+  }
+  await entry.select();
 }
 
 async function readVariableValueFromTree(
@@ -304,11 +437,8 @@ async function readVariableValueFromTree(
     try {
       const items = await section.getVisibleItems();
       for (const item of items) {
-        const label =
-          (await item.getVariableName?.().catch(() => undefined)) ??
-          (await item.getLabel?.().catch(() => undefined)) ??
-          "";
-        if (label === name || label.startsWith(`${name} `) || label.startsWith(`${name}:`) || label.startsWith(`${name}=`)) {
+        const label = await labelOf(item);
+        if (rowNamesVariable(label, name)) {
           if (item.getVariableValue) {
             return { value: await item.getVariableValue(), text };
           }
@@ -320,6 +450,11 @@ async function readVariableValueFromTree(
   }
 
   return { text };
+}
+
+/** Visible VARIABLES pane text, including scope rows. Empty when the view is closed. */
+export async function readVariablesPaneText(): Promise<string> {
+  return (await readVariableValueFromTree("")).text;
 }
 
 /**
