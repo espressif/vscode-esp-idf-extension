@@ -227,10 +227,22 @@ export async function waitForCallStackMatching(
   );
 }
 
+type ContextMenuEntry = {
+  getLabel: () => Promise<string>;
+  select: () => Promise<unknown>;
+};
+
+type VariableContextMenu = {
+  getItem: (name: string) => Promise<ContextMenuEntry | undefined>;
+  getItems: () => Promise<ContextMenuEntry[]>;
+  close: () => Promise<void>;
+};
+
 type VariableTreeItem = {
   getVariableName?: () => Promise<string>;
   getVariableValue?: () => Promise<string>;
   getLabel?: () => Promise<string>;
+  openContextMenu?: () => Promise<VariableContextMenu>;
 };
 
 type VariablesSection = {
@@ -265,6 +277,67 @@ function variablesTextHasValue(
     "i"
   );
   return pattern.test(text) || alt.test(text);
+}
+
+const BREAK_ON_VALUE_CHANGE = "Break on Value Change";
+
+/**
+ * Sets a write watchpoint the way a user does: Variables row → Break on Value
+ * Change. That command goes through the debug adapter, so Remove All
+ * Breakpoints can delete it later. A GDB `watch` command would not.
+ */
+export async function breakOnLocalValueChange(name: string): Promise<void> {
+  const debugControl = await new ActivityBar().getViewControl("Run and Debug");
+  if (!debugControl) {
+    throw new Error("Run and Debug view is not available.");
+  }
+  const debugView = (await debugControl.openView()) as DebugView;
+  const section = (await debugView.getVariablesSection()) as VariablesSection;
+  try {
+    await section.expand?.();
+  } catch {
+    // Pane may already be expanded.
+  }
+  for (const scope of ["Local", "Locals"]) {
+    try {
+      await section.openItem(scope);
+    } catch {
+      // CDT may use a different scope label, or locals are already top-level.
+    }
+  }
+
+  const items = section.getVisibleItems ? await section.getVisibleItems() : [];
+  let row: VariableTreeItem | undefined;
+  for (const item of items) {
+    const label =
+      (await item.getVariableName?.().catch(() => undefined)) ??
+      (await item.getLabel?.().catch(() => undefined)) ??
+      "";
+    if (label === name) {
+      row = item;
+      break;
+    }
+  }
+  if (!row?.openContextMenu) {
+    throw new Error(
+      `Local "${name}" is not a Variables row, so Break on Value Change cannot be set from the extension.`
+    );
+  }
+
+  const menu = await row.openContextMenu();
+  const entry = await menu.getItem(BREAK_ON_VALUE_CHANGE);
+  if (!entry) {
+    const labels = await Promise.all(
+      (await menu.getItems()).map((item) => item.getLabel().catch(() => ""))
+    );
+    await menu.close().catch(() => undefined);
+    throw new Error(
+      `Context menu for "${name}" has no "${BREAK_ON_VALUE_CHANGE}". Items: ${labels
+        .filter(Boolean)
+        .join(", ")}`
+    );
+  }
+  await entry.select();
 }
 
 async function readVariableValueFromTree(
@@ -320,6 +393,11 @@ async function readVariableValueFromTree(
   }
 
   return { text };
+}
+
+/** Visible VARIABLES pane text, including scope rows. Empty when the view is closed. */
+export async function readVariablesPaneText(): Promise<string> {
+  return (await readVariableValueFromTree("")).text;
 }
 
 /**
