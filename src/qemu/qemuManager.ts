@@ -30,7 +30,10 @@ import {
 import { ESP } from "../config";
 import { readParameter } from "../configuration/idf";
 import { getIdfBuildPath } from "../configuration/workspace";
-import { statusBarItems } from "../statusBar";
+import {
+  areConfiguredStatusBarsSuppressed,
+  statusBarItems,
+} from "../statusBar";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { isBinInPath } from "../utils";
 import { IdfToolsManager } from "../idfToolsManager";
@@ -74,7 +77,9 @@ export class QemuManager extends EventEmitter {
   public updateStatusText(text: string) {
     if (this._statusBarItem) {
       this._statusBarItem.text = text;
-      this._statusBarItem.show();
+      if (!areConfiguredStatusBarsSuppressed()) {
+        this._statusBarItem.show();
+      }
     }
   }
 
@@ -254,8 +259,9 @@ export class QemuManager extends EventEmitter {
         commandDictionary[CommandKeys.QemuServer].tooltip;
       this._statusBarItem.command = CommandKeys.QemuServer;
       if (
+        !areConfiguredStatusBarsSuppressed() &&
         commandDictionary[CommandKeys.QemuServer].checkboxState ===
-        TreeItemCheckboxState.Checked
+          TreeItemCheckboxState.Checked
       ) {
         this._statusBarItem.show();
       }

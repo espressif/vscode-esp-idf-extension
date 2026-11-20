@@ -58,9 +58,6 @@ export async function setCurrentSettingsInTemplate(
   if (port.indexOf("no port") === -1) {
     settingsJson["idf.port"] = port;
   }
-  if (idfSetup.idfPath) {
-    settingsJson["idf.currentSetup"] = idfSetup.idfPath;
-  }
   settingsJson["idf.customExtraVars"] =
     settingsJson["idf.customExtraVars"] || {};
   if (selectedIdfTarget) {

@@ -16,8 +16,19 @@
  * limitations under the License.
  */
 
-import { commands, l10n, window, WorkspaceFolder } from "vscode";
+import {
+  commands,
+  ConfigurationTarget,
+  l10n,
+  window,
+  workspace,
+  WorkspaceFolder,
+} from "vscode";
+import { shouldClearFolderCustomExtraVars } from "../activation/customExtraVars";
+import { Logger } from "../common/logger";
+import { getIdfConfigurationSource } from "../configuration/idfConfigurationSource";
 import { getIdfSetups } from "../eim/getExistingSetups";
+import { persistSelectedIdfSetup } from "../eim/selectedIdfSetup";
 import { saveSettings } from "../eim/verifySetup";
 
 export async function selectIdfSetup(
@@ -55,10 +66,32 @@ export async function selectIdfSetup(
   if (!selectedIdfSetupOption) {
     return;
   }
-  await saveSettings(
+  const selectedSetup = selectedIdfSetupOption.target;
+  await persistSelectedIdfSetup(workspaceFolder, {
+    idfPath: selectedSetup.idfPath,
+    id: selectedSetup.id,
+    activationScript: selectedSetup.activationScript || "",
+  });
+  const inspected = workspace
+    .getConfiguration("idf", workspaceFolder.uri)
+    .inspect("customExtraVars");
+  if (shouldClearFolderCustomExtraVars(inspected, selectedSetup.idfPath)) {
+    await getIdfConfigurationSource().updateScoped(
+      "idf",
+      workspaceFolder.uri,
+      "customExtraVars",
+      undefined,
+      ConfigurationTarget.WorkspaceFolder
+    );
+  }
+  const saved = await saveSettings(
     extensionPath,
-    selectedIdfSetupOption.target,
+    selectedSetup,
     workspaceFolder
   );
+  if (saved.ok === false) {
+    Logger.info(saved.detail, "selectIdfSetup");
+    return;
+  }
   return selectedIdfSetupOption.target;
 }

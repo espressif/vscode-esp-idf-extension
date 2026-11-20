@@ -106,7 +106,9 @@ suite("terminal errors", () => {
       globalState: createMockMemento(),
     } as vscode.ExtensionContext;
     Logger.init(mockUpContext);
-    ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(mockUpContext);
+    ESP.ProjectConfiguration.store = ProjectConfigStore.resetForTests(
+      mockUpContext
+    );
     resetIdfConfigurationSource();
   });
 
@@ -121,12 +123,11 @@ suite("terminal errors", () => {
       setIdfConfigurationSource(createFakeIdfSource());
 
       await assert.rejects(
-        () =>
-          loadTerminalLaunchConfig(testWorkspaceFolder, "/extension"),
+        () => loadTerminalLaunchConfig(testWorkspaceFolder, "/extension"),
         (error: unknown) =>
           isKnownError(error) &&
           error.code === ErrorCode.INVALID_CONFIGURATION &&
-          error.metadata?.setting === "idf.currentSetup"
+          error.metadata?.setting === "selectedIdfSetup"
       );
     });
 
@@ -137,8 +138,7 @@ suite("terminal errors", () => {
       setIdfConfigurationSource(createFakeIdfSource());
 
       await assert.rejects(
-        () =>
-          loadTerminalLaunchConfig(testWorkspaceFolder, "/extension"),
+        () => loadTerminalLaunchConfig(testWorkspaceFolder, "/extension"),
         (error: unknown) =>
           isKnownError(error) &&
           error.code === ErrorCode.INVALID_CONFIGURATION &&
@@ -154,8 +154,7 @@ suite("terminal errors", () => {
       setIdfConfigurationSource(createFakeIdfSource());
 
       await assert.rejects(
-        () =>
-          loadTerminalLaunchConfig(testWorkspaceFolder, "/extension"),
+        () => loadTerminalLaunchConfig(testWorkspaceFolder, "/extension"),
         (error: unknown) =>
           isKnownError(error) &&
           error.code === ErrorCode.FILE_NOT_FOUND &&
@@ -175,10 +174,7 @@ suite("terminal errors", () => {
 
       await assert.rejects(
         () =>
-          loadTerminalLaunchConfig(
-            testWorkspaceFolder,
-            fixture.extensionPath
-          ),
+          loadTerminalLaunchConfig(testWorkspaceFolder, fixture.extensionPath),
         (error: unknown) =>
           isKnownError(error) &&
           error.code === ErrorCode.FILE_NOT_FOUND &&
@@ -207,15 +203,35 @@ suite("terminal errors", () => {
 
       await assert.rejects(
         () =>
-          loadTerminalLaunchConfig(
-            testWorkspaceFolder,
-            fixture.extensionPath
-          ),
+          loadTerminalLaunchConfig(testWorkspaceFolder, fixture.extensionPath),
         (error: unknown) =>
           isKnownError(error) &&
           error.code === ErrorCode.FILE_NOT_FOUND &&
           error.metadata?.filePath === missingShell
       );
+    });
+
+    test("an empty activation script is not sourced", async () => {
+      const fixture = createValidTerminalFixture();
+      const workspaceFolder = {
+        uri: vscode.Uri.file(fixture.workspacePath),
+        name: "workspace",
+        index: 0,
+      } as vscode.WorkspaceFolder;
+      setGetCurrentIdfSetupForTests(async () =>
+        minimalIdfSetup({
+          idfPath: fixture.idfPath,
+          activationScript: "",
+        })
+      );
+      setIdfConfigurationSource(createFakeIdfSource());
+
+      const config = await loadTerminalLaunchConfig(
+        workspaceFolder,
+        fixture.extensionPath
+      );
+
+      assert.strictEqual(config.activationScriptPath, "");
     });
 
     test("returns resolved config when inputs are valid", async () => {

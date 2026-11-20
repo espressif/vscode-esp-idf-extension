@@ -72,7 +72,14 @@ async function writeDoctorReportOnError(
   await writeTextReport(reportedResult, context);
 }
 
-export function registerDoctorCommand(context: ExtensionContext) {
+let doctorReportRegistered = false;
+let troubleshootPanelRegistered = false;
+
+export function registerDoctorReportCommand(context: ExtensionContext) {
+  if (doctorReportRegistered) {
+    return;
+  }
+  doctorReportRegistered = true;
   registerIDFCommand(context, "espIdf.doctorCommand", async () => {
     const reportedResult = initializeReportObject();
     let reportReady = false;
@@ -100,9 +107,20 @@ export function registerDoctorCommand(context: ExtensionContext) {
       throw errorToRethrow;
     }
   });
+}
 
+export function registerTroubleshootPanelCommand(context: ExtensionContext) {
+  if (troubleshootPanelRegistered) {
+    return;
+  }
+  troubleshootPanelRegistered = true;
   registerIDFCommand(context, "espIdf.troubleshootPanel", async () => {
     const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
     TroubleshootingPanel.createOrShow(context, wsFolder.uri);
   });
+}
+
+export function registerDoctorCommand(context: ExtensionContext) {
+  registerDoctorReportCommand(context);
+  registerTroubleshootPanelCommand(context);
 }

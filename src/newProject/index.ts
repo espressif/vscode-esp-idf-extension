@@ -254,7 +254,7 @@ async function runImportProject(context: ExtensionContext) {
       target: "another",
     },
   ];
-  const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+  const wsFolder = ESP.GlobalConfiguration.store.findSelectedWorkspaceFolder();
   if (wsFolder) {
     items.push({
       label: l10n.t(`Use current folder: {workspace}`, {
@@ -318,7 +318,16 @@ async function runImportProject(context: ExtensionContext) {
   }
 }
 
-export function registerNewProjectWizardCmd(context: ExtensionContext) {
+let workspaceFreeNewProjectRegistered = false;
+let workspaceNewProjectRegistered = false;
+
+export function registerWorkspaceFreeNewProjectCommands(
+  context: ExtensionContext
+) {
+  if (workspaceFreeNewProjectRegistered) {
+    return;
+  }
+  workspaceFreeNewProjectRegistered = true;
   registerNewProjectCommand(context, "espIdf.newProject.start", async () => {
     await withProgressWrapper(
       [],
@@ -329,6 +338,26 @@ export function registerNewProjectWizardCmd(context: ExtensionContext) {
     );
   });
 
+  registerNewProjectCommand(context, "espIdf.createNewProject", async () => {
+    await withProgressWrapper(
+      [],
+      l10n.t("New Project"),
+      async (progress, cancelToken) => {
+        await runCreateNewProject(context, progress, cancelToken);
+      }
+    );
+  });
+
+  registerNewProjectCommand(context, "espIdf.importProject", async () => {
+    await runImportProject(context);
+  });
+}
+
+export function registerWorkspaceNewProjectCommands(context: ExtensionContext) {
+  if (workspaceNewProjectRegistered) {
+    return;
+  }
+  workspaceNewProjectRegistered = true;
   registerNewProjectCommand(context, "espIdf.createVsCodeFolder", () => {
     return PreCheck.perform([openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
@@ -349,16 +378,6 @@ export function registerNewProjectWizardCmd(context: ExtensionContext) {
     });
   });
 
-  registerNewProjectCommand(context, "espIdf.createNewProject", async () => {
-    await withProgressWrapper(
-      [],
-      l10n.t("New Project"),
-      async (progress, cancelToken) => {
-        await runCreateNewProject(context, progress, cancelToken);
-      }
-    );
-  });
-
   registerNewProjectCommand(context, "espIdf.createNewComponent", async () => {
     await PreCheck.perform([openFolderCheck], async () => {
       const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
@@ -368,8 +387,9 @@ export function registerNewProjectWizardCmd(context: ExtensionContext) {
       await runCreateNewComponent(context, wsFolder);
     });
   });
+}
 
-  registerNewProjectCommand(context, "espIdf.importProject", async () => {
-    await runImportProject(context);
-  });
+export function registerNewProjectWizardCmd(context: ExtensionContext) {
+  registerWorkspaceFreeNewProjectCommands(context);
+  registerWorkspaceNewProjectCommands(context);
 }

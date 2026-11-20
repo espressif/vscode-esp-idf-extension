@@ -28,11 +28,26 @@ import {
 } from "./idf";
 import { configureForWorkspace } from "../common/workspaceChange";
 
-export function registerConfigurationCommands(context: ExtensionContext) {
+let selectConfTargetRegistered = false;
+let workspaceConfigurationRegistered = false;
+
+export function registerSelectConfTargetCommand(context: ExtensionContext) {
+  if (selectConfTargetRegistered) {
+    return;
+  }
+  selectConfTargetRegistered = true;
   registerIDFCommand(context, "espIdf.selectConfTarget", async () => {
     await chooseConfigurationTarget();
   });
+}
 
+export function registerWorkspaceConfigurationCommands(
+  context: ExtensionContext
+) {
+  if (workspaceConfigurationRegistered) {
+    return;
+  }
+  workspaceConfigurationRegistered = true;
   registerIDFCommand(context, "espIdf.selectNotificationMode", async () => {
     const notificationTarget = await window.showQuickPick(
       [
