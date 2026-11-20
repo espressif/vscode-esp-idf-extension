@@ -137,7 +137,6 @@ export class DevkitsCommand {
 
             OutputChannel.appendLine(result, "ESP Detect Config");
             OutputChannel.show();
-            window.showInformationMessage("ESP Detect Config completed");
             return result;
           } catch (error) {
             const msg =

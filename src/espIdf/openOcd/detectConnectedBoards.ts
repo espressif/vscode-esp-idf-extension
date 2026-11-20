@@ -34,22 +34,32 @@ export interface ConnectedBoard {
 export interface DetectConnectedBoardsResult {
   boards: ConnectedBoard[];
   openOCDVersion?: string;
+  skipped?: boolean;
+}
+
+export interface DetectConnectedBoardsOptions {
+  idfTarget?: string;
+  silent?: boolean;
+  allowWhileDebugging?: boolean;
+  openOCDVersion?: string;
 }
 
 export async function detectConnectedBoards(
   workspaceFolder: WorkspaceFolder,
-  options?: { idfTarget?: string }
+  options?: DetectConnectedBoardsOptions
 ): Promise<DetectConnectedBoardsResult> {
-  if (debug.activeDebugSession !== undefined) {
+  if (!options?.allowWhileDebugging && debug.activeDebugSession !== undefined) {
     Logger.info(
       "Connected ESP-IDF devkit detection is skipped while debugging. You can still select a target manually."
     );
-    return { boards: [] };
+    return { boards: [], skipped: true };
   }
 
   try {
     const openOCDManager = OpenOCDManager.init();
-    const openOCDVersion = await openOCDManager.version();
+    const openOCDVersion =
+      options?.openOCDVersion ??
+      (await openOCDManager.version(!!options?.silent));
     const devkitsCmd = new DevkitsCommand(workspaceFolder);
     const modifiedEnv = getCurrentIdfConfiguration();
     const openOcdPath = await OpenOCDManager.getOpenOcdPath(
@@ -62,17 +72,19 @@ export async function detectConnectedBoards(
       Logger.info(
         "Devkit detection script not available. A default list of targets will be displayed instead."
       );
-      return { boards: [], openOCDVersion };
+      return { boards: [], openOCDVersion, skipped: true };
     }
 
-    const devkitsOutput = await devkitsCmd.runDevkitsScript(openOCDVersion);
+    const devkitsOutput = await devkitsCmd.runDevkitsScript(openOCDVersion, {
+      silent: options?.silent,
+    });
     if (!devkitsOutput) {
-      return { boards: [], openOCDVersion };
+      return { boards: [], openOCDVersion, skipped: true };
     }
 
     const parsed = JSON.parse(devkitsOutput);
     if (!parsed || !Array.isArray(parsed.boards)) {
-      return { boards: [], openOCDVersion };
+      return { boards: [], openOCDVersion, skipped: true };
     }
 
     const idfTarget = options?.idfTarget;
@@ -95,6 +107,6 @@ export async function detectConnectedBoards(
     Logger.info(
       "No connected boards detected or error running DevkitsCommand: " + errMsg
     );
-    return { boards: [] };
+    return { boards: [], skipped: true };
   }
 }

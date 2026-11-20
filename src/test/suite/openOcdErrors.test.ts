@@ -22,6 +22,8 @@ import { tmpdir } from "os";
 import {
   idfToolNotFound,
   isKnownError,
+  openOcdAdapterNotConnected,
+  openOcdAdapterSerialNotFound,
   openOcdNoBoardsForTarget,
   openOcdNotRunning,
   openOcdProcessExited,
@@ -155,6 +157,24 @@ suite("OpenOCD errors", () => {
       assert.strictEqual(error.code, ErrorCode.OpenOcdNoBoardsForTarget);
       assert.strictEqual(error.metadata?.target, "esp32s3");
     });
+
+    test("openOcdAdapterNotConnected carries the stale serial", () => {
+      const error = openOcdAdapterNotConnected("AA:BB:CC:DD:EE:FF");
+      assert.strictEqual(error.code, ErrorCode.OpenOcdAdapterNotConnected);
+      assert.strictEqual(error.metadata?.serial, "AA:BB:CC:DD:EE:FF");
+    });
+
+    test("openOcdAdapterSerialNotFound carries serial and stream metadata", () => {
+      const error = openOcdAdapterSerialNotFound("AA:BB:CC:DD:EE:FF", {
+        stdout: "",
+        stderr: "Info : No device matches the serial string",
+        exitCode: 1,
+      });
+      assert.strictEqual(error.code, ErrorCode.OpenOcdAdapterSerialNotFound);
+      assert.strictEqual(error.metadata?.serial, "AA:BB:CC:DD:EE:FF");
+      assert.strictEqual(error.metadata?.exitCode, 1);
+      assert.ok(String(error.metadata?.stderr).includes("No device matches"));
+    });
   });
 
   suite("resolveKnownErrorUserMessage", () => {
@@ -172,6 +192,29 @@ suite("OpenOCD errors", () => {
         ),
         "OpenOCD server failed to start: Error: adapter not found"
       );
+    });
+
+    test("registry interpolates the serial for adapter errors and offers the adapter command", () => {
+      const notConnected = resolveKnownErrorDescriptor(
+        openOcdAdapterNotConnected("AA:BB")
+      );
+      assert.ok(notConnected?.userMessage.includes("serial AA:BB"));
+      assert.ok(
+        notConnected?.actions?.some(
+          (a) => a.label === "OpenOCD Adapter (Serial & Location)"
+        )
+      );
+
+      const notFound = resolveKnownErrorDescriptor(
+        openOcdAdapterSerialNotFound("AA:BB")
+      );
+      assert.ok(notFound?.userMessage.includes("adapter serial AA:BB"));
+      assert.ok(
+        notFound?.actions?.some(
+          (a) => a.label === "OpenOCD Adapter (Serial & Location)"
+        )
+      );
+      assert.strictEqual(notFound?.outputChannel, "OpenOCD");
     });
 
     test("registry interpolates IdfToolNotFound for openocd", () => {
