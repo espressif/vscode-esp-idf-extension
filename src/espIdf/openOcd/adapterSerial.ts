@@ -22,10 +22,15 @@ import { Logger } from "../../common/logger";
 import { PreCheck } from "../../common/PreCheck";
 
 /**
- * Key used to store the OpenOCD USB adapter serial number in the extension workspace state
- * (VS Code `context.workspaceState` via `ESP.ProjectConfiguration.store`), not in user/workspace settings.json.
+ * Key prefix used to store the OpenOCD USB adapter serial number per workspace folder in the
+ * extension workspace state (VS Code `context.workspaceState` via `ESP.ProjectConfiguration.store`),
+ * not in user/workspace settings.json.
  */
 const OPENOCD_ADAPTER_SERIAL_KEY = "openocd.usbAdapterSerial";
+
+function adapterSerialKey(workspaceFolder: vscode.Uri): string {
+  return `${OPENOCD_ADAPTER_SERIAL_KEY}:${workspaceFolder.toString()}`;
+}
 
 /**
  * Regular expression to match OpenOCD log line with USB adapter serial number
@@ -61,7 +66,10 @@ export function storeAdapterSerial(
 ): void {
   try {
     if (ESP.ProjectConfiguration.store) {
-      ESP.ProjectConfiguration.store.set(OPENOCD_ADAPTER_SERIAL_KEY, serialNumber);
+      ESP.ProjectConfiguration.store.set(
+        adapterSerialKey(workspaceFolder),
+        serialNumber
+      );
       Logger.info(
         `Stored OpenOCD USB adapter serial number: ${serialNumber} for workspace ${workspaceFolder.fsPath}`
       );
@@ -86,8 +94,19 @@ export function getStoredAdapterSerial(
   workspaceFolder: vscode.Uri
 ): string | undefined {
   try {
-    if (ESP.ProjectConfiguration.store) {
-      return ESP.ProjectConfiguration.store.get<string>(OPENOCD_ADAPTER_SERIAL_KEY);
+    const store = ESP.ProjectConfiguration.store;
+    if (store) {
+      const key = adapterSerialKey(workspaceFolder);
+      const serial = store.get<string>(key);
+      if (serial !== undefined) {
+        return serial;
+      }
+      const legacySerial = store.get<string>(OPENOCD_ADAPTER_SERIAL_KEY);
+      if (legacySerial !== undefined) {
+        store.set(key, legacySerial);
+        store.clear(OPENOCD_ADAPTER_SERIAL_KEY);
+      }
+      return legacySerial;
     }
   } catch (error) {
     Logger.error(
@@ -110,7 +129,7 @@ export function clearAdapterSerial(
 ): void {
   try {
     if (ESP.ProjectConfiguration.store) {
-      ESP.ProjectConfiguration.store.clear(OPENOCD_ADAPTER_SERIAL_KEY);
+      ESP.ProjectConfiguration.store.clear(adapterSerialKey(workspaceFolder));
       Logger.info(
         `Cleared OpenOCD USB adapter serial number for workspace ${workspaceFolder.fsPath}`
       );

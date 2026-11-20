@@ -206,6 +206,49 @@ suite("OpenOCD adapter binding", () => {
         undefined
       );
     });
+
+    test("keeps a separate serial per workspace folder", () => {
+      const otherFolder = vscode.Uri.file("/test/other-workspace");
+      storeAdapterSerial(fakeWorkspaceFolder.uri, "AA:AA:AA:AA:AA:AA");
+      storeAdapterSerial(otherFolder, "BB:BB:BB:BB:BB:BB");
+      assert.strictEqual(
+        getStoredAdapterSerial(fakeWorkspaceFolder.uri),
+        "AA:AA:AA:AA:AA:AA"
+      );
+      assert.strictEqual(
+        getStoredAdapterSerial(otherFolder),
+        "BB:BB:BB:BB:BB:BB"
+      );
+      clearAdapterSerial(otherFolder);
+      assert.strictEqual(getStoredAdapterSerial(otherFolder), undefined);
+      assert.strictEqual(
+        getStoredAdapterSerial(fakeWorkspaceFolder.uri),
+        "AA:AA:AA:AA:AA:AA"
+      );
+    });
+
+    test("moves a serial stored before folder scoping to the folder key", () => {
+      ESP.ProjectConfiguration.store.set(
+        "openocd.usbAdapterSerial",
+        "CC:CC:CC:CC:CC:CC"
+      );
+      assert.strictEqual(
+        getStoredAdapterSerial(fakeWorkspaceFolder.uri),
+        "CC:CC:CC:CC:CC:CC"
+      );
+      assert.strictEqual(
+        ESP.ProjectConfiguration.store.get<string>("openocd.usbAdapterSerial"),
+        undefined
+      );
+      assert.strictEqual(
+        getStoredAdapterSerial(vscode.Uri.file("/test/other-workspace")),
+        undefined
+      );
+      assert.strictEqual(
+        getStoredAdapterSerial(fakeWorkspaceFolder.uri),
+        "CC:CC:CC:CC:CC:CC"
+      );
+    });
   });
 
   suite("resolveAdapterBindingForLaunch", () => {
