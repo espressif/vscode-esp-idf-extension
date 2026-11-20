@@ -92,6 +92,8 @@ C 和 C++ 代码导航及语法高亮
         ]
     }
 
+若 ``idf.currentSetup`` 指向的 ESP-IDF 包含 ``tools/clangd-config.yaml``，扩展还会追加 ``--custom-config-file``，其值为该文件的完整路径。该文件用于去掉会让 clangd 报告无效 AST 的工具链参数，对项目目录之外的源文件同样生效。较旧的版本没有这个文件，此时不会添加该参数。未设置 ``idf.currentSetup`` 时，使用当前窗口已加载的 ESP-IDF。
+
 对于新建项目，在项目根目录下生成的 ``.clangd`` 文件内容如下：
 
 .. code-block:: yaml
