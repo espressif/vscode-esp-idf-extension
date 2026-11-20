@@ -254,7 +254,7 @@ async function runImportProject(context: ExtensionContext) {
       target: "another",
     },
   ];
-  const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+  const wsFolder = ESP.GlobalConfiguration.store.findSelectedWorkspaceFolder();
   if (wsFolder) {
     items.push({
       label: l10n.t(`Use current folder: {workspace}`, {
