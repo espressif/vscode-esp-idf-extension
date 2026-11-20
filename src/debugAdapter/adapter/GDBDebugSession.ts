@@ -541,9 +541,11 @@ export class GDBDebugSession extends LoggingDebugSession {
       }
 
       const actual: DebugProtocol.Breakpoint[] = [];
+      const matchedNumbers: string[] = [];
 
       for (const bp of resolved) {
-        if (bp.gdbbp) {
+        if (bp.gdbbp && matchedNumbers.indexOf(bp.gdbbp.number) === -1) {
+          matchedNumbers.push(bp.gdbbp.number);
           actual.push({
             id: parseInt(bp.gdbbp.number, 10),
             verified: true,
@@ -551,18 +553,35 @@ export class GDBDebugSession extends LoggingDebugSession {
           continue;
         }
 
+        if (bp.gdbbp) {
+          const message = `A ${this.watchpointKind(
+            bp.vsbp.accessType
+          )} watchpoint on ${bp.vsbp.dataId} is already set.`;
+          this.sendEvent(new OutputEvent(message + "\n", "console"));
+          actual.push({
+            verified: false,
+            message,
+          });
+          continue;
+        }
+
         try {
           const bpNum = await mi.sendBreakWatch(this.gdb, bp.vsbp);
           this.dataBreakpoints.push(bpNum.toString());
+          matchedNumbers.push(bpNum.toString());
           actual.push({
             id: parseInt(bpNum, 10),
             verified: true,
           });
         } catch (err) {
+          const message = `Could not set watchpoint on ${
+            bp.vsbp.dataId
+          }: ${resolveDapErrorMessage(err)}`;
+          this.sendEvent(new OutputEvent(message + "\n", "console"));
           actual.push({
             verified: false,
-            message: resolveDapErrorMessage(err),
-          } as DebugProtocol.Breakpoint);
+            message,
+          });
         }
       }
 
@@ -603,6 +622,18 @@ export class GDBDebugSession extends LoggingDebugSession {
       return gdbType === "acc watchpoint";
     }
     return gdbType === "hw watchpoint" || gdbType === "watchpoint";
+  }
+
+  protected watchpointKind(
+    accessType: DebugProtocol.DataBreakpoint["accessType"]
+  ): string {
+    if (accessType === "read") {
+      return "read";
+    }
+    if (accessType === "readWrite") {
+      return "access";
+    }
+    return "write";
   }
 
   protected async setBreakPointsRequest(
