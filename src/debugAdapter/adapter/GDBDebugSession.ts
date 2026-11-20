@@ -525,7 +525,9 @@ export class GDBDebugSession extends LoggingDebugSession {
           const gdbbpCond = gdbbp.cond || undefined;
 
           return (
-            gdbbp["original-location"] === vsbp.dataId && vsbpCond === gdbbpCond
+            gdbbp["original-location"] === vsbp.dataId &&
+            vsbpCond === gdbbpCond &&
+            this.watchpointAccessMatches(vsbp.accessType, gdbbp.type)
           );
         }
       );
@@ -584,6 +586,23 @@ export class GDBDebugSession extends LoggingDebugSession {
         mi.sendExecContinue(this.gdb);
       }
     }
+  }
+
+  /**
+   * Write, read, and read/write on the same variable are different watchpoints.
+   * GDB names them "hw watchpoint"/"watchpoint", "read watchpoint", and "acc watchpoint".
+   */
+  protected watchpointAccessMatches(
+    accessType: DebugProtocol.DataBreakpoint["accessType"],
+    gdbType: string
+  ): boolean {
+    if (accessType === "read") {
+      return gdbType === "read watchpoint";
+    }
+    if (accessType === "readWrite") {
+      return gdbType === "acc watchpoint";
+    }
+    return gdbType === "hw watchpoint" || gdbType === "watchpoint";
   }
 
   protected async setBreakPointsRequest(
