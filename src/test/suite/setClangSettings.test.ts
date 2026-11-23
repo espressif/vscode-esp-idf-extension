@@ -21,7 +21,10 @@ import { chmod, ensureDir, mkdtemp, remove, writeFile } from "fs-extra";
 import { tmpdir } from "os";
 import { join, resolve } from "path";
 import { ExtensionContext } from "vscode";
-import { setClangSettings } from "../../clang";
+import {
+  setClangdSupportsCustomConfigFileForTests,
+  setClangSettings,
+} from "../../clang";
 import { Logger } from "../../common/logger";
 import { ESP } from "../../config";
 import { ProjectConfigStore } from "../../project-conf/store";
@@ -46,19 +49,25 @@ suite("setClangSettings", () => {
   });
 
   suiteTeardown(() => {
+    setClangdSupportsCustomConfigFileForTests(undefined);
     if (previousStore) {
       ESP.ProjectConfiguration.store = previousStore;
     }
   });
 
   teardown(() => {
+    setClangdSupportsCustomConfigFileForTests(undefined);
     ESP.ProjectConfiguration.store.clear(
       ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
     );
   });
 
   async function withEspClang(
-    options: { setIdfPath: boolean; writeConfigFile: boolean },
+    options: {
+      setIdfPath: boolean;
+      writeConfigFile: boolean;
+      supportsCustomConfig?: boolean;
+    },
     assertSettings: (
       settingsJson: { [key: string]: any },
       paths: { buildPath: string; configFile: string }
@@ -88,6 +97,9 @@ suite("setClangSettings", () => {
       ESP.ProjectConfiguration.store.set(
         ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
         env
+      );
+      setClangdSupportsCustomConfigFileForTests(
+        async () => options.supportsCustomConfig !== false
       );
 
       const settingsJson: { [key: string]: any } = {};
@@ -159,6 +171,7 @@ suite("setClangSettings", () => {
         ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
         { [pathName]: clangBin, IDF_PATH: activeIdfPath }
       );
+      setClangdSupportsCustomConfigFileForTests(async () => true);
 
       const settingsJson: { [key: string]: any } = {
         "idf.currentSetup": projectIdfPath,
@@ -175,6 +188,20 @@ suite("setClangSettings", () => {
     } finally {
       await remove(root);
     }
+  });
+
+  test("omits custom-config-file when clangd does not accept the option", async () => {
+    await withEspClang(
+      { setIdfPath: true, writeConfigFile: true, supportsCustomConfig: false },
+      (settingsJson, paths) => {
+        assert.strictEqual(customConfigArgument(settingsJson), undefined);
+        assert.ok(
+          settingsJson["clangd.arguments"].includes(
+            `--compile-commands-dir=${paths.buildPath}`
+          )
+        );
+      }
+    );
   });
 
   test("omits custom-config-file when no ESP-IDF path is selected", async () => {

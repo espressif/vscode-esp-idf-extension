@@ -92,7 +92,7 @@ The resulting ``.vscode/settings.json`` configuration looks like this:
         ]
     }
 
-When ``idf.currentSetup`` points at an ESP-IDF that contains ``tools/clangd-config.yaml``, the extension also appends ``--custom-config-file`` with the full path to that file. The file drops toolchain flags that make clangd report an invalid AST, including for sources outside the project. Older releases do not ship the file, and the argument is left out. If ``idf.currentSetup`` is unset, the setup loaded in the window is used.
+When ``idf.currentSetup`` points at an ESP-IDF that contains ``tools/clangd-config.yaml``, and the clangd binary accepts ``--custom-config-file``, the extension appends that argument with the full path to the file. The file drops toolchain flags that make clangd report an invalid AST, including for sources outside the project. The argument is left out when the file is absent or clangd does not accept it. The other clangd settings are still written. If ``idf.currentSetup`` is unset, ``idf.customExtraVars.IDF_PATH`` is used when it is set. Otherwise the setup loaded in the window is used.
 
 For newly created projects, the generated ``.clangd`` file in the project root contains:
 

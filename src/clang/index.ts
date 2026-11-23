@@ -17,6 +17,7 @@
  */
 
 import { ExtensionContext, l10n, Uri, window } from "vscode";
+import { execChildProcess } from "../support/execChildProcess";
 import { isBinInPath } from "../utils";
 import { pathExists, readFile, writeFile } from "fs-extra";
 import { getIdfBuildPath } from "../configuration/workspace";
@@ -76,7 +77,11 @@ export async function setClangSettings(
   const clangdConfigFile = await resolveEspClangdConfigFile(
     idfPathForClangConfig(settingsJson)
   );
-  if (clangdConfigFile) {
+  // esp-clang 20 exits if this option is present. Keep the other arguments.
+  if (
+    clangdConfigFile &&
+    (await clangdSupportsCustomConfigFile(espClangPath))
+  ) {
     clangdArguments.push(`--custom-config-file=${clangdConfigFile}`);
   }
   settingsJson["clangd.path"] = espClangPath;
@@ -98,6 +103,41 @@ function idfPathForClangConfig(settingsJson: any): string | undefined {
     return idfPath;
   }
   return getCurrentIdfEnvVar("IDF_PATH");
+}
+
+let clangdSupportsCustomConfigFileForTests:
+  | ((clangdPath: string) => Promise<boolean>)
+  | undefined;
+
+/** Unit tests substitute the `clangd --help` probe. */
+export function setClangdSupportsCustomConfigFileForTests(
+  probe: ((clangdPath: string) => Promise<boolean>) | undefined
+): void {
+  clangdSupportsCustomConfigFileForTests = probe;
+}
+
+async function clangdSupportsCustomConfigFile(
+  clangdPath: string
+): Promise<boolean> {
+  if (clangdSupportsCustomConfigFileForTests) {
+    return clangdSupportsCustomConfigFileForTests(clangdPath);
+  }
+  try {
+    const help = await execChildProcess(clangdPath, ["--help"], process.cwd(), {
+      timeout: 15000,
+      windowsHide: true,
+    });
+    return help.includes("--custom-config-file");
+  } catch (error) {
+    Logger.error(
+      "Could not read clangd --help, so --custom-config-file was not added.",
+      error instanceof Error ? error : new Error(String(error)),
+      "clang index clangdSupportsCustomConfigFile",
+      undefined,
+      false
+    );
+    return false;
+  }
 }
 
 async function resolveEspClangdConfigFile(

@@ -92,7 +92,7 @@ C 和 C++ 代码导航及语法高亮
         ]
     }
 
-若 ``idf.currentSetup`` 指向的 ESP-IDF 包含 ``tools/clangd-config.yaml``，扩展还会追加 ``--custom-config-file``，其值为该文件的完整路径。该文件用于去掉会让 clangd 报告无效 AST 的工具链参数，对项目目录之外的源文件同样生效。较旧的版本没有这个文件，此时不会添加该参数。未设置 ``idf.currentSetup`` 时，使用当前窗口已加载的 ESP-IDF。
+若 ``idf.currentSetup`` 指向的 ESP-IDF 包含 ``tools/clangd-config.yaml``，且 clangd 可执行文件接受 ``--custom-config-file``，扩展会追加该参数，其值为该文件的完整路径。该文件用于去掉会让 clangd 报告无效 AST 的工具链参数，对项目目录之外的源文件同样生效。文件不存在，或 clangd 不接受该参数时，不会添加它。其余 clangd 设置仍会写入。未设置 ``idf.currentSetup`` 时，若设置了 ``idf.customExtraVars.IDF_PATH`` 则使用该路径，否则使用当前窗口已加载的 ESP-IDF。
 
 对于新建项目，在项目根目录下生成的 ``.clangd`` 文件内容如下：
 
