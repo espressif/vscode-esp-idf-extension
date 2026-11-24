@@ -34,10 +34,10 @@ import {
   executeDebugAction,
   executeEspIdfCommand,
   executeEspIdfCommandAndSelectOption,
+  ensureTestProjectOpen,
   helloWorldBinPath,
   launchDebugger,
   openFileInEditor,
-  openTestProject,
   removeAllBreakpoints,
   reuseOrLaunchDebugger,
   selectFromCurrentPicker,
@@ -60,16 +60,13 @@ import {
 
 // ─── patterns ────────────────────────────────────────────────────────────────
 
-const FLASH_SUCCESS_PATTERN =
-  /Hash of data verified|Flash Done|Hard resetting via RTS pin/;
+const FLASH_SUCCESS_PATTERN = /Hash of data verified|Flash Done|Hard resetting via RTS pin/;
 
 const MONITOR_OUTPUT_PATTERN = /UI test monitor output check/;
 
-const SET_TARGET_COMPLETE_PATTERN =
-  /Target .* Set Successfully|idf\.py set-target.*done|Project targets have been set/i;
+const SET_TARGET_COMPLETE_PATTERN = /Target .* Set Successfully|idf\.py set-target.*done|Project targets have been set/i;
 
-const DEBUG_FATAL_ERROR_PATTERN =
-  /Target failure|Error: .*failed to halt|OpenOCD failed|LIBUSB_ERROR|failed to connect/i;
+const DEBUG_FATAL_ERROR_PATTERN = /Target failure|Error: .*failed to halt|OpenOCD failed|LIBUSB_ERROR|failed to connect/i;
 
 // Default launch injects `thb app_main`, which lands on the prologue or first
 // statement (lines 6–8). The user breakpoint is the next volatile assignment
@@ -88,8 +85,7 @@ const CONDITIONAL_HIT_VALUE = 2;
 const SOURCE_FILE_NAME = "hello_world_main.c";
 const SOURCE_FILE_PATH = resolve(testWorkspaceDir, "main", SOURCE_FILE_NAME);
 const APP_MAIN_STACK_PATTERN = /app_main/;
-const MEMSET_ADDRESS_PATTERN =
-  /Symbol\s+"memset"\s+is[^\n]*\b(0x[0-9A-Fa-f]{4,})/i;
+const MEMSET_ADDRESS_PATTERN = /Symbol\s+"memset"\s+is[^\n]*\b(0x[0-9A-Fa-f]{4,})/i;
 
 // ─── shared state ────────────────────────────────────────────────────────────
 
@@ -322,11 +318,15 @@ async function typeIntoConditionalBreakpointWidget(
 }
 
 async function assertNoOpenOcdFatal(when: string): Promise<void> {
-  const openocdLog = await waitForOutputChannelText("ESP-IDF", /.*/, 5000).catch(
-    () => ""
-  );
+  const openocdLog = await waitForOutputChannelText(
+    "ESP-IDF",
+    /.*/,
+    5000
+  ).catch(() => "");
   if (DEBUG_FATAL_ERROR_PATTERN.test(openocdLog)) {
-    throw new Error(`Fatal OpenOCD error ${when}.\nESP-IDF output:\n${openocdLog}`);
+    throw new Error(
+      `Fatal OpenOCD error ${when}.\nESP-IDF output:\n${openocdLog}`
+    );
   }
 }
 
@@ -336,12 +336,14 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
   before(async function () {
     this.timeout(100000);
     await dismissNotifications();
-    await openTestProject();
+    await ensureTestProjectOpen();
   });
 
   after(async function () {
     this.timeout(30000);
-    console.log("[after] Cleanup: stopping debug session and killing processes");
+    console.log(
+      "[after] Cleanup: stopping debug session and killing processes"
+    );
     await stopDebugSession();
     state.activeDebugToolbar = undefined;
     await new BottomBarPanel().toggle(false).catch(() => undefined);
@@ -517,7 +519,11 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
         await debugToolbar!.waitForBreakPoint(60000);
         await assertNoOpenOcdFatal("after Continue");
 
-        await waitForPausedAtLine(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE, 30000);
+        await waitForPausedAtLine(
+          SOURCE_FILE_PATH,
+          USER_BREAKPOINT_LINE,
+          30000
+        );
         await waitForCallStackMatching(APP_MAIN_STACK_PATTERN, 15000);
       }
     );
@@ -528,11 +534,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
 
     step("Step Over and verify program counter advanced", async () => {
       await executeDebugAction("stepOver");
-      await waitForPausedAtLine(
-        SOURCE_FILE_PATH,
-        STEP_OVER_TARGET_LINE,
-        30000
-      );
+      await waitForPausedAtLine(SOURCE_FILE_PATH, STEP_OVER_TARGET_LINE, 30000);
     });
 
     step("Verify local b == 2 after Step Over", async () => {
@@ -548,10 +550,13 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await assertNoOpenOcdFatal("after Step Over");
     });
 
-    step("Clear breakpoints; leave session paused for gdbinit and lifecycle", async () => {
-      await removeAllBreakpoints().catch(() => undefined);
-      state.debugSmokeSucceeded = true;
-    });
+    step(
+      "Clear breakpoints; leave session paused for gdbinit and lifecycle",
+      async () => {
+        await removeAllBreakpoints().catch(() => undefined);
+        state.debugSmokeSucceeded = true;
+      }
+    );
   });
 
   scenario("resolves ROM symbols via gdbinit", () => {
@@ -570,33 +575,42 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       await new BottomBarPanel().openDebugConsoleView();
     });
 
-    step("GDB info address memset, then info symbol of that address", async () => {
-      const addressText = await evaluateDebugConsoleAndWait(
-        ">info address memset",
-        MEMSET_ADDRESS_PATTERN,
-        20000
-      );
-      if (/No symbol\s+"memset"/i.test(addressText)) {
-        throw new Error(`GDB did not resolve memset:\n${addressText}`);
-      }
-      const memsetAddr = addressText.match(MEMSET_ADDRESS_PATTERN)?.[1];
-      if (!memsetAddr) {
-        throw new Error(`Could not parse memset address:\n${addressText}`);
-      }
-      console.log(`[hardware-debug] memset at ${memsetAddr}`);
+    step(
+      "GDB info address memset, then info symbol of that address",
+      async () => {
+        const addressText = await evaluateDebugConsoleAndWait(
+          ">info address memset",
+          MEMSET_ADDRESS_PATTERN,
+          20000
+        );
+        if (/No symbol\s+"memset"/i.test(addressText)) {
+          throw new Error(`GDB did not resolve memset:\n${addressText}`);
+        }
+        const memsetAddr = addressText.match(MEMSET_ADDRESS_PATTERN)?.[1];
+        if (!memsetAddr) {
+          throw new Error(`Could not parse memset address:\n${addressText}`);
+        }
+        console.log(`[hardware-debug] memset at ${memsetAddr}`);
 
-      const symbolText = await evaluateDebugConsoleAndWait(
-        `>info symbol ${memsetAddr}`,
-        /in section|No symbol matches/i,
-        20000
-      );
-      if (/No symbol matches/i.test(symbolText)) {
-        throw new Error(
-          `GDB did not reverse-lookup ${memsetAddr} (ROM symbols missing?):\n${symbolText}`
+        const symbolText = await evaluateDebugConsoleAndWait(
+          `>info symbol ${memsetAddr}`,
+          /in section|No symbol matches/i,
+          20000
+        );
+        if (/No symbol matches/i.test(symbolText)) {
+          throw new Error(
+            `GDB did not reverse-lookup ${memsetAddr} (ROM symbols missing?):\n${symbolText}`
+          );
+        }
+        console.log(
+          `[hardware-debug] ${symbolText
+            .trim()
+            .split("\n")
+            .slice(0, 4)
+            .join(" ")}`
         );
       }
-      console.log(`[hardware-debug] ${symbolText.trim().split("\n").slice(0, 4).join(" ")}`);
-    });
+    );
   });
 
   scenario("stops on a conditional breakpoint set from the editor", () => {
@@ -898,7 +912,11 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
       async () => {
         await executeDebugAction("continue");
         await waitUntilDebugPaused(60000);
-        await waitForPausedAtLine(SOURCE_FILE_PATH, USER_BREAKPOINT_LINE, 30000);
+        await waitForPausedAtLine(
+          SOURCE_FILE_PATH,
+          USER_BREAKPOINT_LINE,
+          30000
+        );
       }
     );
 
