@@ -21,6 +21,7 @@ import {
   ExtensionContext,
   env,
   l10n,
+  Uri,
   window,
   workspace,
 } from "vscode";
@@ -46,8 +47,11 @@ import {
 } from "./variableCommandContext";
 import {
   invalidConfiguration,
+  isKnownError,
   noWorkspaceOpen,
 } from "../../common/error/knownError";
+import { handleError } from "../../common/error/handler";
+import { buildFlashAndMonitor } from "../../buildFlashMonitor";
 import { debugErrorPresentation } from "../debugErrorPresentation";
 import { configureProjectForRuntimeGdbStub } from "../../configuration/gdbstub/configureProject";
 import {
@@ -162,6 +166,7 @@ export function registerImageViewCommands(context: ExtensionContext) {
 }
 
 async function notifyRuntimeGdbStubReady(
+  workspaceFolderUri: Uri,
   alreadyConfigured: boolean
 ): Promise<void> {
   const message = alreadyConfigured
@@ -177,8 +182,15 @@ async function notifyRuntimeGdbStubReady(
   if (choice !== buildAndFlash) {
     return;
   }
-  await commands.executeCommand("espIdf.buildDevice");
-  await commands.executeCommand("espIdf.flashDevice");
+  try {
+    await buildFlashAndMonitor(workspaceFolderUri);
+  } catch (error) {
+    if (isKnownError(error)) {
+      await handleError("espIdf.buildFlashMonitor", error);
+      return;
+    }
+    throw error;
+  }
 }
 
 export function registerEspIdfDebugCommand(context: ExtensionContext) {
@@ -235,7 +247,10 @@ export function registerEspIdfDebugCommand(context: ExtensionContext) {
       const launchChanged = await ensureRuntimeGdbStubLaunchJson(
         workspaceFolder.uri
       );
-      await notifyRuntimeGdbStubReady(result === "unchanged" && !launchChanged);
+      await notifyRuntimeGdbStubReady(
+        workspaceFolder.uri,
+        result === "unchanged" && !launchChanged
+      );
     });
   });
 
