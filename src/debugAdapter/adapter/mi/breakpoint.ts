@@ -36,10 +36,8 @@ export interface MIBreakDeleteRequest {}
 export interface MIBreakDeleteResponse extends MIResponse {}
 
 export interface MIBreakWatchResponse extends MIResponse {
-  /** Software write watchpoint. */
+  /** Write watchpoint. GDB uses this for both software and hardware writes. */
   wpt?: { number: string; exp: string };
-  /** Hardware write watchpoint. ESP32 uses this, not `wpt`. */
-  "hw-wpt"?: { number: string; exp: string };
   "hw-awpt"?: { number: string; exp: string };
   "hw-rwpt"?: { number: string; exp: string };
 }
@@ -179,7 +177,6 @@ export async function sendBreakWatch(
   // adapter never records the GDB number and a later empty
   // setDataBreakpoints cannot delete the watchpoint.
   const number =
-    result["hw-wpt"]?.number ||
     result.wpt?.number ||
     result["hw-rwpt"]?.number ||
     result["hw-awpt"]?.number;
