@@ -24,6 +24,7 @@ import {
   InputBox,
   OutputView,
   StatusBar,
+  VSBrowser,
   WebView,
   Workbench,
 } from "vscode-extension-tester";
@@ -154,21 +155,76 @@ export const ESP_IDF_COMMANDS = {
   openIdfTerminal: "ESP-IDF: Open ESP-IDF Terminal",
 } as const;
 
+const WORKSPACE_TITLE_TIMEOUT_MS = 60000;
+const IDF_STATUS_TIMEOUT_MS = 45000;
+
+/** Reloads the test window onto the fixture and waits until IDF setup is active. */
 export async function openTestProject(): Promise<void> {
-  await new Promise((res) => setTimeout(res, 5000));
-  await new Workbench().executeCommand("file: open folder");
-  await new Promise((res) => setTimeout(res, 1000));
-  const input = await InputBox.create();
-  await input.setText(testWorkspaceDir);
-  await input.confirm();
-  await new Promise((res) => setTimeout(res, 4000));
+  await VSBrowser.instance.openResources(testWorkspaceDir);
+  await waitForTestWorkspaceReady(WORKSPACE_TITLE_TIMEOUT_MS);
 }
 
 export async function ensureTestProjectOpen(): Promise<void> {
-  if (await hasWorkbenchTitle(basename(testWorkspaceDir))) {
+  if (!(await hasWorkbenchTitle(basename(testWorkspaceDir)))) {
+    await openTestProject();
     return;
   }
-  await openTestProject();
+  await waitForActiveEspIdfVersion(IDF_STATUS_TIMEOUT_MS);
+}
+
+async function waitForTestWorkspaceReady(timeoutMs: number): Promise<void> {
+  const folderName = basename(testWorkspaceDir);
+  const deadline = Date.now() + timeoutMs;
+  let lastTitle = "";
+
+  while (Date.now() < deadline) {
+    let title = "";
+    try {
+      title = await new Workbench().getTitleBar().getTitle();
+    } catch {
+      // The reload drops the webdriver target until the workbench is back.
+      await new Promise((res) => setTimeout(res, 1000));
+      continue;
+    }
+    lastTitle = title;
+    if (!title.includes(folderName)) {
+      await new Promise((res) => setTimeout(res, 1000));
+      continue;
+    }
+    await new Promise((res) => setTimeout(res, 1000));
+    let settledTitle = "";
+    try {
+      settledTitle = await new Workbench().getTitleBar().getTitle();
+    } catch {
+      await new Promise((res) => setTimeout(res, 1000));
+      continue;
+    }
+    if (!settledTitle.includes(folderName)) {
+      lastTitle = settledTitle;
+      continue;
+    }
+    await waitForActiveEspIdfVersion(IDF_STATUS_TIMEOUT_MS);
+    return;
+  }
+
+  throw new Error(
+    `Test workspace "${folderName}" was not ready within ${timeoutMs} ms. Last title: "${lastTitle}".`
+  );
+}
+
+async function waitForActiveEspIdfVersion(timeoutMs: number): Promise<void> {
+  const deadline = Date.now() + Math.max(timeoutMs, 0);
+  let lastError = "Active ESP-IDF version was not found on the status bar.";
+  while (Date.now() < deadline) {
+    try {
+      await readActiveEspIdfVersion();
+      return;
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+      await new Promise((res) => setTimeout(res, 1000));
+    }
+  }
+  throw new Error(lastError);
 }
 
 export async function executeEspIdfCommand(
