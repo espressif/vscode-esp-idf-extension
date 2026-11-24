@@ -103,10 +103,18 @@ export function registerBuildFlashMonitorCommands(context: ExtensionContext) {
       await buildFlashAndMonitor(wsFolder.uri);
     }
   );
-  registerIDFCommand(context, "espIdf.buildAppFlashAppMonitor", () => {
-    const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
-    buildFlashAndMonitor(wsFolder.uri, undefined, ESP.PartitionType.App);
-  });
+  registerBuildFlashMonitorCommand(
+    context,
+    "espIdf.buildAppFlashAppMonitor",
+    async () => {
+      const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+      await buildFlashAndMonitor(
+        wsFolder.uri,
+        undefined,
+        ESP.PartitionType.App
+      );
+    }
+  );
 }
 
 /**
@@ -181,9 +189,9 @@ export async function buildFlashAndMonitor(
       const taskWsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
       progress.report({ message: "Building project...", increment: 20 });
       const flashType = await ensureFlashTypeForTask(taskWsFolder, undefined);
-      const partitionToUse = resolvePartitionToUseForTask(
+      const resolvedPartition = resolvePartitionToUseForTask(
         taskWsFolder,
-        undefined
+        partitionToUse
       );
 
       try {
@@ -192,7 +200,7 @@ export async function buildFlashAndMonitor(
             taskWsFolder,
             cancelToken,
             flashType,
-            partitionToUse,
+            resolvedPartition,
             noResetMonitor,
             () =>
               progress.report({

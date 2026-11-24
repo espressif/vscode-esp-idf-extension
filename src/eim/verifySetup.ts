@@ -24,6 +24,7 @@ import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import { join } from "path";
 import { ConfigurationTarget, WorkspaceFolder } from "vscode";
 import { writeParameter } from "../configuration/idf";
+import { getVenvPythonBinPath } from "../configuration/env";
 import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import { getEnvVariables } from "./loadSettings";
 import { OutputChannel } from "../common/outputChannel";
@@ -94,11 +95,7 @@ export async function isIdfSetupValid(
     if (!envVars["IDF_PYTHON_ENV_PATH"]) {
       return [false, "IDF_PYTHON_ENV_PATH is not set in environment variables"];
     }
-    const pyDir =
-      process.platform === "win32"
-        ? ["Scripts", "python.exe"]
-        : ["bin", "python3"];
-    const venvPythonPath = join(envVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
+    const venvPythonPath = getVenvPythonBinPath(envVars["IDF_PYTHON_ENV_PATH"]);
     const [pyEnvReqsValid, pyEnvReqsMsg] = await checkPyVenv(
       venvPythonPath,
       envVars["IDF_PATH"],

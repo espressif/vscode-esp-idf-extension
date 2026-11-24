@@ -16,8 +16,7 @@
  * limitations under the License.
  */
 import { join } from "path";
-import { CancellationToken, Uri } from "vscode";
-import { Logger } from "../../../common/logger";
+import { Uri } from "vscode";
 import { TaskManager } from "../../..//taskManager/taskManager";
 import { createUartFlashProcessTask } from "./uartFlashExecution";
 import { createDfuFlashProcessTask } from "../dfu/dfuFlashExecution";
@@ -28,10 +27,10 @@ import {
 } from "../../../taskManager/customTaskProvider";
 import { ESP } from "../../../config";
 import { OutputChannel } from "../../../common/outputChannel";
+import { flashTaskEpilogue } from "../../shared/flashTaskEpilogue";
 import { CustomExecutionTaskResult } from "../../../taskManager/types";
 
 export async function uartFlashCommandMain(
-  cancelToken: CancellationToken,
   flashBaudRate: string,
   port: string,
   workspace: Uri,
@@ -39,7 +38,8 @@ export async function uartFlashCommandMain(
   buildDirPath: string,
   flashType: ESP.FlashType,
   encryptPartitions: boolean,
-  partitionToUse?: ESP.PartitionType
+  partitionToUse?: ESP.PartitionType,
+  forceFullImage = false
 ): Promise<CustomExecutionTaskResult> {
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
   const model = await createFlashModel(
@@ -63,16 +63,14 @@ export async function uartFlashCommandMain(
       modifiedEnv,
       buildDirPath,
       encryptPartitions,
-      partitionToUse
+      partitionToUse,
+      forceFullImage
     );
   }
   await customTask.addCustomTask(CustomTaskType.PostFlash);
   const flashResult = await TaskManager.runTasksWithBoolean();
-
-  if (!cancelToken.isCancellationRequested && flashResult) {
-    const msg = "Flash Done ⚡️";
-    OutputChannel.appendLineAndShow(msg, "Flash");
-    Logger.infoNotify(msg);
+  if (flashResult) {
+    OutputChannel.appendLineAndShow(flashTaskEpilogue(), "Flash");
   }
   return { continueFlag: flashResult };
 }

@@ -19,7 +19,6 @@
 import { connectOpenOcdForJtag } from "../../../espIdf/openOcd/jtagPreflight";
 import { TCLClient } from "../../../espIdf/openOcd/tcl/tclClient";
 import { readParameter } from "../../../configuration/idf";
-import { Logger } from "../../../common/logger";
 import {
   CustomTask,
   CustomTaskType,
@@ -31,6 +30,7 @@ import { jtagFlash } from "./flashTclClient";
 import type { CustomExecutionTaskResult } from "../../../taskManager/types";
 import { throwFlashCapturedTaskFailure } from "../../shared/flashTaskFailure";
 import { flashJtagOpenOcdPresentation } from "../../jtagOpenOcdPresentation";
+import { flashTaskEpilogue } from "../../shared/flashTaskEpilogue";
 
 export async function jtagFlashCommandMain(
   cancelToken: CancellationToken,
@@ -40,7 +40,10 @@ export async function jtagFlashCommandMain(
   let client: TCLClient | undefined;
   let cancelSubscription: Disposable | undefined;
   try {
-    client = await connectOpenOcdForJtag(workspace, flashJtagOpenOcdPresentation);
+    client = await connectOpenOcdForJtag(
+      workspace,
+      flashJtagOpenOcdPresentation
+    );
     cancelSubscription = cancelToken.onCancellationRequested(() => {
       client?.stop();
     });
@@ -75,9 +78,7 @@ export async function jtagFlashCommandMain(
     }
     await customTask.addCustomTask(CustomTaskType.PostFlash);
     await TaskManager.runTasks();
-    const msg = "⚡️ Flashed Successfully (JTAG)";
-    OutputChannel.appendLineAndShow(msg, "Flash");
-    Logger.infoNotify(msg);
+    OutputChannel.appendLineAndShow(flashTaskEpilogue(), "Flash");
     return { continueFlag: true };
   } finally {
     cancelSubscription?.dispose();

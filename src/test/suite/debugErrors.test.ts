@@ -21,7 +21,6 @@ import { join, resolve } from "path";
 import { tmpdir } from "os";
 import * as vscode from "vscode";
 import {
-  fileNotFound,
   gdbinitPrefixMapMissing,
   idfToolNotFound,
   invalidConfiguration,
@@ -101,18 +100,6 @@ suite("debug errors", () => {
   });
 
   suite("resolveKnownErrorUserMessage", () => {
-    test("command override applies for FILE_NOT_FOUND", () => {
-      assert.strictEqual(
-        resolveKnownErrorUserMessage(
-          fileNotFound(
-            "/proj/build/app.elf",
-            debugErrorPresentation.fileNotFound
-          )
-        ),
-        "Required file /proj/build/app.elf could not be found for the debug session."
-      );
-    });
-
     test("command override applies for GdbinitPrefixMapMissing", () => {
       assert.strictEqual(
         resolveKnownErrorUserMessage(

@@ -20,6 +20,7 @@ import {
   CancellationToken,
   DebugConfiguration,
   DebugConfigurationProvider,
+  workspace,
   WorkspaceFolder,
 } from "vscode";
 import { readParameter } from "../configuration/idf";
@@ -28,7 +29,7 @@ import {
   getConfigValueFromSDKConfig,
 } from "../configuration/workspace";
 import { dirname, join } from "path";
-import { pathExists, readFile } from "fs-extra";
+import { outputFile, pathExists, readFile } from "fs-extra";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../common/logger";
 import { execChildProcess } from "../utils";
@@ -46,6 +47,66 @@ import {
   resolveDebugProgram,
   verifyAppBeforeDebug,
 } from "./validation";
+
+export const INITIAL_GDBTARGET_CONFIG: DebugConfiguration = {
+  type: "gdbtarget",
+  request: "attach",
+  name: "ESP-IDF",
+};
+
+/** Legacy projects use other names, such as "Eclipse CDT GDB Adapter". */
+function isGdbTargetAttachConfig(config: DebugConfiguration): boolean {
+  return (
+    config.type === INITIAL_GDBTARGET_CONFIG.type &&
+    config.request === INITIAL_GDBTARGET_CONFIG.request
+  );
+}
+
+function isInitialGdbTargetConfig(config: DebugConfiguration): boolean {
+  return (
+    isGdbTargetAttachConfig(config) &&
+    config.name === INITIAL_GDBTARGET_CONFIG.name
+  );
+}
+
+export function workspaceHasGdbTargetAttachConfig(
+  folder: WorkspaceFolder | undefined
+): boolean {
+  const configurations = workspace
+    .getConfiguration("launch", folder)
+    .get<DebugConfiguration[]>("configurations");
+  return (
+    configurations?.some(
+      (configuration) =>
+        !!configuration && isGdbTargetAttachConfig(configuration)
+    ) ?? false
+  );
+}
+
+async function ensureInitialLaunchJson(folder: WorkspaceFolder) {
+  if (workspaceHasGdbTargetAttachConfig(folder)) {
+    return;
+  }
+  const launchJsonPath = join(folder.uri.fsPath, ".vscode", "launch.json");
+  if (await pathExists(launchJsonPath)) {
+    return;
+  }
+  const launchJson = {
+    version: "0.2.0",
+    configurations: [{ ...INITIAL_GDBTARGET_CONFIG }],
+  };
+  try {
+    await outputFile(
+      launchJsonPath,
+      `${JSON.stringify(launchJson, null, 2)}\n`
+    );
+  } catch (error) {
+    Logger.warn(
+      `Failed to write initial launch.json at ${launchJsonPath}`,
+      error
+    );
+  }
+}
 
 /** ESP-IDF generated gdbinit files, in `idf.py gdb` order. */
 const GDBINIT_FILE_NAMES = [
@@ -268,6 +329,15 @@ async function handleDebugConfigurationError(
 
 export class CDTDebugConfigurationProvider
   implements DebugConfigurationProvider {
+  public provideDebugConfigurations(
+    folder?: WorkspaceFolder
+  ): DebugConfiguration[] {
+    if (workspaceHasGdbTargetAttachConfig(folder)) {
+      return [];
+    }
+    return [{ ...INITIAL_GDBTARGET_CONFIG }];
+  }
+
   public async resolveDebugConfigurationWithSubstitutedVariables(
     folder: WorkspaceFolder | undefined,
     debugConfiguration: DebugConfiguration,
@@ -335,6 +405,11 @@ export class CDTDebugConfigurationProvider
     token?: CancellationToken
   ): Promise<DebugConfiguration | undefined> {
     try {
+      if (!config.type && !config.request) {
+        config.type = INITIAL_GDBTARGET_CONFIG.type;
+        config.request = INITIAL_GDBTARGET_CONFIG.request;
+        config.name = INITIAL_GDBTARGET_CONFIG.name;
+      }
       folder = await requireWorkspaceFolderForDebug(folder);
       config.program = await resolveDebugProgram(config, folder);
       if (!config.gdb) {
@@ -421,6 +496,9 @@ export class CDTDebugConfigurationProvider
       }
       if (folder && folder.uri && config.verifyAppBinBeforeDebug) {
         await verifyAppBeforeDebug(folder.uri);
+      }
+      if (isInitialGdbTargetConfig(config)) {
+        await ensureInitialLaunchJson(folder);
       }
     } catch (error) {
       return handleDebugConfigurationError(error);

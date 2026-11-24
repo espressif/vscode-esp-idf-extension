@@ -20,12 +20,13 @@ import { getIdfSetups } from "../eim/getExistingSetups";
 import { isIdfSetupValid } from "../eim/verifySetup";
 import { reportObj } from "./types";
 import { getEnvVariables } from "../eim/loadSettings";
-import { getWorkspaceFolder } from "./getWorkspaceFolder";
 import { ESP } from "../config";
-import { extensions } from "vscode";
+import { extensions, WorkspaceFolder } from "vscode";
 
-export async function checkIDFSetups(reportedResult: reportObj) {
-  const workspaceFolder = getWorkspaceFolder();
+export async function checkIDFSetups(
+  reportedResult: reportObj,
+  workspaceFolder?: WorkspaceFolder
+) {
   const idfSetups = await getIdfSetups(workspaceFolder);
 
   for (const idfSetup of idfSetups) {

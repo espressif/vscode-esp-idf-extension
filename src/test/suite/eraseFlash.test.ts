@@ -52,6 +52,34 @@ suite("eraseFlash", () => {
         ]
       );
     });
+
+    test("uses erase-flash when hyphenCli is true", () => {
+      assert.deepStrictEqual(
+        buildUartEraseFlashArgs(
+          "/idf/components/esptool_py/esptool/esptool.py",
+          "COM1",
+          true
+        ),
+        [
+          "/idf/components/esptool_py/esptool/esptool.py",
+          "-p",
+          "COM1",
+          "erase-flash",
+        ]
+      );
+    });
+
+    test("uses python -m esptool when useModule is true", () => {
+      assert.deepStrictEqual(
+        buildUartEraseFlashArgs(
+          "/idf/components/esptool_py/esptool/esptool.py",
+          "COM1",
+          true,
+          true
+        ),
+        ["-m", "esptool", "-p", "COM1", "erase-flash"]
+      );
+    });
   });
 
   suite("EraseFlashSession", () => {

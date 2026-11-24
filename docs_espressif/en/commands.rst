@@ -54,6 +54,8 @@ All commands start with ``ESP-IDF:``.
      - Write binary data to the ESP's flash chip from your current ESP-IDF project using DFU. Only for ESP32-S2 and ESP32-S3.
    * - Flash (UART) your project
      - Write binary data to the ESP's flash chip from your current ESP-IDF project using esptool.py
+   * - Flash Full Image (UART)
+     - Write every byte of the selected images to the ESP's flash chip with esptool.py, without ``--diff-with`` or ``--skip-flashed``. This command does not change **idf.flashFullImage**.
    * - Flash (with JTag)
      - Write binary data to the ESP's flash chip from your current ESP-IDF project using OpenOCD JTAG
    * - Flash Binary to Partition...

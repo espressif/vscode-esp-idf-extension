@@ -100,7 +100,7 @@ function spawnWithNodePty(
       listeners.onData(data, "stdout");
     });
     ptyProcess.onExit((event) => {
-      listeners.onExit(event.exitCode ?? 0);
+      listeners.onExit(ptyExitCode(event));
     });
 
     return {
@@ -137,8 +137,9 @@ function spawnWithChildProcess(
   child.stderr?.on("data", (data: Buffer) => {
     listeners.onData(toTerminalNewlines(data.toString()), "stderr");
   });
-  child.on("close", (code) => {
-    listeners.onExit(code ?? 0);
+  let killed = false;
+  child.on("close", (code, signal) => {
+    listeners.onExit(childCloseExitCode(code, signal, killed));
   });
   child.on("error", (error) => {
     listeners.onError(error);
@@ -152,9 +153,36 @@ function spawnWithChildProcess(
       /* piped child processes have no PTY size */
     },
     kill: () => {
+      killed = true;
       child.kill();
     },
   };
+}
+
+/** A nonzero signal is a failed exit, including when node-pty also reports code 0. */
+export function ptyExitCode(event: {
+  exitCode: number;
+  signal?: number;
+}): number {
+  if (event.signal) {
+    return 1;
+  }
+  return event.exitCode;
+}
+
+/**
+ * A child that exits on its own has a numeric status. A kill leaves `code`
+ * null (and often a signal); that must not become exit code 0.
+ */
+export function childCloseExitCode(
+  code: number | null,
+  signal: NodeJS.Signals | null,
+  killed = false
+): number {
+  if (killed || signal != null || code == null) {
+    return 1;
+  }
+  return code;
 }
 
 function noOpProcess(): ICapturedProcess {

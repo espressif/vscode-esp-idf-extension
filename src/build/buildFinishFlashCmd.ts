@@ -21,6 +21,11 @@ import { readParameter, readSerialPort } from "../configuration/idf";
 import { getIdfBuildPath } from "../configuration/workspace";
 import { join } from "path";
 import { pathExists } from "fs-extra";
+import { getVirtualEnvPythonPath } from "../configuration/env";
+import {
+  formatEsptoolToken,
+  resolveEsptoolLaunchStyle,
+} from "../flash/shared/esptool/esptoolCli";
 import { createFlashModel } from "../flash/transports/uart/flashModelBuilder";
 
 export async function buildFinishFlashCmd(workspace: Uri) {
@@ -39,9 +44,18 @@ export async function buildFinishFlashCmd(workspace: Uri) {
     flashBaudRate
   );
 
-  let flashFiles = `--flash_mode ${flasherArgsModel.mode}`;
-  flashFiles += ` --flash_size ${flasherArgsModel.size}`;
-  flashFiles += ` --flash_freq ${flasherArgsModel.frequency} `;
+  const pythonBinPath = getVirtualEnvPythonPath();
+  const hyphenCli = pythonBinPath
+    ? (await resolveEsptoolLaunchStyle(pythonBinPath)).hyphenCli
+    : false;
+  const flashMode = formatEsptoolToken("--flash_mode", hyphenCli);
+  const flashSize = formatEsptoolToken("--flash_size", hyphenCli);
+  const flashFreq = formatEsptoolToken("--flash_freq", hyphenCli);
+  const writeFlash = formatEsptoolToken("write_flash", hyphenCli);
+
+  let flashFiles = `${flashMode} ${flasherArgsModel.mode}`;
+  flashFiles += ` ${flashSize} ${flasherArgsModel.size}`;
+  flashFiles += ` ${flashFreq} ${flasherArgsModel.frequency} `;
   for (const flashFile of flasherArgsModel.flashSections) {
     flashFiles += `${flashFile.address} "${flashFile.binFilePath}" `;
   }
@@ -61,10 +75,10 @@ export async function buildFinishFlashCmd(workspace: Uri) {
     flasherArgsModel.after
   } ${flasherArgsModel.stub === false ? "--no-stub" : ""} ${
     port ? `--port ${port}` : ""
-  } write_flash ${flashFiles}\n`;
+  } ${writeFlash} ${flashFiles}\n`;
   flashString += `or from the "${buildPath}" directory\n`;
   flashString += `python -m esptool --chip ${flasherArgsModel.chip} `;
   flashString += `-b ${flashBaudRate} --before ${flasherArgsModel.before} `;
-  flashString += `--after ${flasherArgsModel.after} write_flash "@flash_args"`;
+  flashString += `--after ${flasherArgsModel.after} ${writeFlash} "@flash_args"`;
   return flashString;
 }

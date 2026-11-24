@@ -94,6 +94,8 @@ Flash
       - Preferred flash method: ``UART``, ``JTAG`` or ``DFU``. Scope: Resource.
     * - **idf.partitionToUse**
       - Partition to use during build and flash, including Build, Flash and Monitor (default: ``all``). Options: ``all``, ``app``, ``bootloader``, ``partition-table``. Scope: Resource.
+    * - **idf.flashFullImage**
+      - Write every UART flash image instead of skipping unchanged sectors or files already on the device (default: ``false``). JTAG and DFU flashing are unchanged. Scope: Resource.
     * - **idf.jtagFlashCommandExtraArgs**
       - OpenOCD JTAG flash extra arguments (default: ``["verify", "compress", "reset"]``). Scope: Resource.
     * - **idf.preFlashTask**

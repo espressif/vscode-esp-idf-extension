@@ -26,13 +26,6 @@ export const debugErrorPresentation = {
     actions: [{ label: "Open Folder…", execute: () => commands.executeCommand("vscode.openFolder") }],
     outputChannel: debugOutputChannel,
   } satisfies ErrorPresentation,
-  fileNotFound: {
-    severity: ErrorSeverity.Error,
-    userMessage: "Required file {filePath} could not be found for the debug session.",
-    logMessage: "Debug file not found: {filePath}.",
-    actions: [buildProjectAction],
-    outputChannel: debugOutputChannel,
-  } satisfies ErrorPresentation,
   invalidConfiguration: {
     severity: ErrorSeverity.Error,
     userMessage: "Debug configuration setting {setting} is invalid. When verifyAppBinBeforeDebug fails, flash the device before debugging.",

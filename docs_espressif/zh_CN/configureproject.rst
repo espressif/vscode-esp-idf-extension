@@ -76,21 +76,33 @@ C 和 C++ 代码导航及语法高亮
 
 通常 C/C++ 语言扩展依赖位于项目构建目录中的 ``compile_commands.json`` 文件。可使用 ``ESP-IDF：运行 idf.py reconfigure 任务`` 生成该文件。
 
-对于 `LLVM clangd 扩展 <https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd>`_，可使用 ``ESP-IDF: Configure project for ESP-Clang`` 配置该扩展的参数。
-该命令会在已配置的 ESP-IDF 环境中查找 ``esp-clang``，并结合 ``idf.buildPath`` 指定的构建目录，以及当前 ``IDF_TARGET`` 与已配置 ESP-IDF 环境中的 GCC 工具链路径，用于设置 clangd 的路径与参数。
+对于 `LLVM clangd 扩展 <https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd>`_，可使用 ``ESP-IDF: Configure project for ESP-Clang`` 命令配置该扩展。
+该命令会在已配置的 ESP-IDF 环境中查找 ``esp-clang``，并结合 ``idf.buildPath`` 指定的构建目录，在 ``.vscode/settings.json`` 中设置 clangd 的路径与参数，同时在项目根目录下创建 ``.clangd`` 配置文件。
 
-配置结果示例如下：
+``.vscode/settings.json`` 的配置结果示例如下：
 
 .. code-block:: JSON
 
     {
-        "clangd.path": "/Users/user/.espressif/tools/esp-clang/esp-18.1.2_20240912/esp-clang/bin/clangd",
+        "clangd.path": "/Users/user/.espressif/tools/esp-clang/esp-21.1.3_20260408/esp-clang/bin/clangd",
         "clangd.arguments": [
             "--background-index",
-            "--query-driver=/Users/user/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20241119/xtensa-esp-elf/bin/xtensa-esp32-elf-gcc",
+            "--query-driver=**",
             "--compile-commands-dir=/path/to/esp-idf-project/build"
         ]
     }
+
+对于新建项目，在项目根目录下生成的 ``.clangd`` 文件内容如下：
+
+.. code-block:: yaml
+
+    CompileFlags:
+      Remove: [-m*, -f*]
+      BuiltinHeaders: QueryDriver
+
+.. note::
+
+    扩展仅在创建新项目时生成 ``.clangd`` 配置文件。对于已有项目，原有的 ``.clangd`` 文件会被保留且不会自动覆盖。为解决工具链内置头文件解析错误（例如在 ESP-IDF 6.1 及更新工具链中出现的缺失标准头文件问题），请手动在项目根目录的 ``.clangd`` 文件的 ``CompileFlags`` 下添加 ``BuiltinHeaders: QueryDriver``。
 
 
 对于 `微软 C/C++ 扩展 <https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools>`_，配置文件位于 ``{PROJECT_DIRECTORY_PATH}/.vscode/c_cpp_properties.json``。可通过 ``ESP-IDF: New Project`` 创建项目生成该文件，或在已有 ESP-IDF 项目中使用 ``ESP-IDF: Add VS Code Configuration Folder`` 命令生成。

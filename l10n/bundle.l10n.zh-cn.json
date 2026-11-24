@@ -47,6 +47,7 @@
   "Flash binary to this partition": "将二进制文件烧录到该分区",
   "Select an action to use": "选择要执行的操作",
   "ESP-IDF Doctor": "ESP-IDF 诊断工具",
+  "ESP-IDF Doctor report has been copied to clipboard.": "ESP-IDF 诊断工具报告已复制到剪贴板。",
   "Extension configuration report has been copied to clipboard with errors": "已复制扩展配置报告到剪贴板，但有错误",
   "Do you want to view Heap Trace plot or System View Trace": "选择查看堆跟踪图或系统视图跟踪",
   "Show System View Tracing Plot (will open a webview window)": "显示系统视图跟踪图（将打开网络视图窗口）",

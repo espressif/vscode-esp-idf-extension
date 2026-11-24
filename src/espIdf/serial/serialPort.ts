@@ -32,6 +32,12 @@ import {
   noSerialPortsAvailable,
 } from "../../common/error/knownError";
 import { ErrorCode } from "../../common/error/types";
+import {
+  defaultEsptoolLaunchStyle,
+  esptoolProgramArgs,
+  formatEsptoolToken,
+  resolveEsptoolLaunchStyle,
+} from "../../flash/shared/esptool/esptoolCli";
 import { resolveEsptoolInvocation } from "../../flash/shared/esptool/resolveEsptoolInvocation";
 import {
   ConfigurationTarget,
@@ -220,6 +226,8 @@ export class SerialPort {
           }
           const { pythonPath, esptoolScriptPath } =
             await resolveEsptool(idfPath);
+          const launchStyle = await resolveEsptoolLaunchStyle(pythonPath);
+          const chipIdArg = formatEsptoolToken("chip_id", launchStyle.hyphenCli);
           const expectedTarget = await getExpectedIdfTarget(workspaceFolder);
 
           if (focusOnOutputChannel) {
@@ -236,7 +244,12 @@ export class SerialPort {
 
           const result = await runSpawn(
             pythonPath,
-            [esptoolScriptPath, "--chip", expectedTarget, "chip_id"],
+            [
+              ...esptoolProgramArgs(esptoolScriptPath, launchStyle.useModule),
+              "--chip",
+              expectedTarget,
+              chipIdArg,
+            ],
             {
               silent: false,
               appendMode: "append",
@@ -520,6 +533,15 @@ export class SerialPort {
       }
     }
 
+    const launchStyle =
+      pythonPath && esptoolScriptPath
+        ? await resolveEsptoolLaunchStyle(pythonPath)
+        : defaultEsptoolLaunchStyle;
+    const chipIdArg = formatEsptoolToken("chip_id", launchStyle.hyphenCli);
+    const programArgs = esptoolScriptPath
+      ? esptoolProgramArgs(esptoolScriptPath, launchStyle.useModule)
+      : [];
+
     async function processPorts(serialPort: SerialPortDetails) {
       try {
         if (!pythonPath || !esptoolScriptPath) {
@@ -528,7 +550,7 @@ export class SerialPort {
         }
         const chipIdBuffer = await runSpawn(
           pythonPath,
-          [esptoolScriptPath, "--port", serialPort.comName, "chip_id"],
+          [...programArgs, "--port", serialPort.comName, chipIdArg],
           {
             timeout: 2000,
             silent: true,

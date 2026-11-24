@@ -94,6 +94,8 @@ Visual Studio Code 允许你在不同级别配置设置：**全局（用户设�
       - 首选烧录方式：``UART``、``JTAG`` 或 ``DFU``。作用域：Resource。
     * - **idf.partitionToUse**
       - 构建与烧录（包括“构建、烧录并监视”）时使用的分区（默认：``all``）。可选：``all``、``app``、``bootloader``、``partition-table``。作用域：Resource。
+    * - **idf.flashFullImage**
+      - 写入每个 UART 烧录镜像，而不是跳过未变化的扇区或设备上已有的文件（默认：``false``）。JTAG 与 DFU 烧录不受影响。作用域：Resource。
     * - **idf.jtagFlashCommandExtraArgs**
       - OpenOCD JTAG 烧录额外参数（默认：``["verify", "compress", "reset"]``）。作用域：Resource。
     * - **idf.preFlashTask**

@@ -16,7 +16,12 @@
  * limitations under the License.
  */
 
-import { debug, ExtensionContext, window } from "vscode";
+import {
+  debug,
+  DebugConfigurationProviderTriggerKind,
+  ExtensionContext,
+  window,
+} from "vscode";
 import { PeripheralTreeView } from "./svd/peripheralTreeView";
 import { HexViewProvider } from "./hexViewProvider";
 import { CDTDebugConfigurationProvider } from "./debugConfProvider";
@@ -43,7 +48,11 @@ export function registerDebugCommands(context: ExtensionContext) {
 
   const cdtDebugProvider = new CDTDebugConfigurationProvider();
   context.subscriptions.push(
-    debug.registerDebugConfigurationProvider("gdbtarget", cdtDebugProvider)
+    debug.registerDebugConfigurationProvider(
+      "gdbtarget",
+      cdtDebugProvider,
+      DebugConfigurationProviderTriggerKind.Dynamic
+    )
   );
   context.subscriptions.push(
     debug.registerDebugAdapterDescriptorFactory(

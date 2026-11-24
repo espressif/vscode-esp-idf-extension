@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { pathExistsSync } from "fs-extra";
 import { join } from "path";
 import { ESP } from "../config";
 
@@ -66,17 +67,23 @@ export function updateCurrentIdfEnvVar(name: string, value: string): void {
   );
 }
 
+export function getVenvPythonBinPath(venvDir: string) {
+  if (process.platform === "win32") {
+    return join(venvDir, "Scripts", "python.exe");
+  }
+  const pythonPath = join(venvDir, "bin", "python");
+  if (pathExistsSync(pythonPath)) {
+    return pythonPath;
+  }
+  return join(venvDir, "bin", "python3");
+}
+
 export function getVirtualEnvPythonPath() {
   const currentEnvVars = getCurrentIdfConfiguration();
+  if (currentEnvVars["PYTHON"]) {
+    return currentEnvVars["PYTHON"];
+  }
   if (currentEnvVars["IDF_PYTHON_ENV_PATH"]) {
-    const pyDir =
-      process.platform === "win32"
-        ? ["Scripts", "python.exe"]
-        : ["bin", "python3"];
-    const venvPythonPath = join(
-      currentEnvVars["IDF_PYTHON_ENV_PATH"],
-      ...pyDir
-    );
-    return venvPythonPath;
+    return getVenvPythonBinPath(currentEnvVars["IDF_PYTHON_ENV_PATH"]);
   }
 }

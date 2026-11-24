@@ -46,16 +46,13 @@ import { ESP } from "../config";
 import { OutputChannel } from "./outputChannel";
 import { UnitTest } from "../espIdf/unitTest/adapter";
 import { updateCurrentIdfEnvVar } from "../configuration/env";
-import { ExtensionConfigStore } from "./store";
 import { refreshCurrentIdfConfiguration } from "./prepareEnv";
 
 export function registerOnDidChangeConfiguration(context: ExtensionContext) {
   context.subscriptions.push(
     workspace.onDidChangeConfiguration(async (e) => {
-      const prevWorkspaceFolderStr = ESP.GlobalConfiguration.store.get<string>(
-        ExtensionConfigStore.SELECTED_WORKSPACE_FOLDER,
-        ""
-      );
+      const prevWorkspaceFolderStr =
+        ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
       const prevWorkspaceFolder = workspace.getWorkspaceFolder(
         Uri.parse(prevWorkspaceFolderStr)
       );

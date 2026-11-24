@@ -33,6 +33,7 @@
       ]
     }
   ],
-  "typescript.updateImportsOnFileMove.enabled": "always",
+  "js/ts.updateImportsOnFileMove.enabled": "always",
   "workbench.editor.enablePreview": true,
+  "debug.javascript.enableNetworkView": false
 }

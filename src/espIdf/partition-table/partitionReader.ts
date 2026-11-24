@@ -18,6 +18,11 @@
 import { dirname, join } from "path";
 import { Progress, ProgressLocation, Uri, window } from "vscode";
 import { NotificationMode, readParameter, readSerialPort } from "../../configuration/idf";
+import {
+  esptoolProgramArgs,
+  formatEsptoolToken,
+  resolveEsptoolLaunchStyle,
+} from "../../flash/shared/esptool/esptoolCli";
 import { spawn } from "../../utils";
 import {
   getCurrentIdfConfiguration,
@@ -82,13 +87,18 @@ export async function readPartition(
       const parsedSize = parsePartitionSize(size);
 
       try {
+        const launchStyle = await resolveEsptoolLaunchStyle(pythonBinPath);
+        const readFlash = formatEsptoolToken(
+          "read_flash",
+          launchStyle.hyphenCli
+        );
         await spawn(
           pythonBinPath,
           [
-            esptoolPath,
+            ...esptoolProgramArgs(esptoolPath, launchStyle.useModule),
             "-p",
             serialPort,
-            "read_flash",
+            readFlash,
             offset,
             parsedSize,
             resultBinaryPath,
