@@ -26,6 +26,7 @@ import {
 import { Logger } from "../../common/logger";
 import { ExtensionConfigStore } from "../../common/store";
 import { ESP } from "../../config";
+import { setDefaultEimIdfJsonPathForTests } from "../../eim/getExistingSetups";
 import {
   IdfConfigurationSource,
   resetIdfConfigurationSource,
@@ -58,6 +59,7 @@ suite("runValidations forceProjectActivation", () => {
 
   teardown(() => {
     resetIdfConfigurationSource();
+    setDefaultEimIdfJsonPathForTests(undefined);
   });
 
   test("a global never suppresses activation and discards a pending force opt-in", async () => {
@@ -78,6 +80,7 @@ suite("runValidations forceProjectActivation", () => {
 
   test("consumes force activation once at the start of each run", async () => {
     requestProjectActivation();
+    setDefaultEimIdfJsonPathForTests(missingEimIdfJsonPath);
     setIdfConfigurationSource(
       stubConfigurationSource({
         getScoped: (_section, _scope, key) =>

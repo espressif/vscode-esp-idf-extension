@@ -38,7 +38,19 @@ import { compareVersion, getEspIdfFromCMake } from "../utils";
 import { loadIdfSetupsFromEspIdfJson } from "./migrationTool";
 import { WorkspaceFolder } from "vscode";
 
+/** Replaces the platform default catalog path. Tests set this so resolution does not read the developer machine. */
+let defaultEimIdfJsonPathOverride: string | undefined;
+
+export function setDefaultEimIdfJsonPathForTests(
+  path: string | undefined
+): void {
+  defaultEimIdfJsonPathOverride = path;
+}
+
 export function defaultEimIdfJsonPath() {
+  if (defaultEimIdfJsonPathOverride !== undefined) {
+    return defaultEimIdfJsonPathOverride;
+  }
   return process.platform === "win32"
     ? join("C:", "Espressif", "tools", "eim_idf.json")
     : join(process.env.HOME || "", ".espressif", "tools", "eim_idf.json");

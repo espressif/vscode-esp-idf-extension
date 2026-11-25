@@ -1823,8 +1823,7 @@
       {
         "command": "espIdf.importProject",
         "title": "%espIdf.importProject.title%",
-        "category": "ESP-IDF",
-        "enablement": "espIdf.configured"
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.qemuCommand",

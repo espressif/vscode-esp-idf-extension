@@ -347,6 +347,10 @@ export function registerWorkspaceFreeNewProjectCommands(
       }
     );
   });
+
+  registerNewProjectCommand(context, "espIdf.importProject", async () => {
+    await runImportProject(context);
+  });
 }
 
 export function registerWorkspaceNewProjectCommands(context: ExtensionContext) {
@@ -382,10 +386,6 @@ export function registerWorkspaceNewProjectCommands(context: ExtensionContext) {
       }
       await runCreateNewComponent(context, wsFolder);
     });
-  });
-
-  registerNewProjectCommand(context, "espIdf.importProject", async () => {
-    await runImportProject(context);
   });
 }
 
