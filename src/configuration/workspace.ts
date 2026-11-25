@@ -382,8 +382,46 @@ export async function getProjectMapFilePath(
 }
 
 /**
+ * Returns `CONFIG_IDF_TARGET` from the sdkconfig defaults files, like ESP-IDF does
+ * when no target is selected: the `idf.sdkconfigDefaults` files in order if any are
+ * set, otherwise `sdkconfig.defaults` in the workspace folder.
+ * @param {Uri} workspacePath - Workspace URI to resolve relative defaults files against.
+ * @returns {Promise<string>} - The target of the first file that defines one, or an empty string.
+ */
+export async function getIdfTargetFromSdkconfigDefaults(
+  workspacePath: Uri
+): Promise<string> {
+  const sdkconfigDefaults = readParameter(
+    "idf.sdkconfigDefaults",
+    workspacePath
+  );
+  const configuredFiles = Array.isArray(sdkconfigDefaults)
+    ? sdkconfigDefaults.filter((file) => typeof file === "string" && file)
+    : [];
+  const defaultsFiles = configuredFiles.length
+    ? configuredFiles
+    : ["sdkconfig.defaults"];
+  for (const defaultsFile of defaultsFiles) {
+    const defaultsFilePath = isAbsolute(defaultsFile)
+      ? defaultsFile
+      : join(workspacePath.fsPath, defaultsFile);
+    try {
+      const content = await readFile(defaultsFilePath, "utf8");
+      const match = content.match(/^CONFIG_IDF_TARGET="([^"]+)"\r?$/m);
+      if (match) {
+        return match[1];
+      }
+    } catch (error) {
+      continue;
+    }
+  }
+  return "";
+}
+
+/**
  * Returns the IDF target from `sdkconfig` (`CONFIG_IDF_TARGET`) if available.
- * If not available, uses `idf.customExtraVars.IDF_TARGET`; if still missing, returns `"esp32"`.
+ * If not available, uses `idf.customExtraVars.IDF_TARGET`, then the sdkconfig
+ * defaults files; if still missing, returns `"esp32"`.
  * Updates `statusItem.text` with the resolved IDF target when `statusItem` is provided.
  * @param {Uri} workspacePath - Workspace URI to get the IDF target from its SDK configuration.
  * @param {StatusBarItem} [statusItem] - Optional status bar item to update with the resolved IDF target.
@@ -393,55 +431,49 @@ export async function getIdfTargetFromSdkconfig(
   workspacePath: Uri,
   statusItem?: StatusBarItem
 ) {
+  let sdkconfigIdfTarget = "";
   try {
     const configIdfTarget = await getConfigValueFromSDKConfig(
       "CONFIG_IDF_TARGET",
       workspacePath
     );
-    let idfTarget = configIdfTarget.replace(/\"/g, "");
-    const customExtraVars = readParameter(
-      "idf.customExtraVars",
-      workspacePath
-    ) as { [key: string]: string };
-    const customIdfTarget = customExtraVars["IDF_TARGET"];
-
-    if (idfTarget && customIdfTarget && idfTarget !== customIdfTarget) {
-      if (!isSettingIDFTarget) {
-        showInfoNotificationWithAction(
-          l10n.t(
-            'IDF_TARGET mismatch: SDKConfig value is "{0}" but settings value is "{1}".',
-            idfTarget,
-            customIdfTarget
-          ),
-          l10n.t("Set IDF_TARGET"),
-          () => commands.executeCommand("espIdf.setTarget")
-        );
-      }
-    }
-
-    if (!idfTarget) {
-      idfTarget = customIdfTarget;
-    }
-    if (!idfTarget) {
-      idfTarget = "esp32";
-    }
-    if (statusItem) {
-      statusItem.text = "$(chip) " + idfTarget;
-    }
-    updateCurrentIdfEnvVar("IDF_TARGET", idfTarget);
-    return idfTarget;
+    sdkconfigIdfTarget = configIdfTarget.replace(/\"/g, "");
   } catch (error) {
-    const customExtraVars = readParameter(
-      "idf.customExtraVars",
-      workspacePath
-    ) as { [key: string]: string };
-    let idfTarget = customExtraVars["IDF_TARGET"] || "esp32";
-    if (statusItem) {
-      statusItem.text = `$(chip) ${idfTarget}`;
-    }
-    updateCurrentIdfEnvVar("IDF_TARGET", idfTarget);
-    return idfTarget;
+    sdkconfigIdfTarget = "";
   }
+  const customExtraVars = (readParameter(
+    "idf.customExtraVars",
+    workspacePath
+  ) || {}) as { [key: string]: string };
+  const customIdfTarget = customExtraVars["IDF_TARGET"];
+
+  if (
+    sdkconfigIdfTarget &&
+    customIdfTarget &&
+    sdkconfigIdfTarget !== customIdfTarget &&
+    !isSettingIDFTarget
+  ) {
+    showInfoNotificationWithAction(
+      l10n.t(
+        'IDF_TARGET mismatch: SDKConfig value is "{0}" but settings value is "{1}".',
+        sdkconfigIdfTarget,
+        customIdfTarget
+      ),
+      l10n.t("Set IDF_TARGET"),
+      () => commands.executeCommand("espIdf.setTarget")
+    );
+  }
+
+  const idfTarget =
+    sdkconfigIdfTarget ||
+    customIdfTarget ||
+    (await getIdfTargetFromSdkconfigDefaults(workspacePath)) ||
+    "esp32";
+  if (statusItem) {
+    statusItem.text = "$(chip) " + idfTarget;
+  }
+  updateCurrentIdfEnvVar("IDF_TARGET", idfTarget);
+  return idfTarget;
 }
 
 /**
