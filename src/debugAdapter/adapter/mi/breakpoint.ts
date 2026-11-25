@@ -36,9 +36,10 @@ export interface MIBreakDeleteRequest {}
 export interface MIBreakDeleteResponse extends MIResponse {}
 
 export interface MIBreakWatchResponse extends MIResponse {
-  wpt: { number: string; exp: string };
-  "hw-awpt": { number: string; exp: string };
-  "hw-rwpt": { number: string; exp: string };
+  /** Write watchpoint. GDB uses this for both software and hardware writes. */
+  wpt?: { number: string; exp: string };
+  "hw-awpt"?: { number: string; exp: string };
+  "hw-rwpt"?: { number: string; exp: string };
 }
 
 export interface MIBreakListResponse extends MIResponse {
@@ -172,9 +173,17 @@ export async function sendBreakWatch(
   const result = (await gdb.sendCommand(
     `-break-watch ${accessType} ${dataBreakPoint.dataId}`
   )) as MIBreakWatchResponse;
-  return (
-    result["hw-awpt"].number || result["hw-rwpt"].number || result.wpt.number
-  );
+  // A missing field is undefined. Reading `.number` on it throws, so the
+  // adapter never records the GDB number and a later empty
+  // setDataBreakpoints cannot delete the watchpoint.
+  const number =
+    result.wpt?.number ||
+    result["hw-rwpt"]?.number ||
+    result["hw-awpt"]?.number;
+  if (!number) {
+    throw new Error("GDB did not return a watchpoint number");
+  }
+  return number;
 }
 
 export async function sendFunctionBreakpointInsert(
