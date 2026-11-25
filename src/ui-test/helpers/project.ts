@@ -24,7 +24,6 @@ import {
   InputBox,
   OutputView,
   StatusBar,
-  VSBrowser,
   WebView,
   Workbench,
 } from "vscode-extension-tester";
@@ -156,75 +155,56 @@ export const ESP_IDF_COMMANDS = {
 } as const;
 
 const WORKSPACE_TITLE_TIMEOUT_MS = 60000;
-const IDF_STATUS_TIMEOUT_MS = 45000;
 
-/** Reloads the test window onto the fixture and waits until IDF setup is active. */
+/**
+ * The CI launch opens this folder before the suite (`extest -r`). Reload can
+ * still be in progress when the first test starts, so wait for the title
+ * instead of assuming a fixed delay. Fall back to the folder dialog only if
+ * that launch open did not happen.
+ */
 export async function openTestProject(): Promise<void> {
-  await VSBrowser.instance.openResources(testWorkspaceDir);
-  await waitForTestWorkspaceReady(WORKSPACE_TITLE_TIMEOUT_MS);
+  await new Workbench().executeCommand("file: open folder");
+  const input = await InputBox.create();
+  await input.setText(testWorkspaceDir);
+  await input.confirm();
 }
 
 export async function ensureTestProjectOpen(): Promise<void> {
-  if (!(await hasWorkbenchTitle(basename(testWorkspaceDir)))) {
-    await openTestProject();
+  if (await waitForWorkspaceTitle(WORKSPACE_TITLE_TIMEOUT_MS)) {
     return;
   }
-  await waitForActiveEspIdfVersion(IDF_STATUS_TIMEOUT_MS);
-}
-
-async function waitForTestWorkspaceReady(timeoutMs: number): Promise<void> {
-  const folderName = basename(testWorkspaceDir);
-  const deadline = Date.now() + timeoutMs;
-  let lastTitle = "";
-
-  while (Date.now() < deadline) {
-    let title = "";
-    try {
-      title = await new Workbench().getTitleBar().getTitle();
-    } catch {
-      // The reload drops the webdriver target until the workbench is back.
-      await new Promise((res) => setTimeout(res, 1000));
-      continue;
-    }
-    lastTitle = title;
-    if (!title.includes(folderName)) {
-      await new Promise((res) => setTimeout(res, 1000));
-      continue;
-    }
-    await new Promise((res) => setTimeout(res, 1000));
-    let settledTitle = "";
-    try {
-      settledTitle = await new Workbench().getTitleBar().getTitle();
-    } catch {
-      await new Promise((res) => setTimeout(res, 1000));
-      continue;
-    }
-    if (!settledTitle.includes(folderName)) {
-      lastTitle = settledTitle;
-      continue;
-    }
-    await waitForActiveEspIdfVersion(IDF_STATUS_TIMEOUT_MS);
+  await openTestProject();
+  if (await waitForWorkspaceTitle(WORKSPACE_TITLE_TIMEOUT_MS)) {
     return;
   }
-
   throw new Error(
-    `Test workspace "${folderName}" was not ready within ${timeoutMs} ms. Last title: "${lastTitle}".`
+    `Test workspace "${basename(testWorkspaceDir)}" was not open within ${WORKSPACE_TITLE_TIMEOUT_MS} ms. Last title: "${lastSeenWindowTitle}".`
   );
 }
 
-async function waitForActiveEspIdfVersion(timeoutMs: number): Promise<void> {
-  const deadline = Date.now() + Math.max(timeoutMs, 0);
-  let lastError = "Active ESP-IDF version was not found on the status bar.";
+let lastSeenWindowTitle = "";
+
+async function waitForWorkspaceTitle(timeoutMs: number): Promise<boolean> {
+  const folderName = basename(testWorkspaceDir);
+  const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
-      await readActiveEspIdfVersion();
-      return;
-    } catch (error) {
-      lastError = error instanceof Error ? error.message : String(error);
-      await new Promise((res) => setTimeout(res, 1000));
+      const title = await new Workbench().getTitleBar().getTitle();
+      lastSeenWindowTitle = title;
+      if (title.includes(folderName)) {
+        await new Promise((res) => setTimeout(res, 1000));
+        const settledTitle = await new Workbench().getTitleBar().getTitle();
+        lastSeenWindowTitle = settledTitle;
+        if (settledTitle.includes(folderName)) {
+          return true;
+        }
+      }
+    } catch {
+      // Folder open reloads the window and drops the webdriver target briefly.
     }
+    await new Promise((res) => setTimeout(res, 1000));
   }
-  throw new Error(lastError);
+  return false;
 }
 
 export async function executeEspIdfCommand(
@@ -326,17 +306,6 @@ export async function listQuickPickLabels(
 ): Promise<string[]> {
   const picks = await inputBox.getQuickPicks();
   return Promise.all(picks.map((pick) => pick.getLabel()));
-}
-
-async function hasWorkbenchTitle(
-  expectedTitleFragment: string
-): Promise<boolean> {
-  try {
-    const title = await new Workbench().getTitleBar().getTitle();
-    return title.includes(expectedTitleFragment);
-  } catch {
-    return false;
-  }
 }
 
 /**
