@@ -249,6 +249,12 @@ export async function expandEnvVariablesForIdfSetup(
   return modifiedEnv;
 }
 
+export function getStoredIdfSetupEnv(): { [key: string]: string } | undefined {
+  return ESP.ProjectConfiguration.store?.get<{ [key: string]: string }>(
+    ESP.ProjectConfiguration.CURRENT_IDF_SETUP_ENV
+  );
+}
+
 export async function storeIdfSetupEnvironment(
   setupEnvVars: { [key: string]: string },
   workspaceFolder: WorkspaceFolder

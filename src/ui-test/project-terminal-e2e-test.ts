@@ -26,7 +26,6 @@ import {
   ensureTestProjectOpen,
   executeEspIdfCommand,
   readActiveEspIdfVersion,
-  readCurrentTerminalText,
 } from "./ui-test-helpers";
 
 /** Tooltip of the terminal icon on the ESP-IDF status bar. */
@@ -42,10 +41,11 @@ const PROBLEM_LINE = /\b(?:error|warning|fatal|traceback)\b|command not found|vi
 
 const ACTIVATION_TIMEOUT_MS = 90000;
 const IDF_PY_TIMEOUT_MS = 60000;
-const TERMINAL_STABLE_MS = 2000;
 const TERMINAL_READ_GAP_MS = 3000;
+const TERMINAL_COPY_DELAY_MS = 500;
 const IDF_PY_BEFORE_READ_MS = 3000;
 const FOCUS_TERMINAL_COMMAND = "Terminal: Focus Terminal";
+const SELECT_ALL_TERMINAL_COMMAND = "Terminal: Select All";
 const KILL_ALL_TERMINALS_COMMAND = "Terminal: Kill All Terminals";
 
 type IdfVersionParts = {
@@ -168,10 +168,6 @@ function commonPrefixLength(full: string, snapshot: string): number {
   return index;
 }
 
-async function readTerminalText(): Promise<string> {
-  return stripTerminalText(await readCurrentTerminalText());
-}
-
 /** Empty snapshot means the whole buffer of the new terminal is the output under test. */
 function resetTerminalSnapshot(): void {
   terminalSnapshot = "";
@@ -192,8 +188,8 @@ async function waitForActiveEspIdfVersion(): Promise<string> {
 }
 
 /**
- * `TerminalView.getText()` opens the command palette (`Terminal: Select All`)
- * on every call. Read twice, with a gap, instead of polling every second.
+ * Select All clears the clipboard before the copy lands. Read once after that
+ * copy, and accept the first buffer that contains `pattern`.
  */
 async function waitForStableNewTerminalText(
   pattern: RegExp,
@@ -211,27 +207,17 @@ async function waitForStableNewTerminalText(
     } else {
       await delay(TERMINAL_READ_GAP_MS);
     }
-    let full = "";
+    let fresh = "";
     try {
-      full = await readTerminalText();
+      fresh = textAfterSnapshot(await readTerminalText(), terminalSnapshot);
     } catch {
       continue;
     }
-    const fresh = textAfterSnapshot(full, terminalSnapshot);
-    latestFresh = fresh;
-    if (!pattern.test(fresh)) {
-      continue;
+    if (fresh.length > latestFresh.length) {
+      latestFresh = fresh;
     }
-    await delay(TERMINAL_STABLE_MS);
-    try {
-      full = await readTerminalText();
-    } catch {
-      continue;
-    }
-    const settled = textAfterSnapshot(full, terminalSnapshot);
-    latestFresh = settled;
-    if (pattern.test(settled) && settled === fresh) {
-      return settled;
+    if (fresh.length > 0 && pattern.test(fresh)) {
+      return fresh;
     }
   }
 
@@ -289,6 +275,41 @@ async function isCommandPaletteOpen(): Promise<boolean> {
     const style = window.getComputedStyle(widget);
     return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
   `);
+}
+
+/**
+ * `TerminalView.getText()` returns the clipboard clear. Select All, then read
+ * once after the copy has had time to replace the sentinel.
+ */
+async function readTerminalText(): Promise<string> {
+  const clipboard = (await import("clipboardy")).default as SyncClipboard;
+  let original = "";
+  try {
+    original = clipboard.readSync();
+  } catch {
+    original = "";
+  }
+  const sentinel = `idf-terminal-read-${Date.now()}`;
+  clipboard.writeSync(sentinel);
+  try {
+    await new Workbench().executeCommand(SELECT_ALL_TERMINAL_COMMAND);
+    await waitUntilCommandPaletteClosed();
+    await delay(TERMINAL_COPY_DELAY_MS);
+    let copied = "";
+    try {
+      copied = clipboard.readSync();
+    } catch {
+      copied = "";
+    }
+    if (copied.length === 0 || copied === sentinel) {
+      return "";
+    }
+    return stripTerminalText(copied);
+  } finally {
+    if (original.length > 0) {
+      clipboard.writeSync(original);
+    }
+  }
 }
 
 async function waitUntilCommandPaletteClosed(): Promise<void> {

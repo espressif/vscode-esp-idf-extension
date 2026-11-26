@@ -32,6 +32,7 @@ import { appendBoundedFromEnd } from "../../common/error/openTaskFailedChat";
 import { isBinInPath, spawn as sspawn } from "../../utils";
 import { ESP } from "../../config";
 import {
+  areConfiguredStatusBarsSuppressed,
   statusBarItems,
   updateOpenOcdAdapterStatusBarItem,
 } from "../../statusBar";
@@ -132,7 +133,9 @@ export class OpenOCDManager extends EventEmitter {
   public updateStatusText(text: string) {
     if (this.statusBar) {
       this.statusBar.text = text;
-      this.statusBar.show();
+      if (!areConfiguredStatusBarsSuppressed()) {
+        this.statusBar.show();
+      }
     }
   }
 
@@ -441,8 +444,9 @@ export class OpenOCDManager extends EventEmitter {
     this.statusBar.tooltip = commandDictionary[CommandKeys.OpenOCD].tooltip;
     this.statusBar.command = CommandKeys.OpenOCD;
     if (
+      !areConfiguredStatusBarsSuppressed() &&
       commandDictionary[CommandKeys.OpenOCD].checkboxState ===
-      vscode.TreeItemCheckboxState.Checked
+        vscode.TreeItemCheckboxState.Checked
     ) {
       this.statusBar.show();
     }
