@@ -44,6 +44,8 @@
 
 在此扩展中，你可以通过 ``idf.buildPath`` 配置项定义构建目录，以及通过 ``idf.sdkconfigDefaults`` 配置项定义 sdkconfig 默认文件列表。扩展的构建命令将使用这些定义好的值。
 
+若项目尚未生成 ``sdkconfig`` 文件，且未通过 ``ESP-IDF：设置乐鑫设备目标`` 命令选择目标芯片，扩展会按顺序从 ``idf.sdkconfigDefaults`` 列出的文件中读取 ``CONFIG_IDF_TARGET``。若该配置项为空，则读取项目根目录下的 ``sdkconfig.defaults`` 文件。若这些文件均未定义目标芯片，则使用 ``esp32``。该顺序与 ESP-IDF 选择目标芯片的顺序一致。
+
 例如，要为产品 1 创建配置：
 
 1.  你有 sdkconfig 文件 ``sdkconfig.prod_common`` 和 ``sdkconfig.prod1``，并希望生成的固件输出到 ``<your-project>/build_prod1``，其中 ``build_prod1`` 是自定义构建目录的名称。

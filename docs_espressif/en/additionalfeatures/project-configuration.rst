@@ -44,6 +44,8 @@ With this extension's settings, the default build path (``/path/to/esp-project/b
 
 In this extension, you can define the build directory with the ``idf.buildPath`` configuration setting and the list of sdkconfig default files with ``idf.sdkconfigDefaults`` configuration. These values will be used by the extension build command.
 
+When the project has no ``sdkconfig`` file yet and no target has been selected with the ``ESP-IDF: Set Espressif Device Target`` command, the extension reads ``CONFIG_IDF_TARGET`` from the files listed in ``idf.sdkconfigDefaults``, in order. If that setting is empty, it reads the ``sdkconfig.defaults`` file in the project root directory. If none of these files defines a target, ``esp32`` is used. This is the same order ESP-IDF uses to select the target.
+
 For example, to create product 1:
 
 1.  You have sdkconfig files ``sdkconfig.prod_common`` and ``sdkconfig.prod1`` and want the resulting firmware to be generated in ``<your-project>/build_prod1``, where ``build_prod1`` is the name of the custom build folder.

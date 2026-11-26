@@ -22,7 +22,10 @@ import { addProcessTask } from "../taskManager/taskManager";
 import { ESP } from "../config";
 import type { Uri } from "vscode";
 import { readParameter } from "../configuration/idf";
-import { getIdfBuildPath } from "../configuration/workspace";
+import {
+  getIdfBuildPath,
+  getIdfTargetFromSdkconfig,
+} from "../configuration/workspace";
 import { runValidationBeforeBuild } from "./validation";
 import { enqueueCompileTaskIfNoCache } from "./cmakeConfigure";
 import { buildFinishFlashCmd } from "./buildFinishFlashCmd";
@@ -40,16 +43,18 @@ export class BuildTask {
    * before this pipeline runs.
    */
   public async build(buildType?: ESP.PartitionType): Promise<void> {
-    const modifiedEnv = getCurrentIdfConfiguration();
     const buildDirPath = getIdfBuildPath(this.currentWorkspace);
     await ensureDir(buildDirPath);
+    const cmakeCachePath = join(buildDirPath, "CMakeCache.txt");
+    const cmakeCacheExists = await pathExists(cmakeCachePath);
+    if (!cmakeCacheExists) {
+      await getIdfTargetFromSdkconfig(this.currentWorkspace);
+    }
+    const modifiedEnv = getCurrentIdfConfiguration();
     const { cmakeBin, ninjaBin } = await runValidationBeforeBuild(
       modifiedEnv,
       this.currentWorkspace
     );
-
-    const cmakeCachePath = join(buildDirPath, "CMakeCache.txt");
-    const cmakeCacheExists = await pathExists(cmakeCachePath);
 
     if (!cmakeCacheExists) {
       await enqueueCompileTaskIfNoCache(
