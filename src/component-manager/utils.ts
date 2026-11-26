@@ -17,12 +17,18 @@
 import { existsSync } from "fs";
 import { Logger } from "../common/logger";
 import { spawn } from "../utils";
-import { CancellationToken, Uri, l10n } from "vscode";
+import { CancellationToken, Uri, l10n, workspace } from "vscode";
 import { isKnownError } from "../common/error/knownError";
 import { readParameter } from "../configuration/idf";
+import { getIdfTargetFromSdkconfig } from "../configuration/workspace";
 import { join } from "path";
 import { EOL } from "os";
-import { getCurrentIdfConfiguration, getVirtualEnvPythonPath } from "../configuration/env";
+import {
+  getCurrentIdfConfiguration,
+  getVirtualEnvPythonPath,
+} from "../configuration/env";
+import { getCurrentIdfSetup } from "../eim/loadIdfSetup";
+import { configureIdfProject } from "../newProject/utils";
 
 export async function addDependency(
   workspace: Uri,
@@ -84,7 +90,9 @@ export async function addDependency(
 
 export async function createProject(
   workspace: Uri,
-  example: string
+  example: string,
+  extensionPath: string,
+  sourceWorkspace: Uri
 ): Promise<Uri> {
   try {
     const currentEnvVars = getCurrentIdfConfiguration();
@@ -104,7 +112,9 @@ export async function createProject(
 
     const match = example.match(/(?<=:).*/);
     if (!match) {
-      throw new Error(`Unexpected example format: ${example}. Expected format is "example:example_name"`);
+      throw new Error(
+        `Unexpected example format: ${example}. Expected format is "example:example_name"`
+      );
     }
     const projectPath = Uri.joinPath(workspace, match[0]);
 
@@ -125,23 +135,16 @@ export async function createProject(
     Logger.infoNotify(`Creating project from ${example}"`);
     Logger.info(createProjectResult.toString());
 
-    const marker = "downloaded to ";
-    const markerIndex = createProjectResult.toString().lastIndexOf(marker);
-    if (markerIndex !== -1) {
-      const extractedPathLines = createProjectResult
-        .toString()
-        .substring(markerIndex + marker.length)
-        .trim();
-      const lineBreakIndex = extractedPathLines.lastIndexOf(EOL);
-      const extractedPath = extractedPathLines
-        .toString()
-        .substring(0, lineBreakIndex)
-        .trim();
-      Logger.info(`Extracted path ${extractedPath}`);
-      return Uri.file(extractedPath);
-    }
-
-    return projectPath;
+    const createdProject = projectUriFromCreateOutput(
+      createProjectResult.toString(),
+      projectPath
+    );
+    await configureCreatedProject(
+      extensionPath,
+      createdProject,
+      sourceWorkspace
+    );
+    return createdProject;
   } catch (error) {
     if (isKnownError(error)) {
       throw error;
@@ -156,4 +159,36 @@ export async function createProject(
     Logger.error(msg, error as Error, "Component manager createProject");
     throw throwableError;
   }
+}
+
+function projectUriFromCreateOutput(output: string, fallback: Uri): Uri {
+  const marker = "downloaded to ";
+  const markerIndex = output.lastIndexOf(marker);
+  if (markerIndex === -1) {
+    return fallback;
+  }
+  const extractedPath = output
+    .substring(markerIndex + marker.length)
+    .split(EOL)[0]
+    .trim();
+  if (!extractedPath) {
+    return fallback;
+  }
+  Logger.info(`Extracted path ${extractedPath}`);
+  return Uri.file(extractedPath);
+}
+
+async function configureCreatedProject(
+  extensionPath: string,
+  projectDir: Uri,
+  sourceWorkspace: Uri
+) {
+  await configureIdfProject(
+    extensionPath,
+    projectDir,
+    await getCurrentIdfSetup(workspace.getWorkspaceFolder(sourceWorkspace)),
+    "detect",
+    await getIdfTargetFromSdkconfig(sourceWorkspace),
+    readParameter("idf.openOcdConfigs", sourceWorkspace) as string[]
+  );
 }
