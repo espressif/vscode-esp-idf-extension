@@ -26,6 +26,7 @@ import {
 import {
   createCmdsStatusBarItems,
   statusBarItems,
+  updateDebugConnectionModeStatusBarItem,
   updateOpenOcdAdapterStatusBarItem,
 } from "../statusBar";
 import { readParameter } from "../configuration/idf";
@@ -51,8 +52,7 @@ import { refreshCurrentIdfConfiguration } from "./prepareEnv";
 export function registerOnDidChangeConfiguration(context: ExtensionContext) {
   context.subscriptions.push(
     workspace.onDidChangeConfiguration(async (e) => {
-      const prevWorkspaceFolderStr =
-        ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
+      const prevWorkspaceFolderStr = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
       const prevWorkspaceFolder = workspace.getWorkspaceFolder(
         Uri.parse(prevWorkspaceFolderStr)
       );
@@ -185,6 +185,12 @@ export function registerOnDidChangeConfiguration(context: ExtensionContext) {
         ) as boolean;
         const enabled = enableIdfComponentManager ? "1" : "0";
         updateCurrentIdfEnvVar("IDF_COMPONENT_MANAGER", enabled);
+      }
+      if (
+        prevWorkspaceFolder &&
+        e.affectsConfiguration("launch", prevWorkspaceFolder)
+      ) {
+        updateDebugConnectionModeStatusBarItem(prevWorkspaceFolder.uri);
       }
     })
   );

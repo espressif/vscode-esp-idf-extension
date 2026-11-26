@@ -545,6 +545,14 @@ export function gdbinitPrefixMapMissing(filePath: string): KnownError {
   return known(ErrorCode.GdbinitPrefixMapMissing, { filePath });
 }
 
+export function runtimeGdbStubNotEnabled(): KnownError {
+  return known(ErrorCode.RuntimeGdbStubNotEnabled);
+}
+
+export function openOcdBlocksUartGdbStub(): KnownError {
+  return known(ErrorCode.OpenOcdBlocksUartGdbStub);
+}
+
 export type TraceTclPhase = "reset" | "start" | "status" | "stop";
 
 export function traceTclFailed(

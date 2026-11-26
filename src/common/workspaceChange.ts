@@ -22,6 +22,7 @@ import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
 import {
   createCmdsStatusBarItems,
   statusBarItems,
+  updateDebugConnectionModeStatusBarItem,
   updateOpenOcdAdapterStatusBarItem,
 } from "../statusBar";
 import { readParameter } from "../configuration/idf";
@@ -45,8 +46,7 @@ export function registerOnDidWorkspaceFolderChanges(context: ExtensionContext) {
   context.subscriptions.push(
     workspace.onDidChangeWorkspaceFolders(async (e) => {
       if (PreCheck.isWorkspaceFolderOpen()) {
-        const prevWorkspaceFolder =
-          ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
+        const prevWorkspaceFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
         for (const ws of e.removed) {
           if (
             prevWorkspaceFolder &&
@@ -69,8 +69,7 @@ export async function configureForWorkspace(
   context: ExtensionContext,
   workspaceFolder: WorkspaceFolder
 ) {
-  const prevWorkspaceFolderStr =
-    ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
+  const prevWorkspaceFolderStr = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolderUri();
   ESP.GlobalConfiguration.store.setSelectedWorkspaceFolder(workspaceFolder.uri);
   if (
     prevWorkspaceFolderStr &&
@@ -105,6 +104,7 @@ export async function configureForWorkspace(
       commandDictionary[CommandKeys.SelectFlashType].iconId
     }) ${readParameter("idf.flashType", workspaceFolder.uri)}`;
   }
+  updateDebugConnectionModeStatusBarItem(workspaceFolder.uri);
   updateOpenOcdAdapterStatusBarItem(workspaceFolder.uri);
   const monitorPort = readParameter(
     "idf.monitorPort",
@@ -153,8 +153,7 @@ export async function configureForWorkspace(
 }
 
 export async function useSelectedWorkspaceFolder(context: ExtensionContext) {
-  const wsFolder =
-    ESP.GlobalConfiguration.store.findSelectedWorkspaceFolder();
+  const wsFolder = ESP.GlobalConfiguration.store.findSelectedWorkspaceFolder();
   if (wsFolder) {
     if (Object.keys(statusBarItems).length === 0) {
       await createCmdsStatusBarItems(context, wsFolder.uri);

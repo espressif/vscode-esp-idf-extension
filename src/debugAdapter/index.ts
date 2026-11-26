@@ -76,5 +76,5 @@ export function registerDebugCommands(context: ExtensionContext) {
 
   registerHexViewCommands(context, hexViewProvider);
   registerImageViewCommands(context);
-  registerEspIdfDebugCommand(context, cdtDebugProvider);
+  registerEspIdfDebugCommand(context);
 }

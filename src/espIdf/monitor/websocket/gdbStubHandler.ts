@@ -14,8 +14,8 @@ import { IdfMonitorWebSocketServer } from ".";
 import { IDFMonitor } from "../terminal";
 import { handleError } from "../../../common/error/handler";
 import { monitorDebugLaunchFailed } from "../../../common/error/knownError";
+import { ESP } from "../../../config";
 
-const GDB_STUB_SESSION_ID = "gdbstub.debug.session.ws";
 const LAUNCH_WS_MONITOR_COMMAND = "espIdf.launchWSServerAndMonitor";
 
 export interface WsGdbStubHandlerContext {
@@ -34,7 +34,7 @@ export async function handleWsGdbStubDetected(
       name: "GDB Stub Debug",
       type: "gdbtarget",
       request: "attach",
-      sessionID: GDB_STUB_SESSION_ID,
+      sessionID: ESP.DebugSession.PANIC_GDBSTUB_SESSION_ID,
       gdb: gdbPath,
       program: resp.prog,
       logFile: `${join(wsFolder.uri.fsPath, "gdbstub.log")}`,
@@ -42,14 +42,16 @@ export async function handleWsGdbStubDetected(
         connectCommands: [`target remote ${resp.port}`],
       },
     });
-    registerWsMonitorDebugCleanup(GDB_STUB_SESSION_ID, () => {
-      IdfMonitorWebSocketServer.done();
-      IDFMonitor.dispose();
-      IdfMonitorWebSocketServer.close();
-    });
+    registerWsMonitorDebugCleanup(
+      ESP.DebugSession.PANIC_GDBSTUB_SESSION_ID,
+      () => {
+        IdfMonitorWebSocketServer.done();
+        IDFMonitor.dispose();
+        IdfMonitorWebSocketServer.close();
+      }
+    );
   } catch (error) {
-    const detail =
-      error instanceof Error ? error.message : String(error);
+    const detail = error instanceof Error ? error.message : String(error);
     await handleError(
       LAUNCH_WS_MONITOR_COMMAND,
       monitorDebugLaunchFailed("gdb_stub", detail)
