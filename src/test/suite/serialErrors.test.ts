@@ -16,7 +16,11 @@
  */
 
 import * as assert from "assert";
+import { resolve } from "path";
 import * as vscode from "vscode";
+import { Logger } from "../../common/logger";
+import { readSerialPort } from "../../configuration/idf";
+import { createMockMemento } from "../mockUtils";
 import {
   childProcessFailed,
   isKnownError,
@@ -57,9 +61,52 @@ function createFakeIdfSource(getValues: Record<string, unknown> = {}) {
 }
 
 suite("serial errors", () => {
+  suiteSetup(() => {
+    const absPath = (filename: string) =>
+      resolve(__dirname, "..", "..", "..", filename);
+    Logger.init({
+      extensionPath: resolve(__dirname, "..", "..", ".."),
+      asAbsolutePath: absPath,
+      workspaceState: createMockMemento(),
+      globalState: createMockMemento(),
+    } as vscode.ExtensionContext);
+  });
+
   teardown(() => {
     setSerialPortModuleTestHooks(undefined);
     resetIdfConfigurationSource();
+  });
+
+  suite("readSerialPort", () => {
+    test("keeps idf.port as detect after a successful detection", async () => {
+      const writes: string[] = [];
+      const source = createFakeIdfSource({
+        "idf.port": "detect",
+        "idf.serialPortDetectionTimeout": 1,
+      });
+      source.updateScoped = async (...args: unknown[]) => {
+        writes.push(String(args[2]));
+      };
+      source.updateGlobal = async (...args: unknown[]) => {
+        writes.push(String(args[0]));
+      };
+      setIdfConfigurationSource(source);
+      setSerialPortModuleTestHooks({
+        getCurrentIdfConfiguration: () => ({ IDF_PATH: "/idf" }),
+        getExpectedIdfTarget: async () => "esp32",
+        resolveEsptoolInvocation: async () => ({
+          pythonPath: "/usr/bin/python3",
+          esptoolScriptPath: "/idf/components/esptool_py/esptool/esptool.py",
+        }),
+        spawn: async () =>
+          Buffer.from("Serial port COM30\nChip is ESP32 (revision v3.1)\n", "utf8"),
+      });
+
+      const port = await readSerialPort(testWorkspaceUri, false, false);
+
+      assert.strictEqual(port, "COM30");
+      assert.deepStrictEqual(writes, []);
+    });
   });
 
   suite("resolveKnownErrorUserMessage", () => {

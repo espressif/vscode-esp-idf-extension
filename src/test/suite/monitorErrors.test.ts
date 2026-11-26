@@ -16,10 +16,14 @@
  */
 
 import * as assert from "assert";
+import { resolve } from "path";
+import { ExtensionContext, Uri, WorkspaceFolder } from "vscode";
 import { ErrorSeverity } from "../../common/customNotifications";
 import {
+  childProcessFailed,
   fileNotFound,
   idfTaskInProgress,
+  isKnownError,
   monitorWsPortInUse,
   monitorWsPortNotConfigured,
   noPortSelected,
@@ -28,6 +32,13 @@ import {
   resolveKnownErrorDescriptor,
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
+import { ErrorCode } from "../../common/error/types";
+import { Logger } from "../../common/logger";
+import {
+  resolveMonitorPort,
+  setMonitorLaunchConfigTestHooks,
+} from "../../espIdf/monitor/launchConfig";
+import { createMockMemento } from "../mockUtils";
 const monitorPresentation = {
   taskInProgress: {
     severity: ErrorSeverity.Warning,
@@ -60,6 +71,112 @@ const monitorPresentation = {
 };
 
 suite("monitor errors", () => {
+  suite("resolveMonitorPort", () => {
+    const workspaceFolder: WorkspaceFolder = {
+      uri: Uri.file("/test/workspace"),
+      name: "workspace",
+      index: 0,
+    };
+
+    suiteSetup(() => {
+      const absPath = (filename: string) =>
+        resolve(__dirname, "..", "..", "..", filename);
+      Logger.init({
+        extensionPath: resolve(__dirname, "..", "..", ".."),
+        asAbsolutePath: absPath,
+        workspaceState: createMockMemento(),
+        globalState: createMockMemento(),
+      } as ExtensionContext);
+    });
+
+    teardown(() => {
+      setMonitorLaunchConfigTestHooks(undefined);
+    });
+
+    test("uses the resolved idf.monitorPort without reading idf.port", async () => {
+      const requestedMonitorPort: boolean[] = [];
+      setMonitorLaunchConfigTestHooks({
+        readSerialPort: async (_workspaceFolder, useMonitorPort) => {
+          requestedMonitorPort.push(useMonitorPort);
+          return useMonitorPort ? "COM9" : "COM1";
+        },
+        promptForPort: async () => undefined,
+      });
+      assert.strictEqual(await resolveMonitorPort(workspaceFolder), "COM9");
+      assert.deepStrictEqual(requestedMonitorPort, [true]);
+    });
+
+    test("uses the resolved idf.port when idf.monitorPort is empty", async () => {
+      let promptCalls = 0;
+      setMonitorLaunchConfigTestHooks({
+        readSerialPort: async (_workspaceFolder, useMonitorPort) =>
+          useMonitorPort ? "" : "COM1",
+        promptForPort: async () => {
+          promptCalls++;
+          return "COM4";
+        },
+      });
+      assert.strictEqual(await resolveMonitorPort(workspaceFolder), "COM1");
+      assert.strictEqual(promptCalls, 0);
+    });
+
+    test("prompts for a port when auto-detection finds no device", async () => {
+      let promptedForMonitorPort: boolean | undefined;
+      setMonitorLaunchConfigTestHooks({
+        readSerialPort: async () => "",
+        promptForPort: async (_workspaceFolder, useMonitorPort) => {
+          promptedForMonitorPort = useMonitorPort;
+          return "COM4";
+        },
+      });
+      assert.strictEqual(await resolveMonitorPort(workspaceFolder), "COM4");
+      assert.strictEqual(promptedForMonitorPort, false);
+    });
+
+    test("prompts for a port when auto-detection fails with a known error", async () => {
+      setMonitorLaunchConfigTestHooks({
+        readSerialPort: async (_workspaceFolder, useMonitorPort) => {
+          if (useMonitorPort) {
+            return "";
+          }
+          throw childProcessFailed({ detail: "esptool timed out" });
+        },
+        promptForPort: async () => "COM4",
+      });
+      assert.strictEqual(await resolveMonitorPort(workspaceFolder), "COM4");
+    });
+
+    test("rethrows unexpected auto-detection errors", async () => {
+      let promptCalls = 0;
+      setMonitorLaunchConfigTestHooks({
+        readSerialPort: async () => {
+          throw new Error("serialport module failed to load");
+        },
+        promptForPort: async () => {
+          promptCalls++;
+          return "COM4";
+        },
+      });
+      await assert.rejects(
+        resolveMonitorPort(workspaceFolder),
+        /serialport module failed to load/
+      );
+      assert.strictEqual(promptCalls, 0);
+    });
+
+    test("throws NoPortSelected when the port prompt is dismissed", async () => {
+      setMonitorLaunchConfigTestHooks({
+        readSerialPort: async () => "",
+        promptForPort: async () => undefined,
+      });
+      await assert.rejects(
+        resolveMonitorPort(workspaceFolder),
+        (error: unknown) =>
+          isKnownError(error) && error.code === ErrorCode.NoPortSelected
+      );
+    });
+  });
+
   suite("resolveKnownErrorUserMessage", () => {
     test("command mapping applies Monitor output channel for NoPortSelected", () => {
       const descriptor = resolveKnownErrorDescriptor(

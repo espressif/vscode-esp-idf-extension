@@ -8,7 +8,7 @@
 
 import { join } from "path";
 import { R_OK } from "constants";
-import { commands, WorkspaceFolder } from "vscode";
+import { commands, Uri, WorkspaceFolder } from "vscode";
 import { ErrorSeverity } from "../../common/customNotifications";
 import { pathExists } from "fs-extra";
 import { readParameter, readSerialPort } from "../../configuration/idf";
@@ -22,6 +22,8 @@ import { BuildSession } from "../../build/buildSession";
 import { EraseFlashSession } from "../../eraseFlash/eraseFlashSession";
 import { getMonitorBaudRate } from "./getMonitorBaudRate";
 import { MonitorConfig } from "./types";
+import { SerialPort } from "../serial/serialPort";
+import { Logger } from "../../common/logger";
 import { canAccessFile, getEspIdfFromCMake, getToolchainToolName } from "../../utils";
 import {
   fileNotFound,
@@ -31,11 +33,82 @@ import {
   invalidConfiguration,
   invalidIdfVersion,
   IdfTaskName,
+  isKnownError,
   missingDependency,
   noPortSelected,
 } from "../../common/error/knownError";
 
 const UNRESOLVED_IDF_VERSION = "x.x";
+
+type ReadSerialPortFn = (
+  workspaceFolder: Uri,
+  useMonitorPort: boolean
+) => Promise<string>;
+type PromptForPortFn = (
+  workspaceFolder: Uri,
+  useMonitorPort: boolean
+) => Promise<string | undefined>;
+
+let readSerialPortForTests: ReadSerialPortFn | undefined;
+let promptForPortForTests: PromptForPortFn | undefined;
+
+/** @internal Test helper to stub serial port resolution for the monitor. */
+export function setMonitorLaunchConfigTestHooks(hooks?: {
+  readSerialPort?: ReadSerialPortFn;
+  promptForPort?: PromptForPortFn;
+}): void {
+  readSerialPortForTests = hooks?.readSerialPort;
+  promptForPortForTests = hooks?.promptForPort;
+}
+
+async function readMonitorSerialPort(
+  workspaceFolder: Uri,
+  useMonitorPort: boolean
+): Promise<string> {
+  try {
+    return await (readSerialPortForTests ?? readSerialPort)(
+      workspaceFolder,
+      useMonitorPort
+    );
+  } catch (error) {
+    if (!isKnownError(error)) {
+      throw error;
+    }
+    Logger.warn(
+      `Serial port auto-detection failed (${error.code}), asking for a port.`
+    );
+    return "";
+  }
+}
+
+export async function resolveMonitorPort(
+  workspaceFolder: WorkspaceFolder
+): Promise<string> {
+  const monitorPort = await readMonitorSerialPort(workspaceFolder.uri, true);
+  if (monitorPort) {
+    return monitorPort;
+  }
+  const serialPort = await readMonitorSerialPort(workspaceFolder.uri, false);
+  if (serialPort) {
+    return serialPort;
+  }
+  const selectedPort = promptForPortForTests
+    ? await promptForPortForTests(workspaceFolder.uri, false)
+    : await SerialPort.shared().promptUserToSelect(workspaceFolder.uri, false);
+  if (selectedPort) {
+    return selectedPort;
+  }
+  throw noPortSelected({
+    userMessage: "Select a serial port before starting the monitor.",
+    logMessage: "No serial port selected for monitor.",
+    actions: [
+      {
+        label: "Select Port",
+        execute: () => commands.executeCommand("espIdf.selectPort"),
+      },
+    ],
+  });
+}
 
 export async function loadMonitorLaunchConfig(
   workspaceFolder: WorkspaceFolder,
@@ -70,24 +143,7 @@ export async function loadMonitorLaunchConfig(
     });
   }
 
-  const serialPort = await readSerialPort(workspaceFolder.uri, false);
-  const monitorPort = readParameter(
-    "idf.monitorPort",
-    workspaceFolder
-  ) as string;
-  const port = monitorPort ? monitorPort : serialPort;
-  if (!port) {
-    throw noPortSelected({
-      userMessage: "Select a serial port before starting the monitor.",
-      logMessage: "No serial port selected for monitor.",
-      actions: [
-        {
-          label: "Select Port",
-          execute: () => commands.executeCommand("espIdf.selectPort"),
-        },
-      ],
-    });
-  }
+  const port = await resolveMonitorPort(workspaceFolder);
 
   const pythonBinPath = getVirtualEnvPythonPath();
   if (!pythonBinPath || !canAccessFile(pythonBinPath, R_OK)) {

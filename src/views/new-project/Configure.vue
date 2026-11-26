@@ -35,6 +35,12 @@ function setContainerDirectory(newPath: string) {
   }
 }
 
+const noSerialPortsFound = computed(
+  () =>
+    serialPortList.value.length > 0 &&
+    serialPortList.value.every((port) => port === "detect")
+);
+
 const showCustomBoardInput = computed(() => {
   const showTarget =
     boards.value.length === 0 ||
@@ -210,6 +216,9 @@ function handleCreateProject() {
                 {{ port }}
               </option>
             </select>
+          </div>
+          <div v-if="noSerialPortsFound" class="settings-description">
+            No serial ports found, connect a board later.
           </div>
         </div>
       </div>

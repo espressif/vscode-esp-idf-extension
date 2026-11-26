@@ -16,6 +16,8 @@
  */
 
 import * as assert from "assert";
+import { resolve } from "path";
+import { ExtensionContext, Uri, WorkspaceFolder } from "vscode";
 import {
   importProjectFailed,
   isKnownError,
@@ -27,6 +29,14 @@ import {
   resolveKnownErrorUserMessage,
 } from "../../common/error/resolve";
 import { ErrorCode } from "../../common/error/types";
+import { Logger } from "../../common/logger";
+import {
+  resetIdfConfigurationSource,
+  setIdfConfigurationSource,
+} from "../../configuration/idfConfigurationSource";
+import { setSerialPortModuleTestHooks } from "../../espIdf/serial/serialPort";
+import { loadSerialPorts } from "../../newProject/newProjectInit";
+import { createMockMemento } from "../mockUtils";
 
 const newProjectErrorOptions = { outputChannel: "New Project" };
 
@@ -75,6 +85,59 @@ suite("new project command errors", () => {
         ),
         "Failed to import the ESP-IDF project."
       );
+    });
+  });
+
+  suite("loadSerialPorts", () => {
+    const workspaceFolder: WorkspaceFolder = {
+      uri: Uri.file("/test/workspace"),
+      name: "workspace",
+      index: 0,
+    };
+
+    suiteSetup(() => {
+      const absPath = (filename: string) =>
+        resolve(__dirname, "..", "..", "..", filename);
+      Logger.init({
+        extensionPath: resolve(__dirname, "..", "..", ".."),
+        asAbsolutePath: absPath,
+        workspaceState: createMockMemento(),
+        globalState: createMockMemento(),
+      } as ExtensionContext);
+    });
+
+    setup(() => {
+      setIdfConfigurationSource({
+        getScoped: () => undefined,
+        inspectGlobal: () => undefined,
+        updateScoped: async () => undefined,
+        updateGlobal: async () => undefined,
+        refreshConfiguration: () => undefined,
+      });
+    });
+
+    teardown(() => {
+      setSerialPortModuleTestHooks(undefined);
+      resetIdfConfigurationSource();
+    });
+
+    test("keeps the detect option when no serial ports are available", async () => {
+      setSerialPortModuleTestHooks({ listSerialPorts: async () => [] });
+      assert.deepStrictEqual(await loadSerialPorts(workspaceFolder), [
+        "detect",
+      ]);
+    });
+
+    test("lists the detect option before the available ports", async () => {
+      setSerialPortModuleTestHooks({
+        listSerialPorts: async () => [
+          { path: "COM3", manufacturer: "Silicon Labs" },
+        ],
+      });
+      assert.deepStrictEqual(await loadSerialPorts(workspaceFolder), [
+        "detect",
+        "COM3",
+      ]);
     });
   });
 
