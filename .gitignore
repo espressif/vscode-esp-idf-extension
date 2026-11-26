@@ -11,6 +11,9 @@ testFiles/blink
 testFiles/tools
 testFiles/testWorkspace/build
 testFiles/testWorkspace/sdkconfig*
+testFiles/gdbStubWorkspace/build
+testFiles/gdbStubWorkspace/sdkconfig
+testFiles/gdbStubWorkspace/sdkconfig.old
 *.log
 .DS_Store
 bandit_output.txt
