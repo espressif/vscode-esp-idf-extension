@@ -155,22 +155,29 @@ export const ESP_IDF_COMMANDS = {
 } as const;
 
 const WORKSPACE_TITLE_TIMEOUT_MS = 60000;
+const WORKSPACE_ALREADY_OPEN_POLL_MS = 3000;
 
-/**
- * The CI launch opens this folder before the suite (`extest -r`). Reload can
- * still be in progress when the first test starts, so wait for the title
- * instead of assuming a fixed delay. Fall back to the folder dialog only if
- * that launch open did not happen.
- */
 export async function openTestProject(): Promise<void> {
   await new Workbench().executeCommand("file: open folder");
+  await new Promise((res) => setTimeout(res, 1000));
   const input = await InputBox.create();
   await input.setText(testWorkspaceDir);
   await input.confirm();
 }
 
+/**
+ * `ci-test` opens this folder before the suite (`extest -r`,
+ * IDF_UI_TEST_WORKSPACE_LAUNCHED=1). That reload can still be in progress,
+ * so wait for the title. Hardware CI does not pre-open the folder; a long
+ * poll there runs out the `before` hook before the dialog can open it.
+ */
 export async function ensureTestProjectOpen(): Promise<void> {
-  if (await waitForWorkspaceTitle(WORKSPACE_TITLE_TIMEOUT_MS)) {
+  const launchAlreadyOpenedWorkspace =
+    process.env.IDF_UI_TEST_WORKSPACE_LAUNCHED === "1";
+  const initialWaitMs = launchAlreadyOpenedWorkspace
+    ? WORKSPACE_TITLE_TIMEOUT_MS
+    : WORKSPACE_ALREADY_OPEN_POLL_MS;
+  if (await waitForWorkspaceTitle(initialWaitMs)) {
     return;
   }
   await openTestProject();
