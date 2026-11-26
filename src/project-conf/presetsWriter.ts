@@ -82,6 +82,34 @@ export async function updateCurrentProfileCustomExtraVars(
   });
 }
 
+export async function removeCurrentProfileCustomExtraVars(
+  variableNames: string[],
+  workspaceFolder: Uri
+) {
+  const selectedConfig = ESP.ProjectConfiguration.store?.get<string>(
+    ESP.ProjectConfiguration.SELECTED_CONFIG
+  );
+  if (!selectedConfig) {
+    return;
+  }
+  const selectedPreset = ESP.ProjectConfiguration.store.get<ConfigurePreset>(
+    selectedConfig
+  );
+  const environment = selectedPreset?.environment ?? {};
+  if (!variableNames.some((name) => name in environment)) {
+    return;
+  }
+
+  await updateCurrentProjectConfiguration(workspaceFolder, (preset) => {
+    const nextEnvironment = { ...preset.environment };
+    for (const name of variableNames) {
+      delete nextEnvironment[name];
+    }
+    preset.environment = nextEnvironment;
+    return preset;
+  });
+}
+
 /**
  * Applies an update to the selected preset in the file that declares it, then
  * refreshes the in-memory store with the resolved result.

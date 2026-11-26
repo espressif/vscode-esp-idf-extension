@@ -143,17 +143,17 @@ export async function getBoards(
 export async function selectOpenOcdConfigFiles(
   workspaceFolder: WorkspaceFolder,
   idfTarget?: string
-) {
+): Promise<boolean> {
   const openOcdScriptsPath = await getOpenOcdScripts(workspaceFolder);
   if (!idfTarget) {
     idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder.uri);
     if (!idfTarget) {
       commands.executeCommand("espIdf.setTarget");
-      return;
+      return false;
     }
   }
   if (idfTarget === "linux") {
-    return;
+    return false;
   }
 
   const { boards: detectedBoards, openOCDVersion } =
@@ -227,10 +227,11 @@ export async function selectOpenOcdConfigFiles(
     (item) => item.picked
   );
 
-  return new Promise<void>((resolve) => {
+  let applied = false;
+  return new Promise<boolean>((resolve) => {
     boardQuickPick.onDidHide(() => {
       boardQuickPick.dispose();
-      resolve();
+      resolve(applied);
     });
     boardQuickPick.onDidAccept(async () => {
       const selectedBoard = boardQuickPick.selectedItems[0];
@@ -267,8 +268,9 @@ export async function selectOpenOcdConfigFiles(
             isConnected: false,
           });
         }
+        applied = true;
         boardQuickPick.dispose();
-        resolve();
+        resolve(applied);
       }
       boardQuickPick.hide();
     });
