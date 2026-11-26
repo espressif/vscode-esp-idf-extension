@@ -177,8 +177,8 @@ function resetTerminalSnapshot(): void {
   terminalSnapshot = "";
 }
 
-async function waitForActiveEspIdfVersion(): Promise<string> {
-  const deadline = Date.now() + 30000;
+async function waitForActiveEspIdfVersion(timeoutMs = 30000): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
   let lastError = "Active ESP-IDF version was not found on the status bar.";
   while (Date.now() < deadline) {
     try {
@@ -411,6 +411,8 @@ describe("ESP-IDF terminal", () => {
     this.timeout(180000);
     await dismissNotifications();
     await ensureTestProjectOpen();
+    await dismissNotifications();
+    await waitForActiveEspIdfVersion(45000);
   });
 
   after(async function () {
