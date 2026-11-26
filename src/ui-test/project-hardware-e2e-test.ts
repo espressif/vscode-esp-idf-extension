@@ -334,7 +334,7 @@ async function assertNoOpenOcdFatal(when: string): Promise<void> {
 
 describe("Hardware E2E: build → flash → monitor → debug", () => {
   before(async function () {
-    this.timeout(100000);
+    this.timeout(180000);
     await dismissNotifications();
     await ensureTestProjectOpen();
   });

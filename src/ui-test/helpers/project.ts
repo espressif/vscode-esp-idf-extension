@@ -154,21 +154,64 @@ export const ESP_IDF_COMMANDS = {
   openIdfTerminal: "ESP-IDF: Open ESP-IDF Terminal",
 } as const;
 
+const WORKSPACE_TITLE_TIMEOUT_MS = 60000;
+const WORKSPACE_ALREADY_OPEN_POLL_MS = 3000;
+
 export async function openTestProject(): Promise<void> {
-  await new Promise((res) => setTimeout(res, 5000));
   await new Workbench().executeCommand("file: open folder");
   await new Promise((res) => setTimeout(res, 1000));
   const input = await InputBox.create();
   await input.setText(testWorkspaceDir);
   await input.confirm();
-  await new Promise((res) => setTimeout(res, 4000));
 }
 
+/**
+ * `ci-test` opens this folder before the suite (`extest -r`,
+ * IDF_UI_TEST_WORKSPACE_LAUNCHED=1). That reload can still be in progress,
+ * so wait for the title. Hardware CI does not pre-open the folder; a long
+ * poll there runs out the `before` hook before the dialog can open it.
+ */
 export async function ensureTestProjectOpen(): Promise<void> {
-  if (await hasWorkbenchTitle(basename(testWorkspaceDir))) {
+  const launchAlreadyOpenedWorkspace =
+    process.env.IDF_UI_TEST_WORKSPACE_LAUNCHED === "1";
+  const initialWaitMs = launchAlreadyOpenedWorkspace
+    ? WORKSPACE_TITLE_TIMEOUT_MS
+    : WORKSPACE_ALREADY_OPEN_POLL_MS;
+  if (await waitForWorkspaceTitle(initialWaitMs)) {
     return;
   }
   await openTestProject();
+  if (await waitForWorkspaceTitle(WORKSPACE_TITLE_TIMEOUT_MS)) {
+    return;
+  }
+  throw new Error(
+    `Test workspace "${basename(testWorkspaceDir)}" was not open within ${WORKSPACE_TITLE_TIMEOUT_MS} ms. Last title: "${lastSeenWindowTitle}".`
+  );
+}
+
+let lastSeenWindowTitle = "";
+
+async function waitForWorkspaceTitle(timeoutMs: number): Promise<boolean> {
+  const folderName = basename(testWorkspaceDir);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const title = await new Workbench().getTitleBar().getTitle();
+      lastSeenWindowTitle = title;
+      if (title.includes(folderName)) {
+        await new Promise((res) => setTimeout(res, 1000));
+        const settledTitle = await new Workbench().getTitleBar().getTitle();
+        lastSeenWindowTitle = settledTitle;
+        if (settledTitle.includes(folderName)) {
+          return true;
+        }
+      }
+    } catch {
+      // Folder open reloads the window and drops the webdriver target briefly.
+    }
+    await new Promise((res) => setTimeout(res, 1000));
+  }
+  return false;
 }
 
 export async function executeEspIdfCommand(
@@ -270,17 +313,6 @@ export async function listQuickPickLabels(
 ): Promise<string[]> {
   const picks = await inputBox.getQuickPicks();
   return Promise.all(picks.map((pick) => pick.getLabel()));
-}
-
-async function hasWorkbenchTitle(
-  expectedTitleFragment: string
-): Promise<boolean> {
-  try {
-    const title = await new Workbench().getTitleBar().getTitle();
-    return title.includes(expectedTitleFragment);
-  } catch {
-    return false;
-  }
 }
 
 /**

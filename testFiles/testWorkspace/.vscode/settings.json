@@ -5,6 +5,7 @@
   ],
   "files.simpleDialog.enable": true,
   "window.dialogStyle": "custom",
+  "window.openFoldersInNewWindow": "off",
   "idf.notificationMode": "Output",
   "idf.showOnboardingOnInit": false,
   "idf.currentSetup": "C:\\esp\\master\\esp-idf"
