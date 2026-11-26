@@ -44,6 +44,7 @@ const ACTIVATION_TIMEOUT_MS = 90000;
 const IDF_PY_TIMEOUT_MS = 60000;
 const TERMINAL_STABLE_MS = 2000;
 const TERMINAL_READ_GAP_MS = 3000;
+const TERMINAL_READ_ATTEMPTS = 3;
 const IDF_PY_BEFORE_READ_MS = 3000;
 const FOCUS_TERMINAL_COMMAND = "Terminal: Focus Terminal";
 const KILL_ALL_TERMINALS_COMMAND = "Terminal: Kill All Terminals";
@@ -172,6 +173,34 @@ async function readTerminalText(): Promise<string> {
   return stripTerminalText(await readCurrentTerminalText());
 }
 
+/**
+ * Select All clears the clipboard before the copy lands, so `getText()` often
+ * returns "". Retry those misses and keep the longest copy when they disagree.
+ */
+async function readLongestTerminalText(): Promise<string> {
+  let longest = "";
+  let nonEmptyReads = 0;
+  for (let attempt = 0; attempt < TERMINAL_READ_ATTEMPTS; attempt += 1) {
+    let text = "";
+    try {
+      text = await readTerminalText();
+    } catch {
+      text = "";
+    }
+    if (text.length === 0) {
+      continue;
+    }
+    nonEmptyReads += 1;
+    if (text.length > longest.length) {
+      longest = text;
+    }
+    if (nonEmptyReads >= 2) {
+      break;
+    }
+  }
+  return longest;
+}
+
 /** Empty snapshot means the whole buffer of the new terminal is the output under test. */
 function resetTerminalSnapshot(): void {
   terminalSnapshot = "";
@@ -192,8 +221,9 @@ async function waitForActiveEspIdfVersion(): Promise<string> {
 }
 
 /**
- * `TerminalView.getText()` opens the command palette (`Terminal: Select All`)
- * on every call. Read twice, with a gap, instead of polling every second.
+ * `TerminalView.getText()` opens the command palette on every call, and the
+ * clipboard copy is often empty or partial. Two non-empty matches of `pattern`
+ * are enough; the copies do not have to be identical.
  */
 async function waitForStableNewTerminalText(
   pattern: RegExp,
@@ -211,27 +241,26 @@ async function waitForStableNewTerminalText(
     } else {
       await delay(TERMINAL_READ_GAP_MS);
     }
-    let full = "";
-    try {
-      full = await readTerminalText();
-    } catch {
-      continue;
+    const fresh = textAfterSnapshot(
+      await readLongestTerminalText(),
+      terminalSnapshot
+    );
+    if (fresh.length > latestFresh.length) {
+      latestFresh = fresh;
     }
-    const fresh = textAfterSnapshot(full, terminalSnapshot);
-    latestFresh = fresh;
     if (!pattern.test(fresh)) {
       continue;
     }
     await delay(TERMINAL_STABLE_MS);
-    try {
-      full = await readTerminalText();
-    } catch {
-      continue;
+    const settled = textAfterSnapshot(
+      await readLongestTerminalText(),
+      terminalSnapshot
+    );
+    if (settled.length > latestFresh.length) {
+      latestFresh = settled;
     }
-    const settled = textAfterSnapshot(full, terminalSnapshot);
-    latestFresh = settled;
-    if (pattern.test(settled) && settled === fresh) {
-      return settled;
+    if (pattern.test(settled)) {
+      return settled.length >= fresh.length ? settled : fresh;
     }
   }
 
@@ -384,7 +413,7 @@ async function assertIdfPyVersionMatchesActiveVersion(
 ): Promise<void> {
   const activeVersion = await waitForActiveEspIdfVersion();
   await new BottomBarPanel().openTerminalView();
-  terminalSnapshot = await readTerminalText();
+  terminalSnapshot = await readLongestTerminalText();
   await pasteIntoActiveTerminal("idf.py --version");
   await focusTerminalByCommand();
   await pressEnterInTerminal();
