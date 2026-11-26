@@ -156,7 +156,6 @@ export const ESP_IDF_COMMANDS = {
 
 const WORKSPACE_TITLE_TIMEOUT_MS = 60000;
 const WORKSPACE_ALREADY_OPEN_POLL_MS = 3000;
-const COMMAND_PALETTE_READY_TIMEOUT_MS = 30000;
 
 export async function openTestProject(): Promise<void> {
   await new Workbench().executeCommand("file: open folder");
@@ -171,9 +170,6 @@ export async function openTestProject(): Promise<void> {
  * IDF_UI_TEST_WORKSPACE_LAUNCHED=1). That reload can still be in progress,
  * so wait for the title. Hardware CI does not pre-open the folder; a long
  * poll there runs out the `before` hook before the dialog can open it.
- *
- * The title updates before the reloaded window accepts Ctrl+Shift+P.
- * `InputBox.create` only waits 5s for the palette to become visible.
  */
 export async function ensureTestProjectOpen(): Promise<void> {
   const launchAlreadyOpenedWorkspace =
@@ -182,35 +178,14 @@ export async function ensureTestProjectOpen(): Promise<void> {
     ? WORKSPACE_TITLE_TIMEOUT_MS
     : WORKSPACE_ALREADY_OPEN_POLL_MS;
   if (await waitForWorkspaceTitle(initialWaitMs)) {
-    await waitUntilCommandPaletteReady();
     return;
   }
   await openTestProject();
   if (await waitForWorkspaceTitle(WORKSPACE_TITLE_TIMEOUT_MS)) {
-    await waitUntilCommandPaletteReady();
     return;
   }
   throw new Error(
     `Test workspace "${basename(testWorkspaceDir)}" was not open within ${WORKSPACE_TITLE_TIMEOUT_MS} ms. Last title: "${lastSeenWindowTitle}".`
-  );
-}
-
-async function waitUntilCommandPaletteReady(): Promise<void> {
-  await dismissNotifications();
-  const deadline = Date.now() + COMMAND_PALETTE_READY_TIMEOUT_MS;
-  let lastError = "Command palette did not become visible.";
-  while (Date.now() < deadline) {
-    try {
-      const prompt = await new Workbench().openCommandPrompt();
-      await prompt.cancel();
-      return;
-    } catch (error) {
-      lastError = error instanceof Error ? error.message : String(error);
-      await new Promise((res) => setTimeout(res, 1000));
-    }
-  }
-  throw new Error(
-    `Command palette did not open after the test workspace loaded. ${lastError}`
   );
 }
 

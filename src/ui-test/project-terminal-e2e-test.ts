@@ -406,6 +406,29 @@ async function assertIdfPyVersionMatchesActiveVersion(
   assertSameIdfVersion(activeVersion, reported, `${where} idf.py --version`);
 }
 
+/** The reloaded window can miss the first Ctrl+Shift+P. ExTester then waits 5s. */
+async function openEspIdfTerminalFromPalette(): Promise<void> {
+  const attempts = 3;
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      await executeEspIdfCommand(ESP_IDF_COMMANDS.openIdfTerminal);
+      return;
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message : String(error);
+      if (
+        attempt === attempts ||
+        !message.includes("Waiting until element is visible")
+      ) {
+        throw error;
+      }
+      await delay(1000);
+    }
+  }
+  throw lastError;
+}
+
 describe("ESP-IDF terminal", () => {
   before(async function () {
     this.timeout(180000);
@@ -426,7 +449,7 @@ describe("ESP-IDF terminal", () => {
     () => {
       step("Open ESP-IDF terminal from the command palette", async () => {
         resetTerminalSnapshot();
-        await executeEspIdfCommand(ESP_IDF_COMMANDS.openIdfTerminal);
+        await openEspIdfTerminalFromPalette();
       });
 
       step(
