@@ -39,6 +39,15 @@ export const testWorkspaceDir = resolve(
   "testWorkspace"
 );
 
+export const gdbStubWorkspaceDir = resolve(
+  __dirname,
+  "..",
+  "..",
+  "..",
+  "testFiles",
+  "gdbStubWorkspace"
+);
+
 export const helloWorldBinPath = resolve(
   testWorkspaceDir,
   "build",
@@ -154,14 +163,18 @@ export const ESP_IDF_COMMANDS = {
   openIdfTerminal: "ESP-IDF: Open ESP-IDF Terminal",
 } as const;
 
-export async function openTestProject(): Promise<void> {
+export async function openWorkspaceFolder(folder: string): Promise<void> {
   await new Promise((res) => setTimeout(res, 5000));
   await new Workbench().executeCommand("file: open folder");
   await new Promise((res) => setTimeout(res, 1000));
   const input = await InputBox.create();
-  await input.setText(testWorkspaceDir);
+  await input.setText(folder);
   await input.confirm();
   await new Promise((res) => setTimeout(res, 4000));
+}
+
+export async function openTestProject(): Promise<void> {
+  await openWorkspaceFolder(testWorkspaceDir);
 }
 
 export async function ensureTestProjectOpen(): Promise<void> {

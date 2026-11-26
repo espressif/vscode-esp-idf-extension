@@ -42,6 +42,7 @@ import {
   reuseOrLaunchDebugger,
   selectFromCurrentPicker,
   setBreakpointInFile,
+  releaseSerialMonitor,
   stopDebugSession,
   testHardwareSerialPort,
   testWorkspaceDir,
@@ -336,6 +337,7 @@ describe("Hardware E2E: build → flash → monitor → debug", () => {
   before(async function () {
     this.timeout(100000);
     await dismissNotifications();
+    await releaseSerialMonitor();
     await ensureTestProjectOpen();
   });
 

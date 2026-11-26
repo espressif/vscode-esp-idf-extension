@@ -211,6 +211,31 @@ export async function evaluateDebugConsoleAndWait(
 }
 
 /**
+ * Drops the serial monitor and the debug session so the UART port can be
+ * opened again. Does not reset the board: the gdb-stub firmware panics on
+ * boot, and a reset would re-enter the stub. The next UART flash is what
+ * replaces that firmware.
+ */
+export async function releaseSerialMonitor(): Promise<void> {
+  await stopDebugSession().catch((err) => {
+    logDebugSession(
+      `releaseSerialMonitor stop failed: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    );
+  });
+  await new Workbench()
+    .executeCommand("workbench.action.terminal.kill")
+    .catch(() => undefined);
+  await delay(1000);
+  for (const pattern of ["idf_monitor.py", "esp_idf_monitor"]) {
+    logDebugSession(`pkill -f "${pattern}"`);
+    await execAsync(`pkill -f "${pattern}"`).catch(() => undefined);
+  }
+  await delay(1000);
+}
+
+/**
  * Force-terminates leftover OpenOCD, CDT gdb-adapter, and chip GDB processes.
  * Last resort after VS Code Stop + OpenOCD Manager; `pkill` exit 1 is ignored.
  */
