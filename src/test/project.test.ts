@@ -17,12 +17,14 @@
  */
 import * as assert from "assert";
 import {
+  ensureDir,
   readdir,
   readFile,
   readJson,
   remove,
   stat,
   utimes,
+  writeFile,
   writeJson,
 } from "fs-extra";
 import { join, resolve } from "path";
@@ -32,6 +34,7 @@ import {
   addVscodeFolderToWorkspace,
   copyFromSrcProject,
   createVscodeFolder,
+  checkIsProjectCmakeLists,
   readProjectCMakeLists,
   setCurrentSettingsInTemplate,
   updateProjectNameInCMakeLists,
@@ -432,6 +435,148 @@ suite("Project tests", () => {
     assert.notEqual(newProjectName, undefined);
     assert.equal(currProjectName, `${prevName}`);
     assert.equal(newProjectName, `${newName}`);
+  });
+
+  test("Update project name keeps languages", async () => {
+    const projectPath = join(wsFolder, "project-with-languages");
+    await ensureDir(projectPath);
+    const cmakeListPath = join(projectPath, "CMakeLists.txt");
+    const cmakeContent = [
+      "cmake_minimum_required(VERSION 3.16)",
+      "project(hello_world C CXX ASM)",
+      "",
+    ].join("\n");
+    await writeFile(cmakeListPath, cmakeContent);
+    await updateProjectNameInCMakeLists(projectPath, "new_name");
+    const updated = await readFile(cmakeListPath, "utf8");
+    assert.equal(
+      updated,
+      [
+        "cmake_minimum_required(VERSION 3.16)",
+        "project(new_name C CXX ASM)",
+        "",
+      ].join("\n")
+    );
+  });
+
+  const projectRenameCases = [
+    {
+      name: "quoted project name",
+      before: 'project("hello world" C CXX ASM)',
+      after: "project(new_name C CXX ASM)",
+    },
+    {
+      name: "complete command identifier and whitespace",
+      before: "my_project(unchanged C)\nproject \t(hello_world C CXX ASM)",
+      after: "my_project(unchanged C)\nproject \t(new_name C CXX ASM)",
+    },
+    {
+      name: "commented declarations and comments before the name",
+      before:
+        "# project(unchanged C)\nproject(\n  # project(fake C)\n  # name follows\n  hello_world C CXX ASM\n)",
+      after:
+        "# project(unchanged C)\nproject(\n  # project(fake C)\n  # name follows\n  new_name C CXX ASM\n)",
+    },
+    {
+      name: "bracket comments and quoted command text",
+      before:
+        '#[=[\nproject(unchanged)\n]=]\nmessage("project(unchanged)")\nproject(#[[comment]] "hello world" C CXX ASM)',
+      after:
+        '#[=[\nproject(unchanged)\n]=]\nmessage("project(unchanged)")\nproject(#[[comment]] new_name C CXX ASM)',
+    },
+    {
+      name: "project only at command boundaries",
+      before: [
+        "set(PROJECT (old_value))",
+        "set(FOO (bar) PROJECT (old_value))",
+        "PROJECT(hello_world C CXX ASM)",
+        "project(hello (nested))",
+      ].join("\n"),
+      after: [
+        "set(PROJECT (old_value))",
+        "set(FOO (bar) PROJECT (old_value))",
+        "PROJECT(new_name C CXX ASM)",
+        "project(new_name (nested))",
+      ].join("\n"),
+    },
+  ];
+  for (const { name, before, after } of projectRenameCases) {
+    test(`Update project name handles ${name}`, async () => {
+      const projectPath = join(wsFolder, "project-rename-regression");
+      await ensureDir(projectPath);
+      const cmakeListPath = join(projectPath, "CMakeLists.txt");
+      await writeFile(cmakeListPath, before);
+      await updateProjectNameInCMakeLists(projectPath, "new_name");
+      assert.equal(await readFile(cmakeListPath, "utf8"), after);
+    });
+  }
+
+  const projectDetectionCases = [
+    {
+      name: "project command",
+      content: "project(hello_world)",
+      isProject: true,
+    },
+    {
+      name: "case-insensitive project command with whitespace",
+      content: "PROJECT (hello)",
+      isProject: true,
+    },
+    {
+      name: "project command split from its name by a comment",
+      content: "project(\n  # name follows\n  hello\n)",
+      isProject: true,
+    },
+    {
+      name: "project command after a nested false positive",
+      content: "set(PROJECT (old_value))\nproject(hello (nested))",
+      isProject: true,
+    },
+    {
+      name: "line comment",
+      content: "# project(hello)",
+      isProject: false,
+    },
+    {
+      name: "quoted command text",
+      content: 'message("project(hello)")',
+      isProject: false,
+    },
+    {
+      name: "longer command identifier",
+      content: "my_project(hello)",
+      isProject: false,
+    },
+    {
+      name: "nested project argument",
+      content: "set(PROJECT (old_value))",
+      isProject: false,
+    },
+    {
+      name: "project argument after a nested group",
+      content: "set(FOO (bar) PROJECT (old_value))",
+      isProject: false,
+    },
+    {
+      name: "bracket comment",
+      content: "#[=[\nproject(hello)\n]=]",
+      isProject: false,
+    },
+  ];
+  for (const { name, content, isProject } of projectDetectionCases) {
+    test(`checkIsProjectCmakeLists handles ${name}`, async () => {
+      const projectPath = join(wsFolder, "project-detection");
+      await ensureDir(projectPath);
+      await writeFile(join(projectPath, "CMakeLists.txt"), content);
+      assert.equal(checkIsProjectCmakeLists(projectPath), isProject);
+    });
+  }
+
+  test("checkIsProjectCmakeLists handles a missing CMakeLists.txt", () => {
+    assert.equal(
+      checkIsProjectCmakeLists(join(wsFolder, "missing-cmake-project")),
+      false
+    );
   });
 
   test("get templates projects", async () => {
