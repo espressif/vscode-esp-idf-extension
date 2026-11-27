@@ -61,10 +61,10 @@ export function isValidJSON(
     if (row.type.match(/^(0x01|data)$/)) {
       if (
         !row.subtype.match(
-          /^(ota|phy|nvs|nvs_keys|spiffs|coredump|fat)$|^(0x)(([0][0-6])|[8][0-2])$/
+          /^(ota|phy|nvs|nvs_keys|spiffs|coredump|fat|littlefs|efuse)$|^(0x)(([0][0-6])|[8][0-3])$/
         )
       ) {
-        return 'When type is "data", the subtype field can be specified as "ota" (0x00), "phy" (0x01), "nvs" (0x02), "nvs_keys" (0x04), "fat" (0x81), "spiffs" (0x82) or a range of other component-specific subtypes (0x05, 0x06, 0x80, 0x81, 0x82)';
+        return 'When type is "data", the subtype field can be specified as "ota" (0x00), "phy" (0x01), "nvs" (0x02), "nvs_keys" (0x04), "efuse" (0x05), "fat" (0x81), "spiffs" (0x82), "littlefs" (0x83) or a range of other component-specific subtypes (0x05, 0x06, 0x80, 0x81, 0x82, 0x83)';
       }
     }
     // For custom type
@@ -123,8 +123,7 @@ export function JSON2CSV(rows: PartitionTable.Row[]): String {
     ) {
       return;
     }
-    let flag = row.flag === true ? "encrypted" : "";
-    csv += `${row.name},${row.type},${row.subtype},${row.offset},${row.size},${flag}${EOL}`;
+    csv += `${row.name},${row.type},${row.subtype},${row.offset},${row.size},${formatFlags(row)}${EOL}`;
   });
   return csv;
 }
@@ -144,15 +143,39 @@ export function CSV2JSON<T>(csv: String): T[] {
       return;
     }
     const cols = line.split(",");
+    const flags = parseFlags((cols[5] ?? "").trim());
     rows.push({
       name: (cols.shift() ?? "").trim(),
       type: (cols.shift() ?? "").trim(),
       subtype: (cols.shift() ?? "").trim(),
       offset: (cols.shift() ?? "").trim(),
       size: (cols.shift() ?? "").trim(),
-      flag: (cols.shift() ?? "").trim() === "encrypted" ? true : false,
+      flag: flags.flag,
+      readOnly: flags.readOnly,
       error: undefined,
     });
   });
   return rows;
+}
+
+function formatFlags(row: PartitionTable.Row): string {
+  const flags = [];
+  if (row.flag) {
+    flags.push("encrypted");
+  }
+  if (row.readOnly) {
+    flags.push("readonly");
+  }
+  return flags.join(":");
+}
+
+function parseFlags(field: string): { flag: boolean; readOnly: boolean } {
+  const names = field
+    .split(":")
+    .map((part) => part.trim().toLowerCase())
+    .filter(Boolean);
+  return {
+    flag: names.includes("encrypted"),
+    readOnly: names.includes("readonly"),
+  };
 }

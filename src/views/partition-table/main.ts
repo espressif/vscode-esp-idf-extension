@@ -32,10 +32,21 @@ const store = usePartitionTableStore();
 window.addEventListener("message", (event) => {
   const message = event.data;
   switch (message.command) {
-    case "loadInitialData":
-      if (message.csv) {
-        const rows = CSV2JSON<PartitionTable.Row>(message.csv);
-        store.rows = rows;
+    case "loadInitialData": {
+      const rows = message.csv
+        ? CSV2JSON<PartitionTable.Row>(message.csv)
+        : [];
+      const offset = Number(message.partitionTableOffset);
+      store.loadInitial(
+        rows,
+        Number(message.flashSizeBytes) || 0,
+        Number.isFinite(offset) && offset >= 0 ? offset : 0x8000
+      );
+      break;
+    }
+    case "pasteCsvData":
+      if (typeof message.csv === "string") {
+        store.consumePaste(message.csv);
       }
       break;
     default:
