@@ -46,6 +46,7 @@ import {
 import { throwFlashCapturedTaskFailure } from "./shared/flashTaskFailure";
 import { assertMinimumOpenOcdVersionForJtag } from "../espIdf/openOcd/jtagPreflight";
 import { EraseFlashSession } from "../eraseFlash/eraseFlashSession";
+import { CleanSession } from "../clean/cleanSession";
 import { flashJtagOpenOcdPresentation } from "./jtagOpenOcdPresentation";
 import { Logger } from "../common/logger";
 import { flashDoneMessage } from "./shared/flashTaskEpilogue";
@@ -126,6 +127,9 @@ export async function flashMain(
       if (EraseFlashSession.isActive) {
         throw idfTaskInProgress(IdfTaskName.EraseFlash);
       }
+      if (CleanSession.isActive) {
+        throw idfTaskInProgress(IdfTaskName.FullClean);
+      }
       session = FlashSession.acquire();
       TaskManager.clearTaskResults();
       cancelSubscription = cancelToken.onCancellationRequested(() => {
@@ -142,6 +146,9 @@ export async function flashMain(
       }
       if (EraseFlashSession.isActive) {
         throw idfTaskInProgress(IdfTaskName.EraseFlash);
+      }
+      if (CleanSession.isActive) {
+        throw idfTaskInProgress(IdfTaskName.FullClean);
       }
       session = FlashSession.acquire();
       TaskManager.clearTaskResults();

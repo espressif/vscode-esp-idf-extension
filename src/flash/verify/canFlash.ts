@@ -21,6 +21,7 @@ import { commands, Uri } from "vscode";
 import { BuildSession } from "../../build/buildSession";
 import { FlashSession } from "../shared/flashSession";
 import { EraseFlashSession } from "../../eraseFlash/eraseFlashSession";
+import { CleanSession } from "../../clean/cleanSession";
 import { Logger } from "../../common/logger";
 import { pathExists } from "fs-extra";
 import { join } from "path";
@@ -54,6 +55,9 @@ export async function verifyCanFlash(
   }
   if (EraseFlashSession.isActive) {
     throw idfTaskInProgress(IdfTaskName.EraseFlash);
+  }
+  if (CleanSession.isActive) {
+    throw idfTaskInProgress(IdfTaskName.FullClean);
   }
   if (!(await pathExists(buildDirPath))) {
     throw buildRequiredBeforeFlash(buildDirPath);

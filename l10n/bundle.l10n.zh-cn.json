@@ -7,6 +7,7 @@
   "Choose a container directory...": "选择容器目录…",
   "Select a directory to use": "选择目录",
   "Trying to delete the build folder. Closing existing SDK Configuration editor process...": "尝试删除构建文件夹。正在关闭当前 SDK 配置编辑器进程…",
+  "Trying to delete the build folder. Closing the ESP-IDF Monitor...": "尝试删除构建文件夹。正在关闭 ESP-IDF 监视器…",
   "Build directory has been deleted.": "构建目录已被删除。",
   "ESP-IDF: Erasing device flash memory (erase_flash)": "ESP-IDF：擦除设备 flash 数据（erase_flash）",
   "ESP-IDF: Arduino ESP32 as ESP-IDF component": "ESP-IDF：添加 Arduino ESP32 为 ESP-IDF 组件",

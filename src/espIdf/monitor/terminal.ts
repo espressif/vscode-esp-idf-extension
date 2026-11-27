@@ -145,6 +145,35 @@ export class IDFMonitor {
     }
   }
 
+  static async disposeAndWait(timeoutMs: number): Promise<boolean> {
+    const terminal = IDFMonitor.terminal;
+    if (!terminal) {
+      return true;
+    }
+    const closed = new Promise<boolean>((resolve) => {
+      let timer: NodeJS.Timeout;
+      const finish = (didClose: boolean) => {
+        clearTimeout(timer);
+        listener.dispose();
+        if (IDFMonitor.terminal === terminal) {
+          IDFMonitor.terminal = undefined;
+        }
+        resolve(didClose);
+      };
+      const listener = window.onDidCloseTerminal((closedTerminal) => {
+        if (closedTerminal === terminal) {
+          finish(true);
+        }
+      });
+      timer = setTimeout(() => {
+        terminal.dispose();
+        timer = setTimeout(() => finish(false), timeoutMs);
+      }, timeoutMs);
+    });
+    await IDFMonitor.dispose();
+    return closed;
+  }
+
   private static isDebugSessionActive(): boolean {
     return debug.activeDebugSession !== undefined;
   }

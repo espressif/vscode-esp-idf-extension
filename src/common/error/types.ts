@@ -60,6 +60,7 @@ export enum ErrorCode {
   DfuTargetNotCompatible = "DfuTargetNotCompatible",
   NoBuildDirToClean = "NoBuildDirToClean",
   CMakeCacheNotFound = "CMakeCacheNotFound",
+  BuildDirLocked = "BuildDirLocked",
 
   // Flash
   FlashEncryptionValidationFailed = "FlashEncryptionValidationFailed",
