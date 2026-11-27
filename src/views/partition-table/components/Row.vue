@@ -2,6 +2,39 @@
 import { computed } from "vue";
 import { IconQuestion, IconTrash } from "@iconify-prerendered/vue-codicon";
 
+const APP_SUBTYPES = [
+  "factory",
+  "test",
+  "ota_0",
+  "ota_1",
+  "ota_2",
+  "ota_3",
+  "ota_4",
+  "ota_5",
+  "ota_6",
+  "ota_7",
+  "ota_8",
+  "ota_9",
+  "ota_10",
+  "ota_11",
+  "ota_12",
+  "ota_13",
+  "ota_14",
+  "ota_15",
+];
+
+const DATA_SUBTYPES = [
+  "ota",
+  "phy",
+  "nvs",
+  "nvs_keys",
+  "efuse",
+  "coredump",
+  "fat",
+  "spiffs",
+  "littlefs",
+];
+
 const props = defineProps<{
   sName: string;
   sType: string;
@@ -9,46 +42,108 @@ const props = defineProps<{
   sOffset: string;
   sSize: string;
   sFlag: boolean;
+  sReadOnly: boolean;
   error: string;
+  layout?: {
+    offset: number;
+    size: number;
+    minSize: number;
+    maxSize: number;
+    step: number;
+    reclaimable: number;
+    canFit: boolean;
+    recommended?: number;
+  };
 }>();
 
 const emit = defineEmits<{
-  (e: 'updateRow', field: string, value: string | boolean): void;
-  (e: 'delete'): void;
-  (e: 'showError', error: string): void;
+  (e: "updateRow", field: string, value: string | boolean): void;
+  (e: "delete"): void;
+  (e: "showError", error: string): void;
+  (e: "setSize", bytes: number): void;
+  (e: "reclaim"): void;
+  (e: "fit"): void;
+  (e: "recommended"): void;
 }>();
 
-const types = computed(() => {
-  return ["app", "data"];
+const typeChoice = computed(() => {
+  if (props.sType === "app" || props.sType === "data") {
+    return props.sType;
+  }
+  if (!props.sType) {
+    return "";
+  }
+  return "custom";
 });
 
 const subtypes = computed(() => {
   if (props.sType === "app") {
-    return [
-      "factory",
-      "ota_0",
-      "ota_1",
-      "ota_2",
-      "ota_3",
-      "ota_4",
-      "ota_5",
-      "ota_6",
-      "ota_7",
-      "ota_8",
-      "ota_9",
-      "ota_10",
-      "ota_11",
-      "ota_12",
-      "ota_13",
-      "ota_14",
-      "ota_15",
-      "test",
-    ];
-  } else if (props.sType === "data") {
-    return ["fat", "ota", "phy", "nvs", "nvs_keys", "spiffs", "coredump"];
+    return APP_SUBTYPES;
+  }
+  if (props.sType === "data") {
+    return DATA_SUBTYPES;
   }
   return [];
 });
+
+const canDecrease = computed(() => {
+  if (!props.layout) {
+    return false;
+  }
+  return props.layout.size > props.layout.minSize;
+});
+
+const canIncrease = computed(() => {
+  if (!props.layout) {
+    return false;
+  }
+  return props.layout.size < props.layout.maxSize;
+});
+
+function onTypeChoice(value: string) {
+  if (value === "app") {
+    emit("updateRow", "type", "app");
+    if (!APP_SUBTYPES.includes(props.sSubType)) {
+      emit("updateRow", "subtype", "factory");
+    }
+    return;
+  }
+  if (value === "data") {
+    emit("updateRow", "type", "data");
+    if (!DATA_SUBTYPES.includes(props.sSubType)) {
+      emit("updateRow", "subtype", "nvs");
+    }
+    return;
+  }
+  if (value === "custom") {
+    const nextType =
+      props.sType === "app" || props.sType === "data" || !props.sType
+        ? "0x40"
+        : props.sType;
+    emit("updateRow", "type", nextType);
+    if (!/^0x[0-9a-fA-F]+$/i.test(props.sSubType)) {
+      emit("updateRow", "subtype", "0x00");
+    }
+  }
+}
+
+function onSlide(event: Event) {
+  const value = Number((event.target as HTMLInputElement).value);
+  if (Number.isFinite(value)) {
+    emit("setSize", value);
+  }
+}
+
+function stepBy(direction: number) {
+  if (!props.layout) {
+    return;
+  }
+  emit("setSize", props.layout.size + direction * props.layout.step);
+}
+
+function hexOffset(value: number): string {
+  return `0x${value.toString(16).toUpperCase()}`;
+}
 </script>
 
 <template>
@@ -66,20 +161,42 @@ const subtypes = computed(() => {
     <td class="w-md">
       <select
         class="vscode-select"
-        :value="props.sType"
-        @change="$emit('updateRow', 'type', ($event.target as HTMLSelectElement)?.value)"
+        :value="typeChoice"
+        @change="onTypeChoice(($event.target as HTMLSelectElement)?.value)"
       >
-        <option v-for="t in types" :value="t"> {{ t }}</option>
+        <option value="">Type</option>
+        <option value="app">app</option>
+        <option value="data">data</option>
+        <option value="custom">custom</option>
       </select>
+      <input
+        v-if="typeChoice === 'custom'"
+        class="vscode-input custom-field"
+        type="text"
+        placeholder="0x40"
+        maxlength="6"
+        :value="props.sType"
+        @input="$emit('updateRow', 'type', ($event.target as HTMLInputElement)?.value)"
+      />
     </td>
     <td class="w-md">
       <select
+        v-if="typeChoice !== 'custom'"
         class="vscode-select"
         :value="props.sSubType"
         @change="$emit('updateRow', 'subtype', ($event.target as HTMLSelectElement)?.value)"
       >
         <option v-for="t in subtypes" :value="t"> {{ t }}</option>
       </select>
+      <input
+        v-else
+        class="vscode-input"
+        type="text"
+        placeholder="0x00"
+        maxlength="6"
+        :value="props.sSubType"
+        @input="$emit('updateRow', 'subtype', ($event.target as HTMLInputElement)?.value)"
+      />
     </td>
     <td>
       <input
@@ -89,8 +206,11 @@ const subtypes = computed(() => {
         :value="props.sOffset"
         @input="$emit('updateRow', 'offset', ($event.target as HTMLInputElement)?.value)"
       />
+      <p v-if="!props.sOffset && props.layout" class="offset-hint">
+        {{ hexOffset(props.layout.offset) }}
+      </p>
     </td>
-    <td>
+    <td class="size-cell">
       <input
         class="vscode-input"
         type="text"
@@ -98,23 +218,105 @@ const subtypes = computed(() => {
         :value="props.sSize"
         @input="$emit('updateRow','size', ($event.target as HTMLInputElement)?.value)"
       />
+      <div v-if="props.layout" class="size-modifier">
+        <div class="size-slider">
+          <button
+            type="button"
+            class="size-step"
+            title="Decrease size"
+            :disabled="!canDecrease"
+            @click="stepBy(-1)"
+          >
+            −
+          </button>
+          <input
+            class="size-range"
+            type="range"
+            aria-label="Partition size"
+            :min="props.layout.minSize"
+            :max="props.layout.maxSize"
+            :step="props.layout.step"
+            :value="props.layout.size >= props.layout.minSize ? props.layout.size : props.layout.minSize"
+            @input="onSlide"
+          />
+          <button
+            type="button"
+            class="size-step"
+            title="Increase size"
+            :disabled="!canIncrease"
+            @click="stepBy(1)"
+          >
+            +
+          </button>
+        </div>
+        <div class="size-actions">
+          <button
+            type="button"
+            class="size-action"
+            title="Take the free gap immediately after this partition"
+            :disabled="props.layout.reclaimable <= 0"
+            @click="$emit('reclaim')"
+          >
+            Reclaim
+          </button>
+          <button
+            type="button"
+            class="size-action"
+            title="Grow to the remaining flash"
+            :disabled="!props.layout.canFit"
+            @click="$emit('fit')"
+          >
+            Fit
+          </button>
+          <button
+            v-if="props.layout.recommended"
+            type="button"
+            class="size-action"
+            title="Snap to the recommended minimum size"
+            @click="$emit('recommended')"
+          >
+            Recommended
+          </button>
+        </div>
+      </div>
     </td>
     <td>
-      <div class="checkbox-wrapper">
-        <label
-          class="vscode-checkbox"
-          role="checkbox"
-          :aria-checked="props.sFlag"
-        >
-          <input
-            type="checkbox"
-            :checked="props.sFlag"
-            @change="$emit('updateRow', 'flag', ($event.target as HTMLInputElement)?.checked)"
-            style="display: none;"
-          />
-          <span class="icon" :class="{ 'is-checked': props.sFlag }">
-            <span class="check-mark" v-if="props.sFlag">✓</span>
+      <div class="flag-list">
+        <label class="flag-option">
+          <span
+            class="vscode-checkbox"
+            role="checkbox"
+            :aria-checked="props.sFlag"
+          >
+            <input
+              type="checkbox"
+              :checked="props.sFlag"
+              @change="$emit('updateRow', 'flag', ($event.target as HTMLInputElement)?.checked)"
+              style="display: none;"
+            />
+            <span class="icon" :class="{ 'is-checked': props.sFlag }">
+              <span class="check-mark" v-if="props.sFlag">✓</span>
+            </span>
           </span>
+          <span>Encrypted</span>
+        </label>
+        <label class="flag-option">
+          <span
+            class="vscode-checkbox"
+            role="checkbox"
+            :aria-checked="props.sReadOnly"
+          >
+            <input
+              type="checkbox"
+              :checked="props.sReadOnly"
+              @change="$emit('updateRow', 'readOnly', ($event.target as HTMLInputElement)?.checked)"
+              style="display: none;"
+            />
+            <span class="icon" :class="{ 'is-checked': props.sReadOnly }">
+              <span class="check-mark" v-if="props.sReadOnly">✓</span>
+            </span>
+          </span>
+          <span>Read-only</span>
         </label>
       </div>
     </td>
@@ -176,6 +378,66 @@ const subtypes = computed(() => {
 }
 .w-md {
   min-width: 130px;
+}
+.custom-field {
+  margin-top: 6px;
+}
+.offset-hint {
+  margin: 4px 0 0;
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+}
+.size-cell {
+  min-width: 220px;
+}
+.size-modifier {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+.size-slider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.size-range {
+  flex: 1;
+  min-width: 80px;
+  accent-color: var(--vscode-button-background);
+}
+.size-step,
+.size-action {
+  height: 22px;
+  padding: 0 8px;
+  background: var(--vscode-button-secondaryBackground, var(--vscode-button-background));
+  color: var(--vscode-button-secondaryForeground, var(--vscode-button-foreground));
+  border: none;
+  border-radius: 2px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.size-step:disabled,
+.size-action:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.size-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.flag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.flag-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
 }
 .error {
   background-color: rgba(176, 81, 41, 0.1);

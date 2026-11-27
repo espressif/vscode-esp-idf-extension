@@ -5,7 +5,8 @@
     "subtype": "nvs",
     "offset": "0x9000",
     "size": "24K",
-    "flag": false
+    "flag": false,
+    "readOnly": false
   },
   {
     "name": "phy_init",
@@ -13,7 +14,8 @@
     "subtype": "phy",
     "offset": "0xf000",
     "size": "4K",
-    "flag": false
+    "flag": false,
+    "readOnly": false
   },
   {
     "name": "factory",
@@ -21,6 +23,7 @@
     "subtype": "factory",
     "offset": "0x10000",
     "size": "1M",
-    "flag": true
+    "flag": true,
+    "readOnly": false
   }
 ]

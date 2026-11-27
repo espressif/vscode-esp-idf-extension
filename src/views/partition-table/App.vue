@@ -4,9 +4,19 @@ import Header from "./components/Header.vue";
 import PartitionTable from "./components/PartitionTable.vue";
 import Row from "./components/Row.vue";
 import ErrorDialog from "./components/ErrorDialog.vue";
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
+import { resolveLayout } from "./layout";
 
 const store = usePartitionTableStore();
+
+const layout = computed(() =>
+  resolveLayout(
+    store.rows,
+    store.flashSizeBytes,
+    store.partitionTableOffset,
+    store.keepEqualOtaSlots
+  )
+);
 
 // Error dialog state
 const showErrorDialog = ref(false);
@@ -21,6 +31,7 @@ function addEmptyRow() {
     offset: "",
     size: "",
     flag: false,
+    readOnly: false,
   });
 }
 
@@ -38,6 +49,17 @@ function closeErrorDialog() {
   showErrorDialog.value = false;
   currentError.value = "";
 }
+
+watch(
+  () => store.pasteError,
+  (error) => {
+    if (!error) {
+      return;
+    }
+    showError(error);
+    store.clearPasteError();
+  }
+);
 </script>
 
 <template>
@@ -46,7 +68,21 @@ function closeErrorDialog() {
     <div class="settings-content">
       <div class="settings-section">
         <div class="settings-section-content">
-          <PartitionTable @add="addEmptyRow" @save="store.save">
+          <PartitionTable
+            :segments="layout.segments"
+            :warnings="layout.warnings"
+            :flash-size="layout.flashSize"
+            :used-bytes="layout.usedBytes"
+            :free-bytes="layout.freeBytes"
+            :partition-table-offset="layout.partitionTableOffset"
+            :keep-equal-ota-slots="store.keepEqualOtaSlots"
+            @add="addEmptyRow"
+            @save="store.save"
+            @preset="store.applyPreset"
+            @copy="store.copyCsv"
+            @paste="store.requestPaste"
+            @toggle-equal-ota="store.setKeepEqualOtaSlots"
+          >
             <Row
               v-for="(row, i) in store.rows"
               :key="i"
@@ -56,10 +92,16 @@ function closeErrorDialog() {
               :sOffset="row.offset"
               :sSize="row.size"
               :sFlag="row.flag"
+              :sReadOnly="!!row.readOnly"
+              :layout="layout.partitions[i]"
               :error="row.error ? row.error : ''"
               @delete="store.rows.splice(i, 1)"
               @updateRow="(prop, newValue) => updateRow(i, prop, newValue)"
               @showError="showError"
+              @setSize="(bytes) => store.setPartitionSize(i, bytes)"
+              @reclaim="store.reclaimPartition(i)"
+              @fit="store.fitPartition(i)"
+              @recommended="store.recommendPartition(i)"
             />
           </PartitionTable>
         </div>

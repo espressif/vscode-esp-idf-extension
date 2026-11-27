@@ -25,6 +25,18 @@ Partition Table Editor
 
 -   Once you are satisfied, click ``Save`` to save the changes. This will override the content of the CSV file.
 
+-   The editor reads ``CONFIG_ESPTOOLPY_FLASHSIZE`` and ``CONFIG_PARTITION_TABLE_OFFSET`` from ``sdkconfig`` and draws a flash map. Each block is a partition, the reserved boot region, or free space. The summary shows used, free, and total flash.
+
+-   Under each partition, the slider and the minus and plus buttons change its size in 4 KB steps (1 KB for a custom non-app partition). ``Reclaim`` takes the free gap immediately after that partition. ``Fit`` grows it into the remaining flash. ``Recommended`` snaps NVS, otadata, FAT, SPIFFS, LittleFS, coredump, and phy partitions to their minimum size. Sizes are saved as ``K`` or ``M`` when the value divides evenly, otherwise as hexadecimal.
+
+-   A blank offset stays blank in the CSV. The map aligns data partitions to 4 KB and app partitions to 64 KB, starting at the partition table offset plus 4 KB. An offset already written in the CSV stays fixed.
+
+-   A preset replaces the rows: single factory app, OTA with SPIFFS, OTA with FAT, or Zigbee ESP-IDF. ``Save`` writes the file. ``Keep equal OTA slots`` (on by default) resizes ``ota_0`` and ``ota_1`` together.
+
+-   Warnings for overlap, flash overflow, leftover free space, an OTA app without ``otadata``, and OTA without NVS do not block ``Save``. Field validation still blocks ``Save``. ``Copy CSV`` and ``Paste CSV`` use the editor clipboard.
+
+-   Data subtypes include ``littlefs`` and ``efuse``. Choose ``custom`` to enter a type from ``0x40`` to ``0xFE`` and a subtype from ``0x00`` to ``0xFE``. Flags can be ``encrypted`` and ``readonly``.
+
 -   Now you can click ``Select Flash Method``, ``Build``, and ``Flash`` buttons at the top right to build and flash the partition table to the chip.
 
 -   To read a partition from the connected device or flash a binary to one partition, use the :doc:`Device Partition Explorer <device-partition-explorer>`.

@@ -23,7 +23,9 @@ import {
   Uri,
   Disposable,
   Webview,
+  env,
 } from "vscode";
+import { PartitionEditorMetadata } from "./flashMetadata";
 import { join } from "path";
 import { ESP } from "../../config";
 import { writeFile } from "fs-extra";
@@ -38,21 +40,27 @@ export class PartitionTableEditorPanel {
   private readonly extensionPath: string;
 
   private filePath: string;
+  private metadata: PartitionEditorMetadata;
 
-  public static show(extensionPath: string, filePath: string) {
+  public static show(
+    extensionPath: string,
+    filePath: string,
+    metadata: PartitionEditorMetadata
+  ) {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
       : undefined;
     if (!!PartitionTableEditorPanel.instance) {
+      PartitionTableEditorPanel.instance.metadata = metadata;
       if (PartitionTableEditorPanel.instance.filePath === filePath) {
-        return PartitionTableEditorPanel.instance.panel.reveal(column);
+        PartitionTableEditorPanel.instance.panel.reveal(column);
+      } else {
+        PartitionTableEditorPanel.instance.filePath = filePath;
       }
-      // new filepath so update the webview
       PartitionTableEditorPanel.instance.getCSVFrom(filePath).then((csv) => {
-        if(!PartitionTableEditorPanel.instance) {
+        if (!PartitionTableEditorPanel.instance) {
           return;
         }
-        PartitionTableEditorPanel.instance.filePath = filePath;
         PartitionTableEditorPanel.instance.initDataToWebview(csv);
       });
       return;
@@ -71,7 +79,8 @@ export class PartitionTableEditorPanel {
     PartitionTableEditorPanel.instance = new PartitionTableEditorPanel(
       panel,
       extensionPath,
-      filePath
+      filePath,
+      metadata
     );
   }
 
@@ -87,11 +96,13 @@ export class PartitionTableEditorPanel {
   private constructor(
     panel: WebviewPanel,
     extensionPath: string,
-    filePath: string
+    filePath: string,
+    metadata: PartitionEditorMetadata
   ) {
     this.panel = panel;
     this.extensionPath = extensionPath;
     this.filePath = filePath;
+    this.metadata = metadata;
     this.panel.onDidDispose(() => this.dispose(), null, this.disposable);
     this.panel.webview.onDidReceiveMessage(
       (e) => this.onMessage(e),
@@ -131,7 +142,11 @@ export class PartitionTableEditorPanel {
     }
   }
   private initDataToWebview(csv: string) {
-    this.sendMessageToWebView("loadInitialData", { csv });
+    this.sendMessageToWebView("loadInitialData", {
+      csv,
+      flashSizeBytes: this.metadata.flashSizeBytes,
+      partitionTableOffset: this.metadata.partitionTableOffset,
+    });
   }
   private sendMessageToWebView(command: string, payload: object) {
     if (this.panel && this.panel.webview) {
@@ -160,6 +175,42 @@ export class PartitionTableEditorPanel {
             false
           );
         }
+        break;
+      case "copyCsv":
+        if (typeof message.csv === "string") {
+          void env.clipboard.writeText(message.csv).then(
+            () => {
+              Logger.infoNotify("Partition table CSV copied to the clipboard.");
+            },
+            (error: unknown) => {
+              const err = error instanceof Error ? error : new Error(String(error));
+              Logger.error(
+                "Failed to copy the partition table CSV to the clipboard.",
+                err,
+                "PartitionTableEditorPanel copyCsv",
+                undefined,
+                false
+              );
+            }
+          );
+        }
+        break;
+      case "pasteCsv":
+        void env.clipboard.readText().then(
+          (csv) => {
+            this.sendMessageToWebView("pasteCsvData", { csv });
+          },
+          (error: unknown) => {
+            const err = error instanceof Error ? error : new Error(String(error));
+            Logger.error(
+              "Failed to read a partition table CSV from the clipboard.",
+              err,
+              "PartitionTableEditorPanel pasteCsv",
+              undefined,
+              false
+            );
+          }
+        );
         break;
       default:
         break;

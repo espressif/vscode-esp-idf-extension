@@ -17,7 +17,16 @@
  */
 import { defineStore } from "pinia";
 import { Ref, ref } from "vue";
-import { JSON2CSV, isValidJSON } from "./util";
+import {
+  applySize,
+  fitSize,
+  LayoutInputRow,
+  reclaimSize,
+  recommendSize,
+} from "./layout";
+import { createPresetRows } from "./presets";
+import { CSV2JSON, JSON2CSV, isValidJSON } from "./util";
+import { DEFAULT_PARTITION_TABLE_OFFSET } from "../../espIdf/partition-table/flashMetadata";
 
 declare var acquireVsCodeApi: any;
 let vscode: any;
@@ -35,6 +44,8 @@ export namespace PartitionTable {
     offset: string;
     size: string;
     flag: boolean;
+    /** CSV flag `readonly`. Omitted on older rows. */
+    readOnly?: boolean;
     error: string;
   }
   export interface State {
@@ -46,6 +57,10 @@ export namespace PartitionTable {
 export const usePartitionTableStore = defineStore("partitionTable", () => {
   const rows: Ref<PartitionTable.Row[]> = ref([]);
   const dirty: Ref<boolean> = ref(false);
+  const flashSizeBytes: Ref<number> = ref(0);
+  const partitionTableOffset: Ref<number> = ref(DEFAULT_PARTITION_TABLE_OFFSET);
+  const keepEqualOtaSlots: Ref<boolean> = ref(true);
+  const pasteError: Ref<string> = ref("");
 
   function addRow(row: PartitionTable.Row) {
     rows.value.push(row);
@@ -83,12 +98,151 @@ export const usePartitionTableStore = defineStore("partitionTable", () => {
     });
   }
 
+  function loadInitial(
+    next: PartitionTable.Row[],
+    flashBytes: number,
+    tableOffset: number
+  ) {
+    rows.value = next;
+    flashSizeBytes.value = flashBytes;
+    partitionTableOffset.value = tableOffset;
+    dirty.value = false;
+  }
+
+  function replaceRows(next: PartitionTable.Row[]) {
+    rows.value = next;
+    dirty.value = true;
+  }
+
+  function applyPreset(id: string) {
+    const next = createPresetRows(id);
+    if (!next) {
+      return;
+    }
+    replaceRows(next);
+  }
+
+  function setKeepEqualOtaSlots(enabled: boolean) {
+    keepEqualOtaSlots.value = enabled;
+  }
+
+  function applySizeUpdates(updates: { index: number; size: string }[]) {
+    let changed = false;
+    for (const update of updates) {
+      const row = rows.value[update.index];
+      if (!row || row.size === update.size) {
+        continue;
+      }
+      row.size = update.size;
+      row.error = "";
+      changed = true;
+    }
+    if (changed) {
+      dirty.value = true;
+    }
+  }
+
+  function layoutRows(): LayoutInputRow[] {
+    return rows.value;
+  }
+
+  function setPartitionSize(index: number, bytes: number) {
+    applySizeUpdates(
+      applySize(
+        layoutRows(),
+        index,
+        bytes,
+        flashSizeBytes.value,
+        partitionTableOffset.value,
+        keepEqualOtaSlots.value
+      )
+    );
+  }
+
+  function reclaimPartition(index: number) {
+    applySizeUpdates(
+      reclaimSize(
+        layoutRows(),
+        index,
+        flashSizeBytes.value,
+        partitionTableOffset.value,
+        keepEqualOtaSlots.value
+      )
+    );
+  }
+
+  function fitPartition(index: number) {
+    applySizeUpdates(
+      fitSize(
+        layoutRows(),
+        index,
+        flashSizeBytes.value,
+        partitionTableOffset.value,
+        keepEqualOtaSlots.value
+      )
+    );
+  }
+
+  function recommendPartition(index: number) {
+    applySizeUpdates(
+      recommendSize(
+        layoutRows(),
+        index,
+        flashSizeBytes.value,
+        partitionTableOffset.value,
+        keepEqualOtaSlots.value
+      )
+    );
+  }
+
+  function copyCsv() {
+    vscode.postMessage({
+      command: "copyCsv",
+      csv: JSON2CSV(rows.value),
+    });
+  }
+
+  function requestPaste() {
+    vscode.postMessage({
+      command: "pasteCsv",
+    });
+  }
+
+  function consumePaste(csv: string) {
+    const parsed = CSV2JSON<PartitionTable.Row>(csv);
+    if (!parsed.length) {
+      pasteError.value = "Clipboard does not contain an ESP-IDF partition table CSV.";
+      return;
+    }
+    replaceRows(parsed);
+  }
+
+  function clearPasteError() {
+    pasteError.value = "";
+  }
+
   return { 
     rows,
     dirty,
+    flashSizeBytes,
+    partitionTableOffset,
+    keepEqualOtaSlots,
+    pasteError,
     addRow,
     deleteRow,
     save,
-    initDataRequest
+    initDataRequest,
+    loadInitial,
+    replaceRows,
+    applyPreset,
+    setKeepEqualOtaSlots,
+    setPartitionSize,
+    reclaimPartition,
+    fitPartition,
+    recommendPartition,
+    copyCsv,
+    requestPaste,
+    consumePaste,
+    clearPasteError,
   }
 });

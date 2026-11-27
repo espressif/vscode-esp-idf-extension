@@ -34,6 +34,11 @@ import { join } from "path";
 import { Logger } from "../../common/logger";
 import { PartitionTableEditorPanel } from "./panel";
 import {
+  DEFAULT_PARTITION_TABLE_OFFSET,
+  parseFlashSizeBytes,
+  parsePartitionTableOffset,
+} from "./flashMetadata";
+import {
   invalidCommandInvocation,
   partitionCustomTableNotEnabled,
   partitionSdkconfigRequired,
@@ -295,9 +300,44 @@ export function registerPartitionTableCommands(context: ExtensionContext) {
       if (!filePath) {
         return;
       }
-      PartitionTableEditorPanel.show(context.extensionPath, filePath);
+      PartitionTableEditorPanel.show(
+        context.extensionPath,
+        filePath,
+        await readPartitionEditorMetadata()
+      );
     }
   );
+}
+
+async function readPartitionEditorMetadata() {
+  try {
+    const wsFolder = ESP.GlobalConfiguration.store.getSelectedWorkspaceFolder();
+    const flashRaw = await getConfigValueFromSDKConfig(
+      "CONFIG_ESPTOOLPY_FLASHSIZE",
+      wsFolder.uri
+    );
+    const offsetRaw = await getConfigValueFromSDKConfig(
+      "CONFIG_PARTITION_TABLE_OFFSET",
+      wsFolder.uri
+    );
+    return {
+      flashSizeBytes: parseFlashSizeBytes(flashRaw),
+      partitionTableOffset: parsePartitionTableOffset(offsetRaw),
+    };
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    Logger.error(
+      "Partition table editor could not read flash size from sdkconfig.",
+      err,
+      "esp.webview.open.partition-table",
+      undefined,
+      false
+    );
+    return {
+      flashSizeBytes: 0,
+      partitionTableOffset: DEFAULT_PARTITION_TABLE_OFFSET,
+    };
+  }
 }
 
 function isDataPartition(type: string): boolean {
