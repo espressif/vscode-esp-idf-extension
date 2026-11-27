@@ -17,6 +17,7 @@
  */
 
 import { ExtensionContext, l10n, Uri, window } from "vscode";
+import { execChildProcess } from "../support/execChildProcess";
 import { isBinInPath } from "../utils";
 import { pathExists, readFile, writeFile } from "fs-extra";
 import { getIdfBuildPath } from "../configuration/workspace";
@@ -29,7 +30,10 @@ import { registerIDFCommand } from "../common/registerCommand";
 import { openFolderCheck, PreCheck } from "../common/PreCheck";
 import { idfToolNotFound, parseError } from "../common/error/knownError";
 import { ESP } from "../config";
-import { getCurrentIdfConfiguration } from "../configuration/env";
+import {
+  getCurrentIdfConfiguration,
+  getCurrentIdfEnvVar,
+} from "../configuration/env";
 
 export function registerClangCommands(context: ExtensionContext) {
   registerIDFCommand(context, "espIdf.setClangSettings", async () => {
@@ -65,12 +69,85 @@ export async function setClangSettings(
     }
     return;
   }
-  settingsJson["clangd.path"] = espClangPath;
-  settingsJson["clangd.arguments"] = [
+  const clangdArguments = [
     "--background-index",
     `--query-driver=**`,
     `--compile-commands-dir=${buildPath}`,
   ];
+  const clangdConfigFile = await resolveEspClangdConfigFile(
+    idfPathForClangConfig(settingsJson)
+  );
+  // esp-clang 20 exits if this option is present. Keep the other arguments.
+  if (
+    clangdConfigFile &&
+    (await clangdSupportsCustomConfigFile(espClangPath))
+  ) {
+    clangdArguments.push(`--custom-config-file=${clangdConfigFile}`);
+  }
+  settingsJson["clangd.path"] = espClangPath;
+  settingsJson["clangd.arguments"] = clangdArguments;
+}
+
+/**
+ * Prefer the ESP-IDF named in these settings. The wizard writes
+ * idf.currentSetup first, so a 5.2 project does not take the yaml from the
+ * setup loaded in the window.
+ */
+function idfPathForClangConfig(settingsJson: any): string | undefined {
+  const currentSetup = settingsJson["idf.currentSetup"];
+  if (typeof currentSetup === "string" && currentSetup !== "") {
+    return currentSetup;
+  }
+  const idfPath = settingsJson["idf.customExtraVars"]?.["IDF_PATH"];
+  if (typeof idfPath === "string" && idfPath !== "") {
+    return idfPath;
+  }
+  return getCurrentIdfEnvVar("IDF_PATH");
+}
+
+let clangdSupportsCustomConfigFileForTests:
+  | ((clangdPath: string) => Promise<boolean>)
+  | undefined;
+
+/** Unit tests substitute the `clangd --help` probe. */
+export function setClangdSupportsCustomConfigFileForTests(
+  probe: ((clangdPath: string) => Promise<boolean>) | undefined
+): void {
+  clangdSupportsCustomConfigFileForTests = probe;
+}
+
+async function clangdSupportsCustomConfigFile(
+  clangdPath: string
+): Promise<boolean> {
+  if (clangdSupportsCustomConfigFileForTests) {
+    return clangdSupportsCustomConfigFileForTests(clangdPath);
+  }
+  try {
+    const help = await execChildProcess(clangdPath, ["--help"], process.cwd(), {
+      timeout: 15000,
+      windowsHide: true,
+    });
+    return help.includes("--custom-config-file");
+  } catch (error) {
+    Logger.error(
+      "Could not read clangd --help, so --custom-config-file was not added.",
+      error instanceof Error ? error : new Error(String(error)),
+      "clang index clangdSupportsCustomConfigFile",
+      undefined,
+      false
+    );
+    return false;
+  }
+}
+
+async function resolveEspClangdConfigFile(
+  idfPath: string | undefined
+): Promise<string | undefined> {
+  if (!idfPath) {
+    return undefined;
+  }
+  const configFile = join(idfPath, "tools", "clangd-config.yaml");
+  return (await pathExists(configFile)) ? configFile : undefined;
 }
 
 export async function configureClangSettings(
